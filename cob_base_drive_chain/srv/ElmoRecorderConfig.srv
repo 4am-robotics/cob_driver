@@ -1,0 +1,9 @@
+#This service is used to configure the Elmo Recorder.
+
+#Specify every which time quantum (4*90usec) a new data point (of 1024 points in total) is recorded. the recording process starts immediately.
+int64 recordinggap
+
+---
+#You get a success code, that will be 0
+int64 success
+string message

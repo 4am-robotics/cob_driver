@@ -6,6 +6,7 @@
 	<param name="hztest_camera_left/hz" value="55.0" />
 	<param name="hztest_camera_left/hzerror" value="55.0" />
 	<param name="hztest_camera_left/test_duration" value="10.0" />
+        <param name="hztest_camera_left/wait_time" value="300.0" />
 	<test test-name="hz_camera_left" pkg="rostest" type="hztest" name="hztest_camera_left" />
 
 	<!-- hztest camera_info -->

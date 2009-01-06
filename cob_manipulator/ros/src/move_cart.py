@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import roslib; roslib.load_manifest('cob_arm')
+import roslib; roslib.load_manifest('cob_manipulator')
 import tf
 from kinematics_msgs.srv import *
 from sensor_msgs.msg import JointState
@@ -9,27 +9,19 @@ import time
 import actionlib
 from pr2_controllers_msgs.msg import *
 from cob_srvs.srv import *
-from cob_msgs.msg import *
 from trajectory_msgs.msg import *
 from geometry_msgs.msg import *
 
-class ik_solver:
+class move_cart:
 
 	def __init__(self):
-		if rospy.has_param('joint_names'):
-			self.joint_names = rospy.get_param('joint_names')
-		else:
-			rospy.logerror("joint_names not available")
-			return
 		self.configuration = [0,0,0,0,0,0,0]
 		self.lock = threading.Lock()
 		self.received_state = False
 		self.listener = tf.TransformListener()
 		time.sleep(0.5)
-		self.service = rospy.Service("move_cart_abs", MoveCart, self.cbIKSolverAbs)
-		#self.service = rospy.Service("move_cart_rel", MoveCart, self.cbIKSolverRel)
 		self.client = actionlib.SimpleActionClient('joint_trajectory_action', JointTrajectoryAction)
-		self.as_ = actionlib.SimpleActionServer("move_cart_rel", MoveCartAction, execute_cb=self.cbIKSolverRel)
+		self.as_ = actionlib.SimpleActionServer("move_cart", MoveCartAction, execute_cb=self.cbMoveCart)
 		if not self.client.wait_for_server(rospy.Duration(15)):
 			rospy.logerr("arm action server not ready within timeout, aborting...")
 			return
@@ -37,14 +29,14 @@ class ik_solver:
 			rospy.logdebug("arm action server ready")
 
 		rospy.Subscriber('/joint_states', JointState, self.joint_states_callback)
-		#self.thread = threading.Thread(target=self.joint_states_listener)
-		#self.thread.start()
+		self.thread = threading.Thread(target=self.joint_states_listener)
+		self.thread.start()
 		rospy.wait_for_service('get_ik')
 		self.iks = rospy.ServiceProxy('get_ik', GetPositionIK)
+		rospy.loginfo("move cart interface is ready")
 
 	#thread function: listen for joint_states messages
 	def joint_states_listener(self):
-		print "joint_states_listener"
 		rospy.Subscriber('/joint_states', JointState, self.joint_states_callback)
 		rospy.spin()
 
@@ -53,8 +45,8 @@ class ik_solver:
 	def joint_states_callback(self, msg):
 		self.lock.acquire()
 		for k in range(7):
+			joint_name = "arm_" + str(k+1) + "_joint"
 			for i in range(len(msg.name)):
-				joint_name = "arm_" + str(k+1) + "_joint"
 				if(msg.name[i] == joint_name):
 					self.configuration[k] = msg.position[i]
 		self.name = msg.name
@@ -62,65 +54,30 @@ class ik_solver:
 		self.velocity = msg.velocity
 		self.effort = msg.effort
 		self.received_state = True
-		#print "Current Configuration: ", self.configuration
 		self.lock.release()
 
-	def cbIKSolverAbs(self, msg):
-		new_config = self.callIKSolver(msg.goal_pose.pose)
-		self.moveArm(new_config)
-
-	
-	def cbIKSolverRel(self, msg):
+	def cbMoveCart(self,msg):
 		result = MoveCartResult()
 		feedback = MoveCartFeedback()
-		#try:
-		#	(trans,rot) = self.listener.lookupTransform('base_link', 'arm_7_link', rospy.Time(0))
-		#except tf.LookupException as lex:
-		#	print "Error Lookup"
-		#	print lex
-		#except tf.ConnectivityException as cex:
-		#	print "Error Connectivity"
-		#	print cex
-		
-		#print "Transform to target_frame: "
-		#print msg.goal_pose
-		msg.goal_pose.header.stamp = self.listener.getLatestCommonTime("/base_link",msg.goal_pose.header.frame_id)
-		relpos = self.listener.transformPose("/base_link", msg.goal_pose)
-		#print "Transform done: ", relpos
-		
-		#relpos.position.x = trans[0] + msg.goal_pose.pose.position.x
-		#relpos.position.y = trans[1] + msg.goal_pose.pose.position.y
-		#relpos.position.z = trans[2] + msg.goal_pose.pose.position.z
-		#angles_cmd = tf.transformations.euler_from_quaternion([msg.goal_pose.pose.orientation.x, msg.goal_pose.pose.orientation.y, msg.goal_pose.pose.orientation.z, msg.goal_pose.pose.orientation.w])
-		#angles_cur = tf.transformations.euler_from_quaternion([rot[0], rot[1], rot[2], rot[3]])
-		
-		#qrel = tf.transformations.quaternion_from_euler(angles_cmd[0]+angles_cur[0], angles_cmd[1]+angles_cur[1], angles_cmd[2]+angles_cur[2])
-
-		#check for uninitialized msg
-		#if(msg.goal_pose.pose.orientation.x == 0.0 and msg.goal_pose.pose.orientation.y == 0.0 and msg.goal_pose.pose.orientation.z == 0.0 and msg.goal_pose.pose.orientation.w == 0.0):
-		#	msg.goal_pose.pose.orientation.w = 1.0
-		#qrel = tf.transformations.quaternion_multiply([msg.goal_pose.pose.orientation.x, msg.goal_pose.pose.orientation.y, msg.goal_pose.pose.orientation.z, msg.goal_pose.pose.orientation.w], [rot[0], rot[1], rot[2], rot[3]])
-		#print qrel
-		#relpos.orientation.x = qrel[0]
-		#relpos.orientation.y = qrel[1]
-		#relpos.orientation.z = qrel[2]
-		#relpos.orientation.w = qrel[3]
+		#msg.goal_pose.header.stamp = self.listener.getLatestCommonTime("/arm_0_link",msg.goal_pose.header.frame_id)
+		self.listener.waitForTransform("/arm_0_link",msg.goal_pose.header.frame_id,rospy.Time(),rospy.Duration(5))
 		print "Calling IK Server"
-		(new_config, error_code) = self.callIKSolver(relpos.pose)
+		(new_config, error_code) = self.callIKSolver(msg.goal_pose)
 		if(error_code.val == error_code.SUCCESS):
 			self.moveArm(new_config)
 			result.return_value = 0
 			self.as_.set_succeeded(result)
 		else:
 			result.return_value = 1
+			rospy.logerr("no ik solution found")
 			self.as_.set_aborted(result);
 	
-	def moveArm(self, pose):
+	def moveArm(self, positions):
 		goal = JointTrajectoryGoal()
 		goalp = JointTrajectory()
 		goalp.joint_names = ["arm_1_joint","arm_2_joint","arm_3_joint","arm_4_joint","arm_5_joint","arm_6_joint","arm_7_joint"]
 		point=JointTrajectoryPoint()
-		point.positions=pose
+		point.positions=positions
 		point.time_from_start=rospy.Duration(3)
 		goalp.points.append(point)
 		goal.trajectory = goalp
@@ -128,23 +85,20 @@ class ik_solver:
 		self.client.send_goal(goal)
 		self.client.wait_for_result()
 
-	def callIKSolver(self, goal_pose):
+	def callIKSolver(self, goal_pose_stamped):
 		while(not self.received_state):
 			time.sleep(0.1)
 		req = GetPositionIKRequest()
+		req.ik_request.ik_seed_state.joint_state.name = ["arm_%d_joint" % (i+1) for i in range(7)]
 		req.ik_request.ik_seed_state.joint_state.position = self.configuration
-		req.ik_request.pose_stamped.pose = goal_pose
+		req.ik_request.pose_stamped = goal_pose_stamped
+		req.timeout = rospy.Duration(5)
 		resp = self.iks(req)
+		print resp.error_code
 		return (resp.solution.joint_state.position, resp.error_code)
-	
-		
-		
-		
-
-
 
 if __name__ == "__main__":
-	rospy.init_node('ik_solver_test')
+	rospy.init_node('move_cart')
 	time.sleep(0.5)
-	iks = ik_solver()
+	mc = move_cart()
 	rospy.spin()
