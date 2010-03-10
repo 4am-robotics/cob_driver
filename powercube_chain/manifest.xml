@@ -1,0 +1,19 @@
+<package>
+  <description brief="powercube_chain">
+
+     powercube_chain
+
+  </description>
+  <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://www.care-o-bot.org</url>
+  
+  <depend package="roscpp"/>
+  <depend package="sensor_msgs"/>
+  <depend package="cob3_msgs"/>
+  <depend package="cob3_srvs"/>
+  <depend package="libpcan"/>
+  <depend package="libm5api"/>
+
+</package>

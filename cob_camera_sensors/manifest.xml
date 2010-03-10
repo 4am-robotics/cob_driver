@@ -1,0 +1,29 @@
+<package>
+  <description brief="cob_camera_sensors">
+
+     cob_camera_sensors
+
+  </description>
+  <author>Jan Fischer, email:jan.fischer@ipa.fhg.de</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://www.care-o-bot.org</url>
+
+  <depend package="roscpp"/>
+  <depend package="sensor_msgs"/>
+  <depend package="tinyxml"/>
+  <depend package="opencv2"/>
+  <depend package="libwm4"/>
+  <depend package="image_transport"/>
+  <depend package="polled_camera"/>
+  <depend package="cv_bridge"/>
+  <depend package="cob_vision_utils"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_camera_sensors"/>
+  </export>
+
+  <rosdep name="libdc1394"/>
+  <rosdep name="libmesasr"/>
+
+</package>

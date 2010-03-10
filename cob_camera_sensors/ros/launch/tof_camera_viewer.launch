@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- start left camera -->
+  <node pkg="cob_camera_sensors" type="tof_camera_viewer" name="tof_camera_viewer" cwd="node" respawn="false" output="screen">
+  </node>
+
+</launch>

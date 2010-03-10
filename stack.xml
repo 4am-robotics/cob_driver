@@ -1,0 +1,23 @@
+<stack>
+  <description brief="cob3_driver">
+
+     cob3_driver
+
+  </description>
+  <author>Maintained by Florian Weisshardt, email: florian.weisshardt@ipa.fhg.de</author>
+  <license>BSD,LGPL</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://www.care-o-bot.org</url>
+
+  <depend stack="cob3_common" /> <!-- cob3_msgs, cob3_srvs -->
+  <depend stack="cob3_extern" /> <!-- libpcan, libm5api, libwm4, libntcan -->
+  <depend stack="common" /> <!-- tinyxml -->
+  <depend stack="common_msgs" /> <!-- nav_msgs, geometry_msgs, sensor_msgs -->
+  <depend stack="geometry" /> <!-- tf -->
+  <depend stack="joystick_drivers" /> <!-- joy, ps3joy -->
+  <depend stack="laser_drivers" /> <!-- hokuyo_node -->
+  <depend stack="ros" /> <!-- roscpp -->
+  <depend stack="slam_gmapping" /> <!-- gmapping -->
+  <depend stack="vision_opencv" /> <!-- opencv2 -->
+
+</stack>
