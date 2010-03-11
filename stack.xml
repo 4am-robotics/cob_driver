@@ -7,17 +7,17 @@
   <author>Maintained by Florian Weisshardt, email: florian.weisshardt@ipa.fhg.de</author>
   <license>BSD,LGPL</license>  
   <review status="unreviewed" notes=""/>
-  <url>http://www.care-o-bot.org</url>
-
-  <depend stack="cob3_common" /> <!-- cob3_msgs, cob3_srvs -->
-  <depend stack="cob3_extern" /> <!-- libpcan, libm5api, libwm4, libntcan -->
-  <depend stack="common" /> <!-- tinyxml -->
+  <url>http://ros.org/wiki/cob_driver</url>
+  <depend stack="cob_common" /> <!-- cob_msgs, cob_utilities, canopen_motor, cob_vision_utils, cob_srvs, generic_can -->
+  <depend stack="cob_extern" /> <!-- libpcan, libm5api, libwm4, libntcan -->
+  <depend stack="cob_simulation" /> <!-- cob3_defs -->
+  <depend stack="common" /> <!-- actionlib, tinyxml -->
   <depend stack="common_msgs" /> <!-- nav_msgs, geometry_msgs, sensor_msgs -->
   <depend stack="geometry" /> <!-- tf -->
-  <depend stack="joystick_drivers" /> <!-- joy, ps3joy -->
+  <depend stack="image_common" /> <!-- polled_camera, image_transport -->
   <depend stack="laser_drivers" /> <!-- hokuyo_node -->
+  <depend stack="pr2_controllers" /> <!-- pr2_controllers_msgs -->
   <depend stack="ros" /> <!-- roscpp -->
-  <depend stack="slam_gmapping" /> <!-- gmapping -->
-  <depend stack="vision_opencv" /> <!-- opencv2 -->
+  <depend stack="vision_opencv" /> <!-- opencv2, cv_bridge -->
 
 </stack>
