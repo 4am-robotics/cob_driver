@@ -10,13 +10,12 @@
   <url>http://www.care-o-bot.org</url>
 
   <depend package="roscpp"/>
-  <depend package="cob3_msgs"/>
-  <depend package="cob3_srvs"/>
+  <depend package="cob_msgs"/>
+  <depend package="cob_srvs"/>
   <depend package="powercube_chain"/>
   <depend package="cob3_defs"/>
   <depend package="actionlib"/>
   <depend package="pr2_controllers_msgs"/>
   <depend package="geometry_msgs"/>
-  <depend package="kinematics_msgs"/>
 
 </package>

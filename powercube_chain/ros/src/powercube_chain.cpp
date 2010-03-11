@@ -61,12 +61,11 @@
 
 // ROS message includes
 #include <sensor_msgs/JointState.h>
-#include <cob3_msgs/JointCommand.h>
+#include <cob_msgs/JointCommand.h>
 
 // ROS service includes
-#include <cob3_srvs/Init.h>
-#include <cob3_srvs/Stop.h>
-#include <cob3_srvs/SetOperationMode.h>
+#include <cob_srvs/Trigger.h>
+#include <cob_srvs/SetOperationMode.h>
 
 // external includes
 #include <powercube_chain/PowerCubeCtrl.h>
@@ -124,7 +123,7 @@ class NodeClass
 
         // topic callback functions 
         // function will be called when a new message arrives on a topic
-        void topicCallback_JointCommand(const cob3_msgs::JointCommand::ConstPtr& msg)
+        void topicCallback_JointCommand(const cob_msgs::JointCommand::ConstPtr& msg)
         {
             std::string operationMode;
             n.getParam("OperationMode", operationMode);
@@ -148,8 +147,8 @@ class NodeClass
 
         // service callback functions
         // function will be called when a service is querried
-        bool srvCallback_Init(cob3_srvs::Init::Request &req,
-                              cob3_srvs::Init::Response &res )
+        bool srvCallback_Init(cob_srvs::Trigger::Request &req,
+                              cob_srvs::Trigger::Response &res )
         {
         	ROS_INFO("Initializing powercubes");
           	
@@ -185,8 +184,8 @@ class NodeClass
             return true;
         }
 
-        bool srvCallback_Stop(cob3_srvs::Stop::Request &req,
-                              cob3_srvs::Stop::Response &res )
+        bool srvCallback_Stop(cob_srvs::Trigger::Request &req,
+                              cob_srvs::Trigger::Response &res )
         {
        	    ROS_INFO("Stopping powercubes");
         
@@ -205,8 +204,8 @@ class NodeClass
             return true;
         }
 
-        bool srvCallback_SetOperationMode(cob3_srvs::SetOperationMode::Request &req,
-                                          cob3_srvs::SetOperationMode::Response &res )
+        bool srvCallback_SetOperationMode(cob_srvs::SetOperationMode::Request &req,
+                                          cob_srvs::SetOperationMode::Response &res )
         {
         	ROS_INFO("Set operation mode to [%s]", req.operationMode.data.c_str());
             n.setParam("OperationMode", req.operationMode.data.c_str());

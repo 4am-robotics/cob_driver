@@ -61,12 +61,11 @@
 #include <ros/ros.h>
 
 // ROS message includes
-#include <cob3_msgs/JointCommand.h>
+#include <cob_msgs/JointCommand.h>
 
 // ROS service includes
-#include <cob3_srvs/Init.h>
-#include <cob3_srvs/Stop.h>
-#include <cob3_srvs/SetOperationMode.h>
+#include <cob_srvs/Trigger.h>
+#include <cob_srvs/SetOperationMode.h>
 
 // external includes
 //--
@@ -96,7 +95,7 @@ int main(int argc, char** argv)
 	ros::NodeHandle n;
 
     // topics to publish
-    ros::Publisher topicPub_JointCommand = n.advertise<cob3_msgs::JointCommand>("joint_commands", 1);
+    ros::Publisher topicPub_JointCommand = n.advertise<cob_msgs::JointCommand>("joint_commands", 1);
         
 	// topics to subscribe, callback is called for new messages arriving
     //--
@@ -105,9 +104,9 @@ int main(int argc, char** argv)
     //--
         
     // service clients
-    ros::ServiceClient srvClient_Init = n.serviceClient<cob3_srvs::Init>("Init");
-    ros::ServiceClient srvClient_Stop = n.serviceClient<cob3_srvs::Stop>("Stop");
-    ros::ServiceClient srvClient_SetOperationMode = n.serviceClient<cob3_srvs::SetOperationMode>("SetOperationMode");
+    ros::ServiceClient srvClient_Init = n.serviceClient<cob_srvs::Trigger>("Init");
+    ros::ServiceClient srvClient_Stop = n.serviceClient<cob_srvs::Trigger>("Stop");
+    ros::ServiceClient srvClient_SetOperationMode = n.serviceClient<cob_srvs::SetOperationMode>("SetOperationMode");
     
     // external code
 	bool srv_querry = false;
@@ -130,7 +129,7 @@ int main(int argc, char** argv)
             case 's':
             {
                 //ROS_INFO("querry service [cob3/arm/Stop]");
-                cob3_srvs::Stop srv;
+                cob_srvs::Trigger srv;
                 srv_querry = srvClient_Stop.call(srv);
                 srv_execute = srv.response.success;
                 srv_errorMessage = srv.response.errorMessage.data.c_str();
@@ -140,7 +139,7 @@ int main(int argc, char** argv)
             case 'i':
             {
             	//ROS_INFO("querry service [cob3/arm/Stop]");
-                cob3_srvs::Init srv;
+                cob_srvs::Trigger srv;
                 srv_querry = srvClient_Init.call(srv);
                 srv_execute = srv.response.success;
                 srv_errorMessage = srv.response.errorMessage.data.c_str();
@@ -149,7 +148,7 @@ int main(int argc, char** argv)
             
             case 'M':
             {
-                cob3_srvs::SetOperationMode srv;
+                cob_srvs::SetOperationMode srv;
                 
                 std::cout << "Choose operation mode ([v] = velocity controll, [p] = position controll): ";
                 std::cin >> c;
@@ -180,7 +179,7 @@ int main(int argc, char** argv)
                 std::cin >> c;
                 
                 int DOF = 7;
-                cob3_msgs::JointCommand msg;
+                cob_msgs::JointCommand msg;
                 msg.header.stamp = ros::Time::now();
                 msg.positions.resize(DOF);
                 msg.velocities.resize(DOF);

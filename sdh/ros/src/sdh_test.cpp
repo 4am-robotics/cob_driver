@@ -8,7 +8,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
+ * ROS stack name: cob_driver
  * ROS package name: sdh
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -61,10 +61,10 @@
 #include <ros/ros.h>
 
 // ROS message includes
-#include <cob3_msgs/JointCommand.h>
+#include <cob_msgs/JointCommand.h>
 
 // ROS service includes
-#include <cob3_srvs/Init.h>
+#include <cob_srvs/Trigger.h>
 
 // external includes
 //--
@@ -94,7 +94,7 @@ int main(int argc, char** argv)
 	ros::NodeHandle n;
 
     // topics to publish
-    ros::Publisher topicPub_JointCommand = n.advertise<cob3_msgs::JointCommand>("joint_commands", 1);
+    ros::Publisher topicPub_JointCommand = n.advertise<cob_msgs::JointCommand>("joint_commands", 1);
         
 	// topics to subscribe, callback is called for new messages arriving
     //--
@@ -103,7 +103,7 @@ int main(int argc, char** argv)
     //--
         
     // service clients
-    ros::ServiceClient srvClient_Init = n.serviceClient<cob3_srvs::Init>("Init");
+    ros::ServiceClient srvClient_Init = n.serviceClient<cob_srvs::Trigger>("Init");
     
     // external code
 	bool srv_querry = false;
@@ -125,7 +125,7 @@ int main(int argc, char** argv)
             case 'C':
             {
                 // create message
-                cob3_msgs::JointCommand msg;
+                cob_msgs::JointCommand msg;
                 msg.positions.resize(7);
                 
                 std::cout << "Choose preset target position ([0=parallel, 1=cyl_closed, 2=cyl_open, 3=sher_closed, 4=sher_open]): ";
@@ -197,7 +197,7 @@ int main(int argc, char** argv)
             case 'i':
             {
             	ROS_INFO("querry service [Init]");
-                cob3_srvs::Init srv;
+                cob_srvs::Trigger srv;
                 srv_querry = srvClient_Init.call(srv);
                 srv_execute = srv.response.success;
                 srv_errorMessage = srv.response.errorMessage.data.c_str();

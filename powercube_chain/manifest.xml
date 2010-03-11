@@ -11,8 +11,8 @@
   
   <depend package="roscpp"/>
   <depend package="sensor_msgs"/>
-  <depend package="cob3_msgs"/>
-  <depend package="cob3_srvs"/>
+  <depend package="cob_msgs"/>
+  <depend package="cob_srvs"/>
   <depend package="libpcan"/>
   <depend package="libm5api"/>
 

@@ -8,7 +8,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
+ * ROS stack name: cob_driver
  * ROS package name: cob3_platform
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -65,9 +65,7 @@
 #include <geometry_msgs/Pose2D.h>
 
 // ROS service includes
-#include <cob3_srvs/Init.h>
-#include <cob3_srvs/Stop.h>
-#include <cob3_srvs/Shutdown.h>
+#include <cob_srvs/Trigger.h>
 
 // external includes
 //--
@@ -91,7 +89,7 @@
 int main(int argc, char** argv)
 {
 	// initialize ROS, spezify name of node
-	ros::init(argc, argv, "cob3_driver_platform_test");
+	ros::init(argc, argv, "cob3_platform_test");
 
 	// create a handle for this node, initialize node
 	ros::NodeHandle n;
@@ -106,9 +104,9 @@ int main(int argc, char** argv)
     //--
         
     // service clients
-    ros::ServiceClient srvClient_Init = n.serviceClient<cob3_srvs::Init>("Init");
-    ros::ServiceClient srvClient_Stop = n.serviceClient<cob3_srvs::Stop>("Stop");
-    ros::ServiceClient srvClient_Shutdown = n.serviceClient<cob3_srvs::Shutdown>("Shutdown");
+    ros::ServiceClient srvClient_Init = n.serviceClient<cob_srvs::Trigger>("Init");
+    ros::ServiceClient srvClient_Stop = n.serviceClient<cob_srvs::Trigger>("Stop");
+    ros::ServiceClient srvClient_Shutdown = n.serviceClient<cob_srvs::Trigger>("Shutdown");
     
     // external code
 	bool srv_querry = false;
@@ -130,7 +128,7 @@ int main(int argc, char** argv)
             case 's':
             {
                 //ROS_INFO("querry service [Stop]");
-                cob3_srvs::Stop srv;
+                cob_srvs::Trigger srv;
                 srv_querry = srvClient_Stop.call(srv);
                 srv_execute = srv.response.success;
                 srv_errorMessage = srv.response.errorMessage.data.c_str();
@@ -141,7 +139,7 @@ int main(int argc, char** argv)
             case 'd':
             {
                 //ROS_INFO("querry service [Shutdown]");
-                cob3_srvs::Shutdown srv;
+                cob_srvs::Trigger srv;
                 srv_querry = srvClient_Shutdown.call(srv);
                 srv_execute = srv.response.success;
                 srv_errorMessage = srv.response.errorMessage.data.c_str();
@@ -151,7 +149,7 @@ int main(int argc, char** argv)
             case 'i':
             {
             	//ROS_INFO("querry service [Init]");
-                cob3_srvs::Init srv;
+                cob_srvs::Trigger srv;
                 srv_querry = srvClient_Init.call(srv);
                 srv_execute = srv.response.success;
                 srv_errorMessage = srv.response.errorMessage.data.c_str();

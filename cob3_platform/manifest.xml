@@ -13,7 +13,7 @@
   <depend package="geometry_msgs"/>
   <depend package="nav_msgs"/>
   <depend package="tf"/>
-  <depend package="cob3_srvs"/>
+  <depend package="cob_srvs"/>
   <depend package="libpcan"/>
   <depend package="libntcan"/>
 

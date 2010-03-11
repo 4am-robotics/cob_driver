@@ -8,7 +8,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
+ * ROS stack name: cob_driver
  * ROS package name: sdh
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -60,11 +60,11 @@
 #include <ros/ros.h>
 
 // ROS message includes
-#include <cob3_msgs/JointCommand.h>
+#include <cob_msgs/JointCommand.h>
 #include <sensor_msgs/JointState.h>
 
 // ROS service includes
-#include <cob3_srvs/Init.h>
+#include <cob_srvs/Trigger.h>
 
 // external includes
 #include <sdh/sdh.h>
@@ -122,7 +122,7 @@ class NodeClass
 
         // topic callback functions 
         // function will be called when a new message arrives on a topic
-        void topicCallback_JointCommand(const cob3_msgs::JointCommand::ConstPtr& msg)
+        void topicCallback_JointCommand(const cob_msgs::JointCommand::ConstPtr& msg)
         {
             ROS_INFO("Received new JointCommand");
             
@@ -163,8 +163,8 @@ class NodeClass
 
         // service callback functions
         // function will be called when a service is querried
-        bool srvCallback_Init(cob3_srvs::Init::Request &req,
-                              cob3_srvs::Init::Response &res )
+        bool srvCallback_Init(cob_srvs::Trigger::Request &req,
+                              cob_srvs::Trigger::Response &res )
         {
         	ROS_INFO("Initializing sdh");
         	

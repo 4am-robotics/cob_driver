@@ -8,7 +8,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
+ * ROS stack name: cob_driver
  * ROS package name: cob3_platform
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -65,9 +65,7 @@
 #include <nav_msgs/Odometry.h>
 
 // ROS service includes
-#include <cob3_srvs/Init.h>
-#include <cob3_srvs/Stop.h>
-#include <cob3_srvs/Shutdown.h>
+#include <cob_srvs/Trigger.h>
 
 // external includes
 #include <cob3_platform/PlatformHardware.h>
@@ -153,8 +151,8 @@ class NodeClass
 
         // service callback functions
         // function will be called when a service is querried
-        bool srvCallback_Init(cob3_srvs::Init::Request &req,
-                              cob3_srvs::Init::Response &res )
+        bool srvCallback_Init(cob_srvs::Trigger::Request &req,
+                              cob_srvs::Trigger::Response &res )
         {
             if(isInitialized == false)
             {
@@ -173,8 +171,8 @@ class NodeClass
             return true;
         }
         
-        bool srvCallback_Stop(cob3_srvs::Stop::Request &req,
-                              cob3_srvs::Stop::Response &res )
+        bool srvCallback_Stop(cob_srvs::Trigger::Request &req,
+                              cob_srvs::Trigger::Response &res )
         {
             if(isInitialized == true)
             {
@@ -193,8 +191,8 @@ class NodeClass
             return true;
         }
 
-        bool srvCallback_Shutdown(cob3_srvs::Shutdown::Request &req,
-                                  cob3_srvs::Shutdown::Response &res )
+        bool srvCallback_Shutdown(cob_srvs::Trigger::Request &req,
+                                  cob_srvs::Trigger::Response &res )
         {
             if(isInitialized == true)
             {
@@ -267,7 +265,7 @@ class NodeClass
 int main(int argc, char** argv)
 {
     // initialize ROS, spezify name of node
-    ros::init(argc, argv, "cob3_driver_platform");
+    ros::init(argc, argv, "cob3_platform");
     
     NodeClass nodeClass;
 
