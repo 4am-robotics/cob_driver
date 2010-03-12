@@ -61,16 +61,18 @@
 #include <ros/ros.h>
 
 // ROS message includes
-#include <std_msgs/String.h>
 #include <sensor_msgs/JointState.h>
+#include <diagnostic_msgs/DiagnosticStatus.h>
 
 // ROS service includes
-#include <std_srvs/Empty.h>
+#include <cob_srvs/Switch.h>
+#include <cob_srvs/GetJointState.h>
+
 
 // external includes
-#include <base_drive_chain/CanCtrlPltfCoB3.h>
-#include <cob3_utilities/IniFile.h>
-#include <cob3_utilities/MathSup.h>
+#include <base_drive_chain/CanCtrlPltfCOb3.h>
+#include <cob_utilities/IniFile.h>
+#include <cob_utilities/MathSup.h>
 
 //####################
 //#### node class ####
@@ -83,6 +85,7 @@ class NodeClass
                 
         // topics to publish
         ros::Publisher topicPub_JointState;
+		ros::Publisher topicPub_Diagnostic;
         
 	    // topics to subscribe, callback is called for new messages arriving
         ros::Subscriber topicSub_JointStateCmd;
@@ -99,7 +102,7 @@ class NodeClass
         
         // global variables
 		// generate can-node handle -> should this realy be public?
-		CanCtrlPltfCoB3 m_CanCtrlPltf;
+		CanCtrlPltfCOb3 m_CanCtrlPltf;
 		bool m_bisInitialized;
         int m_iNumMotors;
 
@@ -111,12 +114,16 @@ class NodeClass
 	    	std::vector<double> vdWheelNtrlPosRad;
 	    };
 	    ParamType m_Param;
+		std::string sIniDirectory;
 
         // Constructor
         NodeClass()
         {
 			// initialization of variables
 			m_bisInitialized = false;
+			sIniDirectory = "NULL/";
+
+			sIniDirectory = "../../COB_INI_DIR/";
 
 			// implementation of topics
             // published topics
@@ -143,34 +150,35 @@ class NodeClass
         void topicCallback_JointStateCmd(const sensor_msgs::JointState::ConstPtr& msg)
         {
 		    int iRet;
+			sensor_msgs::JointState JointStateCmd = *msg;
             // check if velocities lie inside allowed boundaries
 		    for(int i = 0; i < m_iNumMotors; i++)
 		    {
 			    // for steering motors
                 if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
                 {
-			        if (msg.velocity[i] > m_Param.dMaxSteerRateRadpS)
+			        if (JointStateCmd.velocity[i] > m_Param.dMaxSteerRateRadpS)
 			        {
-			        	msg.velocity[i] = m_Param.dMaxSteerRateRadpS;
+			        	JointStateCmd.velocity[i] = m_Param.dMaxSteerRateRadpS;
 			        }
-			        if (msg.velocity[i] < -m_Param.dMaxSteerRateRadpS)
+			        if (JointStateCmd.velocity[i] < -m_Param.dMaxSteerRateRadpS)
 			        {
-			    	    msg.velocity[i] = -m_Param.dMaxSteerRateRadpS;
+			    	    JointStateCmd.velocity[i] = -m_Param.dMaxSteerRateRadpS;
 			        }
                 }
                 else    // for driving motors
-			    if (msg.velocity[i] > m_Param.dMaxDriveRateRadpS)
+			    if (JointStateCmd.velocity[i] > m_Param.dMaxDriveRateRadpS)
 			    {
-			    	msg.velocity[i] = m_Param.dMaxDriveRateRadpS;
+			    	JointStateCmd.velocity[i] = m_Param.dMaxDriveRateRadpS;
 			    }
-			    if (msg.velocity[i] < -m_Param.dMaxDriveRateRadpS)
+			    if (JointStateCmd.velocity[i] < -m_Param.dMaxDriveRateRadpS)
 			    {
-			    	msg.velocity[i] = -m_Param.dMaxDriveRateRadpS;
+			    	JointStateCmd.velocity[i] = -m_Param.dMaxDriveRateRadpS;
 			    }
 
                 // and cmd velocities to Can-Nodes
                 //m_CanCtrlPltf.setVelGearRadS(iCanIdent, dVelEncRadS);
-                iRet = m_CanCtrlPltf.setVelGearRadS(i, msg.velocity[i]);
+                iRet = m_CanCtrlPltf.setVelGearRadS(i, JointStateCmd.velocity[i]);
             }
 
         }
@@ -179,8 +187,8 @@ class NodeClass
         // function will be called when a service is querried
 
 		// Init Can-Configuration
-        bool srvCallback_Init(cob3_srvs::Switch::Request &req,
-                              cob3_srvs::Switch::Response &res )
+        bool srvCallback_Init(cob_srvs::Switch::Request &req,
+                              cob_srvs::Switch::Response &res )
         {
             if(m_bisInitialized == false)
             {
@@ -208,8 +216,8 @@ class NodeClass
         }
 		
 		// reset Can-Configuration
-        bool srvCallback_Reset(cob3_srvs::Switch::Request &req,
-                                     cob3_srvs::Switch::Response &res )
+        bool srvCallback_Reset(cob_srvs::Switch::Request &req,
+                                     cob_srvs::Switch::Response &res )
         {
 	    	res.success = m_CanCtrlPltf.resetPltf();
 		    if (res.success)
@@ -222,8 +230,8 @@ class NodeClass
         }
 		
 		// shutdown Drivers and Can-Node
-        bool srvCallback_Shutdown(cob3_srvs::Switch::Request &req,
-                                     cob3_srvs::Switch::Response &res )
+        bool srvCallback_Shutdown(cob_srvs::Switch::Request &req,
+                                     cob_srvs::Switch::Response &res )
         {
 	    	res.success = m_CanCtrlPltf.shutdownPltf();
 	    	if (res.success)
@@ -234,8 +242,8 @@ class NodeClass
 	    	return true;
         }
 
-        bool srvCallback_GetJointState(cob3_srvs::GetJointState::Request &req,
-                                     cob3_srvs::GetJointState::Response &res )
+        bool srvCallback_GetJointState(cob_srvs::GetJointState::Request &req,
+                                     cob_srvs::GetJointState::Response &res )
         {
             // init local variables
             int iCanEvalStatus, ret, j;
@@ -250,18 +258,22 @@ class NodeClass
 
             // create temporary (local) JointState/Diagnostics Data-Container
             sensor_msgs::JointState jointstate;
-            diagnostic_msgs::Diagnostics diagnostics; 
+            diagnostic_msgs::DiagnosticStatus diagnostics;
+			
+
+			//Do you have to set frame_id manually??
+
 			// get time stamp for header
-			jointstate.header.stamp = ros::Time::now();
-            // set frame_id for header
-            jointstate.header.frame_id = frame_id;
+			//jointstate.header.stamp = ros::Time::now();
+            // set frame_id for header            
+			//jointstate.header.frame_id = frame_id;
 
             // read Can-Buffer
     		iCanEvalStatus = m_CanCtrlPltf.evalCanBuffer();
 
             for(int i = 0; i<m_iNumMotors; i++)
             {
-	    		ret = m_CanCtrlPltf.getGearPosVelRadS(i,  vdAngGearRad[i], vdVelGearRadS[i]);
+	    		ret = m_CanCtrlPltf.getGearPosVelRadS(i,  &vdAngGearRad[i], &vdVelGearRad[i]);
                 // if a steering motor was read -> correct for offset
                 if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
                 {
@@ -290,17 +302,17 @@ class NodeClass
     		bIsError = m_CanCtrlPltf.isPltfError();
 
             // set data to diagnostics
-            if bIsError
+            if(bIsError)
             {
                 diagnostics.level = 2;
-                diagnostics.name = "drive-chain can node"
-                diagnostics.message = "one or more drives are in Error mode"
+                diagnostics.name = "drive-chain can node";
+                diagnostics.message = "one or more drives are in Error mode";
             }
             else
             {
                 diagnostics.level = 0;
-                diagnostics.name = "drive-chain can node"
-                diagnostics.message = "drives operating normal"
+                diagnostics.name = "drive-chain can node";
+                diagnostics.message = "drives operating normal";
             }
 
             // publish diagnostic message
@@ -341,7 +353,7 @@ int main(int argc, char** argv)
 
 //##################################
 //#### function implementations ####
-void NodeClass::initDrives()
+bool NodeClass::initDrives()
 {
     ROS_INFO("Initializing Base Drive Chain");
 
@@ -353,7 +365,7 @@ void NodeClass::initDrives()
 	IniFile iniFile;
     std::string sIniFileName;
 
-    nodeClass.n.param<std::string>("PltfIniLoc", sIniFileName, "Platform/IniFiles/Platform.ini");
+    n.param<std::string>("PltfIniLoc", sIniFileName, "Platform/IniFiles/Platform.ini");
 	iniFile.SetFileName(sIniFileName, "PltfHardwareCoB3.h");
 
     // get max Joint-Velocities (in rad/s) for Steer- and Drive-Joint
@@ -375,7 +387,7 @@ void NodeClass::initDrives()
 	// debug log
 	ROS_INFO("Initializing CanCtrlItf");
 	bool bTemp1;
-	bTemp1 =  m_CanCtrlPltf.initPltf();
+	bTemp1 =  m_CanCtrlPltf.initPltf(sIniDirectory);
 	// debug log
 	ROS_INFO("Initializing done");
 
