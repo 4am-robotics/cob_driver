@@ -78,7 +78,8 @@ private:
 	image_transport::Subscriber m_XYZImageSubscriber;	///< Subscribes to xyz image data
         image_transport::Subscriber m_GrayImageSubscriber;	///< Subscribes to gray image data
 
-	sensor_msgs::CvBridge m_CvBridge;
+	sensor_msgs::CvBridge m_CvBridge0;
+	sensor_msgs::CvBridge m_CvBridge1;
 	
 	IplImage* m_XYZImage32F3;	/// OpenCV image holding the 32bit point cloud
 	IplImage* m_XYZImage8U3;	/// OpenCV image holding the transformed 8bit RGB point cloud
@@ -117,9 +118,9 @@ public:
 	bool Init()
 	{
 		/// Create viewer windows
+		cvStartWindowThread();
 		cvNamedWindow("z data");		
 		cvNamedWindow("gray data");		
-		cvStartWindowThread();
 
 		m_XYZImageSubscriber = m_ImageTransport.subscribe("camera/xyz_data", 1, &CobTofCameraViewerNode::XYZImageCallback, this);
 		m_GrayImageSubscriber = m_ImageTransport.subscribe("camera/gray_data", 1, &CobTofCameraViewerNode::GrayImageCallback, this);
@@ -137,14 +138,14 @@ public:
 
 		try
 		{
-			m_GrayImage32F1 = m_CvBridge.imgMsgToCv(grayImageMsg, "passthrough");
-			
+			m_GrayImage32F1 = m_CvBridge0.imgMsgToCv(grayImageMsg, "passthrough");
+
                 	if (m_GrayImage8U3 == 0)
 	                {
 				m_GrayImage8U3 = cvCreateImage(cvGetSize(m_GrayImage32F1), IPL_DEPTH_8U, 3);
 			}
 
-			ipa_Utils::ConvertToShowImage(m_GrayImage32F1, m_GrayImage8U3);
+			ipa_Utils::ConvertToShowImage(m_GrayImage32F1, m_GrayImage8U3, 1, 0, 10000);
 			cvShowImage("gray data", m_GrayImage8U3);
 		}
 		catch (sensor_msgs::CvBridgeException& e)
@@ -163,7 +164,7 @@ public:
 
 		try
 		{
-			m_XYZImage32F3 = m_CvBridge.imgMsgToCv(xyzImageMsg, "passthrough");
+			m_XYZImage32F3 = m_CvBridge1.imgMsgToCv(xyzImageMsg, "passthrough");
 			
                 	if (m_XYZImage8U3 == 0)
 	                {
