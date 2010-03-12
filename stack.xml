@@ -1,10 +1,10 @@
 <stack>
-  <description brief="cob3_driver">
+  <description brief="cob_driver">
 
-     cob3_driver
+     The cob_driver stack includes packages that provide access to the Care-O-bot hardware over ROS messages and services. E.g. for mobile base, arm, camera_sensors, scanners, etc...
 
   </description>
-  <author>Maintained by Florian Weisshardt, email: florian.weisshardt@ipa.fhg.de</author>
+  <author>Maintained by Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>
   <license>BSD,LGPL</license>  
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_driver</url>
