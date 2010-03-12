@@ -93,17 +93,17 @@ class NodeClass
         // global variables
         std::string port;
 		int baud;
-		bool inverted; // TODO not used at the moment
+		bool inverted;
 		std::string frame_id;
 
         // Constructor
         NodeClass()
         {
             // initialize global variables
-			n.param("port", port, std::string("/dev/ttyUSB0"));
-			n.param("baud", baud, 500000);
-			n.param("inverted", inverted, false);
-			n.param("frame_id", frame_id, std::string("base_laser"));
+			n.param<std::string>("port", port, "/dev/ttyUSB0");
+			n.param<int>("baud", baud, 500000);
+			n.param<bool>("inverted", inverted, false);
+			n.param<std::string>("laser_front/frame_id", frame_id, "base_laser_front");
 
         	// implementation of topics to publish
             topicPub_LaserScan = n.advertise<sensor_msgs::LaserScan>("scan", 1);
@@ -143,6 +143,10 @@ class NodeClass
             
 			// set scan parameters
 //			laserScan.header.frame_id = "base_laser_front"; // TODO read from parameter
+			//if(!n.getParam("frame_id", frame_id))
+			//	frame_id = "ffff";
+			//n.getParam("frame_id", frame_id);
+			//ROS_INFO("Laser frame = %s",frame_id.c_str());
 			laserScan.header.frame_id = frame_id;
 			laserScan.angle_min = vdAngRAD[0]; // first ScanAngle
 			laserScan.angle_max = vdAngRAD[num_readings - 1]; // last ScanAngle
@@ -154,10 +158,19 @@ class NodeClass
 
    			laserScan.set_ranges_size(num_readings);
     		laserScan.set_intensities_size(num_readings);
+			ROS_INFO("LaserScanner Invertiert: %d", inverted);
 			for(int i = 0; i < num_readings; i++)
 			{
-			    laserScan.ranges[i] = vdDistM[i];
-			    laserScan.intensities[i] = vdIntensAU[i];
+				if(inverted)
+				{
+			    	laserScan.ranges[i] = vdDistM[num_readings-1-i];
+			    	laserScan.intensities[i] = vdIntensAU[num_readings-1-i];
+				}
+				else
+				{
+			    	laserScan.ranges[i] = vdDistM[i];
+			    	laserScan.intensities[i] = vdIntensAU[i];
+				}
 			}
         
         	// publish message
@@ -171,7 +184,7 @@ class NodeClass
 int main(int argc, char** argv)
 {
     // initialize ROS, spezify name of node
-    ros::init(argc, argv, "sickS300");
+    ros::init(argc, argv, "sick_s300");
     
     NodeClass nodeClass;
 	ScannerSickS300 SickS300;
@@ -188,7 +201,7 @@ int main(int argc, char** argv)
  	while (!bOpenScan)
  	{
  		ROS_INFO("Opening scanner...");
-		bOpenScan = SickS300.open(pcPort, iBaudRate);
+		bOpenScan = SickS300.open(nodeClass.port.c_str(), iBaudRate);
 		
 		// check, if it is the first try to open scanner
 	 	if(firstTry)
