@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="sick_s300" type="sick_s300" name="scanner_rear" respawn="false" output="screen" >
+	<param name="port" value="/dev/ttyUSB1"/>
+	<param name="baud" value="500000"/>
+	<param name="inverted" value="true"/>
+	<param name="frame_id" value="base_laser_rear"/>
+	<remap from="scan" to="scan_rear"/>
+  </node>
+</launch>
