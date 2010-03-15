@@ -123,7 +123,7 @@ class NodeClass
 			m_bisInitialized = false;
 			sIniDirectory = "NULL/";
 
-			sIniDirectory = "../../COB_INI_DIR/";
+			sIniDirectory = "../../../cob3_platform/ros/bin/Platform/IniFiles/";
 
 			// implementation of topics
             // published topics
