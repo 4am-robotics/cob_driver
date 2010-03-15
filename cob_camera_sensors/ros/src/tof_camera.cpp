@@ -205,7 +205,7 @@ public:
 				ROS_ERROR("Tof image acquisition failed");
 	                        return false;	
 			}
-			
+
 			try
 	                {
 	                        XYZImageMsg = *(sensor_msgs::CvBridge::cvToImgMsg(m_XYZImage32F3, "passthrough"));
