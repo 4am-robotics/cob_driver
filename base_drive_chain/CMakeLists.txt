@@ -35,6 +35,6 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 # add project libs
 rosbuild_add_library(base_drive_chain common/src/CanCtrlPltfCOb3.cpp)
 # add executable
-rosbuild_add_executable(base_drive_chain_exe ros/src/base_drive_chain.cpp)
+rosbuild_add_executable(base_drive_chain_node ros/src/base_drive_chain.cpp)
 
-target_link_libraries(base_drive_chain_exe base_drive_chain canopen_motor_harmonica)
+target_link_libraries(base_drive_chain_node base_drive_chain canopen_motor_harmonica)

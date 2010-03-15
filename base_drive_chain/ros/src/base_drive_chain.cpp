@@ -121,10 +121,7 @@ class NodeClass
         {
 			// initialization of variables
 			m_bisInitialized = false;
-			sIniDirectory = "NULL/";
-
-			sIniDirectory = "../../../cob3_platform/ros/bin/Platform/IniFiles/";
-
+			
 			// implementation of topics
             // published topics
             topicPub_JointState = n.advertise<sensor_msgs::JointState>("JointState", 1);
@@ -363,10 +360,14 @@ bool NodeClass::initDrives()
     // ToDo: replace the following steps by ROS configuration files
     // create Inifile class and set target inifile (from which data shall be read)
 	IniFile iniFile;
-    std::string sIniFileName;
 
-    n.param<std::string>("PltfIniLoc", sIniFileName, "Platform/IniFiles/Platform.ini");
-	iniFile.SetFileName(sIniFileName, "PltfHardwareCoB3.h");
+	/// Parameters are set within the launch file
+	n.param<std::string>("base_drive_chain_node/IniDirectory", sIniDirectory, "Platform/IniFiles/");
+	ROS_DEBUG("IniDirectory loaded from Parameter-Server is:");
+	
+
+    //n.param<std::string>("PltfIniLoc", sIniFileName, "Platform/IniFiles/Platform.ini");
+	iniFile.SetFileName(sIniDirectory + "Platform.ini", "PltfHardwareCoB3.h");
 
     // get max Joint-Velocities (in rad/s) for Steer- and Drive-Joint
 	iniFile.GetKeyDouble("DrivePrms", "MaxDriveRate", &m_Param.dMaxDriveRateRadpS, true);
