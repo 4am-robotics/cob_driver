@@ -121,6 +121,7 @@ class NodeClass
         {
 			// initialization of variables
 			m_bisInitialized = false;
+			m_iNumMotors = 8;
 			
 			// implementation of topics
             // published topics
