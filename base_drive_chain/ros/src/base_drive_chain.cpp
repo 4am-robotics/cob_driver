@@ -248,7 +248,6 @@ class NodeClass
             std::vector<double> vdAngGearRad, vdVelGearRad, vdEffortGearNM;
 
             // set default values
-            j = 0;
             vdAngGearRad.resize(m_iNumMotors, 0);
             vdVelGearRad.resize(m_iNumMotors, 0);
             vdEffortGearNM.resize(m_iNumMotors, 0);
@@ -267,7 +266,8 @@ class NodeClass
 
             // read Can-Buffer
     		iCanEvalStatus = m_CanCtrlPltf.evalCanBuffer();
-
+            
+            j = 0;
             for(int i = 0; i<m_iNumMotors; i++)
             {
 	    		ret = m_CanCtrlPltf.getGearPosVelRadS(i,  &vdAngGearRad[i], &vdVelGearRad[i]);
@@ -282,6 +282,11 @@ class NodeClass
             }
 
             // set data to jointstate
+            // make jointstate the right size
+            jointstate.set_position_size(m_iNumMotors);
+            jointstate.set_velocity_size(m_iNumMotors);            
+            jointstate.set_effort_size(m_iNumMotors);
+            
             for(int i = 0; i<m_iNumMotors; i++)
             {
                 jointstate.position[i] = vdAngGearRad[i];
