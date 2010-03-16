@@ -122,11 +122,15 @@ class NodeClass
     
         void sendEmergencyStopStates();
 
+        
+
         int init();
 
     private:        
         std::string sIniDirectory;
         SerRelayBoard * m_SerRelayBoard;
+
+        int requestBoardStatus();
 };
 
 //#######################
@@ -139,7 +143,7 @@ int main(int argc, char** argv)
     NodeClass node;
     if(node.init() != 0) return 1;
  
-    ros::Rate r(1); //Hz-Rate: Frequency of publishing EMStopStates
+    ros::Rate r(10); //Hz-Rate: Frequency of publishing EMStopStates
     while(node.n.ok())
     {        
         node.sendEmergencyStopStates();
@@ -160,16 +164,28 @@ int NodeClass::init() {
     n.param<std::string>("cob_relayboard_node/IniDirectory", sIniDirectory, "Platform/IniFiles/");
     m_SerRelayBoard = new SerRelayBoard(sIniDirectory);
 
+    m_SerRelayBoard->initPltf();
+
+    return 0;
+}
+
+int NodeClass::requestBoardStatus() {
+    // Request Status of RelayBoard 
+	m_SerRelayBoard->setWheelVel(0,0.0,0);
+
+	m_SerRelayBoard->evalRxBuffer();
+
     return 0;
 }
 
 void NodeClass::sendEmergencyStopStates()
 {
-    std_msgs::Bool data;
+	requestBoardStatus();
+    std_msgs::Bool msg;
 
-    data.data = m_SerRelayBoard->isEMStop();
-    topicPub_isEmergencyStop.publish(data);
-    data.data = m_SerRelayBoard->isScannerStop();
-    topicPub_isScannerStop.publish(data);
+    msg.data = m_SerRelayBoard->isEMStop();
+    topicPub_isEmergencyStop.publish(msg);
+    msg.data = m_SerRelayBoard->isScannerStop();
+    topicPub_isScannerStop.publish(msg);
 }
 

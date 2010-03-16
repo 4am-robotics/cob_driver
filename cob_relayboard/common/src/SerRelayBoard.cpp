@@ -21,7 +21,7 @@
 
 #include <math.h>
 
-#include <cob_relayboard/MathSup.h>
+//#include <cob_relayboard/MathSup.h>
 
 #include <cob_relayboard/SerRelayBoard.h>
 
@@ -370,9 +370,9 @@ int SerRelayBoard::setWheelVel(int iCanIdent, double dVelWheel, bool bQuickStop)
 		m_iVelCmdMotRightEncS = m_DriveParamRight.getSign()	*
 			1;
 
-		if(MathSup::limit(&m_iVelCmdMotRightEncS, (int)m_DriveParamRight.getVelMax()) != 0)
+		//if(MathSup::limit(&m_iVelCmdMotRightEncS, (int)m_DriveParamRight.getVelMax()) != 0)
 		{
-			std::cerr << "vel right limited";
+			//std::cerr << "vel right limited";
 		}
 
 		bDataMotRight = true;
@@ -383,9 +383,9 @@ int SerRelayBoard::setWheelVel(int iCanIdent, double dVelWheel, bool bQuickStop)
 		m_iVelCmdMotLeftEncS = m_DriveParamLeft.getSign()	*
 			1;
 
-		if(MathSup::limit(&m_iVelCmdMotLeftEncS, (int)m_DriveParamLeft.getVelMax()) != 0)
+		//if(MathSup::limit(&m_iVelCmdMotLeftEncS, (int)m_DriveParamLeft.getVelMax()) != 0)
 		{
-			std::cerr << "vel left limited";
+			//std::cerr << "vel left limited";
 		}
 		
 		bDataMotLeft = true;
