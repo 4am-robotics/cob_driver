@@ -102,10 +102,6 @@ class NodeClass
             topicPub_isScannerStop = n.advertise<std_msgs::Bool>("isScannerStop", 1);
             //topicSub_demoSubscribe = n.subscribe("demoSubscribe", 1, &NodeClass::topicCallback_demoSubscribe, this);
 
-            n.param<std::string>("cob_relayboard/IniDirectory", sIniDirectory, "Platform/IniFiles/");
-            m_SerRelayBoard = new SerRelayBoard(sIniDirectory);
-            
-
         }
         
         // Destructor
@@ -126,6 +122,8 @@ class NodeClass
     
         void sendEmergencyStopStates();
 
+        int init();
+
     private:        
         std::string sIniDirectory;
         SerRelayBoard * m_SerRelayBoard;
@@ -136,15 +134,18 @@ class NodeClass
 int main(int argc, char** argv)
 {
     // initialize ROS, spezify name of node
-    ros::init(argc, argv, "SerRelayBoard");
+    ros::init(argc, argv, "cob_relayboard_node");
     
     NodeClass node;
+    if(node.init() != 0) return 1;
  
-    ros::Rate(10); //Frequency of publishing EMStopStates
+    ros::Rate r(1); //Hz-Rate: Frequency of publishing EMStopStates
     while(node.n.ok())
-    {
+    {        
         node.sendEmergencyStopStates();
+
         ros::spinOnce();
+        r.sleep();
     }
     
 //    ros::spin();
@@ -154,12 +155,21 @@ int main(int argc, char** argv)
 
 //##################################
 //#### function implementations ####
+
+int NodeClass::init() {
+    n.param<std::string>("cob_relayboard_node/IniDirectory", sIniDirectory, "Platform/IniFiles/");
+    m_SerRelayBoard = new SerRelayBoard(sIniDirectory);
+
+    return 0;
+}
+
 void NodeClass::sendEmergencyStopStates()
 {
     std_msgs::Bool data;
 
-    data.data = n.m_SerRelayBoard->isEMStop();
+    data.data = m_SerRelayBoard->isEMStop();
     topicPub_isEmergencyStop.publish(data);
-    data.data = n.m_SerRelayBoard->isScannerStop();
+    data.data = m_SerRelayBoard->isScannerStop();
     topicPub_isScannerStop.publish(data);
 }
+

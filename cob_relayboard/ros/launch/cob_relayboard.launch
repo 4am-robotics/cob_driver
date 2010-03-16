@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- start base_drive_chain and locate IniFiles -->
+  <node pkg="cob_relayboard" type="cob_relayboard_node" name="cob_relayboard_node" respawn="false" output="screen">
+	<param name="IniDirectory" value="$(find cob3_platform)/ros/bin/Platform/IniFiles/"/>
+  </node>
+</launch>

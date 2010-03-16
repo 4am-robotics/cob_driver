@@ -39,4 +39,5 @@ rosbuild_add_library(${PROJECT_NAME} common/src/SerRelayBoard.cpp common/src/Str
 target_link_libraries(${PROJECT_NAME} SerialIO)
 
 rosbuild_add_executable(cob_relayboard_node ros/src/cob_relayboard_node.cpp)
+target_link_libraries(cob_relayboard_node ${PROJECT_NAME})
 
