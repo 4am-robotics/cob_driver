@@ -70,7 +70,7 @@ public:
 
 	};
 
-	SerRelayBoard();
+	SerRelayBoard(std::string IniDir);
 
 	~SerRelayBoard();
 

@@ -43,7 +43,7 @@
 
 
 //-----------------------------------------------
-SerRelayBoard::SerRelayBoard()
+SerRelayBoard::SerRelayBoard(std::string IniDir)
 {
 	int i, iHasBoard, iHasMotorRight, iHasMotorLeft;
 	m_bComInit = false;
@@ -59,7 +59,7 @@ SerRelayBoard::SerRelayBoard()
 	int iCANId;
 	
 	IniFile iFile;
-    std::string sIniDirectory;
+    std::string sIniDirectory = IniDir;
 
 	//RelayBoard
 	iHasBoard = 0;
@@ -116,7 +116,7 @@ SerRelayBoard::SerRelayBoard()
 	for(i = 0; i < 8; i++) { m_iIOBoardAnalogIn[i] = 0; }
 
 	// drive parameters
-	iFile.SetFileName("Platform/IniFiles/CanCtrl.ini", "SerRelayBoard.cpp");
+	iFile.SetFileName(sIniDirectory + "CanCtrl.ini", "SerRelayBoard.cpp");
 
 	iEncIncrPerRevMot=0;
 	dVelMeasFrqHz=0;
