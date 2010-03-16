@@ -27,13 +27,13 @@
 
 #include <cob_utilities/IniFile.h>
 
-#include <Neobotix/OS/SerialIO.h>
+#include <cob_relayboard/SerialIO.h>
 
 //#include <Neobotix/Drivers/Can/CanCtrlPltfItf.h>
 //#include <Neobotix/Drivers/Can/CmdRelaisBoard.h>
 #include <canopen_motor/DriveParam.h>
 #include <cob_relayboard/Mutex.h>
-#include <Neobotix/OS/TimeStamp.h>
+#include <cob_relayboard/TimeStamp.h>
 
 //-----------------------------------------------
 

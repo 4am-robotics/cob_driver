@@ -30,6 +30,11 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/lib)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-
 # add include search paths
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
+
+rosbuild_add_library(SerialIO common/src/SerialIO.cpp)
+rosbuild_add_library(${PROJECT_NAME} common/src/SerRelayBoard.cpp common/src/StrUtil.cpp common/src/TimeStamp.cpp)
+
+target_link_libraries(${PROJECT_NAME} SerialIO)
+

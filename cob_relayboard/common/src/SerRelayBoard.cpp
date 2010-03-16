@@ -21,7 +21,7 @@
 
 #include <math.h>
 
-//#include <Neobotix/Math/Utils/MathSup.h>
+#include <cob_relayboard/MathSup.h>
 
 #include <cob_relayboard/SerRelayBoard.h>
 
@@ -227,7 +227,7 @@ int SerRelayBoard::evalRxBuffer()
 		siNoMsgCnt++;
 		if(siNoMsgCnt > 29)
 		{
-			LOG_OUT(siNoMsgCnt << " cycles no msg received");
+			std::cerr << siNoMsgCnt << " cycles no msg received";
 			siNoMsgCnt = 0;
 		}
 
@@ -257,7 +257,7 @@ int SerRelayBoard::evalRxBuffer()
 			}
 			else
 			{
-				LOG_OUT("chksum error");
+				std::cerr << "chksum error";
 				return 0;
 			}
 		}
@@ -372,7 +372,7 @@ int SerRelayBoard::setWheelVel(int iCanIdent, double dVelWheel, bool bQuickStop)
 
 		if(MathSup::limit(&m_iVelCmdMotRightEncS, (int)m_DriveParamRight.getVelMax()) != 0)
 		{
-			LOGAPP_ERR("vel right limited");
+			std::cerr << "vel right limited";
 		}
 
 		bDataMotRight = true;
@@ -385,7 +385,7 @@ int SerRelayBoard::setWheelVel(int iCanIdent, double dVelWheel, bool bQuickStop)
 
 		if(MathSup::limit(&m_iVelCmdMotLeftEncS, (int)m_DriveParamLeft.getVelMax()) != 0)
 		{
-			LOGAPP_ERR("vel left limited");
+			std::cerr << "vel left limited";
 		}
 		
 		bDataMotLeft = true;
@@ -1111,7 +1111,7 @@ bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 
 	if( iCnt >= NUM_BYTE_REC_MAX )
 	{
-		LOGAPP_ERR("msg size too small");
+		std::cerr << "msg size too small";
 	}
 
 	return true;
