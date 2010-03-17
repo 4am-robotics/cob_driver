@@ -77,14 +77,14 @@
 #include <opencv/cxcore.h>
 
 #include "tinyxml/tinyxml.h"
-#include "cob_camera_sensors/LibCameraSensorsTypes.h"
+#include "cob_vision_utils/CameraSensorTypes.h"
 #else
 #include <highgui.h>
 #include <cv.h>
 #include <cxcore.h>
 
 #include "Vision/Extern/TinyXml/tinyxml.h"
-#include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/LibCameraSensorsTypes.h"
+#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/CameraSensorTypes.h"
 #endif
 
 #include <iostream>
