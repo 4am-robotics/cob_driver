@@ -67,7 +67,7 @@
 #include "tinyxml/tinyxml.h"
 #include "cob_vision_utils/ThreeDUtils.h"
 #include "cob_vision_utils/OpenCVUtils.h"
-#include "cob_camera_sensors/LibCameraSensorsTypes.h"
+#include "cob_vision_utils/CameraSensorTypes.h"
 #else
 #include <highgui.h>
 #include <cv.h>

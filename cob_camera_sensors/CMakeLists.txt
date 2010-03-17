@@ -33,16 +33,12 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/lib)
 rosbuild_add_library(cob_camera_sensors	common/src/AVTPikeCam.cpp
 					common/src/AbstractColorCamera.cpp
 					common/src/AbstractRangeImagingSensor.cpp
-					common/src/CameraSensorToolbox.cpp
 					common/src/VirtualColorCam.cpp
 					common/src/VirtualRangeCam.cpp
 					common/src/Swissranger.cpp)
 									
 # add include search paths
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
-
-# add compile flag
-rosbuild_add_compile_flags(cob_camera_sensors -D__LINUX__ -D__COB_ROS__)
 
 
 # add project executable
@@ -54,6 +50,7 @@ rosbuild_add_executable(color_camera ros/src/color_camera.cpp)
 #INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 # add compile flag
+rosbuild_add_compile_flags(cob_camera_sensors -D__LINUX__ -D__COB_ROS__)
 rosbuild_add_compile_flags(tof_camera -D__LINUX__ -D__COB_ROS__)
 rosbuild_add_compile_flags(tof_camera_viewer -D__LINUX__ -D__COB_ROS__)
 rosbuild_add_compile_flags(color_camera -D__LINUX__ -D__COB_ROS__)
