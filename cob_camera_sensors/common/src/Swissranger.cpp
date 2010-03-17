@@ -287,9 +287,9 @@ unsigned long Swissranger::Open()
 		return RET_FAILED;
 	}
 
-	std::cout << "******************************************" << std::endl;
+	std::cout << "**************************************************" << std::endl;
 	std::cout << "Swissranger::Open: Swissranger camera device OPEN" << std::endl;
-	std::cout << "******************************************" << std::endl << std::endl;
+	std::cout << "**************************************************" << std::endl << std::endl;
 	m_open = true;
 
 	return RET_OK;
@@ -374,7 +374,7 @@ unsigned long Swissranger::SetProperty(t_cameraProperty* cameraProperty)
 			{
 				if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_AUTO)
 				{
-					err = SR_SetAutoExposure(m_SRCam, 1, 150, 1, 5);
+					err = SR_SetAutoExposure(m_SRCam, 1, 150, 5, 40);
 					if(err<0)
 					{
 						std::cerr << "ERROR - Swissranger::SetProperty:" << std::endl;
@@ -1224,7 +1224,8 @@ unsigned long Swissranger::LoadParameters(const char* filename, int cameraIndex)
 	if (!p_configXmlDocument->LoadFile())
 	{
 		std::cerr << "ERROR - Swissranger::LoadParameters:" << std::endl;
-		std::cerr << "\t ... Error while loading xml configuration file (Check filename and syntax of the file):\n";
+		std::cerr << "\t ... Error while loading xml configuration file \n";
+		std::cerr << "\t ... (Check filename and syntax of the file):\n";
 		std::cerr << "\t ... '" << filename << "'" << std::endl;
 		return (RET_FAILED | RET_FAILED_OPEN_FILE);
 	}

@@ -1,43 +1,12 @@
 <!-- Camera sensors initialization file -->
 <LibCameraSensors>
 
-
-<!-- Color sensors -->
-<ICCam_0>
-  <SerialNumber id="ISB3200016679" />
-  
-  <!-- Valid types: DFx 41F02 and DBx 31AF03 -->
-  <CameraType type="DBx 31AF03" />
-
-  <!-- Intrinsic parameters -->
-  <!-- fx: The focal length in x direction expressed in pixels -->
-  <!-- fy: The focal length in y direction expressed in pixels -->
-  <!-- cx: x-coordinate of principal point -->
-  <!-- cy: y-coordinate of principal point -->
-  <IntrinsicParameters fx="1320.11093" fy="1322.91912" cx="539.58884" cy="367.12676" />
-
-  <!-- Distortion parameters -->
-  <!-- k1: First order radial distortion coefficient -->
-  <!-- k2 Second order radial distortion coefficient -->
-  <!-- p1 First order tangential distortion coefficient -->
-  <!-- p2 Second order tangential distortion coefficient -->
-  <DistortionCoeffs k1="-0.21324" k2="0.16536" p1="0.00121" p2="0.00118" />
-
-  <!-- Extrinsic parameters -->
-  <!-- The translation and rotation is specified relative to this camera -->
-  <!-- and describes the transformation to the specified cameras within the XML tags -->
-  <!-- X_This = R * X_Other + T -->
-  <ExtrinsicParameters>
-  </ExtrinsicParameters>
-	
-</ICCam_0>
-
 <AVTPikeCam_0> 
   <!-- Holds the 64-Bit GUID of a connected node -->
   <!-- A GUID consists of a 32-Bit high part that holds the VendorId (Highest 24 Bits) -->
   <!-- and the ChipIdHigh (8 Bits) and a 32-Bit low part that holds the ChipIdLow. -->
   <!-- The GUID is unique for all FireWire devices on the world. -->
-  <GUID high="0x000A4701" low="0x10077026" />
+  <GUID high="000A4701" low="10077026" />
 
   <!-- The master initializes and releases the camera library and is -->
   <!-- respnsible for emitting the trigger signal to other cameras -->
@@ -48,7 +17,7 @@
   <!-- Valid values: appropriate framerte or AUTO and DEFAULT -->
   <FrameRate fps="3" />
 
-  <!-- Valid values: FORMAT_0, FORMAT_1, FORMAT_2 ,FORMAT_7, DEFAULT-->
+    <!-- Valid values: FORMAT_0, FORMAT_1, FORMAT_2 ,FORMAT_7, DEFAULT-->
   <VideoFormat type="FORMAT_7" />
 
   <!-- Valid values: MODE_0 - MODE_7, DEFAULT -->
@@ -73,9 +42,9 @@
 
   <!-- Valid values: 0..1023 or AUTO and DEFAULT -->
   <PROP_BRIGHTNESS value = "16"/>
-
+  
   <!-- Valid values: 50..205 or AUTO and DEFAULT -->	
-  <PROP_EXPOSURE_TIME value = "100"/>
+  <PROP_EXPOSURE_TIME value = "150"/>
 		
   <!-- Valid values: 0..568 or AUTO and DEFAULT -->	
   <PROP_WHITE_BALANCE_U value = "AUTO"/>
@@ -100,37 +69,40 @@
   <!-- fy: The focal length in y direction expressed in pixels -->
   <!-- cx: x-coordinate of principal point -->
   <!-- cy: y-coordinate of principal point -->
-  <IntrinsicParameters fx="1272.66185" fy="1267.81409" cx="697.19008" cy="524.61253" />
+  <IntrinsicParameters fx="1257.67018" fy="1253.63123" cx="697.36649" cy="521.81327" />
 
   <!-- Distortion parameters -->
   <!-- k1: First order radial distortion coefficient -->
   <!-- k2 Second order radial distortion coefficient -->
   <!-- p1 First order tangential distortion coefficient -->
   <!-- p2 Second order tangential distortion coefficient -->
-  <DistortionCoeffs k1="-0.21191" k2="0.12074" p1="0" p2="0" />
+  <DistortionCoeffs k1="-0.22537" k2=" 0.18949" p1="0" p2="-0.00177" />
 
   <!-- Extrinsic parameters -->
   <!-- The translation and rotation is specified relative to this camera -->
   <!-- and describes the transformation to the specified cameras within the XML tags -->
   <!-- X_This = R * X_Other + T -->
   <ExtrinsicParameters>
+    <AVTPikeCam_1>
+      <Translation x="-120.73230" y="0.79392" z="-0.49012" />
+      <Rotation x11="1.0000" x12="0.0074" x13="-0.0027" x21="-0.0075" x22="1.0000" x23="-0.0019" x31="0.0027" x32="0.0020" x33="1.0000" />
+    </AVTPikeCam_1> 
     <Swissranger3000_0>
-      <Translation x="-55.09178" y="3.45352" z="28.72267" />
-      <Rotation x11="0.9997" x12="-0.0125" x13="-0.0202" x21="0.0130" x22="0.9997" x23="0.0212" x31="0.0200" x32="-0.0215" x33="0.9996" />
+      <Translation x="-62.77807" y="1.46561" z="-19.48862" />
+      <Rotation x11="0.9996" x12="0.0064" x13="-0.0285" x21="-0.0055" x22="0.9995" x23="0.0326" x31="0.0287" x32="-0.0325" x33="0.9991" />
     </Swissranger3000_0>
   </ExtrinsicParameters>
 </AVTPikeCam_0>
-
 
 <AVTPikeCam_1> 
   <!-- Holds the 64-Bit GUID of a connected node -->
   <!-- A GUID consists of a 32-Bit high part that holds the VendorId (Highest 24 Bits) -->
   <!-- and the ChipIdHigh (8 Bits) and a 32-Bit low part that holds the ChipIdLow. -->
   <!-- The GUID is unique for all FireWire devices on the world. -->
-  <GUID high="0X000A4701" low="0X10073080" />
+  <GUID high="000A4701" low="10073080" />
 
   <!-- The master initializes and releases the camera library and is -->
-  <!-- responsible for emitting the trigger signal to other cameras -->
+  <!-- respnsible for emitting the trigger signal to other cameras -->
   <!-- The slave is synchronizing its image acquisition with the trigger signal -->
   <!-- Valid roles: MASTER oR SLAVE -->
   <Role value="MASTER" />
@@ -164,11 +136,7 @@
   <!-- Valid values: 0..1023 or AUTO and DEFAULT -->
   <PROP_BRIGHTNESS value = "16"/>
 
-  <!-- Valid values: 50..205 or AUTO and DEFAULT -->	
-  <PROP_EXPOSURE_TIME value = "100"/>
-		
-  <!-- Valid values: 0..568 or AUTO and DEFAULT -->	
-  <PROP_WHITE_BALANCE_U value = "AUTO"/>
+  <!-- Valid values: 50..205 or AUTO and DEFAULT -->	  <PROP_EXPOSURE_TIME value = "150"/>  <!-- Valid values: 0..568 or AUTO and DEFAULT -->	  <PROP_WHITE_BALANCE_U value = "AUTO"/>
 
   <!-- Valid values: 0..568 or AUTO and DEFAULT -->		
   <PROP_WHITE_BALANCE_V value = "AUTO"/>
@@ -190,14 +158,14 @@
   <!-- fy: The focal length in y direction expressed in pixels -->
   <!-- cx: x-coordinate of principal point -->
   <!-- cy: y-coordinate of principal point -->
-  <IntrinsicParameters fx="1266.39436" fy="1262.15290" cx="701.58349" cy="515.75457" />
+  <IntrinsicParameters fx="1268.04452" fy="1263.30957" cx="684.51140" cy="510.58481" />
 
   <!-- Distortion parameters -->
   <!-- k1: First order radial distortion coefficient -->
   <!-- k2 Second order radial distortion coefficient -->
   <!-- p1 First order tangential distortion coefficient -->
   <!-- p2 Second order tangential distortion coefficient -->
-  <DistortionCoeffs k1="-0.20869" k2="0.13093" p1="0" p2="0" />
+  <DistortionCoeffs k1="-0.20253" k2=" 0.09895" p1="0" p2="0" />
 
   <!-- Extrinsic parameters -->
   <!-- The translation and rotation is specified relative to this camera -->
@@ -205,8 +173,8 @@
   <!-- X_This = R * X_Other + T -->
   <ExtrinsicParameters>
     <AVTPikeCam_0>
-      <Translation x="119.83239" y="0.32820" z="1.43843" />
-      <Rotation x11="1" x12="-0.0045" x13="-0.0019" x21="0.0045" x22="1" x23="0.0029" x31="0.0019" x32="-0.0029" x33="1" />
+      <Translation x="120.73574" y="0.10606" z="0.16712" />
+      <Rotation x11="1.0000" x12="-0.0075" x13="0.0027" x21="0.0074" x22="1.0000" x23="0.0020" x31="-0.0027" x32="-0.0019" x33="1.0000" />
     </AVTPikeCam_0> 
   </ExtrinsicParameters>
 </AVTPikeCam_1>
@@ -217,14 +185,14 @@
   <!-- The master initializes and releases the camera library and is -->
   <!-- responsible for emitting the trigger signal to other cameras -->
   <!-- The slave is synchronizing its image acquisition with the trigger signal -->
-  <!-- Valid roles: MASTER oR SLAVE -->
+  <!-- Valid roles: MASTER or SLAVE -->
   <Role value="MASTER" />
 
   <!-- Specifies the interface, the swissranger is connected to -->
   <!-- 'ip' is only used when using ETHERNET -->
   <!-- Valid values: USB or ETHERNET -->
   <Interface value="USB" ip="XXX.XXX.XXX.XXX" />
-
+ 
   <!-- Sets the Amplitude Threshold of the camera -->
   <!-- Valid values: 0.. or AUTO and DEFAULT -->
   <AmplitudeThreshold value="AUTO" />
@@ -235,7 +203,7 @@
 
   <!-- Sets the modulation frequency of the camera -->
   <!-- Valid values: MF_xxMHz or AUTO and DEFAULT -->
-  <Modulation frequency="DEFAULT" />
+  <Modulation frequency="MF_30MHz" />
 
   <!-- AM_COR_FIX_PTRN - pattern noise correction -->
   <!-- AM_MEDIAN - 3x3 median filter -->
@@ -259,19 +227,19 @@
      AM_COR_FIX_PTRN="ON"
      AM_MEDIAN="OFF"
      AM_TOGGLE_FRQ="OFF"
-     AM_CONV_GRAY="OFF"
+     AM_CONV_GRAY="ON"
      AM_SW_ANF="OFF"
      AM_SR3K_2TAP_PROC="OFF"
      AM_SHORT_RANGE="OFF"
      AM_CONF_MAP="OFF"
      AM_HW_TRIGGER="OFF"
-     AM_SW_TRIGGER="OFF"
-     AM_DENOISE_ANF="OFF"
-     AM_MEDIANCROSS="ON"
+     AM_SW_TRIGGER="ON"
+     AM_DENOISE_ANF="ON"
+     AM_MEDIANCROSS="OFF"
   />
-
+ 
   <!-- Specifies the prefered calibration method -->
-  <!-- Possible values are: JBK, MATLAB or SWISSRANGER -->
+  <!-- Possible values are: MATLAB_NO_Z, MATLAB or NATIVE -->
   <CalibrationMethod name="MATLAB_NO_Z" />
 
   <!-- Intrinsic parameters -->
@@ -279,14 +247,14 @@
   <!-- fy: The focal length in y direction expressed in pixels -->
   <!-- cx: x-coordinate of principal point -->
   <!-- cy: y-coordinate of principal point -->
-  <IntrinsicParameters fx="195.45770" fy="194.63567" cx="89.20987" cy="65.03272" />
+  <IntrinsicParameters fx="254.18832" fy="253.74718" cx="80.59130" cy="76.90998" />
 
   <!-- Distortion parameters -->
   <!-- k1: First order radial distortion coefficient -->
   <!-- k2 Second order radial distortion coefficient -->
   <!-- p1 First order tangential distortion coefficient -->
   <!-- p2 Second order tangential distortion coefficient -->
-  <DistortionCoeffs k1="0.08614" k2="-0.80330" p1="0.00574" p2="0.00131" />
+  <DistortionCoeffs k1="-0.88792" k2="0.88443" p1="-0.00974" p2="0.01802" />
 
   <!-- Extrinsic parameters -->
   <!-- The translation and rotation is specified relative to this camera -->
@@ -296,93 +264,30 @@
   </ExtrinsicParameters>
 </Swissranger_0>
 
-<!-- Range imaging sensors -->
-<PMDCamCube_0>
-  <!-- The master initializes and releases the camera library and is -->
-  <!-- responsible for emitting the trigger signal to other cameras -->
-  <!-- The slave is synchronizing its image acquisition with the trigger signal -->
-  <!-- Valid roles: MASTER oR SLAVE -->
-  <Role value="MASTER" />
-
-  <!-- Serial number of the PMD camera -->
-  <!-- Set high and low to 0 in order to open first camera on bus -->
-  <Serial low="0053" high="0952" />
-
-  <!-- Set an additional distance offset in m to be used (soft offset). The value will be added -->
-  <!-- to all calculated distance values. This is useful if the light sources are not attached -->
-  <!-- to the camera but placed at a known distance from it. -->
-  <!-- Valid values: Numeric value or DEFAULT -->
-  <DistanceOffset value="DEFAULT" />
-
-  <!-- The camera can be configured to output only a certain area of the image. This has -->
-  <!-- the effect of lowering the readout time of the sensor and therefore increasing the -->
-  <!-- frame rate for smaller image sizes and short integration times. -->
-  <!-- <left> and <width> have to be divisible by 3 -->
-  <!-- Valid values: For no ROI set all values to DEFAULT -->
-  <!-- Valid values: Otherwise specify values in pixel -->
-  <ROI left="DEFAULT" top="DEFAULT" width="DEFAULT" height="DEFAULT" />
-
-  <!-- The camera can be put on Suppression of Motion Blur Exposure Mode -->
-  <!-- SMB differs from Normal mode in that it minimizes the time needed -->
-  <!-- to capture a distance image from the camera. This results in a -->
-  <!-- significantly reduced amount of motion artefacts. The downside is, -->
-  <!-- that there might be increased levels of noise and that the minimum -->
-  <!-- integration time is higher than in Normal mode -->
-  <!-- Valid values: AUTO, DEFAULT and SMB -->
-  <ExposureMode mode="DEFAULT" />
-
-  <!-- Specifies the prefered calibration method -->
-  <!-- Possible values are: MATLAB_NO_Z, MATLAB or NATIVE -->
-  <CalibrationMethod name="NATIVE" />
-
-  <!-- Intrinsic parameters -->
-  <!-- fx: The focal length in x direction expressed in pixels -->
-  <!-- fy: The focal length in y direction expressed in pixels -->
-  <!-- cx: x-coordinate of principal point -->
-  <!-- cy: y-coordinate of principal point -->
-  <IntrinsicParameters fx="195.45770" fy="194.63567" cx="89.20987" cy="65.03272" />
-
-  <!-- Distortion parameters -->
-  <!-- k1: First order radial distortion coefficient -->
-  <!-- k2 Second order radial distortion coefficient -->
-  <!-- p1 First order tangential distortion coefficient -->
-  <!-- p2 Second order tangential distortion coefficient -->
-  <DistortionCoeffs k1="0.08614" k2="-0.80330" p1="0.00574" p2="0.00131" />
-
-  <!-- Extrinsic parameters -->
-  <!-- The translation and rotation is specified relative to this camera -->
-  <!-- and describes the transformation to the specified cameras within the XML tags -->
-  <!-- X_This = R * X_Other + T -->
-  <ExtrinsicParameters>
-  </ExtrinsicParameters>
-</PMDCamCube_0>
-
-<Swissranger4000_0>
-</Swissranger4000_0>
-
 <!-- Virtual range imaging sensors -->
 <VirtualRangeCam_0>
   <!-- Location of the image data on your hard disk -->
   <!-- The location is expressed relative to the link 'ConfigurationFiles' -->
-  <CameraDataDirectory relativePath="CameraData_PringelsGruen"/>	
+  <CameraDataDirectory relativePath="CameraData_0"/>	
+
 	
   <!-- Specifies the prefered calibration method -->
-  <!-- Possible values are: JBK, MATLAB or SWISSRANGER -->
-  <CalibrationMethod name="MATLAB" />
+  <!-- Possible values are: MATLAB or MATLAB_NO_Z or NATIVE -->
+  <CalibrationMethod name="MATLAB_NO_Z" />
 
   <!-- Intrinsic parameters -->
   <!-- fx: The focal length in x direction expressed in pixels -->
   <!-- fy: The focal length in y direction expressed in pixels -->
   <!-- cx: x-coordinate of principal point -->
   <!-- cy: y-coordinate of principal point -->
-  <IntrinsicParameters fx="195.45770" fy="194.63567" cx="89.20987" cy="65.03272" />
+  <IntrinsicParameters fx="254.18832" fy="253.74718" cx="80.59130" cy="76.90998" />
 
   <!-- Distortion parameters -->
   <!-- k1: First order radial distortion coefficient -->
   <!-- k2 Second order radial distortion coefficient -->
   <!-- p1 First order tangential distortion coefficient -->
   <!-- p2 Second order tangential distortion coefficient -->
-  <DistortionCoeffs k1="0.08614" k2="-0.80330" p1="0.00574" p2="0.00131" />
+  <DistortionCoeffs k1="-0.88792" k2="0.88443" p1="-0.00974" p2="0.01802" />
 
   <!-- Extrinsic parameters -->
   <!-- The translation and rotation is specified relative to this camera -->
@@ -396,37 +301,35 @@
 <VirtualColorCam_0> 
   <!-- Location of the image data on your hard disk -->
   <!-- The location is expressed relative to the link 'ConfigurationFiles' -->
-  <CameraDataDirectory relativePath="CameraData_PringelsGruen"/>	
-
-  <!-- Resolution of images on disk -->
-  <Resolution width="1388" height="1038" />  
+  <CameraDataDirectory relativePath="CameraData_0"/>	
 
   <!-- Intrinsic parameters -->
   <!-- fx: The focal length in x direction expressed in pixels -->
   <!-- fy: The focal length in y direction expressed in pixels -->
   <!-- cx: x-coordinate of principal point -->
   <!-- cy: y-coordinate of principal point -->
-  <IntrinsicParameters fx="1272.66185" fy="1267.81409" cx="697.19008" cy="524.61253" />
+  <IntrinsicParameters fx="1257.67018" fy="1253.63123" cx="697.36649" cy="521.81327" />
 
   <!-- Distortion parameters -->
   <!-- k1: First order radial distortion coefficient -->
   <!-- k2 Second order radial distortion coefficient -->
   <!-- p1 First order tangential distortion coefficient -->
   <!-- p2 Second order tangential distortion coefficient -->
-  <DistortionCoeffs k1="-0.21191" k2="0.12074" p1="0" p2="0" />
+  <DistortionCoeffs k1="-0.22537" k2=" 0.18949" p1="0" p2="-0.00177" />
 
   <!-- Extrinsic parameters -->
   <!-- The translation and rotation is specified relative to this camera -->
   <!-- and describes the transformation to the specified cameras within the XML tags -->
+  <!-- Matlab Calibration Toolbox: LEFT camera is OTHER camera, RIGHT camera is THIS camera -->
   <!-- X_This = R * X_Other + T -->
   <ExtrinsicParameters>
-    <Swissranger3000_0>
-      <Translation x="-55.09178" y="3.45352" z="28.72267" />
-      <Rotation x11="0.9997" x12="-0.0125" x13="-0.0202" x21="0.0130" x22="0.9997" x23="0.0212" x31="0.0200" x32="-0.0215" x33="0.9996" />
-    </Swissranger3000_0>
+    <VirtualColorCam_1>
+      <Translation x="-120.73230" y="0.79392" z="-0.49012" />
+      <Rotation x11="1.0000" x12="0.0074" x13="-0.0027" x21="-0.0075" x22="1.0000" x23="-0.0019" x31="0.0027" x32="0.0020" x33="1.0000" />
+    </VirtualColorCam_1> 
     <VirtualRangeCam_0>
-      <Translation x="-55.09178" y="3.45352" z="28.72267" />
-      <Rotation x11="0.9997" x12="-0.0125" x13="-0.0202" x21="0.0130" x22="0.9997" x23="0.0212" x31="0.0200" x32="-0.0215" x33="0.9996" />
+      <Translation x="-62.77807" y="1.46561" z="-19.48862" />
+      <Rotation x11="0.9996" x12="0.0064" x13="-0.0285" x21="-0.0055" x22="0.9995" x23="0.0326" x31="0.0287" x32="-0.0325" x33="0.9991" />
     </VirtualRangeCam_0>
   </ExtrinsicParameters>
 </VirtualColorCam_0>
@@ -435,37 +338,31 @@
 <VirtualColorCam_1> 
   <!-- Location of the image data on your hard disk -->
   <!-- The location is expressed relative to the link 'ConfigurationFiles' -->
-  <CameraDataDirectory relativePath="CameraData_PringelsGruen"/>	
-
-  <!-- Reolution of images on disk -->
-  <Resolution width="1388" height="1038" />  
+  <CameraDataDirectory relativePath="CameraData_0"/>	
 
   <!-- Intrinsic parameters -->
   <!-- fx: The focal length in x direction expressed in pixels -->
   <!-- fy: The focal length in y direction expressed in pixels -->
   <!-- cx: x-coordinate of principal point -->
   <!-- cy: y-coordinate of principal point -->
-  <IntrinsicParameters fx="1266.39436" fy="1262.15290" cx="701.58349" cy="515.75457" />
+  <IntrinsicParameters fx="1268.04452" fy="1263.30957" cx="684.51140" cy="510.58481" />
 
   <!-- Distortion parameters -->
   <!-- k1: First order radial distortion coefficient -->
   <!-- k2 Second order radial distortion coefficient -->
   <!-- p1 First order tangential distortion coefficient -->
   <!-- p2 Second order tangential distortion coefficient -->
-  <DistortionCoeffs k1="-0.20869" k2="0.13093" p1="0" p2="0" />
+  <DistortionCoeffs k1="-0.20253" k2=" 0.09895" p1="0" p2="0" />
 
   <!-- Extrinsic parameters -->
   <!-- The translation and rotation is specified relative to this camera -->
   <!-- and describes the transformation to the specified cameras within the XML tags -->
+  <!-- Matlab Calibration Toolbox: LEFT camera is OTHER camera, RIGHT camera is THIS camera -->
   <!-- X_This = R * X_Other + T -->
   <ExtrinsicParameters>
-    <AVTPikeCam_0>
-      <Translation x="119.83239" y="0.32820" z="1.43843" />
-      <Rotation x11="1" x12="-0.0045" x13="-0.0019" x21="0.0045" x22="1" x23="0.0029" x31="0.0019" x32="-0.0029" x33="1" />
-    </AVTPikeCam_0>
     <VirtualColorCam_0>
-      <Translation x="119.83239" y="0.32820" z="1.43843" />
-      <Rotation x11="1" x12="-0.0045" x13="-0.0019" x21="0.0045" x22="1" x23="0.0029" x31="0.0019" x32="-0.0029" x33="1" />
+      <Translation x="120.73574" y="0.10606" z="0.16712" />
+      <Rotation x11="1.0000" x12="-0.0075" x13="0.0027" x21="0.0074" x22="1.0000" x23="0.0020" x31="-0.0027" x32="-0.0019" x33="1.0000" />
     </VirtualColorCam_0>
   </ExtrinsicParameters>
 </VirtualColorCam_1>
