@@ -18,7 +18,7 @@
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
  * Date of creation: Feb 2010:
- * ToDo:
+ * ToDo: Doesn't this node has to take care about the Watchdogs?
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
@@ -101,7 +101,7 @@ class NodeClass
         //--
         
         // global variables
-		// generate can-node handle -> should this realy be public?
+		// generate can-node handle -> should this really be public?
 		CanCtrlPltfCOb3 m_CanCtrlPltf;
 		bool m_bisInitialized;
         int m_iNumMotors;
@@ -261,9 +261,9 @@ class NodeClass
 			//Do you have to set frame_id manually??
 
 			// get time stamp for header
-			//jointstate.header.stamp = ros::Time::now();
+			jointstate.header.stamp = ros::Time::now();
             // set frame_id for header            
-			//jointstate.header.frame_id = frame_id;
+			jointstate.header.frame_id = frame_id;
 
             // read Can-Buffer
     		iCanEvalStatus = m_CanCtrlPltf.evalCanBuffer();
