@@ -67,6 +67,7 @@
 #include "tinyxml/tinyxml.h"
 #include "cob_vision_utils/ThreeDUtils.h"
 #include "cob_vision_utils/OpenCVUtils.h"
+#include "cob_vision_utils/MathUtils.h"
 #include "cob_camera_sensors/LibCameraSensorsTypes.h"
 #else
 #include <highgui.h>
@@ -74,9 +75,10 @@
 #include <cxcore.h>
 
 #include "Vision/Extern/TinyXml/tinyxml.h"
-#include "Vision/Utilities/ThreeDUtils.h"
-#include "Vision/Utilities/OpenCVUtils.h"
-#include "Vision/CameraSensors/LibCameraSensorsTypes.h"
+#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/ThreeDUtils.h"
+#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/OpenCVUtils.h"
+#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/MathUtils.h"
+#include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/LibCameraSensorsTypes.h"
 #endif
 
 #include <iostream>

@@ -63,7 +63,7 @@
 #ifdef __COB_ROS__
 #include "cob_camera_sensors/AbstractColorCamera.h"
 #else
-#include "Vision/CameraSensors/AbstractColorCamera.h"
+#include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/AbstractColorCamera.h"
 #endif
 
 #include <vector>

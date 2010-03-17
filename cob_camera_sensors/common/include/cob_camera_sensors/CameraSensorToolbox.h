@@ -84,8 +84,8 @@
 #include <cv.h>
 
 #include "Vision/Extern/TinyXml/tinyxml.h"
-#include "Vision/CameraSensors/LibCameraSensorsTypes.h"
-#include "Vision/Utilities/OpenCVUtils.h"
+#include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/LibCameraSensorsTypes.h"
+#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/OpenCVUtils.h"
 #endif
 
 #include <map>

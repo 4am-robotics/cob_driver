@@ -54,7 +54,7 @@
 #ifdef __COB_ROS__
 #include "cob_camera_sensors/CameraSensorToolbox.h"
 #else
-#include "CameraSensorToolbox.h"
+#include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/CameraSensorToolbox.h"
 #endif
 
 using namespace ipa_CameraSensors;
@@ -235,7 +235,7 @@ unsigned long CameraSensorToolbox::Init(const CvMat* intrinsicMatrix,const CvMat
 	}
 
 	m_undistortMapX = cvCloneImage(undistortMapX);
-	m_undistortMapY = cvCloneImage(undistortMapY);	
+	m_undistortMapY = cvCloneImage(undistortMapY);
 
 	m_Initialized = true;
 	return RET_OK;
@@ -252,13 +252,13 @@ unsigned long CameraSensorToolbox::ConvertCameraTypeToString(ipa_CameraSensors::
 		cameraTypeString = "AVTPikeCam";
 		break;
 	case CAM_AXIS:
-		cameraTypeString = "Axis2100Cam";
+		cameraTypeString = "AxisCam";
 		break;
 	case CAM_VIRTUALCOLOR:
 		cameraTypeString = "VirtualColorCam";
 		break;
-	case CAM_SR3000:
-		cameraTypeString = "Swissranger3000";
+	case CAM_SWISSRANGER:
+		cameraTypeString = "Swissranger";
 		break;
 	case CAM_PMDCAMCUBE:
 		cameraTypeString = "PMDCamCube";
@@ -274,7 +274,7 @@ unsigned long CameraSensorToolbox::ConvertCameraTypeToString(ipa_CameraSensors::
 
 	return RET_OK;
 }
-	
+
 CvMat* CameraSensorToolbox::GetExtrinsicParameters(ipa_CameraSensors::t_cameraType cameraType, int cameraIndex)
 {
 	CvMat* extrinsicMatrix = 0;
@@ -290,7 +290,7 @@ unsigned long CameraSensorToolbox::GetExtrinsicParameters(ipa_CameraSensors::t_c
 	std::stringstream ss;
 	std::string extrinsicMapName = "";
 
-	ConvertCameraTypeToString(cameraType, extrinsicMapName); 
+	ConvertCameraTypeToString(cameraType, extrinsicMapName);
 	ss << extrinsicMapName << "_" << cameraIndex;
 
 	if (m_extrinsicMatrices.find(ss.str()) == m_extrinsicMatrices.end())
@@ -299,14 +299,14 @@ unsigned long CameraSensorToolbox::GetExtrinsicParameters(ipa_CameraSensors::t_c
 		std::cout << "\t ... Extrinsic matrix to '" << ss.str() << "' not specified\n";
 		return RET_FAILED;
 	}
-	else 
+	else
 	{
 		*_extrinsic_matrix = cvCloneMat(m_extrinsicMatrices[ss.str()]);
-		return RET_OK; 
+		return RET_OK;
 	}
 }
 
-unsigned long CameraSensorToolbox::SetExtrinsicParameters(ipa_CameraSensors::t_cameraType cameraType, int cameraIndex, 
+unsigned long CameraSensorToolbox::SetExtrinsicParameters(ipa_CameraSensors::t_cameraType cameraType, int cameraIndex,
 														  const CvMat* _rotation, const CvMat* _translation)
 {
 	std::stringstream ss;
@@ -328,10 +328,10 @@ unsigned long CameraSensorToolbox::SetExtrinsicParameters(std::string key,
 		cvReleaseMat(&iterator->second);
 		m_extrinsicMatrices.erase(iterator);
 	}
-	
+
 	CvMat* extrinsicMatrix = cvCreateMatHeader( 3, 4, CV_64FC1 );
-	cvCreateData( extrinsicMatrix );	
-	cvSet(extrinsicMatrix, cvRealScalar(0), NULL);	
+	cvCreateData( extrinsicMatrix );
+	cvSet(extrinsicMatrix, cvRealScalar(0), NULL);
 
 	cvmSet(extrinsicMatrix, 0, 0, cvmGet(_rotation, 0, 0));
 	cvmSet(extrinsicMatrix, 0, 1, cvmGet(_rotation, 0, 1));
@@ -348,7 +348,7 @@ unsigned long CameraSensorToolbox::SetExtrinsicParameters(std::string key,
 	cvmSet(extrinsicMatrix, 2, 3, cvmGet(_translation, 2, 0));
 
 	m_extrinsicMatrices[key] = extrinsicMatrix;
-	
+
 	return RET_OK;
 }
 
@@ -356,9 +356,9 @@ unsigned long CameraSensorToolbox::SetIntrinsicParameters(double fx, double fy, 
 { //[fx 0 cx; 0 fy cy; 0 0 1]
 
 	if (m_intrinsicMatrix == NULL)
-	{	
+	{
 		m_intrinsicMatrix = cvCreateMatHeader( 3, 3, CV_64FC1 );
-		cvCreateData( m_intrinsicMatrix );	
+		cvCreateData( m_intrinsicMatrix );
 		cvSet(m_intrinsicMatrix, cvRealScalar(0), NULL);
 	}
 
@@ -367,7 +367,7 @@ unsigned long CameraSensorToolbox::SetIntrinsicParameters(double fx, double fy, 
 	cvmSet(m_intrinsicMatrix,0,2,cx);
 	cvmSet(m_intrinsicMatrix,1,2,cy);
 	cvmSet(m_intrinsicMatrix,2,2, 1.f);
-	
+
 	return RET_OK;
 }
 
@@ -387,14 +387,14 @@ unsigned long CameraSensorToolbox::GetIntrinsicParameters(CvMat** _intrinsic_mat
 	{
 		return (RET_FAILED | RET_MISSING_INTRINSIC_DISTORTION_PARAMS);
 	}
-	else 
+	else
 	{
 		*_intrinsic_matrix = cvCreateMat( 3, 3, CV_64FC1 );
 		cvCopy(m_intrinsicMatrix, *_intrinsic_matrix);
-		return RET_OK; 
+		return RET_OK;
 	}
-} 
-		
+}
+
 unsigned long CameraSensorToolbox::SetDistortionParameters(double k1, double k2, double p1, double p2)
 {
 
@@ -406,7 +406,7 @@ unsigned long CameraSensorToolbox::SetDistortionParameters(double k1, double k2,
 	}
 
 	if (m_distortionParameters == NULL)
-	{	
+	{
 		m_distortionParameters = cvCreateMatHeader( 1, 4, CV_64FC1 );//Initialisierung
 		cvCreateData( m_distortionParameters );
 		cvSet(m_distortionParameters,cvRealScalar(0), NULL);//Defaultwerte:0
@@ -414,10 +414,10 @@ unsigned long CameraSensorToolbox::SetDistortionParameters(double k1, double k2,
 		m_undistortMapX = cvCreateImage(m_ImageSize, IPL_DEPTH_32F, 1);
 		m_undistortMapY = cvCreateImage(m_ImageSize, IPL_DEPTH_32F, 1);
 	}
-	
+
 	cvmSet(m_distortionParameters,0,0,k1);
 	cvmSet(m_distortionParameters,0,1,k2);
-		
+
 	cvmSet(m_distortionParameters,0,2,p1);
 	cvmSet(m_distortionParameters,0,3,p2);
 
@@ -443,11 +443,11 @@ unsigned long CameraSensorToolbox::GetDistortionParameters(CvMat** _distortion_c
 	{
 		return (RET_FAILED | RET_MISSING_INTRINSIC_DISTORTION_PARAMS);
 	}
-	else 
+	else
 	{
 		*_distortion_coeffs = cvCreateMat( 1, 4, CV_64FC1 );
 		cvCopy(m_distortionParameters, *_distortion_coeffs);
-		return RET_OK; 
+		return RET_OK;
 	}
 }
 
@@ -463,7 +463,7 @@ IplImage* CameraSensorToolbox::GetDistortionMapY()
 
 unsigned long CameraSensorToolbox::RemoveDistortion(const CvArr* src, CvArr* dst)
 {
-	if ((m_intrinsicMatrix != NULL) && (m_distortionParameters != NULL)) 
+	if ((m_intrinsicMatrix != NULL) && (m_distortionParameters != NULL))
 	{
 		cvRemap(src, dst, m_undistortMapX, m_undistortMapY);
 		return RET_OK;
@@ -513,7 +513,7 @@ unsigned long CameraSensorToolbox::ReprojectXYZ(double x, double y, double z, in
 
 
 unsigned long CameraSensorToolbox::LoadParameters(const char* filename, ipa_CameraSensors::t_cameraType cameraType, int cameraIndex)
-{ 
+{
 	std::stringstream ss;
 	std::string xmlTagName = "";
 
@@ -537,7 +537,7 @@ unsigned long CameraSensorToolbox::LoadParameters(const char* filename, ipa_Came
 //************************************************************************************
 //	BEGIN LibCameraSensors
 //************************************************************************************
-		// Tag element "LibCameraSensors" of Xml Inifile		
+		// Tag element "LibCameraSensors" of Xml Inifile
 		TiXmlElement *p_xmlElement_Root = NULL;
 		p_xmlElement_Root = p_configXmlDocument->FirstChildElement( "LibCameraSensors" );
 		if ( p_xmlElement_Root )
@@ -546,7 +546,7 @@ unsigned long CameraSensorToolbox::LoadParameters(const char* filename, ipa_Came
 //************************************************************************************
 //	BEGIN LibCameraSensors->XYZCam
 //************************************************************************************
-			// Tag element "CameraSensorsToolbox" of Xml Inifile		
+			// Tag element "CameraSensorsToolbox" of Xml Inifile
 			TiXmlElement *p_xmlElement_Root_AVTPikeCam = NULL;
 			p_xmlElement_Root_AVTPikeCam = p_xmlElement_Root->FirstChildElement( ss.str() );
 			if ( p_xmlElement_Root_AVTPikeCam )
@@ -586,7 +586,7 @@ unsigned long CameraSensorToolbox::LoadParameters(const char* filename, ipa_Came
 						std::cerr << "\t ...  Can't find attribute 'cy' of tag 'IntrinsicParameters'." << std::endl;
 						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
 					}
-					SetIntrinsicParameters(fx, fy, cx, cy);	
+					SetIntrinsicParameters(fx, fy, cx, cy);
 				}
 				else
 				{
@@ -629,7 +629,7 @@ unsigned long CameraSensorToolbox::LoadParameters(const char* filename, ipa_Came
 						std::cerr << "\t ...  Can't find attribute 'p2' of tag 'DistortionCoeffs '." << std::endl;
 						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
 					}
-					SetDistortionParameters(k1, k2, p1, p2);	
+					SetDistortionParameters(k1, k2, p1, p2);
 				}
 				else
 				{
@@ -781,7 +781,7 @@ unsigned long CameraSensorToolbox::LoadParameters(const char* filename, ipa_Came
 						SetExtrinsicParameters(p_xmlElement_Extrinsics->Value(), extrinsicRotation, extrinsicTranslation);
 						cvReleaseMat(&extrinsicTranslation);
 						cvReleaseMat(&extrinsicRotation);
-					} /// End 'extrinsic' for loop 
+					} /// End 'extrinsic' for loop
 				}
 				else
 				{
@@ -794,7 +794,7 @@ unsigned long CameraSensorToolbox::LoadParameters(const char* filename, ipa_Came
 //************************************************************************************
 //	END LibCameraSensors->CameraSensorsToolbox
 //************************************************************************************
-			else 
+			else
 			{
 				std::cerr << "ERROR - CameraSensorsToolbox::LoadParameters:" << std::endl;
 				std::cerr << "\t ... Can't find tag '" << ss.str() << "'" << std::endl;
@@ -805,7 +805,7 @@ unsigned long CameraSensorToolbox::LoadParameters(const char* filename, ipa_Came
 //************************************************************************************
 //	END LibCameraSensors
 //************************************************************************************
-		else 
+		else
 		{
 			std::cerr << "ERROR - CameraSensorsToolbox::LoadParameters:" << std::endl;
 			std::cerr << "\t ...  Can't find tag 'LibCameraSensors'." << std::endl;

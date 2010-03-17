@@ -84,7 +84,7 @@
 #include <cxcore.h>
 
 #include "Vision/Extern/TinyXml/tinyxml.h"
-#include "Vision/CameraSensors/LibCameraSensorsTypes.h"
+#include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/LibCameraSensorsTypes.h"
 #endif
 
 #include <iostream>
@@ -121,6 +121,8 @@ class AbstractColorCamera
 			std::stringstream m_Brightness;
 			std::stringstream m_ImageWidth;
 			std::stringstream m_ImageHeight;
+			std::stringstream m_Interface;				///< Interface, the camera is connected to (i.e. USB, ETHERNET or FIREWIRE)
+			std::stringstream m_IP;						///< IP address of the camera
 		};
 
 		/// Initializes the color camera.
@@ -246,7 +248,7 @@ extern "C" {
 
 __DLL_ABSTRACTCOLORCAMERA_H__ AbstractColorCamera* APIENTRY CreateColorCamera_AVTPikeCam();
 __DLL_ABSTRACTCOLORCAMERA_H__ AbstractColorCamera* APIENTRY CreateColorCamera_ICCam();
-__DLL_ABSTRACTCOLORCAMERA_H__ AbstractColorCamera* APIENTRY CreateColorCamera_Axis2100Cam();
+__DLL_ABSTRACTCOLORCAMERA_H__ AbstractColorCamera* APIENTRY CreateColorCamera_AxisCam();
 __DLL_ABSTRACTCOLORCAMERA_H__ AbstractColorCamera* APIENTRY CreateColorCamera_VirtualCam();
 __DLL_ABSTRACTCOLORCAMERA_H__ void APIENTRY ReleaseColorCamera(AbstractColorCamera* colorCamera);
 
