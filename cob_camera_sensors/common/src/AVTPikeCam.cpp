@@ -54,7 +54,7 @@
 #ifdef __COB_ROS__
 #include "cob_camera_sensors/AVTPikeCam.h"
 #else
-#include "AVTPikeCam.h"
+#include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/AVTPikeCam.h"
 #endif
 
 using namespace std;

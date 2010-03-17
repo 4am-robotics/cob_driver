@@ -54,7 +54,7 @@
 #ifdef __COB_ROS__
 #include "cob_camera_sensors/Swissranger.h"
 #else
-#include "Swissranger.h"
+#include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/Swissranger.h"
 #endif
 
 using namespace ipa_CameraSensors;
@@ -131,7 +131,7 @@ unsigned long Swissranger::Init(std::string directory, int cameraIndex)
 		return (RET_OK | RET_CAMERA_ALREADY_INITIALIZED);
 	}
 
-	m_CameraType = ipa_CameraSensors::CAM_SR3000;
+	m_CameraType = ipa_CameraSensors::CAM_SWISSRANGER;
 
 	/// Load SR parameters from xml-file
 	if (LoadParameters((directory + "cameraSensorsIni.xml").c_str(), cameraIndex) & RET_FAILED)
@@ -306,7 +306,7 @@ unsigned long Swissranger::Close()
 	if(SR_Close(m_SRCam)<0)
 	{
 		std::cout << "ERROR - Swissranger::Close():" << std::endl;
-		std::cerr << "\t ... Could not close swissranger SR3000 camera." << std::endl;
+		std::cerr << "\t ... Could not close swissranger camera." << std::endl;
 		return RET_FAILED;
 	}
 	m_SRCam = 0;
