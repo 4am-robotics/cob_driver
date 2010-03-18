@@ -77,31 +77,29 @@ using namespace ipa_CameraSensors;
 class CobTofCameraNode
 {
 private:
-        ros::NodeHandle m_NodeHandle;	///< Node handle
+        ros::NodeHandle node_handle_;	///< Node handle
 
-	image_transport::ImageTransport m_ImageTransport;	///< Image transport instance
-	image_transport::Publisher m_XYZImagePublisher;		///< Publishes xyz image data
-	image_transport::Publisher m_GrayImagePublisher;	///< Publishes gray image data
+	image_transport::ImageTransport image_transport_;	///< Image transport instance
+	image_transport::Publisher xyz_image_publisher_;		///< Publishes xyz image data
+	image_transport::Publisher grey_image_publisher_;	///< Publishes grey image data
 
-        sensor_msgs::Image m_XYZImageMessage;      ///< ROS image message
-        sensor_msgs::Image m_GrayImageMessage;      ///< ROS image message
-        sensor_msgs::CameraInfo m_CameraInfoMessage;    ///< ROS camera information message (e.g. holding intrinsic parameters)
+        sensor_msgs::CameraInfo camera_info_msg_;    ///< ROS camera information message (e.g. holding intrinsic parameters)
 
-        ros::ServiceServer m_CameraInfoService;		///< Service to set/modify camera parameters
+        ros::ServiceServer camera_info_service_;		///< Service to set/modify camera parameters
 
-        AbstractRangeImagingSensor* m_TofCamera;     ///< Time-of-flight camera instance
+        AbstractRangeImagingSensor* tof_camera_;     ///< Time-of-flight camera instance
 
-        IplImage* m_XYZImage32F3;	/// OpenCV image holding the point cloud
-        IplImage* m_GrayImage32F1;	/// OpenCV image holding the amplitude values
+        IplImage* xyz_image_32F3_;	/// OpenCV image holding the point cloud
+        IplImage* grey_image_32F1_;	/// OpenCV image holding the amplitude values
 
 public:
 	/// Constructor.
         CobTofCameraNode(const ros::NodeHandle& node_handle)
-        : m_NodeHandle(node_handle),
-	  m_ImageTransport(node_handle),
-          m_TofCamera(0),
-          m_XYZImage32F3(0),
-          m_GrayImage32F1(0)
+        : node_handle_(node_handle),
+	  image_transport_(node_handle),
+          tof_camera_(0),
+          xyz_image_32F3_(0),
+          grey_image_32F1_(0)
         {
                 /// Void
         }
@@ -109,55 +107,55 @@ public:
 	/// Destructor
 	~CobTofCameraNode()
         {
-                m_TofCamera->Close();
-                ipa_CameraSensors::ReleaseRangeImagingSensor(m_TofCamera);
+                tof_camera_->Close();
+                ipa_CameraSensors::ReleaseRangeImagingSensor(tof_camera_);
 
-		if (m_XYZImage32F3) cvReleaseImage(&m_XYZImage32F3);
-		if (m_GrayImage32F1) cvReleaseImage(&m_GrayImage32F1);
+		if (xyz_image_32F3_) cvReleaseImage(&xyz_image_32F3_);
+		if (grey_image_32F1_) cvReleaseImage(&grey_image_32F1_);
         }
 
         /// Initializes and opens the time-of-flight camera sensor.
 	/// @return <code>false</code> on failure, <code>true</code> otherwise
-        bool Init()
+        bool init()
         {
-		int cameraIndex = 0;
+		int camera_index = 0;
                 std::string directory = "NULL/";
                 
 		/// Parameters are set within the launch file
-                if (m_NodeHandle.getParam("tof_camera/configuration_files", directory) == false)
+                if (node_handle_.getParam("tof_camera/configuration_files", directory) == false)
                 {
-                        ROS_ERROR("Path to xml configuration for color camera not specified");
+                        ROS_ERROR("[tof_camera] Path to xml configuration for color camera not specified");
                         return false;
                 }
 
-		m_TofCamera = ipa_CameraSensors::CreateRangeImagingSensor_Swissranger();
+		tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_Swissranger();
 
-		if (m_TofCamera->Init(directory) & ipa_CameraSensors::RET_FAILED)
+		if (tof_camera_->Init(directory) & ipa_CameraSensors::RET_FAILED)
 		{
 
 			std::stringstream ss;
                         ss << "Initialization of tof camera ";
-                        ss << cameraIndex;
+                        ss << camera_index;
                         ss << " failed";
-                        ROS_ERROR("%s", ss.str().c_str());
-                        m_TofCamera = 0;
+                        ROS_ERROR("[tof_camera] %s", ss.str().c_str());
+                        tof_camera_ = 0;
                         return false;
 		}
 	
-		if (m_TofCamera->Open() & ipa_CameraSensors::RET_FAILED)
+		if (tof_camera_->Open() & ipa_CameraSensors::RET_FAILED)
 		{
 			std::stringstream ss;
                         ss << "Could not open tof camera ";
-                        ss << cameraIndex;
-                        ROS_ERROR("%s", ss.str().c_str());
-                        m_TofCamera = 0;
+                        ss << camera_index;
+                        ROS_ERROR("[tof_camera] %s", ss.str().c_str());
+                        tof_camera_ = 0;
                         return false;
 		}
 
                 /// Advertise service for other nodes to set intrinsic calibration parameters
-                m_CameraInfoService = m_NodeHandle.advertiseService("set_camera_info", &CobTofCameraNode::SetCameraInfo, this);
-		m_XYZImagePublisher = m_ImageTransport.advertise("xyz_data", 1);
-		m_GrayImagePublisher = m_ImageTransport.advertise("gray_data", 1);
+                camera_info_service_ = node_handle_.advertiseService("set_camera_info", &CobTofCameraNode::setCameraInfo, this);
+		xyz_image_publisher_ = image_transport_.advertise("xyz_data", 1);
+		grey_image_publisher_ = image_transport_.advertise("grey_data", 1);
 
 		return true;
 	}
@@ -166,74 +164,74 @@ public:
         /// @param req Requested camera parameters
         /// @param rsp Response, telling if requested parameters have been set
         /// @return <code>True</code>
-        bool SetCameraInfo(sensor_msgs::SetCameraInfo::Request& req,
+        bool setCameraInfo(sensor_msgs::SetCameraInfo::Request& req,
                         sensor_msgs::SetCameraInfo::Response& rsp)
         {
                 /// TODO: Enable the setting of intrinsic parameters
-                m_CameraInfoMessage = req.camera_info;
+                camera_info_msg_ = req.camera_info;
 
                 rsp.success = false;
-                rsp.status_message = "Setting camera parameters through ROS not implemented";
+                rsp.status_message = "[tof_camera] Setting camera parameters through ROS not implemented";
 
                 return true;
         }
 
-        /// Continuously advertises xyz and gray
-	bool Spin()
+        /// Continuously advertises xyz and grey
+	bool spin()
         {
-		sensor_msgs::Image XYZImageMsg;
-		sensor_msgs::Image grayImageMsg;
+		sensor_msgs::Image xyz_image_msg;
+		sensor_msgs::Image grey_image_msg;
 
 		ros::Rate rate(10);
-		while(m_NodeHandle.ok())
+		while(node_handle_.ok())
 		{
 	                /// Release previously acquired IplImage 
-	                if (m_XYZImage32F3)
+	                if (xyz_image_32F3_)
 	                {
-	                        cvReleaseImage(&m_XYZImage32F3);
-	                        m_XYZImage32F3 = 0;
+	                        cvReleaseImage(&xyz_image_32F3_);
+	                        xyz_image_32F3_ = 0;
 	                }
 	
-	                if (m_GrayImage32F1)
+	                if (grey_image_32F1_)
 	                {
-	                        cvReleaseImage(&m_GrayImage32F1);
-	                        m_GrayImage32F1 = 0;
+	                        cvReleaseImage(&grey_image_32F1_);
+	                        grey_image_32F1_ = 0;
 	                }
 	
-			if(m_TofCamera->AcquireImages2(0, &m_GrayImage32F1, &m_XYZImage32F3, false, false, ipa_CameraSensors::AMPLITUDE) & ipa_Utils::RET_FAILED)
+			if(tof_camera_->AcquireImages2(0, &grey_image_32F1_, &xyz_image_32F3_, false, false, ipa_CameraSensors::AMPLITUDE) & ipa_Utils::RET_FAILED)
 			{
-				ROS_ERROR("Tof image acquisition failed");
+				ROS_ERROR("[tof_camera] Tof image acquisition failed");
 	                        return false;	
 			}
 
 			try
 	                {
-	                        XYZImageMsg = *(sensor_msgs::CvBridge::cvToImgMsg(m_XYZImage32F3, "passthrough"));
+	                        xyz_image_msg = *(sensor_msgs::CvBridge::cvToImgMsg(xyz_image_32F3_, "passthrough"));
 	                }
 	                catch (sensor_msgs::CvBridgeException error)
 	                {
-	                        ROS_ERROR("Could not convert 32bit xyz IplImage to ROS message");
+	                        ROS_ERROR("[tof_camera] Could not convert 32bit xyz IplImage to ROS message");
 				return false;
 	                }
 	
 			try
 	                {
-	                        grayImageMsg = *(sensor_msgs::CvBridge::cvToImgMsg(m_GrayImage32F1, "passthrough"));
+	                        grey_image_msg = *(sensor_msgs::CvBridge::cvToImgMsg(grey_image_32F1_, "passthrough"));
 	                }
 	                catch (sensor_msgs::CvBridgeException error)
 	                {
-	                        ROS_ERROR("Could not convert 32bit gray IplImage to ROS message");
+	                        ROS_ERROR("[tof_camera] Could not convert 32bit grey IplImage to ROS message");
 				return false;
 	                }
 	
 	                /// Set time stamp
 			ros::Time now = ros::Time::now();
-	                XYZImageMsg.header.stamp = now;
-	                grayImageMsg.header.stamp = now;
+	                xyz_image_msg.header.stamp = now;
+	                grey_image_msg.header.stamp = now;
 
 			/// publish message
-			m_XYZImagePublisher.publish(XYZImageMsg);
-			m_GrayImagePublisher.publish(grayImageMsg);
+			xyz_image_publisher_.publish(xyz_image_msg);
+			grey_image_publisher_.publish(grey_image_msg);
 
 			ros::spinOnce();
 			rate.sleep();
@@ -254,12 +252,12 @@ int main(int argc, char** argv)
         ros::NodeHandle nh;
 
         /// Create camera node class instance   
-        CobTofCameraNode cameraNode(nh);
+        CobTofCameraNode camera_node(nh);
 
         /// Initialize camera node
-        if (!cameraNode.Init()) return 0;
+        if (!camera_node.init()) return 0;
 
-	cameraNode.Spin();
+	camera_node.spin();
 
         return 0;
 }

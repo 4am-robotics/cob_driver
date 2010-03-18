@@ -75,13 +75,14 @@ using namespace ipa_CameraSensors;
 
 /// @class CobColorCameraNode
 /// ROS node to interface color cameras.
-class CobColorCameraNode
+class CobAllCamerasNode
 {
 private:
 	ros::NodeHandle node_handle_;
 	polled_camera::PublicationServer image_poll_server_;
 
-	AbstractColorCamera* color_camera_;	///< Color camera instance
+	AbstractColorCamera* right_color_camera_;	///< Color camera instance
+	AbstractColorCamera* left_color_camera_;	///< Color camera instance
 
 	sensor_msgs::Image image_message_;	///< ROS image message
 	sensor_msgs::CameraInfo camera_info_message_;	///< ROS camera information message (e.g. holding intrinsic parameters)
