@@ -1,0 +1,17 @@
+<package>
+  <description brief="LBR">
+
+     LBR
+
+  </description>
+  <author></author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/LBR</url>
+  <depend package="rosjava"/>
+  <depend package="std_msgs"/>
+  <depend package="cob_msgs"/>
+
+</package>
+
+
