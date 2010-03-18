@@ -83,7 +83,6 @@ private:
 
 	AbstractColorCamera* color_camera_;	///< Color camera instance
 
-	sensor_msgs::Image image_message_;	///< ROS image message
 	sensor_msgs::CameraInfo camera_info_message_;	///< ROS camera information message (e.g. holding intrinsic parameters)
 
 	ros::ServiceServer camera_info_service_;
@@ -204,11 +203,13 @@ public:
 		}
 	
 		/// Set time stamp
-		image_msg.header.stamp = ros::Time::now();    
+		ros::Time now = ros::Time::now();
+		image_msg.header.stamp = now;    
 
 		info = camera_info_message_;
 		info.width = color_image_8U3_->width;
 		info.height = color_image_8U3_->height;
+		info.header.stamp = now;
 
     		return true;
 	}

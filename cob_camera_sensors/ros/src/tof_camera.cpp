@@ -80,7 +80,7 @@ private:
         ros::NodeHandle node_handle_;	///< Node handle
 
 	image_transport::ImageTransport image_transport_;	///< Image transport instance
-	image_transport::Publisher xyz_image_publisher_;		///< Publishes xyz image data
+	image_transport::Publisher xyz_image_publisher_;	///< Publishes xyz image data
 	image_transport::Publisher grey_image_publisher_;	///< Publishes grey image data
 
         sensor_msgs::CameraInfo camera_info_msg_;    ///< ROS camera information message (e.g. holding intrinsic parameters)
@@ -154,8 +154,8 @@ public:
 
                 /// Advertise service for other nodes to set intrinsic calibration parameters
                 camera_info_service_ = node_handle_.advertiseService("set_camera_info", &CobTofCameraNode::setCameraInfo, this);
-		xyz_image_publisher_ = image_transport_.advertise("xyz_data", 1);
-		grey_image_publisher_ = image_transport_.advertise("grey_data", 1);
+		xyz_image_publisher_ = image_transport_.advertise("xyz_tof_data", 1);
+		grey_image_publisher_ = image_transport_.advertise("grey_tof_data", 1);
 
 		return true;
 	}

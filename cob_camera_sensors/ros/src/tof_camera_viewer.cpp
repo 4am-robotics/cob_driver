@@ -122,8 +122,8 @@ public:
 		cvNamedWindow("z data");		
 		cvNamedWindow("gray data");		
 
-		xyz_image_subscriber_ = image_transport_.subscribe("camera/xyz_data", 1, &CobTofCameraViewerNode::xyzImageCallback, this);
-		grey_image_subscriber_ = image_transport_.subscribe("camera/gray_data", 1, &CobTofCameraViewerNode::greyImageCallback, this);
+		xyz_image_subscriber_ = image_transport_.subscribe("camera/xyz_tof_data", 1, &CobTofCameraViewerNode::xyzImageCallback, this);
+		grey_image_subscriber_ = image_transport_.subscribe("camera/gray_tof_data", 1, &CobTofCameraViewerNode::greyImageCallback, this);
 
 		return true;
 	}
