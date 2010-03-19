@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+	<!-- Sample configuration file for the RoboticsAPI -->
+
+<RoboticsAPI>
+	<!--Controller Name="Mock"
+		Class="kukaRoboter.roboticsAPI.controllerModel.mock.MockController" /-->
+		<Controller Name="Beckhoff"
+		Class="KUKA" NameserverAddress="192.168.42.146" NameserverPort="23456" />
+</RoboticsAPI>
