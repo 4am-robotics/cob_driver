@@ -13,6 +13,10 @@
   <depend package="cob_msgs"/>
   <depend package="trajectory_msgs"/>
 
+  <export>
+    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lRoboticsAPI"/>
+  </export>
+
 </package>
 
 

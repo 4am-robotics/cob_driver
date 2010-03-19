@@ -29,7 +29,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
+add_jar_dir(common/lib)
 add_java_source_dir(${PROJECT_SOURCE_DIR}/ros/src)
-rospack_add_java_executable(cob_lbr cob_lbr)
-
-#add_java_source_dir(${PROJECT_SOURCE_DIR}/<dir>)
+rospack_add_java_executable(${PROJECT_NAME} cob_lbr)
+#target_link_libraries(${PROJECT_NAME} RoboticsAPI.jar)
