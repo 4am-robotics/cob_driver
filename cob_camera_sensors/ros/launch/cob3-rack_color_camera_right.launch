@@ -5,6 +5,9 @@
   <node pkg="cob_camera_sensors" type="color_camera" name="color_camera" ns="camera/right" cwd="node" respawn="false" output="screen">
 	<param name="configuration_files" value="../../common/files/cob3-rack/"/>
 	<param name="camera_index" value="0"/>
+	<!-- Specifies the used camera type -->
+	<!-- CAM_AVTPIKE or CAM_PROSILICA -->
+	<param name="color_camera_type" value="CAM_AVTPIKE" />
   </node>
 
   <!-- start poller for right camera -->

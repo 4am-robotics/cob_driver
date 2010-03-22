@@ -4,6 +4,10 @@
   <!-- start left camera -->
   <node pkg="cob_camera_sensors" type="tof_camera" name="tof_camera" ns="camera" cwd="node" respawn="false" output="screen">
 	<param name="configuration_files" value="../../common/files/cob3-rack/"/>
+	<param name="camera_index" value="0"/>
+	<!-- Specifies the used camera type -->
+ 	<!-- CAM_SWISSRANGER -->
+	<param name="tof_camera_type" value="CAM_SWISSRANGER" />	
   </node>
 
 </launch>

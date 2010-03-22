@@ -136,7 +136,7 @@ unsigned long Swissranger::Init(std::string directory, int cameraIndex)
 	/// Load SR parameters from xml-file
 	if (LoadParameters((directory + "cameraSensorsIni.xml").c_str(), cameraIndex) & RET_FAILED)
 	{
-		std::cerr << "INFO - Swissranger::Init:" << std::endl;
+		std::cerr << "ERROR - Swissranger::Init:" << std::endl;
 		std::cerr << "\t ... Parsing xml configuration file failed." << std::endl;
 		return (RET_FAILED | RET_INIT_CAMERA_FAILED);	
 	}

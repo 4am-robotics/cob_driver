@@ -110,6 +110,7 @@ public:
 	/// Opens the camera sensor
 	bool init()
 	{
+		std::string tmp_string = "NULL";
 		int camera_index = -1;
 		std::string directory = "NULL/";
 
@@ -123,11 +124,24 @@ public:
 		/// Parameters are set within the launch file
 		if (node_handle_.getParam("color_camera/configuration_files", directory) == false)
 		{
-			ROS_ERROR("Path to xml configuration for color camera not specified");
+			ROS_ERROR("[color_camera] Path to xml configuration for color camera not specified");
 			return false;
 		}
 
-		color_camera_ = ipa_CameraSensors::CreateColorCamera_AVTPikeCam();
+		/// Parameters are set within the launch file
+		if (node_handle_.getParam("color_camera/color_camera_type", tmp_string) == false)
+		{
+			ROS_ERROR("[color_camera] Color camera type not specified");
+			return false;
+		}
+		if (tmp_string == "CAM_AVTPIKE") color_camera_ = ipa_CameraSensors::CreateColorCamera_AVTPikeCam();
+		else if (tmp_string == "CAM_PROSILICA") ROS_ERROR("[color_camera] Color camera type not CAM_PROSILICA not yet implemented");
+		else
+		{
+			std::string str = "[color_camera] Camera type '" + tmp_string + "' unknown, try 'CAM_AVTPIKE' or 'CAM_PROSILICA'";
+			ROS_ERROR("%s", str.c_str());
+			return false;
+		}
 	
 		if (color_camera_->Init(directory, camera_index) & ipa_CameraSensors::RET_FAILED)
 		{

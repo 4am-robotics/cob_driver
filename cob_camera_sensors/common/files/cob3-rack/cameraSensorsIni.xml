@@ -136,7 +136,11 @@
   <!-- Valid values: 0..1023 or AUTO and DEFAULT -->
   <PROP_BRIGHTNESS value = "16"/>
 
-  <!-- Valid values: 50..205 or AUTO and DEFAULT -->	  <PROP_EXPOSURE_TIME value = "150"/>  <!-- Valid values: 0..568 or AUTO and DEFAULT -->	  <PROP_WHITE_BALANCE_U value = "AUTO"/>
+  <!-- Valid values: 50..205 or AUTO and DEFAULT -->	  
+  <PROP_EXPOSURE_TIME value = "150"/>  
+  
+  <!-- Valid values: 0..568 or AUTO and DEFAULT -->	  
+  <PROP_WHITE_BALANCE_U value = "AUTO"/>
 
   <!-- Valid values: 0..568 or AUTO and DEFAULT -->		
   <PROP_WHITE_BALANCE_V value = "AUTO"/>

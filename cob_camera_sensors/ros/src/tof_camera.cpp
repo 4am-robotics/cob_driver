@@ -80,8 +80,8 @@ private:
         ros::NodeHandle node_handle_;	///< Node handle
 
 	image_transport::ImageTransport image_transport_;	///< Image transport instance
-	image_transport::Publisher xyz_image_publisher_;	///< Publishes xyz image data
-	image_transport::Publisher grey_image_publisher_;	///< Publishes grey image data
+	image_transport::CameraPublisher xyz_image_publisher_;	///< Publishes xyz image data
+	image_transport::CameraPublisher grey_image_publisher_;	///< Publishes grey image data
 
         sensor_msgs::CameraInfo camera_info_msg_;    ///< ROS camera information message (e.g. holding intrinsic parameters)
 
@@ -118,9 +118,10 @@ public:
 	/// @return <code>false</code> on failure, <code>true</code> otherwise
         bool init()
         {
-		int camera_index = 0;
+		int camera_index = -1;
                 std::string directory = "NULL/";
-                
+		std::string tmp_string = "NULL";
+               
 		/// Parameters are set within the launch file
                 if (node_handle_.getParam("tof_camera/configuration_files", directory) == false)
                 {
@@ -128,9 +129,34 @@ public:
                         return false;
                 }
 
-		tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_Swissranger();
+		/// Parameters are set within the launch file
+		if (node_handle_.getParam("tof_camera/camera_index", camera_index) == false)
+		{
+			ROS_ERROR("[tof_camera] Color camera index (0 or 1) not specified");
+			return false;
+		}
 
-		if (tof_camera_->Init(directory) & ipa_CameraSensors::RET_FAILED)
+
+		/// Parameters are set within the launch file
+		if (node_handle_.getParam("tof_camera/tof_camera_type", tmp_string) == false)
+		{
+			ROS_ERROR("[tof_camera] tof camera type not specified");
+			return false;
+		}
+		if (tmp_string == "CAM_SWISSRANGER") tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_Swissranger();
+		if (tmp_string == "CAM_PMDCAMCUBE") 
+		{
+			ROS_ERROR("[tof_camera] tof camera type CAM_PMDCAMCUBE not yet implemented");
+			return false;
+		}
+		else
+		{
+			std::string str = "[tof_camera] Camera type '" + tmp_string + "' unknown, try 'CAM_SWISSRANGER'";
+			ROS_ERROR("%s", str.c_str());
+			return false;
+		}
+
+		if (tof_camera_->Init(directory, camera_index) & ipa_CameraSensors::RET_FAILED)
 		{
 
 			std::stringstream ss;
@@ -154,8 +180,8 @@ public:
 
                 /// Advertise service for other nodes to set intrinsic calibration parameters
                 camera_info_service_ = node_handle_.advertiseService("set_camera_info", &CobTofCameraNode::setCameraInfo, this);
-		xyz_image_publisher_ = image_transport_.advertise("xyz_tof_data", 1);
-		grey_image_publisher_ = image_transport_.advertise("grey_tof_data", 1);
+		xyz_image_publisher_ = image_transport_.advertiseCamera("xyz_tof_data", 1);
+		grey_image_publisher_ = image_transport_.advertiseCamera("grey_tof_data", 1);
 
 		return true;
 	}
@@ -181,6 +207,7 @@ public:
         {
 		sensor_msgs::Image xyz_image_msg;
 		sensor_msgs::Image grey_image_msg;
+		sensor_msgs::CameraInfo tof_image_info;
 
 		ros::Rate rate(10);
 		while(node_handle_.ok())
@@ -229,9 +256,14 @@ public:
 	                xyz_image_msg.header.stamp = now;
 	                grey_image_msg.header.stamp = now;
 
+			tof_image_info = camera_info_msg_;
+			tof_image_info.width = grey_image_32F1_->width;
+			tof_image_info.height = grey_image_32F1_->height;
+			tof_image_info.header.stamp = now;
+
 			/// publish message
-			xyz_image_publisher_.publish(xyz_image_msg);
-			grey_image_publisher_.publish(grey_image_msg);
+			xyz_image_publisher_.publish(xyz_image_msg, tof_image_info);
+			grey_image_publisher_.publish(grey_image_msg, tof_image_info);
 
 			ros::spinOnce();
 			rate.sleep();
