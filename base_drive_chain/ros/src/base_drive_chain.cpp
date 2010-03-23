@@ -263,7 +263,7 @@ class NodeClass
 			// get time stamp for header
 			jointstate.header.stamp = ros::Time::now();
             // set frame_id for header            
-			jointstate.header.frame_id = frame_id;
+			//jointstate.header.frame_id = frame_id; //Where to get this id from?
 
             // read Can-Buffer
     		iCanEvalStatus = m_CanCtrlPltf.evalCanBuffer();
@@ -327,6 +327,8 @@ class NodeClass
         
         // other function declarations
         bool initDrives();
+
+        int startDriveIdentification(std::string LogDirectory);
 };
 
 //#######################
@@ -341,8 +343,17 @@ int main(int argc, char** argv)
 	// currently only waits for callbacks -> if it should run cyclical
 	// -> specify looprate
  	// ros::Rate loop_rate(10); // Hz 
+
+
+    //DRIVE IDENTIFICATION:
+
+    nodeClass.startDriveIdentification("/home/cob/git/care-o-bot/cob_driver/cob3_platform/ros/bin/LogCtrl");
+
+
+
     while(nodeClass.n.ok())
     {
+
 
         ros::spinOnce();
 		// -> let it sleep for a while
@@ -399,4 +410,11 @@ bool NodeClass::initDrives()
 	ROS_INFO("Initializing done");
 
     return bTemp1;
+}
+
+int NodeClass::startDriveIdentification(std::string LogDirectory) {
+    m_CanCtrlPltf.configureElmoRecorder(7);
+    m_CanCtrlPltf.printElmoRecordings(LogDirectory);
+
+    return 0;
 }

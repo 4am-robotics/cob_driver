@@ -243,6 +243,11 @@ public:
 	 */
 	void configureElmoRecorder(int iRecordingGap);
 
+    /**
+     *Receives recorded data from Elmos via CAN and saves them into LOG-files
+     */
+    bool printElmoRecordings(std::string LogDirectory);
+
 
 	//--------------------------------- Commands for other nodes
 

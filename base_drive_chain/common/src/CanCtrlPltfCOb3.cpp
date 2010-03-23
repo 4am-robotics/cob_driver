@@ -1329,3 +1329,25 @@ void CanCtrlPltfCOb3::configureElmoRecorder(int iRecordingGap)
 	m_Mutex.unlock();
 
 }
+
+//-----------------------------------------------
+// Read out Elmo-Recorder via CAN (cpc-pk)
+//-----------------------------------------------
+
+//-----------------------------------------------
+bool CanCtrlPltfCOb3::printElmoRecordings(std::string LogDirectory) {
+    m_Mutex.lock();
+    
+    recData *dataOut;
+    m_vpMotor[0]->collectRecordedData(0, &dataOut);
+
+    while(m_vpMotor[0]->collectRecordedData(1, &dataOut) == false) {
+        usleep(1000);
+    }
+
+    return true;
+
+    m_Mutex.unlock();
+}
+
+
