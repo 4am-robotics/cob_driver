@@ -82,7 +82,7 @@ class NodeClass
         // topics to publish
         ros::Publisher topicPub_Pose2D;
         ros::Publisher topicPub_Odometry;
-//        tf::TransformBroadcaster odom_broadcaster;
+        tf::TransformBroadcaster odom_broadcaster;
 
 	    // topics to subscribe, callback is called for new messages arriving
         ros::Subscriber topicSub_CmdVel;
@@ -103,14 +103,15 @@ class NodeClass
         double x, y, th;
         double dxMM, dyMM, dth, dvth;
         double vxMMS, vyMMS, vth, vvth;
-        ros::Time current_time;
+        ros::Time current_time, last_time;
 
         // Constructor
         NodeClass()
         {
             // initialize global variables
             isInitialized = false;
-            current_time = ros::Time::now();
+            last_time = ros::Time::now();
+	        current_time = ros::Time::now();
             cmdVelX = cmdVelY = cmdVelTh = 0;
             x = y = th = 0;
             dxMM = dyMM = dth = dvth = 0;
@@ -225,14 +226,69 @@ class NodeClass
         {
             if(isInitialized == true)
             {
+				double u_x,u_y,dt = 0.0;
+	            current_time = ros::Time::now();
+				dt = current_time.toSec() - last_time.toSec();
+				last_time = current_time;
+
                 // get odometry from platform
                 pltf->getDeltaPosePltf(dxMM, dyMM, dth, dvth,
         					           vxMMS, vyMMS, vth, vvth);
 
+				// calculation from cpc
+/*				if (fabs(vth) < 0.05)
+				{
+					u_x = vxMMS*dt/1000.0;
+					u_y = vyMMS*dt/1000.0;
+				}
+				else
+				{
+					u_x = vxMMS*sin(vth*dt)/vth/1000.0 + vyMMS/vth/1000.0*(cos(vth*dt)-1.0);
+					u_y = -vxMMS/vth/1000.0*(cos(vth*dt)-1.0) + vyMMS*sin(vth*dt)/vth/1000.0;
+					if (fabs(u_x)>1 || fabs(u_y)>1)
+					{
+						ROS_INFO("u_x = %f, u_y=%f, vth=%f, vx=%f, vy=%f",u_x,u_y,vth,vxMMS,vyMMS);
+					}
+				}
+
                 // add delta values to old values
-                x += dxMM / 1000.0; // convert from mm to m
-                y += dyMM / 1000.0; // convert from mm to m
-                th += dth * 2; // Hack!! TODO error in odometry calculation, change in library 
+                x += u_x*cos(th)-u_y*sin(th);
+                y += u_x*sin(th)+u_y*cos(th);
+                th += vth*dt;
+*/
+
+				// calculation from ROS odom publisher tutorial http://www.ros.org/wiki/navigation/Tutorials/RobotSetup/Odom
+			    //compute odometry in a typical way given the velocities of the robot
+				//double dt = (current_time - last_time).toSec();
+				double delta_x = (vxMMS/1000.0 * cos(th) - vyMMS/1000.0 * sin(th)) * dt;
+				double delta_y = (vxMMS/1000.0 * sin(th) + vyMMS/1000.0 * cos(th)) * dt;
+				double delta_th = vth * dt;
+
+				x += delta_x;
+				y += delta_y;
+				th += delta_th;
+
+
+
+
+			    //since all odometry is 6DOF we'll need a quaternion created from yaw
+				geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(th);
+
+				//first, we'll publish the transform over tf
+				geometry_msgs::TransformStamped odom_trans;
+				odom_trans.header.stamp = current_time;
+				odom_trans.header.frame_id = "odom";
+				odom_trans.child_frame_id = "base_link_footprint";
+
+				odom_trans.transform.translation.x = x;
+				odom_trans.transform.translation.y = y;
+				odom_trans.transform.translation.z = 0.0;
+				odom_trans.transform.rotation = odom_quat;
+
+				//send the transform
+				odom_broadcaster.sendTransform(odom_trans);
+
+
 
                 //next, we'll publish the odometry message over ROS
                 nav_msgs::Odometry odom;
@@ -244,7 +300,7 @@ class NodeClass
                 odom.pose.pose.position.x = x;
                 odom.pose.pose.position.y = y;
                 odom.pose.pose.position.z = 0.0;
-                odom.pose.pose.orientation = tf::createQuaternionMsgFromYaw(th);
+                odom.pose.pose.orientation = odom_quat;
 
                 //set the velocity
                 odom.twist.twist.linear.x = vxMMS / 1000.0; // convert from mm/s to m/s
@@ -254,8 +310,7 @@ class NodeClass
                 //publish the message
                 topicPub_Odometry.publish(odom);
 
-                ROS_DEBUG("published Pose2D: pos[x=%3.2f,y=%3.2f,th=%3.2f]",x, y, th);
-                ROS_DEBUG("published Pose2D: vel[vy=%3.2f,vx=%3.2f,vth=%3.2f]",vxMMS, vyMMS, vth);
+				last_time = current_time;
             }
         }
 };
