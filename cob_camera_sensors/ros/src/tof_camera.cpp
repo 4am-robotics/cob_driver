@@ -132,7 +132,7 @@ public:
 		/// Parameters are set within the launch file
 		if (node_handle_.getParam("tof_camera/camera_index", camera_index) == false)
 		{
-			ROS_ERROR("[tof_camera] Color camera index (0 or 1) not specified");
+			ROS_ERROR("[tof_camera] Tof camera index (0 or 1) not specified");
 			return false;
 		}
 
@@ -144,7 +144,7 @@ public:
 			return false;
 		}
 		if (tmp_string == "CAM_SWISSRANGER") tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_Swissranger();
-		if (tmp_string == "CAM_PMDCAMCUBE") 
+		else if (tmp_string == "CAM_PMDCAMCUBE") 
 		{
 			ROS_ERROR("[tof_camera] tof camera type CAM_PMDCAMCUBE not yet implemented");
 			return false;
