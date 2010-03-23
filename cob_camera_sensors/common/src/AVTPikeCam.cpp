@@ -54,7 +54,7 @@
 #ifdef __COB_ROS__
 #include "cob_camera_sensors/AVTPikeCam.h"
 #else
-#include "AVTPikeCam.h"
+#include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/AVTPikeCam.h"
 #endif
 
 using namespace std;
@@ -371,7 +371,6 @@ unsigned long AVTPikeCam::Open()
 	}
 
 #endif
-
 	std::cout << "**************************************************" << std::endl;
 	std::cout << "AVTPikeCam::Open: AVT Pike 145C camera device OPEN" << std::endl;
 	std::cout << "**************************************************" << std::endl << std::endl;
@@ -681,7 +680,7 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 	int height;
 	ipa_CameraSensors::t_cameraProperty cameraProperty;
 	cameraProperty.propertyID = PROP_CAMERA_RESOLUTION;
-	GetProperty(&cameraProperty);
+	if (GetProperty(&cameraProperty) & RET_FAILED) return RET_FAILED;
 	width = cameraProperty.cameraResolution.xResolution;
 	height = cameraProperty.cameraResolution.yResolution;
 
@@ -745,7 +744,7 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 	int height;
 	ipa_CameraSensors::t_cameraProperty cameraProperty;
 	cameraProperty.propertyID = PROP_CAMERA_RESOLUTION;
-	GetProperty(&cameraProperty);
+	if (GetProperty(&cameraProperty) & RET_FAILED) return RET_FAILED;
 	width = cameraProperty.cameraResolution.xResolution;
 	height = cameraProperty.cameraResolution.yResolution;
 
@@ -778,9 +777,10 @@ unsigned long AVTPikeCam::GetColorImage(IplImage* colorImage, bool getLatestFram
 	int height;
 	ipa_CameraSensors::t_cameraProperty cameraProperty;
 	cameraProperty.propertyID = PROP_CAMERA_RESOLUTION;
-	GetProperty(&cameraProperty);
+	if (GetProperty(&cameraProperty) & RET_FAILED) return RET_FAILED;
 	width = cameraProperty.cameraResolution.xResolution;
 	height = cameraProperty.cameraResolution.yResolution;
+
 
 	if(colorImage->depth == IPL_DEPTH_8U &&
 		colorImage->nChannels == 3 &&
@@ -808,11 +808,11 @@ unsigned long AVTPikeCam::GetColorImage2(IplImage** colorImage, bool getLatestFr
 		return (RET_FAILED | RET_CAMERA_NOT_OPEN);
 	}
 
-	int width = -1;
-	int height = -1;
+	int width;
+	int height;
 	ipa_CameraSensors::t_cameraProperty cameraProperty;
 	cameraProperty.propertyID = PROP_CAMERA_RESOLUTION;
-	GetProperty(&cameraProperty);
+	if (GetProperty(&cameraProperty) & RET_FAILED) return RET_FAILED;
 	width = cameraProperty.cameraResolution.xResolution;
 	height = cameraProperty.cameraResolution.yResolution;
 
