@@ -92,9 +92,10 @@ class NodeClass
         
         // global variables
         std::string port;
-		int baud;
-		bool inverted;
-		std::string frame_id;
+        int baud, start_scan, stop_scan;
+        bool inverted;
+        std::string frame_id;
+
 
         // Constructor
         NodeClass()
@@ -104,6 +105,8 @@ class NodeClass
 			n.param<int>("baud", baud, 500000);
 			n.param<bool>("inverted", inverted, false);
 			n.param<std::string>("laser_front/frame_id", frame_id, "base_laser_front");
+            n.param<int>("start_scan", start_scan, 115);
+            n.param<int>("stop_scan", stop_scan, 426);
 
         	// implementation of topics to publish
             topicPub_LaserScan = n.advertise<sensor_msgs::LaserScan>("scan", 1);
@@ -132,50 +135,45 @@ class NodeClass
 		void publishLaserScan(std::vector<double> vdDistM, std::vector<double> vdAngRAD, std::vector<double> vdIntensAU)
         {
         	// fill message
-        	int num_readings = vdDistM.size();
+        	int num_readings = vdDistM.size(); // initialize with max scan size
 			double laser_frequency = 10; //TODO: read from Ini-file
 			
-			// create LaserScan Data-Container
+			// create LaserScan message
         	sensor_msgs::LaserScan laserScan;
-
-			// get time stamp for header
 			laserScan.header.stamp = ros::Time::now();
             
-			// set scan parameters
-//			laserScan.header.frame_id = "base_laser_front"; // TODO read from parameter
-			//if(!n.getParam("frame_id", frame_id))
-			//	frame_id = "ffff";
-			//n.getParam("frame_id", frame_id);
-			//ROS_INFO("Laser frame = %s",frame_id.c_str());
+			// fill message
 			laserScan.header.frame_id = frame_id;
-			laserScan.angle_min = vdAngRAD[0]; // first ScanAngle
-			laserScan.angle_max = vdAngRAD[num_readings - 1]; // last ScanAngle
-			laserScan.angle_increment = vdAngRAD[1] - vdAngRAD[0];
+			laserScan.angle_increment = vdAngRAD[start_scan + 1] - vdAngRAD[start_scan];
 			laserScan.range_min = 0.0; //TODO read from ini-file/parameter-file
 			laserScan.range_max = 100.0; //TODO read from ini-file/parameter-file
-
-			laserScan.time_increment = (1 / laser_frequency) / (num_readings); //TODO read from ini-file/parameter-file
-
+			laserScan.time_increment = (1 / laser_frequency) / (vdDistM.size()); //TODO read from ini-file/parameter-file
+			
+			// rescale scan
+			num_readings = stop_scan - start_scan;
+			laserScan.angle_min = vdAngRAD[start_scan]; // first ScanAngle
+			laserScan.angle_max = vdAngRAD[stop_scan - 1]; // last ScanAngle
    			laserScan.set_ranges_size(num_readings);
     		laserScan.set_intensities_size(num_readings);
-			ROS_INFO("LaserScanner Invertiert: %d", inverted);
-			for(int i = 0; i < num_readings; i++)
+
+			// check for inverted laser
+			inverted = false; //true; // TODO remove hardcoded parameter
+			for(int i = 0; i < (stop_scan - start_scan); i++)
 			{
 				if(inverted)
 				{
-			    	laserScan.ranges[i] = vdDistM[num_readings-1-i];
-			    	laserScan.intensities[i] = vdIntensAU[num_readings-1-i];
+			    	laserScan.ranges[i] = vdDistM[stop_scan-1-i];
+			    	laserScan.intensities[i] = vdIntensAU[stop_scan-1-i];
 				}
 				else
 				{
-			    	laserScan.ranges[i] = vdDistM[i];
-			    	laserScan.intensities[i] = vdIntensAU[i];
+			    	laserScan.ranges[i] = vdDistM[start_scan + i];
+			    	laserScan.intensities[i] = vdIntensAU[start_scan + i];
 				}
 			}
         
         	// publish message
             topicPub_LaserScan.publish(laserScan);
-        	ROS_DEBUG("published new LaserScan message");
         }
 };
 
@@ -191,7 +189,7 @@ int main(int argc, char** argv)
 
 	//char *pcPort = new char();
 //	const char pcPort[] = "/dev/ttyUSB1"; //TODO replace with parameter port
-	const char pcPort[] = "/dev/ttyUSB1";
+	const char pcPort[] = "/dev/ttyUSB0";
 //	int iBaudRate = 500000;
 	int iBaudRate = nodeClass.baud;
 	bool bOpenScan, bRecScan = false;
@@ -201,7 +199,7 @@ int main(int argc, char** argv)
  	while (!bOpenScan)
  	{
  		ROS_INFO("Opening scanner...");
-		bOpenScan = SickS300.open(nodeClass.port.c_str(), iBaudRate);
+		bOpenScan = SickS300.open(pcPort, iBaudRate);
 		
 		// check, if it is the first try to open scanner
 	 	if(firstTry)
