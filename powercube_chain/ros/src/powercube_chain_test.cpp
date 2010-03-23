@@ -178,7 +178,7 @@ int main(int argc, char** argv)
                 std::cout << "Choose preset target positions/velocities ([0] = , [1] = , [2] = ): ";
                 std::cin >> c;
                 
-                int DOF = 7;
+                int DOF = 4;
                 cob_msgs::JointCommand msg;
                 msg.header.stamp = ros::Time::now();
                 msg.positions.resize(DOF);
@@ -190,17 +190,17 @@ int main(int argc, char** argv)
 		            msg.positions[1] = 0;
 		            msg.positions[2] = 0;
 		            msg.positions[3] = 0;
-		            msg.positions[4] = 0;
-		            msg.positions[5] = 0;
-		            msg.positions[6] = 0;
+		            //msg.positions[4] = 0;
+		            //msg.positions[5] = 0;
+		            //msg.positions[6] = 0;
 		            
 		            msg.velocities[0] = 0;
 		            msg.velocities[1] = 0;
 		            msg.velocities[2] = 0;
 		            msg.velocities[3] = 0;
-		            msg.velocities[4] = 0;
-		            msg.velocities[5] = 0;
-		            msg.velocities[6] = 0;
+		            //msg.velocities[4] = 0;
+		            //msg.velocities[5] = 0;
+		            //msg.velocities[6] = 0;
                 }
                 else if (c == '1')
                 {
@@ -208,17 +208,17 @@ int main(int argc, char** argv)
 		            msg.positions[1] = 0.1;
 		            msg.positions[2] = 0.1;
 		            msg.positions[3] = 0.1;
-		            msg.positions[4] = 0.1;
-		            msg.positions[5] = 0.1;
-		            msg.positions[6] = 0.1;
+		            //msg.positions[4] = 0.1;
+		            //msg.positions[5] = 0.1;
+		            //msg.positions[6] = 0.1;
 		            
 		            msg.velocities[0] = 0.1;
 		            msg.velocities[1] = 0.1;
 		            msg.velocities[2] = 0.1;
 		            msg.velocities[3] = 0.1;
-		            msg.velocities[4] = 0.1;
-		            msg.velocities[5] = 0.1;
-		            msg.velocities[6] = 0.1;
+		            //msg.velocities[4] = 0.1;
+		            //msg.velocities[5] = 0.1;
+		            //msg.velocities[6] = 0.1;
                 }
                 else if (c == '2')
                 {
@@ -226,18 +226,54 @@ int main(int argc, char** argv)
 		            msg.positions[1] = 0.2;
 		            msg.positions[2] = 0.2;
 		            msg.positions[3] = 0.2;
-		            msg.positions[4] = 0.2;
-		            msg.positions[5] = 0.2;
-		            msg.positions[6] = 0.2;
+		            //msg.positions[4] = 0.2;
+		            //msg.positions[5] = 0.2;
+		            //msg.positions[6] = 0.2;
 		            
 		            msg.velocities[0] = 0.2;
 		            msg.velocities[1] = 0.2;
 		            msg.velocities[2] = 0.2;
 		            msg.velocities[3] = 0.2;
-		            msg.velocities[4] = 0.2;
-		            msg.velocities[5] = 0.2;
-		            msg.velocities[6] = 0.2;
+		            //msg.velocities[4] = 0.2;
+		            //msg.velocities[5] = 0.2;
+		            //msg.velocities[6] = 0.2;
                 }
+                else if (c == '9')
+                {
+                    msg.positions[0] = -0.1;
+		            msg.positions[1] = -0.1;
+		            msg.positions[2] = -0.1;
+		            msg.positions[3] = -0.1;
+		            //msg.positions[4] = -0.1;
+		            //msg.positions[5] = -0.1;
+		            //msg.positions[6] = -0.1;
+		            
+		            msg.velocities[0] = -0.1;
+		            msg.velocities[1] = -0.1;
+		            msg.velocities[2] = -0.1;
+		            msg.velocities[3] = -0.1;
+		            //msg.velocities[4] = -0.1;
+		            //msg.velocities[5] = -0.1;
+		            //msg.velocities[6] = -0.1;
+                }
+                else if (c == '8')
+                {
+                    msg.positions[0] = -0.2;
+		            msg.positions[1] = -0.2;
+		            msg.positions[2] = -0.2;
+		            msg.positions[3] = -0.2;
+		            //msg.positions[4] = -0.2;
+		            //msg.positions[5] = -0.2;
+		            //msg.positions[6] = -0.2;
+		            
+		            msg.velocities[0] = -0.2;
+		            msg.velocities[1] = -0.2;
+		            msg.velocities[2] = -0.2;
+		            msg.velocities[3] = -0.2;
+		            //msg.velocities[4] = -0.2;
+		            //msg.velocities[5] = -0.2;
+		            //msg.velocities[6] = -0.2;
+				}
                 else
                 {
                     ROS_ERROR("invalid target");

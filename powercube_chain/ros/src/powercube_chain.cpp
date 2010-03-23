@@ -95,12 +95,23 @@ class NodeClass
         
         // global variables
         PowerCubeCtrl* PCube;
+		PowerCubeCtrlParams* PCubeParams;
+		int CanDevice;
+		int CanBaudrate;
+		XmlRpc::XmlRpcValue ModIds_param;
+		std::vector<int> ModIds;
+		XmlRpc::XmlRpcValue JointNames_param;
+		std::vector<std::string> JointNames;
+		bool isInitialized;
 
         // Constructor
         NodeClass()
         {
+			isInitialized = false;
+
         	PCube = new PowerCubeCtrl();
-        
+        	PCubeParams = new PowerCubeCtrlParams();
+
             // implementation of topics to publish
             topicPub_JointState = n.advertise<sensor_msgs::JointState>("joint_states", 1);
             
@@ -114,6 +125,43 @@ class NodeClass
             
             // implementation of service clients
             //--
+
+            // read parameters from parameter server
+            n.param<int>("CanDevice", CanDevice, 15);
+            n.param<int>("CanBaudrate", CanBaudrate, 500);
+			if (n.hasParam("powercube_chain/ModIds"))
+			{
+				n.getParam("powercube_chain/ModIds", ModIds_param);
+			}
+			else
+			{
+				ROS_ERROR("Parameter ModIds not set");
+			}
+			ModIds.resize(ModIds_param.size());
+			for (int i = 0; i<ModIds_param.size(); i++ )
+			{
+				ModIds[i] = (int)ModIds_param[i];
+			}
+			
+			ROS_INFO("getting JointNames from parameter server");
+			if (n.hasParam("powercube_chain/JointNames"))
+			{
+				n.getParam("powercube_chain/JointNames", JointNames_param);
+			}
+			else
+			{
+				ROS_ERROR("Parameter JointNames not set");
+			}
+
+			JointNames.resize(JointNames_param.size());
+			for (int i = 0; i<JointNames_param.size(); i++ )
+			{
+				JointNames[i] = (std::string)JointNames_param[i];
+			}
+            ROS_INFO("CanDevice=%d, CanBaudrate=%d",CanDevice,CanBaudrate);
+			std::cout << "ModIds = " << ModIds_param << std::endl;
+			std::cout << "JointNames = " << JointNames_param << std::endl;
+			PCubeParams->Init(CanDevice, CanBaudrate, ModIds);
         }
         
         // Destructor
@@ -137,7 +185,7 @@ class NodeClass
             {
             	ROS_INFO("moving powercubes in velocity mode");
                 //TODO PowerCubeCtrl
-                PCube->MoveVel(msg->velocities);  
+                PCube->MoveVel(msg->velocities);
             }
             else
             {
@@ -150,38 +198,46 @@ class NodeClass
         bool srvCallback_Init(cob_srvs::Trigger::Request &req,
                               cob_srvs::Trigger::Response &res )
         {
-        	ROS_INFO("Initializing powercubes");
-          	
-          	// init powercubes 
-          	//TODO: make iniFilepath as an argument
-          	//TODO: read iniFile into ros prarameters
-            if (PCube->Init("include/iniFile.txt")) 
-            {
-            	ROS_INFO("Initializing succesfull");
-            	res.success = 0; // 0 = true, else = false
-            }
-            else
-            {
-            	ROS_ERROR("Initializing powercubes not succesfull. error: %s", PCube->getErrorMessage().c_str());
-            	res.success = 1; // 0 = true, else = false
-            	res.errorMessage.data = PCube->getErrorMessage();
-            	return true;
-            }
-            
-            // homing powercubes
-            if (PCube->doHoming())
-            {
-            	ROS_INFO("Homing powercubes succesfull");
-            	res.success = 0; // 0 = true, else = false
-            }
-            else
-            {
-            	ROS_ERROR("Homing powercubes not succesfull. error: %s", PCube->getErrorMessage().c_str());
-            	res.success = 1; // 0 = true, else = false
-            	res.errorMessage.data = PCube->getErrorMessage();
-            	return true;
-            }
-            return true;
+			if (isInitialized == false)
+			{
+				ROS_INFO("...initializing powercubes...");
+		      	// init powercubes 
+		        if (PCube->Init(PCubeParams))
+		        {
+		        	ROS_INFO("Initializing succesfull");
+					isInitialized = true;
+		        	res.success = 0; // 0 = true, else = false
+		        }
+		        else
+		        {
+		        	ROS_ERROR("Initializing powercubes not succesfull. error: %s", PCube->getErrorMessage().c_str());
+		        	res.success = 1; // 0 = true, else = false
+		        	res.errorMessage.data = PCube->getErrorMessage();
+		        }
+			}
+			else
+			{
+				ROS_ERROR("...powercubes already initialized...");		        
+				res.success = 1;
+				res.errorMessage.data = "powercubes already initialized";
+			}
+
+	        // homing powercubes
+	        /*if (PCube->doHoming())
+	        {
+	        	ROS_INFO("Homing powercubes succesfull");
+	        	res.success = 0; // 0 = true, else = false
+	        }
+	        else
+	        {
+	        	ROS_ERROR("Homing powercubes not succesfull. error: %s", PCube->getErrorMessage().c_str());
+	        	res.success = 1; // 0 = true, else = false
+	        	res.errorMessage.data = PCube->getErrorMessage();
+	        	return true;
+	        }
+			*/
+
+		     return true;
         }
 
         bool srvCallback_Stop(cob_srvs::Trigger::Request &req,
@@ -216,41 +272,37 @@ class NodeClass
         // other function declarations
         void publishJointState()
         {
-            // create message
-            int DOF = 7;
-            std::vector<double> ActualPos;
-            std::vector<double> ActualVel;
-            ActualPos.resize(DOF);
-            ActualVel.resize(DOF);
-            //TODO
-            //PCube->getConfig(ActualPos);
-            //get velocities
-            sensor_msgs::JointState msg;
-            msg.header.stamp = ros::Time::now();
-            msg.name.resize(DOF);
-            msg.position.resize(DOF);
-            msg.velocity.resize(DOF);
-            
-            // TODO: read joint names from parameter file
-            msg.name[0] = "joint_arm0_arm1";
-            msg.name[1] = "joint_arm1_arm2";
-            msg.name[2] = "joint_arm2_arm3";
-            msg.name[3] = "joint_arm3_arm4";
-            msg.name[4] = "joint_arm4_arm5";
-            msg.name[5] = "joint_arm5_arm6";
-            msg.name[6] = "joint_arm6_arm7";
-            
-            for (int i = 0; i<DOF; i++ )
-            {
-                msg.position[i] = ActualPos[i];
-                msg.velocity[i] = ActualVel[i];
-            }
-                
-            // publish message
-            ROS_INFO("published ActualPos [%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f]", 
-                     msg.position[0], msg.position[1], msg.position[2], msg.position[3], 
-                     msg.position[4], msg.position[5], msg.position[6]);
-            topicPub_JointState.publish(msg);
+			if (isInitialized == true)
+			{
+		        // create message
+		        int DOF = ModIds_param.size();
+		        std::vector<double> ActualPos;
+		        std::vector<double> ActualVel;
+		        ActualPos.resize(DOF);
+		        ActualVel.resize(DOF);
+		        //TODO
+				PCube->getConfig(ActualPos);
+		        //get velocities
+		        sensor_msgs::JointState msg;
+		        msg.header.stamp = ros::Time::now();
+		        msg.name.resize(DOF);
+		        msg.position.resize(DOF);
+		        msg.velocity.resize(DOF);
+		        
+				msg.name = JointNames;
+
+		        for (int i = 0; i<DOF; i++ )
+		        {
+		            msg.position[i] = ActualPos[i];
+		            msg.velocity[i] = ActualVel[i];
+		        }
+		            
+		        // publish message
+		        ROS_DEBUG("published ActualPos [%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f]", 
+		                 msg.position[0], msg.position[1], msg.position[2], msg.position[3], 
+		                 msg.position[4], msg.position[5], msg.position[6]);
+		        topicPub_JointState.publish(msg);
+			}
         }
 
 }; //NodeClass
@@ -275,7 +327,7 @@ int main(int argc, char** argv)
         // read parameter
         std::string operationMode;
         nodeClass.n.getParam("OperationMode", operationMode);
-        ROS_INFO("running with OperationMode [%s]", operationMode.c_str());
+        ROS_DEBUG("running with OperationMode [%s]", operationMode.c_str());
 
         // sleep and waiting for messages, callbacks 
         ros::spinOnce();

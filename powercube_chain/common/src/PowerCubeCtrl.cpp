@@ -79,28 +79,40 @@ using namespace std;
 PowerCubeCtrl::PowerCubeCtrl()
 {
 	m_Dev=0;
-	m_DOF = 7;
+	m_DOF = 1;
 	m_CANDeviceOpened = false;
 	m_Initialized = false;
 }
 
 
-bool PowerCubeCtrl::Init(const char* iniFile)
+bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 {
-	int CanDevice;
-	int CanBaudRate;
+	int CanDevice= 0;
+	int CanBaudRate = 0;
 	std::vector<double> offsets;
 	std::vector<double> upperLimits;
 	std::vector<double> lowerLimits;
-
-	// TODO: READ PARAMTERS FROM INIFILE!
-    CanDevice = 1;
-    CanBaudRate = 1000;
-
-    
+	if (params != NULL)
+	{
+		m_DOF=params->GetNumberOfDOF();
+		m_IdModules = params->GetModuleIDVector();
+		CanBaudRate = params->GetBaudRate();
+		CanDevice = params->GetCanDevice();
+		for (int i = 0; i< m_DOF; i++)
+		{
+			upperLimits.push_back(3.1);
+			lowerLimits.push_back(-3.1);
+			offsets.push_back(0);
+		}
+	}
+	else
+	{
+   		std::cout <<"PowerCubeCtrl::Init: Error, parameters == NULL"<<endl; 
+		return false;
+	}
     ostringstream initStr;
     initStr << "PCAN:" << CanDevice << "," << CanBaudRate;
-
+    std::cout << "initstring = " << initStr.str().c_str() << std::endl;
 	int ret = 0;
 	ret = PCube_openDevice (&m_Dev, initStr.str().c_str());
 	
@@ -118,40 +130,25 @@ bool PowerCubeCtrl::Init(const char* iniFile)
 	// Make sure m_IdModules is clear of Elements:
 	m_IdModules.clear();
 	
-	//TODO hardcoded for testing
-	vector<int> ids;
-	ids.resize(m_DOF);
-	ids[0]=13;
-	ids[1]=14;
-	ids[2]=15;
-	ids[3]=16;
-	ids[4]=17;
-	ids[5]=18;
-	ids[6]=19;
-	
 	for(int i=0; i<m_DOF; i++)
 	{
 
-		// TODO: modId aus IniFile!!!
-		int modId = ids[i];
-		
 		// Check if the Module is connected:
 		unsigned long serNo;
 
-		int ret = PCube_getModuleSerialNo( m_Dev, modId, &serNo );
+		int ret = PCube_getModuleSerialNo( m_Dev, m_IdModules[i], &serNo );
 		
 		// if not return false ( ret == 0 means success)
 		if( ret != 0 )
 		{
 			ostringstream errorMsg;
-			errorMsg << "Could not find Module with ID " << modId;
+			errorMsg << "Could not find Module with ID " << m_IdModules[i];
 			m_ErrorMessage = errorMsg.str();
 			return false;
 		}
 		
 		// otherwise success, save Id in m_IdModules
-		cout << "found module " << modId << endl;
-		m_IdModules.push_back(modId);
+		cout << "found module " << m_IdModules[i] << endl;
 	}
 	
 	vector<string> errorMessages;
@@ -166,6 +163,17 @@ bool PowerCubeCtrl::Init(const char* iniFile)
 			m_ErrorMessage.append("\n");
 		}
 		return false;
+	}
+	else if (status == PC_CTRL_NOT_REFERENCED) 
+	{
+		std::cout << "PowerCubeCtrl:Init: Homing is executed ...\n";
+		bool successful = false;
+		successful = doHoming();
+		if (!successful)
+		{
+			std::cout << "PowerCubeCtrl:Init: homing not successful, aborting ...\n";
+			return false;
+		}
 	}
 
 
@@ -479,7 +487,7 @@ bool PowerCubeCtrl::statusAcc()
 /// @brief does homing for all Modules
 bool PowerCubeCtrl::doHoming()
 {
-    PCTRL_CHECK_INITIALIZED();
+    //PCTRL_CHECK_INITIALIZED();
 
 	for(int i=0; i<m_DOF; i++)
 	{
