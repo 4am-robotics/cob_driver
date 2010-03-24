@@ -55,6 +55,7 @@
 #include <string>
 #include <sstream>
 #include <time.h>
+#include <cmath>
 #ifdef PYTHON_THREAD
 #include <Python.h>
 #endif
@@ -98,21 +99,65 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 		m_IdModules = params->GetModuleIDVector();
 		CanBaudRate = params->GetBaudRate();
 		CanDevice = params->GetCanDevice();
-		for (int i = 0; i< m_DOF; i++)
+		m_maxAcc = params->GetMaxAcc();
+		upperLimits = params->GetUpperLimits();
+		lowerLimits = params->GetLowerLimits();
+		m_maxVel = params->GetMaxVel();
+		offsets = params->GetAngleOffsets();
+/*		for (int i = 0; i< m_DOF; i++)
 		{
 			upperLimits.push_back(3.1);
 			lowerLimits.push_back(-3.1);
 			offsets.push_back(0);
+			m_maxVel.push_back(0.8);
 		}
+*/		
+		
 	}
 	else
 	{
    		std::cout <<"PowerCubeCtrl::Init: Error, parameters == NULL"<<endl; 
 		return false;
 	}
-    ostringstream initStr;
-    initStr << "PCAN:" << CanDevice << "," << CanBaudRate;
-    std::cout << "initstring = " << initStr.str().c_str() << std::endl;
+	std::cout<<"=========================================================================== "<<endl;
+	std::cout<<"PowerCubeCtrl:Init: Successfully initialized with the following parameters: "<<endl;
+	std::cout<<"DOF: "<<m_DOF<<endl;
+	std::cout<<"CanBaudRate: "<<CanBaudRate<<endl;
+	std::cout<<"CanDevice: "<<CanDevice<<endl;
+	std::cout<<"Ids: ";
+	for (int i = 0; i< m_DOF; i++)
+	{
+			std::cout<<m_IdModules[i]<<" ";
+	}
+	std::cout<<endl<<"maxVel: ";
+	for (int i = 0; i< m_DOF; i++)
+	{
+			std::cout<<m_maxVel[i]<<" ";
+	}
+	std::cout<<endl<<"maxAcc: ";
+	for (int i = 0; i< m_DOF; i++)
+	{
+			std::cout<<m_maxAcc[i]<<" ";
+	}
+	std::cout<<endl<<"upperLimits: ";
+	for (int i = 0; i< m_DOF; i++)
+	{
+			std::cout<<upperLimits[i]<<" ";
+	}
+	std::cout<<endl<<"lowerLimits: ";
+	for (int i = 0; i< m_DOF; i++)
+	{
+			std::cout<<lowerLimits[i]<<" ";
+	}
+	std::cout<<endl<<"offsets: ";
+	for (int i = 0; i< m_DOF; i++)
+	{
+			std::cout<<offsets[i]<<" ";
+	}
+	std::cout<<endl<<"=========================================================================== "<<endl;
+	ostringstream initStr;
+	initStr << "PCAN:" << CanDevice << "," << CanBaudRate;
+	std::cout << "initstring = " << initStr.str().c_str() << std::endl;
 	int ret = 0;
 	ret = PCube_openDevice (&m_Dev, initStr.str().c_str());
 	
@@ -191,11 +236,8 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 	}
 	
 	/* Default Werte für maximalgechw. & Beschl. setzen: */
-	//TODO aus iniFile
-	double MAX_VEL = 0.5;
-	double MAX_ACC = 0.8;
-	setMaxVelocity(MAX_VEL);
-	setMaxAcceleration(MAX_ACC);
+	setMaxVelocity(m_maxVel);
+	setMaxAcceleration(m_maxAcc);
 	
 	// Bewegungen sollen Synchron gestartet werden:
 	waitForSync();
@@ -270,6 +312,7 @@ bool PowerCubeCtrl::MoveJointSpaceSync(const std::vector<double>& target)
 		std::vector<double> posnow;
 		if ( getConfig(posnow) == false )
 		    return false;
+		
 		    
 		std::vector<double> velnow;
 		if ( getJointVelocities(velnow) == false )
@@ -296,13 +339,23 @@ bool PowerCubeCtrl::MoveJointSpaceSync(const std::vector<double>& target)
 			    furthest = i;
 		    }
 	    }
-		
+		std::cout <<"PowerCubeCtrl:MoveJointSpaceSync(): furthest:"<<furthest<<endl;
+		for (int i=0; i < DOF; i++)
+		{
+				double x0 = posnow[i];
+				std::cout << "  x0: " << x0;
+				std::cout << "\t\tt: " << target[i];
+				std::cout << "\t\td: " << target[i] - x0;
+				std::cout << "\t\tv0: " << velnow[i] << "\n";
+		}
+
+
 		RampCommand rm_furthest(posnow[furthest], velnow[furthest], target[furthest], m_maxAcc[furthest], m_maxVel[furthest]);
 		
 		double T1 = rm_furthest.T1();
 		double T2 = rm_furthest.T2();
 		double T3 = rm_furthest.T3();
-		
+	
 		// Gesamtzeit:
 		TG = T1 + T2 + T3;
 		
@@ -340,7 +393,7 @@ bool PowerCubeCtrl::MoveJointSpaceSync(const std::vector<double>& target)
 	// Send motion commands to hardware	
 	for (int i=0; i < m_DOF; i++)
 	{
-		PCube_moveRamp(m_Dev, m_IdModules[i], target[i], abs(vel[i]), abs(acc[i]));
+		PCube_moveRamp(m_Dev, m_IdModules[i], target[i], fabs(vel[i]), fabs(acc[i]));
 	}
 	
 	PCube_startMotionAll(m_Dev);
@@ -383,9 +436,9 @@ bool PowerCubeCtrl::Stop()
 bool PowerCubeCtrl::setMaxVelocity(double radpersec) 
 { 	
     PCTRL_CHECK_INITIALIZED();
-
 	for (int i=0; i<m_DOF; i++)
 	{
+		//m_maxVel[i] = radpersec;
 		PCube_setMaxVel(m_Dev, m_IdModules[i], radpersec);
 	}
 	
@@ -398,6 +451,7 @@ bool PowerCubeCtrl::setMaxVelocity(const std::vector<double>& radpersec)
     
 	for (int i=0; i<m_DOF; i++)
 	{
+		//m_maxVel[i] = radpersec[i];
 		PCube_setMaxVel(m_Dev, m_IdModules[i], radpersec[i]);
 	}
 	
@@ -412,6 +466,7 @@ bool PowerCubeCtrl::setMaxAcceleration(double radPerSecSquared)
 	
 	for (int i=0; i<m_DOF; i++)
 	{
+		m_maxAcc[i] = radPerSecSquared;
 		PCube_setMaxAcc(m_Dev, m_IdModules[i], radPerSecSquared);
 	}
 
@@ -424,6 +479,7 @@ bool PowerCubeCtrl::setMaxAcceleration(const std::vector<double>& radPerSecSquar
     	
 	for (int i=0; i<m_DOF; i++)
 	{
+		m_maxAcc[i] = radPerSecSquared[i];
 		PCube_setMaxAcc(m_Dev, m_IdModules[i], radPerSecSquared[i]);
 	}
 

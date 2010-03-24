@@ -58,6 +58,7 @@
 
 // ROS includes
 #include <ros/ros.h>
+#include <urdf/model.h>
 
 // ROS message includes
 #include <sensor_msgs/JointState.h>
@@ -102,6 +103,8 @@ class NodeClass
 		std::vector<int> ModIds;
 		XmlRpc::XmlRpcValue JointNames_param;
 		std::vector<std::string> JointNames;
+		XmlRpc::XmlRpcValue MaxAcc_param;
+		std::vector<double> MaxAcc;
 		bool isInitialized;
 
         // Constructor
@@ -129,6 +132,9 @@ class NodeClass
             // read parameters from parameter server
             n.param<int>("CanDevice", CanDevice, 15);
             n.param<int>("CanBaudrate", CanBaudrate, 500);
+			ROS_INFO("CanDevice=%d, CanBaudrate=%d",CanDevice,CanBaudrate);
+
+			// get ModIds from parameter server
 			if (n.hasParam("powercube_chain/ModIds"))
 			{
 				n.getParam("powercube_chain/ModIds", ModIds_param);
@@ -142,7 +148,9 @@ class NodeClass
 			{
 				ModIds[i] = (int)ModIds_param[i];
 			}
+			std::cout << "ModIds = " << ModIds_param << std::endl;
 			
+			// get JointNames from parameter server
 			ROS_INFO("getting JointNames from parameter server");
 			if (n.hasParam("powercube_chain/JointNames"))
 			{
@@ -152,16 +160,97 @@ class NodeClass
 			{
 				ROS_ERROR("Parameter JointNames not set");
 			}
-
 			JointNames.resize(JointNames_param.size());
 			for (int i = 0; i<JointNames_param.size(); i++ )
 			{
 				JointNames[i] = (std::string)JointNames_param[i];
 			}
-            ROS_INFO("CanDevice=%d, CanBaudrate=%d",CanDevice,CanBaudrate);
-			std::cout << "ModIds = " << ModIds_param << std::endl;
 			std::cout << "JointNames = " << JointNames_param << std::endl;
+
 			PCubeParams->Init(CanDevice, CanBaudrate, ModIds);
+			
+			// get MaxAcc from parameter server
+			ROS_INFO("getting MaxAcc from parameter server");
+			if (n.hasParam("powercube_chain/MaxAcc"))
+			{
+				n.getParam("powercube_chain/MaxAcc", MaxAcc_param);
+			}
+			else
+			{
+				ROS_ERROR("Parameter MaxAcc not set");
+			}
+			MaxAcc.resize(MaxAcc_param.size());
+			for (int i = 0; i<MaxAcc_param.size(); i++ )
+			{
+				MaxAcc[i] = (double)MaxAcc_param[i];
+			}
+			PCubeParams->SetMaxAcc(MaxAcc);
+			std::cout << "MaxAcc = " << MaxAcc_param << std::endl;
+			
+			// load parameter server string for robot/model
+			std::string param_name = "robot_description";
+			std::string full_param_name;
+			std::string xml_string;
+			n.searchParam(param_name,full_param_name);
+			n.getParam(full_param_name.c_str(),xml_string);
+			ROS_INFO("full_param_name=%s",full_param_name.c_str());
+			if (xml_string.size()==0)
+			{
+				ROS_ERROR("Unable to load robot model from param server robot_description\n");
+				exit(2);
+			}
+			ROS_DEBUG("%s content\n%s", full_param_name.c_str(), xml_string.c_str());
+			
+			// extract limits and velocitys from urdf model
+			urdf::Model model;
+			if (!model.initString(xml_string))
+			{
+				ROS_ERROR("Failed to parse urdf file");
+				exit(2);
+			}
+			ROS_INFO("Successfully parsed urdf file");
+
+			//TODO: check if yaml parameter file fits to urdf model
+
+			// get MaxVel out of urdf model
+			std::vector<double> MaxVel;
+			MaxVel.resize(ModIds_param.size());
+			for (int i = 0; i<ModIds_param.size(); i++ )
+			{
+				MaxVel[i] = model.getJoint(JointNames[i].c_str())->limits->velocity;
+				//std::cout << "MaxVel[" << JointNames[i].c_str() << "] = " << MaxVel[i] << std::endl;
+			}
+			PCubeParams->SetMaxVel(MaxVel);
+			
+			// get LowerLimits out of urdf model
+			std::vector<double> LowerLimits;
+			LowerLimits.resize(ModIds_param.size());
+			for (int i = 0; i<ModIds_param.size(); i++ )
+			{
+				LowerLimits[i] = model.getJoint(JointNames[i].c_str())->limits->lower;
+				//std::cout << "LowerLimits[" << JointNames[i].c_str() << "] = " << LowerLimits[i] << std::endl;
+			}
+			PCubeParams->SetLowerLimits(LowerLimits);
+
+			// get UpperLimits out of urdf model
+			std::vector<double> UpperLimits;
+			UpperLimits.resize(ModIds_param.size());
+			for (int i = 0; i<ModIds_param.size(); i++ )
+			{
+				UpperLimits[i] = model.getJoint(JointNames[i].c_str())->limits->upper;
+				//std::cout << "UpperLimits[" << JointNames[i].c_str() << "] = " << UpperLimits[i] << std::endl;
+			}
+			PCubeParams->SetUpperLimits(UpperLimits);
+
+			// get UpperLimits out of urdf model
+			std::vector<double> Offsets;
+			Offsets.resize(ModIds_param.size());
+			for (int i = 0; i<ModIds_param.size(); i++ )
+			{
+				Offsets[i] = model.getJoint(JointNames[i].c_str())->calibration->reference_position;
+				//std::cout << "Offset[" << JointNames[i].c_str() << "] = " << Offsets[i] << std::endl;
+			}
+			PCubeParams->SetAngleOffsets(Offsets);
         }
         
         // Destructor
@@ -178,13 +267,12 @@ class NodeClass
             if (operationMode == "position")
             {
                 ROS_INFO("moving powercubes in position mode");
-                //TODO PowerCubeCtrl
                 PCube->MoveJointSpaceSync(msg->positions);
+				ROS_INFO("...moving to position ended...");
             }
             else if (operationMode == "velocity")
             {
             	ROS_INFO("moving powercubes in velocity mode");
-                //TODO PowerCubeCtrl
                 PCube->MoveVel(msg->velocities);
             }
             else
@@ -280,9 +368,10 @@ class NodeClass
 		        std::vector<double> ActualVel;
 		        ActualPos.resize(DOF);
 		        ActualVel.resize(DOF);
-		        //TODO
+
 				PCube->getConfig(ActualPos);
-		        //get velocities
+				PCube->getJointVelocities(ActualVel);
+
 		        sensor_msgs::JointState msg;
 		        msg.header.stamp = ros::Time::now();
 		        msg.name.resize(DOF);
@@ -295,12 +384,10 @@ class NodeClass
 		        {
 		            msg.position[i] = ActualPos[i];
 		            msg.velocity[i] = ActualVel[i];
+//					std::cout << "Joint " << msg.name[i] <<": pos="<<  msg.position[i] << "vel=" << msg.velocity[i] << std::endl;
 		        }
 		            
 		        // publish message
-		        ROS_DEBUG("published ActualPos [%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f,%3.2f]", 
-		                 msg.position[0], msg.position[1], msg.position[2], msg.position[3], 
-		                 msg.position[4], msg.position[5], msg.position[6]);
 		        topicPub_JointState.publish(msg);
 			}
         }

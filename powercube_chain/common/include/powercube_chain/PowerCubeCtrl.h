@@ -153,10 +153,30 @@ class PowerCubeCtrlParams
 			}
 			return -1;
 		}
+		int SetMaxVel(std::vector<double> MaxVel)
+		{
+			if (MaxVel.size() == GetNumberOfDOF())
+			{
+				m_MaxVel = MaxVel;
+				return 0;
+			}
+			return -1;
+		}
+		int SetMaxAcc(std::vector<double> MaxAcc)
+		{
+			if (MaxAcc.size() == GetNumberOfDOF())
+			{
+				m_MaxAcc = MaxAcc;
+				return 0;
+			}
+			return -1;
+		}
 		
 		std::vector<double> GetUpperLimits(){return m_UpperLimits;}
 		std::vector<double> GetLowerLimits(){return m_LowerLimits;}
 		std::vector<double> GetAngleOffsets(){return m_Offsets;}
+		std::vector<double> GetMaxAcc(){return m_MaxAcc;}
+		std::vector<double> GetMaxVel(){return m_MaxVel;}
 		
 		
 	private:
@@ -167,6 +187,8 @@ class PowerCubeCtrlParams
 		std::vector<double> m_Offsets;
 		std::vector<double> m_UpperLimits;
 		std::vector<double> m_LowerLimits;
+		std::vector<double> m_MaxVel;
+		std::vector<double> m_MaxAcc;
 };
 
 /* uncomment the following line to switch on debugging output: */
