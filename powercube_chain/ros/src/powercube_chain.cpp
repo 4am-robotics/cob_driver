@@ -89,6 +89,7 @@ class NodeClass
         // declaration of service servers
         ros::ServiceServer srvServer_Init;
         ros::ServiceServer srvServer_Stop;
+        ros::ServiceServer srvServer_Recover;
         ros::ServiceServer srvServer_SetOperationMode;
             
         // declaration of service clients
@@ -124,6 +125,7 @@ class NodeClass
             // implementation of service servers
             srvServer_Init = n.advertiseService("Init", &NodeClass::srvCallback_Init, this);
             srvServer_Stop = n.advertiseService("Stop", &NodeClass::srvCallback_Stop, this);
+            srvServer_Recover = n.advertiseService("Recover", &NodeClass::srvCallback_Recover, this);
             srvServer_SetOperationMode = n.advertiseService("SetOperationMode", &NodeClass::srvCallback_SetOperationMode, this);
             
             // implementation of service clients
@@ -262,23 +264,30 @@ class NodeClass
         // function will be called when a new message arrives on a topic
         void topicCallback_JointCommand(const cob_msgs::JointCommand::ConstPtr& msg)
         {
-            std::string operationMode;
-            n.getParam("OperationMode", operationMode);
-            if (operationMode == "position")
-            {
-                ROS_INFO("moving powercubes in position mode");
-                PCube->MoveJointSpaceSync(msg->positions);
-				ROS_INFO("...moving to position ended...");
-            }
-            else if (operationMode == "velocity")
-            {
-            	ROS_INFO("moving powercubes in velocity mode");
-                PCube->MoveVel(msg->velocities);
-            }
-            else
-            {
-                ROS_ERROR("powercubes neither in position nor in velocity mode. OperationMode = [%s]", operationMode.c_str());
-            }
+   			if (isInitialized == true)
+			{
+		        std::string operationMode;
+		        n.getParam("OperationMode", operationMode);
+		        if (operationMode == "position")
+		        {
+		            ROS_INFO("moving powercubes in position mode");
+		            PCube->MoveJointSpaceSync(msg->positions);
+					ROS_INFO("...moving to position ended...");
+		        }
+		        else if (operationMode == "velocity")
+		        {
+		        	ROS_INFO("moving powercubes in velocity mode");
+		            PCube->MoveVel(msg->velocities);
+		        }
+		        else
+		        {
+		            ROS_ERROR("powercubes neither in position nor in velocity mode. OperationMode = [%s]", operationMode.c_str());
+		        }
+			}
+			else
+			{
+				ROS_ERROR("powercubes not initialized");
+			}
         }
 
         // service callback functions
@@ -345,6 +354,36 @@ class NodeClass
             	res.success = 1; // 0 = true, else = false
             	res.errorMessage.data = PCube->getErrorMessage();
             }
+            return true;
+        }
+        
+        bool srvCallback_Recover(cob_srvs::Trigger::Request &req,
+                              	 cob_srvs::Trigger::Response &res )
+        {
+			if (isInitialized == true)
+			{
+		   	    ROS_INFO("Recovering powercubes");
+		    
+		        // stopping all arm movements
+		        if (PCube->Stop())
+		        {
+		        	ROS_INFO("Recovering powercubes succesfull");
+		        	res.success = 0; // 0 = true, else = false
+		        }
+		        else
+		        {
+		        	ROS_ERROR("Recovering powercubes not succesfull. error: %s", PCube->getErrorMessage().c_str());
+		        	res.success = 1; // 0 = true, else = false
+		        	res.errorMessage.data = PCube->getErrorMessage();
+		        }
+		    }
+		    else
+			{
+				ROS_ERROR("...powercubes already recovered...");		        
+				res.success = 1;
+				res.errorMessage.data = "powercubes already recovered";
+			}
+
             return true;
         }
 

@@ -106,6 +106,7 @@ int main(int argc, char** argv)
     // service clients
     ros::ServiceClient srvClient_Init = n.serviceClient<cob_srvs::Trigger>("Init");
     ros::ServiceClient srvClient_Stop = n.serviceClient<cob_srvs::Trigger>("Stop");
+    ros::ServiceClient srvClient_Recover = n.serviceClient<cob_srvs::Trigger>("Recover");
     ros::ServiceClient srvClient_SetOperationMode = n.serviceClient<cob_srvs::SetOperationMode>("SetOperationMode");
     
     // external code
@@ -119,7 +120,7 @@ int main(int argc, char** argv)
     while(n.ok())
     {
         // process user inputs
-        std::cout << "Choose service to test ([s]top, [i]nit, setOperation[M]ode, send[C]ommand, [e]xit): ";
+        std::cout << "Choose service to test ([s]top, [i]nit, [r]ecover, setOperation[M]ode, send[C]ommand, [e]xit): ";
         
         
         std::cin >> c;
@@ -128,7 +129,6 @@ int main(int argc, char** argv)
         {
             case 's':
             {
-                //ROS_INFO("querry service [cob3/arm/Stop]");
                 cob_srvs::Trigger srv;
                 srv_querry = srvClient_Stop.call(srv);
                 srv_execute = srv.response.success;
@@ -138,9 +138,17 @@ int main(int argc, char** argv)
             
             case 'i':
             {
-            	//ROS_INFO("querry service [cob3/arm/Stop]");
                 cob_srvs::Trigger srv;
                 srv_querry = srvClient_Init.call(srv);
+                srv_execute = srv.response.success;
+                srv_errorMessage = srv.response.errorMessage.data.c_str();
+              	break;
+            }
+            
+            case 'r':
+            {
+                cob_srvs::Trigger srv;
+                srv_querry = srvClient_Recover.call(srv);
                 srv_execute = srv.response.success;
                 srv_errorMessage = srv.response.errorMessage.data.c_str();
               	break;

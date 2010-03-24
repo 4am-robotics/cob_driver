@@ -296,6 +296,20 @@ bool PowerCubeCtrl::getJointVelocities(std::vector<double>& result)
 bool PowerCubeCtrl::MoveJointSpaceSync(const std::vector<double>& target)
 {
     PCTRL_CHECK_INITIALIZED();
+	
+	vector<string> errorMessages;
+	PC_CTRL_STATE status;
+	getStatus(status, errorMessages);
+	if ((status != PC_CTRL_OK))
+	{
+		m_ErrorMessage.assign("");
+		for (int i=0; i<m_DOF; i++)
+		{
+			m_ErrorMessage.append(errorMessages[i]);
+			m_ErrorMessage.append("\n");
+		}
+		return false;
+	}
 
 	// Evtl. Fragen zur Rechnung / zum Verfahren an: Felix.Geibel@gmx.de
 	std::vector<double> acc(m_DOF);
@@ -339,16 +353,6 @@ bool PowerCubeCtrl::MoveJointSpaceSync(const std::vector<double>& target)
 			    furthest = i;
 		    }
 	    }
-		std::cout <<"PowerCubeCtrl:MoveJointSpaceSync(): furthest:"<<furthest<<endl;
-		for (int i=0; i < DOF; i++)
-		{
-				double x0 = posnow[i];
-				std::cout << "  x0: " << x0;
-				std::cout << "\t\tt: " << target[i];
-				std::cout << "\t\td: " << target[i] - x0;
-				std::cout << "\t\tv0: " << velnow[i] << "\n";
-		}
-
 
 		RampCommand rm_furthest(posnow[furthest], velnow[furthest], target[furthest], m_maxAcc[furthest], m_maxVel[furthest]);
 		
@@ -386,7 +390,6 @@ bool PowerCubeCtrl::MoveJointSpaceSync(const std::vector<double>& target)
 	} 
 	catch(...) 
 	{
-		m_ErrorMessage.assign("Problem during calculation of a and av.");
 		return false;
 	}
 	
@@ -404,6 +407,20 @@ bool PowerCubeCtrl::MoveJointSpaceSync(const std::vector<double>& target)
 bool PowerCubeCtrl::MoveVel(const std::vector<double>& vel)
 {
     PCTRL_CHECK_INITIALIZED();
+	
+	vector<string> errorMessages;
+	PC_CTRL_STATE status;
+	getStatus(status, errorMessages);
+	if ((status != PC_CTRL_OK))
+	{
+		m_ErrorMessage.assign("");
+		for (int i=0; i<m_DOF; i++)
+		{
+			m_ErrorMessage.append(errorMessages[i]);
+			m_ErrorMessage.append("\n");
+		}
+		return false;
+	}
 
 	for (int i=0; i < m_DOF; i++)
 	{
