@@ -1318,7 +1318,7 @@ void CanCtrlPltfCOb3::configureElmoRecorder(int iRecordingGap)
 		// RL = (4096 / Number of Signals)
 		m_vpMotor[i]->IntprtSetInt(8, 'R', 'L', 0, 1024);
 		// Set Time Quantum, Default: RP=0 -> TS * 4; TS is 90us by default
-		m_vpMotor[i]->IntprtSetInt(8, 'R', 'P', 0, 0);	
+		m_vpMotor[i]->IntprtSetInt(8, 'R', 'P', 0, 0);
 		// Set Recording Gap
 		m_vpMotor[i]->IntprtSetInt(8, 'R', 'G', 0, iRecordingGap);	
 		// ----> Total Recording Time = 90us * 4 * RG * RL
