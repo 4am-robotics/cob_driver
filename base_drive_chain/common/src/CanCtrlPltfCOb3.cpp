@@ -1339,9 +1339,9 @@ bool CanCtrlPltfCOb3::printElmoRecordings(std::string LogDirectory) {
     m_Mutex.lock();
     
     recData *dataOut;
-    m_vpMotor[0]->collectRecordedData(0, &dataOut);
+    m_vpMotor[1]->collectRecordedData(0, &dataOut); //Motor 1 -> steering motor
 
-    while(m_vpMotor[0]->collectRecordedData(1, &dataOut) == false) {
+    while(m_vpMotor[1]->collectRecordedData(1, &dataOut) == false) {
         usleep(1000);
     }
 
