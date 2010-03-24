@@ -66,6 +66,7 @@
 #include <opencv/highgui.h>
 
 #include <cob_vision_utils/OpenCVUtils.h>
+#include <sstream>
 
 //####################
 //#### node class ####
@@ -86,6 +87,8 @@ private:
         IplImage* grey_image_32F1_;	/// OpenCV image holding the 32bit amplitude values
         IplImage* grey_image_8U3_;	/// OpenCV image holding the transformed 8bit RGB amplitude values
 
+	int grey_image_counter_; 
+
 public:
 	/// Constructor.
 	/// @param node_handle Node handle instance
@@ -95,7 +98,8 @@ public:
           xyz_image_32F3_(0),
           xyz_image_8U3_(0),
           grey_image_32F1_(0),
-          grey_image_8U3_(0)
+          grey_image_8U3_(0),
+					grey_image_counter_(0)
         {
                 /// Void
         }
@@ -123,7 +127,7 @@ public:
 		cvNamedWindow("gray data");		
 
 		xyz_image_subscriber_ = image_transport_.subscribe("camera/xyz_tof_data", 1, &CobTofCameraViewerNode::xyzImageCallback, this);
-		grey_image_subscriber_ = image_transport_.subscribe("camera/gray_tof_data", 1, &CobTofCameraViewerNode::greyImageCallback, this);
+		grey_image_subscriber_ = image_transport_.subscribe("camera/grey_tof_data", 1, &CobTofCameraViewerNode::greyImageCallback, this);
 
 		return true;
 	}
@@ -145,7 +149,7 @@ public:
 				grey_image_8U3_ = cvCreateImage(cvGetSize(grey_image_32F1_), IPL_DEPTH_8U, 3);
 			}
 
-			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1, 0, 10000);
+			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1, 0, 700);
 			cvShowImage("gray data", grey_image_8U3_);
 		}
 		catch (sensor_msgs::CvBridgeException& e)
@@ -173,6 +177,19 @@ public:
 
 			ipa_Utils::ConvertToShowImage(xyz_image_32F3_, xyz_image_8U3_, 3);
 			cvShowImage("z data", xyz_image_8U3_);
+			int c = cvWaitKey(50);
+			if (c=='s' || c==536871027)
+			{
+				std::stringstream ss;
+				char counterBuffer [50];
+				sprintf(counterBuffer, "%04d", grey_image_counter_);
+				ss << "greyImage8U3_";
+				ss << counterBuffer;
+				ss << ".bmp";
+				cvSaveImage(ss.str().c_str(),grey_image_8U3_);
+				std::cout << "Image " << grey_image_counter_ << " saved." << std::endl;
+				grey_image_counter_++;
+			}
 		}
 		catch (sensor_msgs::CvBridgeException& e)
 		{
