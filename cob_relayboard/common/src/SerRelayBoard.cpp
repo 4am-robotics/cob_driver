@@ -168,8 +168,7 @@ SerRelayBoard::SerRelayBoard(std::string IniDir)
 	// GyroBoard
 	m_bGyroBoardZeroGyro = false;
 	m_iGyroBoardAng = 0;
-	for(i = 0; i < 3; i++) { m_iGyroBoardAcc[i]; }
-	
+		
 	// RadarBoard
 	for(i = 0; i < 4; i++) { m_iRadarBoardVel[i] = 0; }
 	
@@ -253,6 +252,7 @@ int SerRelayBoard::evalRxBuffer()
 			// checksum ok?
 			if( convRecMsgToData(&cDat[iDataStart]) )
 			{
+				//std::cerr << "Header found";
 				return 1;
 			}
 			else
@@ -358,7 +358,6 @@ int SerRelayBoard::setWheelVel(int iCanIdent, double dVelWheel, bool bQuickStop)
 	static bool bDataMotRight = false;
 	static bool bDataMotLeft = false;
 
-	bool bVelLimited = false;
 	int iNrBytesWritten;
 
 	unsigned char cMsg[NUM_BYTE_SEND];
@@ -983,6 +982,17 @@ bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 	
 	m_iRelBoardStatus = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
 	iCnt += 2;
+
+
+	/*if( (m_iRelBoardStatus & 0x0001) != 0)
+	{
+		std::cerr << "EM Stop" << std::endl;
+	}
+
+	if( (m_iRelBoardStatus & 0x0002) != 0)
+	{
+		std::cerr << "LASER STOP" << std::endl;
+	}*/
 	
 	m_iChargeCurrent = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
 	iCnt += 2;

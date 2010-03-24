@@ -404,11 +404,6 @@ bool NodeClass::initDrives()
 	// debug log
 	ROS_INFO("Initializing done");
 
-
-
-    //DRIVE IDENTIFICATION TEST:
-    startDriveIdentification("/home/cob/git/care-o-bot/cob_driver/cob3_platform/ros/bin/LogCtrl");
-
     return bTemp1;
 }
 

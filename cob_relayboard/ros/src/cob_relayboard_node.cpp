@@ -14,10 +14,10 @@
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
- * Author: cpc-pk
- * Supervised by: cpc
+ * Author: Philipp Koehler
+ * Supervised by: Christian Connette
  *
- * Date of creation: 03_16_2010
+ * Date of creation: March 2010
  * ToDo:
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -65,7 +65,7 @@
 #include <std_msgs/Bool.h>
 
 // ROS service includes
-//#include <std_srvs/Empty.h>
+//--
 
 // external includes
 //--
@@ -74,118 +74,93 @@
 //#### node class ####
 class NodeClass
 {
-    //
-    public:
-	    // create a handle for this node, initialize node
-	    ros::NodeHandle n;
+	//
+	public:
+		// create a handle for this node, initialize node
+		ros::NodeHandle n;
                 
-        // topics to publish
-        ros::Publisher topicPub_isEmergencyStop;
-        ros::Publisher topicPub_isScannerStop;
+		// topics to publish
+		ros::Publisher topicPub_isEmergencyStop;
+		ros::Publisher topicPub_isScannerStop;
         
-	    // topics to subscribe, callback is called for new messages arriving
-        //ros::Subscriber topicSub_demoSubscribe;
-        
-        // service servers
-        //--
-            
-        // service clients
-        //--
-        
-        // global variables
-        //--
+		// topics to subscribe, callback is called for new messages arriving
+		//ros::Subscriber topicSub_demoSubscribe;
 
-        // Constructor
-        NodeClass()
-        {
-            topicPub_isEmergencyStop = n.advertise<std_msgs::Bool>("isEmergencyStop", 1);
-            topicPub_isScannerStop = n.advertise<std_msgs::Bool>("isScannerStop", 1);
-            //topicSub_demoSubscribe = n.subscribe("demoSubscribe", 1, &NodeClass::topicCallback_demoSubscribe, this);
-
-        }
+		// Constructor
+		NodeClass()
+		{
+			topicPub_isEmergencyStop = n.advertise<std_msgs::Bool>("isEmergencyStop", 1);
+			topicPub_isScannerStop = n.advertise<std_msgs::Bool>("isScannerStop", 1);
+		}
         
-        // Destructor
-        ~NodeClass() 
-        {
-            delete m_SerRelayBoard;
-        }
-
-        
-        // service callback functions
-        // function will be called when a service is querried
-        /*bool srvCallback_demoService(std_srvs::Empty::Request &req,
-                                     std_srvs::Empty::Response &res )
-        {
-            ROS_INFO("This is srvCallback_demoService");
-            return true;
-        }*/
+		// Destructor
+		~NodeClass() 
+		{
+			delete m_SerRelayBoard;
+		}
     
-        void sendEmergencyStopStates();
+		void sendEmergencyStopStates();
+		int init();
 
-        
+	private:        
+		std::string sIniDirectory;
+		SerRelayBoard * m_SerRelayBoard;
 
-        int init();
-
-    private:        
-        std::string sIniDirectory;
-        SerRelayBoard * m_SerRelayBoard;
-
-        int requestBoardStatus();
+		int requestBoardStatus();
 };
 
 //#######################
 //#### main programm ####
 int main(int argc, char** argv)
 {
-    // initialize ROS, spezify name of node
-    ros::init(argc, argv, "cob_relayboard_node");
+	// initialize ROS, spezify name of node
+	ros::init(argc, argv, "cob_relayboard_node");
     
-    NodeClass node;
-    if(node.init() != 0) return 1;
+	NodeClass node;
+	if(node.init() != 0) return 1;
  
-    ros::Rate r(10); //Hz-Rate: Frequency of publishing EMStopStates
-    while(node.n.ok())
-    {        
-        node.sendEmergencyStopStates();
+	ros::Rate r(20); //Cycle-Rate: Frequency of publishing EMStopStates
+	while(node.n.ok())
+	{        
+		node.sendEmergencyStopStates();
 
-        ros::spinOnce();
-        r.sleep();
-    }
-    
-//    ros::spin();
+		ros::spinOnce();
+		r.sleep();
+	}
 
-    return 0;
+	return 0;
 }
 
 //##################################
 //#### function implementations ####
 
 int NodeClass::init() {
-    n.param<std::string>("cob_relayboard_node/IniDirectory", sIniDirectory, "Platform/IniFiles/");
-    m_SerRelayBoard = new SerRelayBoard(sIniDirectory);
+	n.param<std::string>("cob_relayboard_node/IniDirectory", sIniDirectory, "Platform/IniFiles/");
+    
+	m_SerRelayBoard = new SerRelayBoard(sIniDirectory);
 
-    m_SerRelayBoard->initPltf();
+	m_SerRelayBoard->initPltf();
 
-    return 0;
+	return 0;
 }
 
 int NodeClass::requestBoardStatus() {
-    // Request Status of RelayBoard 
+	// Request Status of RelayBoard 
 	m_SerRelayBoard->setWheelVel(0,0.0,0);
 
 	m_SerRelayBoard->evalRxBuffer();
 
-    return 0;
+	return 0;
 }
 
 void NodeClass::sendEmergencyStopStates()
 {
 	requestBoardStatus();
-    std_msgs::Bool msg;
+	std_msgs::Bool msg;
 
-    msg.data = m_SerRelayBoard->isEMStop();
-    topicPub_isEmergencyStop.publish(msg);
-    msg.data = m_SerRelayBoard->isScannerStop();
-    topicPub_isScannerStop.publish(msg);
+	msg.data = m_SerRelayBoard->isEMStop();
+	topicPub_isEmergencyStop.publish(msg);
+	msg.data = m_SerRelayBoard->isScannerStop();
+	topicPub_isScannerStop.publish(msg);
 }
 
