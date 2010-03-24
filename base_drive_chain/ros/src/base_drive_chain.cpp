@@ -328,6 +328,7 @@ class NodeClass
         // other function declarations
         bool initDrives();
 
+        int startDriveIdentification(std::string LogDirectory);
 };
 
 //#######################
@@ -343,6 +344,8 @@ int main(int argc, char** argv)
 	// -> specify looprate
  	// ros::Rate loop_rate(10); // Hz 
 
+
+    
     while(nodeClass.n.ok())
     {
 
@@ -401,6 +404,17 @@ bool NodeClass::initDrives()
 	// debug log
 	ROS_INFO("Initializing done");
 
+
+
+    //DRIVE IDENTIFICATION TEST:
+    startDriveIdentification("/home/cob/git/care-o-bot/cob_driver/cob3_platform/ros/bin/LogCtrl");
+
     return bTemp1;
 }
 
+int NodeClass::startDriveIdentification(std::string LogDirectory) {
+    m_CanCtrlPltf.configureElmoRecorder(7);
+    m_CanCtrlPltf.printElmoRecordings(LogDirectory);
+
+    return 0;
+}
