@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- start left camera -->
+  <node pkg="cob_camera_sensors" type="tof_camera" name="tof_camera" ns="camera" cwd="node" respawn="false" output="screen">
+	<param name="configuration_files" value="../../common/files/cob3-1/"/>
+  </node>
+
+</launch>
