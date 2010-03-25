@@ -106,6 +106,7 @@ int main(int argc, char** argv)
     // service clients
     ros::ServiceClient srvClient_Init = n.serviceClient<cob_srvs::Trigger>("Init");
     ros::ServiceClient srvClient_Stop = n.serviceClient<cob_srvs::Trigger>("Stop");
+    ros::ServiceClient srvClient_Recover = n.serviceClient<cob_srvs::Trigger>("Recover");
     ros::ServiceClient srvClient_SetOperationMode = n.serviceClient<cob_srvs::SetOperationMode>("SetOperationMode");
     
     // external code
@@ -119,7 +120,7 @@ int main(int argc, char** argv)
     while(n.ok())
     {
         // process user inputs
-        std::cout << "Choose service to test ([s]top, [i]nit, setOperation[M]ode, send[C]ommand, [e]xit): ";
+        std::cout << "Choose service to test ([s]top, [i]nit, [r]ecover, setOperation[M]ode, send[C]ommand, [e]xit): ";
         
         
         std::cin >> c;
@@ -128,7 +129,6 @@ int main(int argc, char** argv)
         {
             case 's':
             {
-                //ROS_INFO("querry service [cob3/arm/Stop]");
                 cob_srvs::Trigger srv;
                 srv_querry = srvClient_Stop.call(srv);
                 srv_execute = srv.response.success;
@@ -138,9 +138,17 @@ int main(int argc, char** argv)
             
             case 'i':
             {
-            	//ROS_INFO("querry service [cob3/arm/Stop]");
                 cob_srvs::Trigger srv;
                 srv_querry = srvClient_Init.call(srv);
+                srv_execute = srv.response.success;
+                srv_errorMessage = srv.response.errorMessage.data.c_str();
+              	break;
+            }
+            
+            case 'r':
+            {
+                cob_srvs::Trigger srv;
+                srv_querry = srvClient_Recover.call(srv);
                 srv_execute = srv.response.success;
                 srv_errorMessage = srv.response.errorMessage.data.c_str();
               	break;
@@ -178,7 +186,7 @@ int main(int argc, char** argv)
                 std::cout << "Choose preset target positions/velocities ([0] = , [1] = , [2] = ): ";
                 std::cin >> c;
                 
-                int DOF = 7;
+                int DOF = 4;
                 cob_msgs::JointCommand msg;
                 msg.header.stamp = ros::Time::now();
                 msg.positions.resize(DOF);
@@ -190,17 +198,17 @@ int main(int argc, char** argv)
 		            msg.positions[1] = 0;
 		            msg.positions[2] = 0;
 		            msg.positions[3] = 0;
-		            msg.positions[4] = 0;
-		            msg.positions[5] = 0;
-		            msg.positions[6] = 0;
+		            //msg.positions[4] = 0;
+		            //msg.positions[5] = 0;
+		            //msg.positions[6] = 0;
 		            
 		            msg.velocities[0] = 0;
 		            msg.velocities[1] = 0;
 		            msg.velocities[2] = 0;
 		            msg.velocities[3] = 0;
-		            msg.velocities[4] = 0;
-		            msg.velocities[5] = 0;
-		            msg.velocities[6] = 0;
+		            //msg.velocities[4] = 0;
+		            //msg.velocities[5] = 0;
+		            //msg.velocities[6] = 0;
                 }
                 else if (c == '1')
                 {
@@ -208,17 +216,17 @@ int main(int argc, char** argv)
 		            msg.positions[1] = 0.1;
 		            msg.positions[2] = 0.1;
 		            msg.positions[3] = 0.1;
-		            msg.positions[4] = 0.1;
-		            msg.positions[5] = 0.1;
-		            msg.positions[6] = 0.1;
+		            //msg.positions[4] = 0.1;
+		            //msg.positions[5] = 0.1;
+		            //msg.positions[6] = 0.1;
 		            
 		            msg.velocities[0] = 0.1;
 		            msg.velocities[1] = 0.1;
 		            msg.velocities[2] = 0.1;
 		            msg.velocities[3] = 0.1;
-		            msg.velocities[4] = 0.1;
-		            msg.velocities[5] = 0.1;
-		            msg.velocities[6] = 0.1;
+		            //msg.velocities[4] = 0.1;
+		            //msg.velocities[5] = 0.1;
+		            //msg.velocities[6] = 0.1;
                 }
                 else if (c == '2')
                 {
@@ -226,18 +234,72 @@ int main(int argc, char** argv)
 		            msg.positions[1] = 0.2;
 		            msg.positions[2] = 0.2;
 		            msg.positions[3] = 0.2;
-		            msg.positions[4] = 0.2;
-		            msg.positions[5] = 0.2;
-		            msg.positions[6] = 0.2;
+		            //msg.positions[4] = 0.2;
+		            //msg.positions[5] = 0.2;
+		            //msg.positions[6] = 0.2;
 		            
 		            msg.velocities[0] = 0.2;
 		            msg.velocities[1] = 0.2;
 		            msg.velocities[2] = 0.2;
 		            msg.velocities[3] = 0.2;
-		            msg.velocities[4] = 0.2;
-		            msg.velocities[5] = 0.2;
-		            msg.velocities[6] = 0.2;
+		            //msg.velocities[4] = 0.2;
+		            //msg.velocities[5] = 0.2;
+		            //msg.velocities[6] = 0.2;
                 }
+                else if (c == '3')
+                {
+                    msg.positions[0] = 0.0;
+		            msg.positions[1] = 0.0;
+		            msg.positions[2] = 0.0;
+		            msg.positions[3] = 0.2;
+		            //msg.positions[4] = 0.2;
+		            //msg.positions[5] = 0.2;
+		            //msg.positions[6] = 0.2;
+		            
+		            msg.velocities[0] = 0.0;
+		            msg.velocities[1] = 0.0;
+		            msg.velocities[2] = 0.0;
+		            msg.velocities[3] = 0.0;
+		            //msg.velocities[4] = 0.2;
+		            //msg.velocities[5] = 0.2;
+		            //msg.velocities[6] = 0.2;
+                }
+                else if (c == '9')
+                {
+                    msg.positions[0] = -0.1;
+		            msg.positions[1] = -0.1;
+		            msg.positions[2] = -0.1;
+		            msg.positions[3] = -0.1;
+		            //msg.positions[4] = -0.1;
+		            //msg.positions[5] = -0.1;
+		            //msg.positions[6] = -0.1;
+		            
+		            msg.velocities[0] = -0.1;
+		            msg.velocities[1] = -0.1;
+		            msg.velocities[2] = -0.1;
+		            msg.velocities[3] = -0.1;
+		            //msg.velocities[4] = -0.1;
+		            //msg.velocities[5] = -0.1;
+		            //msg.velocities[6] = -0.1;
+                }
+                else if (c == '8')
+                {
+                    msg.positions[0] = -0.2;
+		            msg.positions[1] = -0.2;
+		            msg.positions[2] = -0.2;
+		            msg.positions[3] = -0.2;
+		            //msg.positions[4] = -0.2;
+		            //msg.positions[5] = -0.2;
+		            //msg.positions[6] = -0.2;
+		            
+		            msg.velocities[0] = -0.2;
+		            msg.velocities[1] = -0.2;
+		            msg.velocities[2] = -0.2;
+		            msg.velocities[3] = -0.2;
+		            //msg.velocities[4] = -0.2;
+		            //msg.velocities[5] = -0.2;
+		            //msg.velocities[6] = -0.2;
+				}
                 else
                 {
                     ROS_ERROR("invalid target");

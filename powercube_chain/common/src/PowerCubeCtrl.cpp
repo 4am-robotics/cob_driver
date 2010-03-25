@@ -55,6 +55,7 @@
 #include <string>
 #include <sstream>
 #include <time.h>
+#include <cmath>
 #ifdef PYTHON_THREAD
 #include <Python.h>
 #endif
@@ -79,28 +80,84 @@ using namespace std;
 PowerCubeCtrl::PowerCubeCtrl()
 {
 	m_Dev=0;
-	m_DOF = 7;
+	m_DOF = 1;
 	m_CANDeviceOpened = false;
 	m_Initialized = false;
 }
 
 
-bool PowerCubeCtrl::Init(const char* iniFile)
+bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 {
-	int CanDevice;
-	int CanBaudRate;
+	int CanDevice= 0;
+	int CanBaudRate = 0;
 	std::vector<double> offsets;
 	std::vector<double> upperLimits;
 	std::vector<double> lowerLimits;
-
-	// TODO: READ PARAMTERS FROM INIFILE!
-    CanDevice = 1;
-    CanBaudRate = 1000;
-
-    
-    ostringstream initStr;
-    initStr << "PCAN:" << CanDevice << "," << CanBaudRate;
-
+	if (params != NULL)
+	{
+		m_DOF=params->GetNumberOfDOF();
+		m_IdModules = params->GetModuleIDVector();
+		CanBaudRate = params->GetBaudRate();
+		CanDevice = params->GetCanDevice();
+		m_maxAcc = params->GetMaxAcc();
+		upperLimits = params->GetUpperLimits();
+		lowerLimits = params->GetLowerLimits();
+		m_maxVel = params->GetMaxVel();
+		offsets = params->GetAngleOffsets();
+/*		for (int i = 0; i< m_DOF; i++)
+		{
+			upperLimits.push_back(3.1);
+			lowerLimits.push_back(-3.1);
+			offsets.push_back(0);
+			m_maxVel.push_back(0.8);
+		}
+*/		
+		
+	}
+	else
+	{
+   		std::cout <<"PowerCubeCtrl::Init: Error, parameters == NULL"<<endl; 
+		return false;
+	}
+	std::cout<<"=========================================================================== "<<endl;
+	std::cout<<"PowerCubeCtrl:Init: Successfully initialized with the following parameters: "<<endl;
+	std::cout<<"DOF: "<<m_DOF<<endl;
+	std::cout<<"CanBaudRate: "<<CanBaudRate<<endl;
+	std::cout<<"CanDevice: "<<CanDevice<<endl;
+	std::cout<<"Ids: ";
+	for (int i = 0; i< m_DOF; i++)
+	{
+			std::cout<<m_IdModules[i]<<" ";
+	}
+	std::cout<<endl<<"maxVel: ";
+	for (int i = 0; i< m_DOF; i++)
+	{
+			std::cout<<m_maxVel[i]<<" ";
+	}
+	std::cout<<endl<<"maxAcc: ";
+	for (int i = 0; i< m_DOF; i++)
+	{
+			std::cout<<m_maxAcc[i]<<" ";
+	}
+	std::cout<<endl<<"upperLimits: ";
+	for (int i = 0; i< m_DOF; i++)
+	{
+			std::cout<<upperLimits[i]<<" ";
+	}
+	std::cout<<endl<<"lowerLimits: ";
+	for (int i = 0; i< m_DOF; i++)
+	{
+			std::cout<<lowerLimits[i]<<" ";
+	}
+	std::cout<<endl<<"offsets: ";
+	for (int i = 0; i< m_DOF; i++)
+	{
+			std::cout<<offsets[i]<<" ";
+	}
+	std::cout<<endl<<"=========================================================================== "<<endl;
+	ostringstream initStr;
+	initStr << "PCAN:" << CanDevice << "," << CanBaudRate;
+	std::cout << "initstring = " << initStr.str().c_str() << std::endl;
 	int ret = 0;
 	ret = PCube_openDevice (&m_Dev, initStr.str().c_str());
 	
@@ -118,40 +175,25 @@ bool PowerCubeCtrl::Init(const char* iniFile)
 	// Make sure m_IdModules is clear of Elements:
 	m_IdModules.clear();
 	
-	//TODO hardcoded for testing
-	vector<int> ids;
-	ids.resize(m_DOF);
-	ids[0]=13;
-	ids[1]=14;
-	ids[2]=15;
-	ids[3]=16;
-	ids[4]=17;
-	ids[5]=18;
-	ids[6]=19;
-	
 	for(int i=0; i<m_DOF; i++)
 	{
 
-		// TODO: modId aus IniFile!!!
-		int modId = ids[i];
-		
 		// Check if the Module is connected:
 		unsigned long serNo;
 
-		int ret = PCube_getModuleSerialNo( m_Dev, modId, &serNo );
+		int ret = PCube_getModuleSerialNo( m_Dev, m_IdModules[i], &serNo );
 		
 		// if not return false ( ret == 0 means success)
 		if( ret != 0 )
 		{
 			ostringstream errorMsg;
-			errorMsg << "Could not find Module with ID " << modId;
+			errorMsg << "Could not find Module with ID " << m_IdModules[i];
 			m_ErrorMessage = errorMsg.str();
 			return false;
 		}
 		
 		// otherwise success, save Id in m_IdModules
-		cout << "found module " << modId << endl;
-		m_IdModules.push_back(modId);
+		cout << "found module " << m_IdModules[i] << endl;
 	}
 	
 	vector<string> errorMessages;
@@ -166,6 +208,17 @@ bool PowerCubeCtrl::Init(const char* iniFile)
 			m_ErrorMessage.append("\n");
 		}
 		return false;
+	}
+	else if (status == PC_CTRL_NOT_REFERENCED) 
+	{
+		std::cout << "PowerCubeCtrl:Init: Homing is executed ...\n";
+		bool successful = false;
+		successful = doHoming();
+		if (!successful)
+		{
+			std::cout << "PowerCubeCtrl:Init: homing not successful, aborting ...\n";
+			return false;
+		}
 	}
 
 
@@ -183,11 +236,8 @@ bool PowerCubeCtrl::Init(const char* iniFile)
 	}
 	
 	/* Default Werte für maximalgechw. & Beschl. setzen: */
-	//TODO aus iniFile
-	double MAX_VEL = 0.5;
-	double MAX_ACC = 0.8;
-	setMaxVelocity(MAX_VEL);
-	setMaxAcceleration(MAX_ACC);
+	setMaxVelocity(m_maxVel);
+	setMaxAcceleration(m_maxAcc);
 	
 	// Bewegungen sollen Synchron gestartet werden:
 	waitForSync();
@@ -246,6 +296,20 @@ bool PowerCubeCtrl::getJointVelocities(std::vector<double>& result)
 bool PowerCubeCtrl::MoveJointSpaceSync(const std::vector<double>& target)
 {
     PCTRL_CHECK_INITIALIZED();
+	
+	vector<string> errorMessages;
+	PC_CTRL_STATE status;
+	getStatus(status, errorMessages);
+	if ((status != PC_CTRL_OK))
+	{
+		m_ErrorMessage.assign("");
+		for (int i=0; i<m_DOF; i++)
+		{
+			m_ErrorMessage.append(errorMessages[i]);
+			m_ErrorMessage.append("\n");
+		}
+		return false;
+	}
 
 	// Evtl. Fragen zur Rechnung / zum Verfahren an: Felix.Geibel@gmx.de
 	std::vector<double> acc(m_DOF);
@@ -262,6 +326,7 @@ bool PowerCubeCtrl::MoveJointSpaceSync(const std::vector<double>& target)
 		std::vector<double> posnow;
 		if ( getConfig(posnow) == false )
 		    return false;
+		
 		    
 		std::vector<double> velnow;
 		if ( getJointVelocities(velnow) == false )
@@ -288,13 +353,13 @@ bool PowerCubeCtrl::MoveJointSpaceSync(const std::vector<double>& target)
 			    furthest = i;
 		    }
 	    }
-		
+
 		RampCommand rm_furthest(posnow[furthest], velnow[furthest], target[furthest], m_maxAcc[furthest], m_maxVel[furthest]);
 		
 		double T1 = rm_furthest.T1();
 		double T2 = rm_furthest.T2();
 		double T3 = rm_furthest.T3();
-		
+	
 		// Gesamtzeit:
 		TG = T1 + T2 + T3;
 		
@@ -325,14 +390,13 @@ bool PowerCubeCtrl::MoveJointSpaceSync(const std::vector<double>& target)
 	} 
 	catch(...) 
 	{
-		m_ErrorMessage.assign("Problem during calculation of a and av.");
 		return false;
 	}
 	
 	// Send motion commands to hardware	
 	for (int i=0; i < m_DOF; i++)
 	{
-		PCube_moveRamp(m_Dev, m_IdModules[i], target[i], abs(vel[i]), abs(acc[i]));
+		PCube_moveRamp(m_Dev, m_IdModules[i], target[i], fabs(vel[i]), fabs(acc[i]));
 	}
 	
 	PCube_startMotionAll(m_Dev);
@@ -343,6 +407,20 @@ bool PowerCubeCtrl::MoveJointSpaceSync(const std::vector<double>& target)
 bool PowerCubeCtrl::MoveVel(const std::vector<double>& vel)
 {
     PCTRL_CHECK_INITIALIZED();
+	
+	vector<string> errorMessages;
+	PC_CTRL_STATE status;
+	getStatus(status, errorMessages);
+	if ((status != PC_CTRL_OK))
+	{
+		m_ErrorMessage.assign("");
+		for (int i=0; i<m_DOF; i++)
+		{
+			m_ErrorMessage.append(errorMessages[i]);
+			m_ErrorMessage.append("\n");
+		}
+		return false;
+	}
 
 	for (int i=0; i < m_DOF; i++)
 	{
@@ -375,9 +453,9 @@ bool PowerCubeCtrl::Stop()
 bool PowerCubeCtrl::setMaxVelocity(double radpersec) 
 { 	
     PCTRL_CHECK_INITIALIZED();
-
 	for (int i=0; i<m_DOF; i++)
 	{
+		//m_maxVel[i] = radpersec;
 		PCube_setMaxVel(m_Dev, m_IdModules[i], radpersec);
 	}
 	
@@ -390,6 +468,7 @@ bool PowerCubeCtrl::setMaxVelocity(const std::vector<double>& radpersec)
     
 	for (int i=0; i<m_DOF; i++)
 	{
+		//m_maxVel[i] = radpersec[i];
 		PCube_setMaxVel(m_Dev, m_IdModules[i], radpersec[i]);
 	}
 	
@@ -404,6 +483,7 @@ bool PowerCubeCtrl::setMaxAcceleration(double radPerSecSquared)
 	
 	for (int i=0; i<m_DOF; i++)
 	{
+		m_maxAcc[i] = radPerSecSquared;
 		PCube_setMaxAcc(m_Dev, m_IdModules[i], radPerSecSquared);
 	}
 
@@ -416,6 +496,7 @@ bool PowerCubeCtrl::setMaxAcceleration(const std::vector<double>& radPerSecSquar
     	
 	for (int i=0; i<m_DOF; i++)
 	{
+		m_maxAcc[i] = radPerSecSquared[i];
 		PCube_setMaxAcc(m_Dev, m_IdModules[i], radPerSecSquared[i]);
 	}
 
@@ -479,7 +560,7 @@ bool PowerCubeCtrl::statusAcc()
 /// @brief does homing for all Modules
 bool PowerCubeCtrl::doHoming()
 {
-    PCTRL_CHECK_INITIALIZED();
+    //PCTRL_CHECK_INITIALIZED();
 
 	for(int i=0; i<m_DOF; i++)
 	{

@@ -123,7 +123,7 @@ class NodeClass
         // other function declarations
 		void updateTf()
         {
-			ROS_DEBUG("update dynamic tf cyclically, even if no message arrive to topicCallback");
+/*			ROS_DEBUG("update dynamic tf cyclically, even if no message arrive to topicCallback");
 			
 			// publish tf for odom --> base_footprint
 			try
@@ -135,7 +135,7 @@ class NodeClass
 				ROS_ERROR("%s",ex.what());
 			}
 			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "odom", "base_footprint"));
-
+*/
             ROS_DEBUG("update static tf cyclically");
 			
 			// publish tf for base_footprint --> base_link
@@ -143,19 +143,27 @@ class NodeClass
 			transform.setRotation(tf::Quaternion(0, 0, 0));
 			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_footprint", "base_link"));
 
-			// publish tf for base_link --> base_laser_front
-			transform.setOrigin(tf::Vector3(0.3, 0.0, 0.2));
+/*			// publish tf for base_link --> base_laser_front
+			transform.setOrigin(tf::Vector3(0.325, 0.0, 0.1));
 			transform.setRotation(tf::Quaternion(0, 0, 0));
 			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "base_laser_front"));
+*/
+			// publish tf for base_link --> base_laser_front
+			transform.setOrigin(tf::Vector3(0.325, 0.0, 0.1));
+//			transform.setRotation(tf::Quaternion(0, 0, 0));
+			transform.setRotation(tf::createQuaternionFromRPY(3.1415926, 0, 0));
+			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "base_laser_front"));
+
 
 			// publish tf for base_link --> base_laser_rear
-			transform.setOrigin(tf::Vector3(-0.3, 0.0, 0.2));
+			transform.setOrigin(tf::Vector3(-0.325, 0.0, 0.1));
 			transform.setRotation(tf::Quaternion(0, 0, 0));
 			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "base_laser_rear"));
 
 			// publish tf for base_link --> base_hokuyo
-			transform.setOrigin(tf::Vector3(0.2, 0.0, 0.2));
-			transform.setRotation(tf::Quaternion(0, 0, 0));
+			transform.setOrigin(tf::Vector3(-0.252, 0.0, 0.3));
+//			transform.setRotation(tf::Quaternion(0, 0, 0));
+			transform.setRotation(tf::createQuaternionFromRPY(0, 0, 3.1415926));
 			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "base_hokuyo"));
 
 			// publish tf for base_link --> head TODO not static
