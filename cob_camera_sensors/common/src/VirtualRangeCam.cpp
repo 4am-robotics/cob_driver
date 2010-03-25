@@ -82,7 +82,7 @@ VirtualRangeCam::VirtualRangeCam()
 	m_intrinsicMatrix = 0;
 	m_distortionParameters = 0;
 
-	m_ImageCounter = 100;
+	m_ImageCounter = 1;
 }
 
 
