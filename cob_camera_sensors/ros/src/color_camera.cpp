@@ -73,87 +73,102 @@
 
 using namespace ipa_CameraSensors;
 
+/// @class CobColorCameraNode
+/// ROS node to interface color cameras.
 class CobColorCameraNode
 {
 private:
-	ros::NodeHandle m_NodeHandle;
-	polled_camera::PublicationServer m_ImagePollServer;
+	ros::NodeHandle node_handle_;
+	polled_camera::PublicationServer image_poll_server_;
 
-	AbstractColorCamera* m_ColorCamera;	///< Color camera instance
+	AbstractColorCamera* color_camera_;	///< Color camera instance
 
-	sensor_msgs::Image m_ImageMessage;	///< ROS image message
-	sensor_msgs::CameraInfo m_CameraInfoMessage;	///< ROS camera information message (e.g. holding intrinsic parameters)
+	sensor_msgs::CameraInfo camera_info_message_;	///< ROS camera information message (e.g. holding intrinsic parameters)
 
-	ros::ServiceServer m_CameraInfoService;
+	ros::ServiceServer camera_info_service_;
 
-	IplImage* m_IplImage;
+	IplImage* color_image_8U3_;
 
 public:
 	CobColorCameraNode(const ros::NodeHandle& node_handle)
-	: m_NodeHandle(node_handle),
-	  m_ColorCamera(0),
-	  m_IplImage(0)
+	: node_handle_(node_handle),
+	  color_camera_(0),
+	  color_image_8U3_(0)
 	{
 		/// Void
 	}
 
 	~CobColorCameraNode()
 	{
-		m_ImagePollServer.shutdown();
-		m_ColorCamera->Close();
-		ipa_CameraSensors::ReleaseColorCamera(m_ColorCamera);
+		image_poll_server_.shutdown();
+		color_camera_->Close();
+		ipa_CameraSensors::ReleaseColorCamera(color_camera_);
 		
-		if (m_IplImage) cvReleaseImage(&m_IplImage);
+		if (color_image_8U3_) cvReleaseImage(&color_image_8U3_);
 	} 
 
 	/// Opens the camera sensor
-	bool Init()
+	bool init()
 	{
-		int cameraIndex = -1;
+		std::string tmp_string = "NULL";
+		int camera_index = -1;
 		std::string directory = "NULL/";
 
 		/// Parameters are set within the launch file
-		if (m_NodeHandle.getParam("color_camera/camera_index", cameraIndex) == false)
+		if (node_handle_.getParam("color_camera/camera_index", camera_index) == false)
 		{
-			ROS_ERROR("Color camera index (0 or 1) not specified");
+			ROS_ERROR("[color_camera] Color camera index (0 or 1) not specified");
 			return false;
 		}
 	
 		/// Parameters are set within the launch file
-		if (m_NodeHandle.getParam("color_camera/configuration_files", directory) == false)
+		if (node_handle_.getParam("color_camera/configuration_files", directory) == false)
 		{
-			ROS_ERROR("Path to xml configuration for color camera not specified");
+			ROS_ERROR("[color_camera] Path to xml configuration for color camera not specified");
 			return false;
 		}
 
-		m_ColorCamera = ipa_CameraSensors::CreateColorCamera_AVTPikeCam();
+		/// Parameters are set within the launch file
+		if (node_handle_.getParam("color_camera/color_camera_type", tmp_string) == false)
+		{
+			ROS_ERROR("[color_camera] Color camera type not specified");
+			return false;
+		}
+		if (tmp_string == "CAM_AVTPIKE") color_camera_ = ipa_CameraSensors::CreateColorCamera_AVTPikeCam();
+		else if (tmp_string == "CAM_PROSILICA") ROS_ERROR("[color_camera] Color camera type not CAM_PROSILICA not yet implemented");
+		else
+		{
+			std::string str = "[color_camera] Camera type '" + tmp_string + "' unknown, try 'CAM_AVTPIKE' or 'CAM_PROSILICA'";
+			ROS_ERROR("%s", str.c_str());
+			return false;
+		}
 	
-		if (m_ColorCamera->Init(directory, cameraIndex) & ipa_CameraSensors::RET_FAILED)
+		if (color_camera_->Init(directory, camera_index) & ipa_CameraSensors::RET_FAILED)
 		{
 			std::stringstream ss;
-			ss << "Initialization of color camera ";
-			ss << cameraIndex;
+			ss << "initialization of color camera ";
+			ss << camera_index;
 			ss << " failed"; 
-			ROS_ERROR("%s", ss.str().c_str());
-			m_ColorCamera = 0;
+			ROS_ERROR("[color_camera] %s", ss.str().c_str());
+			color_camera_ = 0;
 			return false;
 		}
 
-		if (m_ColorCamera && (m_ColorCamera->Open() & ipa_CameraSensors::RET_FAILED))
+		if (color_camera_ && (color_camera_->Open() & ipa_CameraSensors::RET_FAILED))
 		{
 			std::stringstream ss;
 			ss << "Could not open color camera ";
-			ss << cameraIndex;
-			ROS_ERROR("%s", ss.str().c_str());
-			m_ColorCamera = 0;
+			ss << camera_index;
+			ROS_ERROR("[color_camera] %s", ss.str().c_str());
+			color_camera_ = 0;
 			return false;
 		}
 
 		/// Advertise service for other nodes to set intrinsic calibration parameters
-		m_CameraInfoService = m_NodeHandle.advertiseService("set_camera_info", &CobColorCameraNode::SetCameraInfo, this);
+		camera_info_service_ = node_handle_.advertiseService("set_camera_info", &CobColorCameraNode::setCameraInfo, this);
 	
 		/// Topics to publish
-		m_ImagePollServer = polled_camera::advertise(m_NodeHandle, "request_image", &CobColorCameraNode::PollCallback, this);
+		image_poll_server_ = polled_camera::advertise(node_handle_, "request_image", &CobColorCameraNode::pollCallback, this);
 		
 		return true;
 	}
@@ -162,49 +177,54 @@ public:
 	/// @param req Requested camera parameters
 	/// @param rsp Response, telling if requested parameters have been set
 	/// @return <code>True</code>
-	bool SetCameraInfo(sensor_msgs::SetCameraInfo::Request& req,
+	bool setCameraInfo(sensor_msgs::SetCameraInfo::Request& req,
 			sensor_msgs::SetCameraInfo::Response& rsp)
 	{
 		/// @TODO: Enable the setting of intrinsic parameters
-		m_CameraInfoMessage = req.camera_info;
+		camera_info_message_ = req.camera_info;
     
 		rsp.success = false;
-	        rsp.status_message = "Setting camera parameters through ROS not implemented";
+	        rsp.status_message = "[color_camera] Setting camera parameters through ROS not implemented";
 
     		return true;
   	}
 
 	/// Callback function for image requests on topic 'request_image'
-	bool PollCallback(polled_camera::GetPolledImage::Request& req, 
-			sensor_msgs::Image& imageMsg, sensor_msgs::CameraInfo& info)
+	bool pollCallback(polled_camera::GetPolledImage::Request& req, 
+			sensor_msgs::Image& image_msg, sensor_msgs::CameraInfo& info)
 	{
    		/// Release previously acquired IplImage 
-		if (m_IplImage) 
+		if (color_image_8U3_) 
 		{
-			cvReleaseImage(&m_IplImage);
-			m_IplImage = 0;
+			cvReleaseImage(&color_image_8U3_);
+			color_image_8U3_ = 0;
 		}
 
 		/// Acquire new image
-		if (m_ColorCamera->GetColorImage2(&m_IplImage) & ipa_Utils::RET_FAILED)
+		if (color_camera_->GetColorImage2(&color_image_8U3_) & ipa_Utils::RET_FAILED)
 		{
-			ROS_ERROR("Color image acquisition failed");
+			ROS_ERROR("[color_camera] Color image acquisition failed");
 			return false;
 		}
 
 		try
   		{
-			imageMsg = *(sensor_msgs::CvBridge::cvToImgMsg(m_IplImage, "bgr8"));
+			image_msg = *(sensor_msgs::CvBridge::cvToImgMsg(color_image_8U3_, "bgr8"));
 		}
 		catch (sensor_msgs::CvBridgeException error)
 		{
-			ROS_ERROR("Could not convert IplImage to ROS message");
+			ROS_ERROR("[color_camera] Could not convert IplImage to ROS message");
 		}
 	
 		/// Set time stamp
-		imageMsg.header.stamp = ros::Time::now();    
+		ros::Time now = ros::Time::now();
+		image_msg.header.stamp = now;    
 
-		info = m_CameraInfoMessage;
+		info = camera_info_message_;
+		info.width = color_image_8U3_->width;
+		info.height = color_image_8U3_->height;
+		info.header.stamp = now;
+
     		return true;
 	}
 };
@@ -220,10 +240,10 @@ int main(int argc, char** argv)
 	ros::NodeHandle nh;
 	
 	/// Create camera node class instance	
-	CobColorCameraNode cameraNode(nh);
+	CobColorCameraNode camera_node(nh);
 
-	/// Initialize camera node
-	if (!cameraNode.Init()) return 0;
+	/// initialize camera node
+	if (!camera_node.init()) return 0;
 
 	ros::spin();
 	

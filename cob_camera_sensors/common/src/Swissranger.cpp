@@ -54,7 +54,7 @@
 #ifdef __COB_ROS__
 #include "cob_camera_sensors/Swissranger.h"
 #else
-#include "Swissranger.h"
+#include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/Swissranger.h"
 #endif
 
 using namespace ipa_CameraSensors;
@@ -131,12 +131,12 @@ unsigned long Swissranger::Init(std::string directory, int cameraIndex)
 		return (RET_OK | RET_CAMERA_ALREADY_INITIALIZED);
 	}
 
-	m_CameraType = ipa_CameraSensors::CAM_SR3000;
+	m_CameraType = ipa_CameraSensors::CAM_SWISSRANGER;
 
 	/// Load SR parameters from xml-file
 	if (LoadParameters((directory + "cameraSensorsIni.xml").c_str(), cameraIndex) & RET_FAILED)
 	{
-		std::cerr << "INFO - Swissranger::Init:" << std::endl;
+		std::cerr << "ERROR - Swissranger::Init:" << std::endl;
 		std::cerr << "\t ... Parsing xml configuration file failed." << std::endl;
 		return (RET_FAILED | RET_INIT_CAMERA_FAILED);	
 	}
@@ -287,9 +287,9 @@ unsigned long Swissranger::Open()
 		return RET_FAILED;
 	}
 
-	std::cout << "******************************************" << std::endl;
+	std::cout << "**************************************************" << std::endl;
 	std::cout << "Swissranger::Open: Swissranger camera device OPEN" << std::endl;
-	std::cout << "******************************************" << std::endl << std::endl;
+	std::cout << "**************************************************" << std::endl << std::endl;
 	m_open = true;
 
 	return RET_OK;
@@ -306,7 +306,7 @@ unsigned long Swissranger::Close()
 	if(SR_Close(m_SRCam)<0)
 	{
 		std::cout << "ERROR - Swissranger::Close():" << std::endl;
-		std::cerr << "\t ... Could not close swissranger SR3000 camera." << std::endl;
+		std::cerr << "\t ... Could not close swissranger camera." << std::endl;
 		return RET_FAILED;
 	}
 	m_SRCam = 0;
@@ -374,7 +374,7 @@ unsigned long Swissranger::SetProperty(t_cameraProperty* cameraProperty)
 			{
 				if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_AUTO)
 				{
-					err = SR_SetAutoExposure(m_SRCam, 1, 150, 1, 5);
+					err = SR_SetAutoExposure(m_SRCam, 1, 150, 5, 40);
 					if(err<0)
 					{
 						std::cerr << "ERROR - Swissranger::SetProperty:" << std::endl;
@@ -1224,7 +1224,8 @@ unsigned long Swissranger::LoadParameters(const char* filename, int cameraIndex)
 	if (!p_configXmlDocument->LoadFile())
 	{
 		std::cerr << "ERROR - Swissranger::LoadParameters:" << std::endl;
-		std::cerr << "\t ... Error while loading xml configuration file (Check filename and syntax of the file):\n";
+		std::cerr << "\t ... Error while loading xml configuration file \n";
+		std::cerr << "\t ... (Check filename and syntax of the file):\n";
 		std::cerr << "\t ... '" << filename << "'" << std::endl;
 		return (RET_FAILED | RET_FAILED_OPEN_FILE);
 	}
