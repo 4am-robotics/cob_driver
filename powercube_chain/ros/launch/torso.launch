@@ -11,4 +11,7 @@
 	<rosparam command="load" file="$(find powercube_chain)/ros/launch/torso.yaml"/>
   </node>
 
+  <!-- set Powercubes to OperationMode position -->
+  <param name="OperationMode" value="position"/>
+
 </launch>
