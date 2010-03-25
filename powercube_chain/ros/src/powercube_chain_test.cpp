@@ -190,9 +190,11 @@ int main(int argc, char** argv)
                 int DOF = 4;
                 trajectory_msgs::JointTrajectory msg;
                 msg.header.stamp = ros::Time::now();
-                msg.points.resize(1); //TODO hardcoded to one point, remove to accept multiple points of trajectory_msgs
+                msg.points.resize(2); //TODO hardcoded to two points, remove to accept multiple points of trajectory_msgs
                 msg.points[0].positions.resize(DOF);
                 msg.points[0].velocities.resize(DOF);
+                msg.points[1].positions.resize(DOF);
+                msg.points[1].velocities.resize(DOF);
                 
                 if (c == '0')
                 {
@@ -265,6 +267,42 @@ int main(int argc, char** argv)
 		            //msg.points[0].velocities[4] = 0.2;
 		            //msg.points[0].velocities[5] = 0.2;
 		            //msg.points[0].velocities[6] = 0.2;
+                }
+				else if (c == 't') // trajectory
+                {
+                	// point 1
+                    msg.points[0].positions[0] = 0.2;
+		            msg.points[0].positions[1] = 0.0;
+		            msg.points[0].positions[2] = 0.0;
+		            msg.points[0].positions[3] = 0.2;
+		            //msg.points[0].positions[4] = 0.2;
+		            //msg.points[0].positions[5] = 0.2;
+		            //msg.points[0].positions[6] = 0.2;
+		            
+		            msg.points[0].velocities[0] = 0.0;
+		            msg.points[0].velocities[1] = 0.0;
+		            msg.points[0].velocities[2] = 0.0;
+		            msg.points[0].velocities[3] = 0.0;
+		            //msg.points[0].velocities[4] = 0.2;
+		            //msg.points[0].velocities[5] = 0.2;
+		            //msg.points[0].velocities[6] = 0.2;
+
+					// point 2
+					msg.points[1].positions[0] = 0.0;
+		            msg.points[1].positions[1] = 0.0;
+		            msg.points[1].positions[2] = 0.0;
+		            msg.points[1].positions[3] = 0.0;
+		            //msg.points[1].positions[4] = 0.2;
+		            //msg.points[1].positions[5] = 0.2;
+		            //msg.points[1].positions[6] = 0.2;
+		            
+		            msg.points[1].velocities[0] = 0.0;
+		            msg.points[1].velocities[1] = 0.0;
+		            msg.points[1].velocities[2] = 0.0;
+		            msg.points[1].velocities[3] = 0.0;
+		            //msg.points[1].velocities[4] = 0.2;
+		            //msg.points[1].velocities[5] = 0.2;
+		            //msg.points[1].velocities[6] = 0.2;
                 }
                 else if (c == '9')
                 {

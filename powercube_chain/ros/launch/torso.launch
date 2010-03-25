@@ -10,19 +10,7 @@
   <rosparam command="load" file="$(find powercube_chain)/ros/launch/torso.yaml"/>
 
   <!-- start powercube_chain -->
-  <node pkg="powercube_chain" type="powercube_chain" name="powercube_chain" cwd="node" respawn="false" output="screen" >
-    <remap from="command" to="torso_controller/command" />
-    <remap from="state" to="torso_controller/state" />
-  </node>
-
-  <!-- start trajectory controller-->
-  <node name="spawn_torso_controller" pkg="pr2_controller_manager" type="spawner" args="
-    torso_controller
-    " respawn="false" output="screen" />
-
-  <group ns="torso_controller">
-    <node name="joint_trajectory_action_node" pkg="joint_trajectory_action" type="joint_trajectory_action" />
-  </group>
+  <node pkg="powercube_chain" type="powercube_chain" name="powercube_chain" cwd="node" respawn="false" output="screen" />
 
   <!-- start robot_state_publisher -->
   <node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />

@@ -275,7 +275,19 @@ class NodeClass
 		        if (operationMode == "position")
 		        {
 		            ROS_INFO("moving powercubes in position mode");
-		            PCube->MoveJointSpaceSync(msg->points[0].positions);
+		            std::cout << "statusMoving = " << PCube->statusMoving() << std::endl;
+		            if (PCube->statusMoving() == false) //TODO substitude with action server
+		            {
+		            	for (int i = 0; i<msg->points.size(); i++ )
+		            	{
+		            		ROS_INFO("...moving to point[%d]",i);
+			            	PCube->MoveJointSpaceSync(msg->points[i].positions);
+			            	while (PCube->statusMoving() == true)
+			            	{
+			            		ROS_INFO("waiting to reach point[%d]",i);
+			            	}
+			            }
+			        }
 					ROS_INFO("...moving to position ended...");
 		        }
 		        else if (operationMode == "velocity")
