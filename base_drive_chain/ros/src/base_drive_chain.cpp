@@ -327,8 +327,6 @@ class NodeClass
         
         // other function declarations
         bool initDrives();
-
-        int startDriveIdentification(std::string LogDirectory);
 };
 
 //#######################
@@ -405,11 +403,4 @@ bool NodeClass::initDrives()
 	ROS_INFO("Initializing done");
 
     return bTemp1;
-}
-
-int NodeClass::startDriveIdentification(std::string LogDirectory) {
-    m_CanCtrlPltf.configureElmoRecorder(7);
-    m_CanCtrlPltf.printElmoRecordings(LogDirectory);
-
-    return 0;
 }
