@@ -103,7 +103,7 @@ class NodeClass
 		int init();
 
 	private:        
-		std::string sIniDirectory;
+		std::string sComPort;
 		SerRelayBoard * m_SerRelayBoard;
 
 		int requestBoardStatus();
@@ -135,20 +135,34 @@ int main(int argc, char** argv)
 //#### function implementations ####
 
 int NodeClass::init() {
-	n.param<std::string>("cob_relayboard_node/IniDirectory", sIniDirectory, "Platform/IniFiles/");
+	n.param<std::string>("cob_relayboard_node/ComPort", sComPort, "/dev/ttyUSB2");
     
-	m_SerRelayBoard = new SerRelayBoard(sIniDirectory);
+	m_SerRelayBoard = new SerRelayBoard(sComPort);
 
-	m_SerRelayBoard->initPltf();
+	m_SerRelayBoard->init();
 
 	return 0;
 }
 
 int NodeClass::requestBoardStatus() {
+	int ret;	
+	
 	// Request Status of RelayBoard 
-	m_SerRelayBoard->setWheelVel(0,0.0,0);
+	ret = m_SerRelayBoard->sendRequest();
+	if(ret != SerRelayBoard::NO_ERROR) {
+		ROS_ERROR("Error in sending message to Relayboard over SerialIO, lost bytes during writing");
+	}
 
-	m_SerRelayBoard->evalRxBuffer();
+	ret = m_SerRelayBoard->evalRxBuffer();
+	if(ret==SerRelayBoard::NOT_INITIALIZED) {
+		ROS_ERROR("Failed to read relayboard data over Serial, the device isnt initialized");
+	} else if(ret==SerRelayBoard::NO_MESSAGES) {
+		ROS_ERROR("For a long time, no message from RelayBoard have been received, check com port!");
+	} else if(ret==SerRelayBoard::TOO_LESS_BYTES_IN_QUEUE) {
+		ROS_ERROR("Relayboard: Too less bytes in queue");
+	} else if(ret==SerRelayBoard::CHECKSUM_ERROR) {
+		ROS_ERROR("A checksum error occurred while reading from relayboard data");
+	}
 
 	return 0;
 }
