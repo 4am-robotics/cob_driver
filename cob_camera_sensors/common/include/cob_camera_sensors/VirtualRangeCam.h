@@ -180,6 +180,8 @@ private:
 	unsigned int m_ImageCounter; ///< Holds the index of the image that is extracted during the next call of <code>AcquireImages</code>
 	int m_ImageWidth;  ///< Image width
 	int m_ImageHeight; ///< Image height
+
+	double m_k1, m_k2, m_p1, m_p2; ///< Distortion parameters
 };
 
 

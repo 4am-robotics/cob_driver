@@ -143,35 +143,34 @@ class NodeClass
         void topicCallback_JointStateCmd(const sensor_msgs::JointState::ConstPtr& msg)
         {
 		    int iRet;
-
             // check if velocities lie inside allowed boundaries
 		    for(int i = 0; i < m_iNumMotors; i++)
 		    {
 			    // for steering motors
                 if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
                 {
-			        if (vdVelGearSteerRadS[i] > m_Param.dMaxSteerRateRadpS)
+			        if (msg.velocity[i] > m_Param.dMaxSteerRateRadpS)
 			        {
-			        	vdVelGearSteerRadS[i] = m_Param.dMaxSteerRateRadpS;
+			        	msg.velocity[i] = m_Param.dMaxSteerRateRadpS;
 			        }
-			        if (vdVelGearSteerRadS[i] < -m_Param.dMaxSteerRateRadpS)
+			        if (msg.velocity[i] < -m_Param.dMaxSteerRateRadpS)
 			        {
-			    	    vdVelGearSteerRadS[i] = -m_Param.dMaxSteerRateRadpS;
+			    	    msg.velocity[i] = -m_Param.dMaxSteerRateRadpS;
 			        }
                 }
                 else    // for driving motors
-			    if (vdVelGearDriveRadS[i] > m_Param.dMaxDriveRateRadpS)
+			    if (msg.velocity[i] > m_Param.dMaxDriveRateRadpS)
 			    {
-			    	vdVelGearDriveRadS[i] = m_Param.dMaxDriveRateRadpS;
+			    	msg.velocity[i] = m_Param.dMaxDriveRateRadpS;
 			    }
-			    if (vdVelGearDriveRadS[i] < -m_Param.dMaxDriveRateRadpS)
+			    if (msg.velocity[i] < -m_Param.dMaxDriveRateRadpS)
 			    {
-			    	vdVelGearDriveRadS[i] = -m_Param.dMaxDriveRateRadpS;
+			    	msg.velocity[i] = -m_Param.dMaxDriveRateRadpS;
 			    }
 
                 // and cmd velocities to Can-Nodes
                 //m_CanCtrlPltf.setVelGearRadS(iCanIdent, dVelEncRadS);
-                iRet = m_CanCtrlPltf.setVelGearRadS(i, vdVelGearDriveRadS[i]);
+                iRet = m_CanCtrlPltf.setVelGearRadS(i, msg.velocity[i]);
             }
 
         }
