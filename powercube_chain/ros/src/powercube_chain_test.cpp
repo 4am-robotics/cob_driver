@@ -246,6 +246,24 @@ int main(int argc, char** argv)
 		            //msg.velocities[5] = 0.2;
 		            //msg.velocities[6] = 0.2;
                 }
+                else if (c == '3')
+                {
+                    msg.positions[0] = 0.0;
+		            msg.positions[1] = 0.0;
+		            msg.positions[2] = 0.0;
+		            msg.positions[3] = 0.2;
+		            //msg.positions[4] = 0.2;
+		            //msg.positions[5] = 0.2;
+		            //msg.positions[6] = 0.2;
+		            
+		            msg.velocities[0] = 0.0;
+		            msg.velocities[1] = 0.0;
+		            msg.velocities[2] = 0.0;
+		            msg.velocities[3] = 0.0;
+		            //msg.velocities[4] = 0.2;
+		            //msg.velocities[5] = 0.2;
+		            //msg.velocities[6] = 0.2;
+                }
                 else if (c == '9')
                 {
                     msg.positions[0] = -0.1;
