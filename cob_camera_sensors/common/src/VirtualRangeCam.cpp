@@ -82,7 +82,7 @@ VirtualRangeCam::VirtualRangeCam()
 	m_intrinsicMatrix = 0;
 	m_distortionParameters = 0;
 
-	m_ImageCounter = 0;
+	m_ImageCounter = 100;
 }
 
 
@@ -350,6 +350,8 @@ unsigned long VirtualRangeCam::Open()
 			std::cerr << "\t ... Coordinate images must be available for calibration mode NATIVE or MATLAB_NO_Z." << std::endl;
 			return ipa_CameraSensors::RET_FAILED;
 		}
+
+		SetDistortionParameters(m_k1, m_k2, m_p1, m_p2, m_ImageWidth, m_ImageHeight);
 
 	}
 	else
@@ -1024,33 +1026,31 @@ unsigned long VirtualRangeCam::LoadParameters(const char* filename, int cameraIn
 				p_xmlElement_Child = p_xmlElement_Root_VirtualRangeCam->FirstChildElement( "DistortionCoeffs" );
 				if ( p_xmlElement_Child )
 				{
-					double k1, k2, p1, p2;
 					// read and save value of attribute
-					if ( p_xmlElement_Child->QueryValueAttribute( "k1", &k1 ) != TIXML_SUCCESS)
+					if ( p_xmlElement_Child->QueryValueAttribute( "k1", &m_k1 ) != TIXML_SUCCESS)
 					{
 						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
 						std::cerr << "\t ... Can't find attribute 'k1' of tag 'DistortionCoeffs '." << std::endl;
 						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
 					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "k2", &k2 ) != TIXML_SUCCESS)
+					if ( p_xmlElement_Child->QueryValueAttribute( "k2", &m_k2 ) != TIXML_SUCCESS)
 					{
 						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
 						std::cerr << "\t ... Can't find attribute 'k2' of tag 'DistortionCoeffs '." << std::endl;
 						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
 					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "p1", &p1 ) != TIXML_SUCCESS)
+					if ( p_xmlElement_Child->QueryValueAttribute( "p1", &m_p1 ) != TIXML_SUCCESS)
 					{
 						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
 						std::cerr << "\t ... Can't find attribute 'p1' of tag 'DistortionCoeffs '." << std::endl;
 						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
 					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "p2", &p2 ) != TIXML_SUCCESS)
+					if ( p_xmlElement_Child->QueryValueAttribute( "p2", &m_p2 ) != TIXML_SUCCESS)
 					{
 						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
 						std::cerr << "\t ... Can't find attribute 'p2' of tag 'DistortionCoeffs '." << std::endl;
 						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
 					}
-					SetDistortionParameters(k1, k2, p1, p2, 176, 144);
 				}
 				else
 				{
