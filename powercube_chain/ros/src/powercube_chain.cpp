@@ -62,7 +62,9 @@
 
 // ROS message includes
 #include <sensor_msgs/JointState.h>
-#include <cob_msgs/JointCommand.h>
+//#include <cob_msgs/JointCommand.h>
+#include <trajectory_msgs/JointTrajectory.h>
+#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -82,6 +84,7 @@ class NodeClass
                 
         // declaration of topics to publish
         ros::Publisher topicPub_JointState;
+        ros::Publisher topicPub_ControllerState;
         
 	    // declaration of topics to subscribe, callback is called for new messages arriving
         ros::Subscriber topicSub_JointCommand;
@@ -118,9 +121,10 @@ class NodeClass
 
             // implementation of topics to publish
             topicPub_JointState = n.advertise<sensor_msgs::JointState>("joint_states", 1);
+            topicPub_ControllerState = n.advertise<pr2_controllers_msgs::JointTrajectoryControllerState>("state", 1);
             
             // implementation of topics to subscribe
-            topicSub_JointCommand = n.subscribe("joint_commands", 1, &NodeClass::topicCallback_JointCommand, this);
+            topicSub_JointCommand = n.subscribe("command", 1, &NodeClass::topicCallback_JointCommand, this);
             
             // implementation of service servers
             srvServer_Init = n.advertiseService("Init", &NodeClass::srvCallback_Init, this);
@@ -137,9 +141,9 @@ class NodeClass
 			ROS_INFO("CanDevice=%d, CanBaudrate=%d",CanDevice,CanBaudrate);
 
 			// get ModIds from parameter server
-			if (n.hasParam("powercube_chain/ModIds"))
+			if (n.hasParam("ModIds"))
 			{
-				n.getParam("powercube_chain/ModIds", ModIds_param);
+				n.getParam("ModIds", ModIds_param);
 			}
 			else
 			{
@@ -154,9 +158,9 @@ class NodeClass
 			
 			// get JointNames from parameter server
 			ROS_INFO("getting JointNames from parameter server");
-			if (n.hasParam("powercube_chain/JointNames"))
+			if (n.hasParam("JointNames"))
 			{
-				n.getParam("powercube_chain/JointNames", JointNames_param);
+				n.getParam("JointNames", JointNames_param);
 			}
 			else
 			{
@@ -173,9 +177,9 @@ class NodeClass
 			
 			// get MaxAcc from parameter server
 			ROS_INFO("getting MaxAcc from parameter server");
-			if (n.hasParam("powercube_chain/MaxAcc"))
+			if (n.hasParam("MaxAcc"))
 			{
-				n.getParam("powercube_chain/MaxAcc", MaxAcc_param);
+				n.getParam("MaxAcc", MaxAcc_param);
 			}
 			else
 			{
@@ -262,7 +266,7 @@ class NodeClass
 
         // topic callback functions 
         // function will be called when a new message arrives on a topic
-        void topicCallback_JointCommand(const cob_msgs::JointCommand::ConstPtr& msg)
+        void topicCallback_JointCommand(const trajectory_msgs::JointTrajectory::ConstPtr& msg)
         {
    			if (isInitialized == true)
 			{
@@ -271,13 +275,13 @@ class NodeClass
 		        if (operationMode == "position")
 		        {
 		            ROS_INFO("moving powercubes in position mode");
-		            PCube->MoveJointSpaceSync(msg->positions);
+		            PCube->MoveJointSpaceSync(msg->points[0].positions);
 					ROS_INFO("...moving to position ended...");
 		        }
 		        else if (operationMode == "velocity")
 		        {
 		        	ROS_INFO("moving powercubes in velocity mode");
-		            PCube->MoveVel(msg->velocities);
+		            PCube->MoveVel(msg->points[0].velocities);
 		        }
 		        else
 		        {
@@ -401,7 +405,7 @@ class NodeClass
         {
 			if (isInitialized == true)
 			{
-		        // create message
+		        // create joint_state message
 		        int DOF = ModIds_param.size();
 		        std::vector<double> ActualPos;
 		        std::vector<double> ActualVel;
@@ -428,6 +432,20 @@ class NodeClass
 		            
 		        // publish message
 		        topicPub_JointState.publish(msg);
+		        
+		        // create controller_state
+		        pr2_controllers_msgs::JointTrajectoryControllerState controller_state;
+		        controller_state.header.stamp = msg.header.stamp;
+		        controller_state.joint_names.resize(DOF);
+		        controller_state.joint_names = msg.name;
+		        controller_state.actual.positions.resize(DOF);
+		        controller_state.actual.positions = msg.position;
+		        controller_state.actual.velocities.resize(DOF);
+		        controller_state.actual.velocities = msg.velocity;
+		        
+				// publish message
+		        topicPub_ControllerState.publish(controller_state);
+		        
 			}
         }
 

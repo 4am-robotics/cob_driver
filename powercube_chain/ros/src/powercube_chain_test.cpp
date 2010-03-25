@@ -61,7 +61,8 @@
 #include <ros/ros.h>
 
 // ROS message includes
-#include <cob_msgs/JointCommand.h>
+//#include <cob_msgs/JointCommand.h>
+#include <trajectory_msgs/JointTrajectory.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -95,7 +96,7 @@ int main(int argc, char** argv)
 	ros::NodeHandle n;
 
     // topics to publish
-    ros::Publisher topicPub_JointCommand = n.advertise<cob_msgs::JointCommand>("joint_commands", 1);
+    ros::Publisher topicPub_JointCommand = n.advertise<trajectory_msgs::JointTrajectory>("command", 1);
         
 	// topics to subscribe, callback is called for new messages arriving
     //--
@@ -187,118 +188,119 @@ int main(int argc, char** argv)
                 std::cin >> c;
                 
                 int DOF = 4;
-                cob_msgs::JointCommand msg;
+                trajectory_msgs::JointTrajectory msg;
                 msg.header.stamp = ros::Time::now();
-                msg.positions.resize(DOF);
-                msg.velocities.resize(DOF);
+                msg.points.resize(1); //TODO hardcoded to one point, remove to accept multiple points of trajectory_msgs
+                msg.points[0].positions.resize(DOF);
+                msg.points[0].velocities.resize(DOF);
                 
                 if (c == '0')
                 {
-		            msg.positions[0] = 0;
-		            msg.positions[1] = 0;
-		            msg.positions[2] = 0;
-		            msg.positions[3] = 0;
-		            //msg.positions[4] = 0;
-		            //msg.positions[5] = 0;
-		            //msg.positions[6] = 0;
+		            msg.points[0].positions[0] = 0;
+		            msg.points[0].positions[1] = 0;
+		            msg.points[0].positions[2] = 0;
+		            msg.points[0].positions[3] = 0;
+		            //msg.points[0].positions[4] = 0;
+		            //msg.points[0].positions[5] = 0;
+		            //msg.points[0].positions[6] = 0;
 		            
-		            msg.velocities[0] = 0;
-		            msg.velocities[1] = 0;
-		            msg.velocities[2] = 0;
-		            msg.velocities[3] = 0;
-		            //msg.velocities[4] = 0;
-		            //msg.velocities[5] = 0;
-		            //msg.velocities[6] = 0;
+		            msg.points[0].velocities[0] = 0;
+		            msg.points[0].velocities[1] = 0;
+		            msg.points[0].velocities[2] = 0;
+		            msg.points[0].velocities[3] = 0;
+		            //msg.points[0].velocities[4] = 0;
+		            //msg.points[0].velocities[5] = 0;
+		            //msg.points[0].velocities[6] = 0;
                 }
                 else if (c == '1')
                 {
-                    msg.positions[0] = 0.1;
-		            msg.positions[1] = 0.1;
-		            msg.positions[2] = 0.1;
-		            msg.positions[3] = 0.1;
-		            //msg.positions[4] = 0.1;
-		            //msg.positions[5] = 0.1;
-		            //msg.positions[6] = 0.1;
+                    msg.points[0].positions[0] = 0.1;
+		            msg.points[0].positions[1] = 0.1;
+		            msg.points[0].positions[2] = 0.1;
+		            msg.points[0].positions[3] = 0.1;
+		            //msg.points[0].positions[4] = 0.1;
+		            //msg.points[0].positions[5] = 0.1;
+		            //msg.points[0].positions[6] = 0.1;
 		            
-		            msg.velocities[0] = 0.1;
-		            msg.velocities[1] = 0.1;
-		            msg.velocities[2] = 0.1;
-		            msg.velocities[3] = 0.1;
-		            //msg.velocities[4] = 0.1;
-		            //msg.velocities[5] = 0.1;
-		            //msg.velocities[6] = 0.1;
+		            msg.points[0].velocities[0] = 0.1;
+		            msg.points[0].velocities[1] = 0.1;
+		            msg.points[0].velocities[2] = 0.1;
+		            msg.points[0].velocities[3] = 0.1;
+		            //msg.points[0].velocities[4] = 0.1;
+		            //msg.points[0].velocities[5] = 0.1;
+		            //msg.points[0].velocities[6] = 0.1;
                 }
                 else if (c == '2')
                 {
-                    msg.positions[0] = 0.2;
-		            msg.positions[1] = 0.2;
-		            msg.positions[2] = 0.2;
-		            msg.positions[3] = 0.2;
-		            //msg.positions[4] = 0.2;
-		            //msg.positions[5] = 0.2;
-		            //msg.positions[6] = 0.2;
+                    msg.points[0].positions[0] = 0.2;
+		            msg.points[0].positions[1] = 0.2;
+		            msg.points[0].positions[2] = 0.2;
+		            msg.points[0].positions[3] = 0.2;
+		            //msg.points[0].positions[4] = 0.2;
+		            //msg.points[0].positions[5] = 0.2;
+		            //msg.points[0].positions[6] = 0.2;
 		            
-		            msg.velocities[0] = 0.2;
-		            msg.velocities[1] = 0.2;
-		            msg.velocities[2] = 0.2;
-		            msg.velocities[3] = 0.2;
-		            //msg.velocities[4] = 0.2;
-		            //msg.velocities[5] = 0.2;
-		            //msg.velocities[6] = 0.2;
+		            msg.points[0].velocities[0] = 0.2;
+		            msg.points[0].velocities[1] = 0.2;
+		            msg.points[0].velocities[2] = 0.2;
+		            msg.points[0].velocities[3] = 0.2;
+		            //msg.points[0].velocities[4] = 0.2;
+		            //msg.points[0].velocities[5] = 0.2;
+		            //msg.points[0].velocities[6] = 0.2;
                 }
                 else if (c == '3')
                 {
-                    msg.positions[0] = 0.0;
-		            msg.positions[1] = 0.0;
-		            msg.positions[2] = 0.0;
-		            msg.positions[3] = 0.2;
-		            //msg.positions[4] = 0.2;
-		            //msg.positions[5] = 0.2;
-		            //msg.positions[6] = 0.2;
+                    msg.points[0].positions[0] = 0.0;
+		            msg.points[0].positions[1] = 0.0;
+		            msg.points[0].positions[2] = 0.0;
+		            msg.points[0].positions[3] = 0.2;
+		            //msg.points[0].positions[4] = 0.2;
+		            //msg.points[0].positions[5] = 0.2;
+		            //msg.points[0].positions[6] = 0.2;
 		            
-		            msg.velocities[0] = 0.0;
-		            msg.velocities[1] = 0.0;
-		            msg.velocities[2] = 0.0;
-		            msg.velocities[3] = 0.0;
-		            //msg.velocities[4] = 0.2;
-		            //msg.velocities[5] = 0.2;
-		            //msg.velocities[6] = 0.2;
+		            msg.points[0].velocities[0] = 0.0;
+		            msg.points[0].velocities[1] = 0.0;
+		            msg.points[0].velocities[2] = 0.0;
+		            msg.points[0].velocities[3] = 0.0;
+		            //msg.points[0].velocities[4] = 0.2;
+		            //msg.points[0].velocities[5] = 0.2;
+		            //msg.points[0].velocities[6] = 0.2;
                 }
                 else if (c == '9')
                 {
-                    msg.positions[0] = -0.1;
-		            msg.positions[1] = -0.1;
-		            msg.positions[2] = -0.1;
-		            msg.positions[3] = -0.1;
-		            //msg.positions[4] = -0.1;
-		            //msg.positions[5] = -0.1;
-		            //msg.positions[6] = -0.1;
+                    msg.points[0].positions[0] = -0.1;
+		            msg.points[0].positions[1] = -0.1;
+		            msg.points[0].positions[2] = -0.1;
+		            msg.points[0].positions[3] = -0.1;
+		            //msg.points[0].positions[4] = -0.1;
+		            //msg.points[0].positions[5] = -0.1;
+		            //msg.points[0].positions[6] = -0.1;
 		            
-		            msg.velocities[0] = -0.1;
-		            msg.velocities[1] = -0.1;
-		            msg.velocities[2] = -0.1;
-		            msg.velocities[3] = -0.1;
-		            //msg.velocities[4] = -0.1;
-		            //msg.velocities[5] = -0.1;
-		            //msg.velocities[6] = -0.1;
+		            msg.points[0].velocities[0] = -0.1;
+		            msg.points[0].velocities[1] = -0.1;
+		            msg.points[0].velocities[2] = -0.1;
+		            msg.points[0].velocities[3] = -0.1;
+		            //msg.points[0].velocities[4] = -0.1;
+		            //msg.points[0].velocities[5] = -0.1;
+		            //msg.points[0].velocities[6] = -0.1;
                 }
                 else if (c == '8')
                 {
-                    msg.positions[0] = -0.2;
-		            msg.positions[1] = -0.2;
-		            msg.positions[2] = -0.2;
-		            msg.positions[3] = -0.2;
-		            //msg.positions[4] = -0.2;
-		            //msg.positions[5] = -0.2;
-		            //msg.positions[6] = -0.2;
+                    msg.points[0].positions[0] = -0.2;
+		            msg.points[0].positions[1] = -0.2;
+		            msg.points[0].positions[2] = -0.2;
+		            msg.points[0].positions[3] = -0.2;
+		            //msg.points[0].positions[4] = -0.2;
+		            //msg.points[0].positions[5] = -0.2;
+		            //msg.points[0].positions[6] = -0.2;
 		            
-		            msg.velocities[0] = -0.2;
-		            msg.velocities[1] = -0.2;
-		            msg.velocities[2] = -0.2;
-		            msg.velocities[3] = -0.2;
-		            //msg.velocities[4] = -0.2;
-		            //msg.velocities[5] = -0.2;
-		            //msg.velocities[6] = -0.2;
+		            msg.points[0].velocities[0] = -0.2;
+		            msg.points[0].velocities[1] = -0.2;
+		            msg.points[0].velocities[2] = -0.2;
+		            msg.points[0].velocities[3] = -0.2;
+		            //msg.points[0].velocities[4] = -0.2;
+		            //msg.points[0].velocities[5] = -0.2;
+		            //msg.points[0].velocities[6] = -0.2;
 				}
                 else
                 {
