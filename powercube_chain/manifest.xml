@@ -13,6 +13,8 @@
   <depend package="sensor_msgs"/>
   <depend package="urdf"/>
   <depend package="cob_msgs"/>
+  <depend package="trajectory_msgs"/>
+  <depend package="pr2_controllers_msgs"/>
   <depend package="cob_srvs"/>
   <depend package="libpcan"/>
   <depend package="libm5api"/>
