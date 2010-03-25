@@ -66,6 +66,7 @@
 #include <opencv/highgui.h>
 
 #include <cob_vision_utils/OpenCVUtils.h>
+#include <sstream>
 
 //####################
 //#### node class ####
@@ -74,27 +75,31 @@ class CobTofCameraViewerNode
 private:
 	ros::NodeHandle m_NodeHandle;   ///< Node handle
 
-	image_transport::ImageTransport m_ImageTransport;       ///< Image transport instance
-	image_transport::Subscriber m_XYZImageSubscriber;	///< Subscribes to xyz image data
-        image_transport::Subscriber m_GrayImageSubscriber;	///< Subscribes to gray image data
+	image_transport::ImageTransport image_transport_;       ///< Image transport instance
+	image_transport::Subscriber xyz_image_subscriber_;	///< Subscribes to xyz image data
+        image_transport::Subscriber grey_image_subscriber_;	///< Subscribes to gray image data
 
-	sensor_msgs::CvBridge m_CvBridge;
+	sensor_msgs::CvBridge cv_bridge_0_;
+	sensor_msgs::CvBridge cv_bridge_1_;
 	
-	IplImage* m_XYZImage32F3;	/// OpenCV image holding the 32bit point cloud
-	IplImage* m_XYZImage8U3;	/// OpenCV image holding the transformed 8bit RGB point cloud
-        IplImage* m_GrayImage32F1;	/// OpenCV image holding the 32bit amplitude values
-        IplImage* m_GrayImage8U3;	/// OpenCV image holding the transformed 8bit RGB amplitude values
+	IplImage* xyz_image_32F3_;	/// OpenCV image holding the 32bit point cloud
+	IplImage* xyz_image_8U3_;	/// OpenCV image holding the transformed 8bit RGB point cloud
+        IplImage* grey_image_32F1_;	/// OpenCV image holding the 32bit amplitude values
+        IplImage* grey_image_8U3_;	/// OpenCV image holding the transformed 8bit RGB amplitude values
+
+	int grey_image_counter_; 
 
 public:
 	/// Constructor.
 	/// @param node_handle Node handle instance
         CobTofCameraViewerNode(const ros::NodeHandle& node_handle)
         : m_NodeHandle(node_handle),
-          m_ImageTransport(node_handle),
-          m_XYZImage32F3(0),
-          m_XYZImage8U3(0),
-          m_GrayImage32F1(0),
-          m_GrayImage8U3(0)
+          image_transport_(node_handle),
+          xyz_image_32F3_(0),
+          xyz_image_8U3_(0),
+          grey_image_32F1_(0),
+          grey_image_8U3_(0),
+					grey_image_counter_(0)
         {
                 /// Void
         }
@@ -103,79 +108,92 @@ public:
         ~CobTofCameraViewerNode()
         {
 		/// Do not release <code>m_GrayImage32F3</code>
-		/// Do not release <code>m_XYZImage32F3</code>
+		/// Do not release <code>xyz_image_32F3_</code>
 		/// Image allocation is managed by Cv_Bridge object 
-                if (m_XYZImage8U3) cvReleaseImage(&m_XYZImage8U3);
-                if (m_GrayImage8U3) cvReleaseImage(&m_GrayImage8U3);
+                if (xyz_image_8U3_) cvReleaseImage(&xyz_image_8U3_);
+                if (grey_image_8U3_) cvReleaseImage(&grey_image_8U3_);
 
 		if(cvGetWindowHandle("z data"))cvDestroyWindow("z data");
 		if(cvGetWindowHandle("gray data"))cvDestroyWindow("gray data");
         }
 
-	/// Initialize tof camera viewer.
+	/// initialize tof camera viewer.
         /// @return <code>false</code> on failure, <code>true</code> otherwise
-	bool Init()
+	bool init()
 	{
 		/// Create viewer windows
+		cvStartWindowThread();
 		cvNamedWindow("z data");		
 		cvNamedWindow("gray data");		
-		cvStartWindowThread();
 
-		m_XYZImageSubscriber = m_ImageTransport.subscribe("camera/xyz_data", 1, &CobTofCameraViewerNode::XYZImageCallback, this);
-		m_GrayImageSubscriber = m_ImageTransport.subscribe("camera/gray_data", 1, &CobTofCameraViewerNode::GrayImageCallback, this);
+		xyz_image_subscriber_ = image_transport_.subscribe("camera/xyz_tof_data", 1, &CobTofCameraViewerNode::xyzImageCallback, this);
+		grey_image_subscriber_ = image_transport_.subscribe("camera/grey_tof_data", 1, &CobTofCameraViewerNode::greyImageCallback, this);
 
 		return true;
 	}
 
         /// Topic callback functions. 
         /// Function will be called when a new message arrives on a topic.
-	/// @param grayImageMsg The gray values of point cloud, saved in a 32bit, 1 channel OpenCV IplImage
-        void GrayImageCallback(const sensor_msgs::ImageConstPtr& grayImageMsg)
+	/// @param grey_image_msg The gray values of point cloud, saved in a 32bit, 1 channel OpenCV IplImage
+        void greyImageCallback(const sensor_msgs::ImageConstPtr& grey_image_msg)
 	{
 		/// Do not release <code>m_GrayImage32F3</code>
 		/// Image allocation is managed by Cv_Bridge object 
 
 		try
 		{
-			m_GrayImage32F1 = m_CvBridge.imgMsgToCv(grayImageMsg, "passthrough");
-			
-                	if (m_GrayImage8U3 == 0)
+			grey_image_32F1_ = cv_bridge_0_.imgMsgToCv(grey_image_msg, "passthrough");
+
+                	if (grey_image_8U3_ == 0)
 	                {
-				m_GrayImage8U3 = cvCreateImage(cvGetSize(m_GrayImage32F1), IPL_DEPTH_8U, 3);
+				grey_image_8U3_ = cvCreateImage(cvGetSize(grey_image_32F1_), IPL_DEPTH_8U, 3);
 			}
 
-			ipa_Utils::ConvertToShowImage(m_GrayImage32F1, m_GrayImage8U3);
-			cvShowImage("gray data", m_GrayImage8U3);
+			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1, 0, 700);
+			cvShowImage("gray data", grey_image_8U3_);
 		}
 		catch (sensor_msgs::CvBridgeException& e)
 		{
-			ROS_ERROR("Could not convert from '%s' to '32FC1'.", grayImageMsg->encoding.c_str());
+			ROS_ERROR("[tof_camera_viewer] Could not convert from '%s' to '32FC1'.", grey_image_msg->encoding.c_str());
 		}
 	}
 
         /// Topic callback functions. 
         /// Function will be called when a new message arrives on a topic.
-	/// @param xyzImageMsg The point cloud, saved in a 32bit, 3 channel OpenCV IplImage
-        void XYZImageCallback(const sensor_msgs::ImageConstPtr& xyzImageMsg)
+	/// @param xyz_image_msg The point cloud, saved in a 32bit, 3 channel OpenCV IplImage
+        void xyzImageCallback(const sensor_msgs::ImageConstPtr& xyz_image_msg)
         {
-		/// Do not release <code>m_XYZImage32F3</code>
+		/// Do not release <code>xyz_image_32F3_</code>
 		/// Image allocation is managed by Cv_Bridge object 
 
 		try
 		{
-			m_XYZImage32F3 = m_CvBridge.imgMsgToCv(xyzImageMsg, "passthrough");
+			xyz_image_32F3_ = cv_bridge_1_.imgMsgToCv(xyz_image_msg, "passthrough");
 			
-                	if (m_XYZImage8U3 == 0)
+                	if (xyz_image_8U3_ == 0)
 	                {
-				m_XYZImage8U3 = cvCreateImage(cvGetSize(m_XYZImage32F3), IPL_DEPTH_8U, 3);
+				xyz_image_8U3_ = cvCreateImage(cvGetSize(xyz_image_32F3_), IPL_DEPTH_8U, 3);
 			}
 
-			ipa_Utils::ConvertToShowImage(m_XYZImage32F3, m_XYZImage8U3, 3);
-			cvShowImage("z data", m_XYZImage8U3);
+			ipa_Utils::ConvertToShowImage(xyz_image_32F3_, xyz_image_8U3_, 3);
+			cvShowImage("z data", xyz_image_8U3_);
+			int c = cvWaitKey(50);
+			if (c=='s' || c==536871027)
+			{
+				std::stringstream ss;
+				char counterBuffer [50];
+				sprintf(counterBuffer, "%04d", grey_image_counter_);
+				ss << "greyImage8U3_";
+				ss << counterBuffer;
+				ss << ".bmp";
+				cvSaveImage(ss.str().c_str(),grey_image_8U3_);
+				std::cout << "Image " << grey_image_counter_ << " saved." << std::endl;
+				grey_image_counter_++;
+			}
 		}
 		catch (sensor_msgs::CvBridgeException& e)
 		{
-			ROS_ERROR("Could not convert from '%s' to '32FC1'.", xyzImageMsg->encoding.c_str());
+			ROS_ERROR("[tof_camera_viewer] Could not convert from '%s' to '32FC1'.", xyz_image_msg->encoding.c_str());
 		}
 
         }
@@ -192,10 +210,10 @@ int main(int argc, char** argv)
         ros::NodeHandle nh;
 
         /// Create camera node class instance   
-        CobTofCameraViewerNode cameraViewerNode(nh);
+        CobTofCameraViewerNode camera_viewer_node(nh);
 
-        /// Initialize camera node
-        if (!cameraViewerNode.Init()) return 0;
+        /// initialize camera node
+        if (!camera_viewer_node.init()) return 0;
 
         ros::spin();
 

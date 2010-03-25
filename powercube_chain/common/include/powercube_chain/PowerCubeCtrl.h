@@ -58,6 +58,7 @@
 
 #include <libm5api/m5apiw32.h>
 #include <powercube_chain/moveCommand.h>
+#include <powercube_chain/PowerCubeCtrlParams.h>
 //#include "Utilities/mutex.h"
 
 #include <iostream>
@@ -65,6 +66,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <string>
+
 //#include <pthread.h>
 
 // using namespace std;
@@ -78,7 +80,116 @@
 //-------------------------------------------------------------------------
 //                              Defines
 // -------------------------------------------------------------------------
+class PowerCubeCtrlParams
+{
 
+	public:
+		PowerCubeCtrlParams():m_DOF(0){;}
+		
+		int Init(int CanDevice, int BaudRate, std::vector<int> ModuleIDs)
+		{
+			SetCanDevice(CanDevice);
+			SetBaudRate(BaudRate);	
+			SetNumberOfDOF(ModuleIDs.size());
+			for (unsigned int i=0; i < GetNumberOfDOF() ;i++)
+			{
+				m_IDModulesNumber.push_back(ModuleIDs[i]);
+			}
+			return 0;
+		}
+				
+		//DOF	
+		void SetNumberOfDOF(unsigned int DOF){m_DOF=DOF;}
+		unsigned int GetNumberOfDOF(){return m_DOF;}
+
+		//Can Device
+		void SetCanDevice(int CanDevice){m_CanDevice = CanDevice;}
+		int GetCanDevice(){return m_CanDevice;}
+			
+		//BaudRate
+		void SetBaudRate(int BaudRate){m_BaudRate=BaudRate;}
+		int GetBaudRate(){return m_BaudRate;}
+	
+		//ModuleIDs
+		std::vector<int> GetModuleIDVector(){return m_IDModulesNumber;}
+		int GetModuleID(unsigned int no){if (no < GetNumberOfDOF()) return m_IDModulesNumber[no]; else return -1;}
+		int SetModuleID(unsigned int no, int id){
+			if (no < GetNumberOfDOF()) 
+			{
+				m_IDModulesNumber[no] = id;
+				return 0; 
+			}
+			else 
+				return -1;
+
+		}
+		
+		//Angular Constraints
+		int SetUpperLimits(std::vector<double> UpperLimits)
+		{
+			if (UpperLimits.size() == GetNumberOfDOF())
+			{
+				m_UpperLimits = UpperLimits;
+				return 0;
+
+			}
+			return -1;
+		}
+		int SetLowerLimits(std::vector<double> LowerLimits)
+		{
+			if (LowerLimits.size() == GetNumberOfDOF())
+			{
+				m_LowerLimits = LowerLimits;
+				return 0;
+			}
+			return -1;
+		}
+		int SetAngleOffsets(std::vector<double> AngleOffsets)
+		{
+			if (AngleOffsets.size() == GetNumberOfDOF())
+			{
+				m_Offsets = AngleOffsets;
+				return 0;
+			}
+			return -1;
+		}
+		int SetMaxVel(std::vector<double> MaxVel)
+		{
+			if (MaxVel.size() == GetNumberOfDOF())
+			{
+				m_MaxVel = MaxVel;
+				return 0;
+			}
+			return -1;
+		}
+		int SetMaxAcc(std::vector<double> MaxAcc)
+		{
+			if (MaxAcc.size() == GetNumberOfDOF())
+			{
+				m_MaxAcc = MaxAcc;
+				return 0;
+			}
+			return -1;
+		}
+		
+		std::vector<double> GetUpperLimits(){return m_UpperLimits;}
+		std::vector<double> GetLowerLimits(){return m_LowerLimits;}
+		std::vector<double> GetAngleOffsets(){return m_Offsets;}
+		std::vector<double> GetMaxAcc(){return m_MaxAcc;}
+		std::vector<double> GetMaxVel(){return m_MaxVel;}
+		
+		
+	private:
+		std::vector<int> m_IDModulesNumber;
+		unsigned int m_DOF;
+		int m_CanDevice;
+		int m_BaudRate;
+		std::vector<double> m_Offsets;
+		std::vector<double> m_UpperLimits;
+		std::vector<double> m_LowerLimits;
+		std::vector<double> m_MaxVel;
+		std::vector<double> m_MaxAcc;
+};
 
 /* uncomment the following line to switch on debugging output: */
 // #define _POWER_CUBE_CTRL_DEBUG
@@ -90,7 +201,7 @@ class PowerCubeCtrl
 		PowerCubeCtrl();
 		~PowerCubeCtrl();
 		
-		bool Init(const char* iniFile);
+		bool Init(PowerCubeCtrlParams * params);
 
 		bool isInitialized() const { return m_Initialized; }
 

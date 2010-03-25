@@ -1,0 +1,24 @@
+<launch>
+
+  <!-- start camera synchronizer-->
+  <node pkg="cob_camera_sensors" type="camera_synchronizer" name="camera_synchronizer_color_left" cwd="node" respawn="false" output="screen">
+		<remap from="image_non_sync" to="left/image_raw"/>
+		<remap from="image_sync" to="left_color_camera_stream/image_raw"/>
+    <param name="sub_topic_name" type="str" value="left/color_camera_stream/image_raw"/>
+    <param name="pub_topic_name" type="str" value="left/color_camera_sync/image_raw"/>
+  </node>
+  <node pkg="cob_camera_sensors" type="camera_synchronizer" name="camera_synchronizer_color_right" cwd="node" respawn="false" output="screen">
+		<remap from="image_non_sync" to="right/image_raw"/>
+		<remap from="image_sync" to="right_color_camera_stream/image_raw"/>
+    <param name="sub_topic_name" type="str" value="right/color_camera_stream/image_raw"/>
+    <param name="pub_topic_name" type="str" value="right/color_camera_sync/image_raw"/>
+  </node>
+  <node pkg="cob_camera_sensors" type="camera_synchronizer" name="camera_synchronizer_tof_xyz" cwd="node" respawn="false" output="screen">
+		<remap from="image_non_sync" to="xyz_tof_data"/>
+		<remap from="image_sync" to="xyz_tof_data_sync"/>
+  </node>
+  <node pkg="cob_camera_sensors" type="camera_synchronizer" name="camera_synchronizer_tof_grey" cwd="node" respawn="false" output="screen">
+		<remap from="image_non_sync" to="grey_tof_data"/>
+		<remap from="image_sync" to="grey_tof_data_sync"/>
+  </node>
+</launch>
