@@ -59,10 +59,13 @@
 
 // ROS includes
 #include <ros/ros.h>
+#include <actionlib/client/simple_action_client.h>
+#include <actionlib/client/terminal_state.h>
 
 // ROS message includes
 //#include <cob_msgs/JointCommand.h>
 #include <trajectory_msgs/JointTrajectory.h>
+#include <cob_actions/JointTrajectoryAction.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -97,6 +100,8 @@ int main(int argc, char** argv)
 
     // topics to publish
     ros::Publisher topicPub_JointCommand = n.advertise<trajectory_msgs::JointTrajectory>("command", 1);
+	actionlib::SimpleActionClient<cob_actions::JointTrajectoryAction> ac("JointTrajectory", true); 
+        
         
 	// topics to subscribe, callback is called for new messages arriving
     //--
@@ -184,181 +189,117 @@ int main(int argc, char** argv)
             
             case 'C':
             {
+            	ROS_INFO("Waiting for action server to start.");
+				// wait for the action server to start
+				ac.waitForServer(); //will wait for infinite time
+            	
                 std::cout << "Choose preset target positions/velocities ([0] = , [1] = , [2] = ): ";
                 std::cin >> c;
                 
                 int DOF = 4;
-                trajectory_msgs::JointTrajectory msg;
-                msg.header.stamp = ros::Time::now();
-                msg.points.resize(3); //TODO hardcoded to two points, remove to accept multiple points of trajectory_msgs
-                msg.points[0].positions.resize(DOF);
-                msg.points[0].velocities.resize(DOF);
-                msg.points[1].positions.resize(DOF);
-                msg.points[1].velocities.resize(DOF);
-                msg.points[2].positions.resize(DOF);
-                msg.points[2].velocities.resize(DOF);
                 
+                // send a goal to the action 
+				cob_actions::JointTrajectoryGoal goal;
+				trajectory_msgs::JointTrajectory traj;
+				traj.header.stamp = ros::Time::now();
+				
                 if (c == '0')
                 {
-		            msg.points[0].positions[0] = 0;
-		            msg.points[0].positions[1] = 0;
-		            msg.points[0].positions[2] = 0;
-		            msg.points[0].positions[3] = 0;
-		            //msg.points[0].positions[4] = 0;
-		            //msg.points[0].positions[5] = 0;
-		            //msg.points[0].positions[6] = 0;
-		            
-		            msg.points[0].velocities[0] = 0;
-		            msg.points[0].velocities[1] = 0;
-		            msg.points[0].velocities[2] = 0;
-		            msg.points[0].velocities[3] = 0;
-		            //msg.points[0].velocities[4] = 0;
-		            //msg.points[0].velocities[5] = 0;
-		            //msg.points[0].velocities[6] = 0;
+					traj.points.resize(1);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);
+					
+					// first point
+					// zero position
                 }
                 else if (c == '1')
                 {
-                    msg.points[0].positions[0] = 0.1;
-		            msg.points[0].positions[1] = 0.1;
-		            msg.points[0].positions[2] = 0.1;
-		            msg.points[0].positions[3] = 0.1;
-		            //msg.points[0].positions[4] = 0.1;
-		            //msg.points[0].positions[5] = 0.1;
-		            //msg.points[0].positions[6] = 0.1;
-		            
-		            msg.points[0].velocities[0] = 0.1;
-		            msg.points[0].velocities[1] = 0.1;
-		            msg.points[0].velocities[2] = 0.1;
-		            msg.points[0].velocities[3] = 0.1;
-		            //msg.points[0].velocities[4] = 0.1;
-		            //msg.points[0].velocities[5] = 0.1;
-		            //msg.points[0].velocities[6] = 0.1;
-                }
+					traj.points.resize(1);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);                                    
+
+					// first point
+					traj.points[0].positions[0] = 0.1;
+					traj.points[0].positions[1] = 0.1;
+					traj.points[0].positions[2] = 0.1;
+					traj.points[0].positions[3] = 0.1;
+				}
                 else if (c == '2')
                 {
-                    msg.points[0].positions[0] = 0.2;
-		            msg.points[0].positions[1] = 0.2;
-		            msg.points[0].positions[2] = 0.2;
-		            msg.points[0].positions[3] = 0.2;
-		            //msg.points[0].positions[4] = 0.2;
-		            //msg.points[0].positions[5] = 0.2;
-		            //msg.points[0].positions[6] = 0.2;
-		            
-		            msg.points[0].velocities[0] = 0.2;
-		            msg.points[0].velocities[1] = 0.2;
-		            msg.points[0].velocities[2] = 0.2;
-		            msg.points[0].velocities[3] = 0.2;
-		            //msg.points[0].velocities[4] = 0.2;
-		            //msg.points[0].velocities[5] = 0.2;
-		            //msg.points[0].velocities[6] = 0.2;
-                }
-                else if (c == '3')
-                {
-                    msg.points[0].positions[0] = 0.0;
-		            msg.points[0].positions[1] = 0.0;
-		            msg.points[0].positions[2] = 0.0;
-		            msg.points[0].positions[3] = 0.2;
-		            //msg.points[0].positions[4] = 0.2;
-		            //msg.points[0].positions[5] = 0.2;
-		            //msg.points[0].positions[6] = 0.2;
-		            
-		            msg.points[0].velocities[0] = 0.0;
-		            msg.points[0].velocities[1] = 0.0;
-		            msg.points[0].velocities[2] = 0.0;
-		            msg.points[0].velocities[3] = 0.0;
-		            //msg.points[0].velocities[4] = 0.2;
-		            //msg.points[0].velocities[5] = 0.2;
-		            //msg.points[0].velocities[6] = 0.2;
+					traj.points.resize(1);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);                                    
+
+					// first point
+					traj.points[0].positions[0] = 0.2;
+					traj.points[0].positions[1] = 0.2;
+					traj.points[0].positions[2] = 0.2;
+					traj.points[0].positions[3] = 0.2;
                 }
 				else if (c == 't') // trajectory
                 {
-                	// point 1
-                    msg.points[0].positions[0] = 0.2;
-		            msg.points[0].positions[1] = 0.0;
-		            msg.points[0].positions[2] = 0.0;
-		            msg.points[0].positions[3] = 0.2;
-		            //msg.points[0].positions[4] = 0.2;
-		            //msg.points[0].positions[5] = 0.2;
-		            //msg.points[0].positions[6] = 0.2;
-		            
-		            msg.points[0].velocities[0] = 0.0;
-		            msg.points[0].velocities[1] = 0.0;
-		            msg.points[0].velocities[2] = 0.0;
-		            msg.points[0].velocities[3] = 0.0;
-		            //msg.points[0].velocities[4] = 0.2;
-		            //msg.points[0].velocities[5] = 0.2;
-		            //msg.points[0].velocities[6] = 0.2;
+					traj.points.resize(3);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);
+					traj.points[1].positions.resize(DOF);
+					traj.points[1].velocities.resize(DOF);
+					traj.points[2].positions.resize(DOF);
+					traj.points[2].velocities.resize(DOF);
 
-					// point 2
-					msg.points[1].positions[0] = -0.2;
-		            msg.points[1].positions[1] = 0.2;
-		            msg.points[1].positions[2] = 0.0;
-		            msg.points[1].positions[3] = 0.0;
-		            //msg.points[1].positions[4] = 0.2;
-		            //msg.points[1].positions[5] = 0.2;
-		            //msg.points[1].positions[6] = 0.2;
-		            
-		            msg.points[1].velocities[0] = 0.0;
-		            msg.points[1].velocities[1] = 0.0;
-		            msg.points[1].velocities[2] = 0.0;
-		            msg.points[1].velocities[3] = 0.0;
-		            //msg.points[1].velocities[4] = 0.2;
-		            //msg.points[1].velocities[5] = 0.2;
-		            //msg.points[1].velocities[6] = 0.2;
-		            
-		            // point 3
-					msg.points[2].positions[0] = 0.0;
-		            msg.points[2].positions[1] = 0.0;
-		            msg.points[2].positions[2] = 0.0;
-		            msg.points[2].positions[3] = 0.0;
+					// first point
+					traj.points[0].positions[2] = 0.1;
+					traj.points[0].positions[3] = 0.2;
+					
+					// second point
+					traj.points[1].positions[2] = -0.1;
+					traj.points[1].positions[3] = 0.2;
 
-		            msg.points[2].velocities[0] = 0.0;
-		            msg.points[2].velocities[1] = 0.0;
-		            msg.points[2].velocities[2] = 0.0;
-		            msg.points[2].velocities[3] = 0.0;
-                }
-                else if (c == '9')
+					// third point
+					// zero position
+				}
+				else if (c == 'z') // trajectory
                 {
-                    msg.points[0].positions[0] = -0.1;
-		            msg.points[0].positions[1] = -0.1;
-		            msg.points[0].positions[2] = -0.1;
-		            msg.points[0].positions[3] = -0.1;
-		            //msg.points[0].positions[4] = -0.1;
-		            //msg.points[0].positions[5] = -0.1;
-		            //msg.points[0].positions[6] = -0.1;
-		            
-		            msg.points[0].velocities[0] = -0.1;
-		            msg.points[0].velocities[1] = -0.1;
-		            msg.points[0].velocities[2] = -0.1;
-		            msg.points[0].velocities[3] = -0.1;
-		            //msg.points[0].velocities[4] = -0.1;
-		            //msg.points[0].velocities[5] = -0.1;
-		            //msg.points[0].velocities[6] = -0.1;
-                }
-                else if (c == '8')
-                {
-                    msg.points[0].positions[0] = -0.2;
-		            msg.points[0].positions[1] = -0.2;
-		            msg.points[0].positions[2] = -0.2;
-		            msg.points[0].positions[3] = -0.2;
-		            //msg.points[0].positions[4] = -0.2;
-		            //msg.points[0].positions[5] = -0.2;
-		            //msg.points[0].positions[6] = -0.2;
-		            
-		            msg.points[0].velocities[0] = -0.2;
-		            msg.points[0].velocities[1] = -0.2;
-		            msg.points[0].velocities[2] = -0.2;
-		            msg.points[0].velocities[3] = -0.2;
-		            //msg.points[0].velocities[4] = -0.2;
-		            //msg.points[0].velocities[5] = -0.2;
-		            //msg.points[0].velocities[6] = -0.2;
+					traj.points.resize(5);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);
+					traj.points[1].positions.resize(DOF);
+					traj.points[1].velocities.resize(DOF);
+					traj.points[2].positions.resize(DOF);
+					traj.points[2].velocities.resize(DOF);
+					traj.points[3].positions.resize(DOF);
+					traj.points[3].velocities.resize(DOF);
+					traj.points[4].positions.resize(DOF);
+					traj.points[4].velocities.resize(DOF);
+					
+					// first point
+					traj.points[0].positions[2] = 0.1;
+					traj.points[0].positions[3] = 0.2;
+					
+					// second point
+					traj.points[1].positions[0] = -0.1;
+					traj.points[1].positions[1] = 0.0;
+					traj.points[1].positions[2] = -0.1;
+					traj.points[1].positions[3] = 0.2;
+
+					// third point
+					traj.points[2].positions[0] = -0.1;
+					traj.points[2].positions[1] = 0.0;
+					traj.points[2].positions[2] = 0.1;
+					traj.points[2].positions[3] = 0;
+
+					// point 4
+					traj.points[3].positions[3] = 0.2;
+
+					// point 5
+					// zero position
 				}
                 else
                 {
                     ROS_ERROR("invalid target");
                 }
-                    
-                topicPub_JointCommand.publish(msg);
+
+				goal.trajectory = traj;
+				ac.sendGoal(goal);
             
                 std::cout << std::endl;
                 srv_querry = true;

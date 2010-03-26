@@ -1,8 +1,0 @@
-#goal definition
-trajectory_msgs/JointTrajectory trajectory
----
-#result definition
-int64 res
----
-#feedback definition
-int64 fb
