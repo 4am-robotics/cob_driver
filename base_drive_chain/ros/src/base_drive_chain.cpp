@@ -373,7 +373,7 @@ bool NodeClass::initDrives()
 
 	/// Parameters are set within the launch file
 	n.param<std::string>("base_drive_chain_node/IniDirectory", sIniDirectory, "Platform/IniFiles/");
-	ROS_DEBUG("IniDirectory loaded from Parameter-Server is:");
+	ROS_INFO("IniDirectory loaded from Parameter-Server is: %s", sIniDirectory.c_str());
 	
 
     //n.param<std::string>("PltfIniLoc", sIniFileName, "Platform/IniFiles/Platform.ini");
