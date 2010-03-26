@@ -59,10 +59,12 @@
 // ROS includes
 #include <ros/ros.h>
 #include <urdf/model.h>
+#include <actionlib/server/simple_action_server.h>
+#include <cob_actions/JointTrajectoryAction.h>
 
 // ROS message includes
 #include <sensor_msgs/JointState.h>
-#include <cob_msgs/JointCommand.h>
+#include <trajectory_msgs/JointTrajectory.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -77,21 +79,29 @@ class NodeClass
 {
     //
     public:
-	    // create a handle for this node, initialize node
-	    ros::NodeHandle n;
+	// create a handle for this node, initialize node
+	ros::NodeHandle n;
                 
         // declaration of topics to publish
         ros::Publisher topicPub_JointState;
+        ros::Publisher topicPub_ControllerState;
         
-	    // declaration of topics to subscribe, callback is called for new messages arriving
-        ros::Subscriber topicSub_JointCommand;
+	// declaration of topics to subscribe, callback is called for new messages arriving
+        //ros::Subscriber topicSub_JointCommand;
         
         // declaration of service servers
         ros::ServiceServer srvServer_Init;
         ros::ServiceServer srvServer_Stop;
         ros::ServiceServer srvServer_Recover;
         ros::ServiceServer srvServer_SetOperationMode;
-            
+        
+        // action lib server
+		actionlib::SimpleActionServer<cob_actions::JointTrajectoryAction> as_;
+		std::string action_name_;
+		// create messages that are used to published feedback/result
+		cob_actions::JointTrajectoryFeedback feedback_;
+		cob_actions::JointTrajectoryResult result_;
+        
         // declaration of service clients
         //--
         
@@ -107,11 +117,18 @@ class NodeClass
 		XmlRpc::XmlRpcValue MaxAcc_param;
 		std::vector<double> MaxAcc;
 		bool isInitialized;
+		
+		trajectory_msgs::JointTrajectory traj;
+		trajectory_msgs::JointTrajectoryPoint traj_point;
+		int traj_point_nr;
 
         // Constructor
-        NodeClass()
+        NodeClass(std::string name):
+		    as_(n, name, boost::bind(&NodeClass::executeCB, this, _1)),
+			action_name_(name)
         {
 			isInitialized = false;
+			traj_point_nr = 0;
 
         	PCube = new PowerCubeCtrl();
         	PCubeParams = new PowerCubeCtrlParams();
@@ -120,7 +137,7 @@ class NodeClass
             topicPub_JointState = n.advertise<sensor_msgs::JointState>("joint_states", 1);
             
             // implementation of topics to subscribe
-            topicSub_JointCommand = n.subscribe("joint_commands", 1, &NodeClass::topicCallback_JointCommand, this);
+            //topicSub_JointCommand = n.subscribe("command", 1, &NodeClass::topicCallback_JointCommand, this);
             
             // implementation of service servers
             srvServer_Init = n.advertiseService("Init", &NodeClass::srvCallback_Init, this);
@@ -137,9 +154,9 @@ class NodeClass
 			ROS_INFO("CanDevice=%d, CanBaudrate=%d",CanDevice,CanBaudrate);
 
 			// get ModIds from parameter server
-			if (n.hasParam("powercube_chain/ModIds"))
+			if (n.hasParam("ModIds"))
 			{
-				n.getParam("powercube_chain/ModIds", ModIds_param);
+				n.getParam("ModIds", ModIds_param);
 			}
 			else
 			{
@@ -154,9 +171,9 @@ class NodeClass
 			
 			// get JointNames from parameter server
 			ROS_INFO("getting JointNames from parameter server");
-			if (n.hasParam("powercube_chain/JointNames"))
+			if (n.hasParam("JointNames"))
 			{
-				n.getParam("powercube_chain/JointNames", JointNames_param);
+				n.getParam("JointNames", JointNames_param);
 			}
 			else
 			{
@@ -173,9 +190,9 @@ class NodeClass
 			
 			// get MaxAcc from parameter server
 			ROS_INFO("getting MaxAcc from parameter server");
-			if (n.hasParam("powercube_chain/MaxAcc"))
+			if (n.hasParam("MaxAcc"))
 			{
-				n.getParam("powercube_chain/MaxAcc", MaxAcc_param);
+				n.getParam("MaxAcc", MaxAcc_param);
 			}
 			else
 			{
@@ -262,7 +279,8 @@ class NodeClass
 
         // topic callback functions 
         // function will be called when a new message arrives on a topic
-        void topicCallback_JointCommand(const cob_msgs::JointCommand::ConstPtr& msg)
+/*
+        void topicCallback_JointCommand(const trajectory_msgs::JointTrajectory::ConstPtr& msg)
         {
    			if (isInitialized == true)
 			{
@@ -271,13 +289,25 @@ class NodeClass
 		        if (operationMode == "position")
 		        {
 		            ROS_INFO("moving powercubes in position mode");
-		            PCube->MoveJointSpaceSync(msg->positions);
+		            std::cout << "statusMoving = " << PCube->statusMoving() << std::endl;
+		            if (PCube->statusMoving() == false) //TODO substitude with action server
+		            {
+		            	for (int i = 0; i<msg->points.size(); i++ )
+		            	{
+		            		ROS_INFO("...moving to point[%d]",i);
+			            	PCube->MoveJointSpaceSync(msg->points[i].positions);
+			            	while (PCube->statusMoving() == true)
+			            	{
+			            		ROS_INFO("waiting to reach point[%d]",i);
+			            	}
+			            }
+			        }
 					ROS_INFO("...moving to position ended...");
 		        }
 		        else if (operationMode == "velocity")
 		        {
 		        	ROS_INFO("moving powercubes in velocity mode");
-		            PCube->MoveVel(msg->velocities);
+		            PCube->MoveVel(msg->points[0].velocities);
 		        }
 		        else
 		        {
@@ -289,6 +319,31 @@ class NodeClass
 				ROS_ERROR("powercubes not initialized");
 			}
         }
+*/
+        
+		void executeCB(const cob_actions::JointTrajectoryGoalConstPtr &goal)
+		{
+			ROS_INFO("...received new goal trajectory with %d points",goal->trajectory.points.size());
+			// saving goal into local variables
+			traj = goal->trajectory;
+			traj_point_nr = 0;
+			traj_point = traj.points[traj_point_nr];
+			
+
+			// check that preempt has not been requested by the client
+			if (as_.isPreemptRequested())
+			{
+				ROS_INFO("%s: Preempted", action_name_.c_str());
+				// set the action state to preempted
+				as_.setPreempted();
+			}
+
+			// set the action state to succeed			
+			result_.result.data = "executing trajectory";
+			ROS_INFO("%s: Succeeded", action_name_.c_str());
+			// set the action state to succeeded
+			as_.setSucceeded(result_);
+		}
 
         // service callback functions
         // function will be called when a service is querried
@@ -401,7 +456,7 @@ class NodeClass
         {
 			if (isInitialized == true)
 			{
-		        // create message
+		        // create joint_state message
 		        int DOF = ModIds_param.size();
 		        std::vector<double> ActualPos;
 		        std::vector<double> ActualVel;
@@ -427,10 +482,62 @@ class NodeClass
 		        }
 		            
 		        // publish message
-		        topicPub_JointState.publish(msg);
+		        topicPub_JointState.publish(msg); 
 			}
-        }
-
+		}
+			
+		void updatePCubeCommands()
+		{
+			if (isInitialized == true)
+			{
+			    std::string operationMode;
+			    n.getParam("OperationMode", operationMode);
+			    if (operationMode == "position")
+			    {
+				    ROS_DEBUG("moving powercubes in position mode");
+			    	if (PCube->statusMoving() == false)
+			    	{
+				    	feedback_.isMoving = false;
+				    	
+				    	ROS_DEBUG("next point is %d from %d",traj_point_nr,traj.points.size());
+				    	
+				    	if (traj_point_nr < traj.points.size())
+				    	{
+				    		// if powercubes are not moving and not reached last point of trajectory, the send new target point
+				    		ROS_INFO("...moving to trajectory point[%d]",traj_point_nr);
+					    	traj_point = traj.points[traj_point_nr];
+					    	PCube->MoveJointSpaceSync(traj_point.positions);
+				    		traj_point_nr++;
+					    	feedback_.isMoving = true;
+					    	feedback_.pointNr = traj_point_nr;
+	    					as_.publishFeedback(feedback_);
+					    }
+					    else
+					    {
+					    	ROS_DEBUG("...reached end of trajectory");
+					    }
+					}
+					else
+					{
+						//ROS_INFO("...powercubes moving to point[%d]",traj_point_nr);
+					}
+			    }
+			    else if (operationMode == "velocity")
+			    {
+			    	ROS_DEBUG("moving powercubes in velocity mode");
+			        //PCube->MoveVel(goal->trajectory.points[0].velocities);
+			        ROS_WARN("Moving in velocity mode currently disabled");
+			    }
+			    else
+			    {
+			        ROS_ERROR("powercubes neither in position nor in velocity mode. OperationMode = [%s]", operationMode.c_str());
+			    }
+			}
+			else
+			{
+				ROS_DEBUG("powercubes not initialized");
+			}
+		}
 }; //NodeClass
 
 //#######################
@@ -441,7 +548,7 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "powercube_chain");
     
     // create nodeClass
-    NodeClass nodeClass;
+    NodeClass nodeClass("JointTrajectory");
  
     // main loop
  	ros::Rate loop_rate(5); // Hz
@@ -449,6 +556,9 @@ int main(int argc, char** argv)
     {
         // publish JointState
         nodeClass.publishJointState();
+        
+        // update commands to powercubes
+        nodeClass.updatePCubeCommands();
 
         // read parameter
         std::string operationMode;
