@@ -62,9 +62,7 @@
 
 // ROS message includes
 #include <sensor_msgs/JointState.h>
-//#include <cob_msgs/JointCommand.h>
 #include <trajectory_msgs/JointTrajectory.h>
-#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -79,14 +77,14 @@ class NodeClass
 {
     //
     public:
-	    // create a handle for this node, initialize node
-	    ros::NodeHandle n;
+	// create a handle for this node, initialize node
+	ros::NodeHandle n;
                 
         // declaration of topics to publish
         ros::Publisher topicPub_JointState;
         ros::Publisher topicPub_ControllerState;
         
-	    // declaration of topics to subscribe, callback is called for new messages arriving
+	// declaration of topics to subscribe, callback is called for new messages arriving
         ros::Subscriber topicSub_JointCommand;
         
         // declaration of service servers
@@ -121,7 +119,6 @@ class NodeClass
 
             // implementation of topics to publish
             topicPub_JointState = n.advertise<sensor_msgs::JointState>("joint_states", 1);
-            topicPub_ControllerState = n.advertise<pr2_controllers_msgs::JointTrajectoryControllerState>("state", 1);
             
             // implementation of topics to subscribe
             topicSub_JointCommand = n.subscribe("command", 1, &NodeClass::topicCallback_JointCommand, this);
@@ -443,21 +440,7 @@ class NodeClass
 		        }
 		            
 		        // publish message
-		        topicPub_JointState.publish(msg);
-		        
-		        // create controller_state
-		        pr2_controllers_msgs::JointTrajectoryControllerState controller_state;
-		        controller_state.header.stamp = msg.header.stamp;
-		        controller_state.joint_names.resize(DOF);
-		        controller_state.joint_names = msg.name;
-		        controller_state.actual.positions.resize(DOF);
-		        controller_state.actual.positions = msg.position;
-		        controller_state.actual.velocities.resize(DOF);
-		        controller_state.actual.velocities = msg.velocity;
-		        
-				// publish message
-		        topicPub_ControllerState.publish(controller_state);
-		        
+		        topicPub_JointState.publish(msg); 
 			}
         }
 

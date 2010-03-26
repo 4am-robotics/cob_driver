@@ -190,11 +190,13 @@ int main(int argc, char** argv)
                 int DOF = 4;
                 trajectory_msgs::JointTrajectory msg;
                 msg.header.stamp = ros::Time::now();
-                msg.points.resize(2); //TODO hardcoded to two points, remove to accept multiple points of trajectory_msgs
+                msg.points.resize(3); //TODO hardcoded to two points, remove to accept multiple points of trajectory_msgs
                 msg.points[0].positions.resize(DOF);
                 msg.points[0].velocities.resize(DOF);
                 msg.points[1].positions.resize(DOF);
                 msg.points[1].velocities.resize(DOF);
+                msg.points[2].positions.resize(DOF);
+                msg.points[2].velocities.resize(DOF);
                 
                 if (c == '0')
                 {
@@ -288,8 +290,8 @@ int main(int argc, char** argv)
 		            //msg.points[0].velocities[6] = 0.2;
 
 					// point 2
-					msg.points[1].positions[0] = 0.0;
-		            msg.points[1].positions[1] = 0.0;
+					msg.points[1].positions[0] = -0.2;
+		            msg.points[1].positions[1] = 0.2;
 		            msg.points[1].positions[2] = 0.0;
 		            msg.points[1].positions[3] = 0.0;
 		            //msg.points[1].positions[4] = 0.2;
@@ -303,6 +305,17 @@ int main(int argc, char** argv)
 		            //msg.points[1].velocities[4] = 0.2;
 		            //msg.points[1].velocities[5] = 0.2;
 		            //msg.points[1].velocities[6] = 0.2;
+		            
+		            // point 3
+					msg.points[2].positions[0] = 0.0;
+		            msg.points[2].positions[1] = 0.0;
+		            msg.points[2].positions[2] = 0.0;
+		            msg.points[2].positions[3] = 0.0;
+
+		            msg.points[2].velocities[0] = 0.0;
+		            msg.points[2].velocities[1] = 0.0;
+		            msg.points[2].velocities[2] = 0.0;
+		            msg.points[2].velocities[3] = 0.0;
                 }
                 else if (c == '9')
                 {
