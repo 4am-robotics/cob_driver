@@ -277,11 +277,27 @@ int main(int argc, char** argv)
 
 					// first point
 					traj.points[0].positions[0] = 0.0;
-					traj.points[0].positions[1] = 0.0;
+					traj.points[0].positions[1] = 0.7854;
+					traj.points[0].positions[2] = 0.0;
+					traj.points[0].positions[3] = 0.7854;
+					traj.points[0].positions[4] = 0.0;
+					traj.points[0].positions[5] = -0.7854;
+					traj.points[0].positions[6] = 0.0;
+                }
+                else if (c == '6')
+                {
+                	DOF = 7;
+					traj.points.resize(1);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);                                    
+
+					// first point
+					traj.points[0].positions[0] = 0.0;
+					traj.points[0].positions[1] = 0.7854;
 					traj.points[0].positions[2] = 0.0;
 					traj.points[0].positions[3] = 0.0;
-					traj.points[0].positions[4] = 0.5;
-					traj.points[0].positions[5] = 0.5;
+					traj.points[0].positions[4] = 0.0;
+					traj.points[0].positions[5] = 0.0;
 					traj.points[0].positions[6] = 0.0;
                 }
 				else if (c == 't') // trajectory
@@ -376,11 +392,11 @@ int main(int argc, char** argv)
 
 					// first point
 					traj.points[0].positions[2] = 0.2;
-					traj.points[0].positions[4] = 0.2;
+					traj.points[0].positions[4] = -0.2;
 					
 					// second point
 					traj.points[1].positions[2] = -0.2;
-					traj.points[1].positions[4] = -0.2;
+					traj.points[1].positions[4] = 0.2;
 
 					// third point
 					// zero position
