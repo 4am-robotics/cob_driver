@@ -12,7 +12,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 rosbuild_init()
 
 #set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/bin)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/lib)
 
@@ -33,4 +33,8 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/lib)
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 # add project libs
-rosbuild_add_library(${PROJECT_NAME} common/src/CanCtrlPltfCOb3.cpp)
+rosbuild_add_library(base_drive_chain common/src/CanCtrlPltfCOb3.cpp)
+# add executable
+rosbuild_add_executable(base_drive_chain_node ros/src/base_drive_chain.cpp)
+
+target_link_libraries(base_drive_chain_node base_drive_chain canopen_motor_harmonica)
