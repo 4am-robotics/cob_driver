@@ -236,6 +236,54 @@ int main(int argc, char** argv)
 					traj.points[0].positions[2] = 0.2;
 					traj.points[0].positions[3] = 0.2;
                 }
+                else if (c == '3')
+                {
+                	DOF = 7;
+					traj.points.resize(1);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);                                    
+
+					// first point
+					traj.points[0].positions[0] = 0.0;
+					traj.points[0].positions[1] = 0.0;
+					traj.points[0].positions[2] = 0.0;
+					traj.points[0].positions[3] = 0.0;
+					traj.points[0].positions[4] = 0.0;
+					traj.points[0].positions[5] = 0.0;
+					traj.points[0].positions[6] = 0.0;
+                }
+                else if (c == '4')
+                {
+                	DOF = 7;
+					traj.points.resize(1);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);                                    
+
+					// first point
+					traj.points[0].positions[0] = 0.0;
+					traj.points[0].positions[1] = 0.0;
+					traj.points[0].positions[2] = 0.0;
+					traj.points[0].positions[3] = 0.0;
+					traj.points[0].positions[4] = 0.0;
+					traj.points[0].positions[5] = 0.5;
+					traj.points[0].positions[6] = 0.0;
+                }
+                else if (c == '5')
+                {
+                	DOF = 7;
+					traj.points.resize(1);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);                                    
+
+					// first point
+					traj.points[0].positions[0] = 0.0;
+					traj.points[0].positions[1] = 0.0;
+					traj.points[0].positions[2] = 0.0;
+					traj.points[0].positions[3] = 0.0;
+					traj.points[0].positions[4] = 0.5;
+					traj.points[0].positions[5] = 0.5;
+					traj.points[0].positions[6] = 0.0;
+                }
 				else if (c == 't') // trajectory
                 {
 					traj.points.resize(3);
@@ -291,6 +339,72 @@ int main(int argc, char** argv)
 					traj.points[3].positions[3] = 0.2;
 
 					// point 5
+					// zero position
+				}
+				else if (c == 'f') // trajectory
+                {
+                	DOF = 7;
+					traj.points.resize(3);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);
+					traj.points[1].positions.resize(DOF);
+					traj.points[1].velocities.resize(DOF);
+					traj.points[2].positions.resize(DOF);
+					traj.points[2].velocities.resize(DOF);
+
+					// first point
+					traj.points[0].positions[3] = 0.2;
+					traj.points[0].positions[5] = 0.2;
+					
+					// second point
+					traj.points[1].positions[3] = -0.2;
+					traj.points[1].positions[5] = -0.2;
+
+					// third point
+					// zero position
+				}
+				else if (c == 'g') // trajectory
+                {
+                	DOF = 7;
+					traj.points.resize(3);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);
+					traj.points[1].positions.resize(DOF);
+					traj.points[1].velocities.resize(DOF);
+					traj.points[2].positions.resize(DOF);
+					traj.points[2].velocities.resize(DOF);
+
+					// first point
+					traj.points[0].positions[2] = 0.2;
+					traj.points[0].positions[4] = 0.2;
+					
+					// second point
+					traj.points[1].positions[2] = -0.2;
+					traj.points[1].positions[4] = -0.2;
+
+					// third point
+					// zero position
+				}
+				else if (c == 'h') // trajectory
+                {
+                	DOF = 7;
+					traj.points.resize(3);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);
+					traj.points[1].positions.resize(DOF);
+					traj.points[1].velocities.resize(DOF);
+					traj.points[2].positions.resize(DOF);
+					traj.points[2].velocities.resize(DOF);
+
+					// first point
+					traj.points[0].positions[3] = 0.5;
+					traj.points[0].positions[5] = 0.5;
+					
+					// second point
+					traj.points[1].positions[3] = -0.5;
+					traj.points[1].positions[5] = -0.5;
+
+					// third point
 					// zero position
 				}
                 else
