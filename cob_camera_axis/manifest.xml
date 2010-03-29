@@ -13,6 +13,10 @@
   <depend package="sensor_msgs"/>
   <depend package="cob_msgs"/>
   <depend package="cob_srvs"/>
+  <depend package="generic_can"/>
+  <depend package="canopen_motor"/>
+  <depend package="cob_utilities"/>
+  <depend package="urdf"/>
   <depend package="libpcan"/>
 
 </package>

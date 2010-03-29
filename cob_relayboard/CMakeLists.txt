@@ -12,12 +12,10 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 rosbuild_init()
 
 #set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/bin)
 #set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/lib)
 
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
-rosbuild_add_executable(${PROJECT_NAME} ros/src/cob_camera_axis.cpp common/src/ElmoCtrl.cpp )
 
 #uncomment if you have defined messages
 #rosbuild_genmsg()
@@ -32,4 +30,14 @@ rosbuild_add_executable(${PROJECT_NAME} ros/src/cob_camera_axis.cpp common/src/E
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-target_link_libraries(${PROJECT_NAME}  pcan)
+# add include search paths
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
+
+rosbuild_add_library(SerialIO common/src/SerialIO.cpp)
+rosbuild_add_library(${PROJECT_NAME} common/src/SerRelayBoard.cpp)
+
+target_link_libraries(${PROJECT_NAME} SerialIO)
+
+rosbuild_add_executable(cob_relayboard_node ros/src/cob_relayboard_node.cpp)
+target_link_libraries(cob_relayboard_node ${PROJECT_NAME})
+
