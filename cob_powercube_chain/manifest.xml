@@ -15,6 +15,7 @@
   <depend package="trajectory_msgs"/>
   <depend package="actionlib"/>
   <depend package="cob_srvs"/>
+  <depend package="cob_actions"/>
   <depend package="cob_defs"/>
   <depend package="libpcan"/>
   <depend package="libm5api"/>
