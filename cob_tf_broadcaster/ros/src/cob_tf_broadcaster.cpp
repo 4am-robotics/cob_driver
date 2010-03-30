@@ -60,7 +60,7 @@
 #include <ros/ros.h>
 
 // ROS message includes
-#include <nav_msgs/Odometry.h>
+//#include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
 
@@ -83,7 +83,7 @@ class NodeClass
 		tf::TransformBroadcaster br;
         
 	    // topics to subscribe, callback is called for new messages arriving
-        ros::Subscriber topicSub_Odometry;
+        //ros::Subscriber topicSub_Odometry;
         
         // service servers
         //--
@@ -98,7 +98,7 @@ class NodeClass
         // Constructor
         NodeClass()
         {
-            topicSub_Odometry = n.subscribe("odometry", 10, &NodeClass::topicCallback_Odometry, this);
+            //topicSub_Odometry = n.subscribe("odometry", 10, &NodeClass::topicCallback_Odometry, this);
         }
         
         // Destructor
@@ -108,14 +108,14 @@ class NodeClass
 
         // topic callback functions 
         // function will be called when a new message arrives on a topic
-        void topicCallback_Odometry(const nav_msgs::Odometry::ConstPtr& msg)
+/*        void topicCallback_Odometry(const nav_msgs::Odometry::ConstPtr& msg)
         {
 			// publish tf for odom --> base_footprint
 			ROS_DEBUG("received new odometry message --> publishing tf");
 			tf::poseMsgToTF(msg->pose.pose,transform);
 			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "odom", "base_footprint"));
         }
-
+*/
         // service callback functions
         // function will be called when a service is querried
 		//--
