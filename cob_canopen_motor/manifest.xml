@@ -1,0 +1,24 @@
+<package>
+  <description brief="canopen_motor">
+
+     "canopen_motor" implements a controller-drive component which is connected to a can-bus and works with a canopen-interface. "CanDriveItf" provides a - more or less - generic interface to the controller-drive components. "CanDrvie..." then implements a specific setup, e.g. an ELMO Harmonica Controller in case of the "CanDriveHarmonica".
+
+  </description>
+  <author>Christian Connette, email:christian.connette@ipa.fhg.de</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://www.care-o-bot.org</url>
+
+  <!-- Dependencies from other packages or external libs-->
+  <depend package="roscpp"/>
+  <depend package="cob_generic_can"/>
+  <depend package="cob_utilities"/>
+
+  <!-- As we deviate from the standard ROS Repository-Structure we have to tell ROS where to find header and lib -->
+  <export>
+    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_canopen_motor_harmonica"/>
+  </export>
+
+</package>
+
+

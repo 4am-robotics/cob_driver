@@ -56,7 +56,7 @@
 
 //-----------------------------------------------
 #include <cob_relayboard/SerialIO.h>
-#include <canopen_motor/DriveParam.h>
+#include <cob_canopen_motor/DriveParam.h>
 #include <cob_relayboard/Mutex.h>
 
 //-----------------------------------------------
