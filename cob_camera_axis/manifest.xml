@@ -1,0 +1,24 @@
+<package>
+  <description brief="cob_camera_axis">
+
+     cob_camera_axis
+
+  </description>
+  <author>Ulrich Reiser, email:ulrich.reiser@ipa.fraunhofer.de</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://www.care-o-bot.org</url>
+
+  <depend package="roscpp"/>
+  <depend package="sensor_msgs"/>
+  <depend package="cob_msgs"/>
+  <depend package="cob_srvs"/>
+  <depend package="cob_generic_can"/>
+  <depend package="cob_canopen_motor"/>
+  <depend package="cob_utilities"/>
+  <depend package="urdf"/>
+  <depend package="libpcan"/>
+
+</package>
+
+

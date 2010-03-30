@@ -88,16 +88,10 @@ typedef unsigned long DWORD;
 #include <sstream>
 
 #ifdef __COB_ROS__
-#include <cob_vision_utils/MathUtils.h>
-#include <cob_vision_utils/ThreeDUtils.h>
-#include <cob_vision_utils/OpenCVUtils.h>
 #include <cob_camera_sensors/AbstractRangeImagingSensor.h>
 #include <tinyxml/tinyxml.h>
 #else
-#include <Vision/Utilities/MathUtils.h>
-#include <Vision/Utilities/ThreeDUtils.h>
-#include <Vision/Utilities/OpenCVUtils.h>
-#include <Vision/CameraSensors/AbstractRangeImagingSensor.h>
+#include <cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/AbstractRangeImagingSensor.h>
 #include <Vision/Extern/TinyXml/tinyxml.h>
 #endif
 

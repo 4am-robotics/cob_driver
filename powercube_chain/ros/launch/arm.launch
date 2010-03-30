@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- send arm urdf to parameter server -->
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob3_defs)/ros/robots/cob3.urdf.xacro'" />
+
+  <!-- send parameters to parameter server -->
+  <param name="CanDevice" value="16"/>
+  <param name="CanBaudrate" value="1000"/>
+  <rosparam command="load" file="$(find powercube_chain)/ros/launch/arm.yaml"/>
+
+  <!-- start powercube_chain -->
+  <node pkg="powercube_chain" type="powercube_chain" name="powercube_chain" cwd="node" respawn="false" output="screen" />
+
+  <!-- start robot_state_publisher -->
+  <node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />
+
+  <!-- set Powercubes to OperationMode position -->
+  <param name="OperationMode" value="position"/>
+
+</launch>

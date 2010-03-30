@@ -1,0 +1,20 @@
+<package>
+  <description brief="cob_platform">
+
+     cob_platform
+
+  </description>
+  <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://www.care-o-bot.org</url>
+  
+  <depend package="roscpp"/>
+  <depend package="geometry_msgs"/>
+  <depend package="nav_msgs"/>
+  <depend package="tf"/>
+  <depend package="cob_srvs"/>
+  <depend package="libpcan"/>
+  <depend package="libntcan"/>
+
+</package>
