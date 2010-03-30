@@ -12,8 +12,8 @@
   <depend package="roscpp"/>
   <depend package="cob_msgs"/>
   <depend package="cob_srvs"/>
-  <depend package="powercube_chain"/>
-  <depend package="cob3_defs"/>
+  <depend package="cob_powercube_chain"/>
+  <depend package="cob_defs"/>
   <depend package="actionlib"/>
   <depend package="pr2_controllers_msgs"/>
   <depend package="geometry_msgs"/>

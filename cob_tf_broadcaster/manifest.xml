@@ -13,6 +13,6 @@
   <depend package="nav_msgs"/>
   <depend package="sensor_msgs"/>
   <depend package="tf"/>
-  <depend package="cob3_defs"/>
+  <depend package="cob_defs"/>
 
 </package>

@@ -12,7 +12,7 @@
 
   <depend package="roscpp"/>
   <depend package="std_msgs"/>
-  <depend package="canopen_motor"/>
+  <depend package="cob_canopen_motor"/>
   <depend package="cob_utilities"/>
 
   <!-- As we deviate from the standard ROS Repository-Structure we have to tell ROS where to find header and lib -->
