@@ -12,9 +12,11 @@
   <depend package="roscpp"/>
   <depend package="sensor_msgs"/>
   <depend package="urdf"/>
-  <depend package="cob_msgs"/>
+  <depend package="trajectory_msgs"/>
+  <depend package="actionlib"/>
   <depend package="cob_srvs"/>
   <depend package="libpcan"/>
   <depend package="libm5api"/>
+  <depend package="cob_actions"/>
 
 </package>

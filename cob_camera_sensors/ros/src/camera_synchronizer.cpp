@@ -98,7 +98,7 @@ public:
 	bool init()
 	{
 		/// Topics and Services to publish
-		image_publisher_ = image_transport_.advertiseCamera("image_sync", 1);
+		image_publisher_ = image_transport_.advertiseCamera("test/image_sync", 1);
 		image_subscriber_ = image_transport_.subscribeCamera("image_non_sync", 1, &CobCameraSynchronizerNode::topicCallback_image, this);
 		return true;
 	}
