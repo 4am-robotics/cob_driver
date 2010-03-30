@@ -16,7 +16,7 @@
 
   <!-- As we deviate from the standard ROS Repository-Structure we have to tell ROS where to find header and lib -->
   <export>
-    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lgeneric_can_peaksysusb -lgeneric_can_peaksys"/>
+    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_generic_can_peaksysusb -lcob_generic_can_peaksys"/>
   </export>
 
 </package>

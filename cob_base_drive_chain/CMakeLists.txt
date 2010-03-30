@@ -33,8 +33,8 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/lib)
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 # add project libs
-rosbuild_add_library(base_drive_chain common/src/CanCtrlPltfCOb3.cpp)
+rosbuild_add_library(${PROJECT_NAME} common/src/CanCtrlPltfCOb3.cpp)
 # add executable
-rosbuild_add_executable(base_drive_chain_node ros/src/base_drive_chain.cpp)
+rosbuild_add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp)
 
-target_link_libraries(base_drive_chain_node base_drive_chain canopen_motor_harmonica)
+target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME} cob_canopen_motor_harmonica)

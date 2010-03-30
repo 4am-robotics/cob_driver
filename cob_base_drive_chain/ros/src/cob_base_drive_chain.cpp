@@ -70,7 +70,7 @@
 
 
 // external includes
-#include <base_drive_chain/CanCtrlPltfCOb3.h>
+#include <cob_base_drive_chain/CanCtrlPltfCOb3.h>
 #include <cob_utilities/IniFile.h>
 #include <cob_utilities/MathSup.h>
 

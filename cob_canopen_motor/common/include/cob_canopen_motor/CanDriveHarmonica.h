@@ -58,7 +58,7 @@
 #define CANDRIVEHARMONICA_INCLUDEDEF_H
 
 //-----------------------------------------------
-#include <canopen_motor/CanDriveItf.h>
+#include <cob_canopen_motor/CanDriveItf.h>
 #include <cob_utilities/TimeStamp.h>
 //-----------------------------------------------
 

@@ -62,9 +62,9 @@
 // general includes
 
 // Headers provided by other cob-packages
-#include <canopen_motor/CanDriveItf.h>
-#include <canopen_motor/CanDriveHarmonica.h>
-#include <generic_can/CanItf.h>
+#include <cob_canopen_motor/CanDriveItf.h>
+#include <cob_canopen_motor/CanDriveHarmonica.h>
+#include <cob_generic_can/CanItf.h>
 
 // Headers provided by cob-packages which should be avoided/removed
 #include <cob_utilities/IniFile.h>

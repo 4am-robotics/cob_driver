@@ -18,7 +18,7 @@
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
  * Date of creation: Feb 2009
- * ToDo: Remove dependency to inifiles_old -> Inifile.h
+ * ToDo:
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
@@ -52,38 +52,85 @@
  ****************************************************************/
 
 
-#ifndef CANPEAKSYS_INCLUDEDEF_H
-#define CANPEAKSYS_INCLUDEDEF_H
+#ifndef CANITF_INCLUDEDEF_H
+#define CANITF_INCLUDEDEF_H
 //-----------------------------------------------
-#include <generic_can/CanItf.h>
-#include <libpcan/libpcan.h>
-#include <cob_utilities/IniFile.h>
+#include <cob_generic_can/CanMsg.h>
 //-----------------------------------------------
 
-class CanPeakSys : public CanItf
+/**
+ * General interface of the CAN bus.
+ * \ingroup DriversCanModul	
+ */
+class CanItf
 {
 public:
-	// --------------- Interface
-	CanPeakSys(const char* cIniFile);
-	~CanPeakSys();
-	void init();
-	void destroy() {}
-	bool transmitMsg(CanMsg CMsg, bool bBlocking = true);
-	bool receiveMsg(CanMsg* pCMsg);
-	bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry);
-	bool isObjectMode() { return false; }
-
-private:
-	// --------------- Types
-	HANDLE m_handle;
+	enum CanItfType {
+		CAN_PEAK = 0,
+		CAN_PEAK_USN = 1,
+		CAN_ESD = 2,
+		CAN_DUMMY = 3,
+		CAN_BECKHOFF = 4
+	};
 	
-	bool m_bInitialized;
-	IniFile m_IniFile;
-	bool m_bSimuEnabled;
+	/**
+	 * The destructor does not necessarily have to be overwritten.
+	 * But it makes sense to close any resources like handles.
+	 */
+	virtual ~CanItf() {
+	}
+	
+	/**
+	 * Initializes the CAN bus.
+	 */
+	virtual void init() = 0;
 
-	static const int c_iInterrupt;
-	static const int c_iPort;
+	/**
+	 * Sends a CAN message.
+	 * @param pCMsg CAN message
+	 * @param bBlocking specifies whether send should be blocking or non-blocking
+	 */
+	virtual bool transmitMsg(CanMsg CMsg, bool bBlocking = true) = 0;
+
+	/**
+	 * Reads a CAN message.
+	 * @return true if a message is available 
+	 */
+	virtual bool receiveMsg(CanMsg* pCMsg) = 0;
+
+	/**
+	 * Reads a CAN message.
+	 * The function blocks between the attempts.
+	 * @param pCMsg CAN message
+	 * @param iNrOfRetry number of retries
+	 * @return true if a message is available
+	 */
+	virtual bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry) = 0;
+
+	/**
+	 * Check if the current CAN interface was opened on OBJECT mode.
+	 * @return true if opened in OBJECT mode, false if not.
+	 */
+	virtual bool isObjectMode() = 0;
+	
+	/**
+	 * Set the CAN interface type. This is necessary to implement
+	 * a proper CAN bus simulation.
+	 * @param iType The CAN interface type.
+	 */
+	void setCanItfType(CanItfType iType) { m_iCanItfType = iType; }
+	
+	/**
+	 * Get the CAN interface type. This is necessary to implement
+	 * a proper CAN bus simulation.
+	 * @return The CAN interface type.
+	 */
+	CanItfType getCanItfType() { return m_iCanItfType; }
+	
+private:
+	/// The CAN interface type.
+	CanItfType m_iCanItfType;
 };
 //-----------------------------------------------
-#endif
 
+#endif

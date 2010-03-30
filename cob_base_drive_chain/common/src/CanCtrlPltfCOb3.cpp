@@ -59,8 +59,8 @@
 //#include <Neobotix/Math/Utils/MathSup.h>
 
 //#include <Neobotix/Drivers/Can/CanESD.h>
-#include <generic_can/CanPeakSys.h>
-#include <generic_can/CanPeakSysUSB.h>
+#include <cob_generic_can/CanPeakSys.h>
+#include <cob_generic_can/CanPeakSysUSB.h>
 //#include <canopen_motor/CanDummy.h>
 
 #include <cob_base_drive_chain/CanCtrlPltfCOb3.h>

@@ -21,7 +21,7 @@
 
   <!-- As we deviate from the standard ROS Repository-Structure we have to tell ROS where to find header and lib -->
   <export>
-    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lbase_drive_chain"/>
+    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_base_drive_chain"/>
   </export>
 
 </package>

@@ -56,9 +56,9 @@
 #define CANDRIVEITF_INCLUDEDEF_H
 
 //-----------------------------------------------
-#include <generic_can/CanItf.h>
-#include <canopen_motor/DriveParam.h>
-#include <canopen_motor/SDOSegmented.h>
+#include <cob_generic_can/CanItf.h>
+#include <cob_canopen_motor/DriveParam.h>
+#include <cob_canopen_motor/SDOSegmented.h>
 //-----------------------------------------------
 
 /**

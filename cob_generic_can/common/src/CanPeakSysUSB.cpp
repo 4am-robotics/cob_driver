@@ -51,7 +51,7 @@
  *
  ****************************************************************/
 
-#include <generic_can/CanPeakSysUSB.h>
+#include <cob_generic_can/CanPeakSysUSB.h>
 #include <stdlib.h>
 #include <cerrno>
 #include <cstring>
