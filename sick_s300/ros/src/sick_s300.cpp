@@ -75,9 +75,8 @@ class NodeClass
 {
     //
     public:
-	    // create a handle for this node, initialize node
-	    ros::NodeHandle n;
-                
+	      
+		ros::NodeHandle nodeHandle;   
         // topics to publish
         ros::Publisher topicPub_LaserScan;
         
@@ -100,16 +99,18 @@ class NodeClass
         // Constructor
         NodeClass()
         {
+			// create a handle for this node, initialize node
+	    	ros::NodeHandle private_nh_("~");
             // initialize global variables
-			n.param<std::string>("port", port, "/dev/ttyUSB0");
-			n.param<int>("baud", baud, 500000);
-			n.param<bool>("inverted", inverted, false);
-			n.param<std::string>("laser_front/frame_id", frame_id, "base_laser_front");
-            n.param<int>("start_scan", start_scan, 115);
-            n.param<int>("stop_scan", stop_scan, 426);
+			private_nh_.param<std::string>("port", port, "/dev/ttyUSB0");
+			private_nh_.param<int>("baud", baud, 500000);
+			private_nh_.param<bool>("inverted", inverted, false);
+			private_nh_.param<std::string>("frame_id", frame_id, "/base_laser_front");
+            private_nh_.param<int>("start_scan", start_scan, 115);
+            private_nh_.param<int>("stop_scan", stop_scan, 426);
 
         	// implementation of topics to publish
-            topicPub_LaserScan = n.advertise<sensor_msgs::LaserScan>("scan", 1);
+            topicPub_LaserScan = nodeHandle.advertise<sensor_msgs::LaserScan>("scan", 1);
 
             // implementation of topics to subscribe
 			//--
@@ -157,7 +158,7 @@ class NodeClass
     		laserScan.set_intensities_size(num_readings);
 
 			// check for inverted laser
-			inverted = false; //true; // TODO remove hardcoded parameter
+		//	inverted = true; //true; // TODO remove hardcoded parameter
 			for(int i = 0; i < (stop_scan - start_scan); i++)
 			{
 				if(inverted)
@@ -189,22 +190,22 @@ int main(int argc, char** argv)
 
 	//char *pcPort = new char();
 //	const char pcPort[] = "/dev/ttyUSB1"; //TODO replace with parameter port
-	const char pcPort[] = "/dev/ttyUSB0";
+//	const char pcPort[] = nodeClass.port;
 //	int iBaudRate = 500000;
 	int iBaudRate = nodeClass.baud;
-	bool bOpenScan, bRecScan = false;
+	bool bOpenScan = false, bRecScan = false;
 	bool firstTry = true;
 	std::vector<double> vdDistM, vdAngRAD, vdIntensAU;
  
  	while (!bOpenScan)
  	{
  		ROS_INFO("Opening scanner...");
-		bOpenScan = SickS300.open(pcPort, iBaudRate);
+		bOpenScan = SickS300.open(nodeClass.port.c_str(), iBaudRate);
 		
 		// check, if it is the first try to open scanner
 	 	if(firstTry)
 		{
-			ROS_ERROR("...scanner not available on port %s. Will retry every second.",pcPort);
+			ROS_ERROR("...scanner not available on port %s. Will retry every second.",nodeClass.port.c_str());
 			firstTry = false;
 			sleep(1);
 		}
@@ -213,11 +214,11 @@ int main(int argc, char** argv)
 			sleep(1);
 		}
 	}
-	ROS_INFO("...scanner opened successfully on port %s",pcPort);
+	ROS_INFO("...scanner opened successfully on port %s",nodeClass.port.c_str());
 
 	// main loop
 	ros::Rate loop_rate(5); // Hz
-    while(nodeClass.n.ok())
+    while(nodeClass.nodeHandle.ok())
     {
 		// read scan
 		ROS_DEBUG("Reading scanner...");

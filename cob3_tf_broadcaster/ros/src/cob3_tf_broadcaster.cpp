@@ -143,21 +143,15 @@ class NodeClass
 			transform.setRotation(tf::Quaternion(0, 0, 0));
 			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_footprint", "base_link"));
 
-/*			// publish tf for base_link --> base_laser_front
-			transform.setOrigin(tf::Vector3(0.325, 0.0, 0.1));
-			transform.setRotation(tf::Quaternion(0, 0, 0));
-			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "base_laser_front"));
-*/
 			// publish tf for base_link --> base_laser_front
 			transform.setOrigin(tf::Vector3(0.325, 0.0, 0.1));
-//			transform.setRotation(tf::Quaternion(0, 0, 0));
-			transform.setRotation(tf::createQuaternionFromRPY(3.1415926, 0, 0));
+			transform.setRotation(tf::Quaternion(0, 0, 0));
+//			transform.setRotation(tf::createQuaternionFromRPY(3.1415926, 0, 0));
 			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "base_laser_front"));
-
 
 			// publish tf for base_link --> base_laser_rear
 			transform.setOrigin(tf::Vector3(-0.325, 0.0, 0.1));
-			transform.setRotation(tf::Quaternion(0, 0, 0));
+			transform.setRotation(tf::createQuaternionFromRPY(0, 0, 3.1415926));
 			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "base_laser_rear"));
 
 			// publish tf for base_link --> base_hokuyo

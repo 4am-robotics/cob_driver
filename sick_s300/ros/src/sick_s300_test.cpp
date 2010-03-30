@@ -96,7 +96,8 @@ class NodeClass
         // Constructor
         NodeClass()
         {
-            topicSub_LaserScan = n.subscribe("LaserScan", 1, &NodeClass::topicCallback_LaserScan, this);
+           // topicSub_LaserScan = n.subscribe("LaserScan", 1, &NodeClass::topicCallback_LaserScan, this);
+topicSub_LaserScan = n.subscribe("scan", 1, &NodeClass::topicCallback_LaserScan, this);
         }
         
         // Destructor
