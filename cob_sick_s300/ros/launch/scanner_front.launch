@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <node pkg="sick_s300" type="sick_s300" name="scanner_front" respawn="false" output="screen" >
+  <node pkg="cob_sick_s300" type="cob_sick_s300" name="scanner_front" respawn="false" output="screen" >
   <param name="port" type="string" value="/dev/ttyUSB0"/>
   <param name="baud" type="int" value="500000"/>
   <param name="inverted" type="bool" value="true"/>
