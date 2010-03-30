@@ -12,7 +12,8 @@
   <!-- Dependencies from other packages or external libs-->
   <depend package="roscpp"/>
   <depend package="cob_generic_can"/>
-  
+  <depend package="cob_utilities"/>
+
   <!-- As we deviate from the standard ROS Repository-Structure we have to tell ROS where to find header and lib -->
   <export>
     <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcanopen_motor_harmonica"/>

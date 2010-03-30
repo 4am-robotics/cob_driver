@@ -34,7 +34,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/lib)
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 rosbuild_add_library(SerialIO common/src/SerialIO.cpp)
-rosbuild_add_library(${PROJECT_NAME} common/src/SerRelayBoard.cpp common/src/StrUtil.cpp)
+rosbuild_add_library(${PROJECT_NAME} common/src/SerRelayBoard.cpp)
 
 target_link_libraries(${PROJECT_NAME} SerialIO)
 

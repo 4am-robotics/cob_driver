@@ -59,7 +59,7 @@
 
 //-----------------------------------------------
 #include <canopen_motor/CanDriveItf.h>
-#include <canopen_motor/TimeStamp.h>
+#include <cob_utilities/TimeStamp.h>
 //-----------------------------------------------
 
 /**
@@ -307,12 +307,17 @@ public:
 	void IntprtSetFloat(int iDataLen, char cCmdChar1, char cCmdChar2, int iIndex, float fData);
 
 	/**
-	 * Uploads a service data object.
+	 * Uploads a service data object. (in expedited transfer mode, means in only one message)
 	 */
 	void sendSDOUpload(int iObjIndex, int iObjSub);
+	
+    /**
+	 * This protocol cancels an active segmented transmission due to the given Error Code
+	 */
+    void sendSDOAbort(int iObjIndex, int iObjSubIndex, int errCode);
 
 	/**
-	 * Downloads a service data object.
+	 * Downloads a service data object. (in expedited transfer mode, means in only one message)
 	 */
 	void sendSDODownload(int iObjIndex, int iObjSub, int iData);
 	
@@ -358,7 +363,11 @@ public:
 	 * To update this value call requestMotorCurrent at first
 	 */
 	void getMotorTorque(double* dTorqueNm);
-
+    
+    /**
+     *Read out Recorder Data from Elmo Controller. cpc-pk
+     */
+    bool collectRecordedData(int flag, recData ** output);
 
 protected:
 	// ------------------------- Parameters
@@ -410,6 +419,13 @@ protected:
 
 	bool m_bWatchdogActive;
 
+    recData rec_Data;
+    
+    bool m_SDOSegmentToggleBit;
+
+    int activeSDOSegmentUpload;
+
+
 	// ------------------------- Member functions
 	double estimVel(double dPos);
 
@@ -426,6 +442,12 @@ protected:
 		else
 			return true;
 	}
+
+    void sendSDOUploadSegmentConfirmation(bool toggleBit);
+    
+    int receivedSDODataSegment(CanMsg& msg);
+
+    int initiateSDOSegmentedUpload(CanMsg& msg);
 
 };
 //-----------------------------------------------

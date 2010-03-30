@@ -67,7 +67,7 @@
 #include <generic_can/CanItf.h>
 
 // Headers provided by cob-packages which should be avoided/removed
-#include <cob3_utilities/IniFile.h>
+#include <cob_utilities/IniFile.h>
 
 // remove (not supported)
 //#include "stdafx.h"
@@ -129,7 +129,7 @@ public:
 	 * !! The homing routine is hardware-dependent (steering and driving is coupled) !!
 	 * !! If you use this code on other hardware -> make sure te remove or adapt homing sequence !! 
 	 */
-	bool initPltf();
+	bool initPltf(std::string iniDirectory);
 
 	/**
 	 * Reinitializes the nodes on the bus.
@@ -243,6 +243,11 @@ public:
 	 */
 	void configureElmoRecorder(int iRecordingGap);
 
+    /**
+     *Receives recorded data from Elmos via CAN and saves them into LOG-files
+     */
+    bool printElmoRecordings(std::string LogDirectory);
+
 
 	//--------------------------------- Commands for other nodes
 
@@ -257,6 +262,8 @@ protected:
 	 * Reads configuration of can node and components from Inifile
 	 * (should be adapted to use ROS-Parameter file)
 	 */
+	std::string sIniDirectory;
+	std::string sComposed;
 	void readConfiguration();
 
 	/**

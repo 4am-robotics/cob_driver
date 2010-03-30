@@ -323,12 +323,16 @@ class NodeClass
         
 		void executeCB(const cob_actions::JointTrajectoryGoalConstPtr &goal)
 		{
-			ROS_INFO("...received new goal trajectory with %d points",goal->trajectory.points.size());
+			ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
 			// saving goal into local variables
 			traj = goal->trajectory;
 			traj_point_nr = 0;
 			traj_point = traj.points[traj_point_nr];
 			
+			// stoping arm to prepare for new trajectory
+			std::vector<double> VelZero;
+			VelZero.resize(ModIds_param.size());
+			PCube->MoveVel(VelZero);
 
 			// check that preempt has not been requested by the client
 			if (as_.isPreemptRequested())
@@ -396,7 +400,10 @@ class NodeClass
                               cob_srvs::Trigger::Response &res )
         {
        	    ROS_INFO("Stopping powercubes");
-        
+        	
+        	// set current trajectory to be finished
+			traj_point_nr = traj.points.size();
+        	
             // stopping all arm movements
             if (PCube->Stop())
             {

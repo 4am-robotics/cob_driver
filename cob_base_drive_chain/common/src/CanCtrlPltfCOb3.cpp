@@ -61,7 +61,7 @@
 //#include <Neobotix/Drivers/Can/CanESD.h>
 #include <generic_can/CanPeakSys.h>
 #include <generic_can/CanPeakSysUSB.h>
-#include <canopen_motor/CanDummy.h>
+//#include <canopen_motor/CanDummy.h>
 
 #include <cob_base_drive_chain/CanCtrlPltfCOb3.h>
 
@@ -170,9 +170,6 @@ CanCtrlPltfCOb3::CanCtrlPltfCOb3()
 	m_CanOpenIDParam.RxPDO2_W4Steer = 0x305;
 	m_CanOpenIDParam.TxSDO_W4Steer = 0x585;
 	m_CanOpenIDParam.RxSDO_W4Steer = 0x605;
-
-	// read Configuration parameters from Inifile
-	readConfiguration();
 }
 
 //-----------------------------------------------
@@ -217,7 +214,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	double dScaleToMM;
 
 	// read Platform.ini (Coupling of Drive/Steer for Homing)
-	m_IniFile.SetFileName("Platform/IniFiles/Platform.ini", "CanCtrlPltfCOb3.cpp");
+	m_IniFile.SetFileName(sIniDirectory + "Platform.ini", "CanCtrlPltfCOb3.cpp");
 
 	m_IniFile.GetKeyInt("Geom", "RadiusWheel", &m_Param.iRadiusWheelMM, true);
 	m_IniFile.GetKeyInt("Geom", "DistSteerAxisToDriveWheelCenter", &m_Param.iDistSteerAxisToDriveWheelMM, true);
@@ -229,7 +226,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 
 
 	// read CanCtrl.ini
-	m_IniFile.SetFileName("Platform/IniFiles/CanCtrl.ini", "CanCtrlPltfCOb3.cpp");
+	m_IniFile.SetFileName(sIniDirectory + "CanCtrl.ini", "CanCtrlPltfCOb3.cpp");
 
 	std::cout << "Can configuration of the platform:" << std::endl;
 	
@@ -237,23 +234,27 @@ void CanCtrlPltfCOb3::readConfiguration()
 	m_IniFile.GetKeyInt("TypeCan", "Can", &iTypeCan, true);
 	if (iTypeCan == 0)
 	{
-		m_pCanCtrl = new CanPeakSys("Platform/IniFiles/CanCtrl.ini");
+		sComposed = sIniDirectory;
+		sComposed += "CanCtrl.ini";
+		m_pCanCtrl = new CanPeakSys(sComposed.c_str());
 		std::cout << "Uses CAN-Peak-Systems dongle" << std::endl;
 	}
 	else if (iTypeCan == 1)
 	{
-		m_pCanCtrl = new CANPeakSysUSB("Platform/IniFiles/CanCtrl.ini");
+		sComposed = sIniDirectory;
+		sComposed += "CanCtrl.ini";
+		m_pCanCtrl = new CANPeakSysUSB(sComposed.c_str());
 		std::cout << "Uses CAN-Peak-USB" << std::endl;
 	}
 	else if (iTypeCan == 2)
 	{
-		//m_pCanCtrl = new CanESD("Platform/IniFiles/CanCtrl.ini");
+		//m_pCanCtrl = new CanESD(sIniDirectory + "CanCtrl.ini");
 		//LOG_APP("Uses CAN-ESD-card");
 	}
 	else if (iTypeCan == 3)
 	{
-		m_pCanCtrl = new CanDummy();
-		std::cout << "Uses dummy dummy can" << std::endl;
+		//m_pCanCtrl = new CanDummy();
+		//std::cout << "Uses dummy dummy can" << std::endl;
 	}
 
 	// CanOpenId's ----- Default values (DESIRE)
@@ -570,7 +571,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 
 
 	// read Platform.ini
-	m_IniFile.SetFileName("Platform/IniFiles/Platform.ini", "CanCtrlPltfCOb3.cpp");
+	m_IniFile.SetFileName(sIniDirectory + "Platform.ini", "CanCtrlPltfCOb3.cpp");
 
 
 	// ------ WHEEL 1 ------ //
@@ -773,8 +774,12 @@ int CanCtrlPltfCOb3::evalCanBuffer()
 }
 
 //-----------------------------------------------
-bool CanCtrlPltfCOb3::initPltf()
-{
+bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
+{	
+	// read Configuration parameters from Inifile
+	sIniDirectory = iniDirectory;
+	readConfiguration();
+		
 	// Vectors for drive objects and return values
 	std::vector<bool> vbRetDriveMotor;
 	std::vector<bool> vbRetSteerMotor;
@@ -1065,6 +1070,8 @@ bool CanCtrlPltfCOb3::isPltfError()
 	// if no motor is in error state force Watchdog to "No Error" state
 	if(bErrMotor == false)
 		m_bWatchdogErr = false;
+	else
+		m_bWatchdogErr = true;
 
 	if (m_bWatchdogErr) return true;
 
@@ -1313,7 +1320,7 @@ void CanCtrlPltfCOb3::configureElmoRecorder(int iRecordingGap)
 		// RL = (4096 / Number of Signals)
 		m_vpMotor[i]->IntprtSetInt(8, 'R', 'L', 0, 1024);
 		// Set Time Quantum, Default: RP=0 -> TS * 4; TS is 90us by default
-		m_vpMotor[i]->IntprtSetInt(8, 'R', 'P', 0, 0);	
+		m_vpMotor[i]->IntprtSetInt(8, 'R', 'P', 0, 0);
 		// Set Recording Gap
 		m_vpMotor[i]->IntprtSetInt(8, 'R', 'G', 0, iRecordingGap);	
 		// ----> Total Recording Time = 90us * 4 * RG * RL
@@ -1324,3 +1331,25 @@ void CanCtrlPltfCOb3::configureElmoRecorder(int iRecordingGap)
 	m_Mutex.unlock();
 
 }
+
+//-----------------------------------------------
+// Read out Elmo-Recorder via CAN (cpc-pk)
+//-----------------------------------------------
+
+//-----------------------------------------------
+bool CanCtrlPltfCOb3::printElmoRecordings(std::string LogDirectory) {
+    m_Mutex.lock();
+    
+    recData *dataOut;
+    m_vpMotor[1]->collectRecordedData(0, &dataOut); //Motor 1 -> steering motor
+
+    while(m_vpMotor[1]->collectRecordedData(1, &dataOut) == false) {
+        usleep(1000);
+    }
+
+    return true;
+
+    m_Mutex.unlock();
+}
+
+
