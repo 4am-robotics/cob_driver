@@ -42,7 +42,7 @@ class ElmoCtrlParams
 {
 
 	public:
-		ElmoCtrlParams();
+		ElmoCtrlParams(){;}
 		
 		int Init(std::string CanDevice, int BaudRate, int ModuleID)
 		{
@@ -72,6 +72,10 @@ class ElmoCtrlParams
 		double GetLowerLimit(){return m_LowerLimit;}
 		double GetAngleOffset(){return m_Offset;}
 
+		//Velocity
+		void SetMaxVel(double maxVel){m_MaxVel = maxVel;}
+		double GetMaxVel(){return m_MaxVel;}
+
 		//HomingDir
 		void SetHomingDir(int dir){m_HomingDir = dir;}
 		int GetHomingDir(){return m_HomingDir;}
@@ -89,6 +93,7 @@ class ElmoCtrlParams
 		double m_Offset;
 		double m_UpperLimit;
 		double m_LowerLimit;
+		double m_MaxVel;
 		std::string m_CanIniFile;
 
 };
@@ -103,14 +108,14 @@ public:
 	bool Init(ElmoCtrlParams* params, bool home = true);
 
 
-	double MoveJointSpace (std::vector<double>& Angle);
+	double MoveJointSpace (double PosRad);
 	
 
 	bool Home();
 
 	bool RecoverAfterEmergencyStop();
 
-	void Stop();
+	bool Stop();
 
 
 	void setMaxVelocity(float radpersec)
@@ -118,7 +123,25 @@ public:
 		m_MaxVel = radpersec;
 	}
 
-	double getConfig();
+	/**
+	 * Gets the position and velocity.
+	 * @param pdAngleGearRad joint-position in radian
+	 * @param pdVelGearRadS joint-velocity in radian per second
+	 */
+	int getGearPosVelRadS(double* pdAngleGearRad, double* pdVelGearRadS);
+	
+	/**
+	 * Sets required position and veolocity.
+	 * Use this function only in position mode.
+	 */
+	int setGearPosVelRadS(double dPosRad, double dVelRadS);
+
+	/**
+	 * Triggers evaluation of the can-buffer.
+	 */
+	int evalCanBuffer();
+
+	//_double getConfig();
 
 	double getJointVelocity();
 
@@ -135,9 +158,9 @@ public:
 
 
 	CANPeakSysUSB* GetCanCtrl(){return m_CanCtrl;}
-	bool m_ElmoCtrlThreadActive;
+	//bool m_ElmoCtrlThreadActive;
 	/// @brief joint mutexes
-	pthread_mutex_t   m_cs_elmoCtrlIO;
+	//pthread_mutex_t   m_cs_elmoCtrlIO;
 	CanDriveHarmonica * m_Joint;  
 
 private:
@@ -154,6 +177,7 @@ private:
 	CANPeakSysUSB * m_CanCtrl;
 
 	float m_MaxVel;
+	int m_HomingDir;
 
 	double  m_UpperLimit;
 	double  m_LowerLimit;
@@ -164,14 +188,15 @@ private:
 	Jointd* m_CurrentJointAngles;
 	*/
 	/// @brief joint mutexes
-	pthread_mutex_t   m_Angles_Mutex;
+	pthread_mutex_t   m_Mutex;
 	/// @brief joint velocity mutexes
-	pthread_mutex_t   m_AngularVel_Mutex;
+	//pthread_mutex_t   m_AngularVel_Mutex;
 	/// @brief  Thread IDs for PowerCube connection threads
-	pthread_t   m_ElmoThreadID;
+	//pthread_t   m_ElmoThreadID;
 	/// @brief Arguments for Powercube connection Threads
-	ElmoThreadArgs * m_ElmoCtrlThreadArgs;
+	//ElmoThreadArgs * m_ElmoCtrlThreadArgs;
 	ElmoCtrlParams * m_Params;
+	CanMsg m_CanMsgRec;
 	
 	
 	/// @brief the logfile for debugging info & errors:

@@ -12,7 +12,7 @@
 #include <iostream>
 
 using namespace std;
-void * ElmoThreadRoutine(void* threadArgs);
+//void * ElmoThreadRoutine(void* threadArgs);
 
 
 void Sleep(int msecs){usleep(1000*msecs);}
@@ -45,17 +45,10 @@ ElmoCtrl::ElmoCtrl()
 	m_CanBaseAddress = NULL;
 	m_MotionCtrlType = POS_CTRL;
 	m_MaxVel = 2.0;
-	m_ElmoCtrlThreadArgs = NULL;
-	m_ElmoCtrlThreadActive = false;
 	m_Params = NULL;
 }
 ElmoCtrl::~ElmoCtrl()
 {
-	if (m_ElmoCtrlThreadActive)
-	{
-		m_ElmoCtrlThreadActive = false;
-		pthread_join(m_ElmoThreadID,NULL);
-	}
 
 
 	if (m_Joint)
@@ -64,8 +57,6 @@ ElmoCtrl::~ElmoCtrl()
 		delete m_JointParams;
 	if (m_CanCtrl)
 		delete m_CanCtrl;
-	if (m_ElmoCtrlThreadArgs)
-		delete m_ElmoCtrlThreadArgs;
 
 }
 
@@ -89,6 +80,31 @@ bool ElmoCtrl::Home()
 
 }
 
+
+int ElmoCtrl::evalCanBuffer()
+{
+	bool bRet;
+//	char cBuf[200];
+	
+	pthread_mutex_lock(&(m_Mutex));
+
+	// as long as there is something in the can buffer -> read out next message
+	while(m_CanCtrl->receiveMsg(&m_CanMsgRec) == true)
+	{
+		bRet = false;
+		// check for every motor if message belongs to it
+		bRet |= m_Joint->evalReceivedMsg(m_CanMsgRec);
+
+		if (bRet == false)
+		{
+		}		
+	};
+	
+
+	pthread_mutex_unlock(&(m_Mutex));
+
+	return 0;
+}
 
 bool ElmoCtrl::RecoverAfterEmergencyStop()
 {
@@ -124,6 +140,10 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home)
 		printf("ElmoCtrlParams:Error:%s:%d:, invalid parameters!\n",__FILE__,__LINE__);
 		success = false;
 	}
+	else
+	{
+		success = true;
+	}
 
 	if (success)
 	{
@@ -135,6 +155,8 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home)
 		m_JointParams = new DriveParam();
 		m_CanBaseAddress = params->GetModuleID();
 		CanIniFile = params->GetCanIniFile();	
+		m_MaxVel = params->GetMaxVel();
+		m_HomingDir = params->GetHomingDir();
 		if (CanIniFile.length() == 0)
 		{	
 			printf("%s,%d:Error: Parameter 'CanIniFile' not given!\n",__FILE__,__LINE__);
@@ -167,6 +189,8 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home)
 			printf("CanDEvice: 	%s\n",CanDevice.c_str());
 			printf("Baudrate: 	%d\n",baudrate);
 			printf("Module ID: %d\n",m_CanBaseAddress);
+			printf("Max Vel: %f\n",m_MaxVel);
+			printf("Homing Dir: %d\n",m_HomingDir);
 			printf("Offset/Limit(min/max)  %f/(%f,%f)\n",m_JointOffset,m_LowerLimit,m_UpperLimit);
 		}
 	}
@@ -178,21 +202,10 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home)
 			printf("%s,%d:Error: Could not open Can Device!\n",__FILE__,__LINE__);
 			success = false;
 		}
-		else
-		{
-			m_CanCtrl->init(baudrate,CanDevice.c_str());
-			success = m_CanCtrl->initialized();
-			if (!success)
-				printf("%s,%d:Error: Something went wrong during CAN initialization!\n",__FILE__,__LINE__);
-		}
 	  }
 
 
 	  
-	  if (success)
-	  {
-	  	success = sendNetStartCanOpen(m_CanCtrl);
-	  }
 	
 	  if (success)
 	  {
@@ -209,6 +222,17 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home)
 						    m_CanAddress.RxPDO2, 
 						    m_CanAddress.TxSDO, 
 						    m_CanAddress.RxSDO );
+			printf("CanAdresses set to %d (Base), %x, %x, %x, %x, %x...\n", m_CanBaseAddress,
+																		m_CanAddress.TxPDO1,
+																		m_CanAddress.TxPDO2,
+																		m_CanAddress.TxSDO,
+																		m_CanAddress.RxSDO,
+																		m_CanAddress.RxSDO);
+		
+	  }
+	  if (success)
+	  {
+	  	success = sendNetStartCanOpen(m_CanCtrl);
 	  }
 	  if (success)
 	  {
@@ -270,15 +294,16 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home)
 	  if (success)
 	  {
 
-			  pthread_mutex_init(&m_Angles_Mutex,NULL);	
-			  pthread_mutex_init(&m_AngularVel_Mutex,NULL);	
-			  pthread_mutex_init(&m_cs_elmoCtrlIO,NULL);	
-			  m_ElmoCtrlThreadArgs = new ElmoThreadArgs();
-			  m_ElmoCtrlThreadArgs->pElmoCtrl = this;
-			  m_CurrentAngularVelocity = new Jointd(m_DOF);
-			  m_CurrentJointAngles = new Jointd(m_DOF);
-			  m_ElmoCtrlThreadActive = true;
-
+			  pthread_mutex_init(&m_Mutex,NULL);	
+			  //pthread_mutex_init(&m_AngularVel_Mutex,NULL);	
+			  //pthread_mutex_init(&m_cs_elmoCtrlIO,NULL);	
+			  //m_ElmoCtrlThreadArgs = new ElmoThreadArgs();
+			  //m_ElmoCtrlThreadArgs->pElmoCtrl = this;
+			  //m_CurrentAngularVelocity = new Jointd(m_DOF);
+			  //m_CurrentJointAngles = new Jointd(m_DOF);
+			  //m_ElmoCtrlThreadActive = true;
+	
+			/*
 			  pthread_attr_t attr;
 					  sched_param param;
 
@@ -291,7 +316,7 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home)
 
 			  pthread_create(&m_ElmoThreadID, &attr, ElmoThreadRoutine, (void*)(m_ElmoCtrlThreadArgs));
 			  printf("ElmoCtrlThread started\n\n\n");
-
+			*/
 
 	  }
 
@@ -403,14 +428,11 @@ bool ElmoCtrl::SetMotionCtrlType(int type)
 	if (type == POS_CTRL)
 	{
 			success = m_Joint->shutdown();
-			if (!success)
-				break;
-			else
-				success = m_Joint->setTypeMotion(CanDriveHarmonica::MOTIONTYPE_POSCTRL);
-	        }	
-		//ToDo: necessary?
-		Sleep(100);
-		success = m_Joint->start();
+			if (success)
+					success = m_Joint->setTypeMotion(CanDriveHarmonica::MOTIONTYPE_POSCTRL);
+			//ToDo: necessary?
+			Sleep(100);
+			success = m_Joint->start();
 
 	}
 	else if (type == VEL_CTRL)
@@ -428,64 +450,48 @@ int ElmoCtrl::GetMotionCtrlType()
 	return m_MotionCtrlType;
 }
 
-
-double ElmoCtrl::MoveJointSpace (Joint<double> Angle)
+int ElmoCtrl::getGearPosVelRadS( double* pdAngleGearRad, double* pdVelGearRadS)
 {
-	Jointd current = getConfig();
-	Jointd delta = Angle - current;
-	// Delta soll hier nur die Beträge enthalten:
-	for (int i=0; i<m_DOF; i++)
-		delta.set(i, abs(delta[i]) );
 
-	double furthest = delta.getMaxInd();
+	// init default outputs
+	*pdAngleGearRad = 0;
+	*pdVelGearRadS = 0;
 
-	//only rough estimation of time duration for movement 
-	double duration = 1.5* delta[furthest]/m_MaxVel;
-			 
-	for (int i = 0; i < m_DOF; i++)
-	{
-		
-		printf("ElmoCtrl::MoveJointSpace:Moving to (relative) angle %f\n",Angle[i]);
-		Angle.set(i, Angle.get(i) +  m_JointOffsets.get(i));
-		printf("ElmoCtrl::MoveJointSpace:Moving to (absolute) angle %f\n",Angle[i]);
+	m_Joint->getGearPosVelRadS(pdAngleGearRad, pdVelGearRadS);
+	
+	return 0;
+}
 
-		if ((Angle[i] <= m_JointLimits.max[i]) && (Angle[i] >= m_JointLimits.min[i]))
-		{
-			m_Joint[i]->setGearPosVelRadS(Angle[i],m_MaxVel);
-			printf("ElmoCtrl::MoveJointSpace:etGearPosVelRadS (%f,%f)\n",Angle[i],m_MaxVel);
-		}
-		else if (Angle[i] > m_JointLimits.max[i])
-		{
-			Angle.set(i,m_JointLimits.max[i]);
-			printf("%s:%d: Warning: Angle out of limits!\n",__FILE__,__LINE__);
-			m_Joint[i]->setGearPosVelRadS(Angle[i],m_MaxVel);
-		}
-		else 
-		{
-			Angle.set(i,m_JointLimits.min[i]);
-			printf("%s:%d: Warning: Angle out of limits!\n",__FILE__,__LINE__);
-			m_Joint[i]->setGearPosVelRadS(Angle[i],m_MaxVel);
-		}
-	}
-	Sleep(100);
-		
-	return duration;
+//-----------------------------------------------
+
+int ElmoCtrl:: setGearPosVelRadS(double dPosRad, double dVelRadS)
+{		
+	pthread_mutex_lock(&(m_Mutex));
+
+	m_Joint->setGearPosVelRadS(dPosRad,dVelRadS);
+	
+	pthread_mutex_unlock(&(m_Mutex));
+	
+	return 0;
 }
 
 
 
-void ElmoCtrl::stop()
+
+bool ElmoCtrl::Stop()
 {
 		//UHR: ToDo: what happens exactly in this method? Sudden stop?
 		double pos = 0.0;
 		double vel = 0.0;
 		m_Joint->getGearPosVelRadS(&pos,&vel);
 		m_Joint->setGearPosVelRadS(pos,0);
+
+		return true;
 		//m_Joint[i]->shutdown();
 
 }
 
-
+/*
 Jointd ElmoCtrl::getJointVelocities()
 {
 	Jointd currentVel(m_DOF);
@@ -498,7 +504,7 @@ Jointd ElmoCtrl::getConfig()
 {
 	Jointd currentConfig(m_DOF);
 	GetCurrentJointAngles(currentConfig);
-	/*for (int i=0; i < m_DOF; i++)
+	for (int i=0; i < m_DOF; i++)
 	{
 		double pos = 0.0;
 		double vel = 0.0;
@@ -507,12 +513,12 @@ Jointd ElmoCtrl::getConfig()
 		Sleep(100);
 		//printf("Joint %d: current config/vel %f, %f\n",i,pos,vel);
 	}
-	*/
+	
 
 
 	return currentConfig;
 }
-
+*/
 
 
 
