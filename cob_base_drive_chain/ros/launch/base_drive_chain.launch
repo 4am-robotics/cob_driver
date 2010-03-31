@@ -2,8 +2,8 @@
 <launch>
 
   <!-- start base_drive_chain and locate IniFiles -->
-  <node pkg="base_drive_chain" type="base_drive_chain_node" name="base_drive_chain_node" respawn="false" output="screen">
-    <param name="IniDirectory" value="$(find cob3_platform)/ros/bin/Platform/IniFiles/"/>
+  <node pkg="cob_base_drive_chain" type="cob_base_drive_chain_node" name="base_drive_chain_node" respawn="false" output="screen">
+    <param name="IniDirectory" value="$(find cob_platform)/ros/bin/Platform/IniFiles/"/>
   </node>
 
 
