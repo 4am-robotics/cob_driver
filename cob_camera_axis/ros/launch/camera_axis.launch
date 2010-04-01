@@ -2,7 +2,7 @@
 <launch>
 
   <!-- send arm urdf to param server -->
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob3_defs)/ros/robots/cob3_torso.urdf.xacro'" />
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_defs)/ros/robots/cob3_torso.urdf.xacro'" />
 
   <!-- start powercube_chain -->
   <node pkg="cob_camera_axis" type="cob_camera_axis" name="cob_camera_axis" cwd="node" respawn="false" output="screen">

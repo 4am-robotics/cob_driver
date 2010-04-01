@@ -2,7 +2,7 @@
 <launch>
 	
 <!--	<param name="robot_description" command="$(find xacro)/xacro.py '$(find cob3_tf_broadcaster)/ros/launch/test.urdf'" /> -->
-	<param name="robot_description" command="$(find xacro)/xacro.py '$(find cob3_defs)/ros/robots/cob3.urdf.xacro'" />
+	<param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_defs)/ros/robots/cob3.urdf.xacro'" />
 	
 	<node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" >
 		<param name="publish_frequency" type="double" value="50.0" />
