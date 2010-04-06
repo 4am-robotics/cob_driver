@@ -7,10 +7,10 @@
   <!-- send parameters to parameter server -->
   <param name="CanDevice" value="16"/>
   <param name="CanBaudrate" value="1000"/>
-  <rosparam command="load" file="$(find cob_powercube_chain)/ros/launch/arm.yaml"/>
+  <rosparam command="load" file="$(find cob_arm)/ros/launch/cob3-2_arm.yaml"/>
 
   <!-- start powercube_chain -->
-  <node pkg="cob_powercube_chain" type="cob_powercube_chain" name="cob_lwr" cwd="node" respawn="false" output="screen" />
+  <node pkg="cob_powercube_chain" type="cob_powercube_chain" name="cob_arm" cwd="node" respawn="false" output="screen" />
 
   <!-- start robot_state_publisher -->
   <node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />

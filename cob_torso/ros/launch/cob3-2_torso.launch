@@ -2,12 +2,12 @@
 <launch>
 
   <!-- send arm urdf to parameter server -->
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_defs)/ros/robots/cob3_torso.urdf.xacro'" />
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_defs)/ros/robots/cob3.urdf.xacro'" />
 
   <!-- send parameters to parameter server -->
   <param name="CanDevice" value="15"/>
   <param name="CanBaudrate" value="500"/>
-  <rosparam command="load" file="$(find cob_powercube_chain)/ros/launch/torso.yaml"/>
+  <rosparam command="load" file="$(find cob_torso)/ros/launch/cob3-2_torso.yaml"/>
 
   <!-- start powercube_chain -->
   <node pkg="cob_powercube_chain" type="cob_powercube_chain" name="cob_torso" cwd="node" respawn="false" output="screen" />
