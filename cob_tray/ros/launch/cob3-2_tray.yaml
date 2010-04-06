@@ -1,0 +1,3 @@
+ModIds: [19]
+JointNames: [joint_platform_tray]
+MaxAcc: [0.8]
