@@ -5,7 +5,7 @@
   <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_defs)/ros/robots/cob3.urdf.xacro'" />
 
   <!-- send parameters to parameter server -->
-  <param name="CanDevice" value="15"/>
+  <param name="CanDevice" value="0"/>
   <param name="CanBaudrate" value="500"/>
   <rosparam command="load" file="$(find cob_torso)/ros/launch/cob3-2_torso.yaml"/>
 
