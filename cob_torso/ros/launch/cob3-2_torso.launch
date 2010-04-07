@@ -2,11 +2,7 @@
 <launch>
 
   <!-- send arm urdf to parameter server -->
-<<<<<<< HEAD:cob_driver/cob_powercube_chain/ros/launch/torso.launch
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_defs)/ros/robots/cob3_torso.urdf.xacro'" />
-=======
   <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_defs)/ros/robots/cob3.urdf.xacro'" />
->>>>>>> master:cob_driver/cob_torso/ros/launch/cob3-2_torso.launch
 
   <!-- send parameters to parameter server -->
   <param name="CanDevice" value="15"/>
