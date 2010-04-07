@@ -325,7 +325,7 @@ int main(int argc, char** argv)
     NodeClass nodeClass;
 
     // main loop
- 	ros::Rate loop_rate(10); // Hz 
+ 	ros::Rate loop_rate(25); // Hz 
     while(nodeClass.n.ok())
     {
         nodeClass.current_time = ros::Time::now();

@@ -77,15 +77,15 @@ private:
 
 	image_transport::ImageTransport image_transport_;       ///< Image transport instance
 	image_transport::Subscriber xyz_image_subscriber_;	///< Subscribes to xyz image data
-        image_transport::Subscriber grey_image_subscriber_;	///< Subscribes to gray image data
+	image_transport::Subscriber grey_image_subscriber_;	///< Subscribes to gray image data
 
 	sensor_msgs::CvBridge cv_bridge_0_;
 	sensor_msgs::CvBridge cv_bridge_1_;
 	
 	IplImage* xyz_image_32F3_;	/// OpenCV image holding the 32bit point cloud
 	IplImage* xyz_image_8U3_;	/// OpenCV image holding the transformed 8bit RGB point cloud
-        IplImage* grey_image_32F1_;	/// OpenCV image holding the 32bit amplitude values
-        IplImage* grey_image_8U3_;	/// OpenCV image holding the transformed 8bit RGB amplitude values
+	IplImage* grey_image_32F1_;	/// OpenCV image holding the 32bit amplitude values
+	IplImage* grey_image_8U3_;	/// OpenCV image holding the transformed 8bit RGB amplitude values
 
 	int grey_image_counter_; 
 
@@ -132,10 +132,10 @@ public:
 		return true;
 	}
 
-        /// Topic callback functions. 
-        /// Function will be called when a new message arrives on a topic.
+	/// Topic callback functions. 
+	/// Function will be called when a new message arrives on a topic.
 	/// @param grey_image_msg The gray values of point cloud, saved in a 32bit, 1 channel OpenCV IplImage
-        void greyImageCallback(const sensor_msgs::ImageConstPtr& grey_image_msg)
+	void greyImageCallback(const sensor_msgs::ImageConstPtr& grey_image_msg)
 	{
 		/// Do not release <code>m_GrayImage32F3</code>
 		/// Image allocation is managed by Cv_Bridge object 
@@ -144,8 +144,8 @@ public:
 		{
 			grey_image_32F1_ = cv_bridge_0_.imgMsgToCv(grey_image_msg, "passthrough");
 
-                	if (grey_image_8U3_ == 0)
-	                {
+			if (grey_image_8U3_ == 0)
+			{
 				grey_image_8U3_ = cvCreateImage(cvGetSize(grey_image_32F1_), IPL_DEPTH_8U, 3);
 			}
 
@@ -158,11 +158,11 @@ public:
 		}
 	}
 
-        /// Topic callback functions. 
-        /// Function will be called when a new message arrives on a topic.
+	/// Topic callback functions. 
+	/// Function will be called when a new message arrives on a topic.
 	/// @param xyz_image_msg The point cloud, saved in a 32bit, 3 channel OpenCV IplImage
-        void xyzImageCallback(const sensor_msgs::ImageConstPtr& xyz_image_msg)
-        {
+	void xyzImageCallback(const sensor_msgs::ImageConstPtr& xyz_image_msg)
+	{
 		/// Do not release <code>xyz_image_32F3_</code>
 		/// Image allocation is managed by Cv_Bridge object 
 
@@ -170,8 +170,8 @@ public:
 		{
 			xyz_image_32F3_ = cv_bridge_1_.imgMsgToCv(xyz_image_msg, "passthrough");
 			
-                	if (xyz_image_8U3_ == 0)
-	                {
+			if (xyz_image_8U3_ == 0)
+			{
 				xyz_image_8U3_ = cvCreateImage(cvGetSize(xyz_image_32F3_), IPL_DEPTH_8U, 3);
 			}
 
@@ -196,7 +196,7 @@ public:
 			ROS_ERROR("[tof_camera_viewer] Could not convert from '%s' to '32FC1'.", xyz_image_msg->encoding.c_str());
 		}
 
-        }
+	}
 };
 
 //#######################

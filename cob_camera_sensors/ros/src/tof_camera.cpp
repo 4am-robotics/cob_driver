@@ -205,8 +205,8 @@ public:
         /// Continuously advertises xyz and grey
 	bool spin()
         {
-		sensor_msgs::Image xyz_image_msg;
-		sensor_msgs::Image grey_image_msg;
+		sensor_msgs::Image::Ptr xyz_image_msg_ptr;
+		sensor_msgs::Image::Ptr grey_image_msg_ptr;
 		sensor_msgs::CameraInfo tof_image_info;
 
 		ros::Rate rate(10);
@@ -233,7 +233,7 @@ public:
 
 			try
 	                {
-	                        xyz_image_msg = *(sensor_msgs::CvBridge::cvToImgMsg(xyz_image_32F3_, "passthrough"));
+	                        xyz_image_msg_ptr = sensor_msgs::CvBridge::cvToImgMsg(xyz_image_32F3_, "passthrough");
 	                }
 	                catch (sensor_msgs::CvBridgeException error)
 	                {
@@ -243,7 +243,7 @@ public:
 	
 			try
 	                {
-	                        grey_image_msg = *(sensor_msgs::CvBridge::cvToImgMsg(grey_image_32F1_, "passthrough"));
+	                        grey_image_msg_ptr = sensor_msgs::CvBridge::cvToImgMsg(grey_image_32F1_, "passthrough");
 	                }
 	                catch (sensor_msgs::CvBridgeException error)
 	                {
@@ -253,8 +253,8 @@ public:
 	
 	                /// Set time stamp
 			ros::Time now = ros::Time::now();
-	                xyz_image_msg.header.stamp = now;
-	                grey_image_msg.header.stamp = now;
+			xyz_image_msg_ptr->header.stamp = now;
+			grey_image_msg_ptr->header.stamp = now;
 
 			tof_image_info = camera_info_msg_;
 			tof_image_info.width = grey_image_32F1_->width;
@@ -262,8 +262,8 @@ public:
 			tof_image_info.header.stamp = now;
 
 			/// publish message
-			xyz_image_publisher_.publish(xyz_image_msg, tof_image_info);
-			grey_image_publisher_.publish(grey_image_msg, tof_image_info);
+			xyz_image_publisher_.publish(*xyz_image_msg_ptr, tof_image_info);
+			grey_image_publisher_.publish(*grey_image_msg_ptr, tof_image_info);
 
 			ros::spinOnce();
 			rate.sleep();
