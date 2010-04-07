@@ -12,6 +12,7 @@
 
   <depend package="roscpp"/>
   <depend package="std_msgs"/>
+  <depend package="cob_msgs"/>
   <depend package="cob_canopen_motor"/>
   <depend package="cob_utilities"/>
 
