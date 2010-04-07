@@ -36,6 +36,7 @@
   <depend package="polled_camera"/>
   <depend package="cv_bridge"/>
   <depend package="cob_vision_utils"/>
+  <depend package="cob_vision_ipa_utils"/>
 
   <export>
     <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_camera_sensors"/>
@@ -43,5 +44,6 @@
 
   <rosdep name="libdc1394"/>
   <rosdep name="libmesasr"/>
+   <rosdep name="glut"/>
 
 </package>
