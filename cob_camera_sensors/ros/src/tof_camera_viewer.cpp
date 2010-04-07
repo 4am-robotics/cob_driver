@@ -57,6 +57,7 @@
 #include <ros/ros.h>
 #include <cv_bridge/CvBridge.h>
 #include <image_transport/image_transport.h>
+#include <cob_vision_ipa_utils/PointCloudRenderer.h>
 
 // ROS message includes
 #include <sensor_msgs/Image.h>
@@ -88,20 +89,21 @@ private:
 	IplImage* grey_image_8U3_;	/// OpenCV image holding the transformed 8bit RGB amplitude values
 
 	int grey_image_counter_; 
+	bool use_opengl_;
 
 public:
 	/// Constructor.
 	/// @param node_handle Node handle instance
-        CobTofCameraViewerNode(const ros::NodeHandle& node_handle)
+        CobTofCameraViewerNode(const ros::NodeHandle& node_handle, bool use_opengl=false)
         : m_NodeHandle(node_handle),
           image_transport_(node_handle),
           xyz_image_32F3_(0),
           xyz_image_8U3_(0),
           grey_image_32F1_(0),
           grey_image_8U3_(0),
-					grey_image_counter_(0)
+		  grey_image_counter_(0)
         {
-                /// Void
+        	use_opengl_ = use_opengl;
         }
 
 	/// Destructor.
@@ -110,11 +112,15 @@ public:
 		/// Do not release <code>m_GrayImage32F3</code>
 		/// Do not release <code>xyz_image_32F3_</code>
 		/// Image allocation is managed by Cv_Bridge object 
-                if (xyz_image_8U3_) cvReleaseImage(&xyz_image_8U3_);
-                if (grey_image_8U3_) cvReleaseImage(&grey_image_8U3_);
+			if (xyz_image_8U3_) cvReleaseImage(&xyz_image_8U3_);
+			if (grey_image_8U3_) cvReleaseImage(&grey_image_8U3_);
 
-		if(cvGetWindowHandle("z data"))cvDestroyWindow("z data");
-		if(cvGetWindowHandle("gray data"))cvDestroyWindow("gray data");
+			if(cvGetWindowHandle("z data"))cvDestroyWindow("z data");
+			if(cvGetWindowHandle("gray data"))cvDestroyWindow("gray data");
+			if (use_opengl_)
+			{
+				PointCloudRenderer::Exit();
+			}
         }
 
 	/// initialize tof camera viewer.
@@ -128,6 +134,13 @@ public:
 
 		xyz_image_subscriber_ = image_transport_.subscribe("camera/xyz_tof_data", 1, &CobTofCameraViewerNode::xyzImageCallback, this);
 		grey_image_subscriber_ = image_transport_.subscribe("camera/grey_tof_data", 1, &CobTofCameraViewerNode::greyImageCallback, this);
+
+        if (use_opengl_)
+        {
+        	PointCloudRenderer::Init();
+        	//PointCloudRenderer::SetKeyboardPointer(&m_GlKey);
+        	PointCloudRenderer::Run();
+        }
 
 		return true;
 	}
@@ -151,6 +164,19 @@ public:
 
 			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1, 0, 700);
 			cvShowImage("gray data", grey_image_8U3_);
+			int c = cvWaitKey(50);
+			if (c=='s' || c==536871027)
+			{
+				std::stringstream ss;
+				char counterBuffer [50];
+				sprintf(counterBuffer, "%04d", grey_image_counter_);
+				ss << "greyImage8U3_";
+				ss << counterBuffer;
+				ss << ".bmp";
+				cvSaveImage(ss.str().c_str(),grey_image_8U3_);
+				std::cout << "Image " << grey_image_counter_ << " saved." << std::endl;
+				grey_image_counter_++;
+			}
 		}
 		catch (sensor_msgs::CvBridgeException& e)
 		{
@@ -166,9 +192,14 @@ public:
 		/// Do not release <code>xyz_image_32F3_</code>
 		/// Image allocation is managed by Cv_Bridge object 
 
+		static IplImage* xyz_image_32F3_temp = 0;
+		static IplImage* xyz_image_32F3_temp2 = 0;
+
 		try
 		{
+			xyz_image_32F3_temp2 = xyz_image_32F3_temp;
 			xyz_image_32F3_ = cv_bridge_1_.imgMsgToCv(xyz_image_msg, "passthrough");
+			xyz_image_32F3_temp = cvCloneImage(xyz_image_32F3_);
 			
 			if (xyz_image_8U3_ == 0)
 			{
@@ -177,18 +208,16 @@ public:
 
 			ipa_Utils::ConvertToShowImage(xyz_image_32F3_, xyz_image_8U3_, 3);
 			cvShowImage("z data", xyz_image_8U3_);
-			int c = cvWaitKey(50);
-			if (c=='s' || c==536871027)
+			if(use_opengl_)
 			{
-				std::stringstream ss;
-				char counterBuffer [50];
-				sprintf(counterBuffer, "%04d", grey_image_counter_);
-				ss << "greyImage8U3_";
-				ss << counterBuffer;
-				ss << ".bmp";
-				cvSaveImage(ss.str().c_str(),grey_image_8U3_);
-				std::cout << "Image " << grey_image_counter_ << " saved." << std::endl;
-				grey_image_counter_++;
+				PointCloudRenderer::SetIplImage(xyz_image_32F3_temp);
+			}
+			/// Now, we can savely release the memory of the previous point cloud without
+			/// Disturbing the point cloud renderer
+			if (xyz_image_32F3_temp2)
+			{
+				cvReleaseImage(&xyz_image_32F3_temp2);
+				xyz_image_32F3_temp2 = 0;
 			}
 		}
 		catch (sensor_msgs::CvBridgeException& e)
@@ -209,8 +238,12 @@ int main(int argc, char** argv)
         /// Create a handle for this node, initialize node
         ros::NodeHandle nh;
 
+        bool use_opengl = false;
+        nh.getParam("/tof_camera_viewer/use_opengl", use_opengl);
+
         /// Create camera node class instance   
-        CobTofCameraViewerNode camera_viewer_node(nh);
+        CobTofCameraViewerNode camera_viewer_node(nh, use_opengl);
+
 
         /// initialize camera node
         if (!camera_viewer_node.init()) return 0;
