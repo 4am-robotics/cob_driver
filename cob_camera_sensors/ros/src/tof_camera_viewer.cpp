@@ -162,10 +162,10 @@ public:
 				grey_image_8U3_ = cvCreateImage(cvGetSize(grey_image_32F1_), IPL_DEPTH_8U, 3);
 			}
 
-			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1, 0, 700);
+			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1);
 			cvShowImage("gray data", grey_image_8U3_);
-			int c = cvWaitKey(50);
-			if (c=='s' || c==536871027)
+			int c = cvWaitKey();
+			if (c=='s')
 			{
 				std::stringstream ss;
 				char counterBuffer [50];
