@@ -18,9 +18,9 @@
 
     \subsection sdhlibrary_cpp_simplevector_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2008-10-08 10:48:38 +0200 (Mi, 08 Okt 2008) $
+      $LastChangedDate: 2009-06-17 10:55:45 +0200 (Mi, 17 Jun 2009) $
       \par SVN file revision:
-        $Id: simplevector.h 3659 2008-10-08 08:48:38Z Osswald2 $
+        $Id: simplevector.h 4605 2009-06-17 08:55:45Z Osswald2 $
 
   \subsection sdhlibrary_cpp_simplevector_h_changelog Changelog of this file:
       \include simplevector.h.log
@@ -84,7 +84,7 @@ public:
 //! A simple vector implementation.
 /*!
     Objects of this class are used to return vector like answers from
-    the SDH firmware to the cSDHBase class. End users need not use
+    the %SDH firmware to the cSDHBase class. End users need not use
     this class, as cSDH, the real end user interface class provides a
     more convenient way using STL vectors.
 */

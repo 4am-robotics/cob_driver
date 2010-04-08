@@ -18,9 +18,9 @@
 
     \subsection sdhlibrary_cpp_sdhbase_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2008-10-13 17:07:24 +0200 (Mo, 13 Okt 2008) $
+      $LastChangedDate: 2009-06-17 10:55:45 +0200 (Mi, 17 Jun 2009) $
       \par SVN file revision:
-        $Id: sdhbase.h 3686 2008-10-13 15:07:24Z Osswald2 $
+        $Id: sdhbase.h 4605 2009-06-17 08:55:45Z Osswald2 $
 
   \subsection sdhlibrary_cpp_sdhbase_h_changelog Changelog of this file:
       \include sdhbase.h.log
@@ -90,7 +90,7 @@ public:
    End-Users should \b NOT use this class directly, as it only provides
    some common settings and no function interface.
    End users should use the class cSDH instead, as it provides the
-   end-user functions to control the SDH.
+   end-user functions to control the %SDH.
 
    <hr>
 */
@@ -105,9 +105,9 @@ public:
 
 
     /*!
-      The error codes of the SDH firmware
+      The error codes of the %SDH firmware
        \internal
-        In the SDH firmware these enums are of type DSA_STAT
+        In the %SDH firmware these enums are of type DSA_STAT
     */
     enum eErrorCode
     {
@@ -150,7 +150,7 @@ public:
     /*!
       \brief The enum values of the known grasps
        \internal
-         In the SDH firmware these enums are of type TGRIP
+         In the %SDH firmware these enums are of type TGRIP
     */
     enum eGraspId
     {
@@ -165,19 +165,25 @@ public:
     };
 
 
-    //! An enum for all possible SDH internal controller types
+    //! An enum for all possible %SDH internal controller types (order must match that in the %SDH firmware in inc/sdh2.h)
     enum eControllerType
     {
-        eCT_POSE = 0,     //!< position controller (position per axis => "pose controller")
+        eCT_INVALID = -1,          //!< invalid controller_type (needed for cSDHSerial::con() to indicate "read current controller type")
+        eCT_POSE = 0,              //!< coordinated position controller (position per axis => "pose controller"), all axes start and stop moving at the same time
+        eCT_VELOCITY,              //!< velocity controller, velocities of axes are controlled independently (not implemented in %SDH firmwares up to and including 0.0.2.5)
+        eCT_VELOCITY_ACCELERATION, //!< velocity controller with acceleration ramp, velocities and accelerations of axes are controlled independently (not implemented in %SDH firmwares up to and including 0.0.2.5)
+
+// TODO: not implemented yet
+//        eCT_POSITION,              //!< position controller, positions of axes are controlled independently  (not implemented in %SDH firmwares up to and including 0.0.2.5)
 
         eCT_DIMENSION         //!< Endmarker and dimension
     };
 
 
-    //! An enum for all possible SDH internal velocity profile types
+    //! An enum for all possible %SDH internal velocity profile types
     enum eVelocityProfile
     {
-        eVP_INVALID = -1,  //!< not a valid velocity profile, used to make #SDH::cSDHSerial::vp() read the velocity profile from the firmware
+        eVP_INVALID = -1,  //!< not a valid velocity profile, used to make #SDH::cSDHSerial::vp() read the velocity profile from the %SDH firmware
         eVP_SIN_SQUARE,    //!< sin square velocity profile
         eVP_RAMP,          //!< ramp velocity profile
 
@@ -232,19 +238,19 @@ public:
     static char const* GetStringFromControllerType( eControllerType controller_type );
 
 
-    //! Return the number of axes of the SDH
+    //! Return the number of axes of the %SDH
     int GetNumberOfAxes( void );
 
 
-    //! Return the number of fingers of the SDH
+    //! Return the number of fingers of the %SDH
     int GetNumberOfFingers( void );
 
 
-    //! Return the number of temperature sensors of the SDH
+    //! Return the number of temperature sensors of the %SDH
     int GetNumberOfTemperatureSensors( void );
 
 
-    //! Return the last known state of the SDH firmware
+    //! Return the last known state of the %SDH firmware
     eErrorCode GetFirmwareState( void );
 
 
@@ -256,7 +262,7 @@ public:
     cSimpleVector const & GetEpsVector( void );
 
 
-    //! Return true if connection to SDH firmware/hardware is open
+    //! Return true if connection to %SDH firmware/hardware is open
     virtual bool IsOpen( void ) = 0;
 
     //! change the stream to use for debug messages
@@ -268,6 +274,8 @@ protected:
     //! debug stream to print colored debug messages
     cDBG cdbg;
 
+    //! debug level of this object
+    int debug_level;
 
     //! A mapping from #eErrorCode error code enums to strings with human readable error messages
     static char const* firmware_error_codes[];
@@ -293,12 +301,12 @@ protected:
     //! Bit field with the bits for all axes set
     int all_axes_used;
 
-    //! the last known state of the SDH firmware
+    //! the last known state of the %SDH firmware
     eErrorCode firmware_state;
 
     /*!
       \brief epsilon value (max absolute deviation of reported values from actual hardware values)
-      (needed since firmware limits number of digits reported)
+      (needed since %SDH firmware limits number of digits reported)
     */
     double eps;
 
