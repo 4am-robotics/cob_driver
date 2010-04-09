@@ -2,7 +2,7 @@
 <launch>
 
   <!-- start all cameras -->
-  <node pkg="cob_camera_sensors" type="all_cameras" name="all_cameras" ns="camera" cwd="node" respawn="false" output="screen">
+  <node pkg="cob_camera_sensors" type="all_cameras" name="all_cameras" ns="" cwd="node" respawn="false" output="screen">
 	<param name="configuration_files" value="../../common/files/cob3-rack/"/>
 	<!-- Specifies the used color camera type -->
 	<!-- CAM_AVTPIKE or CAM_PROSILICA -->
