@@ -60,12 +60,17 @@
 
 // ROS includes
 #include <ros/ros.h>
+#include <actionlib/client/simple_action_client.h>
+#include <actionlib/client/terminal_state.h>
 
 // ROS message includes
-#include <cob_msgs/JointCommand.h>
+//#include <cob_msgs/JointCommand.h>
+#include <trajectory_msgs/JointTrajectory.h>
+#include <cob_actions/JointTrajectoryAction.h>
 
 // ROS service includes
-#include <cob_srvs/Init.h>
+#include <cob_srvs/Trigger.h>
+#include <cob_srvs/SetOperationMode.h>
 
 // external includes
 //--
@@ -95,7 +100,9 @@ int main(int argc, char** argv)
 	ros::NodeHandle n;
 
     // topics to publish
-    ros::Publisher topicPub_JointCommand = n.advertise<cob_msgs::JointCommand>("joint_commands", 1);
+//    ros::Publisher topicPub_JointCommand = n.advertise<cob_msgs::JointCommand>("joint_commands", 1);
+    ros::Publisher topicPub_JointCommand = n.advertise<trajectory_msgs::JointTrajectory>("command", 1);
+	actionlib::SimpleActionClient<cob_actions::JointTrajectoryAction> ac("JointTrajectory", true); 
         
 	// topics to subscribe, callback is called for new messages arriving
     //--
@@ -104,7 +111,9 @@ int main(int argc, char** argv)
     //--
         
     // service clients
-    ros::ServiceClient srvClient_Init = n.serviceClient<cob_srvs::Init>("Init");
+    ros::ServiceClient srvClient_Init = n.serviceClient<cob_srvs::Trigger>("Init");
+    ros::ServiceClient srvClient_Stop = n.serviceClient<cob_srvs::Trigger>("Stop");
+    ros::ServiceClient srvClient_SetOperationMode = n.serviceClient<cob_srvs::SetOperationMode>("SetOperationMode");
     
     // external code
 	bool srv_querry = false;
@@ -123,6 +132,51 @@ int main(int argc, char** argv)
 
         switch(c)
         {
+	        case 's':
+            {
+                cob_srvs::Trigger srv;
+                srv_querry = srvClient_Stop.call(srv);
+                srv_execute = srv.response.success;
+                srv_errorMessage = srv.response.errorMessage.data.c_str();
+              	break;
+            }
+
+	        case 'i':
+            {
+                cob_srvs::Init srv;
+                srv_querry = srvClient_Init.call(srv);
+                srv_execute = srv.response.success;
+                srv_errorMessage = srv.response.errorMessage.data.c_str();
+              	break;
+            }
+            
+            case 'M':
+            {
+                cob_srvs::SetOperationMode srv;
+                
+                std::cout << "Choose operation mode ([v] = velocity controll, [p] = position controll): ";
+                std::cin >> c;
+                if (c == 'v')
+                {
+                    srv.request.operationMode.data = "velocity";
+                }
+                else if (c == 'p')
+                {
+                    srv.request.operationMode.data = "position";
+                }
+                else
+                {
+                    srv.request.operationMode.data = "none";
+                }
+                ROS_INFO("changing operation mode to: %s controll", srv.request.operationMode.data.c_str());
+                
+                //ROS_INFO("querry service [cob3/arm/SetOperationMode]");
+                srv_querry = srvClient_SetOperationMode.call(srv);
+                srv_execute = srv.response.success;
+                srv_errorMessage = srv.response.errorMessage.data.c_str();
+                break;
+            }
+            
             case 'C':
             {
                 // create message
@@ -216,16 +270,6 @@ int main(int argc, char** argv)
                 srv_execute = 0;
             	srv_errorMessage = "no error";
                 break;
-            }
-            
-            case 'i':
-            {
-            	ROS_INFO("querry service [Init]");
-                cob_srvs::Init srv;
-                srv_querry = srvClient_Init.call(srv);
-                srv_execute = srv.response.success;
-                srv_errorMessage = srv.response.errorMessage.data.c_str();
-              	break;
             }
             
             case 'e':
