@@ -132,8 +132,8 @@ public:
 		cvNamedWindow("z data");		
 		cvNamedWindow("gray data");		
 
-		xyz_image_subscriber_ = image_transport_.subscribe("camera/xyz_tof_data", 1, &CobTofCameraViewerNode::xyzImageCallback, this);
-		grey_image_subscriber_ = image_transport_.subscribe("camera/grey_tof_data", 1, &CobTofCameraViewerNode::greyImageCallback, this);
+		xyz_image_subscriber_ = image_transport_.subscribe("image_xyz", 1, &CobTofCameraViewerNode::xyzImageCallback, this);
+		grey_image_subscriber_ = image_transport_.subscribe("image_grey", 1, &CobTofCameraViewerNode::greyImageCallback, this);
 
         if (use_opengl_)
         {

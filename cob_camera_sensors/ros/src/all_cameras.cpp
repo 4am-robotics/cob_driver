@@ -244,9 +244,9 @@ public:
 		}
 		if (tof_camera_)
 		{
-			grey_tof_image_publisher_ = image_transport_.advertiseCamera("grey_tof_data", 1);
-			xyz_tof_image_publisher_ = image_transport_.advertiseCamera("xyz_tof_data", 1);
-			tof_camera_info_service_ = node_handle_.advertiseService("tof_camera/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
+			grey_tof_image_publisher_ = image_transport_.advertiseCamera("middle/tof_camera_stream/image_grey", 1);
+			xyz_tof_image_publisher_ = image_transport_.advertiseCamera("middle/tof_camera_stream/image_xyz", 1);
+			tof_camera_info_service_ = node_handle_.advertiseService("middle/tof_camera/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
 		}
 	
 		return true;
