@@ -18,9 +18,9 @@
 
   \subsection sdhlibrary_cpp_serialbase_h_details SVN related, detailed file specific information:
   $LastChangedBy: Osswald2 $
-  $LastChangedDate: 2008-10-13 17:07:24 +0200 (Mo, 13 Okt 2008) $
+  $LastChangedDate: 2009-04-30 20:14:37 +0200 (Do, 30 Apr 2009) $
   \par SVN file revision:
-  $Id: serialbase.h 3686 2008-10-13 15:07:24Z Osswald2 $
+  $Id: serialbase.h 4340 2009-04-30 18:14:37Z Osswald2 $
 
   \subsection sdhlibrary_cpp_serialbase_h_changelog Changelog of this file:
   \include serialbase.h.log
@@ -45,6 +45,8 @@
 //----------------------------------------------------------------------
 
 #include "sdhexception.h"
+#include "dbg.h"
+#include "sdhbase.h" // for g_sdh_debug_log
 
 //----------------------------------------------------------------------
 // Defines, enums, unions, structs,
@@ -102,6 +104,18 @@ class cSerialBase
     double timeout;
 
  public:
+    //! ctor
+    cSerialBase()
+    : // init members
+        ungetch('\0'),
+        ungetch_valid(false),
+        // setting the timeout does not make sense here. should be left to virtual SetTimeout()
+        dbg( false, "yellow", g_sdh_debug_log )
+    {
+        // nothing more to do
+    }
+
+    //! dtor
     virtual ~cSerialBase( void )
     {
         // do nothing
@@ -174,8 +188,11 @@ class cSerialBase
       A pointer to the line read is returned.
 
     */
-    virtual char* readline( char* line, int size, char* eol = "\n", bool return_on_less_data = false )
+    virtual char* readline( char* line, int size, char const* eol = "\n", bool return_on_less_data = false )
         throw (cSerialBaseException*);
+
+    //! A stream object to print colored debug messages
+    cDBG dbg;
 };
 //======================================================================
 

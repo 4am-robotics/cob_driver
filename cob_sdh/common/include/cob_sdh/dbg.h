@@ -19,9 +19,9 @@
 *
 * \subsection sdhlibrary_cpp_dbg_h_details SVN related, detailed file specific information:
 * $LastChangedBy: Osswald2 $
-* $LastChangedDate: 2008-10-16 18:59:36 +0200 (Do, 16 Okt 2008) $
+* $LastChangedDate: 2009-08-31 15:46:47 +0200 (Mo, 31 Aug 2009) $
 * \par SVN file revision:
-* $Id: dbg.h 3722 2008-10-16 16:59:36Z Osswald2 $
+* $Id: dbg.h 4766 2009-08-31 13:46:47Z Osswald2 $
 *
 * \subsection sdhlibrary_cpp_dbg_h_changelog Changelog of this file:
 * \include dbg.h.log
@@ -31,7 +31,7 @@
 #ifndef DBG_h_
 #define DBG_h_
 
-#include <cob_sdh/sdhlibrary_settings.h>
+#include "sdhlibrary_settings.h"
 
 #if SDH_USE_VCC
 # pragma warning(disable : 4996)
@@ -43,8 +43,10 @@
 
 #include <iostream>
 #include <iomanip>
-#include <stdio.h>
 #include <stdarg.h>
+#include <cstring>    // needed in gcc-4.3 for prototypes like strcmp according to http://gcc.gnu.org/gcc-4.3/porting_to.html
+#include <stdlib.h>   // needed in gcc-4.3 for prototypes like getenv
+#include <cstdio>     // needed in gcc-4.4 (as reported by Hannes Saal)
 
 //----------------------------------------------------------------------
 // Project Includes - include with ""
@@ -110,8 +112,8 @@ NAMESPACE_SDH_START
 class cDBG
 {
 protected:
-    char*         debug_color;
-    char*         normal_color;
+    char const*   debug_color;
+    char const*   normal_color;
     std::ostream *output;
     bool          debug_flag;
 public:
@@ -124,7 +126,7 @@ public:
     * \param color - the name of the color to use, default is "red". Can be changed with SetColor()
     * \param fd    - the ostream to use for output, default is stderr. Can be changed with SetOutput()
     */
-    cDBG( bool flag=false, char* color="red", std::ostream *fd=&std::cerr )
+    cDBG( bool flag=false, char const* color="red", std::ostream *fd=&std::cerr )
     {
         debug_flag     = flag;
         SetColor( color );
@@ -162,7 +164,7 @@ public:
     * \attention
     * The string is \b NOT copied, just a pointer is stored
     */
-    void SetColor( char* color )
+    void SetColor( char const* color )
     {
         debug_color = GetColor( color );
         if ( !strcmp( debug_color, "" ) )
@@ -220,12 +222,19 @@ public:
     * - "black_back", "red_back", "green_back", "yellow_back", "blue_back", "cyan_back", "magenta_back", "white_back" for reverse color
     *
     * If the environment variable "SDH_NO_COLOR" is set then "" is returned.
+    * If the environment variable "OS" is WIN* or Win* and "OSTYPE" is not "cygwin"
+    * then "" is returned. (to prevent color output on windows consoles which cannot handle it).
     * If the color is not found in the list of known colors then the string "" is returned.
     */
-    char* GetColor( char* c )
+    char const* GetColor( char const* c )
     {
         char* sdh_no_color = getenv( "SDH_NO_COLOR" );
         if ( sdh_no_color != NULL )
+            return "";
+
+        char* os = getenv( "OS" );
+        char* ostype = getenv( "OSTYPE" );
+        if ( os && (!strncmp( os, "WIN", 3 ) || !strncmp( os, "Win", 3 )) && (! ostype || (ostype && strcmp( ostype, "cygwin" ))) )
             return "";
 
         if ( !strcmp( c, "normal" ) )       return "\x1b[0m";
@@ -259,7 +268,7 @@ public:
     * \endcode
     */
     template <typename T>
-    cDBG& operator<<( T v )
+    cDBG& operator<<( T const& v )
     {
         if (!debug_flag) return *this;
 
