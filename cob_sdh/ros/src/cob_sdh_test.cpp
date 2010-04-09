@@ -143,7 +143,7 @@ int main(int argc, char** argv)
 
 	        case 'i':
             {
-                cob_srvs::Init srv;
+                cob_srvs::Trigger srv;
                 srv_querry = srvClient_Init.call(srv);
                 srv_execute = srv.response.success;
                 srv_errorMessage = srv.response.errorMessage.data.c_str();
@@ -179,96 +179,64 @@ int main(int argc, char** argv)
             
             case 'C':
             {
-                // create message
-                cob_msgs::JointCommand msg;
-                msg.positions.resize(7);
-                
-                std::cout << "Choose preset target position ([0=parallel, 1=cyl_closed, 2=cyl_open, 3=sher_closed, 4=sher_open, 5=long time test]): ";
+            	ROS_INFO("Waiting for action server to start.");
+				// wait for the action server to start
+				ac.waitForServer(); //will wait for infinite time
+            	
+                std::cout << "Choose preset target positions/velocities ([0] = , [1] = , [2] = ): ";
                 std::cin >> c;
+                
+                int DOF = 7;
+                
+                // send a goal to the action 
+				cob_actions::JointTrajectoryGoal goal;
+				trajectory_msgs::JointTrajectory traj;
+				traj.header.stamp = ros::Time::now();
+				
                 if (c == '0')
                 {
-                    msg.positions[0] = 0;
-                    msg.positions[1] = 0;
-                    msg.positions[2] = 0;
-                    msg.positions[3] = 0;
-                    msg.positions[4] = 0;
-                    msg.positions[5] = 0;
-                    msg.positions[6] = 0;
+					traj.points.resize(1);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);
+					
+					// first point
+					// zero position
                 }
                 else if (c == '1')
                 {
-                    msg.positions[0] = 1;
-                    msg.positions[1] = 1;
-                    msg.positions[2] = 1;
-                    msg.positions[3] = 1;
-                    msg.positions[4] = 1;
-                    msg.positions[5] = 1;
-                    msg.positions[6] = 1;
-                }
+					traj.points.resize(1);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);                                    
+
+					// first point
+					traj.points[0].positions[0] = 0.1;
+					traj.points[0].positions[1] = 0.1;
+					traj.points[0].positions[2] = 0.1;
+					traj.points[0].positions[3] = 0.1;
+				}
                 else if (c == '2')
                 {
-                    msg.positions[0] = 2;
-                    msg.positions[1] = 2;
-                    msg.positions[2] = 2;
-                    msg.positions[3] = 2;
-                    msg.positions[4] = 2;
-                    msg.positions[5] = 2;
-                    msg.positions[6] = 2;
+					traj.points.resize(1);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);                                    
+
+					// first point
+					traj.points[0].positions[0] = 0.2;
+					traj.points[0].positions[1] = 0.2;
+					traj.points[0].positions[2] = 0.2;
+					traj.points[0].positions[3] = 0.2;
                 }
-                else if (c == '3')
-                {
-                    msg.positions[0] = 3;
-                    msg.positions[1] = 3;
-                    msg.positions[2] = 3;
-                    msg.positions[3] = 3;
-                    msg.positions[4] = 3;
-                    msg.positions[5] = 3;
-                    msg.positions[6] = 3;
-                }
-                else if (c == '4')
-                {
-                    msg.positions[0] = 4;
-                    msg.positions[1] = 4;
-                    msg.positions[2] = 4;
-                    msg.positions[3] = 4;
-                    msg.positions[4] = 4;
-                    msg.positions[5] = 4;
-                    msg.positions[6] = 4;
-                }
-				else if(c == '5')
-				{
-					for(;;) {
-						msg.positions[0] = 0;
-						msg.positions[1] = 0;
-						msg.positions[2] = 0;
-						msg.positions[3] = 0;
-						msg.positions[4] = 0;
-						msg.positions[5] = 0;
-						msg.positions[6] = 0;
-						topicPub_JointCommand.publish(msg);
-                        usleep(500000);
-						msg.positions[0] = 4;
-						msg.positions[1] = 4;
-						msg.positions[2] = 4;
-						msg.positions[3] = 4;
-						msg.positions[4] = 4;
-						msg.positions[5] = 4;
-						msg.positions[6] = 4;
-						topicPub_JointCommand.publish(msg);
-                        usleep(500000);
-					}
-				}
-				else
+                else
                 {
                     ROS_ERROR("invalid target");
                 }
-                
-                topicPub_JointCommand.publish(msg);
-                
-                std::cout << "ende" << std::endl;
+
+				goal.trajectory = traj;
+				ac.sendGoal(goal);
+            
+                std::cout << std::endl;
                 srv_querry = true;
                 srv_execute = 0;
-            	srv_errorMessage = "no error";
                 break;
             }
             

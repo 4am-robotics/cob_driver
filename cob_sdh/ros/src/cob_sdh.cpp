@@ -554,13 +554,13 @@ class NodeClass
 			    else if (operationMode == "velocity")
 			    {
 			    	ROS_DEBUG("moving sdh in velocity mode");
-			        //PCube->MoveVel(goal->trajectory.points[0].velocities);
+			        //sdh->MoveVel(goal->trajectory.points[0].velocities);
 			        ROS_WARN("Moving in velocity mode currently disabled");
 			    }
 			    else if (operationMode == "effort")
 			    {
 			    	ROS_DEBUG("moving sdh in effort mode");
-			        //PCube->MoveVel(goal->trajectory.points[0].velocities);
+			        //sdh->MoveVel(goal->trajectory.points[0].velocities);
 			        ROS_WARN("Moving in effort mode currently disabled");
 			    }
 			    else
