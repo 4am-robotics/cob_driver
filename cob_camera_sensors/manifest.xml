@@ -43,5 +43,6 @@
 
   <rosdep name="libdc1394"/>
   <rosdep name="libmesasr"/>
+   <rosdep name="glut"/>
 
 </package>

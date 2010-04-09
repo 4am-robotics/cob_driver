@@ -99,9 +99,9 @@ public:
           xyz_image_8U3_(0),
           grey_image_32F1_(0),
           grey_image_8U3_(0),
-					grey_image_counter_(0)
+		  		grey_image_counter_(0)
         {
-                /// Void
+					///Void
         }
 
 	/// Destructor.
@@ -110,11 +110,11 @@ public:
 		/// Do not release <code>m_GrayImage32F3</code>
 		/// Do not release <code>xyz_image_32F3_</code>
 		/// Image allocation is managed by Cv_Bridge object 
-                if (xyz_image_8U3_) cvReleaseImage(&xyz_image_8U3_);
-                if (grey_image_8U3_) cvReleaseImage(&grey_image_8U3_);
+			if (xyz_image_8U3_) cvReleaseImage(&xyz_image_8U3_);
+			if (grey_image_8U3_) cvReleaseImage(&grey_image_8U3_);
 
-		if(cvGetWindowHandle("z data"))cvDestroyWindow("z data");
-		if(cvGetWindowHandle("gray data"))cvDestroyWindow("gray data");
+			if(cvGetWindowHandle("z data"))cvDestroyWindow("z data");
+			if(cvGetWindowHandle("gray data"))cvDestroyWindow("gray data");
         }
 
 	/// initialize tof camera viewer.
@@ -150,8 +150,8 @@ public:
 			}
 
 			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1);
-			cvShowImage("gray data", grey_image_8U3_);
-			int c = cvWaitKey();
+			cvShowImage("grey data", grey_image_8U3_);
+			int c = cvWaitKey(50);
 			//ROS_INFO("%d,%c pressed", c, c);
 			if (c=='s' || c==536871027)
 			{
@@ -164,10 +164,6 @@ public:
 				cvSaveImage(ss.str().c_str(),grey_image_8U3_);
 				std::cout << "Image " << grey_image_counter_ << " saved." << std::endl;
 				grey_image_counter_++;
-			}
-			else if (c=='n')
-			{
-				ROS_INFO("Aquire new image");
 			}
 		}
 		catch (sensor_msgs::CvBridgeException& e)
@@ -183,6 +179,7 @@ public:
 	{
 		/// Do not release <code>xyz_image_32F3_</code>
 		/// Image allocation is managed by Cv_Bridge object 
+
 
 		try
 		{
@@ -216,6 +213,7 @@ int main(int argc, char** argv)
 
         /// Create camera node class instance   
         CobTofCameraViewerNode camera_viewer_node(nh);
+
 
         /// initialize camera node
         if (!camera_viewer_node.init()) return 0;
