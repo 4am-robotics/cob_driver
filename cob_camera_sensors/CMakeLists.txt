@@ -58,8 +58,8 @@ rosbuild_add_compile_flags(color_camera -D__LINUX__ -D__COB_ROS__)
 rosbuild_add_compile_flags(all_cameras -D__LINUX__ -D__COB_ROS__)
 
 # link libraries
-target_link_libraries(cob_camera_sensors dc1394 cv cxcore highgui mesasr Wm4Foundation cob_camera_sensors cob_vision_utils tinyxml)
-target_link_libraries(tof_camera cv cxcore highgui mesasr Wm4Foundation cob_camera_sensors cob_vision_utils tinyxml)
-target_link_libraries(tof_camera_viewer cv cxcore highgui Wm4Foundation cob_camera_sensors cob_vision_utils tinyxml)
-target_link_libraries(color_camera dc1394 cv cxcore highgui Wm4Foundation cob_camera_sensors cob_vision_utils tinyxml)
-target_link_libraries(all_cameras dc1394 cv cxcore highgui mesasr Wm4Foundation cob_camera_sensors cob_vision_utils tinyxml)
+target_link_libraries(cob_camera_sensors dc1394 mesasr)
+target_link_libraries(tof_camera cob_camera_sensors)
+target_link_libraries(tof_camera_viewer cob_camera_sensors)
+target_link_libraries(color_camera cob_camera_sensors)
+target_link_libraries(all_cameras cob_camera_sensors)
