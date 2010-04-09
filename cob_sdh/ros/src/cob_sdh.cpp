@@ -50,6 +50,8 @@
  *
  ****************************************************************/
 
+//#define USE_ESD
+
 //##################
 //#### includes ####
 
@@ -131,16 +133,19 @@ class NodeClass
 
 			// implementation of topics to subscribe
 
+#ifdef USE_ESD
+			n.param("sdhdevicetype", sdhdevicetype, std::string("ESD"));
+			n.param("sdhdevicestring", sdhdevicestring, std::string("/dev/can0"));
+#else
 			n.param("sdhdevicetype", sdhdevicetype, std::string("PEAK"));
-			//n.param("sdhdevicestring", sdhdevicestring, std::string("/dev/pcan%d"));
 			n.param("sdhdevicestring", sdhdevicestring, std::string("/dev/pcan0"));
+#endif
 			n.param("sdhdevicenum", sdhdevicenum, 0);
-			//n.param("dsadevicestring", dsadevicestring, std::string("/dev/pcan%d"));
 			n.param("dsadevicestring", dsadevicestring, std::string("/dev/ttyS0"));
 			n.param("dsadevicenum", dsadevicenum, 0);
 
 			// pointer to sdh
-			sdh = new SDH::cSDH(false, false, 2); //(_use_radians=false, bool _use_fahrenheit=false, int _debug_level=0)
+			sdh = new SDH::cSDH(false, false, 0); //(_use_radians=false, bool _use_fahrenheit=false, int _debug_level=0)
 
 			topicSub_JointCommand = n.subscribe("joint_commands", 1, &NodeClass::topicCallback_JointCommand, this);
 
@@ -205,7 +210,7 @@ class NodeClass
 			//TODO: read from parameter
 			//int _net=0;
 			unsigned long _baudrate=1000000;
-			double _timeout=0.1;
+			double _timeout=0.02;
 			unsigned long _id_read=43;
 			unsigned long _id_write=42;
 
@@ -245,6 +250,7 @@ class NodeClass
 			}
 			n.getParam("dsadevicestring", dsadevicestring);
 			n.getParam("dsadevicenum", dsadevicenum);
+			/*
 			try
 			{
 				dsa = new SDH::cDSA(0,dsadevicenum, dsadevicestring.c_str());
@@ -258,6 +264,7 @@ class NodeClass
 				ROS_ERROR("An exception was caught: %s", e->what());
 				delete e;
 			}
+			*/
 			return true;
 		}
 
