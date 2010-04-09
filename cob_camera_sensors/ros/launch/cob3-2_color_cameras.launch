@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <!--
 Runs a Prosilica camera in streaming mode.
 
@@ -11,17 +12,17 @@ You can uncomment the viewer if you want to view the image stream.
 <launch>
 
   <!-- The camera node -->
-  <node ns="camera/right" name="prosilica_driver" pkg="prosilica_camera" type="prosilica_node" output="screen">
+  <node ns="camera/right" name="color_camera" pkg="prosilica_camera" type="prosilica_node" output="screen">
     <param name="ip_address" type="str" value="169.254.47.10"/>
     <param name="trigger_mode" type="str" value="streaming"/>
-    <remap from="camera" to="" />
+    <!--remap from="camera" to="" /-->
     <!--include file="$(find prosilica_camera)/cam_settings.xml"/-->
   </node>
 
-  <node ns="camera/left" name="prosilica_driver" pkg="prosilica_camera" type="prosilica_node" output="screen">
+  <node ns="camera/left" name="color_camera" pkg="prosilica_camera" type="prosilica_node" output="screen">
     <param name="ip_address" type="str" value="169.254.236.139"/>
     <param name="trigger_mode" type="str" value="streaming"/>
-    <remap from="camera" to="" />
+    <!--remap from="camera" to="" /-->
     <!--include file="$(find prosilica_camera)/cam_settings.xml"/-->
   </node>
     <!--
