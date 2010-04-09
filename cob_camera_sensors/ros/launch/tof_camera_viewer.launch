@@ -4,7 +4,6 @@
   <!-- start left camera -->
   <node pkg="cob_camera_sensors" type="tof_camera_viewer" name="tof_camera_viewer" cwd="node" respawn="false" output="screen">
 	<!--remap from="/camera/xyz_tof_data" to="/xyz_tof_data_sync"/-->
-	<param name="use_opengl" type="bool" value="false"/>
   </node>
 
 </launch>

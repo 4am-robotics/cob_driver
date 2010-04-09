@@ -57,7 +57,6 @@
 #include <ros/ros.h>
 #include <cv_bridge/CvBridge.h>
 #include <image_transport/image_transport.h>
-#include <cob_vision_ipa_utils/PointCloudRenderer.h>
 
 // ROS message includes
 #include <sensor_msgs/Image.h>
@@ -89,21 +88,20 @@ private:
 	IplImage* grey_image_8U3_;	/// OpenCV image holding the transformed 8bit RGB amplitude values
 
 	int grey_image_counter_; 
-	bool use_opengl_;
 
 public:
 	/// Constructor.
 	/// @param node_handle Node handle instance
-        CobTofCameraViewerNode(const ros::NodeHandle& node_handle, bool use_opengl=false)
+        CobTofCameraViewerNode(const ros::NodeHandle& node_handle)
         : m_NodeHandle(node_handle),
           image_transport_(node_handle),
           xyz_image_32F3_(0),
           xyz_image_8U3_(0),
           grey_image_32F1_(0),
           grey_image_8U3_(0),
-		  grey_image_counter_(0)
+		  		grey_image_counter_(0)
         {
-        	use_opengl_ = use_opengl;
+					///Void
         }
 
 	/// Destructor.
@@ -117,10 +115,6 @@ public:
 
 			if(cvGetWindowHandle("z data"))cvDestroyWindow("z data");
 			if(cvGetWindowHandle("gray data"))cvDestroyWindow("gray data");
-			if (use_opengl_)
-			{
-				PointCloudRenderer::Exit();
-			}
         }
 
 	/// initialize tof camera viewer.
@@ -134,13 +128,6 @@ public:
 
 		xyz_image_subscriber_ = image_transport_.subscribe("image_xyz", 1, &CobTofCameraViewerNode::xyzImageCallback, this);
 		grey_image_subscriber_ = image_transport_.subscribe("image_grey", 1, &CobTofCameraViewerNode::greyImageCallback, this);
-
-        if (use_opengl_)
-        {
-        	PointCloudRenderer::Init();
-        	//PointCloudRenderer::SetKeyboardPointer(&m_GlKey);
-        	PointCloudRenderer::Run();
-        }
 
 		return true;
 	}
@@ -163,8 +150,8 @@ public:
 			}
 
 			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1);
-			cvShowImage("gray data", grey_image_8U3_);
-			int c = cvWaitKey();
+			cvShowImage("grey data", grey_image_8U3_);
+			int c = cvWaitKey(50);
 			if (c=='s')
 			{
 				std::stringstream ss;
@@ -208,10 +195,6 @@ public:
 
 			ipa_Utils::ConvertToShowImage(xyz_image_32F3_, xyz_image_8U3_, 3);
 			cvShowImage("z data", xyz_image_8U3_);
-			if(use_opengl_)
-			{
-				PointCloudRenderer::SetIplImage(xyz_image_32F3_temp);
-			}
 			/// Now, we can savely release the memory of the previous point cloud without
 			/// Disturbing the point cloud renderer
 			if (xyz_image_32F3_temp2)
@@ -238,11 +221,8 @@ int main(int argc, char** argv)
         /// Create a handle for this node, initialize node
         ros::NodeHandle nh;
 
-        bool use_opengl = false;
-        nh.getParam("/tof_camera_viewer/use_opengl", use_opengl);
-
         /// Create camera node class instance   
-        CobTofCameraViewerNode camera_viewer_node(nh, use_opengl);
+        CobTofCameraViewerNode camera_viewer_node(nh);
 
 
         /// initialize camera node
