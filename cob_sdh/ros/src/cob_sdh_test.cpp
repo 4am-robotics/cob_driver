@@ -56,6 +56,7 @@
 // standard includes
 //#include <string>
 //#include <sstream>
+#include <unistd.h>
 
 // ROS includes
 #include <ros/ros.h>
@@ -64,7 +65,7 @@
 #include <cob_msgs/JointCommand.h>
 
 // ROS service includes
-#include <cob_srvs/Trigger.h>
+#include <cob_srvs/Init.h>
 
 // external includes
 //--
@@ -103,7 +104,7 @@ int main(int argc, char** argv)
     //--
         
     // service clients
-    ros::ServiceClient srvClient_Init = n.serviceClient<cob_srvs::Trigger>("Init");
+    ros::ServiceClient srvClient_Init = n.serviceClient<cob_srvs::Init>("Init");
     
     // external code
 	bool srv_querry = false;
@@ -128,7 +129,7 @@ int main(int argc, char** argv)
                 cob_msgs::JointCommand msg;
                 msg.positions.resize(7);
                 
-                std::cout << "Choose preset target position ([0=parallel, 1=cyl_closed, 2=cyl_open, 3=sher_closed, 4=sher_open]): ";
+                std::cout << "Choose preset target position ([0=parallel, 1=cyl_closed, 2=cyl_open, 3=sher_closed, 4=sher_open, 5=long time test]): ";
                 std::cin >> c;
                 if (c == '0')
                 {
@@ -162,25 +163,48 @@ int main(int argc, char** argv)
                 }
                 else if (c == '3')
                 {
-                    msg.positions[0] = 0;
-                    msg.positions[1] = 0;
-                    msg.positions[2] = 0;
-                    msg.positions[3] = 0;
-                    msg.positions[4] = 0;
-                    msg.positions[5] = 0;
-                    msg.positions[6] = 0;
+                    msg.positions[0] = 3;
+                    msg.positions[1] = 3;
+                    msg.positions[2] = 3;
+                    msg.positions[3] = 3;
+                    msg.positions[4] = 3;
+                    msg.positions[5] = 3;
+                    msg.positions[6] = 3;
                 }
                 else if (c == '4')
                 {
-                    msg.positions[0] = 0;
-                    msg.positions[1] = 0;
-                    msg.positions[2] = 0;
-                    msg.positions[3] = 0;
-                    msg.positions[4] = 0;
-                    msg.positions[5] = 0;
-                    msg.positions[6] = 0;
+                    msg.positions[0] = 4;
+                    msg.positions[1] = 4;
+                    msg.positions[2] = 4;
+                    msg.positions[3] = 4;
+                    msg.positions[4] = 4;
+                    msg.positions[5] = 4;
+                    msg.positions[6] = 4;
                 }
-                else
+				else if(c == '5')
+				{
+					for(;;) {
+						msg.positions[0] = 0;
+						msg.positions[1] = 0;
+						msg.positions[2] = 0;
+						msg.positions[3] = 0;
+						msg.positions[4] = 0;
+						msg.positions[5] = 0;
+						msg.positions[6] = 0;
+						topicPub_JointCommand.publish(msg);
+                        usleep(500000);
+						msg.positions[0] = 4;
+						msg.positions[1] = 4;
+						msg.positions[2] = 4;
+						msg.positions[3] = 4;
+						msg.positions[4] = 4;
+						msg.positions[5] = 4;
+						msg.positions[6] = 4;
+						topicPub_JointCommand.publish(msg);
+                        usleep(500000);
+					}
+				}
+				else
                 {
                     ROS_ERROR("invalid target");
                 }
@@ -197,7 +221,7 @@ int main(int argc, char** argv)
             case 'i':
             {
             	ROS_INFO("querry service [Init]");
-                cob_srvs::Trigger srv;
+                cob_srvs::Init srv;
                 srv_querry = srvClient_Init.call(srv);
                 srv_execute = srv.response.success;
                 srv_errorMessage = srv.response.errorMessage.data.c_str();

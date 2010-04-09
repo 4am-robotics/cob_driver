@@ -18,9 +18,9 @@
 
     \subsection sdhlibrary_cpp_rs232_cygwin_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2008-10-08 10:48:38 +0200 (Mi, 08 Okt 2008) $
+      $LastChangedDate: 2009-08-31 15:46:47 +0200 (Mo, 31 Aug 2009) $
       \par SVN file revision:
-        $Id: rs232-cygwin.h 3659 2008-10-08 08:48:38Z Osswald2 $
+        $Id: rs232-cygwin.h 4766 2009-08-31 13:46:47Z Osswald2 $
 
   \subsection sdhlibrary_cpp_rs232_cygwin_h_changelog Changelog of this file:
       \include rs232-cygwin.h.log
@@ -34,6 +34,7 @@
 // System Includes - include with <>
 //----------------------------------------------------------------------
 
+#include <string>
 #include <termios.h>
 
 //----------------------------------------------------------------------
@@ -84,33 +85,38 @@ class cRS232 : public cSerialBase
 {
 
 protected:
-
     //! the RS232 portnumber to use
     int port;
+
+    //! the sprintf format string to generate the device name from the port, see Constructor
+    std::string device_format_string;
 
     //! the baudrate in bit/s
     unsigned long baudrate;
 
-  //! the file descriptor of the RS232 port
-  int fd;
+    //! the file descriptor of the RS232 port
+    int fd;
 
-  //! Translate a baudrate given as unsigned long into a baudrate code for struct termios
-  tcflag_t BaudrateToBaudrateCode( unsigned long baudrate )
-      throw (cRS232Exception*);
+    //! Translate a baudrate given as unsigned long into a baudrate code for struct termios
+    tcflag_t BaudrateToBaudrateCode( unsigned long baudrate )
+    throw (cRS232Exception*);
 
-  int status;
+    int status;
 
-  termios io_set_old;
+    termios io_set_old;
 
 public:
     /*!
-      Constructor: constructs an object to communicate with an SDH via RS232
+      Constructor: constructs an object to communicate with an %SDH via RS232
 
       \param _port     - rs232 device number: 0='COM1'='/dev/ttyS0', 1='COM2'='/dev/ttyS1', ...
       \param _baudrate - the baudrate in bit/s
       \param _timeout  - the timeout in seconds
+      \param _device_format_string - a format string (C string) for generating the device name, like "/dev/ttyS%d" (default) or "/dev/ttyUSB%d".
+                                     Must contain a %d where the port number should be inserted.
+                                     This char array is duplicated on construction
     */
-  cRS232( int _port, unsigned long _baudrate, double _timeout );
+  cRS232( int _port, unsigned long _baudrate, double _timeout, char const* _device_format_string = "/dev/ttyS%d" );
 
   /*!
       Open the device as configured by the parameters given to the constructor
@@ -148,7 +154,6 @@ public:
    */
   ssize_t Read( void *data, ssize_t size, long timeout_us, bool return_on_less_data )
       throw (cRS232Exception*);
-
 };
 //======================================================================
 

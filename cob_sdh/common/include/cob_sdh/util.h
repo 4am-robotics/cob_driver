@@ -18,9 +18,9 @@
 
     \subsection sdhlibrary_cpp_util_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2008-10-08 10:48:38 +0200 (Mi, 08 Okt 2008) $
+      $LastChangedDate: 2009-12-01 11:41:18 +0100 (Di, 01 Dez 2009) $
       \par SVN file revision:
-        $Id: util.h 3659 2008-10-08 08:48:38Z Osswald2 $
+        $Id: util.h 5000 2009-12-01 10:41:18Z Osswald2 $
 
   \subsection sdhlibrary_cpp_util_h_changelog Changelog of this file:
       \include util.h.log
@@ -45,6 +45,7 @@
 //----------------------------------------------------------------------
 
 #include "sdhlibrary_settings.h"
+#include "simplevector.h"
 
 //----------------------------------------------------------------------
 // Defines, enums, unions, structs,
@@ -57,9 +58,6 @@ NAMESPACE_SDH_START
 // Global variables
 //----------------------------------------------------------------------
 
-#ifndef M_PI
-static double M_PI = 4.0*atan(1.0);
-#endif
 
 //----------------------------------------------------------------------
 // Function declarations
@@ -79,6 +77,54 @@ static double M_PI = 4.0*atan(1.0);
   @{
 */
 //-----------------------------------------------------------------
+
+/*!
+ Just a macro for the very lazy programmer to convert an enum or a DEFINE macro
+ into a case command that returns the name of the macro as string.
+
+ Usage:
+ \code
+ char const* eSomeEnumType_ToString( eSomeEnumType rc )
+ {
+   switch (rc)
+   {
+   DEFINE_TO_CASECOMMAND( AN_ENUM );
+   DEFINE_TO_CASECOMMAND( AN_OTHER_ENUM );
+   ...
+   default:               return "unknown return code";
+   }
+ }
+ \endcode
+
+ \remark You must use the enum or macro directly (not a variable with that value) since CPP-stringification is used.
+
+ See also #DEFINE_TO_CASECOMMAND_MSG
+*/
+#define DEFINE_TO_CASECOMMAND( _c ) case _c: return (#_c)
+
+/*!
+ Just a macro for the very lazy programmer to convert an enum or a DEFINE macro
+ and a message into a case command that returns the name of the macro and the message as string.
+
+ Usage:
+ \code
+ char const* eSomeEnumType_ToString( eSomeEnumType rc )
+ {
+   switch (rc)
+   {
+   DEFINE_TO_CASECOMMAND_MSG( AN_ENUM, "some mighty descriptive message" );
+   DEFINE_TO_CASECOMMAND_MSG( AN_OTHER_ENUM, "guess what" );
+   ...
+   default:               return "unknown return code";
+   }
+ }
+ \endcode
+
+ \remark You must use the enum or macro directly (not a variable with that value) since CPP-stringification is used.
+
+ See also #DEFINE_TO_CASECOMMAND
+*/
+#define DEFINE_TO_CASECOMMAND_MSG( _c, ... ) case _c: return (#_c ": " __VA_ARGS__)
 
 /*!
     Return True if v is in range [0 .. max[
@@ -122,6 +168,14 @@ void ToRange( int n, double* v, double const* min, double const* max );
     This modifies \a v!
 */
 void ToRange( std::vector<double>& v, std::vector<double> const& min, std::vector<double> const& max );
+
+
+/*!
+    Limit each v_i in v to range [min_i..max_i] with
+    min = (min1, min2,...) max = (max1, max2, ..)
+    This modifies \a v!
+*/
+void ToRange( cSimpleVector& v, std::vector<double> const& min, std::vector<double> const& max );
 
 
 /*!
@@ -229,14 +283,14 @@ Tp map(Function f, Tp sequence)
  *
  * \attention
  * If you use the SDH namespace then you should be aware that using this overloaded insertion operator can get tricky:
- * - If you use a "using namespace SDH" directive then things are easy and intuitive:
+ * - If you use a \c using \c namespace \c %SDH directive then things are easy and intuitive:
  *   \code
  *     #include <sdh/util.h>
  *     using namespace SDH;
  *     std::vector<int> v;
  *     std::cout << "this is a std::vector: " << v << "\n";
  *   \endcode
- * - But without the \c using \c namespace \c SDH accessing the operator is tricky,
+ * - But without the \c using \c namespace \c %SDH accessing the operator is tricky,
  *   you have to use the 'functional' access \c operator<<(s,v) in order to be
  *   able to apply the scope resolution operator \c :: correctly:
  *   \code
@@ -254,9 +308,9 @@ Tp map(Function f, Tp sequence)
  *
  */
 template<typename T>
-std::ostream& operator<<(std::ostream& stream, std::vector<T> v)
+std::ostream& operator<<(std::ostream& stream, std::vector<T> const& v)
 {
-    char* sep = "";
+    char const* sep = "";
 
     typename std::vector<T>::const_iterator it;
     for ( it = v.begin();
@@ -271,6 +325,8 @@ std::ostream& operator<<(std::ostream& stream, std::vector<T> v)
 }
 //----------------------------------------------------------------------
 
+//! compare release strings
+int CompareReleases( char const* rev1, char const* rev2 );
 
 //! @}   // end of doxygen name group sdhlibrary_cpp_util_h_auxiliary
 
