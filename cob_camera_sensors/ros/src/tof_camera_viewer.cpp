@@ -149,8 +149,26 @@ public:
 				grey_image_8U3_ = cvCreateImage(cvGetSize(grey_image_32F1_), IPL_DEPTH_8U, 3);
 			}
 
-			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1, 0, 700);
+			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1);
 			cvShowImage("gray data", grey_image_8U3_);
+			int c = cvWaitKey();
+			//ROS_INFO("%d,%c pressed", c, c);
+			if (c=='s' || c==536871027)
+			{
+				std::stringstream ss;
+				char counterBuffer [50];
+				sprintf(counterBuffer, "%04d", grey_image_counter_);
+				ss << "greyImage8U3_";
+				ss << counterBuffer;
+				ss << ".bmp";
+				cvSaveImage(ss.str().c_str(),grey_image_8U3_);
+				std::cout << "Image " << grey_image_counter_ << " saved." << std::endl;
+				grey_image_counter_++;
+			}
+			else if (c=='n')
+			{
+				ROS_INFO("Aquire new image");
+			}
 		}
 		catch (sensor_msgs::CvBridgeException& e)
 		{
@@ -177,19 +195,6 @@ public:
 
 			ipa_Utils::ConvertToShowImage(xyz_image_32F3_, xyz_image_8U3_, 3);
 			cvShowImage("z data", xyz_image_8U3_);
-			int c = cvWaitKey(50);
-			if (c=='s' || c==536871027)
-			{
-				std::stringstream ss;
-				char counterBuffer [50];
-				sprintf(counterBuffer, "%04d", grey_image_counter_);
-				ss << "greyImage8U3_";
-				ss << counterBuffer;
-				ss << ".bmp";
-				cvSaveImage(ss.str().c_str(),grey_image_8U3_);
-				std::cout << "Image " << grey_image_counter_ << " saved." << std::endl;
-				grey_image_counter_++;
-			}
 		}
 		catch (sensor_msgs::CvBridgeException& e)
 		{
