@@ -18,9 +18,9 @@
 
     \subsection sdhlibrary_cpp_simplestirnglist_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2008-10-08 10:48:38 +0200 (Mi, 08 Okt 2008) $
+      $LastChangedDate: 2009-08-31 15:46:47 +0200 (Mo, 31 Aug 2009) $
       \par SVN file revision:
-        $Id: simplestringlist.h 3659 2008-10-08 08:48:38Z Osswald2 $
+        $Id: simplestringlist.h 4766 2009-08-31 13:46:47Z Osswald2 $
 
   \subsection sdhlibrary_cpp_simplestirnglist_h_changelog Changelog of this file:
       \include simplestringlist.h.log
@@ -104,6 +104,13 @@ public:
     */
     char* operator[]( int index );
 
+    //! return ptr to line with index.
+    /*!
+      if index < 0 then the numbering starts from the end,
+      thus [-1] gives the last line, [-2] the next to last, ...
+    */
+    char const* operator[]( int index ) const;
+
 
     //! reset list
     void Reset();
@@ -117,7 +124,7 @@ protected:
 
 
 //! Output of cSimpleStringList objects in 'normal' output streams.
-std::ostream& operator<<( std::ostream& stream, cSimpleStringList& ssl );
+std::ostream& operator<<( std::ostream& stream, cSimpleStringList const& ssl );
 
 
 //-----------------------------------------------------------------

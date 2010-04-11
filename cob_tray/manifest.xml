@@ -1,0 +1,15 @@
+<package>
+  <description brief="cob_tray">
+
+     cob_tray
+
+  </description>
+  <author>fmw</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_tray</url>
+  <depend package="cob_powercube_chain"/>
+
+</package>
+
+

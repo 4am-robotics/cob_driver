@@ -23,9 +23,9 @@
 
     \subsection sdhlibrary_cpp_release_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2008-10-17 10:56:55 +0200 (Fr, 17 Okt 2008) $
+      $LastChangedDate: 2010-03-05 10:00:43 +0100 (Fr, 05 Mrz 2010) $
       \par SVN file revision:
-        $Id: release.h 3725 2008-10-17 08:56:55Z Osswald2 $
+        $Id: release.h 5355 2010-03-05 09:00:43Z Osswald2 $
 
   \subsection sdhlibrary_cpp_release_h_changelog Changelog of this file:
       \include release.h.log
@@ -39,7 +39,7 @@
 //! Name of the software project.
 /*!
     \anchor project_name_sdhlibrary_cpp
-    The name of the "SDHLibrary-CPP" (C Library for accessing SDH from a PC) project.
+    The name of the "SDHLibrary-CPP" (C Library for accessing %SDH from a PC) project.
 
     \internal
     \remark
@@ -53,18 +53,164 @@
 //! Release name of the whole software project (a.k.a. as the \e "version" of the project).
 /*!
     \anchor project_release_sdhlibrary_cpp
-    The release name of the "SDHLibrary-CPP" project.
+    The release name of the "SDHLibrary-CPP" project. The doxygen comment below
+    contains the changelog of the project.
 
     A suffix of "-dev" indicates a work in progress, i.e. a not yet finished release.
     A suffix of "-a", "-b", ... indicates a bugfix release.
 
     From newest to oldest the releases have the following names and features:
+    - \b 0.0.1.15: (2010-03-05)
+       - enhancement: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=482"> Bug 482: add support for adjusting sensitivity and threshold in SDHLibrary-CPP"</a>
+         - added cDSA.SetMatrixSensitivity() cDSA.GetMatrixSensitivity() cDSA.SetMatrixThreshold() cDSA.GetMatrixThreshold()
+         - the sensitivity and the threshold can now be changed and saved temporarily or persistently to configuration memory of the DSACON32m
+         - added command line options to demo-dsa to adjust matrix sensitivity and threshold (needs DSACON32m Firmware >= R268)
+
+    - \b 0.0.1.14: (2010-02-19)
+      - added doucmentation file SDH2_exchanging_tactile_sensors.pdf to distribution
+      - added doucmentation file SDH2_wiring_test_board.pdf to distribution
+      - added doucmentation file SDH training.pdf to distribution
+      - updated doucmentation file SDH2_configuration-and-update.pdf
+
+    - \b 0.0.1.13: (2010-02-02)
+      - bugfix (firmware 0.0.2.10): <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=630">Bug 630: Bug: setting of pid parameters does not work</a>
+
+    - \b 0.0.1.12: (2009-12-04)
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=575">Bug 575: grip related commands do not work properly</a>
+        - the actual answers for selgrip/grip from the SDH were different from the expected ones in sdhserial
+        - there was a problem with the read ahead data in readline in serialbase
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=470">Bug 470: made demo-contact-grasping.cpp actually work</a>
+
+    - \b 0.0.1.11: (2009-12-01)
+      - added support for CAN devices from PEAK, kindly provided by Steffen Ruehl and Zhixing Xue
+        - this caused some changes and additions in the command line option handling
+        - made the "Linux-only" PEAK port work on Windows as well
+      - fixed bug in both ESD and PEAK CAN support that might prevent proper access to several
+        SDHs on same CAN interface from the same process. (Problem was static data in communication classes)
+      - added online help of demonstration programs to doxygen documentation
+      - changed Makefile to use 'uname' instead of unreliable OSTYPE to determine OSNAME
+      - added demo-contact-grasping to show how to do very basic reactive grasping
+        (using boost::threads to evaluate tactile sensor data concurrently)
+      - added demo-mimic to show how to access 2 SDHs, one mimicing the movements of the other
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=561">Bug 561: SDHLibray does not compile with VCC</a>
+        - the pragma pack was not used correctly, i.e. packing was not reset to normal after the structs to pack tightly
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=568"> Bug 568: option -M causes segfault on demo-dsa</a>
+      - enhancement: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=480">Bug 480: Include DSACON32 firmware within distribution</a>
+
+    - \b 0.0.1.10: (unofficial release 2009-10-05)
+      - added troubleshooting section to the CD contents in troubleshooting.html
+      - corrected checking of environment variable "OS" for the automatic disabling
+        of the use of color in output. OS is "WINNT" on German windows XP,
+        but "Windows_NT" on US-english Windows XP... Phhh
+      - while fixing <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=452">Bug 452: current demo-gui.py fails when connected to an old SDH v0.0.2.0</a>
+        added firmware version specific code to make cSDH::GetAxisLimitVelocity() and cSDH::GetAxisLimitAcceleration() work on older firmwares
+      - made all operator<< receive a const reference as parameter. This should improve performance especially for the cDBG::operator<<
+      - bugfix: trying to connect to the tactile sensors of an SDH that is missing or switched off caused an infinite retry loop
+      - Bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=351">Bug 351: make does not work recursively</a>
+        reopend and fixed again since still had problems on Linux where the shell command "test" or "[]" is somewhat picky about comparing strings ("==" is not understood)
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=471">Bug 471: Incorporate feedback for 64 bit compatibility</a>
+        changes to make compilation work on 64 bit systems according to feedback from Niklas Bergström.
+      - enhancement: Added possibility to set the RS232 device name format string (e.g. to use /dev/ttyUSB%d like devices)
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=469">Bug 469: make clean funktioniert unter Linux nicht</a>
+      - enhancement: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=472"> Bug 472: Objects of type cDSA should be able to recover from power cycling</a>
+        There is now a cDSA::Open() member to reopen the connection to the DSA controller after a failure
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=478>Bug 478: Online help of C++ demo programs is incorrect</a>
+      - modified Makefile-doc, Makefile, Doxyfile to be able to use target specific variables to exclude/include files from documentation depending on whether internal or external docu is generated
+
+
+    - \b 0.0.1.9: 2009-06-17
+      - added missing includes of cstdio for gcc-4.4 as reported by Hannes Saal.
+      - while adding webcheck to check the generated html files:
+        - corrected settings in Doxyfile so that tagfiles not available for customer are no longer used in distribution
+        - corrected broken/missing links in the distribution html files according to webcheck
+      - added forgotten demo-velocity-acceleration project for VCC
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=433"> Bug 433: Invalid negative velocities remain set when switching from speed based controllers back to pose controller</a>
+        Adjusted documentation for SetController() accordingly
+      - adjusted Library for new behaviour of firmware 0.0.2.7 in eCT_VELOCITY_ACCELERATION controller type:
+        - acceleration must no longer be given with correct sign. The sign of the acceleration
+          is now determined automatically from the signs and magniturdes of the current reference velocity and the target velocity
+        - Adjusted WaitAxis() since the state is now reported correctly by the firmware, even if in a speed based controller mode
+        - adjusted doxygen documentation and demo-velocity-acceleration.cpp
+        - current controller_type is now cached in cSDH object
+        - Now using the same acceleration limits as the firmware
+      - Date of library is now reported as well for option -v in the demo programs
+      - corrected doxygen description of GetTemperature()
+      - enhancement: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=442">Bug 442: acceleration limits cannot be queried from the firmware</a>
+        - added new commands to read acceleration limits from firmware
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=432">Bug 432: temperature output does not respect the -F Fahrenheit switch from the comand line</a>
+      - enhancement: updated / corrected doxygen comments
+        - updated known bugs
+        - guarded text "SDH" with "%SDH" in doxygen comments to prevent doxygen from auto-linking to SDH namespaceup
+
+    - \b 0.0.1.8: 2009-05-18
+      - enhancement: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=263">Enhancement 263: Provide access to speed controller of %SDH joints</a>
+        - provide access to the 2 additional controller types eCT_VELOCITY and eCT_VELOCITY_ACCELERATION which are provided by the firmware 0.0.2.6
+        - added new command cSDH.GetAxisReferenceVelocity() to access the internal reference velocity of the eCT_VELOCITY_ACCELERATION controller type
+        - added new demonstration script demo-velocity-acceleration.cpp
+        - the allowed lower limits for velocity and acceleration now have to be adjusted when the controller type changes.
+      - enhancement <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=384"> Enhancement 384: Make doxygen documentation match for SDHLibrary-CPP and SDHLibrary-python</a>
+        - added group with all demonstration programs
+        - included description of all known bugs
+
+    - \b 0.0.1.7: 2009-05-05
+      - Enhancement: added CAD Datafiles to distribution CD
+      - Bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=341">Bug 341: new gcc-4.x capable Makefile does not work in Linux</a>
+        Linux gcc does not know option --enable-auto-import, added cygwin specific code to Makefile
+      - Bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=351">Bug 351: make does not work recursively</a>
+        building the library did not work in one go since make did not work recursively due to errors in Makefile-subdir
+        PIPESTATUS was used which is an automatic variable of the bash shell.
+        So if another shell is used then PIPESTATUS cannot be used to determine if the
+        recursively called make succeded. Therefore we now export PIPESTATUS="0" (which
+        means 'true' for shells) to keep make going on non bash shells.
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=342"> Bug 342: RS232 communication does not work any more when compiled with MS-Visual Studio on Windows</a>
+        Resolved, parameters like bits per byte were not set explicitly, so the code worked with some interfaces only, depending on the default settings of the interface
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=361"> Bug 361: No proper RS232 communication in C++ version of SDHLibrary</a>
+        Resolved, timeout handling improved
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=364"> Bug 364: Remove ancient, no current stuff from the distribution; Separate build target into build_lib build_demo (and build_test)</a>
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=366"> Bug 366: demo-dsa.exe does not respect --debuglog</a>
+      - bugfix: corrected output of internal datatypes memebers of type UInt8. These are now printed as hex instead of as char
+      - enhancement: debug outputs of low level communication in rs232-cygwin.cpp and rs232-vcc.cpp can be
+        included / excluded at compile time using the SDH_RS232_CYGWIN_DEBUG / SDH_RS232_VCC_DEBUG macros.
+        If included the debug messages can be enabled / disabled at runtime with the usual -d LEVEL parameter. (Level 4 is needed for these in the demos)
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=372"> Bug 372: Disabled colored debug output on windows consoles</a> for better readability
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=370"> Bug 370: First call to demo-dsa after powering SDH fails </a>
+        The problem is related to the tactile sensor controller DSACON32m within the
+        %SDH. This controller needs approximately 8 seconds to "boot" up, and during
+        that time it will not answer to requests from the SDHLibrary. Unfortunately the
+        timeout mechanism of the SDHLibrary for Windows also had a bug which
+        then made it wait forever for answers that would never come.
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=373">Bug 373: EmergencyStop did not work</a>
+        Fixed (copy & paste error while porting from python to C++)
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=379">Bug 379: invalid command line parameters cause segv in demo-dsa</a>
+        Fixed, missing ':' in option definition string
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=386">Bug 386: demo-simple2.cpp does not behave as expected</a>
+        Fixed, some code was commented out
+      - velocity and acceleration for virtual axis is no longer limited to [0..0], since that makes SetAxisTargetVelocity( All, x ) and SetAxisTargetAcceleration( All, x ) invalid for all x != 0.0
+
+    - \b 0.0.1.6:
+      - extracted generation of distribution stuff from Makefile to Makefile-dist (since not needed by customer)
+      - corrected use of CC and CPPC variables in Makefiles. Now these can be set from the environment. Needed to test compilation with alternative compilers like gcc-4.x instead of std gcc-3.x
+      - corrected copy & paste errors in doxygen comments of cSDH::GetAxisMaxVelocity()
+      - Bugfix <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=333">Bug 333: Invalid default parameters and documentation for OpenESD_CAN</a>
+        Mix-up of hex and dec representation of the default IDs used for CAN communication
+      - made compilation work without errors and warnings with gcc-4.3.2:
+        - added additional includes like "cstring"
+        - changed many char* to char const* to get rid of deprecation warnings
+      - changed generation of distribution:
+        - modified Doxyfile is now included so that user can generate documentation by himself
+        - doc target is no longer a subtarget of all target in distributed Makefile (user will most likely not want to regenerate the docu)
+      - updated links to misc packages and Weiss documentation in index-overview.html in distribution
+
+    - \b 0.0.1.5: 2009-02-11
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=322">Bug 322: AxisTargetVelocity cannot be set higher than 100 deg/s</a>
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=323">Bug 323: SDHLibrary exceptions not deleted correctly when caught and handled</a>
+      - enhancement: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=315">Enhancement 315: Add documentation files to distribution</a>
 
     - \b 0.0.1.4:
-      - bufix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=267">Bug 267: SDHlib cannot be compiled on Linux</a>
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=267">Bug 267: SDHlib cannot be compiled on Linux</a>
 
     - \b 0.0.1.3: 2008-10-16
-      - bufix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=266">Bug 266: demo-dsa does not work in the VCC version</a>
+      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=266">Bug 266: demo-dsa does not work in the VCC version</a>
 
     - \b 0.0.1.2: 2008-10-14
       - bugfix: target cancat is now only added in the Makefile if WITH_ESD_CAN is 1
@@ -134,7 +280,7 @@
         - sdhlibrary_defines with compatibility macros
         - pragmas for VCC
         - _attribute_ are switched off for VCC
-        - all SDH specific classes can be put in a namespace called "SDH"
+        - all %SDH specific classes can be put in a namespace called "SDH"
       - added index-overview.html with overview of distributed files
       - index.html files in distribution are parsed for ${PROJECT_*}
 
@@ -193,11 +339,11 @@
 
     - \b 0.0.0.3-a: 2007-06-05
       - Release modified according to bug report from Martin Huelse
-        - A cSDH object could be opened successfully even if no SDH was
+        - A cSDH object could be opened successfully even if no %SDH was
           connected or was connected but not powered:
           - added demo-test program to verify erroneous / repaired behaviour
           - added SetTimeout and GetTimeout to cRS232 class
-          - made the code to verify proper connection to SDH work
+          - made the code to verify proper connection to %SDH work
         - Exceptions could not be caught properly:
           - corrected some real printf-style format string related
             problems in creations of exceptions
@@ -249,14 +395,14 @@
       - As release name/number of the project within the generated documentation.
       - As part of the name of the generated install directory and pdf files.
  */
-#define PROJECT_RELEASE "0.0.1.3"
+#define PROJECT_RELEASE "0.0.1.15"
 
 //! Date of the release of the software project.
 /*!
     \anchor project_date_sdhlibrary_cpp
     The date of the release of the project.
 */
-#define PROJECT_DATE "2008-10-16"
+#define PROJECT_DATE "2010-03-05"
 
 #define PROJECT_COPYRIGHT "(c) SCHUNK GmbH & Co. KG, 2007"
 

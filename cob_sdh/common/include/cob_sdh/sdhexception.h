@@ -18,9 +18,9 @@
 
     \subsection sdhlibrary_cpp_sdhexception_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2008-10-13 17:07:24 +0200 (Mo, 13 Okt 2008) $
+      $LastChangedDate: 2009-06-17 10:55:45 +0200 (Mi, 17 Jun 2009) $
       \par SVN file revision:
-        $Id: sdhexception.h 3686 2008-10-13 15:07:24Z Osswald2 $
+        $Id: sdhexception.h 4605 2009-06-17 08:55:45Z Osswald2 $
 
   \subsection sdhlibrary_cpp_sdhexception_h_changelog Changelog of this file:
       \include sdhexception.h.log
@@ -37,6 +37,7 @@
 #include <iostream>
 #include <exception>
 #include <stdarg.h>
+#include <cstdio>     // needed in gcc-4.4 (as reported by Hannes Saal)
 
 //----------------------------------------------------------------------
 // Project Includes - include with ""
@@ -200,7 +201,7 @@ public:
 //----------------------------------------------------------------------
 
 /*!
-   \brief Derived exception class for exceptions related to communication between the SDHLibrary and the SDH.
+   \brief Derived exception class for exceptions related to communication between the SDHLibrary and the %SDH.
 */
 class cSDHErrorCommunication: public cSDHLibraryException
 {
