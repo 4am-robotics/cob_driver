@@ -1338,10 +1338,9 @@ void CanCtrlPltfCOb3::configureElmoRecorder(int iRecordingGap)
 bool CanCtrlPltfCOb3::printElmoRecordings(std::string LogDirectory) {
     m_Mutex.lock();
     
-    recData *dataOut;
-    m_vpMotor[1]->collectRecordedData(0, &dataOut); //Motor 1 -> steering motor
+    m_vpMotor[1]->setRecorder(0); //Motor 1 -> steering motor
 
-    while(m_vpMotor[1]->collectRecordedData(1, &dataOut) == false) {
+    while(m_vpMotor[1]->setRecorder(1) == false) {
         usleep(1000);
     }
 
