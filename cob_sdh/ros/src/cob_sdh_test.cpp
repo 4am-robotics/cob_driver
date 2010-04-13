@@ -177,6 +177,94 @@ int main(int argc, char** argv)
                 break;
             }
             
+            case 'O':
+            {
+				ROS_INFO("called O");
+				ROS_INFO("Waiting for action server to start.");
+				// wait for the action server to start
+				//ac.waitForServer(); //will wait for infinite time
+				cob_actions::JointTrajectoryGoal goal;
+				
+				XmlRpc::XmlRpcValue traj_param;
+				trajectory_msgs::JointTrajectory traj;
+				
+				if (n.hasParam("traj"))
+				{
+					n.getParam("traj", traj_param);
+				}
+				else
+				{
+					ROS_ERROR("Parameter traj not set");
+				}
+				std::cout << traj_param <<std::endl;
+				
+				int i;
+				std::cout << "Choose trajectory number :";
+                std::cin >> i;
+				
+				ROS_INFO("traj %d of %d",i,traj_param.size());
+				traj.points.resize(traj_param[i].size());
+				for (int j = 0; j<traj_param[i].size(); j++ ) // j-th point
+				{
+					ROS_INFO("   point %d of %d",j,traj_param[i].size());
+					traj.points[j].positions.resize(traj_param[i][j][0].size());
+					traj.points[j].velocities.resize(traj_param[i][j][1].size());
+					for (int k = 0; k<traj_param[i][j][0].size(); k++ ) // k-th value of pos
+					{
+						ROS_INFO("      pos value %d of %d = %f",k,traj_param[i][j][0].size(),(double)traj_param[i][j][0][k]);
+						ROS_INFO("      vel value %d of %d = %f",k,traj_param[i][j][1].size(),(double)traj_param[i][j][1][k]);
+						traj.points[j].positions[k] = (double)traj_param[i][j][0][k];
+						traj.points[j].velocities[k] = (double)traj_param[i][j][1][k];
+					}
+				}
+				
+				goal.trajectory = traj;
+				ac.sendGoal(goal);
+				
+				ROS_WARN("end");
+                std::cout << std::endl;
+                srv_querry = true;
+                srv_execute = 0;
+                break;
+            }
+            
+			case 'P':
+            {
+				ROS_INFO("called P");
+				
+				XmlRpc::XmlRpcValue pos_param;
+				std::vector<double> pos;
+				
+				if (n.hasParam("traj1/point0/pos"))
+				{
+					n.getParam("traj1/point0/pos", pos_param);
+				}
+				else
+				{
+					ROS_ERROR("Parameter traj1/point0/pos not set");
+				}
+				
+				std::cout << pos_param <<std::endl;
+				
+				ROS_INFO("got pos with DOF = %d",pos_param.size());
+				pos.resize(pos_param.size());
+				
+				ROS_INFO("point0");
+				std::cout << pos_param.size() <<std::endl;
+				ROS_INFO("point1");
+
+				for (int i = 0; i<pos_param.size(); i++ )
+				{
+					pos[i] = (double)pos_param[i];
+					std::cout << pos_param[i] << std::endl;
+				}
+
+                std::cout << std::endl;
+                srv_querry = true;
+                srv_execute = 0;
+                break;
+            }
+            
             case 'C':
             {
             	ROS_INFO("Waiting for action server to start.");

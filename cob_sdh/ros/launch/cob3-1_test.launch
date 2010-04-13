@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- send parameters to parameter server -->
+  <rosparam command="load" ns="sdh" file="$(find cob_sdh)/ros/launch/cob3-1_test.yaml"/>
+
+  <!-- start powercube_chain -->
+  <node pkg="cob_sdh" type="cob_sdh_test" name="sdh_test" ns="sdh" cwd="node" respawn="false" output="screen" />
+
+</launch>
