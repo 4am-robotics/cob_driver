@@ -6,7 +6,7 @@
 // author: Oliver Barth, Winfried Baum, Jens Kubacki
 //-----------------------------------------------
 //#include "stdafx.h"
-#include "CanESD.h"
+#include <cob_forcetorque/CanESD.h>
 
 
 //-----------------------------------------------

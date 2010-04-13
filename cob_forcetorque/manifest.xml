@@ -9,6 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_forcetorque</url>
   <depend package="roscpp"/>
+  <depend package="eigen"/>
 
 </package>
 

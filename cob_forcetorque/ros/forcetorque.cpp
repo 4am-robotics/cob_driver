@@ -2,8 +2,8 @@
 typedef unsigned char uint8_t;
 #include <inttypes.h>
 #include <iostream>
-#include "ForceTorqueCtrl.h"
-#include "UDPSocketASIO.h"
+#include <cob_forcetorque/ForceTorqueCtrl.h>
+#include <cob_forcetorque/UDPSocketASIO.h>
 
 #include <math.h>
 #include <iostream>

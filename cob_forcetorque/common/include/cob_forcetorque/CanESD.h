@@ -26,10 +26,10 @@
 #include <iostream>
 #include <cstdio>
 #include <errno.h>
-#include "CanItf.h"
+#include <cob_forcetorque/CanItf.h>
 #include <ntcan.h>
 //#include <Neobotix/Utilities/IniFile.h>
-#include "Mutex.h"
+#include <cob_forcetorque/Mutex.h>
 
 //-----------------------------------------------
 /**

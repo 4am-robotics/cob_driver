@@ -8,7 +8,7 @@
 
 //#include "stdafx.h"
 
-#include "TimeStamp.h"
+#include <cob_forcetorque/TimeStamp.h>
 
 using namespace Neobotix;
 
@@ -113,7 +113,7 @@ void TimeStamp::setTimeStamp(const long& lSeconds, const long& lNanoSeconds)
 	m_TimeStamp.tv_sec = lSeconds;
 	m_TimeStamp.tv_nsec = lNanoSeconds;
 };
-
+/*
 std::string TimeStamp::CurrentToString()
 {
 # define TIME_SIZE 400
@@ -136,8 +136,9 @@ std::string TimeStamp::CurrentToString()
 	
 	return s;
 # undef TIME_SIZE
-}
+}*/
 
+/*
 std::string TimeStamp::ToString()
 {
 # define TIME_SIZE 4000
@@ -159,4 +160,4 @@ std::string TimeStamp::ToString()
 	
 	return s;
 # undef TIME_SIZE
-}
+}a*/

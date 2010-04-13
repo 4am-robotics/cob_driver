@@ -1,4 +1,4 @@
-#include "ForceTorqueCtrl.h"
+#include <cob_forcetorque/ForceTorqueCtrl.h>
 #include <unistd.h>
 
 ForceTorqueCtrl::ForceTorqueCtrl()

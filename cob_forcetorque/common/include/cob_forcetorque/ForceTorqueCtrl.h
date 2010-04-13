@@ -3,7 +3,8 @@
 
 #include <iostream>
 
-#include "CAN/CanESD.h"
+
+#include <cob_forcetorque/CanESD.h>
 #include <Eigen/Core>
 #include <Eigen/Array>
 #include <fstream>

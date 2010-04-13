@@ -10,7 +10,7 @@
 #define _TimeStamp_H
 
 #include <time.h>
-#include "StrUtil.h"
+//#include "StrUtil.h"
 
 //-------------------------------------------------------------------
 
@@ -67,10 +67,11 @@ class TimeStamp
 		 * return the current time as string, in long format YYYY-MM-DD HH:MM:SS.ssssss
 		 *** Attention *** call SetNow() before calling this function
 		 */
+		/*
 		std::string CurrentToString();
 
 		std::string ToString();
-
+		*/
 	protected:
 
 		/// Internal time stamp data.
