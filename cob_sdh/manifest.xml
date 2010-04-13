@@ -18,5 +18,6 @@
   <depend package="cob_srvs"/>
   <depend package="cob_actions"/>
   <depend package="libntcan"/>
+  <depend package="libpcan"/>
 
 </package>
