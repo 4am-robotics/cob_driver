@@ -4,13 +4,12 @@ JointCommand:
     #[joint_palm_thumb1, joint_thumb1_thumb2, joint_thumb2_thumb3, joint_palm_finger11, joint_finger11_finger12, joint_finger12_finger13, joint_palm_finger21, joint_finger21_finger22, joint_finger22_finger23]
     #-->[not_used, joint_thumb1_thumb2, joint_thumb2_thumb3, joint_palm_finger11, joint_finger11_finger12, joint_finger12_finger13, not_used, joint_finger21_finger22, joint_finger22_finger23]
 
-    # JointNames HW
-    # [joint_palm_finger11, joint_palm_finger21, joint_finger21_finger22, joint_finger22_finger23, joint_thumb1_thumb2, joint_thumb2_thumb3, joint_finger11_finger12, joint_finger12_finger13]
     [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0], #cylClosed
     [0.0,-0.5,-0.5,0.0,-0.5,-0.5,0.0,-0.5,-0.5],
     [0.0,-1.0,-1.0,0.0,-1.0,-1.0,0.0,-1.0,-1.0],
     [0.0,-0.7854,1.0472,0.0,-0.7854,1.0472,0.0,-0.7854,1.0472], #cylOpen
     [0.0,0.0,1.0472,0.0,0.0,1.0472,0.0,0.0,1.0472], #cylClosed
     [0.0,-0.7854,1.0472,1.0472,-0.7854,1.0472,0.0,-0.7854,1.0472], #sphereOpen
-    [0.0,-0.2618,1.0472,1.0472,-0.2618,1.0472,0.0,-0.2618,1.0472] #sphereClosed
+    [0.0,-0.2618,1.0472,1.0472,-0.2618,1.0472,0.0,-0.2618,1.0472], #sphereClosed
+    [0.0,-1.5700,-1.5700,1.0472,-1.5700,-1.5700,0.0,-1.5700,-1.5700] #trainObjects
   ]

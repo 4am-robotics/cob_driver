@@ -515,7 +515,7 @@ class NodeClass
 
 				// set joint names and map them to angles TODO: don't know if assignment is correct
 				msg.name = JointNamesAll;
-				std::cout << actualAngles[0] << " , " << actualAngles[1] << " , " << actualAngles[2] << " , " << actualAngles[3] << " , " << actualAngles[4] << " , " << actualAngles[5] << " , " << actualAngles[6] << std::endl;
+				//std::cout << actualAngles[0] << " , " << actualAngles[1] << " , " << actualAngles[2] << " , " << actualAngles[3] << " , " << actualAngles[4] << " , " << actualAngles[5] << " , " << actualAngles[6] << std::endl;
 				msg.position[0] = 0.0; // joint_palm_thumb1
 				msg.position[1] = actualAngles[3]*pi_/180.0; // joint_thumb1_thumb2
 				msg.position[2] = actualAngles[4]*pi_/180.0; // joint_thumb2_thumb3

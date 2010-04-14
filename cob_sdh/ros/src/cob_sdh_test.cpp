@@ -197,7 +197,11 @@ int main(int argc, char** argv)
 				{
 					ROS_ERROR("Parameter JointCommand not set");
 				}
-				std::cout << command_param <<std::endl;
+				
+				for (int i = 0; i < command_param.size(); i++)
+				{
+					std::cout << command_param[i] <<std::endl;
+				}
 				
 				int command_nr;
 				std::cout << command_param.size() << " commands available. First command is 0" << std::endl;

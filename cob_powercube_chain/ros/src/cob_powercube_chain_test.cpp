@@ -219,45 +219,6 @@ int main(int argc, char** argv)
                 srv_errorMessage = srv.response.errorMessage.data.c_str();
                 break;
             }
-
-            case 'P':
-            {
-                ROS_INFO("Waiting for action server to start.");
-				// wait for the action server to start
-				ac.waitForServer(); //will wait for infinite time
-            	
-                std::cout << "Choose preset target positions/velocities ([0] = , [1] = , [2] = ): ";
-                std::cin >> c;
-                
-                int DOF = 4;
-                
-                // send a goal to the action 
-				cob_actions::JointTrajectoryGoal goal;
-				trajectory_msgs::JointTrajectory traj;
-				traj.header.stamp = ros::Time::now();
-				
-                if (c == '0')
-                {
-					traj.points.resize(1);
-					traj.points[0].positions.resize(DOF);
-					traj.points[0].velocities.resize(DOF);
-					
-					// first point
-					// zero position
-                }
-                else
-                {
-                    ROS_ERROR("invalid target");
-                }
-
-				goal.trajectory = traj;
-				ac.sendGoal(goal);
-            
-                std::cout << std::endl;
-                srv_querry = true;
-                srv_execute = 0;
-                break;
-            }
             
 			case 'C':
             {
