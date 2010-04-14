@@ -134,7 +134,7 @@ class NodeClass
         	PCubeParams = new PowerCubeCtrlParams();
 
             // implementation of topics to publish
-            topicPub_JointState = n.advertise<sensor_msgs::JointState>("joint_states", 1);
+            topicPub_JointState = n.advertise<sensor_msgs::JointState>("/joint_states", 1);
             
             // implementation of topics to subscribe
             //topicSub_JointCommand = n.subscribe("command", 1, &NodeClass::topicCallback_JointCommand, this);
