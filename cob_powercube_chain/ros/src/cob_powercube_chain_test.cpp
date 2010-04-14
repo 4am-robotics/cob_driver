@@ -119,7 +119,40 @@ int main(int argc, char** argv)
 	bool srv_querry = false;
 	int srv_execute = 1;
 	std::string srv_errorMessage = "no error";
-    
+
+/*    
+    // read in parameters for trajectories
+    XmlRpc::XmlRpcValue trajectories_param;
+    std::vector<trajectory_msgs::JointTrajectory> trajectories;
+	if (n.hasParam("trajectories"))
+	{
+		n.getParam("trajectories", trajectories_param);
+	}
+	else
+	{
+		ROS_ERROR("Parameter trajectories not set");
+	}
+	ROS_INFO("got %d trajectories", trajectories_param.size());
+	std::cout << "trajectories = " << trajectories_param << std::endl;
+	
+	ROS_INFO("converting xml to trajectory_msgs");
+	trajectories.resize(trajectories_param.size());
+	for (int i = 0; i<trajectories_param.size(); i++ )
+	{
+		std::cout << "filling trajectory[" << i << "]" << std::endl;
+		std::cout << trajectories_param[i][1] << std::endl;
+		for (int j = 0; j<trajectories_param[i][j].size(); j++ )
+		{
+			std::cout << "   filling point[" << j << "]" << std::endl;
+			for (int k = 0; k<trajectories_param[i][j][k].size(); k++ )
+			{
+				std::cout << "      filling position[" << k << "]" << std::endl;
+				trajectories[i].points[j].positions[k] = (double)trajectories_param[i][j][k];
+			}
+		}
+	}
+	//std::cout << "trajectories = " << trajectories_param << std::endl;
+*/    
     char c;
          
     // main loop
@@ -184,6 +217,45 @@ int main(int argc, char** argv)
                 srv_querry = srvClient_SetOperationMode.call(srv);
                 srv_execute = srv.response.success;
                 srv_errorMessage = srv.response.errorMessage.data.c_str();
+                break;
+            }
+
+            case 'P':
+            {
+                ROS_INFO("Waiting for action server to start.");
+				// wait for the action server to start
+				ac.waitForServer(); //will wait for infinite time
+            	
+                std::cout << "Choose preset target positions/velocities ([0] = , [1] = , [2] = ): ";
+                std::cin >> c;
+                
+                int DOF = 4;
+                
+                // send a goal to the action 
+				cob_actions::JointTrajectoryGoal goal;
+				trajectory_msgs::JointTrajectory traj;
+				traj.header.stamp = ros::Time::now();
+				
+                if (c == '0')
+                {
+					traj.points.resize(1);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);
+					
+					// first point
+					// zero position
+                }
+                else
+                {
+                    ROS_ERROR("invalid target");
+                }
+
+				goal.trajectory = traj;
+				ac.sendGoal(goal);
+            
+                std::cout << std::endl;
+                srv_querry = true;
+                srv_execute = 0;
                 break;
             }
             
