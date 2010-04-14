@@ -1,0 +1,3 @@
+ModIds: [14,13,24,25]
+JointNames: [joint_platform_neckZ, joint_neckZ_neck, joint_neck_headZ, joint_headZ_head]
+MaxAcc: [0.8,0.8,0.8,0.8]

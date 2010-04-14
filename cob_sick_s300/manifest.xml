@@ -1,0 +1,15 @@
+<package>
+  <description brief="cob_sick_s300">
+
+     cob_sick_s300
+
+  </description>
+  <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://www.care-o-bot.org</url>
+  
+  <depend package="roscpp"/>
+  <depend package="sensor_msgs"/>
+
+</package>

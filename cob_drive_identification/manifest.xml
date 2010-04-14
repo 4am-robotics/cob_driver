@@ -1,0 +1,18 @@
+<package>
+  <description brief="drive_identification">
+
+     drive_identification
+
+  </description>
+  <author>cpc-pk</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/drive_identification</url>
+  
+
+  <depend package="roscpp"/>
+  <depend package="cob_base_drive_chain"/>
+
+</package>
+
+

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- start all cameras -->
+  <node pkg="cob_camera_sensors" type="all_cameras" name="all_cameras" cwd="node" respawn="false" output="screen">
+	<param name="configuration_files" value="../../common/files/cob3-rack/"/>
+	<!-- Specifies the used color camera type -->
+	<!-- CAM_AVTPIKE or CAM_PROSILICA -->
+	<param name="color_camera_type" value="CAM_AVTPIKE" />
+	<!-- Specifies the used tof camera type -->
+ 	<!-- CAM_SWISSRANGER -->
+	<param name="tof_camera_type" value="CAM_SWISSRANGER" />	
+  </node>
+
+</launch>

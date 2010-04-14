@@ -60,23 +60,25 @@
 #define __ABSTRACTRANGEIMAGINGSENSOR_H__
 
 #ifdef __COB_ROS__
-#include <opencv/highgui.h>
-#include <opencv/cv.h>
-#include <opencv/cxcore.h>
+	#include <opencv/highgui.h>
+	#include <opencv/cv.h>
+	#include <opencv/cxcore.h>
 
-#include "tinyxml/tinyxml.h"
-#include "cob_vision_utils/ThreeDUtils.h"
-#include "cob_vision_utils/OpenCVUtils.h"
-#include "cob_camera_sensors/LibCameraSensorsTypes.h"
+	#include "tinyxml/tinyxml.h"
+	#include "cob_vision_utils/ThreeDUtils.h"
+	#include "cob_vision_utils/OpenCVUtils.h"
+	#include "cob_vision_utils/MathUtils.h"
+	#include "cob_vision_utils/CameraSensorTypes.h"
 #else
-#include <highgui.h>
-#include <cv.h>
-#include <cxcore.h>
+	#include <highgui.h>
+	#include <cv.h>
+	#include <cxcore.h>
 
-#include "Vision/Extern/TinyXml/tinyxml.h"
-#include "Vision/Utilities/ThreeDUtils.h"
-#include "Vision/Utilities/OpenCVUtils.h"
-#include "Vision/CameraSensors/LibCameraSensorsTypes.h"
+	#include "Vision/Extern/TinyXml/tinyxml.h"
+	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/ThreeDUtils.h"
+	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/OpenCVUtils.h"
+	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/MathUtils.h"
+	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/CameraSensorTypes.h"
 #endif
 
 #include <iostream>
