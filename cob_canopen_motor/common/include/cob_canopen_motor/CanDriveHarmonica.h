@@ -61,8 +61,8 @@
 #include <cob_canopen_motor/CanDriveItf.h>
 #include <cob_utilities/TimeStamp.h>
 
-#include <canopen_motor/SDOSegmented.h>
-#include <canopen_motor/ElmoRecorder.h>
+#include <cob_canopen_motor/SDOSegmented.h>
+#include <cob_canopen_motor/ElmoRecorder.h>
 //-----------------------------------------------
 
 /**

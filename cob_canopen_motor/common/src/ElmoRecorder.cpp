@@ -10,7 +10,7 @@
  * Project name: care-o-bot
  * ROS stack name: cob3_common
  * ROS package name: canopen_motor
- * Description: Holds data, that is collected during a SDO Segmented Upload process
+ * Description:
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
@@ -51,54 +51,16 @@
  *
  ****************************************************************/
 
-#ifndef _RecorderData_H
-#define _RecorderData_H
+#include <cob_canopen_motor/ElmoRecorder.h>
+#include <cob_canopen_motor/CanDriveHarmonica.h>
 
-#include <vector>
+ElmoRecorder::ElmoRecorder(CanDriveHarmonica * pParentHarmonicaDrive) {
+	pHarmonicaDrive = pParentHarmonicaDrive;
+	
+	pHarmonicaDrive->setEMStop();
+}
 
-/** Measure system time.
- * Use this class for measure system time accurately. Under Windows, it uses
- * QueryPerformanceCounter(), which has a resolution of approx. one micro-second.
- * The difference between two time stamps can be calculated.
- */
+ElmoRecorder::~ElmoRecorder() {
+}
 
-class segData {
-    public:
-        
-        segData() {
-            bytesReceived = 0;
-            finishedTransmission = false;
-            locked = false;
-            objectID = 0x00;
-            objectSubID = 0x00;
-            }
 
-        ~segData() {}
-
-        void resetTransferData() {
-            if (locked == false) {
-                bytesReceived = 0;
-                data.clear();
-                finishedTransmission = false;
-                objectID = 0x00;
-                objectSubID = 0x00;
-            }
-        }
-            
-        
-        unsigned int numTotalBytes; //contains the number of bytes to be uploaded (if specified)
-
-        int bytesReceived; //number of data bytes already received in current SDO Upload process      
-
-        bool finishedTransmission; //no more segments to receive
-
-        bool locked; //prevent Data from beeing resetted before read out has been proceeded
-
-        int objectID;
-        int objectSubID;
-
-        std::vector<unsigned char> data; //this vector holds received bytes as a stream. Little endian conversion is already done during receive. 
-
-};
-
-#endif

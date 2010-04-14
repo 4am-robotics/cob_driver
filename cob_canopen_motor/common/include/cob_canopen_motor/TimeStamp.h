@@ -55,7 +55,7 @@
 #define _TimeStamp_H
 
 #include <time.h>
-#include <canopen_motor/StrUtil.h>
+#include <cob_canopen_motor/StrUtil.h>
 
 //-------------------------------------------------------------------
 
