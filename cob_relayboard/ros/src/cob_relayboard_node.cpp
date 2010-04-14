@@ -15,7 +15,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
  * Author: Philipp Koehler
- * Supervised by: Christian Connette
+ * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
  * Date of creation: March 2010
  * ToDo:
@@ -63,6 +63,7 @@
 
 // ROS message includes
 #include <std_msgs/Bool.h>
+#include <cob_msgs/EmergencyStopState.h>
 
 // ROS service includes
 //--
@@ -81,16 +82,18 @@ class NodeClass
                 
 		// topics to publish
 		ros::Publisher topicPub_isEmergencyStop;
-		ros::Publisher topicPub_isScannerStop;
         
 		// topics to subscribe, callback is called for new messages arriving
-		//ros::Subscriber topicSub_demoSubscribe;
+		// --
 
 		// Constructor
 		NodeClass()
 		{
-			topicPub_isEmergencyStop = n.advertise<std_msgs::Bool>("isEmergencyStop", 1);
-			topicPub_isScannerStop = n.advertise<std_msgs::Bool>("isScannerStop", 1);
+			topicPub_isEmergencyStop = n.advertise<cob_msgs::EmergencyStopState>("EMStopState", 1);
+
+			// Make sure member variables have a defined state at the beginning
+			EM_stop_status_ = ST_EM_FREE;
+			duration_for_EM_free_ = ros::Duration(1);
 		}
         
 		// Destructor
@@ -105,6 +108,18 @@ class NodeClass
 	private:        
 		std::string sComPort;
 		SerRelayBoard * m_SerRelayBoard;
+
+		int EM_stop_status_;
+		ros::Duration duration_for_EM_free_;
+		ros::Time time_of_EM_confirmed_;
+
+		// possible states of emergency stop
+		enum
+		{
+			ST_EM_FREE = 0,
+			ST_EM_ACTIVE = 1,
+			ST_EM_CONFIRMED = 2
+		};
 
 		int requestBoardStatus();
 };
@@ -141,6 +156,10 @@ int NodeClass::init() {
 
 	m_SerRelayBoard->init();
 
+	// Init member variable for EM State
+	EM_stop_status_ = ST_EM_FREE;
+	duration_for_EM_free_ = ros::Duration(1);
+
 	return 0;
 }
 
@@ -155,7 +174,7 @@ int NodeClass::requestBoardStatus() {
 
 	ret = m_SerRelayBoard->evalRxBuffer();
 	if(ret==SerRelayBoard::NOT_INITIALIZED) {
-		ROS_ERROR("Failed to read relayboard data over Serial, the device isnt initialized");
+		ROS_ERROR("Failed to read relayboard data over Serial, the device is not initialized");
 	} else if(ret==SerRelayBoard::NO_MESSAGES) {
 		ROS_ERROR("For a long time, no messages from RelayBoard have been received, check com port!");
 	} else if(ret==SerRelayBoard::TOO_LESS_BYTES_IN_QUEUE) {
@@ -170,11 +189,58 @@ int NodeClass::requestBoardStatus() {
 void NodeClass::sendEmergencyStopStates()
 {
 	requestBoardStatus();
-	std_msgs::Bool msg;
+	bool EM_signal;
+	ros::Duration duration_since_EM_confirmed;
+	cob_msgs::EmergencyStopState EM_msg;
 
-	msg.data = m_SerRelayBoard->isEMStop();
-	topicPub_isEmergencyStop.publish(msg);
-	msg.data = m_SerRelayBoard->isScannerStop();
-	topicPub_isScannerStop.publish(msg);
+	// assign input (laser, button) specific EM state
+	EM_msg.emergency_button_stop = m_SerRelayBoard->isEMStop();
+	EM_msg.scanner_stop = m_SerRelayBoard->isScannerStop();
+
+	// determine current EMStopState
+	EM_signal = (EM_msg.emergency_button_stop || EM_msg.scanner_stop);
+
+	switch (EM_stop_status_)
+	{
+		case ST_EM_FREE:
+		{
+			if (EM_signal == true)
+			{
+				ROS_INFO("Emergency stop was issued");
+				EM_stop_status_ = EM_msg.EMSTOP;
+			}
+			break;
+		}
+		case ST_EM_ACTIVE:
+		{
+			if (EM_signal == false)
+			{
+				ROS_INFO("Emergency stop was confirmed");
+				EM_stop_status_ = EM_msg.EMCONFIRMED;
+				time_of_EM_confirmed_ = ros::Time::now();
+			}
+			break;
+		}
+		case ST_EM_CONFIRMED:
+		{
+			if (EM_signal == true)
+			{
+				ROS_INFO("Emergency stop was issued");
+				EM_stop_status_ = EM_msg.EMSTOP;
+			}
+			else
+			{
+				duration_since_EM_confirmed = ros::Time::now() - time_of_EM_confirmed_;
+				if( duration_since_EM_confirmed.toSec() > duration_for_EM_free_.toSec() )
+				{
+					ROS_INFO("Emergency stop released");
+					EM_stop_status_ = EM_msg.EMFREE;
+				}
+			}
+			break;
+		}
+	};
+	EM_msg.emergency_state = EM_stop_status_;
+	topicPub_isEmergencyStop.publish(EM_msg);
 }
 

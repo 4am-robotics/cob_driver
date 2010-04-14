@@ -56,15 +56,21 @@
 // standard includes
 //#include <string>
 //#include <sstream>
+#include <unistd.h>
 
 // ROS includes
 #include <ros/ros.h>
+#include <actionlib/client/simple_action_client.h>
+#include <actionlib/client/terminal_state.h>
 
 // ROS message includes
-#include <cob_msgs/JointCommand.h>
+//#include <cob_msgs/JointCommand.h>
+#include <trajectory_msgs/JointTrajectory.h>
+#include <cob_actions/JointTrajectoryAction.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
+#include <cob_srvs/SetOperationMode.h>
 
 // external includes
 //--
@@ -94,7 +100,9 @@ int main(int argc, char** argv)
 	ros::NodeHandle n;
 
     // topics to publish
-    ros::Publisher topicPub_JointCommand = n.advertise<cob_msgs::JointCommand>("joint_commands", 1);
+//    ros::Publisher topicPub_JointCommand = n.advertise<cob_msgs::JointCommand>("joint_commands", 1);
+    ros::Publisher topicPub_JointCommand = n.advertise<trajectory_msgs::JointTrajectory>("command", 1);
+	actionlib::SimpleActionClient<cob_actions::JointTrajectoryAction> ac("JointTrajectory", true); 
         
 	// topics to subscribe, callback is called for new messages arriving
     //--
@@ -104,6 +112,8 @@ int main(int argc, char** argv)
         
     // service clients
     ros::ServiceClient srvClient_Init = n.serviceClient<cob_srvs::Trigger>("Init");
+    ros::ServiceClient srvClient_Stop = n.serviceClient<cob_srvs::Trigger>("Stop");
+    ros::ServiceClient srvClient_SetOperationMode = n.serviceClient<cob_srvs::SetOperationMode>("SetOperationMode");
     
     // external code
 	bool srv_querry = false;
@@ -122,86 +132,112 @@ int main(int argc, char** argv)
 
         switch(c)
         {
-            case 'C':
+	        case 's':
             {
-                // create message
-                cob_msgs::JointCommand msg;
-                msg.positions.resize(7);
-                
-                std::cout << "Choose preset target position ([0=parallel, 1=cyl_closed, 2=cyl_open, 3=sher_closed, 4=sher_open]): ";
-                std::cin >> c;
-                if (c == '0')
-                {
-                    msg.positions[0] = 0;
-                    msg.positions[1] = 0;
-                    msg.positions[2] = 0;
-                    msg.positions[3] = 0;
-                    msg.positions[4] = 0;
-                    msg.positions[5] = 0;
-                    msg.positions[6] = 0;
-                }
-                else if (c == '1')
-                {
-                    msg.positions[0] = 1;
-                    msg.positions[1] = 1;
-                    msg.positions[2] = 1;
-                    msg.positions[3] = 1;
-                    msg.positions[4] = 1;
-                    msg.positions[5] = 1;
-                    msg.positions[6] = 1;
-                }
-                else if (c == '2')
-                {
-                    msg.positions[0] = 2;
-                    msg.positions[1] = 2;
-                    msg.positions[2] = 2;
-                    msg.positions[3] = 2;
-                    msg.positions[4] = 2;
-                    msg.positions[5] = 2;
-                    msg.positions[6] = 2;
-                }
-                else if (c == '3')
-                {
-                    msg.positions[0] = 0;
-                    msg.positions[1] = 0;
-                    msg.positions[2] = 0;
-                    msg.positions[3] = 0;
-                    msg.positions[4] = 0;
-                    msg.positions[5] = 0;
-                    msg.positions[6] = 0;
-                }
-                else if (c == '4')
-                {
-                    msg.positions[0] = 0;
-                    msg.positions[1] = 0;
-                    msg.positions[2] = 0;
-                    msg.positions[3] = 0;
-                    msg.positions[4] = 0;
-                    msg.positions[5] = 0;
-                    msg.positions[6] = 0;
-                }
-                else
-                {
-                    ROS_ERROR("invalid target");
-                }
-                
-                topicPub_JointCommand.publish(msg);
-                
-                std::cout << "ende" << std::endl;
-                srv_querry = true;
-                srv_execute = 0;
-            	srv_errorMessage = "no error";
-                break;
+                cob_srvs::Trigger srv;
+                srv_querry = srvClient_Stop.call(srv);
+                srv_execute = srv.response.success;
+                srv_errorMessage = srv.response.errorMessage.data.c_str();
+              	break;
             }
-            
-            case 'i':
+
+	        case 'i':
             {
-            	ROS_INFO("querry service [Init]");
                 cob_srvs::Trigger srv;
                 srv_querry = srvClient_Init.call(srv);
                 srv_execute = srv.response.success;
                 srv_errorMessage = srv.response.errorMessage.data.c_str();
               	break;
+            }
+            
+            case 'M':
+            {
+                cob_srvs::SetOperationMode srv;
+                
+                std::cout << "Choose operation mode ([v] = velocity controll, [p] = position controll): ";
+                std::cin >> c;
+                if (c == 'v')
+                {
+                    srv.request.operationMode.data = "velocity";
+                }
+                else if (c == 'p')
+                {
+                    srv.request.operationMode.data = "position";
+                }
+                else
+                {
+                    srv.request.operationMode.data = "none";
+                }
+                ROS_INFO("changing operation mode to: %s controll", srv.request.operationMode.data.c_str());
+                
+                //ROS_INFO("querry service [cob3/arm/SetOperationMode]");
+                srv_querry = srvClient_SetOperationMode.call(srv);
+                srv_execute = srv.response.success;
+                srv_errorMessage = srv.response.errorMessage.data.c_str();
+                break;
+            }
+            
+            case 'C':
+            {
+            	ROS_INFO("Waiting for action server to start.");
+				// wait for the action server to start
+				ac.waitForServer(); //will wait for infinite time
+            	
+                std::cout << "Choose preset target positions/velocities ([0] = , [1] = , [2] = ): ";
+                std::cin >> c;
+                
+                int DOF = 7;
+                
+                // send a goal to the action 
+				cob_actions::JointTrajectoryGoal goal;
+				trajectory_msgs::JointTrajectory traj;
+				traj.header.stamp = ros::Time::now();
+				
+                if (c == '0')
+                {
+					traj.points.resize(1);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);
+					
+					// first point
+					// zero position
+                }
+                else if (c == '1')
+                {
+					traj.points.resize(1);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);                                    
+
+					// first point
+					traj.points[0].positions[0] = 0.1;
+					traj.points[0].positions[1] = 0.1;
+					traj.points[0].positions[2] = 0.1;
+					traj.points[0].positions[3] = 0.1;
+				}
+                else if (c == '2')
+                {
+					traj.points.resize(1);
+					traj.points[0].positions.resize(DOF);
+					traj.points[0].velocities.resize(DOF);                                    
+
+					// first point
+					traj.points[0].positions[0] = 0.2;
+					traj.points[0].positions[1] = 0.2;
+					traj.points[0].positions[2] = 0.2;
+					traj.points[0].positions[3] = 0.2;
+                }
+                else
+                {
+                    ROS_ERROR("invalid target");
+                }
+
+				goal.trajectory = traj;
+				ac.sendGoal(goal);
+            
+                std::cout << std::endl;
+                srv_querry = true;
+                srv_execute = 0;
+                break;
             }
             
             case 'e':

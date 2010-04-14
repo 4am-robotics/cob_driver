@@ -178,10 +178,10 @@ public:
                         return false;
 		}
 
-                /// Advertise service for other nodes to set intrinsic calibration parameters
-                camera_info_service_ = node_handle_.advertiseService("set_camera_info", &CobTofCameraNode::setCameraInfo, this);
-		xyz_image_publisher_ = image_transport_.advertiseCamera("xyz_tof_data", 1);
-		grey_image_publisher_ = image_transport_.advertiseCamera("grey_tof_data", 1);
+        /// Advertise service for other nodes to set intrinsic calibration parameters
+		camera_info_service_ = node_handle_.advertiseService("set_camera_info", &CobTofCameraNode::setCameraInfo, this);
+		xyz_image_publisher_ = image_transport_.advertiseCamera("image_xyz", 1);
+		grey_image_publisher_ = image_transport_.advertiseCamera("image_grey", 1);
 
 		return true;
 	}

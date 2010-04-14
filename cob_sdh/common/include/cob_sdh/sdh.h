@@ -8,7 +8,7 @@
 
   \brief
     This file contains the interface to class #SDH::cSDH, the end user
-    class to access the SDH from a PC.
+    class to access the %SDH from a PC.
 
 
   \section sdhlibrary_cpp_sdh_h_copyright Copyright
@@ -20,9 +20,9 @@
 
     \subsection sdhlibrary_cpp_sdh_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2008-10-17 10:56:55 +0200 (Fr, 17 Okt 2008) $
+      $LastChangedDate: 2009-12-04 17:05:53 +0100 (Fr, 04 Dez 2009) $
       \par SVN file revision:
-        $Id: sdh.h 3725 2008-10-17 08:56:55Z Osswald2 $
+        $Id: sdh.h 5022 2009-12-04 16:05:53Z Osswald2 $
 
   \subsection sdhlibrary_cpp_sdh_h_changelog Changelog of this file:
       \include sdh.h.log
@@ -32,7 +32,8 @@
 #ifndef SDH_h_
 #define SDH_h_
 
-#include <cob_sdh/sdhlibrary_settings.h>
+#include "sdhlibrary_settings.h"
+#include "basisdef.h"
 
 #if SDH_USE_VCC
 # pragma warning(disable : 4996)
@@ -43,15 +44,23 @@
 //----------------------------------------------------------------------
 
 #include <vector>
+#include <string>
 
 //----------------------------------------------------------------------
 // Project Includes - include with ""
 //----------------------------------------------------------------------
 
-#include <cob_sdh/sdhbase.h>
-#include <cob_sdh/sdhserial.h>
-#include <cob_sdh/unit_converter.h>
-#include <cob_sdh/serialbase.h>
+#include "sdhbase.h"
+#include "sdhserial.h"
+#include "unit_converter.h"
+#include "serialbase.h"
+#if WITH_ESD_CAN
+# include "canserial-esd.h"
+#endif
+
+#if WITH_PEAK_CAN
+# include "canserial-peak.h"
+#endif
 
 //----------------------------------------------------------------------
 // Defines, enums, unions, structs
@@ -69,15 +78,13 @@
 
 NAMESPACE_SDH_START
 
-#if WITH_ESD_CAN
-# include "libntcan/ntcan.h"
-#if defined( OSNAME_LINUX ) && ! defined( NTCAN_HANDLE )
-// Linux ntcan.h uses HANDLE where Windows ntcan uses NTCAN_HANDLE:
-# define NTCAN_HANDLE HANDLE
+#if ! WITH_ESD_CAN
+typedef void* NTCAN_HANDLE;  //!< dummy definition in case ntcan.h is not available
 #endif
 
-#else
-typedef void* NTCAN_HANDLE;  //!< dummy definition in case ntcan.h is not available
+#if ! WITH_PEAK_CAN
+// Linux libpcan uses HANDLE where Windows Pcan_usb.h uses no handle at all:
+typedef void* PCAN_HANDLE;  //!< dummy definition in case Pcan_usb.h is not available
 #endif
 
 //----------------------------------------------------------------------
@@ -104,14 +111,14 @@ typedef void* NTCAN_HANDLE;  //!< dummy definition in case ntcan.h is not availa
 //======================================================================
 
 /*!
-  \brief #SDH::cSDH is the end user interface class to control a SDH (SCHUNK Dexterous Hand).
+  \brief #SDH::cSDH is the end user interface class to control a %SDH (SCHUNK Dexterous Hand).
 
    A general overview of the structure and architecture used is given \ref
    sdhlibrary_cpp_architecture_dox_sdhpackage_overview "here".
 
    \remark
    \anchor sdhlibrary_cpp_sdh_h_csdh_axis_vs_fingers
-   - The cSDH class provides methods to access the 7 axes of the SDH
+   - The cSDH class provides methods to access the 7 axes of the %SDH
      individually as well as on a finger level.
      - When accessing the axes individually then the following axis
        indices must be used to address an axis / some axes:
@@ -151,7 +158,7 @@ typedef void* NTCAN_HANDLE;  //!< dummy definition in case ntcan.h is not availa
      communication between user application and cSDH object instance
      only (USERAPP and SDHLibrary-CPP in the \ref
      sdhlibrary_cpp_architecture_dox_sdhpackage_overview "overview
-     figure"). For now the firmware knows only about its internal unit
+     figure"). For now the %SDH firmware knows only about its internal unit
      system.
 
    <hr>
@@ -171,7 +178,7 @@ public:
     };
 
 
-    //! The state of an axis (see TPOSCON_STATE in global.h of the firmware)
+    //! The state of an axis (see TPOSCON_STATE in global.h of the %SDH firmware)
     enum eAxisState
     {
         eAS_IDLE = 0,            //!< axis is idle
@@ -316,7 +323,6 @@ protected:
     //! Maximum allowed grip velocity (in internal units (degrees/second))
     double grip_max_velocity;
 
-
     /*!
       \anchor sdhlibrary_cpp_sdh_h_kinematic_vars
        \name   Kinematic parameters of the Hand
@@ -346,7 +352,7 @@ protected:
 
     // !!! make this public for now (to access comm_interface->ref() / comm_interface->pos_save() for hands with missing absolute encoders)
 public:
-    //! The object to interface with the SDH attached via serial RS232 or CAN.
+    //! The object to interface with the %SDH attached via serial RS232 or CAN.
     cSDHSerial comm_interface;
 
     //! change the stream to use for debug messages
@@ -391,7 +397,7 @@ protected:
           value[i], converted to the internal unit system by \a uc->ToInternal(),
           is in [\a min_values[axes[i]] .. \a max_values[axes[i]]].
         - If \b any index or value is invalid then \b none of the specified values is
-          sent to the SDH, instead a #SDH::cSDHErrorInvalidParameter* exception is thrown.
+          sent to the %SDH, instead a #SDH::cSDHErrorInvalidParameter* exception is thrown.
     */
     void SetAxisValueVector( std::vector<int> const& axes,
                              std::vector<double> const& values,
@@ -486,6 +492,9 @@ public:
     //! A vector with indices of all axes (in natural order), including the virtual axis.
     std::vector<int> all_axes;
 
+    //! A vector with indices of all real axes (in natural order), excluding the virtual axis.
+    std::vector<int> all_real_axes;
+
     //! A vector with indices of all fingers (in natural order)
     std::vector<int> all_fingers;
 
@@ -510,7 +519,7 @@ public:
          \e fahrenheit or the like.
 
          A cSDH object uses these converter objects to convert between external (user)
-         and internal (SDH) units. The user can easily change the converter object
+         and internal (%SDH) units. The user can easily change the converter object
          that is used for a certain kind of unit. This way a cSDH object
          can easily report and accept parameters in the user or application
          specific unit system.
@@ -559,12 +568,12 @@ public:
       \brief Constructor of cSDH class.
 
        Creates an new object of type cSDH. One such object is needed
-       for each SDH that you want to control.  The constructor
-       initializes internal data structures. A connection the SDH is
+       for each %SDH that you want to control.  The constructor
+       initializes internal data structures. A connection the %SDH is
        \b not yet established, see #OpenRS232() on how to do that.
 
        After an object is created the user can adjust the unit systems
-       used to set/report parameters to/from SDH. This is shown in the
+       used to set/report parameters to/from %SDH. This is shown in the
        example code below. The default units used (if not overwritten
        by constructor parameters) are:
        - \c degrees [°] for (axis) angles
@@ -645,7 +654,7 @@ public:
     /*!
         Virtual destructor to make compiler happy
 
-        If the connection to the SDH hardware/firmware is still open
+        If the connection to the %SDH hardware/firmware is still open
         then the connection is closed, which will stop the axis
         controllers (and thus prevent overheating).
     */
@@ -763,7 +772,7 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-      Return the release name of the library (not the firmware of the SDH) as string.
+      Return the release name of the library (not the firmware of the %SDH) as string.
 
 
        \par Examples:
@@ -799,10 +808,10 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-      Return the release name of the firmware of the SDH (not the library) as string.
+      Return the release name of the firmware of the %SDH (not the library) as string.
 
       This will throw a (cSDHErrorCommunication*) exception if the
-      connection to the SDH is not yet opened.
+      connection to the %SDH is not yet opened.
 
        \par Examples:
        \code
@@ -822,16 +831,16 @@ public:
     #  The following values are valid for \a what:
     #  - "date-library"     : date of the SDHLibrary-python release
     #  - "release-library"  : release name of the sdh.py python module
-    #  - "release-firmware" : release name of the SDH firmware (requires
-    #                         an opened communication to the SDH)
-    #  - "date-firmware"    : date of the SDH firmware (requires
-    #                         an opened communication to the SDH)
-    #  - "release-soc"      : release name of the SDH SoC (requires
-    #                         an opened communication to the SDH)
-    #  - "date-soc"         : date of the SDH SoC (requires
-    #                         an opened communication to the SDH)
-    #  - "id-sdh"           : ID of SDH
-    #  - "sn-sdh"           : Serial number of SDH
+    #  - "release-firmware" : release name of the %SDH firmware (requires
+    #                         an opened communication to the %SDH)
+    #  - "date-firmware"    : date of the %SDH firmware (requires
+    #                         an opened communication to the %SDH)
+    #  - "release-soc"      : release name of the %SDH SoC (requires
+    #                         an opened communication to the %SDH)
+    #  - "date-soc"         : date of the %SDH SoC (requires
+    #                         an opened communication to the %SDH)
+    #  - "id-sdh"           : ID of %SDH
+    #  - "sn-sdh"           : Serial number of %SDH
     #
     #  \par Examples:
     #  \code
@@ -848,11 +857,18 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-        Return temperature(s) measured within the SDH.
+        Return temperature(s) measured within the %SDH.
 
         \param sensors - A vector of indices of temperature sensors to access.
-                         - index 0 is controller temperature
-                         - index 1 is driver temperature
+                       - index 0 is sensor near motor of axis 0 (root)
+                       - index 1 is sensor near motor of axis 1 (proximal finger 1)
+                       - index 2 is sensor near motor of axis 2 (distal finger 1)
+                       - index 3 is sensor near motor of axis 3 (proximal finger 2)
+                       - index 4 is sensor near motor of axis 4 (distal finger 2)
+                       - index 5 is sensor near motor of axis 5 (proximal finger 3)
+                       - index 6 is sensor near motor of axis 6 (distal finger 3)
+                       - index 7 is FPGA temperature (controller chip)
+                       - index 8 is PCB temperature (Printed Circuit Board)
 
         \remark
         - The indices in \a sensors are checked if they are valid sensor indices.
@@ -873,7 +889,7 @@ public:
 
           // Get measured values of all sensors
           std::vector<double> temps = hand.GetTemperature( hand.all_temperature_sensors );
-          // Now temps is something like { 40.5, 35.5 }
+          // Now temps is something like { 38.500,37.250,35.750,37.250,33.500,36.500,32.250,59.625,52.500 }
 
           // Get controller temperature only:
           double temp_controller = hand.GetTemperature( 0 );
@@ -886,7 +902,7 @@ public:
 
           // Get all temperaturs again:
           temps = hand.GetTemperature( hand.all_temperature_sensors );
-          // Now temps is something like {104.9, 95.9}
+          // Now temps is something like {100.0, 96.8, 92.3, 97.7, 91.8, 96.8, 90.1,  137.5,  125.2}
 
         \endcode
 
@@ -920,17 +936,20 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-      Open connection to SDH via RS232.
+      Open connection to %SDH via RS232.
 
        \param _port    : The number of the serial port to use.
                          The default value port=0 refers to 'COM1' in Windows and
                          to the corresponding '/dev/ttyS0' in Linux.
        \param _baudrate: the baudrate in bit/s, the default is 115200 which happens
-                         to be the default for the SDH too
+                         to be the default for the %SDH too
        \param _timeout : The timeout to use:
                          - -1 : wait forever
                          - T  : wait for T seconds
-
+       \param _device_format_string : a format string (C string) for generating the device name, like "/dev/ttyS%d" (default) or "/dev/ttyUSB%d".
+                                     Must contain a %d where the port number should be inserted.
+                                     This char array is duplicated on construction
+                                     When compiled with VCC (MS-Visual C++) then this is not used.
        \par Examples:
        \code
          // Assuming 'hand' is a cSDH object ...
@@ -942,16 +961,20 @@ public:
          cSDH hand2();
          hand2.OpenRS232( 2 );
 
+         // Linux only: Use a different USB to RS232 device on port 3 /dev/ttyUSB3 for a third hand "hand3":
+         cSDH hand3();
+         hand2.OpenRS232( 3, 115200, -1, "/dev/ttyUSB%d" );
+
        \endcode
 
        <hr>
     */
-    void OpenRS232(  int _port=0, unsigned long _baudrate = 115200, double _timeout=-1 )
+    void OpenRS232(  int _port=0, unsigned long _baudrate = 115200, double _timeout=-1, char const* _device_format_string="/dev/ttyS%d" )
         throw (cSDHLibraryException*);
 
 
     /*!
-      Open connection to SDH via CAN using an ESD CAN card.
+      Open connection to %SDH via CAN using an ESD CAN card.
       If the library was compiled without ESD CAN support then this will just throw an
       exception. See setting for WITH_ESD_CAN in the top level makefile.
 
@@ -960,8 +983,8 @@ public:
        \param _timeout : The timeout to use:
                          - <= 0 : wait forever (default)
                          - T  : wait for T seconds
-       \param _id_read  - the CAN ID to use for reading (The SDH sends data on this ID, default=0x43)
-       \param _id_write - the CAN ID to use for writing (The SDH receives data on this ID, default=0x42)
+       \param _id_read  - the CAN ID to use for reading (The %SDH sends data on this ID, default=43=0x02b)
+       \param _id_write - the CAN ID to use for writing (The %SDH receives data on this ID, default=42=0x02a)
 
        \par Examples:
        \code
@@ -977,12 +1000,12 @@ public:
 
        <hr>
     */
-    void OpenCAN_ESD(  int _net=0,  unsigned long _baudrate=1000000, double _timeout=0.0, int32_t _id_read=0x43, int32_t _id_write=0x42 )
+    void OpenCAN_ESD(  int _net=0,  unsigned long _baudrate=1000000, double _timeout=0.0, Int32 _id_read=43, Int32 _id_write=42 )
         throw (cSDHLibraryException*);
 
 
     /*!
-      Open connection to SDH via CAN using an ESD CAN card using an existing handle.
+      Open connection to %SDH via CAN using an ESD CAN card using an existing handle.
       If the library was compiled without ESD CAN support then this will just throw an
       exception. See setting for WITH_ESD_CAN in the top level makefile.
 
@@ -990,8 +1013,8 @@ public:
        \param _timeout : The timeout to use:
                          - <= 0 : wait forever (default)
                          - T  : wait for T seconds
-       \param _id_read  - the CAN ID to use for reading (The SDH sends data on this ID, default=0x43)
-       \param _id_write - the CAN ID to use for writing (The SDH receives data on this ID, default=0x42)
+       \param _id_read  - the CAN ID to use for reading (The %SDH sends data on this ID, default=43=0x2a)
+       \param _id_write - the CAN ID to use for writing (The %SDH receives data on this ID, default=42=0x2a)
 
        \par Examples:
        \code
@@ -1009,15 +1032,80 @@ public:
 
        <hr>
     */
-    void OpenCAN_ESD(  NTCAN_HANDLE _ntcan_handle, double _timeout=0.0, int32_t _id_read=0x43, int32_t _id_write=0x42 )
+    void OpenCAN_ESD(  NTCAN_HANDLE _ntcan_handle, double _timeout=0.0, Int32 _id_read=43, Int32 _id_write=42 )
         throw (cSDHLibraryException*);
+
+
+    /*!
+      Open connection to %SDH via CAN using an PEAK CAN card.
+      If the library was compiled without PEAK CAN support then this will just throw an
+      exception. See setting for WITH_PEAK_CAN in the top level makefile.
+
+       \param _baudrate : the CAN baudrate in bit/s. Only some bitrates are valid: (1000000 (default),800000,500000,250000,125000,100000,50000,20000,10000)
+       \param _timeout : The timeout to use:
+                         - <= 0 : wait forever (default)
+                         - T  : wait for T seconds
+       \param _id_read  - the CAN ID to use for reading (The %SDH sends data on this ID, default=43=0x02b)
+       \param _id_write - the CAN ID to use for writing (The %SDH receives data on this ID, default=42=0x02a)
+       \param _device   - the PEAK device name. Used for the Linux char dev driver only. default="/dev/pcanusb0"
+
+       \par Examples:
+       \code
+         // Assuming 'hand' is a cSDH object ...
+
+         // use default parameters for baudrate, timeout, IDs and device
+         hand.OpenCAN_PEAK( );
+
+         // use non default settings:
+         // baudrate=500000, timeout=1.0, id_read=0x143, id_write=0x142, , const char *device="/dev/pcanusb1"
+         hand.OpenCAN_PEAK( 500000, 1.0, 0x143, 0x142, "/dev/pcanusb1" );
+       \endcode
+
+       <hr>
+    */
+    void OpenCAN_PEAK( unsigned long _baudrate=1000000, double _timeout=0.0, Int32 _id_read=43, Int32 _id_write=42, const char *device="/dev/pcanusb0" )
+        throw (cSDHLibraryException*);
+
+
+    /*!
+      Open connection to %SDH via CAN using an PEAK CAN card using an existing handle.
+      If the library was compiled without PEAK CAN support then this will just throw an
+      exception. See setting for WITH_PEAK_CAN in the top level makefile.
+
+       \param _handle : The PEAK CAN handle to reuse to connect to the PEAK CAN driver
+       \param _timeout : The timeout to use:
+                         - <= 0 : wait forever (default)
+                         - T  : wait for T seconds
+       \param _id_read  - the CAN ID to use for reading (The %SDH sends data on this ID, default=43=0x2a)
+       \param _id_write - the CAN ID to use for writing (The %SDH receives data on this ID, default=42=0x2a)
+       \param _device   - the PEAK device name. Used for the Linux char dev driver only. default="/dev/pcanusb0"
+
+       \par Examples:
+       \code
+         // Assuming 'hand' is a cSDH object ...
+         // and 'handle' is a valid PEAK NTCAN_HANDLE
+
+         // use default parameters for timeout and IDs
+         hand.OpenCAN_PEAK( handle );
+
+         // or use non default settings:
+         // timeout=1.0, id_read=0x143, id_write=0x142
+         hand.OpenCAN_PEAK( handle, 1.0, 0x143, 0x142 );
+
+       \endcode
+
+       <hr>
+    */
+    void OpenCAN_PEAK(  PCAN_HANDLE _handle, double _timeout=0.0, Int32 _id_read=43, Int32 _id_write=42 )
+        throw (cSDHLibraryException*);
+
 
     //-----------------------------------------------------------------
     /*!
-       Close connection to SDH.
+       Close connection to %SDH.
 
        The default behaviour is to \b not leave the controllers of the
-       SDH enabled (to prevent overheating). To keep the controllers
+       %SDH enabled (to prevent overheating). To keep the controllers
        enabled (e.g. to keep the finger axes actively in position) set
        \a leave_enabled to \c true. Only already enabled axes will be
        left enabled.
@@ -1048,7 +1136,7 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-        Return true if connection to SDH firmware/hardware is open.
+        Return true if connection to %SDH firmware/hardware is open.
     */
     virtual bool IsOpen( void )
         throw ();
@@ -1069,13 +1157,13 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-      Stop movement of all axes of the SDH and switch off the controllers
+      Stop movement of all axes of the %SDH and switch off the controllers
 
        This command will always be executed sequentially: it will return
-       only after the SDH has confirmed the emergency stop.
+       only after the %SDH has confirmed the emergency stop.
 
        \bug
-       For now this will \b NOT work while a "Grasp" command is
+       For now this will \b NOT work while a GripHand() command is
        executing, even if that was initiated non-sequentially!
 
        \par Examples:
@@ -1098,11 +1186,20 @@ public:
       Stop movement of all axes but keep controllers on
 
        This command will always be executed sequentially: it will return
-       only after the SDH has confirmed the stop
+       only after the %SDH has confirmed the stop
 
        \bug
-       For now this will \b NOT work while a "Grasp" command is
+       For now this will \b NOT work while a GripHand() command is
        executing, even if that was initiated non-sequentially!
+
+       \bug
+       With %SDH firmware < 0.0.2.7 this made the axis jerk in eCT_POSE controller type.
+       This is resolved in %SDH firmware 0.0.2.7 for the eCT_POSE controller type with
+       velocity profile eVP_RAMP. For the eCT_POSE controller type with velocity profile
+       eVP_SIN_SQUARE changing target points/ velocities while moving will still make
+       the axes jerk.
+       <br><b>=> Partly resolved in %SDH firmware 0.0.2.7</b>
+
 
        \par Examples:
        \code
@@ -1126,10 +1223,31 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-       Set the type of axis controller to be used in the SDH
+       Set the type of axis controller to be used in the %SDH
 
-       (This is currently not very usefull as only one controller type is
-       defined.)
+       With %SDH firmware >= 0.0.2.7 this will automatically set valid
+       default values for all target velocities, accelerations and positions
+       in the %SDH firmware, according to the \a controller type:
+       - eCT_POSE:
+         - target velocities will be set to default (40 deg/s)
+         - target accelerations will be set to default (100 deg/(s*s))
+         - target positions will be set to default (0.0 deg)
+       - eCT_VELOCITY:
+         - target velocities will be set to default (0 deg/s)
+       - eCT_VELOCITY_ACCELERATION:
+         - target velocities will be set to default (0 deg/s)
+         - target accelerations will be set to default (100 deg/(s*s))
+
+       This will also adjust the lower limits of the allowed velocities
+       here in the SDHLibrary, since the eCT_POSE controller allows only
+       positive velocities while the eCT_VELOCITY and
+       eCT_VELOCITY_ACCELERATION controllers require also negative
+       velocities.
+
+       \attention The availability of a controller type depends on the
+         %SDH firmware of the attached %SDH and is checked here.
+         - firmware <= 0.0.2.5: only eCT_POSE
+         - firmware >= 0.0.2.6: eCT_POSE, eCT_VELOCITY, eCT_VELOCITY_ACCELERATION
 
        \param controller - identifier of controller to set. Valid
                            values are defined in eControllerType
@@ -1138,30 +1256,52 @@ public:
        \code
          // Assuming 'hand' is a cSDH object ...
 
-         // Set the pose controller in the SDH:
+         // Set the pose controller in the SDH
+         // (see e.g. demo-simple.cpp, demo-simple2.cpp, demo-simple3.cpp for further examples)
          hand.SetController( hand.eCT_POSE );
+
+         // Set the simple velocity controller in the SDH:
+         hand.SetController( hand.eCT_VELOCITY );
+
+         // Set the velocity with acceleration ramp controller in the SDH:
+         // (see e.g. demo-velocity-acceleration.cpp for further examples)
+         hand.SetController( hand.eCT_VELOCITY_ACCELERATION );
 
        \endcode
 
        <hr>
     */
-    void SetController( eControllerType controller )
+    void SetController( cSDHBase::eControllerType controller )
         throw( cSDHLibraryException* );
 
     //-----------------------------------------------------------------
     /*!
-      Get the type of axis controller used in the SDH
+      Get the type of axis controller used in the %SDH
 
-       This is currently unimplemented in the
-       SDH. eCT_POSE will be returned always for
-       now.
+      The currently set controller type will be queried and returned
+      (One of eControllerType)
+
+      \par Examples:
+      \code
+        // Assuming 'hand' is a sdh.cSDH object ...
+
+        // Get the controller type of the attached SDH:
+        ct = hand.GetController();
+
+        // Print result, numerically and symbolically
+        std::cout << "Currently the axis controller type is set to " << ct;
+        std::cout << "(" << GetStringFromControllerType(ct) << ")\n";
+      \endcode
+
+      <hr>
 
     */
-    eControllerType GetController( void  );
+    eControllerType GetController( void  )
+        throw (cSDHLibraryException*);
 
     //-----------------------------------------------------------------
     /*!
-     Set the type of velocity profile to be used in the SDH
+     Set the type of velocity profile to be used in the %SDH
 
       \param velocity_profile - Name or number of velocity profile to set. Valid
                                 values are defined in eVelocityProfileType
@@ -1186,7 +1326,7 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-     Get the type of velocity profile used in the SDH
+     Get the type of velocity profile used in the %SDH
 
       \return the currently set velocity profile as integer, see eVelocityProfileType
 
@@ -1215,7 +1355,7 @@ public:
     //######################################################################
     /*!
       \anchor sdhlibrary_cpp_sdh_h_csdh_axis
-       \name   Methods to access SDH on axis-level
+       \name   Methods to access %SDH on axis-level
 
        @{
     */
@@ -1224,7 +1364,7 @@ public:
     /*!
         Set the maximum allowed motor current(s) for axes.
 
-        The maximum allowed motor currents are sent to the SDH.
+        The maximum allowed motor currents are sent to the %SDH.
         The motor currents can be stored:
         - axis specific
         - mode specific (see #eMotorCurrentMode)
@@ -1245,7 +1385,7 @@ public:
           [0 .. #f_max_motor_current_v], i.e. it is checked that \c motor_currents[i],
           converted to internal units, is in \c [0 .. \c f_max_motor_currents_v[axes[i]]].
         - If \b any index or value is invalid then \b none of the specified
-          values is sent to the SDH, instead a #SDH::cSDHErrorInvalidParameter* exception
+          values is sent to the %SDH, instead a #SDH::cSDHErrorInvalidParameter* exception
           is thrown.
 
         See also #SetAxisMotorCurrent(int,double,eMotorCurrentMode)
@@ -1312,7 +1452,7 @@ public:
     /*!
         Get the maximum allowed motor current(s) of axis(axes).
 
-        The maximum allowed motor currents are read from the SDH.
+        The maximum allowed motor currents are read from the %SDH.
         The motor currents are stored:
         - axis specific
         - mode specific (see eMotorCurrentMode)
@@ -1354,7 +1494,7 @@ public:
           axes35.push_back( 5 );
 
           v = hand.GetAxisMotorCurrent( axes35, eMCM_GRIP );
-          // now L is something like {0.5,0.5};
+          // now v is something like {0.5,0.5};
 
         \endcode
 
@@ -1378,7 +1518,7 @@ public:
         Set enabled/disabled state of axis controller(s).
 
         The controllers of the selected axes are enabled/disabled in
-        the SDH. Disabled axes are not powered and thus might not
+        the %SDH. Disabled axes are not powered and thus might not
         remain in their current pose due to gravity, inertia or
         other external influences. But to prevent overheating the axis
         controllers should be switched of when not needed.
@@ -1396,7 +1536,7 @@ public:
           to axis \c axes[i] (not axis \c i).
         - The indices are checked if they are valid axis indices.
         - If \b any index is invalid then \b none of the specified
-          values is sent to the SDH, instead a #SDH::cSDHErrorInvalidParameter*
+          values is sent to the %SDH, instead a #SDH::cSDHErrorInvalidParameter*
           exception is thrown.
 
         See also #SetAxisEnable(int,double), #SetAxisEnable(int,bool)
@@ -1476,7 +1616,7 @@ public:
         Get enabled/disabled state of axis controller(s).
 
         The enabled/disabled state of the controllers of the selected
-        axes is read from the SDH.
+        axes is read from the %SDH.
 
         \param axes - A vector of axis indices to access.
 
@@ -1537,7 +1677,7 @@ public:
     /*!
        Get the current actual state(s) of axis(axes).
 
-       The actual axis states are read from the SDH.
+       The actual axis states are read from the %SDH.
 
        \param axes - A vector of axis indices to access.
 
@@ -1613,11 +1753,24 @@ public:
         See also #WaitAxis(int,double) for an overloaded variant to
         wait for a single axis or all axes.
 
+        \bug Due to a bug in %SDH firmwares prior to 0.0.2.6 the WaitAxis() command
+             was somewhat unreliable there. When called immediately after a movement command like MoveHand(),
+             then the WaitAxis() command returned immediately without waiting for the end of the movement.
+             With %SDH firmwares 0.0.2.6 and newer this is no longer problematic and WaitAxis() works as expected.
+             <br><b>=> Resolved in %SDH firmware 0.0.2.6</b>
+
+        \bug With %SDH firmware 0.0.2.6 WaitAxis() did not work if one of the new
+             velocity based controllers (eCT_VELOCITY, eCT_VELOCITY_ACCELERATION)
+             was used. With %SDH firmwares 0.0.2.7 and newer this now works. Here
+             the WaitAxis() waits until the selected axes come to velocity 0.0
+             <br><b>=> Resolved in %SDH firmware 0.0.2.7</b>
 
         \par Examples:
-        See also the demo program demo-simple3
+        Example 1, WaitAxis and eCT_POSE controller, see also the demo program demo-simple3:
         \code
           // Assuming "hand" is a cSDH object ...
+
+          hand.SetController( eCT_POSE );
 
           // Set a new target pose for axis 1,2 and 3
           std::vector<int> axes123;
@@ -1629,6 +1782,7 @@ public:
           angles123.push_back( -20.0 );
           angles123.push_back( -30.0 );
           angles123.push_back( -40.0 );
+
 
           hand.SetAxisTargetAngle( axes123, angles123 );
 
@@ -1655,6 +1809,48 @@ public:
 
           // Wait until all axes are there, with a timeout of 10s:
           hand.WaitAxis( hand.All, 10.0 );
+
+          // now we are at the desired position.
+       \endcode
+
+       Example 2, WaitAxis and eCT_VELOCITY_ACCELERATION controller, see also the demo program demo-velocity-acceleration
+       \code
+          // Assuming "hand" is a cSDH object ...
+
+          hand.SetController( eCT_VELOCITY_ACCELERATION);
+
+          // Set a new target velocity for axis 1,2 and 3
+          std::vector<int> axes123;
+          axes123.push_back( 1 );
+          axes123.push_back( 2 );
+          axes123.push_back( 3 );
+
+          std::vector<double> velocities123;
+          velocities123.push_back( -20.0 );
+          velocities123.push_back( -30.0 );
+          velocities123.push_back( -40.0 );
+
+
+          hand.SetAxisTargetVelocity( axes123, velocities123 ); // this will make the axes move!
+
+          // The last call returned immediately so we now have time to
+          // do something else while the hand is moving:
+
+          // ... insert any calculation here ...
+
+          // to break and stop the movement just set the target velocities to 0.0
+          velocities123[0] = 0.0;
+          velocities123[1] = 0.0;
+          velocities123[2] = 0.0;
+
+          hand.SetAxisTargetVelocity( axes123, velocities123 ); // this will make the axes break with the default (de)acceleration
+
+          // The previous command returned immediately, so
+          // before doing something else with the hand make shure the
+          // selected axes have stopped:
+          hand.WaitAxis( axes123 );
+
+          // now the axes have stopped
        \endcode
 
        <hr>
@@ -1679,7 +1875,7 @@ public:
     /*!
         Set the target angle(s) for axis(axes).
 
-        The target angles are stored in the SDH, the movement
+        The target angles are stored in the %SDH, the movement
         is not executed until an additional move command is sent.
 
         \param axes   - A vector of axis indices to access.
@@ -1701,7 +1897,7 @@ public:
           [0 .. #f_max_angle_v], i.e. it is checked that \c angles[i],
           converted to internal units, is in \c [0 .. \c f_max_angle_v[axes[i]]].
         - If \b any index or value is invalid then \b none of the specified
-          values is sent to the SDH, instead a #SDH::cSDHErrorInvalidParameter*
+          values is sent to the %SDH, instead a #SDH::cSDHErrorInvalidParameter*
           exception is thrown.
 
         See also #SetAxisTargetAngle(int,double) for an overloaded variant to
@@ -1768,7 +1964,7 @@ public:
     /*!
         Get the target angle(s) of axis(axes).
 
-        The currently set target angles are read from the SDH.
+        The currently set target angles are read from the %SDH.
 
         \param axes - A vector of axis indices to access.
 
@@ -1831,7 +2027,7 @@ public:
     /*!
        Get the current actual angle(s) of axis(axes).
 
-       The actual angles are read from the SDH.
+       The actual angles are read from the %SDH.
 
         \param axes - A vector of axis indices to access.
 
@@ -1894,8 +2090,17 @@ public:
     /*!
         Set the target velocity(s) for axis(axes).
 
-        The target velocities are stored in the SDH. A movement
-        is not executed until an additional move command is sent.
+        The target velocities are stored in the %SDH. The time at which
+        a new target velocities will take effect depends on the current
+        axis controller type:
+        - in eCT_POSE controller type the new target velocities will
+          not take effect until an additional move command is sent:
+          MoveAxis(), MoveFinger(), MoveHand()
+        - in eCT_VELOCITY and eCT_VELOCITY_ACCELERATION controller type
+          the new target velocity will take effect immediately.
+          This means that in eCT_VELOCITY_ACCELERATION controller type
+          the accelerations must be set with SetAxisTargetAcceleration()
+          \b before calling SetAxisTargetVelocity().
 
         \param axes       - A vector of axis indices to access.
         \param velocities - A vector of axis target angles to set. If any
@@ -1908,7 +2113,6 @@ public:
 
 
         \remark
-        - Setting the target velocity will \b not make the axis/axes move.
         - The lengths of the \a axes and \a velocities vector must match.
         - The indices can be given in any order, but the order of
           their elements must match, i.e. \c velocities[i] will be applied
@@ -1918,7 +2122,7 @@ public:
           [0 .. #f_max_velocity_v], i.e. it is checked that \c velocities[i],
           converted to internal units, is in \c [0 .. \c f_max_velocity_v[axes[i]]].
         - If \b any index or value is invalid then \b none of the specified
-          values is sent to the SDH, instead a #SDH::cSDHErrorInvalidParameter*
+          values is sent to the %SDH, instead a #SDH::cSDHErrorInvalidParameter*
           exception is thrown.
 
         See also #SetAxisTargetVelocity(int,double) for an overloaded variant
@@ -1983,7 +2187,7 @@ public:
     /*!
         Get the target velocity(s) of axis(axes).
 
-        The currently set target velocities are read from the SDH.
+        The currently set target velocities are read from the %SDH.
 
         \param axes - A vector of axis indices to access.
 
@@ -2046,7 +2250,7 @@ public:
     /*!
         Get the velocity limit(s) of axis(axes).
 
-        The velocity limit(s) are read from the SDH.
+        The velocity limit(s) are read from the %SDH.
 
         \param axes - A vector of axis indices to access.
 
@@ -2107,6 +2311,69 @@ public:
 
     //-----------------------------------------------------------------
     /*!
+        Get the acceleration limit(s) of axis(axes).
+
+        The acceleration limit(s) are read from the %SDH.
+
+        \param axes - A vector of axis indices to access.
+
+        - The indices in \a axes are checked if they are valid axis indices.
+        - If \b any axis index is invalid then a #SDH::cSDHErrorInvalidParameter*
+          exception is thrown.
+
+        \return
+        - A vector of the acceleration limits of the selected axes.
+        - The values are converted to the selected external unit
+          system using the configured #uc_angular_acceleration unit converter object.
+        - The order of the elements of the \a axes vector and the returned values
+          vector \a rv matches. I.e. \c rv[i] will be the value of axis
+          \c axes[i] (not axis \c i).
+
+        See also #GetAxisLimitAcceleration(int) for an
+        overloaded variant to access a single axis.
+
+
+        \par Examples:
+        \code
+          // Assuming "hand" is a cSDH object ...
+
+          // Get axis acceleration limits of all axes
+          std::vector<double> v = hand.GetAxisLimitAcceleration( hand.all_axes );
+          // now v is something like {81.0, 140.0, 120.0, 140.0, 120.0, 140.0, 120.0}
+
+          // Get axis acceleration limit of axis 2
+          double v2 = hand.GetAxisLimitAcceleration( 2 );
+          // v2 is now something like 120.0
+
+
+          // Get axis acceleration limits of axis 2 and 4
+          std::vector<int> axes24;
+          axes24.push_back( 2 );
+          axes24.push_back( 4 );
+
+          v = hand.GetAxisLimitAcceleration( axes24 );
+          // now v is something like {120.0,120.0}
+
+        \endcode
+
+        <hr>
+    */
+    std::vector<double> GetAxisLimitAcceleration( std::vector<int> const& axes )
+        throw (cSDHLibraryException*);
+
+
+    //----------------------------------------------------------------------
+    /*!
+        Like #GetAxisLimitAcceleration(std::vector<int>const&), just for a single
+        axis \a iAxis and returning a single acceleration limit, see there for details
+        and examples.
+    */
+    double GetAxisLimitAcceleration( int iAxis )
+        throw (cSDHLibraryException*);
+
+
+    //-----------------------------------------------------------------
+    /*!
         Get the actual velocity(s) of axis(axes).
 
         \param axes - A vector of axis indices to access.
@@ -2116,14 +2383,14 @@ public:
           exception is thrown.
 
         \return
-        - A vector of the target velocities of the selected axes.
+        - A vector of the actual velocities of the selected axes.
         - The values are converted to the selected external unit
           system using the configured #uc_angular_velocity unit converter object.
         - The order of the elements of the \a axes vector and the returned values
           vector \a rv matches. I.e. \c rv[i] will be the value of axis
           \c axes[i] (not axis \c i).
 
-        See also #GetAxisTargetVelocity(int) for an
+        See also #GetAxisActualVelocity(int) for an
         overloaded variant to access a single axis.
 
 
@@ -2140,7 +2407,7 @@ public:
           axes24.push_back( 2 );
           axes24.push_back( 4 );
           v = hand.GetAxisActualVelocity( axes24 );
-          // now L is something like {13.2, 0.0}
+          // now v is something like {13.2, 0.0}
 
           // Get actual axis velocity of axis 2
           double v3 = hand.GetAxisActualVelocity( 2 );
@@ -2166,10 +2433,88 @@ public:
 
     //-----------------------------------------------------------------
     /*!
+        Get the current reference velocity(s) of axis(axes). (This velocity is used internally by the %SDH in eCT_VELOCITY_ACCELERATION mode).
+
+        \param axes - A vector of axis indices to access.
+
+        - The indices in \a axes are checked if they are valid axis indices.
+        - If \b any axis index is invalid then a #SDH::cSDHErrorInvalidParameter*
+          exception is thrown.
+
+        \return
+        - A vector of the reference velocities of the selected axes.
+        - The values are converted to the selected external unit
+          system using the configured #uc_angular_velocity unit converter object.
+        - The order of the elements of the \a axes vector and the returned values
+          vector \a rv matches. I.e. \c rv[i] will be the value of axis
+          \c axes[i] (not axis \c i).
+
+        See also #GetAxisReferenceVelocity(int) for an
+        overloaded variant to access a single axis.
+
+
+        \par Examples:
+        \code
+          // Assuming "hand" is a cSDH object ...
+
+          // Switch to "velocity control with acceleration ramp" controller mode first.
+          // (When in another controller mode like the default eCT_POSE,
+          //  then the reference velocities will not be valid):
+          hand.SetController( eCT_VELOCITY_ACCELERATION );
+
+          // Get reference axis velocity of all axes
+          std::vector<double> v = hand.GetAxisReferenceVelocity( hand.all_axes );
+          // now v is something like {0.1, 0.2, 0.3, 13.2, 0.5, 0.0, 0.7}
+
+          // Get reference axis velocity of axis 2 and 4
+          std::vector<int> axes24;
+          axes24.push_back( 2 );
+          axes24.push_back( 4 );
+          v = hand.GetAxisReferenceVelocity( axes24 );
+          // now v is something like {13.2, 0.0}
+
+          // Get reference axis velocity of axis 2
+          double v3 = hand.GetAxisReferenceVelocity( 2 );
+          // v3 is now something like 13.2
+
+        \endcode
+
+        \remark
+          - the underlying rvel command of the %SDH firmware is not
+            available in firmwares prior to 0.0.2.6. For such hands
+            calling rvel will fail miserably.
+          - The availability of an appropriate %SDH firmware is \b not checked
+            here due to performance losses when this function is used often.
+
+        <hr>
+    */
+    std::vector<double> GetAxisReferenceVelocity( std::vector<int>const& axes )
+        throw (cSDHLibraryException*);
+
+
+    //----------------------------------------------------------------------
+    /*!
+        Like #GetAxisReferenceVelocity(std::vector<int>const&), just for a single
+        axis \a iAxis and returning a single velocity, see there for details
+        and examples.
+    */
+    double GetAxisReferenceVelocity( int iAxis )
+        throw (cSDHLibraryException*);
+
+
+    //-----------------------------------------------------------------
+    /*!
         Set the target acceleration(s) for axis(axes).
 
-        The target accelerations are stored in the SDH. A movement
-        is not executed until an additional move command is sent.
+        The target accelerations are stored in the %SDH and are used only for:
+        - the eCT_POSE controller type with eVP_RAMP velocity profile
+        - the eCT_VELOCITY_ACCELERATION controller type
+
+        Setting the target acceleration will not affect an ongoing movement,
+        nor will it start a new movement. To take effect an additional command
+        must be sent:
+        - in eCT_POSE controller type a move command: MoveAxis() MoveFinger() MoveHand()
+        - in eCT_VELOCITY_ACCELERATION controller type the velocity must be set: SetAxisTargetVelocity()
 
         \param axes          - A vector of axis indices to access.
         \param accelerations - A vector of axis target accelerations to set. If any
@@ -2191,7 +2536,7 @@ public:
           [0 .. #f_max_velocity_v], i.e. it is checked that \c accelerations[i],
           converted to internal units, is in \c [0 .. \c f_max_velocity_v[axes[i]]].
         - If \b any index or value is invalid then \b none of the specified
-          values is sent to the SDH, instead a #SDH::cSDHErrorInvalidParameter*
+          values is sent to the %SDH, instead a #SDH::cSDHErrorInvalidParameter*
           exception is thrown.
 
         See also #SetAxisTargetAcceleration(int,double) for an
@@ -2205,13 +2550,13 @@ public:
 
           // Set target axis acceleration of all axes to the given values:
           std::vector<double> all_accelerations;
-          all_accelerations.push_back( 0.0 );
-          all_accelerations.push_back( 111.0 );
-          all_accelerations.push_back( 222.0 );
-          all_accelerations.push_back( 333.0 );
-          all_accelerations.push_back( 444.0 );
-          all_accelerations.push_back( 555.0 );
-          all_accelerations.push_back( 666.0 );
+          all_accelerations.push_back( 100.0 );
+          all_accelerations.push_back( 101.0 );
+          all_accelerations.push_back( 102.0 );
+          all_accelerations.push_back( 103.0 );
+          all_accelerations.push_back( 104.0 );
+          all_accelerations.push_back( 105.0 );
+          all_accelerations.push_back( 106.0 );
 
           hand.SetAxisTargetAcceleration( hand.all_axes, all_accelerations );
 
@@ -2225,15 +2570,15 @@ public:
           axes042.push_back( 4 );
           axes042.push_back( 2 );
           std::vector<double> accelerations042;
-          accelerations042.push_back( 0.0 );
-          accelerations042.push_back( 444.0 );
-          accelerations042.push_back( 222.0 );
+          accelerations042.push_back( 100.0 );
+          accelerations042.push_back( 104.0 );
+          accelerations042.push_back( 102.0 );
 
           hand.SetAxisTargetAcceleration( axes042, accelerations042 );
 
 
-          // Set target axis acceleration of all axes to 471.1°/s
-          hand.SetAxisTargetAcceleration( hand.All, 471.1 );
+          // Set target axis acceleration of all axes to 142.1°/s
+          hand.SetAxisTargetAcceleration( hand.All, 142.1 );
 
         \endcode
 
@@ -2256,7 +2601,7 @@ public:
     /*!
         Get the target acceleration(s) of axis(axes).
 
-        The currently set target accelerations are read from the SDH.
+        The currently set target accelerations are read from the %SDH.
 
         \param axes - A vector of axis indices to access.
 
@@ -2282,11 +2627,11 @@ public:
 
           // Get target axis acceleration of all axes
           std::vector<double> v = hand.GetAxisTargetAcceleration( hand.all_axes );
-          // now v is something like {0.0, 0.0, 42.0, 0.0, 47.11, 0,0, 0.0}
+          // now v is something like {100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0}
 
           // Get target axis acceleration of axis 2
           double v2 = hand.GetAxisTargetAcceleration( 2 );
-          // v2 is now something like 42.0
+          // v2 is now something like 100.0
 
 
           // Get target axis acceleration of axis 2 and 4
@@ -2295,7 +2640,7 @@ public:
           axes24.push_back( 4 );
 
           v = hand.GetAxisTargetAcceleration( axes24 );
-          // now v is something like {42.0, 47.11}
+          // now v is something like {100.0, 100.0}
 
         \endcode
 
@@ -2319,7 +2664,7 @@ public:
     /*!
         Get the minimum angle(s) of axis(axes).
 
-        The minimum angles are currently not read from the SDH, but are stored
+        The minimum angles are currently not read from the %SDH, but are stored
         in the library.
 
         \param axes - A vector of axis indices to access.
@@ -2388,7 +2733,7 @@ public:
     /*!
         Get the maximum angle(s) of axis(axes).
 
-        The maximum angles are currently not read from the SDH, but are stored
+        The maximum angles are currently not read from the %SDH, but are stored
         in the library.
 
         \param axes - A vector of axis indices to access.
@@ -2455,10 +2800,15 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-       Get the maximum velocity(s) of axis(axes).
+       Get the maximum velocity(s) of axis(axes). These are the
+       (theoretical) maximum velocities as determined by the maximum motor
+       velocity and gear box ratio. The values do not take things like
+       friction or inertia into account. So it is likely that these
+       maximum velocities cannot be reached by the real hardware in reality.
 
-       The maximum velocities are currently not read from the SDH, but are
-       stored in the library.
+       The maximum velocities are currently read once from the %SDH when
+       the communication to the %SDH is opened. Later queries of this
+       maximum velocities will use the values stored in the library.
 
         \param axes - A vector of axis indices to access.
 
@@ -2483,27 +2833,27 @@ public:
           // Assuming "hand" is a cSDH object ...
 
           // Get maximum axis angular velocities of all axes
-          std::vector<double> v = hand.GetAxisMaxAngle( hand.all_axes );
-          // now v is something like {28.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0}
+          std::vector<double> v = hand.GetAxisMaxVelocity( hand.all_axes );
+          // now v is something like {83.857,200.000,157.895,200.000,157.895,200.000,157.895}
 
           // Get maximum axis angular velocity of axis 3
-          double v3 = hand.GetAxisMaxAngle( 3 );
-          // v3 is now something like 100.0
+          double v3 = hand.GetAxisMaxVelocity( 3 );
+          // v3 is now something like 200.0
 
           // Get maximum axis angular velocity of axis 2 and 4
           std::vector<int> axes24;
           axes24.push_back( 2 );
           axes24.push_back( 4 );
 
-          v = hand.GetAxisMaxAngle( axes24 );
-          // now v is something like {100.0, 100.0}
+          v = hand.GetAxisMaxVelocity( axes24 );
+          // now v is something like {157.895, 157.895}
 
 
           // Or if you change the angular velocity unit system:
           hand.UseRadians();
 
-          v = hand.GetAxisMaxAngle( hand.all_axes );
-          // now v is something like {0.488692190, 1.74532925, 1.74532925, 1.74532925, 1.74532925, 1.74532925, 1.74532925}
+          v = hand.GetAxisMaxVelocity( hand.all_axes );
+          // now v is something like {1.46358075084, 3.49065850399, 2.75578762244, 3.49065850399, 2.75578762244, 3.49065850399, 2.75578762244}
         \endcode
 
         <hr>
@@ -2526,7 +2876,7 @@ public:
     /*!
        Get the maximum acceleration(s) of axis(axes).
 
-       The maximum accelerations are currently not read from the SDH, but are
+       The maximum accelerations are currently not read from the %SDH, but are
        stored in the library.
 
         \param axes - A vector of axis indices to access.
@@ -2552,11 +2902,11 @@ public:
           // Assuming "hand" is a cSDH object ...
 
           // Get maximum axis angular accelerations of all axes
-          std::vector<double> v = hand.GetAxisMaxAngle( hand.all_axes );
+          std::vector<double> v = hand.GetAxisMaxAcceleration( hand.all_axes );
           // now v is something like {1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0}
 
           // Get maximum axis angular acceleration of axis 3
-          double v3 = hand.GetAxisMaxAngle( 3 );
+          double v3 = hand.GetAxisMaxAcceleration( 3 );
           // v3 is now something like 1000.0
 
           // Get maximum axis angular acceleration of axis 2 and 4
@@ -2564,15 +2914,15 @@ public:
           axes24.push_back( 2 );
           axes24.push_back( 4 );
 
-          v = hand.GetAxisMaxAngle( axes24 );
+          v = hand.GetAxisMaxAcceleration( axes24 );
           // now v is something like {1000.0, 1000.0}
 
 
           // Or if you change the angular acceleration unit system:
           hand.UseRadians();
 
-          v = hand.GetAxisMaxAngle( hand.all_axes );
-          // now v is something like {0.488692190, 1.74532925, 1.74532925, 1.74532925, 1.74532925, 1.74532925, 1.74532925}
+          v = hand.GetAxisMaxAcceleration( hand.all_axes );
+          // now v is something like {17.453292519943293, 17.453292519943293, 17.453292519943293, 17.453292519943293, 17.453292519943293, 17.453292519943293, 17.453292519943293}
         \endcode
 
         <hr>
@@ -2599,10 +2949,10 @@ public:
 
         \param axes    - A vector of axis indices to access.
         \param sequ    - flag: if true (default) then the function executes sequentially
-                         and returns not until after the SDH has
+                         and returns not until after the %SDH has
                          finished the movement. If false then the
                          function returns immediately after the
-                         movement command has been sent to the SDH
+                         movement command has been sent to the %SDH
                          (the currently set target axis angles for other axes will
                          then be \b overwritten with their current actual
                          axis angles).
@@ -2617,7 +2967,7 @@ public:
         \remark
           - The axes will be enabled automatically.
           - Currently the actual movement velocity of an axis is
-            determined by the SDH firmware to make the movements of all
+            determined by the %SDH firmware to make the movements of all
             involved axes start and end synchronously at the same time. Therefore
             the axis that needs the longest time for its movement at its
             given maximum velocity determines the velocities of all the
@@ -2691,9 +3041,18 @@ public:
 
         \endcode
 
+        \bug
+        With %SDH firmware < 0.0.2.7 calling MoveAxis() while some axes are moving
+        in eCT_POSE controller type will make the joints jerk.
+        This is resolved in %SDH firmware 0.0.2.7 for the eCT_POSE controller type with
+        velocity profile eVP_RAMP. For the eCT_POSE controller type with velocity profile
+        eVP_SIN_SQUARE changing target points/ velocities while moving will still make
+        the axes jerk.
+        <br><b>=> Partly resolved in %SDH firmware 0.0.2.7</b>
+
         <hr>
     */
-    double MoveAxis( std::vector<int>const& axes, bool sequ )
+    double MoveAxis( std::vector<int>const& axes, bool sequ=true )
         throw (cSDHLibraryException*);
 
 
@@ -2702,7 +3061,7 @@ public:
         Like #MoveAxis(std::vector<int>const&,bool), just for a single axis
         \a iAxis (or all axes if #All is given).
     */
-    double MoveAxis( int iAxis, bool sequ )
+    double MoveAxis( int iAxis, bool sequ=true )
         throw (cSDHLibraryException*);
 
 
@@ -2719,7 +3078,7 @@ public:
     //######################################################################
     /*!
       \anchor sdhlibrary_cpp_sdh_h_csdh_finger
-       \name   Methods to access SDH on finger-level
+       \name   Methods to access %SDH on finger-level
 
        @{
     */
@@ -2729,7 +3088,7 @@ public:
         Set enabled/disabled state of axis controllers of finger(s).
 
         The controllers of the axes of the selected fingers are
-        enabled/disabled in the SDH. Disabled axes are not powered and thus
+        enabled/disabled in the %SDH. Disabled axes are not powered and thus
         might not remain in their current pose due to gravity, inertia or
         other external influences. But to prevent overheating the axis
         controllers should be switched of when not needed.
@@ -2747,7 +3106,7 @@ public:
           to finger \c fingers[i] (not finger \c i).
         - The indices are checked if they are valid finger indices.
         - If \b any index is invalid then \b none of the specified
-          values is sent to the SDH, instead a #SDH::cSDHErrorInvalidParameter*
+          values is sent to the %SDH, instead a #SDH::cSDHErrorInvalidParameter*
           exception is thrown.
         - As axis 0 is used for finger 0 and 2, axis 0 is disabled only
           if both finger 0 and 1 are disabled.
@@ -2825,7 +3184,7 @@ public:
         Get enabled/disabled state of axis controllers of finger(s).
 
         The enabled/disabled state of the controllers of the selected
-        fingers is read from the SDH. A finger is reported disabled if
+        fingers is read from the %SDH. A finger is reported disabled if
         any of its axes is disabled and reported enabled if all its
         axes are enabled.
 
@@ -2889,7 +3248,7 @@ public:
         Set the target angle(s) for a single finger.
 
         The target axis angles \a angle of finger \a iFinger are stored
-        in the SDH. The movement is not executed until an additional
+        in the %SDH. The movement is not executed until an additional
         move command is sent.
 
         \param iFinger - index of finger to access.
@@ -2905,7 +3264,7 @@ public:
           [0 .. #f_max_angle_v], i.e. it is checked that \c angles[i],
           converted to internal units, is in \c [0 .. \c f_max_angle_v[finger_axis_index[iFinger][i]]].
         - If \b any index or value is invalid then \b none of the specified
-          values is sent to the SDH, instead a #SDH::cSDHErrorInvalidParameter*
+          values is sent to the %SDH, instead a #SDH::cSDHErrorInvalidParameter*
           exception is thrown.
 
         See also #SetFingerTargetAngle(int,double,double,double) for an
@@ -2961,7 +3320,7 @@ public:
     /*!
         Get the target axis angles of a single finger.
 
-        The target axis angles of finger \a iFinger are read from the SDH.
+        The target axis angles of finger \a iFinger are read from the %SDH.
 
         \param iFinger - index of finger to access.
                          This must be a single index
@@ -3013,7 +3372,7 @@ public:
     /*!
         Get the current actual axis angles of a single finger.
 
-        The current actual axis angles of finger \a iFinger are read from the SDH.
+        The current actual axis angles of finger \a iFinger are read from the %SDH.
 
         \param iFinger - index of finger to access.
                          This must be a single index.
@@ -3264,10 +3623,10 @@ public:
 
         \param fingers - A vector of finger indices to access.
         \param sequ    - flag: if true (default) then the function executes sequentially
-                         and returns not until after the SDH has
+                         and returns not until after the %SDH has
                          finished the movement. If false then the
                          function returns immediately after the
-                         movement command has been sent to the SDH
+                         movement command has been sent to the %SDH
                          (the currently set target axis angles for other fingers will
                          then be \b overwritten with their current actual
                          axis angles).
@@ -3282,7 +3641,7 @@ public:
         \remark
           - The axes will be enabled automatically.
           - Currently the actual movement velocity of an axis is
-            determined by the SDH firmware to make the movements of all
+            determined by the %SDH firmware to make the movements of all
             involved axes start and end synchronously at the same time. Therefore
             the axis that needs the longest time for its movement at its
             given maximum velocity determines the velocities of all the
@@ -3344,6 +3703,14 @@ public:
 
         \endcode
 
+        \bug
+        With %SDH firmware < 0.0.2.7 calling MoveFinger() while some axes are moving
+        in eCT_POSE controller type will make the joints jerk.
+        This is resolved in %SDH firmware 0.0.2.7 for the eCT_POSE controller type with
+        velocity profile eVP_RAMP. For the eCT_POSE controller type with velocity profile
+        eVP_SIN_SQUARE changing target points/ velocities while moving will still make
+        the axes jerk.
+        <br><b>=> Partly resolved in %SDH firmware 0.0.2.7</b>
         <hr>
     */
     double MoveFinger( std::vector<int>const& fingers, bool sequ=true )
@@ -3367,6 +3734,15 @@ public:
        This is just a shortcut to #MoveFinger(int,bool) with \a
        iFinger set to \c hand.All and \a sequ as indicated, so see there for
        details and examples.
+
+       \bug
+       With %SDH firmware < 0.0.2.7 calling MoveHand() while some axes are moving
+       in eCT_POSE controller type will make the joints jerk.
+       This is resolved in %SDH firmware 0.0.2.7 for the eCT_POSE controller type with
+       velocity profile eVP_RAMP. For the eCT_POSE controller type with velocity profile
+       eVP_SIN_SQUARE changing target points/ velocities while moving will still make
+       the axes jerk.
+       <br><b>=> Parltly resolved in %SDH firmware 0.0.2.7</b>
     */
     double MoveHand( bool sequ=true )
         throw (cSDHLibraryException*);
@@ -3380,7 +3756,7 @@ public:
     //######################################################################
     /*!
       \anchor sdhlibrary_cpp_sdh_h_csdh_grip
-       \name   Methods to access SDH grip skills
+       \name   Methods to access %%SDH grip skills
 
        @{
     */
@@ -3389,7 +3765,7 @@ public:
     /*!
       Get the maximum velocity of grip skills
 
-       The maximum velocity is currently not read from the SDH, but is stored
+       The maximum velocity is currently not read from the %SDH, but is stored
        in the library.
 
        \return
@@ -3419,14 +3795,33 @@ public:
     /*!
         Perform one of the internal #eGraspId "grips" or "grasps"
 
+        \warning THIS DOES NOT WORK WITH %SDH FIRMWARE PRIOR TO 0.0.2.6 AND SDHLIBRARY-CPP PRIOR to 0.0.1.12
+          This was a feature in the ancient times of the SDH1 and now does work
+          again for %SDH firmware 0.0.2.6 and newer and SDHLIBRARY-CPP 0.0.1.12 and newer. We intend to further improve this
+          feature (e.g. store user defined grips within the %SDH) in the future,
+          but a particular deadline a has not been determined yet.
+
+        \bug
+          With %SDH firmware > 0.0.2.6 and SDHLibrary < 0.0.1.12 GripHand() does not work (<a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=575">Bug 575</a>)
+          <br><b>=> Resolved in SDHLibrary 0.0.1.12</b>
+
+        \bug
+          With %SDH firmware < 0.0.2.6 GripHand() does not work and might
+          yield undefined behaviour there
+          <br><b>=> Resolved in %SDH firmware 0.0.2.6</b>
+
+        \bug Currently the performing of a skill or grip with GripHand() can \b NOT be
+             interrupted!!!  Even if the command is sent with \a sequ=false it \b cannot
+             be stoped or emergency stopped.
+
         \param grip     - The index of the grip to perform [0..eGID_DIMENSION-1] (s.a. eGraspId)
         \param close    - close-ratio: [0.0 .. 1.0] where 0.0 is 'fully opened' and 1.0 is 'fully closed'
         \param velocity - maximum allowed angular axis velocity in the chosen external unit system #uc_angular_velocity
         \param sequ     - flag: if true (default) then the function executes sequentially
-                          and returns not until after the SDH has
+                          and returns not until after the %SDH has
                           finished the movement. If false then the
                           function returns immediately after the
-                          movement command has been sent to the SDH.
+                          movement command has been sent to the %SDH.
 
         - The \a close and \a velocity values are checked if they are in their
           allowed range.
@@ -3439,7 +3834,7 @@ public:
 
         \remark
           - Currently the actual movement velocity of an axis is
-            determined by the SDH firmware to make the movements of all
+            determined by the %SDH firmware to make the movements of all
             involved axes start and end synchronously at the same time. Therefore
             the axis that needs the longest time for its movement at its
             given maximum velocity determines the velocities of all the
@@ -3449,12 +3844,6 @@ public:
             while gripping and then changes the motor current mode to
             "eMCM_HOLD". After the movement previously set motor currents
             set for mode "eMCM_MOVE" are \b overwritten!
-
-        \warning
-        \bug
-        !!! Currently the performing of a skill or grip can \b NOT be
-        interrupted!!!  Even if the command is sent with \a sequ=false it \b
-        cannot be stoped or emergency stopped.
 
         \par Examples:
         \code
@@ -3468,7 +3857,6 @@ public:
 
           // Then close it completely with 20°/s:
           hand.GripHand( hand.eGID_CENTRICAL, 1.0, 20.0, true );
-
         \endcode
 
         <hr>
@@ -3481,7 +3869,26 @@ public:
     //!  @}
     //#####################################################################
 
+private:
+    /*!
+     * Update settings like min/max velocities and accelerations from the connected %SDH
+     */
+    void UpdateSettingsFromSDH();
 
+    /*!
+     * Adjust the limits for the velocity and acceleration according to the controller type.
+     *
+     * - in pose controller the velocities and accelerations are always positive and thus the minimum is 0.0
+     * - in velocity based controllers the velocities and accelerations can be positive or negative and thus the minimum is -maximum
+     */
+    void AdjustLimits( cSDHBase::eControllerType controller );
+
+
+    //! string containing the %SDH firmware release of the attaced %SDH (something like "0.0.2.7")
+    std::string release_firmware;
+
+    //! cached value of the axis controller type
+    eControllerType controller_type;
 
     // unimplemented from SAH:
     // def GetFingerTipFT( int iFinger,double* pafFTData);

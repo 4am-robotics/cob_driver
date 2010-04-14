@@ -21,9 +21,9 @@
 
   \subsection sdhlibrary_cpp_sdhlibrary_settings_h_details SVN related, detailed file specific information:
   $LastChangedBy: Osswald2 $
-  $LastChangedDate: 2008-10-16 18:59:36 +0200 (Do, 16 Okt 2008) $
+  $LastChangedDate: 2009-12-01 11:41:18 +0100 (Di, 01 Dez 2009) $
   \par SVN file revision:
-  $Id: sdhlibrary_settings.h 3722 2008-10-16 16:59:36Z Osswald2 $
+  $Id: sdhlibrary_settings.h 5000 2009-12-01 10:41:18Z Osswald2 $
 
   \subsection sdhlibrary_cpp_sdhlibrary_settings_h_changelog Changelog of this file:
   \include sdhlibrary_settings.h.log
@@ -48,7 +48,7 @@
 //----------------------------------------------------------------------
 
 /*!
-  \defgroup sdhlibrary_cpp_sdhlibrary_settings_h_settings_group Settings
+  \defgroup sdhlibrary_cpp_sdhlibrary_settings_h_settings_group Compile time settings
 
   Primary settings to be adjusted by the user.
 
@@ -56,31 +56,32 @@
 */
 
 //! Flag, if 1 then all classes are put into a namespace called #SDH. If 0 then the classes are left outside any namespace.
-#define  SDH_USE_NAMESPACE  0
+#define  SDH_USE_NAMESPACE  1
 
 //! @}   // end of doxygen module group sdhlibrary_cpp_sdhlibrary_settings_h_settings_group
 //-----------------------------------------------------------------
 
 
 /*!
-  \defgroup sdhlibrary_cpp_sdhlibrary_settings_h_derived_settings_group Derived settings
+  \defgroup sdhlibrary_cpp_sdhlibrary_settings_h_derived_settings_group Derived compile time settings
 
   Derived settings that users should not have to adjust. Adjustments should
-  be done in \ref sdhlibrary_cpp_sdhlibrary_settings_h_settings_group "Settings"
+  be done in \ref sdhlibrary_cpp_sdhlibrary_settings_h_settings_group "Compile time settings"
 
   @{
 */
 
 
 #if SDH_USE_NAMESPACE
-#define NAMESPACE_SDH_START namespace SDH {
-#define NAMESPACE_SDH_END   }
-#define USING_NAMESPACE_SDH using namespace SDH;
+# define NAMESPACE_SDH_START namespace SDH {
+# define NAMESPACE_SDH_END   }
+# define USING_NAMESPACE_SDH using namespace SDH;
 #else
 # define NAMESPACE_SDH_START
 # define NAMESPACE_SDH_END
 # define USING_NAMESPACE_SDH
 #endif
+
 
 //---------------------
 #if defined( OSNAME_CYGWIN ) || defined( OSNAME_LINUX )
@@ -112,10 +113,6 @@
 # define SDH_ISNAN( V ) _isnan( (V) )
 
 typedef long          ssize_t;
-#if ! WITH_ESD_CAN
-// ntcan.h has its own int32_t
-typedef signed long   int32_t;
-#endif
 
 //---------------------
 #else
