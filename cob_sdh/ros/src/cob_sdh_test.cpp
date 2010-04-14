@@ -64,9 +64,10 @@
 #include <actionlib/client/terminal_state.h>
 
 // ROS message includes
-//#include <cob_msgs/JointCommand.h>
-#include <trajectory_msgs/JointTrajectory.h>
-#include <cob_actions/JointTrajectoryAction.h>
+#include <cob_msgs/JointCommand.h>
+//#include <trajectory_msgs/JointTrajectory.h>
+//#include <cob_actions/JointTrajectoryAction.h>
+#include <cob_actions/JointCommandAction.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -101,8 +102,9 @@ int main(int argc, char** argv)
 
     // topics to publish
 //    ros::Publisher topicPub_JointCommand = n.advertise<cob_msgs::JointCommand>("joint_commands", 1);
-    ros::Publisher topicPub_JointCommand = n.advertise<trajectory_msgs::JointTrajectory>("command", 1);
-	actionlib::SimpleActionClient<cob_actions::JointTrajectoryAction> ac("JointTrajectory", true); 
+    //ros::Publisher topicPub_JointCommand = n.advertise<trajectory_msgs::JointTrajectory>("command", 1);
+	//actionlib::SimpleActionClient<cob_actions::JointTrajectoryAction> ac("JointTrajectory", true);
+	actionlib::SimpleActionClient<cob_actions::JointCommandAction> ac("JointCommand", true);  
         
 	// topics to subscribe, callback is called for new messages arriving
     //--
@@ -126,7 +128,7 @@ int main(int argc, char** argv)
     while(n.ok())
     {
         // process user inputs
-        std::cout << "Choose to test ([i]nit, send[C]ommand, [e]xit): ";
+		std::cout << "Choose service to test ([s]top, [i]nit, setOperation[M]ode, send[C]ommand, [e]xit): ";
         
         std::cin >> c;
 
@@ -176,7 +178,7 @@ int main(int argc, char** argv)
                 srv_errorMessage = srv.response.errorMessage.data.c_str();
                 break;
             }
-            
+/*            
             case 'O':
             {
 				ROS_INFO("called O");
@@ -227,101 +229,48 @@ int main(int argc, char** argv)
                 srv_execute = 0;
                 break;
             }
-            
-			case 'P':
+*/          
+
+			case 'C':
             {
-				ROS_INFO("called P");
+				ROS_INFO("Waiting for action server to start.");
+				// wait for the action server to start
+				ac.waitForServer(); //will wait for infinite time
+				cob_actions::JointCommandGoal goal;
 				
-				XmlRpc::XmlRpcValue pos_param;
-				std::vector<double> pos;
+				XmlRpc::XmlRpcValue command_param;
+				cob_msgs::JointCommand command;
 				
-				if (n.hasParam("traj1/point0/pos"))
+				if (n.hasParam("JointCommand"))
 				{
-					n.getParam("traj1/point0/pos", pos_param);
+					n.getParam("JointCommand", command_param);
 				}
 				else
 				{
-					ROS_ERROR("Parameter traj1/point0/pos not set");
+					ROS_ERROR("Parameter JointCommand not set");
 				}
+				std::cout << command_param <<std::endl;
 				
-				std::cout << pos_param <<std::endl;
+				int command_nr;
+				std::cout << command_param.size() << " commands available. First command is 0" << std::endl;
+				std::cout << "Choose command number [0, 1, 2, ...]: ";
+                std::cin >> command_nr;
+                
+                if (command_nr < 0 || command_nr > command_param.size()-1)
+                {
+                	ROS_ERROR("command_nr not in range. command_nr requested was %d and should be between 0 and %d",command_nr ,command_param.size()-1);
+                	break;
+                }
 				
-				ROS_INFO("got pos with DOF = %d",pos_param.size());
-				pos.resize(pos_param.size());
-				
-				ROS_INFO("point0");
-				std::cout << pos_param.size() <<std::endl;
-				ROS_INFO("point1");
-
-				for (int i = 0; i<pos_param.size(); i++ )
+				command.positions.resize(command_param[command_nr].size());
+				for (int i = 0; i<command_param[command_nr].size(); i++ )
 				{
-					pos[i] = (double)pos_param[i];
-					std::cout << pos_param[i] << std::endl;
+					command.positions[i] = (double)command_param[command_nr][i];
 				}
-
-                std::cout << std::endl;
-                srv_querry = true;
-                srv_execute = 0;
-                break;
-            }
-            
-            case 'C':
-            {
-            	ROS_INFO("Waiting for action server to start.");
-				// wait for the action server to start
-				ac.waitForServer(); //will wait for infinite time
-            	
-                std::cout << "Choose preset target positions/velocities ([0] = , [1] = , [2] = ): ";
-                std::cin >> c;
-                
-                int DOF = 7;
-                
-                // send a goal to the action 
-				cob_actions::JointTrajectoryGoal goal;
-				trajectory_msgs::JointTrajectory traj;
-				traj.header.stamp = ros::Time::now();
 				
-                if (c == '0')
-                {
-					traj.points.resize(1);
-					traj.points[0].positions.resize(DOF);
-					traj.points[0].velocities.resize(DOF);
-					
-					// first point
-					// zero position
-                }
-                else if (c == '1')
-                {
-					traj.points.resize(1);
-					traj.points[0].positions.resize(DOF);
-					traj.points[0].velocities.resize(DOF);                                    
-
-					// first point
-					traj.points[0].positions[0] = 0.1;
-					traj.points[0].positions[1] = 0.1;
-					traj.points[0].positions[2] = 0.1;
-					traj.points[0].positions[3] = 0.1;
-				}
-                else if (c == '2')
-                {
-					traj.points.resize(1);
-					traj.points[0].positions.resize(DOF);
-					traj.points[0].velocities.resize(DOF);                                    
-
-					// first point
-					traj.points[0].positions[0] = 0.2;
-					traj.points[0].positions[1] = 0.2;
-					traj.points[0].positions[2] = 0.2;
-					traj.points[0].positions[3] = 0.2;
-                }
-                else
-                {
-                    ROS_ERROR("invalid target");
-                }
-
-				goal.trajectory = traj;
+				goal.command = command;
 				ac.sendGoal(goal);
-            
+				
                 std::cout << std::endl;
                 srv_querry = true;
                 srv_execute = 0;
