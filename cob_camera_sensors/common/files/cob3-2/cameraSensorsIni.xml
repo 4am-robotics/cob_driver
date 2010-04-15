@@ -69,14 +69,16 @@
   <!-- fy: The focal length in y direction expressed in pixels -->
   <!-- cx: x-coordinate of principal point -->
   <!-- cy: y-coordinate of principal point -->
-  <IntrinsicParameters fx="1063.28489" fy="1059.22367" cx="700.61079" cy="526.92163" />
+	<!-- for shared mode calibration-->
+  <IntrinsicParameters fx="1051.41" fy="1048.55" cx="695.52" cy="542.49" />
 
   <!-- Distortion parameters -->
   <!-- k1: First order radial distortion coefficient -->
   <!-- k2 Second order radial distortion coefficient -->
   <!-- p1 First order tangential distortion coefficient -->
   <!-- p2 Second order tangential distortion coefficient -->
-  <DistortionCoeffs k1="-0.24121" k2=" 0.12423" p1="0.0016" p2="0.00036" />
+	<!-- for shared mode calibration-->
+  <DistortionCoeffs k1="-0.238" k2=" 0.12" p1="0.0013" p2="-0.00039" />
 
   <!-- Extrinsic parameters -->
   <!-- The translation and rotation is specified relative to this camera -->
@@ -87,9 +89,10 @@
       <Translation x="-120.73230" y="0.79392" z="-0.49012" />
       <Rotation x11="1.0000" x12="0.0074" x13="-0.0027" x21="-0.0075" x22="1.0000" x23="-0.0019" x31="0.0027" x32="0.0020" x33="1.0000" />
     </AVTPikeCam_1> 
+	<!-- for shared mode calibration-->
     <Swissranger_0>
-      <Translation x="-61.12679" y="1.97230" z="11.37285" />
-      <Rotation x11="0.99i65" x12="-0.005" x13="0.0831" x21="0.0055" x22="1" x23="-0.0059" x31="-0.083" x32="0.0064" x33="0.9965" />
+      <Translation x="-59.66" y="-0.31" z="5.15" />
+      <Rotation x11="0.9996" x12="-0.0112" x13="-0.0243" x21="0.0117" x22="0.9997" x23="0.0213" x31="0.0240" x32="-0.0216" x33="0.9995" />
     </Swissranger_0>
   </ExtrinsicParameters>
 </AVTPikeCam_0>
@@ -247,14 +250,16 @@
   <!-- fy: The focal length in y direction expressed in pixels -->
   <!-- cx: x-coordinate of principal point -->
   <!-- cy: y-coordinate of principal point -->
-  <IntrinsicParameters fx="247.26745" fy="247.45763" cx="109.37066" cy="62.59384" />
+	<!-- for shared mode calibration-->
+  <IntrinsicParameters fx="250.28" fy="249.32" cx="82.06" cy="72.44" />
 
   <!-- Distortion parameters -->
   <!-- k1: First order radial distortion coefficient -->
   <!-- k2 Second order radial distortion coefficient -->
   <!-- p1 First order tangential distortion coefficient -->
   <!-- p2 Second order tangential distortion coefficient -->
-  <DistortionCoeffs k1="-0.87407" k2="0.55425" p1="0.00952" p2="-0.0393" />
+	<!-- for shared mode calibration-->
+  <DistortionCoeffs k1="-0.831" k2="0.512" p1="-0.009" p2="0.012" />
 
   <!-- Extrinsic parameters -->
   <!-- The translation and rotation is specified relative to this camera -->

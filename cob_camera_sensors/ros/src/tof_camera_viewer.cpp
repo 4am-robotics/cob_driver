@@ -150,10 +150,10 @@ public:
 				grey_image_8U3_ = cvCreateImage(cvGetSize(grey_image_32F1_), IPL_DEPTH_8U, 3);
 			}
 
-			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1);
+			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1, 0, 800);
 			cvShowImage("grey data", grey_image_8U3_);
-			int c = cvWaitKey(50);
-			//ROS_INFO("%d,%c pressed", c, c);
+			usleep(100);
+			int c = cvWaitKey();
 			if (c=='s' || c==536871027)
 			{
 				std::stringstream ss;
