@@ -9,7 +9,7 @@
  *
  * Project name: care-o-bot
  * ROS stack name: cob_driver
- * ROS package name: sdh
+ * ROS package name: cob_sdh
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
@@ -54,8 +54,6 @@
 //#### includes ####
 
 // standard includes
-//#include <string>
-//#include <sstream>
 #include <unistd.h>
 
 // ROS includes
@@ -65,8 +63,6 @@
 
 // ROS message includes
 #include <cob_msgs/JointCommand.h>
-//#include <trajectory_msgs/JointTrajectory.h>
-//#include <cob_actions/JointTrajectoryAction.h>
 #include <cob_actions/JointCommandAction.h>
 
 // ROS service includes
@@ -101,9 +97,6 @@ int main(int argc, char** argv)
 	ros::NodeHandle n;
 
     // topics to publish
-//    ros::Publisher topicPub_JointCommand = n.advertise<cob_msgs::JointCommand>("joint_commands", 1);
-    //ros::Publisher topicPub_JointCommand = n.advertise<trajectory_msgs::JointTrajectory>("command", 1);
-	//actionlib::SimpleActionClient<cob_actions::JointTrajectoryAction> ac("JointTrajectory", true);
 	actionlib::SimpleActionClient<cob_actions::JointCommandAction> ac("JointCommand", true);  
         
 	// topics to subscribe, callback is called for new messages arriving
@@ -200,12 +193,11 @@ int main(int argc, char** argv)
 				
 				for (int i = 0; i < command_param.size(); i++)
 				{
-					std::cout << command_param[i] <<std::endl;
+					std::cout << "command " << i << " = " << command_param[i] <<std::endl;
 				}
 				
 				int command_nr;
-				std::cout << command_param.size() << " commands available. First command is 0" << std::endl;
-				std::cout << "Choose command number [0, 1, 2, ...]: ";
+				std::cout << command_param.size() << " commands available. Choose command number [0, 1, 2, ...]: ";
                 std::cin >> command_nr;
                 std::cout << std::endl;
                 
@@ -240,7 +232,7 @@ int main(int argc, char** argv)
             
             default:
             {
-                std::cout << "ERROR: invalid input, try again..." << std::endl << std::endl;
+                ROS_ERROR("invalid input, try again...");
             }
         } //switch
         
@@ -250,7 +242,7 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			ROS_INFO("Service call succesfull");
+			ROS_DEBUG("Service call succesfull");
 			
 			if (srv_execute != 0)
 			{
