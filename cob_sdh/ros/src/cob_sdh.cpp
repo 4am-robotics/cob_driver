@@ -148,6 +148,8 @@ class NodeClass
 		std::vector<std::string> JointNames;
 		std::vector<std::string> JointNamesAll;
 		std::vector<int> axes_;
+		std::vector<double> targetAngles_; // in degrees
+		bool hasNewGoal_;
 
 		// Constructor
 		NodeClass(std::string name):
@@ -157,6 +159,7 @@ class NodeClass
 			// initialize global variables
 			isInitialized = false;
 			isDSAInitialized = false;
+			hasNewGoal_ = false;
 			
 			pi_ = 3.1415926;
 
@@ -281,77 +284,22 @@ class NodeClass
 
 		void executeCB(const cob_actions::JointCommandGoalConstPtr &goal)
 		{
-			if (isInitialized == true)
-			{
-				// stop sdh first when new goal arrived
-				try
-				{
-					sdh->Stop();
-				}
-				catch (SDH::cSDHLibraryException* e)
-				{
-					ROS_ERROR("An exception was caught: %s", e->what());
-					delete e;
-				}
+			ROS_INFO("---------------------------");
 			
-			    std::string operationMode;
-			    n.getParam("OperationMode", operationMode);
-			    if (operationMode == "position")
-			    {
-				    ROS_DEBUG("moving sdh in position mode");
-				        	
-			    	std::vector<double> targetAngles; // in degrees
-			    	targetAngles.resize(DOF_HW);
-			    	targetAngles[0] = goal->command.positions[3]*180.0/pi_; // joint_palm_finger11
-			    	targetAngles[1] = goal->command.positions[7]*180.0/pi_; // joint_finger21_finger22
-			    	targetAngles[2] = goal->command.positions[8]*180.0/pi_; // joint_finger22_finger23
-			    	targetAngles[3] = goal->command.positions[1]*180.0/pi_; // joint_thumb1_thumb2
-			    	targetAngles[4] = goal->command.positions[2]*180.0/pi_; // joint_thumb2_thumb3
-			    	targetAngles[5] = goal->command.positions[4]*180.0/pi_; // joint_finger11_finger12
-			    	targetAngles[6] = goal->command.positions[5]*180.0/pi_; // joint_finger12_finger13
-			    	ROS_INFO("received new position goal");
-			    	std::cout << targetAngles[0] << " , " << targetAngles[1] << " , " << targetAngles[2] << " , " << targetAngles[3] << " , " << targetAngles[4] << " , " << targetAngles[5] << " , " << targetAngles[6] << std::endl;
-			    	try
-					{
-						sdh->SetAxisTargetAngle( axes_, targetAngles );
-					}
-					catch (SDH::cSDHLibraryException* e)
-					{
-						ROS_ERROR("An exception was caught: %s", e->what());
-						delete e;
-					}
+			while (hasNewGoal_ == true ) usleep(10000);
 
-					try
-					{
-						sdh->MoveHand(true);
-					}
-					catch (SDH::cSDHLibraryException* e)
-					{
-						ROS_ERROR("An exception was caught: %s", e->what());
-						delete e;
-					}
-			    }
-			    else if (operationMode == "velocity")
-			    {
-			    	ROS_DEBUG("moving sdh in velocity mode");
-			        //sdh->MoveVel(goal->trajectory.points[0].velocities);
-			        ROS_WARN("Moving in velocity mode currently disabled");
-			    }
-			    else if (operationMode == "effort")
-			    {
-			    	ROS_DEBUG("moving sdh in effort mode");
-			        //sdh->MoveVel(goal->trajectory.points[0].velocities);
-			        ROS_WARN("Moving in effort mode currently disabled");
-			    }
-			    else
-			    {
-			        ROS_ERROR("sdh neither in position nor in velocity nor in effort mode. OperationMode = [%s]", operationMode.c_str());
-			    }
-			}
-			else
-			{
-				ROS_DEBUG("sdh not initialized");
-			}
+			targetAngles_.resize(DOF_HW);
+			targetAngles_[0] = goal->command.positions[3]*180.0/pi_; // joint_palm_finger11
+			targetAngles_[1] = goal->command.positions[7]*180.0/pi_; // joint_finger21_finger22
+			targetAngles_[2] = goal->command.positions[8]*180.0/pi_; // joint_finger22_finger23
+			targetAngles_[3] = goal->command.positions[1]*180.0/pi_; // joint_thumb1_thumb2
+			targetAngles_[4] = goal->command.positions[2]*180.0/pi_; // joint_thumb2_thumb3
+			targetAngles_[5] = goal->command.positions[4]*180.0/pi_; // joint_finger11_finger12
+			targetAngles_[6] = goal->command.positions[5]*180.0/pi_; // joint_finger12_finger13
+			ROS_INFO("received new position goal");
+			std::cout << targetAngles_[0] << " , " << targetAngles_[1] << " , " << targetAngles_[2] << " , " << targetAngles_[3] << " , " << targetAngles_[4] << " , " << targetAngles_[5] << " , " << targetAngles_[6] << std::endl;
+		
+			hasNewGoal_ = true;
 			
 			//if(success)
 			//{
@@ -361,7 +309,7 @@ class NodeClass
 				// set the action state to succeeded
 				as_.setSucceeded(result_);
 			//}
-
+			ROS_INFO("=============================");
 		}
 		
 /*		void executeCB(const cob_actions::JointTrajectoryGoalConstPtr &goal)
@@ -406,7 +354,7 @@ class NodeClass
 				//TODO: read from parameter
 				//int _net=0;
 				unsigned long _baudrate=1000000;
-				double _timeout=0.02;
+				double _timeout=0.04;
 				unsigned long _id_read=43;
 				unsigned long _id_write=42;
 
@@ -436,8 +384,6 @@ class NodeClass
 						ROS_INFO("Initialized ESDCAN for SDH");
 						isInitialized = true;
 					}
-
-
 				}
 				catch (SDH::cSDHLibraryException* e)
 				{
@@ -464,9 +410,9 @@ class NodeClass
 			}
 			else
 			{
-				ROS_ERROR("...powercubes already initialized...");		        
+				ROS_ERROR("...sdh already initialized...");		        
 				res.success = 1;
-				res.errorMessage.data = "powercubes already initialized";
+				res.errorMessage.data = "sdh already initialized";
 			}
 			
 			return true;
@@ -496,12 +442,77 @@ class NodeClass
             return true;
         }
 
-		void publishJointState()
+		void updateSdh()
         {
         	ROS_DEBUG("updateJointState");
         	
-			if (isInitialized == true)
+        	if (isInitialized == true)
 			{
+				if (hasNewGoal_ == true)
+				{
+					// stop sdh first when new goal arrived
+					try
+					{
+						sdh->Stop();
+					}
+					catch (SDH::cSDHLibraryException* e)
+					{
+						ROS_ERROR("An exception was caught: %s", e->what());
+						delete e;
+					}
+			
+					std::string operationMode;
+					n.getParam("OperationMode", operationMode);
+					if (operationMode == "position")
+					{
+						ROS_DEBUG("moving sdh in position mode");
+						    	
+						
+						
+						ROS_INFO("-----start SetAxisAngles");
+						try
+						{
+							sdh->SetAxisTargetAngle( axes_, targetAngles_ );
+						}
+						catch (SDH::cSDHLibraryException* e)
+						{
+							ROS_ERROR("An exception was caught: %s", e->what());
+							delete e;
+						}
+
+						ROS_INFO("stop SetAxisAngles-----start move");
+						try
+						{
+							sdh->MoveHand(false);
+						}
+						catch (SDH::cSDHLibraryException* e)
+						{
+							ROS_ERROR("An exception was caught: %s", e->what());
+							delete e;
+						}
+						ROS_INFO("end move-----");
+					}
+					else if (operationMode == "velocity")
+					{
+						ROS_DEBUG("moving sdh in velocity mode");
+					    //sdh->MoveVel(goal->trajectory.points[0].velocities);
+					    ROS_WARN("Moving in velocity mode currently disabled");
+					}
+					else if (operationMode == "effort")
+					{
+						ROS_DEBUG("moving sdh in effort mode");
+					    //sdh->MoveVel(goal->trajectory.points[0].velocities);
+					    ROS_WARN("Moving in effort mode currently disabled");
+					}
+					else
+					{
+					    ROS_ERROR("sdh neither in position nor in velocity nor in effort mode. OperationMode = [%s]", operationMode.c_str());
+					}
+					
+					hasNewGoal_ = false;
+				}
+        	
+        		// read and publish joint angles
 				std::vector<double> actualAngles;
 				actualAngles = sdh->GetAxisActualAngle( axes_ );
 				
@@ -529,60 +540,12 @@ class NodeClass
 		        // publish message
 		        topicPub_JointState.publish(msg); 
 			}
-		}
-/*
-		void publishJointState()
-		{
-			ROS_INFO("updateJointState");
-			std::vector<double> actualAngles;
-
-			if(isInitialized == true)
-			{
-				ROS_INFO("isInitialized = true");
-				//get actual joint positions 
-				try
-				{
-					actualAngles = sdh->GetAxisActualAngle( axes_ );
-				}
-				catch (SDH::cSDHLibraryException* e)
-				{
-					ROS_ERROR("An exception was caught: %s", e->what());
-					delete e;
-				}
-			}
 			else
 			{
-				ROS_INFO("isInitialized = true");
-				actualAngles.resize(DOF);
-				for(int i=0; i<DOF; i++)
-				{
-					actualAngles[i] = 0.0;
-				}
+				ROS_DEBUG("sdh not initialized");
 			}
-
-			// fill message
-			// NOTE: hardware has 8 DOFs, but two cuppled ones; joints palm_finger11 and palm_finger21 are actuated synchronously
-			sensor_msgs::JointState msg;
-			msg.header.stamp = ros::Time::now();
-			msg.name.resize(DOF+1);
-			msg.position.resize(DOF+1);
-
-			// set joint names and map them to angles TODO: don't know if assignment is correct
-			msg.name = JointNames;
-			msg.position = actualAngles;
-			for (int i = 0; i<DOF; i++ )
-			{
-				msg.position[i] = actualAngles[i];
-			}
-			msg.position[DOF+1] = actualAngles[DOF];
-			
-			//publish the message
-			topicPub_JointState.publish(msg);
-
-			//ROS_INFO("published JointState 3");
 		}
-*/
-
+		
 		/* ////
 		   void updateTactileData()
 		   {
@@ -617,100 +580,6 @@ class NodeClass
 		}
 		 */
 		 
-		 
-/*		void updateSdhCommands()
-		{
-			if (isInitialized == true)
-			{
-			    std::string operationMode;
-			    n.getParam("OperationMode", operationMode);
-			    if (operationMode == "position")
-			    {
-				    ROS_DEBUG("moving sdh in position mode");
-				    std::vector<SDH::cSDH::eAxisState> v = sdh->GetAxisActualState(axes_);
-			    	//if (v[0] == 'eAS_IDLE')
-			    	if (true)
-			    	{
-				    	feedback_.isMoving = false;
-				    	
-				    	ROS_DEBUG("next point is %d from %d",traj_point_nr,traj.points.size());
-				    	
-				    	if (traj_point_nr < traj.points.size())
-				    	{
-				    		// if sdh is not moving and not reached last point of trajectory, the send new target point
-				    		ROS_INFO("...moving to trajectory point[%d]",traj_point_nr);
-					    	traj_point = traj.points[traj_point_nr];
-					    	
-					    	std::vector<double> targetAngles;
-					    	targetAngles.resize(DOF_HW);
-					    	targetAngles[0] = traj_point.positions[3]; // joint_palm_finger11
-					    	targetAngles[1] = traj_point.positions[7]; // joint_finger21_finger22
-					    	targetAngles[2] = traj_point.positions[8]; // joint_finger22_finger23
-					    	targetAngles[3] = traj_point.positions[1]; // joint_thumb1_thumb2
-					    	targetAngles[4] = traj_point.positions[2]; // joint_thumb2_thumb3
-					    	targetAngles[5] = traj_point.positions[4]; // joint_finger11_finger12
-					    	targetAngles[6] = traj_point.positions[5]; // joint_finger12_finger13
-					    	std::cout << targetAngles[0] << " , " << targetAngles[1] << " , " << targetAngles[2] << " , " << targetAngles[3] << " , " << targetAngles[4] << " , " << targetAngles[5] << " , " << targetAngles[6] << std::endl;
-					    	try
-							{
-								sdh->SetAxisTargetAngle( axes_, targetAngles );
-							}
-							catch (SDH::cSDHLibraryException* e)
-							{
-								ROS_ERROR("An exception was caught: %s", e->what());
-								delete e;
-							}
-
-							try
-							{
-								sdh->MoveHand(true);
-							}
-							catch (SDH::cSDHLibraryException* e)
-							{
-								ROS_ERROR("An exception was caught: %s", e->what());
-								delete e;
-							}
-					    	
-//					    	PCube->MoveJointSpaceSync(traj_point.positions);
-
-				    		traj_point_nr++;
-					    	feedback_.isMoving = true;
-					    	feedback_.pointNr = traj_point_nr;
-	    					as_.publishFeedback(feedback_);
-					    }
-					    else
-					    {
-					    	ROS_DEBUG("...reached end of trajectory");
-					    }
-					}
-					else
-					{
-						ROS_DEBUG("...sdh moving to point[%d]",traj_point_nr);
-					}
-			    }
-			    else if (operationMode == "velocity")
-			    {
-			    	ROS_DEBUG("moving sdh in velocity mode");
-			        //sdh->MoveVel(goal->trajectory.points[0].velocities);
-			        ROS_WARN("Moving in velocity mode currently disabled");
-			    }
-			    else if (operationMode == "effort")
-			    {
-			    	ROS_DEBUG("moving sdh in effort mode");
-			        //sdh->MoveVel(goal->trajectory.points[0].velocities);
-			        ROS_WARN("Moving in effort mode currently disabled");
-			    }
-			    else
-			    {
-			        ROS_ERROR("sdh neither in position nor in velocity nor in effort mode. OperationMode = [%s]", operationMode.c_str());
-			    }
-			}
-			else
-			{
-				ROS_DEBUG("sdh not initialized");
-			}
-		}
-*/
 }; //NodeClass
 
 //#######################
@@ -727,17 +596,9 @@ int main(int argc, char** argv)
 	while(nodeClass.n.ok())
 	{
 		// publish JointState
-		nodeClass.publishJointState();
+		nodeClass.updateSdh();
 		////nodeClass.updateTactileData();
 		
-        // update commands to sdh
-        //nodeClass.updateSdhCommands();
-
-        // read parameter
-        std::string operationMode;
-        nodeClass.n.getParam("OperationMode", operationMode);
-        ROS_DEBUG("running with OperationMode [%s]", operationMode.c_str());
-
 		// sleep and waiting for messages, callbacks    
 		ros::spinOnce();
 		loop_rate.sleep();

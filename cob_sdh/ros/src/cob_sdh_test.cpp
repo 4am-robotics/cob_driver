@@ -207,6 +207,7 @@ int main(int argc, char** argv)
 				std::cout << command_param.size() << " commands available. First command is 0" << std::endl;
 				std::cout << "Choose command number [0, 1, 2, ...]: ";
                 std::cin >> command_nr;
+                std::cout << std::endl;
                 
                 if (command_nr < 0 || command_nr > command_param.size()-1)
                 {
