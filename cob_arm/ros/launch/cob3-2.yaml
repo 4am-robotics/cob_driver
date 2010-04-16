@@ -1,0 +1,6 @@
+CanDevice: 16
+CanBaudrate: 1000
+ModIds: [13,14,15,16,17,18,19]
+JointNames: [joint_arm1, joint_arm2, joint_arm3, joint_arm4, joint_arm5, joint_arm6, joint_arm7]
+MaxAcc: [0.8,0.8,0.8,0.8,0.8,0.8,0.8]
+OperationMode: position
