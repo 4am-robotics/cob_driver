@@ -241,13 +241,11 @@ int main(int argc, char** argv)
 				
 				for (int i = 0; i < traj_param.size(); i++)
 				{
-					std::cout << traj_param[i] <<std::endl;
+					std::cout << "trajectory " << i << " = " << traj_param[i] <<std::endl;
 				}
-					
-				                
+
 				int traj_nr;
-				std::cout << traj_param.size() << " trajectories available. First trajectory is 0" << std::endl;
-				std::cout << "Choose trajectory number [0, 1, 2, ...]: ";
+				std::cout << traj_param.size() << " trajectories available. Choose trajectory number [0, 1, 2, ...]: ";
                 std::cin >> traj_nr;
                 std::cout << std::endl;
                 
