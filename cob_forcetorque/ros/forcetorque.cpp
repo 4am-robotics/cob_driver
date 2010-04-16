@@ -36,12 +36,14 @@ int main(int argc, char ** argv)
 	{
 		double Fx, Fy, Fz, Tx, Ty, Tz = 0;
 		ftc.ReadSGData(Fx, Fy, Fz, Tx, Ty, Tz);
-		Fx -= -45.4964;
-		Fy -= 51.5657;
-		Fz -= -58.9377;
+
+		Fx -= -13.4964;
+		Fy -= -1.3;
+		Fz -= 18;
+/*
 		Tx -= 1.72288; 
 		Ty -= 1.34723;
-		Tz -= -0.460466;
+		Tz -= -0.460466;*/
 		m_sender->sendForce(Fx, Fy, Fz, Tx, Ty, Tz);
 		SND_service.poll();
 		std::cout<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<" Tx: "<<Tx<<" Ty: "<<Ty<<" Tz: "<<Tz<<std::endl;
