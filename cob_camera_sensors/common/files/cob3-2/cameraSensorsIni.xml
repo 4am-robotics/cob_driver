@@ -69,16 +69,20 @@
   <!-- fy: The focal length in y direction expressed in pixels -->
   <!-- cx: x-coordinate of principal point -->
   <!-- cy: y-coordinate of principal point -->
-	<!-- for shared mode calibration-->
-  <IntrinsicParameters fx="1051.41" fy="1048.55" cx="695.52" cy="542.49" />
+  <!-- for shared mode calibration:-->
+  <!-- IntrinsicParameters fx="1051.41" fy="1048.55" cx="695.52" cy="542.49" /-->
+  <!-- for hand-eye-calibration:-->
+  <IntrinsicParameters fx="1051.36" fy="1052.11" cx="703.91" cy="536.26" />
 
   <!-- Distortion parameters -->
   <!-- k1: First order radial distortion coefficient -->
   <!-- k2 Second order radial distortion coefficient -->
   <!-- p1 First order tangential distortion coefficient -->
   <!-- p2 Second order tangential distortion coefficient -->
-	<!-- for shared mode calibration-->
-  <DistortionCoeffs k1="-0.238" k2=" 0.12" p1="0.0013" p2="-0.00039" />
+  <!-- for shared mode calibration:-->
+  <!-- DistortionCoeffs k1="-0.238" k2=" 0.12" p1="0.0013" p2="-0.00039" /-->
+  <!-- for hand-eye-calibration:-->
+  <DistortionCoeffs k1="-0.231" k2=" 0.08" p1="0.0" p2="0.0" />
 
   <!-- Extrinsic parameters -->
   <!-- The translation and rotation is specified relative to this camera -->
