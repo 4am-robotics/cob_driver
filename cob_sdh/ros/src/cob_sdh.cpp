@@ -109,6 +109,7 @@ class SdhNode
 		// other variables
 		SDH::cSDH *sdh_;
 		SDH::cDSA *dsa_;  
+		std::vector<SDH::cSDH::eAxisState> state_;
 
 		std::string sdhdevicetype_;
 		std::string sdhdevicestring_;
@@ -231,11 +232,20 @@ class SdhNode
 			}
 			ROS_INFO("DOF_HW = %d, DOF_ROS = %d",DOF_HW_,DOF_ROS_);
 			
+			state_.resize(axes_.size());
+			
 			return true;
 		}
 
 		void executeCB(const cob_actions::JointCommandGoalConstPtr &goal)
 		{			
+			if (!isInitialized_)
+			{
+				ROS_ERROR("%s: Rejected, sdh not initialized", action_name_.c_str());
+				as_.setAborted();
+				return;
+			}
+
 			while (hasNewGoal_ == true ) usleep(10000);
 
 			targetAngles_.resize(DOF_HW_);
@@ -250,10 +260,38 @@ class SdhNode
 		
 			hasNewGoal_ = true;
 			
-			ROS_INFO("%s: Succeeded", action_name_.c_str());
-			// set the action state to succeeded
+			usleep(500000); // needed sleep until sdh starts to change status from idle to moving
 			
+			bool finished = false;
+			while(finished == false)
+			{
+				if (as_.isNewGoalAvailable())
+				{
+					ROS_WARN("%s: Aborted", action_name_.c_str());
+					as_.setAborted();
+					return;
+				}
+				for ( int i = 0; i < state_.size(); i++ )
+		   		{
+		   			ROS_DEBUG("state[%d] = %d",i,state_[i]);
+		   			if (state_[i] == 0)
+		   			{
+		   				finished = true;
+		   			}
+		   			else
+		   			{	
+		   				finished = false;
+		   			}
+		   		}
+		   		usleep(10000);
+				//feedback_ = 
+				//as_.send feedback_
+			}
+
+			// set the action state to succeeded			
+			ROS_INFO("%s: Succeeded", action_name_.c_str());
 			result_.result.data = "succesfully received new goal";
+			result_.success = 1;
 			as_.setSucceeded(result_);
 		}
 
@@ -418,6 +456,9 @@ class SdhNode
 		            
 		        // publish message
 		        topicPub_JointState_.publish(msg); 
+		        
+				// read sdh status
+		        state_ = sdh_->GetAxisActualState(axes_);
 			}
 			else
 			{
