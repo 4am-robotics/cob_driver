@@ -150,10 +150,11 @@ public:
 				grey_image_8U3_ = cvCreateImage(cvGetSize(grey_image_32F1_), IPL_DEPTH_8U, 3);
 			}
 
-			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1);
+			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1, 0, 800);
 			cvShowImage("grey data", grey_image_8U3_);
-			int c = cvWaitKey(50);
-			if (c=='s')
+			usleep(100);
+			int c = cvWaitKey();
+			if (c=='s' || c==536871027)
 			{
 				std::stringstream ss;
 				char counterBuffer [50];
@@ -180,7 +181,6 @@ public:
 	{
 		/// Do not release <code>xyz_image_32F3_</code>
 		/// Image allocation is managed by Cv_Bridge object 
-		ROS_INFO("XYZ Image Callback");
 
 		try
 		{
@@ -219,12 +219,7 @@ int main(int argc, char** argv)
         /// initialize camera node
         if (!camera_viewer_node.init()) return 0;
 
-		ros::Rate r(0.1);
-		while(nh.ok())
-		{
-        	ros::spinOnce();
-			r.sleep();
-		}
+        ros::spin();
 
         return 0;
 }
