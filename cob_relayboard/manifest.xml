@@ -1,0 +1,26 @@
+<package>
+  <description brief="cob_relayboard">
+
+     cob_relayboard
+
+  </description>
+  <author>cpc-pk</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_relayboard</url>
+
+
+  <depend package="roscpp"/>
+  <depend package="std_msgs"/>
+  <depend package="cob_canopen_motor"/>
+  <depend package="cob_utilities"/>
+
+  <!-- As we deviate from the standard ROS Repository-Structure we have to tell ROS where to find header and lib -->
+  <export>
+    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lSerialIO -lSerRelayBoard"/>
+  </export>
+
+
+</package>
+
+

@@ -1,0 +1,22 @@
+<package>
+  <description brief="cob_sdh">
+
+     cob_sdh
+
+  </description>
+  <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://www.care-o-bot.org</url>
+  
+  <depend package="roscpp"/>
+  <depend package="urdf"/>
+  <depend package="sensor_msgs"/>
+  <depend package="trajectory_msgs"/>
+  <depend package="actionlib"/>
+  <depend package="cob_msgs"/>
+  <depend package="cob_srvs"/>
+  <depend package="cob_actions"/>
+  <depend package="libntcan"/>
+
+</package>
