@@ -1295,9 +1295,13 @@ int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
     
 	std::cout << "ONE SEGMENT END" << std::endl;
 
-	m_SDOSegmentToggleBit = !m_SDOSegmentToggleBit;
-	if(!seg_Data.finishedTransmission) sendSDOUploadSegmentConfirmation(m_SDOSegmentToggleBit);
-
+	if(seg_Data.finishedTransmission) {
+		finishedSDOSegmentedTransfer();		
+	} else {
+		m_SDOSegmentToggleBit = !m_SDOSegmentToggleBit;
+		sendSDOUploadSegmentConfirmation(m_SDOSegmentToggleBit);
+	}
+		
 	return 0;
 }
 
@@ -1326,6 +1330,12 @@ void CanDriveHarmonica::sendSDOUploadSegmentConfirmation(bool toggleBit) {
 
 }
 
+void CanDriveHarmonica::finishedSDOSegmentedTransfer() {
+	if(seg_Data.objectID == 0x2030) {
+		ElmoRec->processData(seg_Data);
+	}
+}
+
 
 //----------------
 //----------------
@@ -1344,6 +1354,7 @@ bool CanDriveHarmonica::setRecorder(int flag) {
 		iObjIndex = 0x2030;
 		iObjSubIndex = 1 << 0; //shift this bit, according to the specified recording sources in RC
 		sendSDOUpload(iObjIndex, iObjSubIndex);
+
 
 	} else if(flag == 1) { //flag = 1: give back data or continue collecting
 		if(seg_Data.finishedTransmission == true) {

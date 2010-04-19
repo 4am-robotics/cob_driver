@@ -454,6 +454,8 @@ protected:
     int receivedSDODataSegment(CanMsg& msg);
 
     int receivedSDOSegmentedInitiation(CanMsg& msg);
+    
+    void finishedSDOSegmentedTransfer();
 
 };
 //-----------------------------------------------
