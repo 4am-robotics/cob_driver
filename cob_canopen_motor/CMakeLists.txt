@@ -27,6 +27,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/lib)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 #rosbuild_add_executable(example examples/example.cpp)
+rosbuild_add_executable(elmo_test common/src/elmo_test.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
 # add include search paths

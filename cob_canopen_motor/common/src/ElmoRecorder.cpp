@@ -51,14 +51,62 @@
  *
  ****************************************************************/
 
+#include <math.h>
 #include <cob_canopen_motor/ElmoRecorder.h>
 #include <cob_canopen_motor/CanDriveHarmonica.h>
 
 ElmoRecorder::ElmoRecorder(CanDriveHarmonica * pParentHarmonicaDrive) {
 	pHarmonicaDrive = pParentHarmonicaDrive;
+	
 }
 
 ElmoRecorder::~ElmoRecorder() {
+}
+
+bool ElmoRecorder::processData(segData& SDOData) {
+	int iElementSize = 0;
+	int iCount= 0;
+	//see SimplIQ CANopen DS 301 Implementation Guide, object 0x2030
+
+	//Header Byte Sequence (Byte0 to Byte 7)
+	//--------------------------------------
+	//SDOData.data[0] //Variable type for user. Field has no practical significance.
+	//SDOData.data[1]
+	
+	//SDOData.data[2] << 8 | SDOData.data[3]; //Data width: number of hex character of single transmitted data item.
+	//short integer = two bytes, long integer = four bytes
+	iElementSize = (SDOData.data[2] << 8 | SDOData.data[3]) / 2;
+	
+	//SDOData.data[4] ... [7] //Data length: actual number of transmitted data items.
+	iCount = 7;
+	
+	
+	return true;
+}
+
+float ElmoRecorder::convertBinaryToFloat(unsigned int iBinaryRepresentation) {
+	int iSign;
+	unsigned int iExponent;
+	unsigned int iMantissa;
+	float iNumMantissa = 0;
+		
+	if((iBinaryRepresentation & (1 << 31)) == 0) 
+		iSign = 1;
+	else
+		iSign = -1;
+
+	iExponent = ((iBinaryRepresentation >> 23) & 0xFF) - 127; //take away Bias for positive and negative exponents
+	
+	iMantissa = (iBinaryRepresentation & 0x7FFFFF);
+	iNumMantissa = 1;
+	
+	for(int i=1; i<=23; i++) {
+		if((iMantissa & (1 << (23-i))) > 0) {
+			iNumMantissa = iNumMantissa + 1 * pow(2,-1*i);
+		}
+	}
+	
+	return iSign * pow(2,iExponent) * iNumMantissa;
 }
 
 

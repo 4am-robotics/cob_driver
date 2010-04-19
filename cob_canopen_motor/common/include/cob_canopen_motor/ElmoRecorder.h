@@ -54,7 +54,8 @@
 #ifndef _ElmoRecorder_H
 #define _ElmoRecorder_H
 
-//#include <canopen_motor/CanDriveHarmonica.h>
+#include <cob_canopen_motor/SDOSegmented.h>
+
 class CanDriveHarmonica;
 
 class ElmoRecorder {
@@ -64,8 +65,12 @@ class ElmoRecorder {
 
 		~ElmoRecorder();
 		
+		bool processData(segData& SDOData);
+		
 	private:
 		CanDriveHarmonica* pHarmonicaDrive;
+		
+		float convertBinaryToFloat(unsigned int binaryRepresentation);
 };
 
 #endif
