@@ -52,6 +52,7 @@
  ****************************************************************/
 
 #include <math.h>
+#include <vector>
 #include <cob_canopen_motor/ElmoRecorder.h>
 #include <cob_canopen_motor/CanDriveHarmonica.h>
 
@@ -64,22 +65,61 @@ ElmoRecorder::~ElmoRecorder() {
 }
 
 bool ElmoRecorder::processData(segData& SDOData) {
-	int iElementSize = 0;
-	int iCount= 0;
+	int iItemSize = 0;
+	int iItemCount= 0;
+	unsigned int iNumDataItems = 0;
+	bool bCollectFloats;
+	
+	std::vector<float> vfResData;
+	std::vector<int> viResData;
+	
 	//see SimplIQ CANopen DS 301 Implementation Guide, object 0x2030
 
 	//Header Byte Sequence (Byte0 to Byte 7)
 	//--------------------------------------
 	//SDOData.data[0] //Variable type for user. Field has no practical significance.
 	//SDOData.data[1]
+	if(((SDOData.data[0] << 8) | SDOData.data[1]) == 0) {
+		bCollectFloats = false;
+	} else {
+		bCollectFloats = true;
+	}
+	
+	std::cout << "bCollectFloats is " << bCollectFloats << std::endl;
+	
 	
 	//SDOData.data[2] << 8 | SDOData.data[3]; //Data width: number of hex character of single transmitted data item.
 	//short integer = two bytes, long integer = four bytes
-	iElementSize = (SDOData.data[2] << 8 | SDOData.data[3]) / 2;
-	
+	iItemSize = (SDOData.data[2] << 8 | SDOData.data[3]) / 2; //2 to get bytes from hex-charaters
+
+	std::cout << "Total Num of data items is " << iItemSize << std::endl;
+
 	//SDOData.data[4] ... [7] //Data length: actual number of transmitted data items.
-	iCount = 7;
+	iNumDataItems = (SDOData.data[4] << 24) | (SDOData.data[5] << 16) | (SDOData.data[6] << 8) | (SDOData.data[7]);
+
+	std::cout << "Total Num of data items is " << iNumDataItems << std::endl;
 	
+	if(SDOData.data.size() != iNumDataItems) 
+		std::cout << "SDODataSize " << SDOData.data.size() << " differs from Num Data Items! " <<  iNumDataItems << std::endl;
+	
+	
+	if(bCollectFloats) {
+		vfResData.assign(iNumDataItems, 0.0);
+	} else {
+		viResData.assign(iNumDataItems, 0);
+	}
+	iItemCount = 0;
+		
+	for(int i=8;i<=SDOData.data.size() - (iItemSize-1); i=i+iItemSize) {
+		if(bCollectFloats) {
+			vfResData[iItemCount] = convertBinaryToFloat((SDOData.data[i] << 24) | (SDOData.data[i+1] << 16) | (SDOData.data[i+2] << 8) | (SDOData.data[i+3]));
+			iItemCount ++;
+		} else {
+			if(iItemSize==2) viResData[iItemCount] = (SDOData.data[i] << 8) | SDOData.data[i+1];
+			else viResData[iItemCount] = (SDOData.data[i] << 24) | (SDOData.data[i+1] << 16) | (SDOData.data[i+2] << 8) | (SDOData.data[i+3]);
+			iItemCount ++;
+		}
+	}
 	
 	return true;
 }
