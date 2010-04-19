@@ -263,6 +263,7 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
         
         if( (msg.getAt(0) >> 5) == 0) { //Received Upload SDO Segment (scs = 0)
 			//receivedSDODataSegment(msg);
+			std::cout << "SDO Segment received" << std::endl;
         } else if( (msg.getAt(0) & 0x02) == 0) { //Received Initiate SDO Upload, that is not expedited -> start segmented upload (scs = 2 AND expedited flag = 0)
 			//receivedSDOSegmentedInitiation(msg);
 			std::cout << "SDO Initiate Segmented Upload, Object ID: " << (msg.getAt(1) | (msg.getAt(2) << 8) ) << std::endl;

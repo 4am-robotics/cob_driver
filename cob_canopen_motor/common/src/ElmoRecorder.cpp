@@ -56,8 +56,6 @@
 
 ElmoRecorder::ElmoRecorder(CanDriveHarmonica * pParentHarmonicaDrive) {
 	pHarmonicaDrive = pParentHarmonicaDrive;
-	
-	pHarmonicaDrive->setEMStop();
 }
 
 ElmoRecorder::~ElmoRecorder() {
