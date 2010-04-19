@@ -178,7 +178,7 @@ public:
 			return false;
 		}
 
-		/// Read camera properties of range imaging sensor
+		/// Read camera properties of range tof sensor
 		cameraProperty.propertyID = ipa_CameraSensors::PROP_CAMERA_RESOLUTION;
 		tof_camera_->GetProperty(&cameraProperty);
 		int range_sensor_width = cameraProperty.cameraResolution.xResolution;

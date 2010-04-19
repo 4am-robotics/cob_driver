@@ -231,6 +231,20 @@ public:
 			tof_camera_ = 0;
 		}
 
+		/// Read camera properties of range tof sensor
+		cameraProperty.propertyID = ipa_CameraSensors::PROP_CAMERA_RESOLUTION;
+		tof_camera_->GetProperty(&cameraProperty);
+		int range_sensor_width = cameraProperty.cameraResolution.xResolution;
+		int range_sensor_height = cameraProperty.cameraResolution.yResolution;
+		CvSize rangeImageSize = cvSize(range_sensor_width_, range_sensor_height_);
+
+		/// Setup camera toolbox
+		ipa_CameraSensors::CameraSensorToolbox* tof_sensor_toolbox = ipa_CameraSensors::CreateCameraSensorToolbox();
+		tof_sensor_toolbox->Init(directory, tof_camera_->GetCameraType(), camera_index, rangeImageSize);
+		tof_camera_->SetIntrinsics(tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_->GetCameraType(), camera_index),
+			tof_sensor_toolbox->GetDistortionMapX(tof_camera_->GetCameraType(), camera_index),
+			tof_sensor_toolbox->GetDistortionMapY(tof_camera_->GetCameraType(), camera_index));
+
 		/// Topics and Services to publish
 		if (left_color_camera_) 
 		{
@@ -248,6 +262,9 @@ public:
 			xyz_tof_image_publisher_ = image_transport_.advertiseCamera("sr4000/image_xyz", 1);
 			tof_camera_info_service_ = node_handle_.advertiseService("sr4000/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
 		}
+
+		/// Release memory
+		if (tof_sensor_toolbox) ipa_CameraSensors::ReleaseCameraSensorToolbox(tof_sensor_toolbox);
 	
 		return true;
 	}
