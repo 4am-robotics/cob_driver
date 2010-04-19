@@ -77,9 +77,6 @@
 // external includes
 #include <cob_sdh/sdh.h>
 #include <cob_sdh/dsa.h>
-#include <cob_sdh/util.h>
-#include <cob_sdh/sdhlibrary_settings.h>
-#include <cob_sdh/basisdef.h>
 
 //########################
 //#### sdh node class ####
@@ -372,7 +369,16 @@ class SdhNode
        	    ROS_INFO("Stopping sdh");
         	        	
             // stopping all arm movements
-            sdh_->Stop();
+			try
+			{
+				sdh_->Stop();
+			}
+			catch (SDH::cSDHLibraryException* e)
+			{
+				ROS_ERROR("An exception was caught: %s", e->what());
+				delete e;
+			}
+
            	ROS_INFO("Stopping sdh succesfull");
            	res.success = 0; // 0 = true, else = false
             return true;
@@ -415,15 +421,6 @@ class SdhNode
 						try
 						{
 							sdh_->SetAxisTargetAngle( axes_, targetAngles_ );
-						}
-						catch (SDH::cSDHLibraryException* e)
-						{
-							ROS_ERROR("An exception was caught: %s", e->what());
-							delete e;
-						}
-
-						try
-						{
 							sdh_->MoveHand(false);
 						}
 						catch (SDH::cSDHLibraryException* e)
@@ -454,7 +451,15 @@ class SdhNode
         	
         		// read and publish joint angles
 				std::vector<double> actualAngles;
-				actualAngles = sdh_->GetAxisActualAngle( axes_ );
+				try
+				{
+					actualAngles = sdh_->GetAxisActualAngle( axes_ );
+				}
+				catch (SDH::cSDHLibraryException* e)
+				{
+					ROS_ERROR("An exception was caught: %s", e->what());
+					delete e;
+				}
 				
 				ROS_DEBUG("received %d angles from sdh",actualAngles.size());
 				
@@ -490,36 +495,44 @@ class SdhNode
 		}
 		
 
-	void updateTactileData()
-	{
-		ROS_DEBUG("updateTactileData");
-		cob_msgs::TactileSensor msg;
-		if(isDSAInitialized_)
+		void updateTactileData()
 		{
-			dsa_->SetFramerate( 0, true );
-			dsa_->UpdateFrame();
-			msg.header.stamp = ros::Time::now();
-			//std::cerr << *dsa_;
-			int m, x, y;
-			msg.tactile_matrix.resize(dsa_->GetSensorInfo().nb_matrices);
-			for ( m = 0; m < dsa_->GetSensorInfo().nb_matrices; m++ )
+			ROS_DEBUG("updateTactileData");
+			cob_msgs::TactileSensor msg;
+			if(isDSAInitialized_)
 			{
-				cob_msgs::TactileMatrix &tm = msg.tactile_matrix[m];
-				tm.matrix_id = m;
-				tm.cells_x = dsa_->GetMatrixInfo( m ).cells_x;
-				tm.cells_y = dsa_->GetMatrixInfo( m ).cells_y;
-				tm.tactile_array.resize(tm.cells_x * tm.cells_y);
-				for ( y = 0; y < tm.cells_y; y++ )
+				try
 				{
-					for ( x = 0; x < tm.cells_x; x++ )
-						tm.tactile_array[tm.cells_x*y + x] = dsa_->GetTexel( m, x, y );
+					dsa_->SetFramerate( 0, true );
+					dsa_->UpdateFrame();
+					msg.header.stamp = ros::Time::now();
+					//std::cerr << *dsa_;
+					int m, x, y;
+					msg.tactile_matrix.resize(dsa_->GetSensorInfo().nb_matrices);
+					for ( m = 0; m < dsa_->GetSensorInfo().nb_matrices; m++ )
+					{
+						cob_msgs::TactileMatrix &tm = msg.tactile_matrix[m];
+						tm.matrix_id = m;
+						tm.cells_x = dsa_->GetMatrixInfo( m ).cells_x;
+						tm.cells_y = dsa_->GetMatrixInfo( m ).cells_y;
+						tm.tactile_array.resize(tm.cells_x * tm.cells_y);
+						for ( y = 0; y < tm.cells_y; y++ )
+						{
+							for ( x = 0; x < tm.cells_x; x++ )
+								tm.tactile_array[tm.cells_x*y + x] = dsa_->GetTexel( m, x, y );
+						}
+					}
 				}
+				catch (SDH::cSDHLibraryException* e)
+				{
+					ROS_ERROR("An exception was caught: %s", e->what());
+					delete e;
+				}
+				//publish matrix
+				topicPub_TactileSensor_.publish(msg);
 			}
-			//publish matrix
-			topicPub_TactileSensor_.publish(msg);
 		}
-	}
-		 
+
 		 
 }; //SdhNode
 
