@@ -153,7 +153,7 @@ public:
 			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1, 0, 800);
 			cvShowImage("grey data", grey_image_8U3_);
 			usleep(100);
-			int c = cvWaitKey();
+			int c = cvWaitKey(50);
 			if (c=='s' || c==536871027)
 			{
 				std::stringstream ss;
