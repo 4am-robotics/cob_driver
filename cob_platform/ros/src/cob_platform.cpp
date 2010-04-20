@@ -235,28 +235,6 @@ class NodeClass
                 pltf->getDeltaPosePltf(dxMM, dyMM, dth, dvth,
         					           vxMMS, vyMMS, vth, vvth);
 
-				// calculation from cpc
-/*				if (fabs(vth) < 0.05)
-				{
-					u_x = vxMMS*dt/1000.0;
-					u_y = vyMMS*dt/1000.0;
-				}
-				else
-				{
-					u_x = vxMMS*sin(vth*dt)/vth/1000.0 + vyMMS/vth/1000.0*(cos(vth*dt)-1.0);
-					u_y = -vxMMS/vth/1000.0*(cos(vth*dt)-1.0) + vyMMS*sin(vth*dt)/vth/1000.0;
-					if (fabs(u_x)>1 || fabs(u_y)>1)
-					{
-						ROS_INFO("u_x = %f, u_y=%f, vth=%f, vx=%f, vy=%f",u_x,u_y,vth,vxMMS,vyMMS);
-					}
-				}
-
-                // add delta values to old values
-                x += u_x*cos(th)-u_y*sin(th);
-                y += u_x*sin(th)+u_y*cos(th);
-                th += vth*dt;
-*/
-
 				// calculation from ROS odom publisher tutorial http://www.ros.org/wiki/navigation/Tutorials/RobotSetup/Odom
 			    //compute odometry in a typical way given the velocities of the robot
 				//double dt = (current_time - last_time).toSec();
@@ -267,9 +245,6 @@ class NodeClass
 				x += delta_x;
 				y += delta_y;
 				th += delta_th;
-
-
-
 
 			    //since all odometry is 6DOF we'll need a quaternion created from yaw
 				geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(th);
@@ -309,8 +284,6 @@ class NodeClass
 
                 //publish the message
                 topicPub_Odometry.publish(odom);
-
-				last_time = current_time;
             }
         }
 };
