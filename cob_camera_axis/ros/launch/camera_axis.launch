@@ -2,12 +2,12 @@
 <launch>
 
   <!-- send arm urdf to param server -->
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_defs)/ros/robots/cob3_torso.urdf.xacro'" />
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_defs)/ros/robots/torso.urdf.xacro'" />
 
   <!-- start powercube_chain -->
   <node pkg="cob_camera_axis" type="cob_camera_axis" name="cob_camera_axis" cwd="node" respawn="false" output="screen">
 	<param name="CanDevice" value="PCAN:1"/>
-	<param name="CanIniFile" value="IniFiles/CanCtrCanAxis.ini"/>
+	<param name="CanIniFile" value="IniFiles/CanCtrlCanAxis.ini"/>
 	<param name="CanBaudrate" value="500"/>
 	<param name="ModId" value="17"/>
 	<param name="JointName" value="joint_head_eyes"/>
