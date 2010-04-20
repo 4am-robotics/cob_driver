@@ -217,7 +217,7 @@ int main(int argc, char** argv)
 	ROS_INFO("...scanner opened successfully on port %s",nodeClass.port.c_str());
 
 	// main loop
-	ros::Rate loop_rate(5); // Hz
+	ros::Rate loop_rate(10); // Hz
     while(nodeClass.nodeHandle.ok())
     {
 		// read scan

@@ -55,7 +55,8 @@
 //#### includes ####
 
 // standard includes
-//--
+#include <sstream>
+#include <iostream>
 
 // ROS includes
 #include <ros/ros.h>
@@ -147,38 +148,41 @@ class NodeClass
         // function will be called when a new message arrives on a topic
         void topicCallback_JointStateCmd(const sensor_msgs::JointState::ConstPtr& msg)
         {
-		    int iRet;
-			sensor_msgs::JointState JointStateCmd = *msg;
-            // check if velocities lie inside allowed boundaries
-		    for(int i = 0; i < m_iNumMotors; i++)
-		    {
-			    // for steering motors
-                if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
-                {
-			        if (JointStateCmd.velocity[i] > m_Param.dMaxSteerRateRadpS)
-			        {
-			        	JointStateCmd.velocity[i] = m_Param.dMaxSteerRateRadpS;
-			        }
-			        if (JointStateCmd.velocity[i] < -m_Param.dMaxSteerRateRadpS)
-			        {
-			    	    JointStateCmd.velocity[i] = -m_Param.dMaxSteerRateRadpS;
-			        }
-                }
-                else    // for driving motors
-			    if (JointStateCmd.velocity[i] > m_Param.dMaxDriveRateRadpS)
-			    {
-			    	JointStateCmd.velocity[i] = m_Param.dMaxDriveRateRadpS;
-			    }
-			    if (JointStateCmd.velocity[i] < -m_Param.dMaxDriveRateRadpS)
-			    {
-			    	JointStateCmd.velocity[i] = -m_Param.dMaxDriveRateRadpS;
-			    }
+			// only process cmds when system is initialized
+			if(m_bisInitialized == true)
+			{
+		   		int iRet;
+				sensor_msgs::JointState JointStateCmd = *msg;
+            	// check if velocities lie inside allowed boundaries
+		    	for(int i = 0; i < m_iNumMotors; i++)
+		    	{
+				    // for steering motors
+            	    if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
+            	    {
+				        if (JointStateCmd.velocity[i] > m_Param.dMaxSteerRateRadpS)
+				        {
+				        	JointStateCmd.velocity[i] = m_Param.dMaxSteerRateRadpS;
+				        }
+				        if (JointStateCmd.velocity[i] < -m_Param.dMaxSteerRateRadpS)
+				        {
+				    	    JointStateCmd.velocity[i] = -m_Param.dMaxSteerRateRadpS;
+				        }
+            	    }
+            	    else    // for driving motors
+				    if (JointStateCmd.velocity[i] > m_Param.dMaxDriveRateRadpS)
+				    {
+				    	JointStateCmd.velocity[i] = m_Param.dMaxDriveRateRadpS;
+				    }
+				    if (JointStateCmd.velocity[i] < -m_Param.dMaxDriveRateRadpS)
+					{
+				    	JointStateCmd.velocity[i] = -m_Param.dMaxDriveRateRadpS;
+			    	}
 
-                // and cmd velocities to Can-Nodes
-                //m_CanCtrlPltf.setVelGearRadS(iCanIdent, dVelEncRadS);
-                iRet = m_CanCtrlPltf.setVelGearRadS(i, JointStateCmd.velocity[i]);
-            }
-
+                	// and cmd velocities to Can-Nodes
+                	//m_CanCtrlPltf.setVelGearRadS(iCanIdent, dVelEncRadS);
+                	iRet = m_CanCtrlPltf.setVelGearRadS(i, JointStateCmd.velocity[i]);
+      	    	}
+			}
         }
 
         // service callback functions
@@ -244,9 +248,15 @@ class NodeClass
                                      cob_srvs::GetJointState::Response &res )
         {
             // init local variables
-            int iCanEvalStatus, ret, j;
+            int iCanEvalStatus, ret, j, k;
             bool bIsError;
             std::vector<double> vdAngGearRad, vdVelGearRad, vdEffortGearNM;
+			std::string str_steer, str_drive, str_cat;
+			std::stringstream str_num;
+
+			// init strings
+			str_steer = "Steer";
+			str_drive = "Drive";
 
             // set default values
             vdAngGearRad.resize(m_iNumMotors, 0);
@@ -267,8 +277,15 @@ class NodeClass
 
             // read Can-Buffer
     		iCanEvalStatus = m_CanCtrlPltf.evalCanBuffer();
+
+			// assign right size to JointState
+			jointstate.set_name_size(m_iNumMotors);
+            jointstate.set_position_size(m_iNumMotors);
+            jointstate.set_velocity_size(m_iNumMotors);            
+            jointstate.set_effort_size(m_iNumMotors);
             
             j = 0;
+			k = 0;
             for(int i = 0; i<m_iNumMotors; i++)
             {
 	    		ret = m_CanCtrlPltf.getGearPosVelRadS(i,  &vdAngGearRad[i], &vdVelGearRad[i]);
@@ -279,15 +296,22 @@ class NodeClass
 		            vdAngGearRad[i] += m_Param.vdWheelNtrlPosRad[j];
 	                MathSup::normalizePi(vdAngGearRad[i]);
                     j = j+1;
+					// create name for identification in JointState msg
+					str_num << j;
+					str_cat = str_steer + str_num.str();
                 }
+				else
+				{
+					// create name for identification in JointState msg
+					k = k+1;
+					str_num << k;
+					str_cat = str_drive + str_num.str();
+				}
+				// set joint names
+				jointstate.name[i] = str_cat;
             }
 
-            // set data to jointstate
-            // make jointstate the right size
-            jointstate.set_position_size(m_iNumMotors);
-            jointstate.set_velocity_size(m_iNumMotors);            
-            jointstate.set_effort_size(m_iNumMotors);
-            
+            // set data to jointstate            
             for(int i = 0; i<m_iNumMotors; i++)
             {
                 jointstate.position[i] = vdAngGearRad[i];
@@ -313,9 +337,18 @@ class NodeClass
             }
             else
             {
-                diagnostics.level = 0;
-                diagnostics.name = "drive-chain can node";
-                diagnostics.message = "drives operating normal";
+				if m_bisInitialized
+				{
+                	diagnostics.level = 0;
+                	diagnostics.name = "drive-chain can node";
+                	diagnostics.message = "drives operating normal";
+				}
+				else
+				{
+                	diagnostics.level = 1;
+                	diagnostics.name = "drive-chain can node";
+                	diagnostics.message = "drives are initializing";
+				}
             }
 
             // publish diagnostic message

@@ -33,3 +33,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/lib)
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 # add project libs
 rosbuild_add_library(${PROJECT_NAME} common/src/UndercarriageCtrlGeom.cpp)
+# add executable
+rosbuild_add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp)
+# link libraries
+target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME})

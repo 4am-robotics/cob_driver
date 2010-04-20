@@ -108,6 +108,7 @@ class NodeClass
         // global variables
         PowerCubeCtrl* PCube;
 		PowerCubeCtrlParams* PCubeParams;
+		std::string CanModule;
 		int CanDevice;
 		int CanBaudrate;
 		XmlRpc::XmlRpcValue ModIds_param;
@@ -134,7 +135,7 @@ class NodeClass
         	PCubeParams = new PowerCubeCtrlParams();
 
             // implementation of topics to publish
-            topicPub_JointState = n.advertise<sensor_msgs::JointState>("joint_states", 1);
+            topicPub_JointState = n.advertise<sensor_msgs::JointState>("/joint_states", 1);
             
             // implementation of topics to subscribe
             //topicSub_JointCommand = n.subscribe("command", 1, &NodeClass::topicCallback_JointCommand, this);
@@ -149,9 +150,10 @@ class NodeClass
             //--
 
             // read parameters from parameter server
+            n.param<std::string>("CanModule", CanModule, "PCAN");
             n.param<int>("CanDevice", CanDevice, 15);
             n.param<int>("CanBaudrate", CanBaudrate, 500);
-			ROS_INFO("CanDevice=%d, CanBaudrate=%d",CanDevice,CanBaudrate);
+			ROS_INFO("CanModule=%s, CanDevice=%d, CanBaudrate=%d",CanModule.c_str(),CanDevice,CanBaudrate);
 
 			// get ModIds from parameter server
 			if (n.hasParam("ModIds"))
@@ -186,7 +188,7 @@ class NodeClass
 			}
 			std::cout << "JointNames = " << JointNames_param << std::endl;
 
-			PCubeParams->Init(CanDevice, CanBaudrate, ModIds);
+			PCubeParams->Init(CanModule, CanDevice, CanBaudrate, ModIds);
 			
 			// get MaxAcc from parameter server
 			ROS_INFO("getting MaxAcc from parameter server");
