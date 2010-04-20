@@ -17,9 +17,9 @@
 
     \subsection sdhlibrary_cpp_rs232_vcc_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2008-10-16 18:59:36 +0200 (Do, 16 Okt 2008) $
+      $LastChangedDate: 2009-08-31 15:46:47 +0200 (Mo, 31 Aug 2009) $
       \par SVN file revision:
-        $Id: rs232-vcc.h 3722 2008-10-16 16:59:36Z Osswald2 $
+        $Id: rs232-vcc.h 4766 2009-08-31 13:46:47Z Osswald2 $
 
   \subsection sdhlibrary_cpp_rs232_vcc_h_changelog Changelog of this file:
       \include rs232-vcc.h.log
@@ -79,7 +79,7 @@ private:
     OVERLAPPED   o;
 #endif
     COMMTIMEOUTS comm_timeouts;
-    long         read_timeout_us;
+    long         read_timeout_us; // for caching the read timeout in ms
 
 protected:
     //! the RS232 port number to use (port 0 is COM1)
@@ -91,13 +91,14 @@ protected:
 
 public:
     /*!
-    * Constructor: constructs an object to communicate with an SDH via RS232
+    * Constructor: constructs an object to communicate with an %SDH via RS232
 
     * \param _port     - rs232 device number: 0='COM1'='/dev/ttyS0', 1='COM2'='/dev/ttyS1', ...
     * \param _baudrate - the baudrate in bit/s
     * \param _timeout  - the timeout in seconds
+    * \param _device_format_string - ignored for this VCC version
     */
-    cRS232( int _port, unsigned long _baudrate, double _timeout );
+    cRS232( int _port, unsigned long _baudrate, double _timeout, char const* _device_format_string = "" );
     ~cRS232(void);
 
     void Open( void )

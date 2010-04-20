@@ -1,0 +1,6 @@
+CanDevice: 0
+CanBaudrate: 500
+ModIds: [10]
+JointNames: [joint_platform_tray]
+MaxAcc: [0.8]
+OperationMode: position

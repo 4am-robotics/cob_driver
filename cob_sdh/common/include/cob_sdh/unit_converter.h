@@ -18,9 +18,9 @@
 
     \subsection sdhlibrary_cpp_unit_converter_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2008-10-08 10:48:38 +0200 (Mi, 08 Okt 2008) $
+      $LastChangedDate: 2009-03-18 09:39:27 +0100 (Mi, 18 Mrz 2009) $
       \par SVN file revision:
-        $Id: unit_converter.h 3659 2008-10-08 08:48:38Z Osswald2 $
+        $Id: unit_converter.h 4191 2009-03-18 08:39:27Z Osswald2 $
 
   \subsection sdhlibrary_cpp_unit_converter_h_changelog Changelog of this file:
       \include unit_converter.h.log
@@ -93,7 +93,7 @@ public:
          The strings given _kind, _name and _symbol are \b NOT copied,
          just their address is stored <hr>
     */
-    cUnitConverter( char* _kind, char* _name, char* _symbol, double _factor = 1.0, double _offset = 0.0, int _decimal_places=1 );
+    cUnitConverter( char const* _kind, char const* _name, char const* _symbol, double _factor = 1.0, double _offset = 0.0, int _decimal_places=1 );
 
     //----------------------------------------------------------------------
     /*!
@@ -180,13 +180,13 @@ public:
 
 protected:
     //! the kind of unit to be converted (something like "angle" or "time")
-    char* kind;
+    char const* kind;
 
     //! the name of the external unit (something like "degrees" or "milliseconds")
-    char* name;
+    char const* name;
 
     //! the symbol of the external unit (something like "deg" or "ms")
-    char* symbol;
+    char const* symbol;
 
     //! the conversion factor from internal to external units
     double factor;

@@ -18,9 +18,9 @@
 
     \subsection sdhlibrary_cpp_sdhserial_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2008-10-13 17:07:24 +0200 (Mo, 13 Okt 2008) $
+      $LastChangedDate: 2010-02-02 10:35:37 +0100 (Di, 02 Feb 2010) $
       \par SVN file revision:
-        $Id: sdhserial.h 3686 2008-10-13 15:07:24Z Osswald2 $
+        $Id: sdhserial.h 5186 2010-02-02 09:35:37Z Osswald2 $
 
   \subsection sdhlibrary_cpp_sdhserial_h_changelog Changelog of this file:
       \include sdhserial.h.log
@@ -75,7 +75,7 @@ NAMESPACE_SDH_START
 
 
 /*!
-  \brief The class to communicate with a SDH via RS232.
+  \brief The class to communicate with a %SDH via RS232.
 
    End-Users should \b NOT use this class directly! The interface
    of cSDHSerial is subject to change in future releases. End users
@@ -90,18 +90,18 @@ protected:
     /*!
         \brief additional time in seconds to wait for sequential execution of m
          command (as these are always executed non-sequentially by the
-         firmware
+         %SDH firmware
     */
     double m_sequtime;
 
-    //! String to use as "End Of Line" marker when sending to SDH
-    char* EOL;
+    //! String to use as "End Of Line" marker when sending to %SDH
+    char const* EOL;
 
     //! The communication object to the serial device (RS232 port or ESD CAN net)
     cSerialBase* com;
 
 
-    //! Space for the replies from the SDH
+    //! Space for the replies from the %SDH
     cSimpleStringList reply;
 
     //! number of remaining reply lines of a previous (non-sequential) command
@@ -139,17 +139,17 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-       Open the serial device and check connection to SDH by querying
-       the SDH firmware version
+       Open the serial device and check connection to %SDH by querying
+       the %SDH firmware version
 
        \param _com - ptr to the serial device to use
 
        This may throw an exception on failure.
 
        The serial port on the PC-side can be opened successfully even
-       if no SDH is attached. Therefore this routine tries to read the
-       SDH firmware version with a 1s timeout after the port is
-       opened. If the SDH does not reply in time then
+       if no %SDH is attached. Therefore this routine tries to read the
+       %SDH firmware version with a 1s timeout after the port is
+       opened. If the %SDH does not reply in time then
        - an error message is printed on stderr,
        - the port is closed
        - and a cSerialBaseException* exception is thrown.
@@ -168,7 +168,7 @@ public:
 
 
     /*!
-        Return true if connection to SDH firmware/hardware is open
+        Return true if connection to %SDH firmware/hardware is open
     */
     virtual bool IsOpen( void );
 
@@ -186,21 +186,21 @@ public:
         nb_lines_total-nb_lines will be remembered to be ignored
         before the next command can be sent.
 
-        Return a list of all read lines of the reply from the SDH hardware.
+        Return a list of all read lines of the reply from the %SDH hardware.
     */
     void Send( char const* s, int nb_lines=All, int nb_lines_total=All, int max_retries=3 )
         throw( cSDHLibraryException* );
 
 
     /*!
-        Try to extract the state of the SDH firmware from the last reply
+        Try to extract the state of the %SDH firmware from the last reply
     */
     void ExtractFirmwareState()
         throw( cSDHErrorCommunication* );
 
 
     /*!
-        Return duration of the execution of a SDH command as reported by line
+        Return duration of the execution of a %SDH command as reported by line
     */
     double GetDuration( char* line )
         throw( cSDHErrorCommunication* );
@@ -216,13 +216,13 @@ public:
     double get_duration( void );
 
     /*!
-      Read all pending lines from SDH to resync execution of PC and SDH.
+      Read all pending lines from %SDH to resync execution of PC and %SDH.
      */
     void Sync( )
         throw( cSDHErrorCommunication* );
 
     /*!
-      Read an unknown number of lines from SDH to resync execution of PC and SDH.
+      Read an unknown number of lines from %SDH to resync execution of PC and %SDH.
      */
     void SyncUnknown( )
         throw( cSDHErrorCommunication* );
@@ -233,15 +233,15 @@ public:
 
         - If axis is All and value is None then a
           NUMBER_OF_AXES-list of the actual values
-          read from the SDH is returned
+          read from the %SDH is returned
         - If axis is a single number and value is None then the
-          actual value for that axis is read from the SDH and is returned
+          actual value for that axis is read from the %SDH and is returned
         - If axis and value are single numbers then that value
           is set for that axis and returned.
         - If axis is All and value is a NUMBER_OF_AXES-vector then all axes
           values are set accordingly, a NUMBER_OF_AXES-list is returned.
     */
-    cSimpleVector AxisCommand( char* command, int axis=All, double* value=NULL )
+    cSimpleVector AxisCommand( char const* command, int axis=All, double* value=NULL )
         throw (cSDHLibraryException*);
 
 
@@ -265,6 +265,11 @@ public:
           set PID controller parameters of the axis is returned
         - If p,i,d are numbers then the PID controller parameters for
           that axis are set (and returned).
+
+        \bug With SDH firmware 0.0.2.9 pid() might not respond
+             pid values correctly in case these were changed before.
+             With SDH firmwares 0.0.2.10 and newer this now works.
+             <br><b>=> Resolved in SDH firmware 0.0.2.10</b>
     */
     cSimpleVector pid( int axis, double* p=NULL, double* i=NULL, double* d=NULL )
         throw (cSDHLibraryException*);
@@ -281,6 +286,11 @@ public:
           for that axis is set (and returned).
         - If axis is All and kv is a NUMBER_OF_AXES-vector then all axes
           kv parameters are set accordingly, NUMBER_OF_AXES-list is returned.
+
+        \bug With SDH firmware 0.0.2.9 kv() might not respond
+             kv value correctly in case it was changed before.
+             With SDH firmwares 0.0.2.10 and newer this now works.
+             <br><b>=> Resolved in SDH firmware 0.0.2.10</b>
     */
     cSimpleVector kv( int axis=All, double* kv=NULL )
         throw (cSDHLibraryException*);
@@ -348,7 +358,7 @@ public:
         - "terminal"
         - "debug"
     */
-    int property( char* propname, int value );
+    int property( char const* propname, int value );
 
     //-----------------------------------------------------------------
     /*!
@@ -382,8 +392,8 @@ public:
     /*!
         Get/Set target velocity. (NOT the actual velocity!)
 
-        The default velocity is 40 deg/s for axes 0-6.
-        Due to some firmware bug axis 0 can go no faster than 14 deg/s
+        The default velocity is 40 deg/s for axes 0-6 in eCT_POSE controller type.
+        The default velocity is 0.0 deg/s for axes 0-6 in eCT_VELOCITY and eCT_VELOCITY_ACCELERATION controller types.
 
         - If axis is All and velocity is None then a NUMBER_OF_AXES-list
           of the actually set target velocities is returned
@@ -396,6 +406,11 @@ public:
           is returned.
 
         Velocities are set/reported in degrees per second.
+
+        \bug With %SDH firmware < 0.0.1.0 axis 0 can go no faster than 14 deg/s
+        <br><b>=> Resolved in %SDH firmware 0.0.1.0</b>
+
+
     */
     cSimpleVector v( int axis=All, double* velocity=NULL )
         throw (cSDHLibraryException*);
@@ -416,6 +431,24 @@ public:
         Velocity limits are reported in degrees per second.
     */
     cSimpleVector vlim( int axis=All, double* dummy=NULL )
+        throw (cSDHLibraryException*);
+
+    //-----------------------------------------------------------------
+    /*!
+        Get acceleration limits.
+
+        - If axis is All then a NUMBER_OF_AXES-list
+          of the acceleration limits is returned
+        - If axis is a single number then the
+          acceleration limit for that axis is returned.
+
+        dummy parameter is just needed to make this function have the
+        same signature as e.g. v(), so it can be used as a function
+        pointer.
+
+        Acceleration limits are reported in degrees per (second*second).
+    */
+    cSimpleVector alim( int axis=All, double* dummy=NULL )
         throw (cSDHLibraryException*);
 
     //-----------------------------------------------------------------
@@ -464,8 +497,8 @@ public:
         The actual velocity of all other axes is set so that all axes
         begin and end their movements synchronously.
 
-        If sequ is True then wait until SDH hardware fully executed
-        the command.  Else return immediately and do not wait until SDH
+        If sequ is True then wait until %SDH hardware fully executed
+        the command.  Else return immediately and do not wait until %SDH
         hardware fully executed the command.
 
         return the expected duration of the execution of the command in seconds
@@ -488,12 +521,23 @@ public:
         Get/set velocity profile.
 
         If \a velocity_profile is < 0 then the actually set velocity profile is
-        read from the firmware and returned. Else the given velocity_profile type
-        is set in the firmware if valid.
+        read from the %SDH firmware and returned. Else the given velocity_profile type
+        is set in the %SDH firmware if valid.
     */
     eVelocityProfile vp( eVelocityProfile velocity_profile = eVP_INVALID )
         throw (cSDHLibraryException*);
 
+
+    //-----------------------------------------------------------------
+    /*!
+        Get/set controller type.
+
+        If \a controller is < 0 then the actually set controller is
+        read from the %SDH firmware and returned. Else the given controller type
+        is set in the %SDH firmware if valid.
+    */
+    eControllerType con( eControllerType controller )
+        throw (cSDHLibraryException*);
 
     //  end of doxygen name group sdhlibrary_cpp_csdhserial_movement_commands
     //! @}
@@ -581,6 +625,30 @@ public:
     cSimpleVector vel( int axis=All, double* dummy=NULL )
         throw (cSDHLibraryException*);
 
+    /*!
+        Get current reference angular velocity/s of axis/axes.
+        The reference angular velocity is used by the eCT_VELOCITY_ACCELERATION controller type only.
+
+        - If axis is All then a NUMBER_OF_AXES-vector of the current
+          reference velocities is returned
+        - If axis is a single number then the
+          current reference angular velocity of that axis is returned.
+
+        Angular velocities are reported in degrees/second.
+
+        \remark
+          - \a dummy ptr is never used, but needed nonetheless to make
+            the signature of the function the same as for the other
+            axis-access functions. This way a pointer to it can be used as
+            a pointer to the other functions, which is needed by the
+            generic cSDH::SetAxisValue and cSDH::GetAxisValue functions.
+          - the underlying rvel command of the %SDH firmware is not
+            available in %SDH firmwares prior to 0.0.2.6. For such hands
+            calling rvel will fail miserably.
+    */
+    cSimpleVector rvel( int axis, double* dummy=NULL )
+        throw (cSDHLibraryException*);
+
 
     //-----------------------------------------------------------------
     /*!
@@ -620,7 +688,7 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-        Return version of SDH firmware
+        Return version of %SDH firmware
 
         \attention
         The string returned is stored internally in this object and
@@ -631,7 +699,7 @@ public:
     //-----------------------------------------------------------------
 
     /*!
-        Return date of SDH firmware
+        Return date of %SDH firmware
 
         \attention
         The string returned is stored internally in this object and
@@ -642,7 +710,7 @@ public:
     //-----------------------------------------------------------------
 
     /*!
-        Return id of SDH
+        Return id of %SDH
 
         \attention
         The string returned is stored internally in this object and
@@ -653,7 +721,7 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-        Return sn of SDH
+        Return sn of %SDH
 
         \attention
         The string returned is stored internally in this object and
@@ -664,7 +732,7 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-        Return soc (System On Chip) ID of SDH
+        Return soc (System On Chip) ID of %SDH
 
         \attention
         The string returned is stored internally in this object and
@@ -675,7 +743,7 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-        Return date of soc (System On Chip) ID of SDH
+        Return date of soc (System On Chip) ID of %SDH
 
         \attention
         The string returned is stored internally in this object and
@@ -686,7 +754,7 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-        Return number of axis of SDH
+        Return number of axis of %SDH
     */
     int numaxis( void )
         throw (cSDHLibraryException*);
@@ -737,11 +805,11 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-        Send "selgrip grip" command to SDH. Where grip is in [0..eGID_DIMENSION-1]
+        Send "selgrip grip" command to %SDH. Where grip is in [0..eGID_DIMENSION-1]
         or one of the eGraspId enums.
 
-        If sequ is True then wait until SDH hardware fully executed
-        the command.  Else return immediately and do not wait until SDH
+        If sequ is True then wait until %SDH hardware fully executed
+        the command.  Else return immediately and do not wait until %SDH
         hardware fully executed the command.
 
         This seems to work with sin square velocity profile only,
@@ -754,12 +822,12 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-        send "grip=close,velocity" command to SDH
+        send "grip=close,velocity" command to %SDH
         close    : [0.0 .. 1.0] where 0.0 is 'fully opened' and 1.0 is 'fully closed'
         velocity : ]0.0 .. 100.0] where 0.0 (not allowed) is very slow and 100.0 is very fast
 
-        If sequ is True then wait until SDH hardware fully executed
-        the command.  Else return immediately and do not wait until SDH
+        If sequ is True then wait until %SDH hardware fully executed
+        the command.  Else return immediately and do not wait until %SDH
         hardware fully executed the command.
 
         This seems to work with sin square velocity profile only,

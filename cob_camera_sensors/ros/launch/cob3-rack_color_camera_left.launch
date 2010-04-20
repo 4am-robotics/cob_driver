@@ -2,8 +2,8 @@
 <launch>
 
   <!-- start left camera -->
-  <node pkg="cob_camera_sensors" type="color_camera" name="color_camera" ns="camera/left" cwd="node" respawn="false" output="screen">
-	<param name="configuration_files" value="../../common/files/cob3-rack/"/>
+  <node pkg="cob_camera_sensors" type="color_camera" name="color_camera" ns="pike_145C/left" cwd="node" respawn="false" output="screen">
+	<param name="configuration_files" value="$(find cob_camera_sensors)/common/files/cob3-rack/"/>
 	<param name="camera_index" value="1"/>
 	<!-- Specifies the used camera type -->
 	<!-- CAM_AVTPIKE or CAM_PROSILICA -->
@@ -11,6 +11,6 @@
   </node>
 
   <!-- start poller for left camera -->
-  <node pkg="polled_camera" type="poller" name="poller" ns="camera/left" respawn="false" output="screen" args="3 camera:= output:=color_camera_stream"/>
+  <node pkg="polled_camera" type="poller" name="poller" ns="pike_145C/left" respawn="false" output="screen" args="3 camera:= output:="/>
 
 </launch>

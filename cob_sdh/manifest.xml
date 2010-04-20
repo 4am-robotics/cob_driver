@@ -10,9 +10,14 @@
   <url>http://www.care-o-bot.org</url>
   
   <depend package="roscpp"/>
+  <depend package="urdf"/>
   <depend package="sensor_msgs"/>
+  <depend package="trajectory_msgs"/>
+  <depend package="actionlib"/>
   <depend package="cob_msgs"/>
   <depend package="cob_srvs"/>
+  <depend package="cob_actions"/>
   <depend package="libntcan"/>
+  <depend package="libpcan"/>
 
 </package>

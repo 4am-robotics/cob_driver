@@ -18,9 +18,9 @@
 
   \subsection sdhlibrary_cpp_canserial_esd_h_details SVN related, detailed file specific information:
   $LastChangedBy: Osswald2 $
-  $LastChangedDate: 2008-10-13 17:07:24 +0200 (Mo, 13 Okt 2008) $
+  $LastChangedDate: 2009-12-01 11:41:18 +0100 (Di, 01 Dez 2009) $
   \par SVN file revision:
-  $Id: canserial-esd.h 3686 2008-10-13 15:07:24Z Osswald2 $
+  $Id: canserial-esd.h 5000 2009-12-01 10:41:18Z Osswald2 $
 
   \subsection sdhlibrary_cpp_canserial_esd_h_changelog Changelog of this file:
   \include canserial-esd.h.log
@@ -41,6 +41,11 @@
 
 #include "sdhexception.h"
 #include "serialbase.h"
+#include "basisdef.h"
+
+// on cygwin ntcan.h includes windef.h which defines macros named max/min which the compiler confuses with max/min templates
+// but defining NOMINMAX prevents those evil macros from being defined
+#define NOMINMAX
 #include "ntcan.h"
 #include "sdhlibrary_settings.h"
 
@@ -62,21 +67,25 @@ NAMESPACE_SDH_START
 # include <errno.h>
 
 
-// Linux ntcan.h uses HANDLE where Windows ntcan uses NTCAN_HANDLE:
-# define NTCAN_HANDLE HANDLE
+// Old Linux ntcan.h used HANDLE where Windows ntcan uses NTCAN_HANDLE
+// so we had to make the following define:
+//# define NTCAN_HANDLE HANDLE
+// But newer ESD drivers seem to use NTCAN_HANDLE for both Linux and Windows
+// and give deprecation warnings on the use of HANDLE
 
-// The Linux ntcan.h does not define any baudrate codes. The following ones were taken from
-// the Windows version in the hope that they are the same for Linux. Lets see...:
-# define NTCAN_BAUD_1000                 0
-# define NTCAN_BAUD_800                 14
-# define NTCAN_BAUD_500                  2
-# define NTCAN_BAUD_250                  4
-# define NTCAN_BAUD_125                  6
-# define NTCAN_BAUD_100                  7
-# define NTCAN_BAUD_50                   9
-# define NTCAN_BAUD_20                  11
-# define NTCAN_BAUD_10                  13
-
+# ifndef NTCAN_BAUD_1000
+   // Some Linux ntcan.h do not define any baudrate codes. The following ones were taken from
+   // the Windows version in the hope that they are the same for Linux. Lets see...:
+#  define NTCAN_BAUD_1000                 0
+#  define NTCAN_BAUD_800                 14
+#  define NTCAN_BAUD_500                  2
+#  define NTCAN_BAUD_250                  4
+#  define NTCAN_BAUD_125                  6
+#  define NTCAN_BAUD_100                  7
+#  define NTCAN_BAUD_50                   9
+#  define NTCAN_BAUD_20                  11
+#  define NTCAN_BAUD_10                  13
+# endif
 #endif
 
 
@@ -127,45 +136,63 @@ protected:
     unsigned long baudrate;
 
     //! the CAN ID used for reading
-    int32_t id_read;
+    Int32 id_read;
 
     //! the CAN ID used for writing
-    int32_t id_write;
+    Int32 id_write;
 
     //! the handle to the driver
-    NTCAN_HANDLE ntcan_handle;
+    NTCAN_HANDLE ntcan_handle;    /* remark: if you get a compiler error here
+                                     (e.g. "error: NTCAN_HANDLE does not name a type")
+                                     then please consider updating your ESD CAN
+                                     driver (and hence ntcan.h). See also the
+                                     comment on NTCAN_HANDLE on the beginning
+                                     of this file.
+                                  */
 
     //! Translate a baudrate given as unsigned long into a baudrate code for struct termios
-    uint32_t BaudrateToBaudrateCode( unsigned long baudrate )
+    UInt32 BaudrateToBaudrateCode( unsigned long baudrate )
         throw (cCANSerial_ESDException*);
 
     int status;
 
+private:
+    UInt32 timeout_ms;
+
+    /*!
+    * received messages might be split over several CAN messages
+    * it might therefore happen that more data is received than
+    * can be returned to the user. To not loose that data it is
+    * kept here to be be returned in a later call
+    */
+    CMSG m_cmsg;
+    //! index of next received data byte to return to user in m_cmsg
+    int m_cmsg_next;
 
 public:
     /*!
-      Constructor: constructs an object to communicate with an SDH via CAN bus using an
+      Constructor: constructs an object to communicate with an %SDH via CAN bus using an
       ESD CAN card.
 
       \param _net      - the ESD CAN net to use
       \param _baudrate - the baudrate in bit/s. Only some bitrates are valid: (1000000,800000,500000,250000,125000,100000,50000,20000,10000)
       \param _timeout  - the timeout in seconds (0 for no timeout = wait for ever)
-      \param _id_read  - the CAN ID to use for reading (The SDH sends data on this ID)
-      \param _id_write - the CAN ID to use for writing (The SDH receives data on this ID)
+      \param _id_read  - the CAN ID to use for reading (The %SDH sends data on this ID)
+      \param _id_write - the CAN ID to use for writing (The %SDH receives data on this ID)
      */
-    cCANSerial_ESD( int _net, unsigned long _baudrate, double _timeout, int32_t _id_read, int32_t _id_write )
+    cCANSerial_ESD( int _net, unsigned long _baudrate, double _timeout, Int32 _id_read, Int32 _id_write )
         throw (cCANSerial_ESDException*);
 
     /*!
-      Constructor: constructs an object to communicate with an SDH via CAN bus using an
+      Constructor: constructs an object to communicate with an %SDH via CAN bus using an
       ESD CAN card by reusing an already existing handle.
 
       \param _ntcan_handle - the ESD CAN handle to reuse
       \param _timeout  - the timeout in seconds (0 for no timeout = wait for ever)
-      \param _id_read  - the CAN ID to use for reading (The SDH sends data on this ID)
-      \param _id_write - the CAN ID to use for writing (The SDH receives data on this ID)
+      \param _id_read  - the CAN ID to use for reading (The %SDH sends data on this ID)
+      \param _id_write - the CAN ID to use for writing (The %SDH receives data on this ID)
      */
-    cCANSerial_ESD( NTCAN_HANDLE _ntcan_handle, double _timeout, int32_t _id_read, int32_t _id_write )
+    cCANSerial_ESD( NTCAN_HANDLE _ntcan_handle, double _timeout, Int32 _id_read, Int32 _id_write )
         throw (cCANSerial_ESDException*);
 
     /*!

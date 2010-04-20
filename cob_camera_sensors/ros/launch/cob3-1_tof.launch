@@ -2,8 +2,8 @@
 <launch>
 
   <!-- start left camera -->
-  <node pkg="cob_camera_sensors" type="tof_camera" name="tof_camera" ns="camera" cwd="node" respawn="false" output="screen">
-	<param name="configuration_files" value="../../common/files/cob3-1/"/>
+  <node pkg="cob_camera_sensors" type="tof_camera" name="tof_camera" ns="sr4000" cwd="node" respawn="false" output="screen">
+	<param name="configuration_files" value="$(find cob_camera_sensors)/common/files/cob3-1/"/>
 	<param name="camera_index" value="0"/>
 	<param name="tof_camera_type" value="CAM_SWISSRANGER"/>
   </node>

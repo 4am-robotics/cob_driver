@@ -234,19 +234,19 @@ public:
 		/// Topics and Services to publish
 		if (left_color_camera_) 
 		{
-			left_color_image_publisher_ = image_transport_.advertiseCamera("left/color_camera_stream/image_raw", 1);
-			left_color_camera_info_service_ = node_handle_.advertiseService("left/color_camera/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
+			left_color_image_publisher_ = image_transport_.advertiseCamera("pike_145C/left/image_raw", 1);
+			left_color_camera_info_service_ = node_handle_.advertiseService("pike_145C/left/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
 		}
 		if (right_color_camera_)
 		{
-			right_color_image_publisher_ = image_transport_.advertiseCamera("right/color_camera_stream/image_raw", 1);
-			right_color_camera_info_service_ = node_handle_.advertiseService("right/color_camera/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
+			right_color_image_publisher_ = image_transport_.advertiseCamera("pike_145C/right/image_raw", 1);
+			right_color_camera_info_service_ = node_handle_.advertiseService("pike_145C/right/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
 		}
 		if (tof_camera_)
 		{
-			grey_tof_image_publisher_ = image_transport_.advertiseCamera("grey_tof_data", 1);
-			xyz_tof_image_publisher_ = image_transport_.advertiseCamera("xyz_tof_data", 1);
-			tof_camera_info_service_ = node_handle_.advertiseService("tof_camera/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
+			grey_tof_image_publisher_ = image_transport_.advertiseCamera("sr4000/image_grey", 1);
+			xyz_tof_image_publisher_ = image_transport_.advertiseCamera("sr4000/image_xyz", 1);
+			tof_camera_info_service_ = node_handle_.advertiseService("sr4000/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
 		}
 	
 		return true;
