@@ -16,9 +16,6 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
-rosbuild_add_executable(${PROJECT_NAME} ros/src/cob_camera_axis.cpp common/src/ElmoCtrl.cpp )
-
 #uncomment if you have defined messages
 #rosbuild_genmsg()
 #uncomment if you have defined services
@@ -31,5 +28,9 @@ rosbuild_add_executable(${PROJECT_NAME} ros/src/cob_camera_axis.cpp common/src/E
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
+
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
+rosbuild_add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp common/src/ElmoCtrl.cpp)
+rosbuild_add_executable(${PROJECT_NAME}_test ros/src/${PROJECT_NAME}_test.cpp)
 
 target_link_libraries(${PROJECT_NAME}  pcan)

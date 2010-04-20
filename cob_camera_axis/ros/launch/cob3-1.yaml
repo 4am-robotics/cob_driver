@@ -1,0 +1,7 @@
+CanModule: ESD
+CanDevice: 0
+CanBaudrate: 500
+ModIds: [14,13,16,15]
+JointNames: [joint_platform_neckZ, joint_neckZ_neck, joint_neck_headZ, joint_headZ_head]
+MaxAcc: [0.8,0.8,0.8,0.8]
+OperationMode: position
