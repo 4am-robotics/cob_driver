@@ -35,7 +35,8 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 # add project executable
 rosbuild_add_executable(${PROJECT_NAME} ros/src/cob_powercube_chain.cpp common/src/PowerCubeCtrl.cpp common/src/moveCommand.cpp)
 rosbuild_add_executable(${PROJECT_NAME}_test ros/src/cob_powercube_chain_test.cpp)
-rosbuild_add_compile_flags(${PROJECT_NAME} -D__LINUX__)
+rosbuild_add_compile_flags(${PROJECT_NAME} -D__LINUX__ -DUSE_ESD)
 
 # link libraries
-target_link_libraries(${PROJECT_NAME} m5api pcan)
+target_link_libraries(${PROJECT_NAME} m5api pcan ntcan)
+target_link_libraries(${PROJECT_NAME}_test m5api pcan ntcan)

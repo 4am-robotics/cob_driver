@@ -1,3 +1,4 @@
+CanModule: ESD
 CanDevice: 0
 CanBaudrate: 500
 ModIds: [10]

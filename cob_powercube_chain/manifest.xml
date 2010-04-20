@@ -19,5 +19,6 @@
   <depend package="cob_defs"/>
   <depend package="libpcan"/>
   <depend package="libm5api"/>
+  <depend package="libntcan"/>
 
 </package>

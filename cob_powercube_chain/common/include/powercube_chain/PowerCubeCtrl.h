@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
- * ROS package name: powercube_chain
+ * ROS stack name: cob_driver
+ * ROS package name: cob_powercube_chain
  * Description: An interface class to the Powercube-hardware implementing armInterface.
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -86,8 +86,9 @@ class PowerCubeCtrlParams
 	public:
 		PowerCubeCtrlParams():m_DOF(0){;}
 		
-		int Init(int CanDevice, int BaudRate, std::vector<int> ModuleIDs)
+		int Init(std::string CanModule, int CanDevice, int BaudRate, std::vector<int> ModuleIDs)
 		{
+			SetCanModule(CanModule);
 			SetCanDevice(CanDevice);
 			SetBaudRate(BaudRate);	
 			SetNumberOfDOF(ModuleIDs.size());
@@ -101,6 +102,10 @@ class PowerCubeCtrlParams
 		//DOF	
 		void SetNumberOfDOF(unsigned int DOF){m_DOF=DOF;}
 		unsigned int GetNumberOfDOF(){return m_DOF;}
+
+		//Can Module
+		void SetCanModule(std::string CanModule){m_CanModule = CanModule;}
+		std::string GetCanModule(){return m_CanModule;}
 
 		//Can Device
 		void SetCanDevice(int CanDevice){m_CanDevice = CanDevice;}
@@ -182,6 +187,7 @@ class PowerCubeCtrlParams
 	private:
 		std::vector<int> m_IDModulesNumber;
 		unsigned int m_DOF;
+		std::string m_CanModule;
 		int m_CanDevice;
 		int m_BaudRate;
 		std::vector<double> m_Offsets;
