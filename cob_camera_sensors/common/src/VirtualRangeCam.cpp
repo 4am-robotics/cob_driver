@@ -82,7 +82,7 @@ VirtualRangeCam::VirtualRangeCam()
 	m_intrinsicMatrix = 0;
 	m_distortionParameters = 0;
 
-	m_ImageCounter = 1;
+	m_ImageCounter = 0;
 }
 
 
@@ -330,14 +330,14 @@ unsigned long VirtualRangeCam::Open()
 			std::cerr << "\t ... from the specified directory." << std::endl;
 			return ipa_CameraSensors::RET_FAILED;
 		}
-		if (intensityImageCounter != rangeImageCounter)
+		/*if (intensityImageCounter != rangeImageCounter)
 		{
 			std::cerr << "ERROR - VirtualRangeCam::Open:" << std::endl;
 			std::cerr << "\t ... Number of intensity and range images must agree." << std::endl;
 			return ipa_CameraSensors::RET_FAILED;
-		}
+		}*/
 		if (coordinateImageCounter != 0 &&
-			(intensityImageCounter != coordinateImageCounter || rangeImageCounter != coordinateImageCounter))
+			(intensityImageCounter != coordinateImageCounter /*|| rangeImageCounter != coordinateImageCounter*/))
 		{
 			std::cerr << "ERROR - VirtualRangeCam::Open:" << std::endl;
 			std::cerr << "\t ... Number of intensity, range and coordinate images must agree." << std::endl;
@@ -541,9 +541,7 @@ unsigned long VirtualRangeCam::AcquireImages2(IplImage** rangeImage, IplImage** 
 	{
 		return RET_OK;
 	}
-
 	AcquireImages(widthStepOneChannel, rangeImageData, grayImageData, cartesianImageData, getLatestFrame, undistort, grayImageType);
-
 	return RET_OK;
 }
 
@@ -589,7 +587,6 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 
 		cvReleaseImage(&rangeImage);
 	} // End if (rangeImage)
-
 ///***********************************************************************
 /// Gray image based on amplitude or intensity (distorted or undistorted)
 ///***********************************************************************
@@ -628,20 +625,18 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 
 		cvReleaseImage(&grayImage);
 	}
-
 ///***********************************************************************
 /// Cartesian image (always undistorted)
 ///***********************************************************************
 	if(cartesianImageData)
 	{
-		IplImage* rangeImage = (IplImage*) cvLoad(m_RangeImageFileNames[m_ImageCounter].c_str(), 0);
+		IplImage* rangeImage = 0;//(IplImage*) cvLoad(m_RangeImageFileNames[m_ImageCounter].c_str(), 0);
 		int widthStepCartesianImage = widthStepOneChannel*3;
 		float x = -1;
 		float y = -1;
 		float zRaw = -1;
 		float zCalibrated = -1;
 		float* ptr = 0;
-
 		if(m_CalibrationMethod==MATLAB)
 		{
 			if (m_CoeffsInitialized)
@@ -741,7 +736,6 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 			return RET_FAILED;
 		}
 	}
-
 	m_ImageCounter++;
 	if ((m_IntensityImageFileNames.size() != 0 && m_ImageCounter >= m_IntensityImageFileNames.size()) ||
 		(m_AmplitudeImageFileNames.size() != 0 && m_ImageCounter >= m_AmplitudeImageFileNames.size()) ||
