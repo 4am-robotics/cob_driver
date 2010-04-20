@@ -69,7 +69,7 @@
 
 // external includes
 #include <cob_camera_sensors/AbstractRangeImagingSensor.h>
-#include <cob_camera_sensors/CameraSensorToolbox.h>
+#include <cob_vision_utils/CameraSensorToolbox.h>
 #include <cob_vision_utils/GlobalDefines.h>
 #include <cob_vision_utils/OpenCVUtils.h>
 
@@ -179,11 +179,12 @@ public:
 		}
 
 		/// Read camera properties of range tof sensor
+		ipa_CameraSensors::t_cameraProperty cameraProperty;
 		cameraProperty.propertyID = ipa_CameraSensors::PROP_CAMERA_RESOLUTION;
 		tof_camera_->GetProperty(&cameraProperty);
 		int range_sensor_width = cameraProperty.cameraResolution.xResolution;
 		int range_sensor_height = cameraProperty.cameraResolution.yResolution;
-		CvSize rangeImageSize = cvSize(range_sensor_width_, range_sensor_height_);
+		CvSize rangeImageSize = cvSize(range_sensor_width, range_sensor_height);
 
 		/// Setup camera toolbox
 		ipa_CameraSensors::CameraSensorToolbox* tof_sensor_toolbox = ipa_CameraSensors::CreateCameraSensorToolbox();

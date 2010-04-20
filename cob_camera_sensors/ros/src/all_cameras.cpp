@@ -71,6 +71,7 @@
 #include <cob_camera_sensors/AbstractColorCamera.h>
 #include <cob_camera_sensors/AbstractRangeImagingSensor.h>
 #include <cob_vision_utils/GlobalDefines.h>
+#include <cob_vision_utils/CameraSensorToolbox.h>
 
 using namespace ipa_CameraSensors;
 
@@ -232,18 +233,19 @@ public:
 		}
 
 		/// Read camera properties of range tof sensor
+		ipa_CameraSensors::t_cameraProperty cameraProperty;
 		cameraProperty.propertyID = ipa_CameraSensors::PROP_CAMERA_RESOLUTION;
 		tof_camera_->GetProperty(&cameraProperty);
 		int range_sensor_width = cameraProperty.cameraResolution.xResolution;
 		int range_sensor_height = cameraProperty.cameraResolution.yResolution;
-		CvSize rangeImageSize = cvSize(range_sensor_width_, range_sensor_height_);
+		CvSize rangeImageSize = cvSize(range_sensor_width, range_sensor_height);
 
 		/// Setup camera toolbox
 		ipa_CameraSensors::CameraSensorToolbox* tof_sensor_toolbox = ipa_CameraSensors::CreateCameraSensorToolbox();
-		tof_sensor_toolbox->Init(directory, tof_camera_->GetCameraType(), camera_index, rangeImageSize);
-		tof_camera_->SetIntrinsics(tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_->GetCameraType(), camera_index),
-			tof_sensor_toolbox->GetDistortionMapX(tof_camera_->GetCameraType(), camera_index),
-			tof_sensor_toolbox->GetDistortionMapY(tof_camera_->GetCameraType(), camera_index));
+		tof_sensor_toolbox->Init(directory, tof_camera_->GetCameraType(), 0, rangeImageSize);
+		tof_camera_->SetIntrinsics(tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_->GetCameraType(), 0),
+			tof_sensor_toolbox->GetDistortionMapX(tof_camera_->GetCameraType(), 0),
+			tof_sensor_toolbox->GetDistortionMapY(tof_camera_->GetCameraType(), 0));
 
 		/// Topics and Services to publish
 		if (left_color_camera_) 
