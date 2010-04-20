@@ -119,7 +119,7 @@ public:
         bool init()
         {
 		int camera_index = -1;
-                std::string directory = "NULL/";
+        std::string directory = "NULL/";
 		std::string tmp_string = "NULL";
                
 		/// Parameters are set within the launch file
@@ -149,6 +149,7 @@ public:
 			ROS_ERROR("[tof_camera] tof camera type CAM_PMDCAMCUBE not yet implemented");
 			return false;
 		}
+		else if (tmp_string == "CAM_VIRTUAL") tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_VirtualCam();
 		else
 		{
 			std::string str = "[tof_camera] Camera type '" + tmp_string + "' unknown, try 'CAM_SWISSRANGER'";
@@ -225,7 +226,7 @@ public:
 	                        grey_image_32F1_ = 0;
 	                }
 	
-			if(tof_camera_->AcquireImages2(0, &grey_image_32F1_, &xyz_image_32F3_, false, false, ipa_CameraSensors::AMPLITUDE) & ipa_Utils::RET_FAILED)
+			if(tof_camera_->AcquireImages2(0, &grey_image_32F1_, &xyz_image_32F3_, false, false, ipa_CameraSensors::INTENSITY) & ipa_Utils::RET_FAILED)
 			{
 				ROS_ERROR("[tof_camera] Tof image acquisition failed");
 	                        return false;	
@@ -288,6 +289,7 @@ int main(int argc, char** argv)
 
         /// Initialize camera node
         if (!camera_node.init()) return 0;
+
 
 	camera_node.spin();
 
