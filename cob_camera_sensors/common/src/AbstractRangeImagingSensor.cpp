@@ -85,6 +85,13 @@ unsigned long AbstractRangeImagingSensor::SetIntrinsics(CvMat* intrinsicMatrix,
 	if (m_undistortMapX) cvReleaseImage(&m_undistortMapX);
 	if (m_undistortMapY) cvReleaseImage(&m_undistortMapY);
 
+	if (intrinsicMatrix == 0 || undistortMapX == 0 || undistortMapY == 0)
+	{
+		std::cout << "ERROR - AbstractRangeImagingSensor::SetIntrinsics" << std::endl;
+		std::cout << "\t... One of the parameters is NULL" << std::endl;
+		return RET_FAILED;
+	}
+
 	m_intrinsicMatrix = cvCloneMat(intrinsicMatrix);
 	m_undistortMapX = cvCloneImage(undistortMapX);
 	m_undistortMapY = cvCloneImage(undistortMapY);
