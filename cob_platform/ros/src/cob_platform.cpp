@@ -283,9 +283,7 @@ class NodeClass
                 odom.twist.twist.angular.z = vth;
 
                 //publish the message
-                //topicPub_Odometry.publish(odom);
-
-				last_time = current_time;
+                topicPub_Odometry.publish(odom);
             }
         }
 };

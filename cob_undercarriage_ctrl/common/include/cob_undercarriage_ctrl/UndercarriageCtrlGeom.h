@@ -188,7 +188,7 @@ public:
 	// Initialize Parameters for Controller and Kinematics
 	void InitUndercarriageCtrl(void);
 
-	// Set desired value for Plattfrom Velocity to UndercarriageCtrl (Sollwertvorgabe)
+	// Set desired value for Plattform Velocity to UndercarriageCtrl (Sollwertvorgabe)
 	void SetDesiredPltfVelocity(double dCmdVelLongMMS, double dCmdVelLatMMS, double dCmdRotRobRadS, double dCmdRotVelRadS);
 
 	// Set actual values of wheels (steer/drive velocity/position) (Istwerte)
