@@ -17,7 +17,7 @@
  * Author: Christian Connette, email:christian.connette@ipa.fhg.de
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
- * Date of creation: Feb 2009
+ * Date of creation: Feb 2010
  * ToDo: - Check whether motor status request in "setVelGearRadS" "setMotorTorque" make sense (maybe remove in "CanDriveHarmonica").
  *		 - move implementational details (can cmds) of configureElmoRecorder to CanDriveHarmonica (check whether CanDriveItf has to be adapted then)
  *		 - Check: what is the iRecordingGap, what is its unit
@@ -58,7 +58,7 @@
 #include <math.h>
 
 // Headers provided by other cob-packages
-//#include <cob_generic_can/CanESD.h>
+#include <cob_generic_can/CanESD.h>
 #include <cob_generic_can/CanPeakSys.h>
 #include <cob_generic_can/CanPeakSysUSB.h>
 #include <cob_base_drive_chain/CanCtrlPltfCOb3.h>
@@ -246,13 +246,11 @@ void CanCtrlPltfCOb3::readConfiguration()
 	}
 	else if (iTypeCan == 2)
 	{
+		sComposed = sIniDirectory;
+		sComposed += "CanCtrl.ini";
+		m_pCanCtrl = new CanESD(sComposed.c_str(), false);
 		//m_pCanCtrl = new CanESD(sIniDirectory + "CanCtrl.ini");
-		//LOG_APP("Uses CAN-ESD-card");
-	}
-	else if (iTypeCan == 3)
-	{
-		//m_pCanCtrl = new CanDummy();
-		//std::cout << "Uses dummy dummy can" << std::endl;
+		std::cout << "Uses CAN-ESD-card" << std::endl;
 	}
 
 	// CanOpenId's ----- Default values (DESIRE)
