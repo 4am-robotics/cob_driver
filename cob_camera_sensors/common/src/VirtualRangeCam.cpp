@@ -80,7 +80,8 @@ VirtualRangeCam::VirtualRangeCam()
 	m_BufferSize = 1;
 
 	m_intrinsicMatrix = 0;
-	m_distortionParameters = 0;
+	m_undistortMapX = 0;
+	m_undistortMapY = 0;
 
 	m_ImageCounter = 0;
 }
@@ -351,7 +352,7 @@ unsigned long VirtualRangeCam::Open()
 			return ipa_CameraSensors::RET_FAILED;
 		}
 
-		SetDistortionParameters(m_k1, m_k2, m_p1, m_p2, m_ImageWidth, m_ImageHeight);
+		//SetDistortionParameters(m_k1, m_k2, m_p1, m_p2, m_ImageWidth, m_ImageHeight);
 
 	}
 	else
@@ -439,6 +440,8 @@ unsigned long VirtualRangeCam::GetProperty(t_cameraProperty* cameraProperty)
 unsigned long VirtualRangeCam::AcquireImages(IplImage* rangeImage, IplImage* grayImage, IplImage* cartesianImage,
 											 bool getLatestFrame, bool undistort, ipa_CameraSensors::t_ToFGrayImageType grayImageType)
 {
+	//std::cout << m_ImageCounter << std::endl;
+
 	char* rangeImageData = 0;
 	char* grayImageData = 0;
 	char* cartesianImageData = 0;
@@ -582,7 +585,8 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 			CvMat* undistortedData = cvCreateMatHeader( m_ImageHeight, m_ImageWidth, CV_32FC1 );
 			undistortedData->data.fl = (float*) rangeImageData;
 
-			RemoveDistortion(rangeImage, undistortedData);
+			assert (m_undistortMapX != 0 && m_undistortMapY != 0);
+			cvRemap(rangeImage, undistortedData, m_undistortMapX, m_undistortMapY);
 		}
 
 		cvReleaseImage(&rangeImage);
@@ -620,7 +624,8 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 			CvMat* undistortedData = cvCreateMatHeader( m_ImageHeight, m_ImageWidth, CV_32FC1 );
 			undistortedData->data.fl = (float*) grayImageData;
 
-			RemoveDistortion(grayImage, undistortedData);
+			assert (m_undistortMapX != 0 && m_undistortMapY != 0);
+			cvRemap(grayImage, undistortedData, m_undistortMapX, m_undistortMapY);
 		}
 
 		cvReleaseImage(&grayImage);
@@ -657,7 +662,10 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 
 				/// Undistort
 				CvMat* undistortedData = cvCloneMat(distortedData);
-	 			RemoveDistortion(distortedData, undistortedData);
+
+				assert (m_undistortMapX != 0 && m_undistortMapY != 0);
+				cvRemap(distortedData, undistortedData, m_undistortMapX, m_undistortMapY);
+
 				cvReleaseMat(&distortedData);
 
 				/// Calculate X and Y based on instrinsic rotation and translation
@@ -966,90 +974,6 @@ unsigned long VirtualRangeCam::LoadParameters(const char* filename, int cameraIn
 				{
 					std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
 					std::cerr << "\t ... Can't find tag 'CalibrationMethod'." << std::endl;
-					return (RET_FAILED | RET_XML_TAG_NOT_FOUND);
-				}
-
-//************************************************************************************
-//	BEGIN LibCameraSensors->VirtualRangeCam->IntrinsicParameters
-//************************************************************************************
-				// Subtag element "IntrinsicParameters" of Xml Inifile
-				p_xmlElement_Child = NULL;
-				p_xmlElement_Child = p_xmlElement_Root_VirtualRangeCam->FirstChildElement( "IntrinsicParameters" );
-				if ( p_xmlElement_Child )
-				{
-					double fx, fy, cx, cy;
-					// read and save value of attribute
-					if ( p_xmlElement_Child->QueryValueAttribute( "fx", &fx ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'fx' of tag 'IntrinsicParameters'." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "fy", &fy ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'fy' of tag 'IntrinsicParameters'." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "cx", &cx ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'cx' of tag 'IntrinsicParameters'." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "cy", &cy ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'cy' of tag 'IntrinsicParameters'." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					SetIntrinsicParameters(fx, fy, cx, cy);
-				}
-				else
-				{
-					std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-					std::cerr << "\t ... Can't find tag 'IntrinsicParameters'." << std::endl;
-					return (RET_FAILED | RET_XML_TAG_NOT_FOUND);
-				}
-
-//************************************************************************************
-//	BEGIN LibCameraSensors->VirtualRangeCam->DistortionCoeffs
-//************************************************************************************
-				// Subtag element "DistortionCoeffs " of Xml Inifile
-				p_xmlElement_Child = NULL;
-				p_xmlElement_Child = p_xmlElement_Root_VirtualRangeCam->FirstChildElement( "DistortionCoeffs" );
-				if ( p_xmlElement_Child )
-				{
-					// read and save value of attribute
-					if ( p_xmlElement_Child->QueryValueAttribute( "k1", &m_k1 ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'k1' of tag 'DistortionCoeffs '." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "k2", &m_k2 ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'k2' of tag 'DistortionCoeffs '." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "p1", &m_p1 ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'p1' of tag 'DistortionCoeffs '." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "p2", &m_p2 ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'p2' of tag 'DistortionCoeffs '." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-				}
-				else
-				{
-					std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-					std::cerr << "\t ... Can't find tag 'DistortionCoeffs '." << std::endl;
 					return (RET_FAILED | RET_XML_TAG_NOT_FOUND);
 				}
 			}

@@ -11,6 +11,8 @@
   </node>
 
   <!-- start poller for left camera -->
-  <node pkg="polled_camera" type="poller" name="poller" ns="pike_145C/left" respawn="false" output="screen" args="3 camera:= output:="/>
+  <node pkg="polled_camera" type="poller" name="poller" ns="pike_145C/left" respawn="false" output="screen" args="3 camera:= output:=">
+	<!-- remap from="pike_145C/left/image_raw" to="pike_145C/left/image_color"/ -->
+  </node>
 
 </launch>

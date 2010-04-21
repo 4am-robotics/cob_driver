@@ -1,6 +1,7 @@
 <!-- Camera sensors initialization file -->
 <LibCameraSensors>
 
+<!-- Color sensors -->
 <AVTPikeCam_0> 
   <!-- Holds the 64-Bit GUID of a connected node -->
   <!-- A GUID consists of a 32-Bit high part that holds the VendorId (Highest 24 Bits) -->
@@ -44,7 +45,7 @@
   <PROP_BRIGHTNESS value = "16"/>
   
   <!-- Valid values: 50..205 or AUTO and DEFAULT -->	
-  <PROP_EXPOSURE_TIME value = "150"/>
+  <PROP_EXPOSURE_TIME value = "70"/>
 		
   <!-- Valid values: 0..568 or AUTO and DEFAULT -->	
   <PROP_WHITE_BALANCE_U value = "AUTO"/>
@@ -65,18 +66,32 @@
   <PROP_GAIN value = "AUTO"/>
 
   <!-- Intrinsic parameters -->
+  <!-- The intrinsic parameters (focal length, principle point, distortion parameters) -->
+  <!-- are optimized relative to the specified camera -->
+  <!-- Intrinsic parameters -->
   <!-- fx: The focal length in x direction expressed in pixels -->
   <!-- fy: The focal length in y direction expressed in pixels -->
   <!-- cx: x-coordinate of principal point -->
   <!-- cy: y-coordinate of principal point -->
-  <IntrinsicParameters fx="1257.67018" fy="1253.63123" cx="697.36649" cy="521.81327" />
-
   <!-- Distortion parameters -->
   <!-- k1: First order radial distortion coefficient -->
   <!-- k2 Second order radial distortion coefficient -->
   <!-- p1 First order tangential distortion coefficient -->
   <!-- p2 Second order tangential distortion coefficient -->
-  <DistortionCoeffs k1="-0.22537" k2=" 0.18949" p1="0" p2="-0.00177" />
+  <IntrinsicParameters>
+    <AVTPikeCam_0> 
+      <IntrinsicMatrix fx="1244.05005" fy="1240.11251" cx="703.94548" cy="518.63335" />
+      <DistortionCoeffs k1="-0.21075" k2="0.11616" p1="0" p2="0" />
+    </AVTPikeCam_0> 
+    <Swissranger_0> 
+      <IntrinsicMatrix fx="1244.05005" fy="1240.11251" cx="703.94548" cy="518.63335" />
+      <DistortionCoeffs k1="-0.21075" k2="0.11616" p1="0" p2="0" />
+    </Swissranger_0>
+    <AVTPikeCam_1> 
+      <IntrinsicMatrix fx="1241.52125" fy="1237.20292" cx="701.87108" cy="519.73486" />
+      <DistortionCoeffs k1="-0.21114" k2=" 0.11737" p1="0" p2="0" />
+    </AVTPikeCam_1>
+  </IntrinsicParameters>
 
   <!-- Extrinsic parameters -->
   <!-- The translation and rotation is specified relative to this camera -->
@@ -84,12 +99,12 @@
   <!-- X_This = R * X_Other + T -->
   <ExtrinsicParameters>
     <AVTPikeCam_1>
-      <Translation x="-120.73230" y="0.79392" z="-0.49012" />
-      <Rotation x11="1.0000" x12="0.0074" x13="-0.0027" x21="-0.0075" x22="1.0000" x23="-0.0019" x31="0.0027" x32="0.0020" x33="1.0000" />
+      <Translation x="-121.03702" y="1.27260" z="-2.51774" />
+      <Rotation x11="1.0000" x12="0.0086" x13="-0.0042" x21="-0.0086" x22="1.0000" x23="0.0017" x31="0.0042" x32="-0.0016" x33="1.0000" />
     </AVTPikeCam_1> 
     <Swissranger_0>
-      <Translation x="-62.77807" y="1.46561" z="-19.48862" />
-      <Rotation x11="0.9996" x12="0.0064" x13="-0.0285" x21="-0.0055" x22="0.9995" x23="0.0326" x31="0.0287" x32="-0.0325" x33="0.9991" />
+      <Translation x="-66.10490" y="-0.46490" z="-33.58596" />
+      <Rotation x11="0.9992" x12="0.0059" x13="0.0397" x21="-0.0047" x22="0.9996" x23="-0.0291" x31="-0.0398" x32="0.0288" x33="0.9988" />
     </Swissranger_0>
   </ExtrinsicParameters>
 </AVTPikeCam_0>
@@ -136,7 +151,11 @@
   <!-- Valid values: 0..1023 or AUTO and DEFAULT -->
   <PROP_BRIGHTNESS value = "16"/>
 
-  <!-- Valid values: 50..205 or AUTO and DEFAULT -->	  <PROP_EXPOSURE_TIME value = "150"/>  <!-- Valid values: 0..568 or AUTO and DEFAULT -->	  <PROP_WHITE_BALANCE_U value = "AUTO"/>
+  <!-- Valid values: 50..205 or AUTO and DEFAULT -->	  
+  <PROP_EXPOSURE_TIME value = "70"/>  
+
+  <!-- Valid values: 0..568 or AUTO and DEFAULT -->	  
+  <PROP_WHITE_BALANCE_U value = "AUTO"/>
 
   <!-- Valid values: 0..568 or AUTO and DEFAULT -->		
   <PROP_WHITE_BALANCE_V value = "AUTO"/>
@@ -154,31 +173,36 @@
   <PROP_GAIN value = "AUTO"/>
 
   <!-- Intrinsic parameters -->
+  <!-- The intrinsic parameters (focal length, principle point, distortion parameters) -->
+  <!-- are optimized relative to the specified camera -->
+  <!-- Intrinsic parameters -->
   <!-- fx: The focal length in x direction expressed in pixels -->
   <!-- fy: The focal length in y direction expressed in pixels -->
   <!-- cx: x-coordinate of principal point -->
   <!-- cy: y-coordinate of principal point -->
-  <IntrinsicParameters fx="1268.04452" fy="1263.30957" cx="684.51140" cy="510.58481" />
-
   <!-- Distortion parameters -->
   <!-- k1: First order radial distortion coefficient -->
   <!-- k2 Second order radial distortion coefficient -->
   <!-- p1 First order tangential distortion coefficient -->
   <!-- p2 Second order tangential distortion coefficient -->
-  <DistortionCoeffs k1="-0.20253" k2=" 0.09895" p1="0" p2="0" />
+  <IntrinsicParameters>
+    <AVTPikeCam_1>
+      <IntrinsicMatrix fx="1262.17932" fy="1257.51805" cx="681.83211" cy="510.84321" />
+      <DistortionCoeffs k1="-0.21316" k2="0.12593" p1="0" p2="0" />
+    </AVTPikeCam_1>
+    <AVTPikeCam_0>
+      <IntrinsicMatrix fx="1261.10960" fy="1257.00486" cx="685.72967" cy="515.20171" />
+      <DistortionCoeffs k1="-0.21586" k2="0.13486" p1="0" p2="0" />
+    </AVTPikeCam_0>
+  </IntrinsicParameters>
 
   <!-- Extrinsic parameters -->
   <!-- The translation and rotation is specified relative to this camera -->
   <!-- and describes the transformation to the specified cameras within the XML tags -->
   <!-- X_This = R * X_Other + T -->
   <ExtrinsicParameters>
-    <AVTPikeCam_0>
-      <Translation x="120.73574" y="0.10606" z="0.16712" />
-      <Rotation x11="1.0000" x12="-0.0075" x13="0.0027" x21="0.0074" x22="1.0000" x23="0.0020" x31="-0.0027" x32="-0.0019" x33="1.0000" />
-    </AVTPikeCam_0> 
   </ExtrinsicParameters>
 </AVTPikeCam_1>
-
 
 <!-- Range imaging sensors -->
 <Swissranger_0>
@@ -243,18 +267,28 @@
   <CalibrationMethod name="MATLAB_NO_Z" />
 
   <!-- Intrinsic parameters -->
+  <!-- The intrinsic parameters (focal length, principle point, distortion parameters) -->
+  <!-- are optimized relative to the specified camera -->
+  <!-- Intrinsic parameters -->
   <!-- fx: The focal length in x direction expressed in pixels -->
   <!-- fy: The focal length in y direction expressed in pixels -->
   <!-- cx: x-coordinate of principal point -->
   <!-- cy: y-coordinate of principal point -->
-  <IntrinsicParameters fx="254.18832" fy="253.74718" cx="80.59130" cy="76.90998" />
-
   <!-- Distortion parameters -->
   <!-- k1: First order radial distortion coefficient -->
   <!-- k2 Second order radial distortion coefficient -->
   <!-- p1 First order tangential distortion coefficient -->
   <!-- p2 Second order tangential distortion coefficient -->
-  <DistortionCoeffs k1="-0.88792" k2="0.88443" p1="-0.00974" p2="0.01802" />
+  <IntrinsicParameters>
+    <Swissranger_0>
+      <IntrinsicMatrix fx="258.52047" fy="257.64993" cx="98.37125" cy="60.22503" />
+      <DistortionCoeffs k1="-0.74904" k2="-0.06910" p1="0.02603" p2="-0.01596" />
+    </Swissranger_0>
+    <AVTPikeCam_0>
+      <IntrinsicMatrix fx="258.52047" fy="257.64993" cx="98.37125" cy="60.22503" />
+      <DistortionCoeffs k1="-0.74904" k2="-0.06910" p1="0.02603" p2="-0.01596" />
+    </AVTPikeCam_0>
+  </IntrinsicParameters>
 
   <!-- Extrinsic parameters -->
   <!-- The translation and rotation is specified relative to this camera -->
@@ -276,18 +310,28 @@
   <CalibrationMethod name="MATLAB_NO_Z" />
 
   <!-- Intrinsic parameters -->
+  <!-- The intrinsic parameters (focal length, principle point, distortion parameters) -->
+  <!-- are optimized relative to the specified camera -->
+  <!-- Intrinsic parameters -->
   <!-- fx: The focal length in x direction expressed in pixels -->
   <!-- fy: The focal length in y direction expressed in pixels -->
   <!-- cx: x-coordinate of principal point -->
   <!-- cy: y-coordinate of principal point -->
-  <IntrinsicParameters fx="254.18832" fy="253.74718" cx="80.59130" cy="76.90998" />
-
   <!-- Distortion parameters -->
   <!-- k1: First order radial distortion coefficient -->
   <!-- k2 Second order radial distortion coefficient -->
   <!-- p1 First order tangential distortion coefficient -->
   <!-- p2 Second order tangential distortion coefficient -->
-  <DistortionCoeffs k1="-0.88792" k2="0.88443" p1="-0.00974" p2="0.01802" />
+  <IntrinsicParameters>
+    <VirtualRangeCam_0>
+      <IntrinsicMatrix fx="258.52047" fy="257.64993" cx="98.37125" cy="60.22503" />
+      <DistortionCoeffs k1="-0.74904" k2="-0.06910" p1="0.02603" p2="-0.01596" />
+    </VirtualRangeCam_0>
+    <VirtualColorCam_0> 
+      <IntrinsicMatrix fx="258.52047" fy="257.64993" cx="98.37125" cy="60.22503" />
+      <DistortionCoeffs k1="-0.74904" k2="-0.06910" p1="0.02603" p2="-0.01596" />
+    </VirtualColorCam_0> 
+  </IntrinsicParameters>
 
   <!-- Extrinsic parameters -->
   <!-- The translation and rotation is specified relative to this camera -->
@@ -304,18 +348,32 @@
   <CameraDataDirectory relativePath="CameraData_0"/>	
 
   <!-- Intrinsic parameters -->
+  <!-- The intrinsic parameters (focal length, principle point, distortion parameters) -->
+  <!-- are optimized relative to the specified camera -->
+  <!-- Intrinsic parameters -->
   <!-- fx: The focal length in x direction expressed in pixels -->
   <!-- fy: The focal length in y direction expressed in pixels -->
   <!-- cx: x-coordinate of principal point -->
   <!-- cy: y-coordinate of principal point -->
-  <IntrinsicParameters fx="1257.67018" fy="1253.63123" cx="697.36649" cy="521.81327" />
-
   <!-- Distortion parameters -->
   <!-- k1: First order radial distortion coefficient -->
   <!-- k2 Second order radial distortion coefficient -->
   <!-- p1 First order tangential distortion coefficient -->
   <!-- p2 Second order tangential distortion coefficient -->
-  <DistortionCoeffs k1="-0.22537" k2=" 0.18949" p1="0" p2="-0.00177" />
+  <IntrinsicParameters>
+    <VirtualColorCam_0> 
+      <IntrinsicMatrix fx="1244.05005" fy="1240.11251" cx="703.94548" cy="518.63335" />
+      <DistortionCoeffs k1="-0.21075" k2="0.11616" p1="0" p2="0" />
+    </VirtualColorCam_0> 
+    <VirtualRangeCam_0>
+      <IntrinsicMatrix fx="1244.05005" fy="1240.11251" cx="703.94548" cy="518.63335" />
+      <DistortionCoeffs k1="-0.21075" k2="0.11616" p1="0" p2="0" />
+    </VirtualRangeCam_0>
+    <VirtualColorCam_1> 
+      <IntrinsicMatrix fx="1241.52125" fy="1237.20292" cx="701.87108" cy="519.73486" />
+      <DistortionCoeffs k1="-0.21114" k2=" 0.11737" p1="0" p2="0" />
+    </VirtualColorCam_1> 
+  </IntrinsicParameters>
 
   <!-- Extrinsic parameters -->
   <!-- The translation and rotation is specified relative to this camera -->
@@ -324,12 +382,12 @@
   <!-- X_This = R * X_Other + T -->
   <ExtrinsicParameters>
     <VirtualColorCam_1>
-      <Translation x="-120.73230" y="0.79392" z="-0.49012" />
-      <Rotation x11="1.0000" x12="0.0074" x13="-0.0027" x21="-0.0075" x22="1.0000" x23="-0.0019" x31="0.0027" x32="0.0020" x33="1.0000" />
-    </VirtualColorCam_1> 
+      <Translation x="-121.03702" y="1.27260" z="-2.51774" />
+      <Rotation x11="1.0000" x12="0.0086" x13="-0.0042" x21="-0.0086" x22="1.0000" x23="0.0017" x31="0.0042" x32="-0.0016" x33="1.0000" />
+    </VirtualColorCam_1>
     <VirtualRangeCam_0>
-      <Translation x="-62.77807" y="1.46561" z="-19.48862" />
-      <Rotation x11="0.9996" x12="0.0064" x13="-0.0285" x21="-0.0055" x22="0.9995" x23="0.0326" x31="0.0287" x32="-0.0325" x33="0.9991" />
+      <Translation x="-66.10490" y="-0.46490" z="-33.58596" />
+      <Rotation x11="0.9992" x12="0.0059" x13="0.0397" x21="-0.0047" x22="0.9996" x23="-0.0291" x31="-0.0398" x32="0.0288" x33="0.9988" />
     </VirtualRangeCam_0>
   </ExtrinsicParameters>
 </VirtualColorCam_0>
@@ -341,18 +399,28 @@
   <CameraDataDirectory relativePath="CameraData_0"/>	
 
   <!-- Intrinsic parameters -->
+  <!-- The intrinsic parameters (focal length, principle point, distortion parameters) -->
+  <!-- are optimized relative to the specified camera -->
+  <!-- Intrinsic parameters -->
   <!-- fx: The focal length in x direction expressed in pixels -->
   <!-- fy: The focal length in y direction expressed in pixels -->
   <!-- cx: x-coordinate of principal point -->
   <!-- cy: y-coordinate of principal point -->
-  <IntrinsicParameters fx="1268.04452" fy="1263.30957" cx="684.51140" cy="510.58481" />
-
   <!-- Distortion parameters -->
   <!-- k1: First order radial distortion coefficient -->
   <!-- k2 Second order radial distortion coefficient -->
   <!-- p1 First order tangential distortion coefficient -->
   <!-- p2 Second order tangential distortion coefficient -->
-  <DistortionCoeffs k1="-0.20253" k2=" 0.09895" p1="0" p2="0" />
+  <IntrinsicParameters>
+    <VirtualColorCam_1>
+      <IntrinsicMatrix fx="1262.17932" fy="1257.51805" cx="681.83211" cy="510.84321" />
+      <DistortionCoeffs k1="-0.21316" k2="0.12593" p1="0" p2="0" />
+    </VirtualColorCam_1>
+    <VirtualColorCam_0>
+      <IntrinsicMatrix fx="1261.10960" fy="1257.00486" cx="685.72967" cy="515.20171" />
+      <DistortionCoeffs k1="-0.21586" k2="0.13486" p1="0" p2="0" />
+    </VirtualColorCam_0>
+  </IntrinsicParameters>
 
   <!-- Extrinsic parameters -->
   <!-- The translation and rotation is specified relative to this camera -->
@@ -360,11 +428,8 @@
   <!-- Matlab Calibration Toolbox: LEFT camera is OTHER camera, RIGHT camera is THIS camera -->
   <!-- X_This = R * X_Other + T -->
   <ExtrinsicParameters>
-    <VirtualColorCam_0>
-      <Translation x="120.73574" y="0.10606" z="0.16712" />
-      <Rotation x11="1.0000" x12="-0.0075" x13="0.0027" x21="0.0074" x22="1.0000" x23="0.0020" x31="-0.0027" x32="-0.0019" x33="1.0000" />
-    </VirtualColorCam_0>
   </ExtrinsicParameters>
 </VirtualColorCam_1>
+
 
 </LibCameraSensors>
