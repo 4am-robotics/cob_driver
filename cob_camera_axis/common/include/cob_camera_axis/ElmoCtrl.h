@@ -1,14 +1,14 @@
 #ifndef __ELMO_CTRL_H__
 #define __ELMO_CTRL_H__
 
-#include <canopen_motor/CanDriveItf.h>
-#include <canopen_motor/CanDriveHarmonica.h>
-#include <generic_can/CanItf.h>
-#include <generic_can/CanPeakSys.h>
-#include <generic_can/CanPeakSysUSB.h>
+#include <cob_canopen_motor/CanDriveItf.h>
+#include <cob_canopen_motor/CanDriveHarmonica.h>
+#include <cob_generic_can/CanItf.h>
+#include <cob_generic_can/CanPeakSys.h>
+#include <cob_generic_can/CanPeakSysUSB.h>
 
 // Headers provided by cob-packages which should be avoided/removed^M
-#include <cob3_utilities/IniFile.h>
+#include <cob_utilities/IniFile.h>
 
 
 //#include <Manipulation/Interfaces/armInterface.h>

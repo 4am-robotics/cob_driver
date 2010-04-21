@@ -12,9 +12,9 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 rosbuild_init()
 
 #set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/bin)
 #set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/lib)
 
 #uncomment if you have defined messages
 #rosbuild_genmsg()
@@ -29,8 +29,11 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
+# add include search paths
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
-rosbuild_add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp common/src/ElmoCtrl.cpp)
-rosbuild_add_executable(${PROJECT_NAME}_test ros/src/${PROJECT_NAME}_test.cpp)
-
-target_link_libraries(${PROJECT_NAME}  pcan)
+# add project libs
+rosbuild_add_library(${PROJECT_NAME} common/src/UndercarriageCtrlGeom.cpp)
+# add executable
+rosbuild_add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp)
+# link libraries
+target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME})
