@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_common
- * ROS package name: base_drive_chain
+ * ROS stack name: cob_drivers
+ * ROS package name: cob_base_drive_chain
  * Description: This is a sample implementation of a can-bus with several nodes. In this case it implements the drive-chain of the Care-O-bot3 mobile base. yet, this can be used as template for using the generic_can and canopen_motor packages to implement arbitrary can-setups.
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -68,18 +68,11 @@
 
 // Headers provided by cob-packages which should be avoided/removed
 #include <cob_utilities/IniFile.h>
+#include <cob_utilities/Mutex.h>
 
 // remove (not supported)
 //#include "stdafx.h"
-#include <cob_base_drive_chain/Mutex.h>
-//#include <Neobotix/Drivers/Can/CanCtrlPltfItf.h>
-//#include <Neobotix/Drivers/RelayBoard/SerRelayBoard.h>
-//#include <Neobotix/Drivers/Can/CanIOBoardNeo.h>
-//#include <Neobotix/Drivers/Can/CanDriveNeo.h>
-//#include <Neobotix/Drivers/Can/CanUSBoardNeo.h>
-//#include <Neobotix/Drivers/Can/CanGyroBoardNeo.h>
-//#include <Neobotix/Drivers/Can/CanRadarBoardNeo.h>
-//#include <Neobotix/Drivers/Can/CanClientGeneric.h>
+
 
 //-----------------------------------------------
 

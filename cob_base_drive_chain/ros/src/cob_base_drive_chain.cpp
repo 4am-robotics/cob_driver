@@ -337,7 +337,7 @@ class NodeClass
             }
             else
             {
-				if m_bisInitialized
+				if (m_bisInitialized)
 				{
                 	diagnostics.level = 0;
                 	diagnostics.name = "drive-chain can node";
