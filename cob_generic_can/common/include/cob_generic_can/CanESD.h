@@ -62,12 +62,13 @@
 
 // Headers provided by other cob-packages
 #include <cob_generic_can/CanItf.h>
-#include <libntcan/ntcan.h>
 
 // Headers provided by other cob-packages which should be avoided/removed
 #include <cob_utilities/IniFile.h>
 #include <cob_utilities/windows.h>
 #include <cob_utilities/Mutex.h>
+
+#include <libntcan/ntcan.h>
 
 //-----------------------------------------------
 /**

@@ -249,7 +249,6 @@ void CanCtrlPltfCOb3::readConfiguration()
 		sComposed = sIniDirectory;
 		sComposed += "CanCtrl.ini";
 		m_pCanCtrl = new CanESD(sComposed.c_str(), false);
-		//m_pCanCtrl = new CanESD(sIniDirectory + "CanCtrl.ini");
 		std::cout << "Uses CAN-ESD-card" << std::endl;
 	}
 
