@@ -148,6 +148,7 @@ class NodeClass
         // function will be called when a new message arrives on a topic
         void topicCallback_JointStateCmd(const sensor_msgs::JointState::ConstPtr& msg)
         {
+			ROS_DEBUG("Topic Callback JointStateCmd");
 			// only process cmds when system is initialized
 			if(m_bisInitialized == true)
 			{
@@ -192,6 +193,7 @@ class NodeClass
         bool srvCallback_Init(cob_srvs::Switch::Request &req,
                               cob_srvs::Switch::Response &res )
         {
+			ROS_DEBUG("Service Callback Init");
             if(m_bisInitialized == false)
             {
                 m_bisInitialized = initDrives();
@@ -221,6 +223,7 @@ class NodeClass
         bool srvCallback_Reset(cob_srvs::Switch::Request &req,
                                      cob_srvs::Switch::Response &res )
         {
+			ROS_DEBUG("Service Callback Reset");
 	    	res.success = m_CanCtrlPltf.resetPltf();
 		    if (res.success)
        	        ROS_INFO("Can-Node resetted");
@@ -235,6 +238,7 @@ class NodeClass
         bool srvCallback_Shutdown(cob_srvs::Switch::Request &req,
                                      cob_srvs::Switch::Response &res )
         {
+			ROS_DEBUG("Service Callback Shutdown");
 	    	res.success = m_CanCtrlPltf.shutdownPltf();
 	    	if (res.success)
        	    	ROS_INFO("Drives shut down");
@@ -247,6 +251,7 @@ class NodeClass
         bool srvCallback_GetJointState(cob_srvs::GetJointState::Request &req,
                                      cob_srvs::GetJointState::Response &res )
         {
+			ROS_DEBUG("Service Callback GetJointState");
             // init local variables
             int iCanEvalStatus, ret, j, k;
             bool bIsError;
@@ -275,49 +280,66 @@ class NodeClass
             // set frame_id for header            
 			//jointstate.header.frame_id = frame_id; //Where to get this id from?
 
-            // read Can-Buffer
-    		iCanEvalStatus = m_CanCtrlPltf.evalCanBuffer();
-
 			// assign right size to JointState
 			jointstate.set_name_size(m_iNumMotors);
             jointstate.set_position_size(m_iNumMotors);
             jointstate.set_velocity_size(m_iNumMotors);            
             jointstate.set_effort_size(m_iNumMotors);
-            
-            j = 0;
-			k = 0;
-            for(int i = 0; i<m_iNumMotors; i++)
-            {
-	    		ret = m_CanCtrlPltf.getGearPosVelRadS(i,  &vdAngGearRad[i], &vdVelGearRad[i]);
-                // if a steering motor was read -> correct for offset
-                if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
-                {
-                    // correct for initial offset of steering angle (arbitrary homing position)
-		            vdAngGearRad[i] += m_Param.vdWheelNtrlPosRad[j];
-	                MathSup::normalizePi(vdAngGearRad[i]);
-                    j = j+1;
-					// create name for identification in JointState msg
-					str_num << j;
-					str_cat = str_steer + str_num.str();
-                }
-				else
-				{
-					// create name for identification in JointState msg
-					k = k+1;
-					str_num << k;
-					str_cat = str_drive + str_num.str();
-				}
-				// set joint names
-				jointstate.name[i] = str_cat;
-            }
 
-            // set data to jointstate            
-            for(int i = 0; i<m_iNumMotors; i++)
+            if(m_bisInitialized == false)
             {
-                jointstate.position[i] = vdAngGearRad[i];
-                jointstate.velocity[i] = vdVelGearRad[i];
-                jointstate.effort[i] = vdEffortGearNM[i];
-            }
+				// as long as system is not initialized
+				bIsError = false;
+
+	            // set data to jointstate            
+	            for(int i = 0; i<m_iNumMotors; i++)
+	            {
+	                jointstate.position[i] = 0.0;
+	                jointstate.velocity[i] = 0.0;
+	                jointstate.effort[i] = 0.0;
+	            }
+			}
+			else
+			{
+				// as soon as drive chain is initialized
+	            // read Can-Buffer
+    			iCanEvalStatus = m_CanCtrlPltf.evalCanBuffer();
+    	        
+    	        j = 0;
+				k = 0;
+    	        for(int i = 0; i<m_iNumMotors; i++)
+    	        {
+		    		ret = m_CanCtrlPltf.getGearPosVelRadS(i,  &vdAngGearRad[i], &vdVelGearRad[i]);
+   	            	// if a steering motor was read -> correct for offset
+   	            	if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
+                	{
+                    	// correct for initial offset of steering angle (arbitrary homing position)
+		            	vdAngGearRad[i] += m_Param.vdWheelNtrlPosRad[j];
+	                	MathSup::normalizePi(vdAngGearRad[i]);
+                    	j = j+1;
+						// create name for identification in JointState msg
+						str_num << j;
+						str_cat = str_steer + str_num.str();
+                	}
+					else
+					{
+						// create name for identification in JointState msg
+						k = k+1;
+						str_num << k;
+						str_cat = str_drive + str_num.str();
+					}
+					// set joint names
+					jointstate.name[i] = str_cat;
+            	}
+
+            	// set data to jointstate            
+            	for(int i = 0; i<m_iNumMotors; i++)
+            	{
+            	    jointstate.position[i] = vdAngGearRad[i];
+            	    jointstate.velocity[i] = vdVelGearRad[i];
+            	    jointstate.effort[i] = vdEffortGearNM[i];
+            	}
+			}
 
             // set answer to srv request
             res.jointstate = jointstate;
@@ -325,8 +347,13 @@ class NodeClass
         	// publish jointstate message
             topicPub_JointState.publish(jointstate);
         	ROS_DEBUG("published new drive-chain configuration (JointState message)");
+			
 
-    		bIsError = m_CanCtrlPltf.isPltfError();
+            if(m_bisInitialized)
+            {
+				// read Can only after initialization
+	    		bIsError = m_CanCtrlPltf.isPltfError();
+			}
 
             // set data to diagnostics
             if(bIsError)

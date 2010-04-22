@@ -132,7 +132,7 @@ class NodeClass
 			topic_pub_odometry_ = n.advertise<nav_msgs::Odometry>("Odometry", 50);
 
             // subscribed topics
-			topic_sub_CMD_pltf_twist_ = n.subscribe("PltfCmd", 1, &NodeClass::topicCallbackTwistCmd, this);
+			topic_sub_CMD_pltf_twist_ = n.subscribe("cmd_vel", 1, &NodeClass::topicCallbackTwistCmd, this);
             topic_sub_EM_stop_state_ = n.subscribe("EMStopState", 1, &NodeClass::topicCallbackEMStop, this);
             topic_sub_drive_diagnostic_ = n.subscribe("Diagnostic", 1, &NodeClass::topicCallbackDiagnostic, this);
 			//<diagnostic_msgs::DiagnosticStatus>("Diagnostic", 1);
@@ -225,7 +225,7 @@ class NodeClass
 				if (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK)
 				{
 					// halt controller
-            		ROS_INFO("drive chain availlable: halt Controller");
+            		ROS_DEBUG("drive chain not availlable: halt Controller");
 
 					// Set EM flag to Ctrlr (resets internal states)
 					ucar_ctrl_.setEMStopActive(true);

@@ -921,7 +921,7 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 				}	
 
 				// increment timeout counter
-				if (iCnt++ > 500)
+				if (iCnt++ > 1000)
 					bTimeOut = true;
 
 				// Sleep: To avoid can overload
@@ -939,6 +939,9 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 				}
 				std::cout << "Error while Homing: Timeout while waiting for homing signal" << std::endl;
 			}
+
+			// update Can Buffer once more
+			evalCanBuffer();
 
 			// Now make steers move to position: zero
 			// this could be handled also by the elmos themselve
