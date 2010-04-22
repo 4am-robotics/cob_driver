@@ -83,6 +83,8 @@ class NodeClass
         ros::Publisher topicPub_Pose2D;
         ros::Publisher topicPub_Odometry;
         tf::TransformBroadcaster odom_broadcaster;
+	// just for debug
+        ros::Publisher topicPub_cmd_vel_received;
 
 	    // topics to subscribe, callback is called for new messages arriving
         ros::Subscriber topicSub_CmdVel;
@@ -119,6 +121,7 @@ class NodeClass
 
         	// implementation of topics to publish
             topicPub_Odometry = n.advertise<nav_msgs::Odometry>("odometry", 50);
+            topicPub_cmd_vel_received = n.advertise<geometry_msgs::TwistStamped>("cmd_vel_received", 50);
 
             // implementation of topics to subscribe
             topicSub_CmdVel = n.subscribe("cmd_vel", 1, &NodeClass::topicCallback_CmdVel, this);
@@ -148,6 +151,14 @@ class NodeClass
             cmdVelX = msg->linear.x;
             cmdVelY = msg->linear.y;
             cmdVelTh = msg->angular.z;
+
+		// Debug: repeat cmd to check transmission time
+                geometry_msgs::TwistStamped Twmsg;
+		Twmsg.header.stamp = ros::Time::now();
+		Twmsg.twist.linear.x = cmdVelX;
+		Twmsg.twist.linear.y = cmdVelY;
+		Twmsg.twist.angular.z = cmdVelTh;
+                topicPub_cmd_vel_received.publish(Twmsg);
         }
 
         // service callback functions

@@ -222,57 +222,17 @@ public:
 	/// @return The camera type
 	virtual t_cameraType GetCameraType() {return m_CameraType;}
 
-	/// Returns a matrix of the camera's intrinsic parameters.
-	/// @param _intrinsic_matrix The OpenCV matrix that should refer to the intrinsic parameters.
-	/// @return Return code.
-	virtual unsigned long GetIntrinsicParameters(CvMat** _intrinsic_matrix); 
+	/// Assignes intrinsics to the range sensor.
+	/// Intrinsics are read from the configuration file by the camera toolbox.
+	/// Intrinsics are needed to calculat range values 
+	/// based on own calibration.
+	/// @param intrinsicMatrix The intrinsic matrix
+	/// @param undistortMapX undistortMapX The undistortion map for x direction
+	/// @param undistortMapY undistortMapY The undistortion map for y direction
+	/// @return return code
+	virtual unsigned long SetIntrinsics(CvMat* intrinsicMatrix,
+		IplImage* undistortMapX, IplImage* undistortMapY);
 
-	/// Initializes the intrinsic parameters of the camera.
-	/// The following equations apply: (x,y,z) = R*(X,Y,Z) + t and
-	/// x' = x/z, y' = y/z and u = fx*x' + cx, v = fy*y' + cy. The model might be extended
-	/// with distortion coefficients to replace x' and y' with 
-	/// x'' = x'*(1 + k1*r^2 + k2*r^4) + 2*p1*x'*y' + p2(r^2+2*x'^2)
-	/// y'' = y'*(1 + k1*r^2 + k2*r^4) + p1(r^2+2*y'^2) + 2*p2*x'*y'
-	/// For a detailed description see openCV camera calibration description. 
-	/// @param fx The focal length in x direction expressed in pixels
-	/// @param fy The focal length in y direction expressed in pixels
-	/// @param cx x-coordinate of principal point
-	/// @param cy y-coordinate of principal point
-	/// @return Return code.
-	virtual unsigned long SetIntrinsicParameters(double fx, double fy, double cx, double cy);
-
-	/// Returns the distortion coefficients.
-	/// The matrix is given by [k1, k2, p1, p2] where k1, k2 are radial distortion coefficients
-	/// and p1, p2 are tangential distortion coefficients.
-	/// @param _distortion_coeffs The OpenCV matrix that should refer to the distortion parameters.
-	/// @return Return code.
-	virtual unsigned long GetDistortionParameters(CvMat** _distortion_parameters);
-
-	/// Initializes the distortion parameters.
-	/// The following equations apply: (x,y,z) = R*(X,Y,Z) + t and
-	/// x' = x/z, y' = y/z and u = fx*x' + cx, v = fy*y' + cy. The model might be extended
-	/// with distortion coefficients to replace x' and y' with 
-	/// x'' = x'*(1 + k1*r^2 + k2*r^4) + 2*p1*x'*y' + p2(r^2+2*x'^2)
-	/// y'' = y'*(1 + k1*r^2 + k2*r^4) + p1(r^2+2*y'^2) + 2*p2*x'*y'
-	/// @param k1 First order radial distortion coefficient
-	/// @param k2 Second order radial distortion coefficient
-	/// @param p1 First order tangential distortion coefficient
-	/// @param p1 Second order tangential distortion coefficient
-	/// @param width Image width
-	/// @param height Image height
-	/// @return Return code.
-	virtual unsigned long SetDistortionParameters(double k1, double k2, double p1 , double p2, int width, int height );
-
-	/// Removes distortion from an image.
-	/// It is necessary to set the distortion coefficients prior to calling this function.
-	/// @param src The distorted image.
-	/// @param dst The undistorted image.
-	/// @return Return code.
-	virtual unsigned long RemoveDistortion(const CvArr* src, CvArr* dst);
-	
-	bool m_Fake;	/// Set Z value of range sensor to a fix and far distance (i.e.100m)
-					///´This results in a clear shared image
-	
 protected:
 		
 	t_CalibrationMethod m_CalibrationMethod; ///< Calibration method MATLAB, MATLAB_NO_Z or SWISSRANGER
@@ -285,8 +245,6 @@ protected:
 	unsigned int m_BufferSize; ///< Number of images, the camera buffers internally
 
 	CvMat* m_intrinsicMatrix;		///< Intrinsic parameters [fx 0 cx; 0 fy cy; 0 0 1]
-	CvMat* m_distortionParameters;	///< Distortion coefficients [k1, k2, p1=0, p2=0]
-
 	IplImage* m_undistortMapX;		///< The output array of x coordinates for the undistortion map
 	IplImage* m_undistortMapY;		///< The output array of Y coordinates for the undistortion map
 
