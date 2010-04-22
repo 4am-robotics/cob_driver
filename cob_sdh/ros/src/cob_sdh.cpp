@@ -161,7 +161,7 @@ class SdhNode
 			topicPub_TactileSensor_ = nh_.advertise<cob_msgs::TactileSensor>("tactile_data", 1);
 
 			// pointer to sdh
-			sdh_ = new SDH::cSDH(false, false, 0); //(_use_radians=false, bool _use_fahrenheit=false, int _debug_level=0)
+			sdh_ = new SDH::cSDH(false, false, 1); //(_use_radians=false, bool _use_fahrenheit=false, int _debug_level=0)
 
 			// implementation of service servers
 			srvServer_Init_ = nh_.advertiseService("Init", &SdhNode::srvCallback_Init, this);
@@ -338,7 +338,7 @@ class SdhNode
 				//Init tactile data
 	            try
 				{
-			        dsa_ = new SDH::cDSA(-1, dsadevicenum_, dsadevicestring_.c_str());
+			        dsa_ = new SDH::cDSA(1, dsadevicenum_, dsadevicestring_.c_str());
 		            ROS_INFO("Initialized RS232 for DSA Tactile Sensors");
 					// ROS_INFO("Set sensitivity to 1.0");
 					// for(int i=0; i<6; i++)

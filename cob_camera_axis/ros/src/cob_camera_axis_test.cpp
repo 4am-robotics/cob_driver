@@ -9,14 +9,14 @@
  *
  * Project name: care-o-bot
  * ROS stack name: cob_driver
- * ROS package name: cob_sdh
+ * ROS package name: cob_camera_axis
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
  * Author: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
- * Supervised by: Georg Arbeiter, email:georg.arbeiter@ipa.fhg.de
+ * Supervised by: Ulrich Reiser, email:ulrich.reiser@ipa.fhg.de
  *
- * Date of creation: Jan 2010
+ * Date of creation: April 2010
  * ToDo:
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -67,7 +67,7 @@
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
-#include <cob_srvs/SetOperationMode.h>
+//#include <cob_srvs/SetOperationMode.h>
 
 // external includes
 //--
@@ -91,7 +91,7 @@
 int main(int argc, char** argv)
 {
 	// initialize ROS, spezify name of node
-	ros::init(argc, argv, "sdh_test");
+	ros::init(argc, argv, "camera_axis_test");
 
 	// create a handle for this node, initialize node
 	ros::NodeHandle n;
@@ -108,7 +108,7 @@ int main(int argc, char** argv)
     // service clients
     ros::ServiceClient srvClient_Init = n.serviceClient<cob_srvs::Trigger>("Init");
     ros::ServiceClient srvClient_Stop = n.serviceClient<cob_srvs::Trigger>("Stop");
-    ros::ServiceClient srvClient_SetOperationMode = n.serviceClient<cob_srvs::SetOperationMode>("SetOperationMode");
+    //ros::ServiceClient srvClient_SetOperationMode = n.serviceClient<cob_srvs::SetOperationMode>("SetOperationMode");
     
     // external code
 	bool srv_querry = false;
@@ -121,7 +121,7 @@ int main(int argc, char** argv)
     while(n.ok())
     {
         // process user inputs
-		std::cout << "Choose service to test ([s]top, [i]nit, setOperation[M]ode, send[C]ommand, [e]xit): ";
+		std::cout << "Choose service to test ([s]top, [i]nit, send[C]ommand, [e]xit): ";
         
         std::cin >> c;
 
@@ -143,33 +143,6 @@ int main(int argc, char** argv)
                 srv_execute = srv.response.success;
                 srv_errorMessage = srv.response.errorMessage.data.c_str();
               	break;
-            }
-            
-            case 'M':
-            {
-                cob_srvs::SetOperationMode srv;
-                
-                std::cout << "Choose operation mode ([v] = velocity controll, [p] = position controll): ";
-                std::cin >> c;
-                if (c == 'v')
-                {
-                    srv.request.operationMode.data = "velocity";
-                }
-                else if (c == 'p')
-                {
-                    srv.request.operationMode.data = "position";
-                }
-                else
-                {
-                    srv.request.operationMode.data = "none";
-                }
-                ROS_INFO("changing operation mode to: %s controll", srv.request.operationMode.data.c_str());
-                
-                //ROS_INFO("querry service [cob3/arm/SetOperationMode]");
-                srv_querry = srvClient_SetOperationMode.call(srv);
-                srv_execute = srv.response.success;
-                srv_errorMessage = srv.response.errorMessage.data.c_str();
-                break;
             }
 
 			case 'C':
