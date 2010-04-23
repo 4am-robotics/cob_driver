@@ -111,7 +111,7 @@ The color camera implements the <i>polled_camera</i> camera interface from ROS. 
 </p>
 <h2>Swissranger</h2>
 <p>
-Both Swissranger versions 3000 and 4000 are supported. To run a Swissranger time-of-flight camera install the Linux drivers from www.mesa-imaging.ch. The ROS drivers have been tested with <i> libmesasr-dev-1.0.12-608.i386.deb</i>. Make sure there is a udev rules located for the Swissranger camera in <i>/etc/udev/rules.d/</i> after installing the driver. Depending on the specified group within the udev rule (usually <i>usb</i>), add your Linux user to theis group. Restart your computer to activate the changes (Maybe you know a better way, to update the udev rules?). Now you are set up to use the Swissranger with the ROS drivers from <i>cob_camera_sensors</i>:
+Both Swissranger versions 3000 and 4000 are supported. To run a Swissranger time-of-flight camera install the Linux drivers from www.mesa-imaging.ch. The ROS drivers have been tested with <i> libmesasr-dev-1.0.14-620.i386.deb</i>. Make sure there is a udev rule located for the Swissranger camera in <i>/etc/udev/rules.d/</i> after installing the driver. Depending on the specified group within the udev rule (usually <i>usb</i>), add your Linux user to this group. Restart your computer to activate the changes (Maybe you know a better way, to update the udev rules?). Now you are set up to use the Swissranger with the ROS drivers from <i>cob_camera_sensors</i>, here at the example of Care-O-bot<sup>&#0174;</sup> number 1:
 <ol>
 	<li>Launch the Swissranger camera with <code>roslaunch cob_camera_sensors cob3-1_tof.launch</code></li>
 	<li>Launch the Tof image viewer with <code>roslaunch cob_camera_sensors tof_camera_viewer.launch</code></li>
