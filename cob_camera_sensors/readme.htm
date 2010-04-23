@@ -1,14 +1,14 @@
 <h1>HowTo - cob_camera_sensors</h1>
 <p>
-The <i>cob_camera_sensors</i> package is a collection of ros compatible drivers for the cameras installed on Care-O-bot<sup>&#0174;</sup> 3. These include two AVT Pike C145 color cameras and one Swissranger 4000 time-of-flight sensor from Mesa Imaging. Both camera type are support for Windows and Linux. To enable Windows compatibility, remove all <code>-D__LINUX__</code> flags from <i>CMakeLists.txt</i> located at <i>cob_driver/cob_camera_sensors</i>. Lately, two Prosilica GC1380CH color cameras have been installed on one of the Care-O-bot<sup>&#0174;</sup>s, which are natively supported by ROS with the <i>prosilica_camera</i> package. The <i>prosilica_camera</i> binaries are executed within the related launch files.
+The <i>cob_camera_sensors</i> package is a collection of ROS compatible drivers for the cameras installed on Care-O-bot<sup>&#0174;</sup> 3. These include two AVT Pike C145 color cameras and one Swissranger 4000 time-of-flight sensor from Mesa Imaging. Both camera type are support for Windows and Linux. To enable Windows compatibility, remove all <code>-D__LINUX__</code> flags from <i>CMakeLists.txt</i> located at <i>cob_driver/cob_camera_sensors</i>. Lately, two Prosilica GC1380CH color cameras have been installed on one of the Care-O-bot<sup>&#0174;</sup>s, which are natively supported by ROS with the <i>prosilica_camera</i> package. The <i>prosilica_camera</i> binaries are executed within the related launch files.
 <i>cob_camera_sensors</i>
 </p>
 <p>
-Setting the camera paramters is different from the suggested ROS standard. Instead of setting all parameters within the ROS launch file, camera specific parameters are set within IPA specific configurations. This originates from IPA internal requirements to maintain backward compatibility to existing components. The ROS launch file only holds parameters related to the camera setup (e.g. 2 Pikes and 1 Swissranger) and a link to the IPA internal configuration file.
+Setting the camera parameters is different from the suggested ROS standard. Instead of setting all parameters within the ROS launch file, camera specific parameters are set within IPA specific configurations. This originates from IPA internal requirements to maintain backward compatibility to existing components. The ROS launch file only holds parameters related to the camera setup (e.g. 2 Pikes and 1 Swissranger) and a link to the IPA internal configuration file.
 </p>
 <h2>IPA configuration files</h2>	
 <p>
-The IPA configuration file is located at <i>cob_driver/cob_camera_sensors/common/files</i> in a folder related to your sensor setup e.g. <i>cpb3-1</i> or <i>cpb3-2</i>. The configuration is xml-based. It holds one xml-tag for each camera e.g. <code>&lt;AVTPikeCam_0&gt;</code> for a AVT Pike C145 camera. The number within the tag-name is used to differentiate serveral camera of the same type. Here is an excerpt from the IPA configuration file of one of our Care-O-bot<sup>&#0174;</sup>s.
+The IPA configuration file is located at <i>cob_driver/cob_camera_sensors/common/files</i> in a folder related to your sensor setup e.g. <i>cob3-1</i> or <i>cob3-2</i>. The configuration is XML-based. It holds one XML-tag for each camera e.g. <code>&lt;AVTPikeCam_0&gt;</code> for a AVT Pike C145 camera. The number within the tag-name is used to differentiate several camera of the same type. Here is an excerpt from the IPA configuration file of one of our Care-O-bot<sup>&#0174;</sup>s.
 </p>
 <code>
 &lt;!-- Camera sensors initialization file --&gt;<br>
@@ -16,8 +16,8 @@ The IPA configuration file is located at <i>cob_driver/cob_camera_sensors/common
 &lt;!-- Color sensors --&gt;<br>
 &lt;AVTPikeCam_0&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;!-- Holds the 64-Bit GUID of a connected node --&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;!-- A GUID consists of a 32-Bit high part that holds the VendorId (Highest 24 Bits) --&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;!-- and the ChipIdHigh (8 Bits) and a 32-Bit low part that holds the ChipIdLow. --&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;!-- A GUID consists of a 32-Bit high part that holds the Vendor ID (Highest 24 Bits) --&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;!-- and the Chip ID (8 Bits) and a 32-Bit low part that holds the lower bits of the Chip ID. --&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;!-- The GUID is unique for all FireWire devices on the world. --&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;GUID high="000A4701" low="10077026" /&gt;<br>
 
@@ -48,10 +48,10 @@ For each camera their is also a related <code>&lt;VirtualXXXCam_X&gt;</code> tag
 </p>
 <h2>ROS launch files</h2>
 <p>
-ROS launch files are used are located in <i>cob_driver/cob_camera_sensors/ros/launch</i> and hold information about the overall sensor setup not related to a specific camera. There is a launch file to start each camera independetly and a launch file to start all Care-O-bot<sup>&#0174;</sup> cameras at once. Each launch file specifies the location of the realated IPA configuration file and the used color camera or time-of-flight camera type. The following camera types are supported:
+ROS launch files are used are located in <i>cob_driver/cob_camera_sensors/ros/launch</i> and hold information about the overall sensor setup not related to a specific camera. There is a launch file to start each camera independently and a launch file to start all Care-O-bot<sup>&#0174;</sup> cameras at once. Each launch file specifies the location of the related IPA configuration file and the used color camera or time-of-flight camera type. The following camera types are supported:
 <ul><code>CAM_SWISSRANGER</code> - For Mesa Swissranger 3000/4000 time-of-flight camera</ul>
 <ul><code>CAM_AVTPIKE</code> - For AVT Pike 145C color camera</ul>
-The Prosilica GC1380CH color camera is supported through the ROS <i>prosilica_camera</i> package. To get more information, have a look at their tutorial. The camera specific launch files have an additional parameter specifying the camera's ID wich is related to the number within the tag-name in the IPA configuration file e.g. <code>&lt;AVTPikeCam_<b>0</b>&gt;</code>.
+The Prosilica GC1380CH color camera is supported through the ROS <i>prosilica_camera</i> package. To get more information, have a look at their tutorial. The camera specific launch files have an additional parameter specifying the camera's ID which is related to the number within the tag-name in the IPA configuration file e.g. <code>&lt;AVTPikeCam_<b>0</b>&gt;</code>.
 </p>
 <p>
 Knowing the fundamentals, we are now ready to start up the cameras.
@@ -60,10 +60,26 @@ Knowing the fundamentals, we are now ready to start up the cameras.
 <h2>AVT Pike C145</h2>
  
 <p>
-To run the AVT Pike C145 cameras from Care-O-bot<sup>&#0174;</sup> 3 you must first ensure a proper setup of the camera hardware. At first ensure that the cameras are recognized by your Linux system, executing <i>dmesg</i>. When you now unplug and plugin the firewire cable you shoud see some differences in the output, when repeatedly executing the <i>dmesg</i> command. If not, make sure the green LEDs of the camera are on and you properly connected the camera to your PC. Additionally you may check with <i>lsmod | grep 1394</i> that all necessary firewire modules have been loaded. To make sure that you installed all necessary drivers on your system you may also want to install <i>corinader</i> with all its dependencies. <i>Corinader</i> is a handy tool to access all kind of ieee1394 firewire cameras and play with their settings.
+To run the AVT Pike C145 cameras from Care-O-bot<sup>&#0174;</sup> 3 you must first ensure a proper setup of the camera hardware. At first ensure that the cameras are recognized by your Linux system, executing <i>dmesg</i>. When you now unplug and plugin the firewire cable you shod see some differences in the output, when repeatedly executing the <i>dmesg</i> command. On my pc the dmesg output is after plugging in the cameras is as follows:
+</p>
+<code>
+$ dmesg | grep 1394<br><br>
+
+[    1.298395] ohci1394 0000:04:03.0: PCI INT A -> GSI 19 (level, low) -> IRQ 19<br>
+[    1.358234] ohci1394: fw-host0: OHCI-1394 1.0 (PCI): IRQ=[19]  MMIO=[90300000-903007ff]  Max Packet=[2048]  IR/IT contexts=[8/8]<br>
+[    2.644206] ieee1394: Host added: ID:BUS[0-00:1023]  GUID[002332fffe19d87a]<br>
+[  159.528932] ieee1394: Node changed: 0-00:1023 -> 0-01:1023<br>
+[  160.418182] ieee1394: Node added: ID:BUS[0-00:1023]  GUID[000a470110077026]<br>
+[  160.424805] ieee1394: Node added: ID:BUS[0-01:1023]  GUID[000a470110073080]<br>
+[  160.424912] ieee1394: Node changed: 0-01:1023 -> 0-03:1023<br>
+[  160.438307] video1394: Installed video1394 module<br>
+[  160.453156] ieee1394: raw1394: /dev/raw1394 device initialized<br>
+</code>
+<p>
+ If not, make sure the green LEDs of the camera are on and you properly connected the camera to your PC. Additionally you may check with <i>lsmod | grep 1394</i> that all necessary firewire modules have been loaded. To make sure that you installed all necessary drivers on your system you may also want to install <i>coriander</i> with all its dependencies. <i>Coriander</i> is a handy tool to access all kind of ieee1394 firewire cameras and play with their settings.
 </p>
 <p>
-Once the camera is recognized by the system, you must create udev rules to get access right to the ieee1394 devices located at <i>/dev/raw1394</i> and <i>/dev/video1394</i>. Therefore create a file called <i>01-ieee1394.rules</i> in <i>/etc/udev/rules.d/</i> with the follwing content
+Once the camera is recognized by the system, you must create udev rules to get access right to the ieee1394 devices located at <i>/dev/raw1394</i> and <i>/dev/video1394</i>. Therefore create a file called <i>01-ieee1394.rules</i> in <i>/etc/udev/rules.d/</i> with the following content
 </p>
 <code>
 #firewire camera devices<br>
@@ -71,22 +87,44 @@ KERNEL=="raw1394*",GROUP="plugdev",MODE="0664"<br>
 KERNEL=="video1394*",GROUP="plugdev",MODE="0664"
 </code>
 <p>
-Check if the linux groups <i>plugdev</i> and <i>video</i> exist and if not create them. Then, add your linux user these groups and restart your computer to activate the changes (Maybe you know a better way, to update the udev rules?). To test your cameras, run <i>coriander</i>. If it does not start up, there are still some issues to be solved before proceeding. Check if your user's group settings and the settings of the firewire device files at <i>/dev/raw1394</i> and <i>/dev/video1394</i> coincide. Once coriander is running, we are ready to launch the ROS nodes of the cameras, explained here on the example of Care-O-bot<sup>&#0174;</sup> 3 number 1. 
+Check if the Linux groups <i>plugdev</i> and <i>video</i> exist and if not create them. Then, add your Linux user these groups and restart your computer to activate the changes (Maybe you know a better way, to update the udev rules?). To test your cameras, run <i>coriander</i>. If it does not start up, there are still some issues to be solved before proceeding. Check if your user's group settings and the settings of the firewire device files at <i>/dev/raw1394</i> and <i>/dev/video1394</i> coincide. Once coriander is running, we are ready to launch the ROS nodes of the cameras, explained here on the example of Care-O-bot<sup>&#0174;</sup> 3 number 1. 
 <ol>
-	<li>Install dependecies (<code>rosdep install cob_camera_sensors</code>) and build <i>cob_camera_sensors</i> (<code>rosmake cob_camera_sensors</code>) </li>
+	<li>Install dependencies (<code>rosdep install cob_camera_sensors</code>) and build <i>cob_camera_sensors</i> (<code>rosmake cob_camera_sensors</code>) </li>
 	<li>Launch the left IEEE1394 camera with <code>roslaunch cob_camera_sensors cob3-1_color_camera_left.launch</code> </li>
 	<li>Launch the right IEEE1394 camera with <code>roslaunch cob_camera_sensors cob3-1_color_camera_right.launch</code> </li>
 	<li>Launch <i>image_view</i> from ROS to show images from the left color camera with <code>rosrun image_view image_view image:=/camera/left/color_image</code> </li>
 	<li>Launch <i>image_view</i> from ROS to show images from the right color camera with <code>rosrun image_view image_view image:=/camera/right/color_image</code> </li>
 </ol>
 </p>
+<p>
+All cameras are implemented using <i>image_transport</i> from ROS. Therefore, after launching the color camera and swissranger nodes you will have the following topic available.
+<ul>/pike_145C/left/camera_info</ul>
+<ul>/pike_145C/left/image_color</ul>
+<ul>/pike_145C/left/image_color/compressed</ul>
+<ul>/pike_145C/left/image_color/theora</ul>
+<ul>/pike_145C/right/camera_info</ul>
+<ul>/pike_145C/right/image_color</ul>
+<ul>/pike_145C/right/image_color/compressed</ul>
+<ul>/pike_145C/right/image_color/theora</ul>
+
+The color camera implements the <i>polled_camera</i> camera interface from ROS. Within the launch files a poller is started to continuously request images from the color cameras and publish them on a topic.
+</p>
 <h2>Swissranger</h2>
 <p>
-Both swissranger versions 3000 and 4000 are supported. To run a Swissranger time-of-flight camera install the linux drivers from www.mesa-imaging.ch. The ROS drivers have been tested with <i> libmesasr-dev-1.0.12-608.i386.deb</i>. Make sure there is a udev rules located for the Swissranger camera in <i>/etc/udev/rules.d/</i> after installing the driver. Depending on the specified group within the udev rule (usually <i>usb</i>), add your linux user to theis group. Restart your computer to activate the changes (Maybe you know a better way, to update the udev rules?). Now you are set up to use the Swissranger with the ROS drivers from <i>cob_camera_sensors</i>:
+Both Swissranger versions 3000 and 4000 are supported. To run a Swissranger time-of-flight camera install the Linux drivers from www.mesa-imaging.ch. The ROS drivers have been tested with <i> libmesasr-dev-1.0.12-608.i386.deb</i>. Make sure there is a udev rules located for the Swissranger camera in <i>/etc/udev/rules.d/</i> after installing the driver. Depending on the specified group within the udev rule (usually <i>usb</i>), add your Linux user to theis group. Restart your computer to activate the changes (Maybe you know a better way, to update the udev rules?). Now you are set up to use the Swissranger with the ROS drivers from <i>cob_camera_sensors</i>:
 <ol>
 	<li>Launch the Swissranger camera with <code>roslaunch cob_camera_sensors cob3-1_tof.launch</code></li>
 	<li>Launch the Tof image viewer with <code>roslaunch cob_camera_sensors tof_camera_viewer.launch</code></li>
 </ol>
 If your camera is connected via ethernet, skip the udev rules and enter the appropriate ethernet address in the IPA configuration file. 
 </p>
-
+<p>
+All cameras are implemented using <i>image_transport</i> from ROS. Therefore, after launching the color camera and Swissranger nodes you will have the following topic available.
+<ul>/sr4000/camera_info</ul>
+<ul>/sr4000/image_grey</ul>
+<ul>/sr4000/image_grey/compressed</ul>
+<ul>/sr4000/image_grey/theora</ul>
+<ul>/sr4000/image_xyz</ul>
+<ul>/sr4000/image_xyz/compressed</ul>
+<ul>/sr4000/image_xyz/theora</ul>
+</p>
