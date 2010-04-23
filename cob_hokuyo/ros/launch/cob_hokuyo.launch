@@ -7,6 +7,7 @@
 	<param name="calibrate_time" type="bool" value="false"/>
 	<!--param name="model_04LX" type="bool" value="true"/-->
 	<param name="frameid" value="base_hokuyo"/>
+  	<remap from="scan" to="scan_hokuyo"/>
   </node>
   
 </launch>

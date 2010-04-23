@@ -10,6 +10,15 @@
 	<!-- Specifies the used tof camera type -->
  	<!-- CAM_SWISSRANGER -->
 	<param name="tof_camera_type" value="CAM_SWISSRANGER" />	
+	<!-- The intrinsics of the tof sensor are optimized to the following camera -->
+	<param name="tof_camera_intrinsic_type" value="CAM_AVTPIKE" />
+	<param name="tof_camera_intrinsic_id" value="0" />
+	<!-- The intrinsics of the left color sensor are optimized to the following camera -->
+	<param name="left_color_camera_intrinsic_type" value="CAM_AVTPIKE" />
+	<param name="left_color_camera_intrinsic_id" value="0" />
+	<!-- The intrinsics of the right color sensor are optimized to the following camera -->
+	<param name="right_color_camera_intrinsic_type" value="CAM_AVTPIKE" />
+	<param name="right_color_camera_intrinsic_id" value="1" />
   </node>
 
 </launch>

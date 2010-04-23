@@ -6,6 +6,9 @@
 	<param name="configuration_files" value="$(find cob_camera_sensors)/common/files/cob3-1/"/>
 	<param name="camera_index" value="0"/>
 	<param name="tof_camera_type" value="CAM_SWISSRANGER"/>
+	<!-- The intrinsics of the color sensors are optimized to the following camera -->
+	<param name="tof_camera_intrinsic_type" value="CAM_AVTPIKE" />
+	<param name="tof_camera_intrinsic_id" value="0" />
   </node>
 
 </launch>
