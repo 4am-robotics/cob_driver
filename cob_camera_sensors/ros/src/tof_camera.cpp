@@ -327,7 +327,7 @@ public:
 
 		// There are several intrinsic matrices, optimized to different cameras
 		// Here, we specified the desired intrinsic matrix for each camera
-		if (node_handle_.getParam("all_cameras/tof_camera_intrinsic_type", tmp_string) == false)
+		if (node_handle_.getParam("tof_camera/tof_camera_intrinsic_type", tmp_string) == false)
 		{
 			ROS_ERROR("[tof_camera] Intrinsic camera type for tof camera not specified");
 			return false;
@@ -352,7 +352,7 @@ public:
 		}
 		if (node_handle_.getParam("tof_camera/tof_camera_intrinsic_id", tof_camera_intrinsic_id_) == false)
 		{
-			ROS_ERROR("[all_cameras] Intrinsic camera id for tof camera not specified");
+			ROS_ERROR("[tof_camera] Intrinsic camera id for tof camera not specified");
 			return false;
 		}	
 		
