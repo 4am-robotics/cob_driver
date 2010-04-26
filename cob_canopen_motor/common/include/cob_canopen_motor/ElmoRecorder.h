@@ -10,7 +10,7 @@
  * Project name: care-o-bot
  * ROS stack name: cob3_common
  * ROS package name: canopen_motor
- * Description: Contains functions to read out Elmo-Recorder and to process and give out accordant data.
+ * Description: This class provides functions to read out and log recorded data by the built in Elmo Recorder via CAN-protocol.
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
@@ -54,6 +54,7 @@
 #ifndef _ElmoRecorder_H
 #define _ElmoRecorder_H
 
+#include <string>
 #include <cob_canopen_motor/SDOSegmented.h>
 
 class CanDriveHarmonica;
@@ -75,6 +76,8 @@ class ElmoRecorder {
 		int configureElmoRecorder(int iRecordingGap);
 		
 		int readoutRecorder(int iObjSubIndex);
+		
+		int logToFile(std::string filename, std::vector<float> vtValues);
 		
 	private:
 		CanDriveHarmonica* pHarmonicaDrive;

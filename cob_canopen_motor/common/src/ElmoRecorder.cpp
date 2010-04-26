@@ -104,7 +104,6 @@ int ElmoRecorder::processData(segData& SDOData) {
 	bool bCollectFloats;
 	
 	std::vector<float> vfResData;
-	std::vector<int> viResData;
 	
 	//see SimplIQ CANopen DS 301 Implementation Guide, object 0x2030
 
@@ -136,23 +135,22 @@ int ElmoRecorder::processData(segData& SDOData) {
 		std::cout << "SDODataSize " << ((SDOData.data.size()-8)/iItemSize) << " differs from Num Data Items! " <<  iNumDataItems << std::endl;
 	
 	
-	if(bCollectFloats) {
-		vfResData.assign(iNumDataItems, 0.0);
-	} else {
-		viResData.assign(iNumDataItems, 0);
-	}
+	vfResData.assign(iNumDataItems, 0.0);
 	iItemCount = 0;
-		
+	
+	//extract values from data stream, consider Little Endian conversion for every single object!
 	for(int i=8;i<=SDOData.data.size() - (iItemSize-1); i=i+iItemSize) {
 		if(bCollectFloats) {
-			vfResData[iItemCount] = convertBinaryToFloat((SDOData.data[i] << 24) | (SDOData.data[i+1] << 16) | (SDOData.data[i+2] << 8) | (SDOData.data[i+3]));
+			vfResData[iItemCount] = convertBinaryToFloat( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
 			iItemCount ++;
 		} else {
-			if(iItemSize==2) viResData[iItemCount] = (SDOData.data[i] << 8) | SDOData.data[i+1]; //collect 2-byte integers (short int)
-			else viResData[iItemCount] = (SDOData.data[i] << 24) | (SDOData.data[i+1] << 16) | (SDOData.data[i+2] << 8) | (SDOData.data[i+3]); //collect 4-byte integers (long int)
+			if(iItemSize==2) vfResData[iItemCount] = (float)((SDOData.data[i] << 0) | (SDOData.data[i+1] << 8)); //collect 2-byte integers (short int)
+			else vfResData[iItemCount] = (float)((SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24)); //collect 4-byte integers (long int)
 			iItemCount ++;
 		}
 	}
+	
+	logToFile("ElmoRecorderTestLog.log", vfResData);
 
 	return 0;
 }
@@ -163,7 +161,7 @@ float ElmoRecorder::convertBinaryToFloat(unsigned int iBinaryRepresentation) {
 	unsigned int iExponent;
 	unsigned int iMantissa;
 	float iNumMantissa = 0;
-		
+
 	if((iBinaryRepresentation & (1 << 31)) == 0) //first bit is sign bit: 0 = +, 1 = -
 		iSign = 1;
 	else
@@ -184,3 +182,25 @@ float ElmoRecorder::convertBinaryToFloat(unsigned int iBinaryRepresentation) {
 }
 
 
+// Function for writing Logfile
+int ElmoRecorder::logToFile(std::string filename, std::vector<float> vtValues) {
+    //filename = sLogDirectory + m_sFilePrefix + filename;
+
+	FILE* pFile;
+	//open FileStream
+	pFile = fopen(filename.c_str(), "w");
+	
+	//Check if there was a problem
+	if( pFile == NULL ) 
+	{	
+		std::cout << "Error while writing file: " << filename << " Maybe the selected folder does'nt exist." << std::endl;
+	} 
+	else 
+	{
+		// write all data from vector to file
+		for (unsigned int i = 0; i < vtValues.size(); i++)
+			fprintf(pFile, "%e\n", vtValues[i]);
+	}
+	fclose(pFile);
+	return true;
+}
