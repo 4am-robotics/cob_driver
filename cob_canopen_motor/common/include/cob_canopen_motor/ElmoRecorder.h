@@ -65,7 +65,16 @@ class ElmoRecorder {
 
 		~ElmoRecorder();
 		
-		bool processData(segData& SDOData);
+		int processData(segData& SDOData);
+		
+		/** 
+		* Configures the Elmo Recorder (internal) to log internal data with high frequency
+		* (This can be used for identification of the drive chain)
+		* @param iRecordingGap iRecordingGap = N indicates that a new sample should be taken once per N time quanta (= 4 * 90 usec)
+		*/
+		int configureElmoRecorder(int iRecordingGap);
+		
+		int readoutRecorder(int iObjSubIndex);
 		
 	private:
 		CanDriveHarmonica* pHarmonicaDrive;

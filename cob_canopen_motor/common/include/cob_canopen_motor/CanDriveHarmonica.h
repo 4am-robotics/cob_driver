@@ -371,7 +371,7 @@ public:
 	/**
 	 *Provides several functions for recording purposes. By now, only implemented for the Elmo-recorder. cpc-pk
 	*/
-	bool setRecorder(int flag);
+	bool setRecorder(int flag, int param);
     
 protected:
 	// ------------------------- Parameters

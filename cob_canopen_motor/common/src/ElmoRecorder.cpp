@@ -64,7 +64,40 @@ ElmoRecorder::ElmoRecorder(CanDriveHarmonica * pParentHarmonicaDrive) {
 ElmoRecorder::~ElmoRecorder() {
 }
 
-bool ElmoRecorder::processData(segData& SDOData) {
+int ElmoRecorder::configureElmoRecorder(int iRecordingGap){ //iRecordingGap = N indicates that a new sample should be taken once per N time quanta
+
+	pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, -1);	// Stop Recorder if it's active
+	// Record Main speed (index 0, ID1) 
+	// Active Current (index 9, ID10)
+	// Main Position (index 1, ID2)
+	// Speed Command (index 15, ID16)
+	// RC = 2^(Signal1Index) + 2^(Signal2Index) + ..; e.g.: 2^0 + 2^1 + 2^9 + 2^15 = 33283;
+	pHarmonicaDrive->IntprtSetInt(8, 'R', 'C', 0, 33283);	
+	// Set Recording Length
+	// RL = (4096 / Number of Signals)
+	pHarmonicaDrive->IntprtSetInt(8, 'R', 'L', 0, 1024);
+	// Set Time Quantum, Default: RP=0 -> TS * 4; TS is 90us by default
+	pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 0, 0);
+	// Set Recording Gap
+	pHarmonicaDrive->IntprtSetInt(8, 'R', 'G', 0, iRecordingGap);
+	// ----> Total Recording Time = 90us * 4 * RG * RL
+	
+	// Arm Recorder, by Trigger Event of "BG"-Command (Begin Motion)
+	pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, 1);
+	
+	return 0;
+}
+
+
+int ElmoRecorder::readoutRecorder(int iObjSubIndex){ // iObjSubIndex: shift this bit, according to the specified recording sources in RC
+	//initialize Upload of Recorded Data (object 0x2030)
+	int iObjIndex = 0x2030;
+	pHarmonicaDrive->sendSDOUpload(iObjIndex, iObjSubIndex);
+	
+	return 0;
+}
+
+int ElmoRecorder::processData(segData& SDOData) {
 	int iItemSize = 0;
 	int iItemCount= 0;
 	unsigned int iNumDataItems = 0;
@@ -77,7 +110,7 @@ bool ElmoRecorder::processData(segData& SDOData) {
 
 	//Header Byte Sequence (Byte0 to Byte 7)
 	//--------------------------------------
-	//SDOData.data[0] //Variable type for user. Field has no practical significance.
+	//SDOData.data[0] //Variable type for user. Contains info, whether floats or integers are transmitted.
 	//SDOData.data[1]
 	if(((SDOData.data[0] << 8) | SDOData.data[1]) == 0) {
 		bCollectFloats = false;
@@ -99,8 +132,8 @@ bool ElmoRecorder::processData(segData& SDOData) {
 
 	std::cout << "Total Num of data items is " << iNumDataItems << std::endl;
 	
-	if(SDOData.data.size() != iNumDataItems) 
-		std::cout << "SDODataSize " << SDOData.data.size() << " differs from Num Data Items! " <<  iNumDataItems << std::endl;
+	if( ((SDOData.data.size()-8)/iItemSize) != iNumDataItems) 
+		std::cout << "SDODataSize " << ((SDOData.data.size()-8)/iItemSize) << " differs from Num Data Items! " <<  iNumDataItems << std::endl;
 	
 	
 	if(bCollectFloats) {
@@ -115,32 +148,33 @@ bool ElmoRecorder::processData(segData& SDOData) {
 			vfResData[iItemCount] = convertBinaryToFloat((SDOData.data[i] << 24) | (SDOData.data[i+1] << 16) | (SDOData.data[i+2] << 8) | (SDOData.data[i+3]));
 			iItemCount ++;
 		} else {
-			if(iItemSize==2) viResData[iItemCount] = (SDOData.data[i] << 8) | SDOData.data[i+1];
-			else viResData[iItemCount] = (SDOData.data[i] << 24) | (SDOData.data[i+1] << 16) | (SDOData.data[i+2] << 8) | (SDOData.data[i+3]);
+			if(iItemSize==2) viResData[iItemCount] = (SDOData.data[i] << 8) | SDOData.data[i+1]; //collect 2-byte integers (short int)
+			else viResData[iItemCount] = (SDOData.data[i] << 24) | (SDOData.data[i+1] << 16) | (SDOData.data[i+2] << 8) | (SDOData.data[i+3]); //collect 4-byte integers (long int)
 			iItemCount ++;
 		}
 	}
-	
-	return true;
+
+	return 0;
 }
 
 float ElmoRecorder::convertBinaryToFloat(unsigned int iBinaryRepresentation) {
+	//Converting binary-numbers to 32bit float values according to IEEE 754 see http://de.wikipedia.org/wiki/IEEE_754
 	int iSign;
 	unsigned int iExponent;
 	unsigned int iMantissa;
 	float iNumMantissa = 0;
 		
-	if((iBinaryRepresentation & (1 << 31)) == 0) 
+	if((iBinaryRepresentation & (1 << 31)) == 0) //first bit is sign bit: 0 = +, 1 = -
 		iSign = 1;
 	else
 		iSign = -1;
 
-	iExponent = ((iBinaryRepresentation >> 23) & 0xFF) - 127; //take away Bias for positive and negative exponents
+	iExponent = ((iBinaryRepresentation >> 23) & 0xFF) - 127; //take away Bias(127) for positive and negative exponents
 	
-	iMantissa = (iBinaryRepresentation & 0x7FFFFF);
+	iMantissa = (iBinaryRepresentation & 0x7FFFFF); //only keep mantissa part of binary number
 	iNumMantissa = 1;
 	
-	for(int i=1; i<=23; i++) {
+	for(int i=1; i<=23; i++) { //calculate decimal places (convert binary mantissa to decimal number
 		if((iMantissa & (1 << (23-i))) > 0) {
 			iNumMantissa = iNumMantissa + 1 * pow(2,-1*i);
 		}

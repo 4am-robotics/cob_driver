@@ -80,7 +80,7 @@ class segData {
                 bytesReceived = 0;
                 data.clear();
                 finishedTransmission = false;
-                objectID = 0x00;
+                objectID = 0x0000;
                 objectSubID = 0x00;
             }
         }

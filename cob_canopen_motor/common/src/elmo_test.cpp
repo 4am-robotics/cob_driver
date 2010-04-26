@@ -35,7 +35,7 @@ int main(int argc, char** argv)
   ros::NodeHandle n;
   
 
-	ROS_ERROR_STREAM("Conversion RESULT: " << convertBinaryToFloat(0x41933333));
+	ROS_ERROR_STREAM("Conversion RESULT: " << convertBinaryToFloat(0x42F64034));
   
   while (ros::ok())
   {

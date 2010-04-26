@@ -267,6 +267,9 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
         } else if( (msg.getAt(0) & 0x02) == 0) { //Received Initiate SDO Upload, that is not expedited -> start segmented upload (scs = 2 AND expedited flag = 0)
 			//receivedSDOSegmentedInitiation(msg);
 			std::cout << "SDO Initiate Segmented Upload, Object ID: " << (msg.getAt(1) | (msg.getAt(2) << 8) ) << std::endl;
+        } else if( (msg.getAt(0) >> 5) == 4) { // Received an Abort SDO Transfer message, cs = 4
+        	unsigned int iErrorNum = (msg.getAt(4) | msg.getAt(5) << 8 | msg.getAt(6) << 16 | msg.getAt(7) << 24);
+        	std::cout << "SDO Abort Transfer received with error code: " << iErrorNum;
         }
 
 		bRet = true;
@@ -1284,14 +1287,23 @@ int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
 	};
 
 	numEmptyBytes = (msg.getAt(0) >> 1) & 0x07; //Byte 1: SSS T NNN C | SSS=Cmd-Specifier, T=ToggleBit, NNN=num of empty bytes, C=Finished
-	//std::cout << std::endl << "NUM unused bytes :" << numEmptyBytes << std::endl;
+	std::cout << "NUM empty bytes in SDO :" << numEmptyBytes << std::endl;
 	
-	for(int i=7-numEmptyBytes;i>=1;i--) { //because of "little endian", start to read bytes from the "end" to the beginning
+	//-------
+	/*for(int i=7-numEmptyBytes;i>=1;i--) { //because of "little endian", start to read bytes from the "end" to the beginning
 		seg_Data.data.push_back(msg.getAt(i));
 		seg_Data.bytesReceived ++;
         
 		//std::cout << msg.getAt(i);
-	}
+	}*/ 
+	//------- ..because we want to do Little Endian later for every single number..
+	
+	for(int i=1; i<=7-numEmptyBytes;i++) {
+		seg_Data.data.push_back(msg.getAt(i));
+		seg_Data.bytesReceived ++;
+        
+		//std::cout << msg.getAt(i);
+	} 	
     
 	std::cout << "ONE SEGMENT END" << std::endl;
 
@@ -1342,26 +1354,18 @@ void CanDriveHarmonica::finishedSDOSegmentedTransfer() {
 //Function, that proceeds (Elmo-) recorder readout
 
 //-----------------------------------------------
-bool CanDriveHarmonica::setRecorder(int flag) {
-	//returns true if collecting has finished
+bool CanDriveHarmonica::setRecorder(int flag, int param) {
 
-	int iObjIndex, iObjSubIndex;
-
-	if(flag == 0) { //flag = 0: clear recordings and query new upload
-		//initialize Upload of Recorded Data (object 0x2030)
-		seg_Data.locked = false;
-        
-		iObjIndex = 0x2030;
-		iObjSubIndex = 1 << 0; //shift this bit, according to the specified recording sources in RC
-		sendSDOUpload(iObjIndex, iObjSubIndex);
-
-
-	} else if(flag == 1) { //flag = 1: give back data or continue collecting
-		if(seg_Data.finishedTransmission == true) {
-			//PRINT
-		}
+	switch(flag) {
+		case 0: //Configure Elmo Recorder for new Record, param = iRecordingGap, which specifies every which time quantum (4*90usec) a new data point is recorded
+			ElmoRec->configureElmoRecorder(param);
+			break;
+		
+		case 1: //Clear recordings and query new upload from previous recorded data, data is being proceeded after complete upload, param = recorded ID
+			seg_Data.resetTransferData(); //!overwrites previous collected data (even from other processes)
+			ElmoRec->readoutRecorder(1 << param); //shift this bit, according to the specified recording sources in RC
+			break;
 	}
 
 	return false;
 }
-
