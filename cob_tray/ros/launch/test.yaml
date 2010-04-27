@@ -1,0 +1,21 @@
+JointNames: [joint_platform_tray]
+Trajectories:
+  [
+    [ #traj0
+      [0.0] #point0 [pos]
+    ],
+    [ #traj1
+      [-3.1415926] #point0 [pos]
+    ],
+    [ #traj2
+      [0.0], #point0 [pos]
+      [-3.1415926] #point1 [pos]
+    ],
+    [ #traj3
+      [0.0], #point0 [pos]
+      [-0.2], #point1 [pos]
+      [-0.1], #point2 [pos]
+      [-0.3], #point3 [pos]
+      [0.0] #point4 [pos]
+    ]
+  ]

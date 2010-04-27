@@ -8,13 +8,13 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
- * ROS package name: powercube_chain
+ * ROS stack name: cob_driver
+ * ROS package name: cob_powercube_chain
  * Description: An parameter class to the Powercube-hardware implementing armInterface.
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
- * Author: Ulrich Reiser, email:Felix.Geibel@gmx.de
+ * Author: Ulrich Reiser, email:Ulrich.Reiser@ipa.fhg.de
  * Supervised by: Alexander Bubeck, email:alexander.bubeck@ipa.fhg.de
  *
  * Date of creation: Apr 2007
