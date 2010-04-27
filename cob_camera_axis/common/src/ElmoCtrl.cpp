@@ -196,7 +196,8 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home)
 	}
 	if (success)
 	{
-		m_CanCtrl = new CANPeakSysUSB(CanIniFile.c_str());
+		m_CanCtrl = new CanESD(CanIniFile.c_str(), false);
+		//m_CanCtrl = new CANPeakSysUSB(CanIniFile.c_str());
 		if (m_CanCtrl == NULL)
 		{
 			printf("%s,%d:Error: Could not open Can Device!\n",__FILE__,__LINE__);
