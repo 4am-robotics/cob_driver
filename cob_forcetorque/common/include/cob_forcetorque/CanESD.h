@@ -27,7 +27,7 @@
 #include <cstdio>
 #include <errno.h>
 #include <cob_forcetorque/CanItf.h>
-#include <ntcan.h>
+#include <libntcan/ntcan.h>
 //#include <Neobotix/Utilities/IniFile.h>
 #include <cob_forcetorque/Mutex.h>
 
@@ -41,7 +41,7 @@ class CanESD : public CanItf
 private:
 	BYTE m_DeviceNr;
 	BYTE m_BaudRate;
-	HANDLE m_Handle;
+	int m_Handle;
 	int m_LastID;
 	bool m_bObjectMode;
 	bool m_bIsTXError;
@@ -77,7 +77,7 @@ protected:
 		return (~id) & 0x7F8;
 	}
 	
-	int canIdAddGroup(HANDLE handle, int id);
+	int canIdAddGroup(int handle, int id);
 
 	std::string GetErrorStr(int ntstatus) const;
 	int readEvent();
