@@ -1,3 +1,4 @@
+JointNames: [joint_platform_neckZ, joint_neckZ_neck, joint_neck_headZ, joint_headZ_head]
 Trajectories:
   [
     [

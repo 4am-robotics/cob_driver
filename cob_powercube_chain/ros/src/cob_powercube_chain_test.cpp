@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
- * ROS package name: powercube_chain
+ * ROS stack name: cob_driver
+ * ROS package name: cob_powercube_chain
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
@@ -227,6 +227,25 @@ int main(int argc, char** argv)
 				
 				cob_actions::JointTrajectoryGoal goal;
 				
+				// get JointNames from parameter server
+				XmlRpc::XmlRpcValue JointNames_param;
+				std::vector<std::string> JointNames;
+				ROS_INFO("getting JointNames from parameter server");
+				if (n.hasParam("JointNames"))
+				{
+					n.getParam("JointNames", JointNames_param);
+				}
+				else
+				{
+					ROS_ERROR("Parameter JointNames not set");
+				}
+				JointNames.resize(JointNames_param.size());
+				for (int i = 0; i<JointNames_param.size(); i++ )
+				{
+					JointNames[i] = (std::string)JointNames_param[i];
+				}
+				std::cout << "JointNames = " << JointNames_param << std::endl;
+				
 				XmlRpc::XmlRpcValue traj_param;
 				trajectory_msgs::JointTrajectory traj;
 				
@@ -256,6 +275,8 @@ int main(int argc, char** argv)
                 }
 				
 				ROS_DEBUG("trajectory %d of %d",traj_nr,traj_param.size());
+				traj.header.stamp = ros::Time::now();
+				traj.joint_names = JointNames;
 				traj.points.resize(traj_param[traj_nr].size());
 				for (int j = 0; j<traj_param[traj_nr].size(); j++ ) // j-th point
 				{
