@@ -57,6 +57,7 @@
 
 // standard includes
 //--
+#include <unistd.h>
 
 // ROS includes
 #include <ros/ros.h>
@@ -161,7 +162,7 @@ class SdhNode
 			topicPub_TactileSensor_ = nh_.advertise<cob_msgs::TactileSensor>("tactile_data", 1);
 
 			// pointer to sdh
-			sdh_ = new SDH::cSDH(false, false, 1); //(_use_radians=false, bool _use_fahrenheit=false, int _debug_level=0)
+			sdh_ = new SDH::cSDH(false, false, 0); //(_use_radians=false, bool _use_fahrenheit=false, int _debug_level=0)
 
 			// implementation of service servers
 			srvServer_Init_ = nh_.advertiseService("Init", &SdhNode::srvCallback_Init, this);
@@ -272,7 +273,7 @@ class SdhNode
 					as_.setAborted();
 					return;
 				}
-				for ( int i = 0; i < state_.size(); i++ )
+				for ( size_t i = 0; i < state_.size(); i++ )
 		   		{
 		   			ROS_DEBUG("state[%d] = %d",i,state_[i]);
 		   			if (state_[i] == 0)
@@ -338,7 +339,9 @@ class SdhNode
 				//Init tactile data
 	            try
 				{
-			        dsa_ = new SDH::cDSA(1, dsadevicenum_, dsadevicestring_.c_str());
+			        dsa_ = new SDH::cDSA(0, dsadevicenum_, dsadevicestring_.c_str());
+					//dsa_->SetFramerate( 0, true, false );
+					dsa_->SetFramerate( 1, true );
 		            ROS_INFO("Initialized RS232 for DSA Tactile Sensors");
 					// ROS_INFO("Set sensitivity to 1.0");
 					// for(int i=0; i<6; i++)
@@ -495,38 +498,47 @@ class SdhNode
 		}
 		
 
+		void readTactileData()
+		{
+			ROS_DEBUG("readTactileData");
+			if(isDSAInitialized_)
+			{
+				try
+				{
+					//dsa_->SetFramerate( 0, true, true );
+					dsa_->UpdateFrame();
+				}
+				catch (SDH::cSDHLibraryException* e)
+				{
+					ROS_ERROR("An exception was caught: %s", e->what());
+					delete e;
+				}
+			}
+		}
+
+
 		void updateTactileData()
 		{
 			ROS_DEBUG("updateTactileData");
 			cob_msgs::TactileSensor msg;
 			if(isDSAInitialized_)
 			{
-				try
+				msg.header.stamp = ros::Time::now();
+				//std::cerr << *dsa_;
+				int m, x, y;
+				msg.tactile_matrix.resize(dsa_->GetSensorInfo().nb_matrices);
+				for ( m = 0; m < dsa_->GetSensorInfo().nb_matrices; m++ )
 				{
-					dsa_->SetFramerate( 0, true );
-					dsa_->UpdateFrame();
-					msg.header.stamp = ros::Time::now();
-					//std::cerr << *dsa_;
-					int m, x, y;
-					msg.tactile_matrix.resize(dsa_->GetSensorInfo().nb_matrices);
-					for ( m = 0; m < dsa_->GetSensorInfo().nb_matrices; m++ )
+					cob_msgs::TactileMatrix &tm = msg.tactile_matrix[m];
+					tm.matrix_id = m;
+					tm.cells_x = dsa_->GetMatrixInfo( m ).cells_x;
+					tm.cells_y = dsa_->GetMatrixInfo( m ).cells_y;
+					tm.tactile_array.resize(tm.cells_x * tm.cells_y);
+					for ( y = 0; y < tm.cells_y; y++ )
 					{
-						cob_msgs::TactileMatrix &tm = msg.tactile_matrix[m];
-						tm.matrix_id = m;
-						tm.cells_x = dsa_->GetMatrixInfo( m ).cells_x;
-						tm.cells_y = dsa_->GetMatrixInfo( m ).cells_y;
-						tm.tactile_array.resize(tm.cells_x * tm.cells_y);
-						for ( y = 0; y < tm.cells_y; y++ )
-						{
-							for ( x = 0; x < tm.cells_x; x++ )
-								tm.tactile_array[tm.cells_x*y + x] = dsa_->GetTexel( m, x, y );
-						}
+						for ( x = 0; x < tm.cells_x; x++ )
+							tm.tactile_array[tm.cells_x*y + x] = dsa_->GetTexel( m, x, y );
 					}
-				}
-				catch (SDH::cSDHLibraryException* e)
-				{
-					ROS_ERROR("An exception was caught: %s", e->what());
-					delete e;
 				}
 				//publish matrix
 				topicPub_TactileSensor_.publish(msg);
@@ -540,6 +552,7 @@ class SdhNode
 //#### main programm ####
 int main(int argc, char** argv)
 {
+	int n=0;
 	// initialize ROS, spezify name of node
 	ros::init(argc, argv, "cob_sdh");
 
@@ -552,6 +565,14 @@ int main(int argc, char** argv)
 	ros::Rate loop_rate(5); // Hz
 	while(sdh_node.nh_.ok())
 	{
+		for(int i=0; i<7; i++)
+		{
+			sdh_node.readTactileData();
+			/*
+			if(++n % 30 == 0)
+				std::cout << n << std::endl;
+				*/
+		}
 		// publish JointState
 		sdh_node.updateSdh();
 		// publish TactileData
@@ -559,7 +580,8 @@ int main(int argc, char** argv)
 		
 		// sleep and waiting for messages, callbacks    
 		ros::spinOnce();
-		loop_rate.sleep();
+		usleep(200000);
+		//loop_rate.sleep();
 	}
 
 	return 0;
