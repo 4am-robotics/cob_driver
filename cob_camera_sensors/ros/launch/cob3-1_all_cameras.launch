@@ -3,13 +3,17 @@
 
   <!-- start all cameras -->
   <node pkg="cob_camera_sensors" type="all_cameras" name="all_cameras" cwd="node" respawn="false" output="screen">
-	<param name="configuration_files" value="../../common/files/cob3-rack/"/>
+	<!-- Path to IPA configuration file -->
+	<param name="configuration_files" value="../../common/files/cob3-1/"/>
+	
 	<!-- Specifies the used color camera type -->
 	<!-- CAM_AVTPIKE or CAM_PROSILICA -->
 	<param name="color_camera_type" value="CAM_AVTPIKE" />
+	
 	<!-- Specifies the used tof camera type -->
  	<!-- CAM_SWISSRANGER -->
 	<param name="tof_camera_type" value="CAM_SWISSRANGER" />	
+	
 	<!-- The intrinsics of the tof sensor are optimized to the following camera -->
 	<param name="tof_camera_intrinsic_type" value="CAM_AVTPIKE" />
 	<param name="tof_camera_intrinsic_id" value="0" />

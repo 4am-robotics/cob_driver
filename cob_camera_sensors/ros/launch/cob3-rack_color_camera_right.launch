@@ -8,6 +8,9 @@
 	<!-- Specifies the used camera type -->
 	<!-- CAM_AVTPIKE or CAM_PROSILICA -->
 	<param name="color_camera_type" value="CAM_AVTPIKE" />
+	<!-- The intrinsics of the color sensors are optimized to the following camera -->
+	<param name="color_camera_intrinsic_type" value="CAM_AVTPIKE" />
+	<param name="color_camera_intrinsic_id" value="1" />
   </node>
 
   <!-- start poller for right camera -->
