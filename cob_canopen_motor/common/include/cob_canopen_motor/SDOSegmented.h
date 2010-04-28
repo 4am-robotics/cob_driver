@@ -67,7 +67,7 @@ class segData {
         
         segData() {
             bytesReceived = 0;
-            finishedTransmission = false;
+            finishedTransmission = true;
             locked = false;
             objectID = 0x00;
             objectSubID = 0x00;
@@ -79,7 +79,7 @@ class segData {
             if (locked == false) {
                 bytesReceived = 0;
                 data.clear();
-                finishedTransmission = false;
+                finishedTransmission = true;
                 objectID = 0x0000;
                 objectSubID = 0x00;
             }

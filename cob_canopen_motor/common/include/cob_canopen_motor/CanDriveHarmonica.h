@@ -303,36 +303,6 @@ public:
 	 * Sends an integer value to the Harmonica using the built in interpreter.
 	 */
 	void IntprtSetInt(int iDataLen, char cCmdChar1, char cCmdChar2, int iIndex, int iData);
-
-	/**
-	 * Sends a float value to the Harmonica using the built in interpreter.
-	 */
-	void IntprtSetFloat(int iDataLen, char cCmdChar1, char cCmdChar2, int iIndex, float fData);
-
-	/**
-	 * Uploads a service data object. (in expedited transfer mode, means in only one message)
-	 */
-	void sendSDOUpload(int iObjIndex, int iObjSub);
-	
-    /**
-	 * This protocol cancels an active segmented transmission due to the given Error Code
-	 */
-    void sendSDOAbort(int iObjIndex, int iObjSubIndex, int errCode);
-
-	/**
-	 * Downloads a service data object. (in expedited transfer mode, means in only one message)
-	 */
-	void sendSDODownload(int iObjIndex, int iObjSub, int iData);
-	
-	/**
-	 * Evaluats a service data object.
-	 */
-	void evalSDO(CanMsg& CMsg, int* pIndex, int* pSubindex);
-	
-	/**
-	 * Internal use.
-	 */
-	int getSDODataInt32(CanMsg& CMsg);
 	
 
 	bool setEMStop() {
@@ -366,12 +336,48 @@ public:
 	 * To update this value call requestMotorCurrent at first
 	 */
 	void getMotorTorque(double* dTorqueNm);
-    
 
 	/**
-	 *Provides several functions for recording purposes. By now, only implemented for the Elmo-recorder. cpc-pk
+	 * Provides several functions for recording purposes. By now, only implemented for the Elmo-recorder. cpc-pk
+	 * @return Return Values are: 0 Success, 1 general Error, 2 data collection still in progress, 3 proceeding of data still in progress
+	 *
 	*/
-	bool setRecorder(int flag, int param);
+	int setRecorder(int iFlag, int iParam = 0, std::string sParam = "");
+	
+	
+	//--------------------------
+	//CanDriveHarmonica specific functions (not from CanDriveItf)
+	//--------------------------
+	/**
+	 * Sends a float value to the Harmonica using the built in interpreter.
+	 */
+	void IntprtSetFloat(int iDataLen, char cCmdChar1, char cCmdChar2, int iIndex, float fData);
+
+	/**
+	 * Uploads a service data object. (in expedited transfer mode, means in only one message)
+	 */
+	void sendSDOUpload(int iObjIndex, int iObjSub);
+	
+    /**
+	 * This protocol cancels an active segmented transmission due to the given Error Code
+	 */
+    void sendSDOAbort(int iObjIndex, int iObjSubIndex, unsigned int iErrorCode);
+
+	/**
+	 * Downloads a service data object. (in expedited transfer mode, means in only one message)
+	 */
+	void sendSDODownload(int iObjIndex, int iObjSub, int iData);
+	
+	/**
+	 * Evaluats a service data object.
+	 */
+	void evalSDO(CanMsg& CMsg, int* pIndex, int* pSubindex);
+	
+	/**
+	 * Internal use.
+	 */
+	int getSDODataInt32(CanMsg& CMsg);
+	
     
 protected:
 	// ------------------------- Parameters
@@ -429,8 +435,6 @@ protected:
     
     bool m_SDOSegmentToggleBit;
 
-    int activeSDOSegmentUpload;
-
 
 	// ------------------------- Member functions
 	double estimVel(double dPos);
@@ -454,6 +458,8 @@ protected:
     int receivedSDODataSegment(CanMsg& msg);
 
     int receivedSDOSegmentedInitiation(CanMsg& msg);
+    
+    void receivedSDOTransferAbort(unsigned int iErrorCode);
     
     void finishedSDOSegmentedTransfer();
 

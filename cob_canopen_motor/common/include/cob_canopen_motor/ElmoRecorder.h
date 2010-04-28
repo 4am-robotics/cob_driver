@@ -77,9 +77,15 @@ class ElmoRecorder {
 		
 		int readoutRecorder(int iObjSubIndex);
 		
-		int logToFile(std::string filename, std::vector<float> vtValues);
+		int logToFile(std::string filename, std::vector<float> vtValues[]);
+		
+		//Attributes
+		std::string sLogFilename;
 		
 	private:
+		unsigned int m_iCurrentObject;
+		float m_fRecordingStepSec;
+	
 		CanDriveHarmonica* pHarmonicaDrive;
 		
 		float convertBinaryToFloat(unsigned int binaryRepresentation);
