@@ -1,7 +1,7 @@
 CanModule: ESD
 CanDevice: 0
 CanBaudrate: 500
-ModIds: [10]
-JointNames: [joint_platform_tray]
+ModIds: [19]
+JointNames: [joint_camera_axis]
 MaxAcc: [0.8]
 OperationMode: position

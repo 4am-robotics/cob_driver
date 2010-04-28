@@ -1,0 +1,28 @@
+<package>
+  <description brief="cob_undercarriage_ctrl">
+
+     cob_undercarriage_ctrl implements a controller for the omnidirectional base of Care-O-bot 3 on joint level. For a given Pltf-Twist the according wheel steering angles and linear wheel velocities are calculated based on the principle of rigid body motion. Each joint is than controlled individually to achieve the computed position and velocity
+
+  </description>
+  <author>Christian Connette, email:christian.connette@ipa.fhg.de</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://www.care-o-bot.org</url>
+
+  <!-- Dependencies from other packages or external libs-->
+  <depend package="roscpp"/>
+  <depend package="nav_msgs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="diagnostic_msgs"/>
+  <depend package="tf"/>
+  <depend package="cob_srvs"/>
+  <depend package="cob_msgs"/>
+  <depend package="cob_utilities"/>
+
+  <!-- As we deviate from the standard ROS Repository-Structure we have to tell ROS where to find header and lib -->
+  <export>
+    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_undercarriage_ctrl"/>
+  </export>
+
+</package>

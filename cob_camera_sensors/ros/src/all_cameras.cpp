@@ -71,6 +71,7 @@
 #include <cob_camera_sensors/AbstractColorCamera.h>
 #include <cob_camera_sensors/AbstractRangeImagingSensor.h>
 #include <cob_vision_utils/GlobalDefines.h>
+#include <cob_vision_utils/CameraSensorToolbox.h>
 
 using namespace ipa_CameraSensors;
 
@@ -121,15 +122,16 @@ public:
 
 	~CobAllCamerasNode()
 	{
+		ROS_INFO("[all_cameras] Shutting down cameras");
 		if (left_color_camera_)
 		{
-			ROS_INFO("[all_cameras] Shutting down left color camera (0)");
+			ROS_INFO("[all_cameras] Shutting down left color camera (1)");
 			left_color_camera_->Close();
 			ipa_CameraSensors::ReleaseColorCamera(left_color_camera_);
 		}
 		if (right_color_camera_)
 		{
-			ROS_INFO("[all_cameras] Shutting down right color camera (1)");
+			ROS_INFO("[all_cameras] Shutting down right color camera (0)");
 			right_color_camera_->Close();
 			ipa_CameraSensors::ReleaseColorCamera(right_color_camera_);
 		}
@@ -231,15 +233,32 @@ public:
 			tof_camera_ = 0;
 		}
 
+		/// Read camera properties of range tof sensor
+		ipa_CameraSensors::t_cameraProperty cameraProperty;
+		cameraProperty.propertyID = ipa_CameraSensors::PROP_CAMERA_RESOLUTION;
+		tof_camera_->GetProperty(&cameraProperty);
+		int range_sensor_width = cameraProperty.cameraResolution.xResolution;
+		int range_sensor_height = cameraProperty.cameraResolution.yResolution;
+		CvSize rangeImageSize = cvSize(range_sensor_width, range_sensor_height);
+
+		/// Setup camera toolbox
+		ipa_CameraSensors::CameraSensorToolbox* tof_sensor_toolbox = ipa_CameraSensors::CreateCameraSensorToolbox();
+		tof_sensor_toolbox->Init(directory, tof_camera_->GetCameraType(), 0, rangeImageSize);
+		tof_camera_->SetIntrinsics(tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_->GetCameraType(), 0),
+			tof_sensor_toolbox->GetDistortionMapX(tof_camera_->GetCameraType(), 0),
+			tof_sensor_toolbox->GetDistortionMapY(tof_camera_->GetCameraType(), 0));
+
 		/// Topics and Services to publish
 		if (left_color_camera_) 
 		{
-			left_color_image_publisher_ = image_transport_.advertiseCamera("pike_145C/left/image_raw", 1);
+			// Adapt name according to camera type
+			left_color_image_publisher_ = image_transport_.advertiseCamera("pike_145C/left/image_color", 1);
 			left_color_camera_info_service_ = node_handle_.advertiseService("pike_145C/left/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
 		}
 		if (right_color_camera_)
 		{
-			right_color_image_publisher_ = image_transport_.advertiseCamera("pike_145C/right/image_raw", 1);
+			// Adapt name according to camera type
+			right_color_image_publisher_ = image_transport_.advertiseCamera("pike_145C/right/image_color", 1);
 			right_color_camera_info_service_ = node_handle_.advertiseService("pike_145C/right/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
 		}
 		if (tof_camera_)
@@ -248,6 +267,9 @@ public:
 			xyz_tof_image_publisher_ = image_transport_.advertiseCamera("sr4000/image_xyz", 1);
 			tof_camera_info_service_ = node_handle_.advertiseService("sr4000/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
 		}
+
+		/// Release memory
+		if (tof_sensor_toolbox) ipa_CameraSensors::ReleaseCameraSensorToolbox(tof_sensor_toolbox);
 	
 		return true;
 	}
@@ -287,43 +309,6 @@ public:
 	
 			ros::Time now = ros::Time::now();
 	
-			// Acquire left color image
-			if (left_color_camera_)
-			{
-				//ROS_INFO("[all_cameras] LEFT");
-		   		/// Release previously acquired IplImage 
-				if (left_color_image_8U3_) 
-				{
-					cvReleaseImage(&left_color_image_8U3_);
-					left_color_image_8U3_ = 0;
-				}
-		
-				/// Acquire new image
-				if (left_color_camera_->GetColorImage2(&left_color_image_8U3_, false) & ipa_Utils::RET_FAILED)
-				{
-					ROS_ERROR("[all_cameras] Left color image acquisition failed");
-					break;
-				}
-
-				try
-		  		{
-					left_color_image_msg = *(sensor_msgs::CvBridge::cvToImgMsg(left_color_image_8U3_, "bgr8"));
-				}
-				catch (sensor_msgs::CvBridgeException error)
-				{
-					ROS_ERROR("[all_cameras] Could not convert left IplImage to ROS message");
-					break;
-				}
-				left_color_image_msg.header.stamp = now;    
-		
-				left_color_image_info = left_color_camera_info_message_;
-				left_color_image_info.width = left_color_image_8U3_->width;
-				left_color_image_info.height = left_color_image_8U3_->height;
-				left_color_image_info.header.stamp = now;
-	
-				left_color_image_publisher_.publish(left_color_image_msg, left_color_image_info);
-			}
-		
 			// Acquire right color image
 			if (right_color_camera_)
 			{
@@ -361,6 +346,43 @@ public:
 				right_color_image_publisher_.publish(right_color_image_msg, right_color_image_info);
 			}
 		
+			// Acquire left color image
+			if (left_color_camera_)
+			{
+				//ROS_INFO("[all_cameras] LEFT");
+		   		/// Release previously acquired IplImage 
+				if (left_color_image_8U3_) 
+				{
+					cvReleaseImage(&left_color_image_8U3_);
+					left_color_image_8U3_ = 0;
+				}
+		
+				/// Acquire new image
+				if (left_color_camera_->GetColorImage2(&left_color_image_8U3_, false) & ipa_Utils::RET_FAILED)
+				{
+					ROS_ERROR("[all_cameras] Left color image acquisition failed");
+					break;
+				}
+
+				try
+		  		{
+					left_color_image_msg = *(sensor_msgs::CvBridge::cvToImgMsg(left_color_image_8U3_, "bgr8"));
+				}
+				catch (sensor_msgs::CvBridgeException error)
+				{
+					ROS_ERROR("[all_cameras] Could not convert left IplImage to ROS message");
+					break;
+				}
+				left_color_image_msg.header.stamp = now;    
+		
+				left_color_image_info = left_color_camera_info_message_;
+				left_color_image_info.width = left_color_image_8U3_->width;
+				left_color_image_info.height = left_color_image_8U3_->height;
+				left_color_image_info.header.stamp = now;
+	
+				left_color_image_publisher_.publish(left_color_image_msg, left_color_image_info);
+			}
+	
 			// Acquire image from tof camera	
 			if (tof_camera_)
 			{

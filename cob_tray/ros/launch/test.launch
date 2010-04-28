@@ -2,7 +2,7 @@
 <launch>
 
   <!-- send parameters to parameter server -->
-  <rosparam command="load" ns="tray" file="$(find cob_tray)/ros/launch/cob3-1_test.yaml"/>
+  <rosparam command="load" ns="tray" file="$(find cob_tray)/ros/launch/test.yaml"/>
 
   <!-- start powercube_chain_test -->
   <node pkg="cob_powercube_chain" type="cob_powercube_chain_test" ns="tray" name="powercube_chain_test" cwd="node" respawn="false" output="screen" />
