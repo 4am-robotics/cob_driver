@@ -239,7 +239,7 @@ public:
     /**
      *Receives recorded data from Elmos via CAN and saves them into LOG-files
      */
-    bool printElmoRecordings(std::string LogDirectory);
+    bool printElmoRecordings(std::string Filename);
 
 
 	//--------------------------------- Commands for other nodes

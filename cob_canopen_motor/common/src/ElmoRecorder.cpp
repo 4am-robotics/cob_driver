@@ -190,7 +190,7 @@ float ElmoRecorder::convertBinaryToFloat(unsigned int iBinaryRepresentation) {
 
 // Function for writing Logfile
 int ElmoRecorder::logToFile(std::string filename, std::vector<float> vtValues[]) {
-    filename = filename + (char)m_iCurrentObject;
+    filename = filename + "_" + (char)m_iCurrentObject + ".log";
 
 	FILE* pFile;
 	//open FileStream

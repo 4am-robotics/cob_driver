@@ -339,10 +339,11 @@ public:
 
 	/**
 	 * Provides several functions for recording purposes. By now, only implemented for the Elmo-recorder. cpc-pk
+	 * @param Flag 0: Configure with Param = iRecordingGap, 1: Query Upload of recorded element iParam and print to sParam=Filename 2: Request Status, 99: Abort and clear recording process
 	 * @return Return Values are: 0 Success, 1 general Error, 2 data collection still in progress, 3 proceeding of data still in progress
 	 *
 	*/
-	int setRecorder(int iFlag, int iParam = 0, std::string sParam = "");
+	int setRecorder(int iFlag, int iParam = 0, std::string sParam = "/home/MyLog");
 	
 	
 	//--------------------------

@@ -257,7 +257,7 @@ public:
     /**
      *Provides several functions for recording purposes. By now, only implemented for the Elmo-recorder. cpc-pk
      */
-    virtual	int setRecorder(int iFlag, int iParam = 0, std::string sParam = "") = 0;
+    virtual	int setRecorder(int iFlag, int iParam = 0, std::string sParam = "/home/MyLog") = 0;
 
 	/**
 	 * Sends Requests for "active current" to motor via CAN
