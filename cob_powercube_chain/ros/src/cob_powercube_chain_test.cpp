@@ -266,6 +266,9 @@ int main(int argc, char** argv)
 						ROS_DEBUG("      pos value %d of %d = %f",k,traj_param[traj_nr][j].size(),(double)traj_param[traj_nr][j][k]);
 						traj.points[j].positions[k] = (double)traj_param[traj_nr][j][k];
 					}
+					// specify time to reach point (currently only used for simulation
+					ros::Duration duration(3); // reach points in steps of 3 seconds
+					traj.points[j].time_from_start = duration*(j+1);
 				}
 				
 				goal.trajectory = traj;
