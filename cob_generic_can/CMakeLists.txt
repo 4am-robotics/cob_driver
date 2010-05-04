@@ -35,7 +35,9 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 # add project libs
 rosbuild_add_library(${PROJECT_NAME}_peaksysusb common/src/CanPeakSysUSB.cpp)
 rosbuild_add_library(${PROJECT_NAME}_peaksys common/src/CanPeakSys.cpp)
+rosbuild_add_library(${PROJECT_NAME}_esd common/src/CanESD.cpp)
 
 # link libraries
 target_link_libraries(${PROJECT_NAME}_peaksysusb pcan cob_utilities)
 target_link_libraries(${PROJECT_NAME}_peaksys pcan cob_utilities)
+target_link_libraries(${PROJECT_NAME}_esd ntcan cob_utilities)
