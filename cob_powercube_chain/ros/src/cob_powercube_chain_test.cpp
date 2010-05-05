@@ -65,7 +65,7 @@
 // ROS message includes
 //#include <cob_msgs/JointCommand.h>
 #include <trajectory_msgs/JointTrajectory.h>
-#include <cob_actions/JointTrajectoryAction.h>
+#include <pr2_controllers_msgs/JointTrajectoryAction.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -100,7 +100,7 @@ int main(int argc, char** argv)
 
     // topics to publish
     //ros::Publisher topicPub_JointCommand = n.advertise<trajectory_msgs::JointTrajectory>("command", 1);
-	actionlib::SimpleActionClient<cob_actions::JointTrajectoryAction> ac("JointTrajectory", true); 
+	actionlib::SimpleActionClient<pr2_controllers_msgs::JointTrajectoryAction> ac("JointTrajectory", true); 
         
         
 	// topics to subscribe, callback is called for new messages arriving
@@ -225,7 +225,7 @@ int main(int argc, char** argv)
 				//ROS_INFO("Waiting for action server to start.");
 				//ac.waitForServer(); //will wait for infinite time
 				
-				cob_actions::JointTrajectoryGoal goal;
+				pr2_controllers_msgs::JointTrajectoryGoal goal;
 				
 				// get JointNames from parameter server
 				XmlRpc::XmlRpcValue JointNames_param;
