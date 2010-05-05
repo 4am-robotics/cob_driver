@@ -1,3 +1,4 @@
+JointNames: [joint_platform_tray]
 Trajectories:
   [
     [ #traj0
