@@ -118,6 +118,7 @@ class NodeClass
 		XmlRpc::XmlRpcValue MaxAcc_param;
 		std::vector<double> MaxAcc;
 		bool isInitialized;
+		bool finished_;
 		
 		trajectory_msgs::JointTrajectory traj;
 		trajectory_msgs::JointTrajectoryPoint traj_point;
@@ -130,6 +131,7 @@ class NodeClass
         {
 			isInitialized = false;
 			traj_point_nr = 0;
+			finished_ = false;
 
         	PCube = new PowerCubeCtrl();
         	PCubeParams = new PowerCubeCtrlParams();
@@ -330,6 +332,7 @@ class NodeClass
 			traj = goal->trajectory;
 			traj_point_nr = 0;
 			traj_point = traj.points[traj_point_nr];
+			finished_ = false;
 			
 			// stoping arm to prepare for new trajectory
 			std::vector<double> VelZero;
@@ -342,6 +345,21 @@ class NodeClass
 				ROS_INFO("%s: Preempted", action_name_.c_str());
 				// set the action state to preempted
 				as_.setPreempted();
+			}
+			
+			usleep(500000); // needed sleep until sdh starts to change status from idle to moving
+			
+			while(finished_ == false)
+			{
+				if (as_.isNewGoalAvailable())
+				{
+					ROS_WARN("%s: Aborted", action_name_.c_str());
+					as_.setAborted();
+					return;
+				}
+		   		usleep(10000);
+				//feedback_ = 
+				//as_.send feedback_
 			}
 
 			// set the action state to succeed			
@@ -524,6 +542,7 @@ class NodeClass
 					    else
 					    {
 					    	ROS_DEBUG("...reached end of trajectory");
+					    	finished_ = true;
 					    }
 					}
 					else
