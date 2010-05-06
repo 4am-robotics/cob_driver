@@ -3,7 +3,7 @@
 
   <!-- send arm urdf to parameter server -->
   <!--param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_defs)/ros/robots/cob3-1.urdf.xacro'" /-->
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_description)/ros/robots/cob_platform.urdf.xacro'" />
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_description)/ros/robots/cob3-1.urdf.xacro'" />
 
   <!-- send parameters to parameter server -->
   <rosparam command="load" ns="torso" file="$(find cob_torso)/ros/launch/cob3-1.yaml"/>
