@@ -2,7 +2,7 @@
 <launch>
 
   <!-- send arm urdf to parameter server -->
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_defs)/ros/robots/sdh.urdf.xacro'" />
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_description)/ros/robots/cob3-1.urdf.xacro'" />
 
   <!-- send parameters to parameter server -->
   <rosparam command="load" ns="sdh" file="$(find cob_sdh)/ros/launch/cob3-1.yaml"/>
