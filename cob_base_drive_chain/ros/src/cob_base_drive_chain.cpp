@@ -106,6 +106,8 @@ class NodeClass
 		CanCtrlPltfCOb3 m_CanCtrlPltf;
 		bool m_bisInitialized;
         int m_iNumMotors;
+        
+        bool m_bEvalCanMsg;
 
     	struct ParamType
 	    { 
@@ -123,6 +125,7 @@ class NodeClass
 			// initialization of variables
 			m_bisInitialized = false;
 			m_iNumMotors = 8;
+			m_bEvalCanMsg = false;
 			
 			// implementation of topics
 			// published topics
@@ -217,7 +220,9 @@ class NodeClass
 		
 		bool srvCallback_ElmoRecorder(cob_srvs::Switch::Request &req,
                               cob_srvs::Switch::Response &res ){
+                              
 			m_CanCtrlPltf.printElmoRecordings("~/myRec");
+			m_bEvalCanMsg = true;
 			
 			return true;
 		}
@@ -344,25 +349,28 @@ class NodeClass
 //#### main programm ####
 int main(int argc, char** argv)
 {
-    // initialize ROS, spezify name of node
-    ros::init(argc, argv, "base_drive_chain");
-    
-    NodeClass nodeClass;
- 	
+	// initialize ROS, spezify name of node
+	ros::init(argc, argv, "base_drive_chain");
+
+	NodeClass nodeClass;
+
 	// currently only waits for callbacks -> if it should run cyclical
 	// -> specify looprate
- 	// ros::Rate loop_rate(10); // Hz 
+	ros::Rate loop_rate(50); // Hz
 
 
     
-    while(nodeClass.n.ok())
+	while(nodeClass.n.ok())
     {
-
-
-        ros::spinOnce();
+		ros::spinOnce();
+		
+		if(nodeClass.m_bEvalCanMsg == true) {
+			nodeClass.m_CanCtrlPltf.evalCanBuffer();
+		}
+		
 		// -> let it sleep for a while
-        //loop_rate.sleep();
-    }
+		loop_rate.sleep();
+	}
     
 //    ros::spin();
 
@@ -413,5 +421,5 @@ bool NodeClass::initDrives()
 	// debug log
 	ROS_INFO("Initializing done");
 
-    return bTemp1;
+	return bTemp1;
 }

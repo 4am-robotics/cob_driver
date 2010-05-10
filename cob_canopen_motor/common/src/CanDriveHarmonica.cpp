@@ -212,7 +212,7 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 
 			std::cout << "pm " << iPara << std::endl;
 		}
-		
+
 		else if( (msg.getAt(0) == 'A') && (msg.getAt(1) == 'C') )
 		{
 			iPara = (msg.getAt(7) << 24) | (msg.getAt(6) << 16)
@@ -220,7 +220,7 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 
 			std::cout << "ac " << iPara << std::endl;
 		}
-		
+
 		else if( (msg.getAt(0) == 'D') && (msg.getAt(1) == 'C') )
 		{
 			iPara = (msg.getAt(7) << 24) | (msg.getAt(6) << 16)
@@ -260,17 +260,17 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 	if (msg.m_iID == m_ParamCanOpen.iTxSDO)
 	{
 		m_WatchdogTime.SetNow();
-        
-        if( (msg.getAt(0) >> 5) == 0) { //Received Upload SDO Segment (scs = 0)
+
+		if( (msg.getAt(0) >> 5) == 0) { //Received Upload SDO Segment (scs = 0)
 			receivedSDODataSegment(msg);
 			std::cout << "SDO Segment received" << std::endl;
-        } else if( (msg.getAt(0) & 0x02) == 0) { //Received Initiate SDO Upload, that is not expedited -> start segmented upload (scs = 2 AND expedited flag = 0)
+		} else if( (msg.getAt(0) & 0x42) == 0x40) { //Received Initiate SDO Upload, that is not expedited -> start segmented upload (scs = 2 AND expedited flag = 0)
 			receivedSDOSegmentedInitiation(msg);
 			std::cout << "SDO Initiate Segmented Upload, Object ID: " << (msg.getAt(1) | (msg.getAt(2) << 8) ) << std::endl;
-        } else if( (msg.getAt(0) >> 5) == 4) { // Received an Abort SDO Transfer message, cs = 4
-        	unsigned int iErrorNum = (msg.getAt(4) | msg.getAt(5) << 8 | msg.getAt(6) << 16 | msg.getAt(7) << 24);
-        	receivedSDOTransferAbort(iErrorNum);
-        }
+		} else if( (msg.getAt(0) >> 5) == 4) { // Received an Abort SDO Transfer message, cs = 4
+			unsigned int iErrorNum = (msg.getAt(4) | msg.getAt(5) << 8 | msg.getAt(6) << 16 | msg.getAt(7) << 24);
+			receivedSDOTransferAbort(iErrorNum);
+		}
 
 		bRet = true;
 	}
@@ -352,7 +352,7 @@ bool CanDriveHarmonica::init()
 	m_bWatchdogActive = false;
 	
 	if( bRet )
-		 m_bIsInitialized = true;
+		m_bIsInitialized = true;
 	 
 	return bRet;	
 }
@@ -1374,7 +1374,7 @@ int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 			if(seg_Data.statusFlag == segData::SDO_SEG_FREE) {
 				ElmoRec->sLogFilename = sParam;
 				ElmoRec->readoutRecorder(1 << iParam); //shift this bit, according to the specified recording sources in RC
-				seg_Data.statusFlag == segData::SDO_SEG_WAITING;
+				seg_Data.statusFlag = segData::SDO_SEG_WAITING;
 				return 0;
 			} else {
 				std::cout << "Previous transmission not finished or colected data hasn't been proceeded yet" << std::endl;

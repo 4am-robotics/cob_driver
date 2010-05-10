@@ -1300,19 +1300,12 @@ void CanCtrlPltfCOb3::setMotorTorque(int iCanIdent, double dTorqueNm)
 
 //-----------------------------------------------
 bool CanCtrlPltfCOb3::printElmoRecordings(std::string Filename) {
-	m_Mutex.lock();
-
 	//Motor 1 -> steering motor
-    m_vpMotor[1]->setRecorder(0, 10); //Configure Elmo Recorder with RecordingGap
-    
-    
-    
-    m_vpMotor[1]->setRecorder(1, 0, Filename); //Query Readout of Index to Log Directory
+	m_vpMotor[1]->setRecorder(0, 10); //Configure Elmo Recorder with RecordingGap and start immediately
 
-	while(m_vpMotor[1]->setRecorder(2) == 2) {
-		evalCanBuffer();
-		usleep(1000);
-	}
+	usleep(5000000); //5sec
 
-	m_Mutex.unlock();
+	m_vpMotor[1]->setRecorder(1, 0, Filename); //Query Readout of Index to Log Directory
+
+	return true;
 }
