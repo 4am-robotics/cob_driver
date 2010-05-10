@@ -1374,7 +1374,7 @@ int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 			if(seg_Data.statusFlag == segData::SDO_SEG_FREE) {
 				ElmoRec->sLogFilename = sParam;
 				ElmoRec->readoutRecorder(1 << iParam); //shift this bit, according to the specified recording sources in RC
-				seg_Data.statusFlag == segData::SDO_SEG_WAITING;
+				seg_Data.statusFlag = segData::SDO_SEG_WAITING;
 				return 0;
 			} else {
 				std::cout << "Previous transmission not finished or colected data hasn't been proceeded yet" << std::endl;

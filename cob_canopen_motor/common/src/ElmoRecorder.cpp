@@ -53,6 +53,7 @@
 
 #include <math.h>
 #include <vector>
+#include <stdio.h>
 #include <cob_canopen_motor/ElmoRecorder.h>
 #include <cob_canopen_motor/CanDriveHarmonica.h>
 
