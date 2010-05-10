@@ -88,7 +88,8 @@ PowerCubeCtrl::PowerCubeCtrl()
 
 bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 {
-	int CanDevice= 0;
+	std::string CanModule = "";
+	int CanDevice = 0;
 	int CanBaudRate = 0;
 	std::vector<double> offsets;
 	std::vector<double> upperLimits;
@@ -97,8 +98,9 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 	{
 		m_DOF=params->GetNumberOfDOF();
 		m_IdModules = params->GetModuleIDVector();
-		CanBaudRate = params->GetBaudRate();
+		CanModule = params->GetCanModule();
 		CanDevice = params->GetCanDevice();
+		CanBaudRate = params->GetBaudRate();
 		m_maxAcc = params->GetMaxAcc();
 		upperLimits = params->GetUpperLimits();
 		lowerLimits = params->GetLowerLimits();
@@ -122,8 +124,9 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 	std::cout<<"=========================================================================== "<<endl;
 	std::cout<<"PowerCubeCtrl:Init: Successfully initialized with the following parameters: "<<endl;
 	std::cout<<"DOF: "<<m_DOF<<endl;
-	std::cout<<"CanBaudRate: "<<CanBaudRate<<endl;
+	std::cout<<"CanModule: "<<CanModule<<endl;
 	std::cout<<"CanDevice: "<<CanDevice<<endl;
+	std::cout<<"CanBaudRate: "<<CanBaudRate<<endl;
 	std::cout<<"Ids: ";
 	for (int i = 0; i< m_DOF; i++)
 	{
@@ -156,7 +159,7 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 	}
 	std::cout<<endl<<"=========================================================================== "<<endl;
 	ostringstream initStr;
-	initStr << "PCAN:" << CanDevice << "," << CanBaudRate;
+	initStr << CanModule << ":" << CanDevice << "," << CanBaudRate;
 	std::cout << "initstring = " << initStr.str().c_str() << std::endl;
 	int ret = 0;
 	ret = PCube_openDevice (&m_Dev, initStr.str().c_str());

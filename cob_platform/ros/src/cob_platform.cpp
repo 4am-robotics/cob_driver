@@ -83,6 +83,8 @@ class NodeClass
         ros::Publisher topicPub_Pose2D;
         ros::Publisher topicPub_Odometry;
         tf::TransformBroadcaster odom_broadcaster;
+	// just for debug
+        ros::Publisher topicPub_cmd_vel_received;
 
 	    // topics to subscribe, callback is called for new messages arriving
         ros::Subscriber topicSub_CmdVel;
@@ -119,6 +121,7 @@ class NodeClass
 
         	// implementation of topics to publish
             topicPub_Odometry = n.advertise<nav_msgs::Odometry>("odometry", 50);
+            topicPub_cmd_vel_received = n.advertise<geometry_msgs::TwistStamped>("cmd_vel_received", 50);
 
             // implementation of topics to subscribe
             topicSub_CmdVel = n.subscribe("cmd_vel", 1, &NodeClass::topicCallback_CmdVel, this);
@@ -148,6 +151,14 @@ class NodeClass
             cmdVelX = msg->linear.x;
             cmdVelY = msg->linear.y;
             cmdVelTh = msg->angular.z;
+
+		// Debug: repeat cmd to check transmission time
+                geometry_msgs::TwistStamped Twmsg;
+		Twmsg.header.stamp = ros::Time::now();
+		Twmsg.twist.linear.x = cmdVelX;
+		Twmsg.twist.linear.y = cmdVelY;
+		Twmsg.twist.angular.z = cmdVelTh;
+                topicPub_cmd_vel_received.publish(Twmsg);
         }
 
         // service callback functions
@@ -235,28 +246,6 @@ class NodeClass
                 pltf->getDeltaPosePltf(dxMM, dyMM, dth, dvth,
         					           vxMMS, vyMMS, vth, vvth);
 
-				// calculation from cpc
-/*				if (fabs(vth) < 0.05)
-				{
-					u_x = vxMMS*dt/1000.0;
-					u_y = vyMMS*dt/1000.0;
-				}
-				else
-				{
-					u_x = vxMMS*sin(vth*dt)/vth/1000.0 + vyMMS/vth/1000.0*(cos(vth*dt)-1.0);
-					u_y = -vxMMS/vth/1000.0*(cos(vth*dt)-1.0) + vyMMS*sin(vth*dt)/vth/1000.0;
-					if (fabs(u_x)>1 || fabs(u_y)>1)
-					{
-						ROS_INFO("u_x = %f, u_y=%f, vth=%f, vx=%f, vy=%f",u_x,u_y,vth,vxMMS,vyMMS);
-					}
-				}
-
-                // add delta values to old values
-                x += u_x*cos(th)-u_y*sin(th);
-                y += u_x*sin(th)+u_y*cos(th);
-                th += vth*dt;
-*/
-
 				// calculation from ROS odom publisher tutorial http://www.ros.org/wiki/navigation/Tutorials/RobotSetup/Odom
 			    //compute odometry in a typical way given the velocities of the robot
 				//double dt = (current_time - last_time).toSec();
@@ -267,9 +256,6 @@ class NodeClass
 				x += delta_x;
 				y += delta_y;
 				th += delta_th;
-
-
-
 
 			    //since all odometry is 6DOF we'll need a quaternion created from yaw
 				geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(th);
@@ -308,9 +294,7 @@ class NodeClass
                 odom.twist.twist.angular.z = vth;
 
                 //publish the message
-                //topicPub_Odometry.publish(odom);
-
-				last_time = current_time;
+                topicPub_Odometry.publish(odom);
             }
         }
 };

@@ -1,14 +1,15 @@
 #ifndef __ELMO_CTRL_H__
 #define __ELMO_CTRL_H__
 
-#include <canopen_motor/CanDriveItf.h>
-#include <canopen_motor/CanDriveHarmonica.h>
-#include <generic_can/CanItf.h>
-#include <generic_can/CanPeakSys.h>
-#include <generic_can/CanPeakSysUSB.h>
+#include <cob_canopen_motor/CanDriveItf.h>
+#include <cob_canopen_motor/CanDriveHarmonica.h>
+#include <cob_generic_can/CanItf.h>
+#include <cob_generic_can/CanPeakSys.h>
+#include <cob_generic_can/CanPeakSysUSB.h>
+#include <cob_generic_can/CanESD.h>
 
 // Headers provided by cob-packages which should be avoided/removed^M
-#include <cob3_utilities/IniFile.h>
+#include <cob_utilities/IniFile.h>
 
 
 //#include <Manipulation/Interfaces/armInterface.h>
@@ -157,7 +158,8 @@ public:
 	} MOTION_CTRL_TYPE;
 
 
-	CANPeakSysUSB* GetCanCtrl(){return m_CanCtrl;}
+	//CANPeakSysUSB* GetCanCtrl(){return m_CanCtrl;}
+	CanESD* GetCanCtrl(){return m_CanCtrl;}
 	//bool m_ElmoCtrlThreadActive;
 	/// @brief joint mutexes
 	//pthread_mutex_t   m_cs_elmoCtrlIO;
@@ -174,7 +176,8 @@ private:
 	int  m_CanBaseAddress;
 	CanOpenAddress  m_CanAddress;
 
-	CANPeakSysUSB * m_CanCtrl;
+	//CANPeakSysUSB * m_CanCtrl;
+	CanESD * m_CanCtrl;
 
 	float m_MaxVel;
 	int m_HomingDir;

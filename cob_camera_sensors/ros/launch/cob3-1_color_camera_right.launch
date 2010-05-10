@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- start left camera -->
+  <node pkg="cob_camera_sensors" type="color_camera" name="color_camera" ns="pike_145C/right" cwd="node" respawn="false" output="screen">
+	<param name="configuration_files" value="$(find cob_camera_sensors)/common/files/cob3-1/"/>
+	<param name="camera_index" value="0"/>
+	<!-- Specifies the used camera type -->
+	<!-- CAM_AVTPIKE or CAM_PROSILICA -->
+	<param name="color_camera_type" value="CAM_AVTPIKE" />
+	<!-- The intrinsics of the color sensors are optimized to the following camera -->
+	<param name="color_camera_intrinsic_type" value="CAM_AVTPIKE" />
+	<param name="color_camera_intrinsic_id" value="1" />
+  </node>
+
+  <!-- start poller for left camera -->
+  <node pkg="polled_camera" type="poller" name="poller" ns="pike_145C/right" respawn="false" output="screen" args="3 camera:= output:="/>
+
+</launch>

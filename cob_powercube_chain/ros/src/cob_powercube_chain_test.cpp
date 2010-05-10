@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
- * ROS package name: powercube_chain
+ * ROS stack name: cob_driver
+ * ROS package name: cob_powercube_chain
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
@@ -65,7 +65,7 @@
 // ROS message includes
 //#include <cob_msgs/JointCommand.h>
 #include <trajectory_msgs/JointTrajectory.h>
-#include <cob_actions/JointTrajectoryAction.h>
+#include <pr2_controllers_msgs/JointTrajectoryAction.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -99,8 +99,8 @@ int main(int argc, char** argv)
 	ros::NodeHandle n;
 
     // topics to publish
-    ros::Publisher topicPub_JointCommand = n.advertise<trajectory_msgs::JointTrajectory>("command", 1);
-	actionlib::SimpleActionClient<cob_actions::JointTrajectoryAction> ac("JointTrajectory", true); 
+    //ros::Publisher topicPub_JointCommand = n.advertise<trajectory_msgs::JointTrajectory>("command", 1);
+	actionlib::SimpleActionClient<pr2_controllers_msgs::JointTrajectoryAction> ac("JointTrajectory", true); 
         
         
 	// topics to subscribe, callback is called for new messages arriving
@@ -119,14 +119,47 @@ int main(int argc, char** argv)
 	bool srv_querry = false;
 	int srv_execute = 1;
 	std::string srv_errorMessage = "no error";
-    
+
+/*    
+    // read in parameters for trajectories
+    XmlRpc::XmlRpcValue trajectories_param;
+    std::vector<trajectory_msgs::JointTrajectory> trajectories;
+	if (n.hasParam("trajectories"))
+	{
+		n.getParam("trajectories", trajectories_param);
+	}
+	else
+	{
+		ROS_ERROR("Parameter trajectories not set");
+	}
+	ROS_INFO("got %d trajectories", trajectories_param.size());
+	std::cout << "trajectories = " << trajectories_param << std::endl;
+	
+	ROS_INFO("converting xml to trajectory_msgs");
+	trajectories.resize(trajectories_param.size());
+	for (int i = 0; i<trajectories_param.size(); i++ )
+	{
+		std::cout << "filling trajectory[" << i << "]" << std::endl;
+		std::cout << trajectories_param[i][1] << std::endl;
+		for (int j = 0; j<trajectories_param[i][j].size(); j++ )
+		{
+			std::cout << "   filling point[" << j << "]" << std::endl;
+			for (int k = 0; k<trajectories_param[i][j][k].size(); k++ )
+			{
+				std::cout << "      filling position[" << k << "]" << std::endl;
+				trajectories[i].points[j].positions[k] = (double)trajectories_param[i][j][k];
+			}
+		}
+	}
+	//std::cout << "trajectories = " << trajectories_param << std::endl;
+*/    
     char c;
          
     // main loop
     while(n.ok())
     {
         // process user inputs
-        std::cout << "Choose service to test ([s]top, [i]nit, [r]ecover, setOperation[M]ode, send[C]ommand, [e]xit): ";
+		std::cout << "Choose service to test ([s]top, [i]nit, [r]ecover, setOperation[M]ode, send[C]ommand, [e]xit): ";
         
         
         std::cin >> c;
@@ -187,250 +220,81 @@ int main(int argc, char** argv)
                 break;
             }
             
-            case 'C':
+			case 'C':
             {
-            	ROS_INFO("Waiting for action server to start.");
-				// wait for the action server to start
-				ac.waitForServer(); //will wait for infinite time
-            	
-                std::cout << "Choose preset target positions/velocities ([0] = , [1] = , [2] = ): ";
-                std::cin >> c;
-                
-                int DOF = 4;
-                
-                // send a goal to the action 
-				cob_actions::JointTrajectoryGoal goal;
-				trajectory_msgs::JointTrajectory traj;
-				traj.header.stamp = ros::Time::now();
+				//ROS_INFO("Waiting for action server to start.");
+				//ac.waitForServer(); //will wait for infinite time
 				
-                if (c == '0')
-                {
-					traj.points.resize(1);
-					traj.points[0].positions.resize(DOF);
-					traj.points[0].velocities.resize(DOF);
-					
-					// first point
-					// zero position
-                }
-                else if (c == '1')
-                {
-					traj.points.resize(1);
-					traj.points[0].positions.resize(DOF);
-					traj.points[0].velocities.resize(DOF);                                    
-
-					// first point
-					traj.points[0].positions[0] = 0.1;
-					traj.points[0].positions[1] = 0.1;
-					traj.points[0].positions[2] = 0.1;
-					traj.points[0].positions[3] = 0.1;
+				pr2_controllers_msgs::JointTrajectoryGoal goal;
+				
+				// get JointNames from parameter server
+				XmlRpc::XmlRpcValue JointNames_param;
+				std::vector<std::string> JointNames;
+				ROS_INFO("getting JointNames from parameter server");
+				if (n.hasParam("JointNames"))
+				{
+					n.getParam("JointNames", JointNames_param);
 				}
-                else if (c == '2')
-                {
-					traj.points.resize(1);
-					traj.points[0].positions.resize(DOF);
-					traj.points[0].velocities.resize(DOF);                                    
-
-					// first point
-					traj.points[0].positions[0] = 0.2;
-					traj.points[0].positions[1] = 0.2;
-					traj.points[0].positions[2] = 0.2;
-					traj.points[0].positions[3] = 0.2;
-                }
-                else if (c == '3')
-                {
-                	DOF = 7;
-					traj.points.resize(1);
-					traj.points[0].positions.resize(DOF);
-					traj.points[0].velocities.resize(DOF);                                    
-
-					// first point
-					traj.points[0].positions[0] = 0.0;
-					traj.points[0].positions[1] = 0.0;
-					traj.points[0].positions[2] = 0.0;
-					traj.points[0].positions[3] = 0.0;
-					traj.points[0].positions[4] = 0.0;
-					traj.points[0].positions[5] = 0.0;
-					traj.points[0].positions[6] = 0.0;
-                }
-                else if (c == '4')
-                {
-                	DOF = 7;
-					traj.points.resize(1);
-					traj.points[0].positions.resize(DOF);
-					traj.points[0].velocities.resize(DOF);                                    
-
-					// first point
-					traj.points[0].positions[0] = 0.0;
-					traj.points[0].positions[1] = 0.0;
-					traj.points[0].positions[2] = 0.0;
-					traj.points[0].positions[3] = 0.0;
-					traj.points[0].positions[4] = 0.0;
-					traj.points[0].positions[5] = 0.5;
-					traj.points[0].positions[6] = 0.0;
-                }
-                else if (c == '5')
-                {
-                	DOF = 7;
-					traj.points.resize(1);
-					traj.points[0].positions.resize(DOF);
-					traj.points[0].velocities.resize(DOF);                                    
-
-					// first point
-					traj.points[0].positions[0] = 0.0;
-					traj.points[0].positions[1] = 0.7854;
-					traj.points[0].positions[2] = 0.0;
-					traj.points[0].positions[3] = 0.7854;
-					traj.points[0].positions[4] = 0.0;
-					traj.points[0].positions[5] = -0.7854;
-					traj.points[0].positions[6] = 0.0;
-                }
-                else if (c == '6')
-                {
-                	DOF = 7;
-					traj.points.resize(1);
-					traj.points[0].positions.resize(DOF);
-					traj.points[0].velocities.resize(DOF);                                    
-
-					// first point
-					traj.points[0].positions[0] = 0.0;
-					traj.points[0].positions[1] = 0.7854;
-					traj.points[0].positions[2] = 0.0;
-					traj.points[0].positions[3] = 0.0;
-					traj.points[0].positions[4] = 0.0;
-					traj.points[0].positions[5] = 0.0;
-					traj.points[0].positions[6] = 0.0;
-                }
-				else if (c == 't') // trajectory
-                {
-					traj.points.resize(3);
-					traj.points[0].positions.resize(DOF);
-					traj.points[0].velocities.resize(DOF);
-					traj.points[1].positions.resize(DOF);
-					traj.points[1].velocities.resize(DOF);
-					traj.points[2].positions.resize(DOF);
-					traj.points[2].velocities.resize(DOF);
-
-					// first point
-					traj.points[0].positions[2] = 0.1;
-					traj.points[0].positions[3] = 0.2;
-					
-					// second point
-					traj.points[1].positions[2] = -0.1;
-					traj.points[1].positions[3] = 0.2;
-
-					// third point
-					// zero position
+				else
+				{
+					ROS_ERROR("Parameter JointNames not set");
 				}
-				else if (c == 'z') // trajectory
-                {
-					traj.points.resize(5);
-					traj.points[0].positions.resize(DOF);
-					traj.points[0].velocities.resize(DOF);
-					traj.points[1].positions.resize(DOF);
-					traj.points[1].velocities.resize(DOF);
-					traj.points[2].positions.resize(DOF);
-					traj.points[2].velocities.resize(DOF);
-					traj.points[3].positions.resize(DOF);
-					traj.points[3].velocities.resize(DOF);
-					traj.points[4].positions.resize(DOF);
-					traj.points[4].velocities.resize(DOF);
-					
-					// first point
-					traj.points[0].positions[2] = 0.1;
-					traj.points[0].positions[3] = 0.2;
-					
-					// second point
-					traj.points[1].positions[0] = -0.1;
-					traj.points[1].positions[1] = 0.0;
-					traj.points[1].positions[2] = -0.1;
-					traj.points[1].positions[3] = 0.2;
-
-					// third point
-					traj.points[2].positions[0] = -0.1;
-					traj.points[2].positions[1] = 0.0;
-					traj.points[2].positions[2] = 0.1;
-					traj.points[2].positions[3] = 0;
-
-					// point 4
-					traj.points[3].positions[3] = 0.2;
-
-					// point 5
-					// zero position
+				JointNames.resize(JointNames_param.size());
+				for (int i = 0; i<JointNames_param.size(); i++ )
+				{
+					JointNames[i] = (std::string)JointNames_param[i];
 				}
-				else if (c == 'f') // trajectory
-                {
-                	DOF = 7;
-					traj.points.resize(3);
-					traj.points[0].positions.resize(DOF);
-					traj.points[0].velocities.resize(DOF);
-					traj.points[1].positions.resize(DOF);
-					traj.points[1].velocities.resize(DOF);
-					traj.points[2].positions.resize(DOF);
-					traj.points[2].velocities.resize(DOF);
-
-					// first point
-					traj.points[0].positions[3] = 0.2;
-					traj.points[0].positions[5] = 0.2;
-					
-					// second point
-					traj.points[1].positions[3] = -0.2;
-					traj.points[1].positions[5] = -0.2;
-
-					// third point
-					// zero position
+				std::cout << "JointNames = " << JointNames_param << std::endl;
+				
+				XmlRpc::XmlRpcValue traj_param;
+				trajectory_msgs::JointTrajectory traj;
+				
+				if (n.hasParam("Trajectories"))
+				{
+					n.getParam("Trajectories", traj_param);
 				}
-				else if (c == 'g') // trajectory
-                {
-                	DOF = 7;
-					traj.points.resize(3);
-					traj.points[0].positions.resize(DOF);
-					traj.points[0].velocities.resize(DOF);
-					traj.points[1].positions.resize(DOF);
-					traj.points[1].velocities.resize(DOF);
-					traj.points[2].positions.resize(DOF);
-					traj.points[2].velocities.resize(DOF);
-
-					// first point
-					traj.points[0].positions[2] = 0.2;
-					traj.points[0].positions[4] = -0.2;
-					
-					// second point
-					traj.points[1].positions[2] = -0.2;
-					traj.points[1].positions[4] = 0.2;
-
-					// third point
-					// zero position
+				else
+				{
+					ROS_ERROR("Parameter Trajectories not set");
 				}
-				else if (c == 'h') // trajectory
-                {
-                	DOF = 7;
-					traj.points.resize(3);
-					traj.points[0].positions.resize(DOF);
-					traj.points[0].velocities.resize(DOF);
-					traj.points[1].positions.resize(DOF);
-					traj.points[1].velocities.resize(DOF);
-					traj.points[2].positions.resize(DOF);
-					traj.points[2].velocities.resize(DOF);
-
-					// first point
-					traj.points[0].positions[3] = 0.5;
-					traj.points[0].positions[5] = 0.5;
-					
-					// second point
-					traj.points[1].positions[3] = -0.5;
-					traj.points[1].positions[5] = -0.5;
-
-					// third point
-					// zero position
+				
+				for (int i = 0; i < traj_param.size(); i++)
+				{
+					std::cout << "trajectory " << i << " = " << traj_param[i] <<std::endl;
 				}
-                else
+
+				int traj_nr;
+				std::cout << traj_param.size() << " trajectories available. Choose trajectory number [0, 1, 2, ...]: ";
+                std::cin >> traj_nr;
+                std::cout << std::endl;
+                
+                if (traj_nr < 0 || traj_nr > traj_param.size()-1)
                 {
-                    ROS_ERROR("invalid target");
+                	ROS_ERROR("traj_nr not in range. traj_nr requested was %d and should be between 0 and %d",traj_nr ,traj_param.size()-1);
+                	break;
                 }
-
+				
+				ROS_DEBUG("trajectory %d of %d",traj_nr,traj_param.size());
+				traj.header.stamp = ros::Time::now();
+				traj.joint_names = JointNames;
+				traj.points.resize(traj_param[traj_nr].size());
+				for (int j = 0; j<traj_param[traj_nr].size(); j++ ) // j-th point
+				{
+					ROS_DEBUG("   point %d of %d",j,traj_param[traj_nr].size());
+					traj.points[j].positions.resize(traj_param[traj_nr][j].size());
+					for (int k = 0; k<traj_param[traj_nr][j].size(); k++ ) // k-th value of pos
+					{
+						ROS_DEBUG("      pos value %d of %d = %f",k,traj_param[traj_nr][j].size(),(double)traj_param[traj_nr][j][k]);
+						traj.points[j].positions[k] = (double)traj_param[traj_nr][j][k];
+					}
+					// specify time to reach point (currently only used for simulation
+					ros::Duration duration(3); // reach points in steps of 3 seconds
+					traj.points[j].time_from_start = duration*(j+1);
+				}
+				
 				goal.trajectory = traj;
 				ac.sendGoal(goal);
-            
+				
                 std::cout << std::endl;
                 srv_querry = true;
                 srv_execute = 0;

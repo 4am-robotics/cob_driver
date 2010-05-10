@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_common
- * ROS package name: base_drive_chain
+ * ROS stack name: cob_drivers
+ * ROS package name: cob_base_drive_chain
  * Description: This is a sample implementation of a can-bus with several nodes. In this case it implements the drive-chain of the Care-O-bot3 mobile base. yet, this can be used as template for using the generic_can and canopen_motor packages to implement arbitrary can-setups.
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -17,7 +17,7 @@
  * Author: Christian Connette, email:christian.connette@ipa.fhg.de
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
- * Date of creation: Feb 2009
+ * Date of creation: Feb 2010
  * ToDo: - Check whether motor status request in "setVelGearRadS" "setMotorTorque" make sense (maybe remove in "CanDriveHarmonica").
  *		 - move implementational details (can cmds) of configureElmoRecorder to CanDriveHarmonica (check whether CanDriveItf has to be adapted then)
  *		 - Check: what is the iRecordingGap, what is its unit
@@ -54,15 +54,13 @@
  *
  ****************************************************************/
 
-
+// general includes
 #include <math.h>
-//#include <Neobotix/Math/Utils/MathSup.h>
 
-//#include <Neobotix/Drivers/Can/CanESD.h>
+// Headers provided by other cob-packages
+#include <cob_generic_can/CanESD.h>
 #include <cob_generic_can/CanPeakSys.h>
 #include <cob_generic_can/CanPeakSysUSB.h>
-//#include <canopen_motor/CanDummy.h>
-
 #include <cob_base_drive_chain/CanCtrlPltfCOb3.h>
 
 //-----------------------------------------------
@@ -248,13 +246,10 @@ void CanCtrlPltfCOb3::readConfiguration()
 	}
 	else if (iTypeCan == 2)
 	{
-		//m_pCanCtrl = new CanESD(sIniDirectory + "CanCtrl.ini");
-		//LOG_APP("Uses CAN-ESD-card");
-	}
-	else if (iTypeCan == 3)
-	{
-		//m_pCanCtrl = new CanDummy();
-		//std::cout << "Uses dummy dummy can" << std::endl;
+		sComposed = sIniDirectory;
+		sComposed += "CanCtrl.ini";
+		m_pCanCtrl = new CanESD(sComposed.c_str(), false);
+		std::cout << "Uses CAN-ESD-card" << std::endl;
 	}
 
 	// CanOpenId's ----- Default values (DESIRE)
@@ -926,7 +921,7 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 				}	
 
 				// increment timeout counter
-				if (iCnt++ > 500)
+				if (iCnt++ > 1000)
 					bTimeOut = true;
 
 				// Sleep: To avoid can overload
@@ -944,6 +939,9 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 				}
 				std::cout << "Error while Homing: Timeout while waiting for homing signal" << std::endl;
 			}
+
+			// update Can Buffer once more
+			evalCanBuffer();
 
 			// Now make steers move to position: zero
 			// this could be handled also by the elmos themselve
