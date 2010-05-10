@@ -34,4 +34,4 @@ rosbuild_add_executable(elmo_test common/src/elmo_test.cpp)
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 # add project libs
-rosbuild_add_library(${PROJECT_NAME}_harmonica common/src/CanDriveHarmonica.cpp common/src/StrUtil.cpp common/src/TimeStamp.cpp common/src/ElmoRecorder.cpp)
+rosbuild_add_library(${PROJECT_NAME}_harmonica common/src/CanDriveHarmonica.cpp common/src/ElmoRecorder.cpp)
