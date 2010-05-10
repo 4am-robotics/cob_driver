@@ -96,6 +96,7 @@ class NodeClass
         ros::ServiceServer srvServer_Shutdown;
         ros::ServiceServer srvServer_SetMotionType;
         ros::ServiceServer srvServer_GetJointState;
+        ros::ServiceServer srvServer_ElmoRecorder;
             
         // service clients
         //--
@@ -116,38 +117,39 @@ class NodeClass
 	    ParamType m_Param;
 		std::string sIniDirectory;
 
-        // Constructor
-        NodeClass()
-        {
+		// Constructor
+		NodeClass()
+		{
 			// initialization of variables
 			m_bisInitialized = false;
 			m_iNumMotors = 8;
 			
 			// implementation of topics
-            // published topics
-            topicPub_JointState = n.advertise<sensor_msgs::JointState>("JointState", 1);
-            topicPub_Diagnostic = n.advertise<diagnostic_msgs::DiagnosticStatus>("Diagnostic", 1);
-            // subscribed topics
-            topicSub_JointStateCmd = n.subscribe("JointStateCmd", 1, &NodeClass::topicCallback_JointStateCmd, this);
+			// published topics
+			topicPub_JointState = n.advertise<sensor_msgs::JointState>("JointState", 1);
+			topicPub_Diagnostic = n.advertise<diagnostic_msgs::DiagnosticStatus>("Diagnostic", 1);
+			// subscribed topics
+			topicSub_JointStateCmd = n.subscribe("JointStateCmd", 1, &NodeClass::topicCallback_JointStateCmd, this);
 
-            // implementation of service servers
-            srvServer_Init = n.advertiseService("Init", &NodeClass::srvCallback_Init, this);
-            srvServer_Reset = n.advertiseService("Reset", &NodeClass::srvCallback_Reset, this);
-            srvServer_Shutdown = n.advertiseService("Shutdown", &NodeClass::srvCallback_Shutdown, this);
-            //srvServer_isPltfError = n.advertiseService("isPltfError", &NodeClass::srvCallback_isPltfError, this); --> Publish this along with JointStates
-            srvServer_GetJointState = n.advertiseService("GetJointState", &NodeClass::srvCallback_GetJointState, this);
-        }
+			// implementation of service servers
+			srvServer_Init = n.advertiseService("Init", &NodeClass::srvCallback_Init, this);
+            srvServer_ElmoRecorder = n.advertiseService("ElmoRecorder", &NodeClass::srvCallback_ElmoRecorder, this);
+			srvServer_Reset = n.advertiseService("Reset", &NodeClass::srvCallback_Reset, this);
+			srvServer_Shutdown = n.advertiseService("Shutdown", &NodeClass::srvCallback_Shutdown, this);
+			//srvServer_isPltfError = n.advertiseService("isPltfError", &NodeClass::srvCallback_isPltfError, this); --> Publish this along with JointStates
+			srvServer_GetJointState = n.advertiseService("GetJointState", &NodeClass::srvCallback_GetJointState, this);
+		}
         
-        // Destructor
-        ~NodeClass() 
-        {
-        }
+		// Destructor
+		~NodeClass() 
+		{
+		}
 
-        // topic callback functions 
-        // function will be called when a new message arrives on a topic
-        void topicCallback_JointStateCmd(const sensor_msgs::JointState::ConstPtr& msg)
-        {
-		    int iRet;
+		// topic callback functions 
+		// function will be called when a new message arrives on a topic
+		void topicCallback_JointStateCmd(const sensor_msgs::JointState::ConstPtr& msg)
+		{
+			int iRet;
 			sensor_msgs::JointState JointStateCmd = *msg;
             // check if velocities lie inside allowed boundaries
 		    for(int i = 0; i < m_iNumMotors; i++)
@@ -212,6 +214,15 @@ class NodeClass
             }            
             return true;
         }
+		
+		bool srvCallback_ElmoRecorder(cob_srvs::Switch::Request &req,
+                              cob_srvs::Switch::Response &res ){
+			m_CanCtrlPltf.printElmoRecordings("~/myRec");
+			
+			return true;
+		}
+		
+		
 		
 		// reset Can-Configuration
         bool srvCallback_Reset(cob_srvs::Switch::Request &req,

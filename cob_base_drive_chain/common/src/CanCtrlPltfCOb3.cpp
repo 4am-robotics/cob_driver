@@ -1304,15 +1304,15 @@ bool CanCtrlPltfCOb3::printElmoRecordings(std::string Filename) {
 
 	//Motor 1 -> steering motor
     m_vpMotor[1]->setRecorder(0, 10); //Configure Elmo Recorder with RecordingGap
+    
+    
+    
     m_vpMotor[1]->setRecorder(1, 0, Filename); //Query Readout of Index to Log Directory
 
 	while(m_vpMotor[1]->setRecorder(2) == 2) {
-
+		evalCanBuffer();
 		usleep(1000);
 	}
 
-	return true;
-
 	m_Mutex.unlock();
 }
-
