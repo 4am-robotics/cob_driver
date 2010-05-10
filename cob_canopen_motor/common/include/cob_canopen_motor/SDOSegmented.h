@@ -62,27 +62,35 @@
  * The difference between two time stamps can be calculated.
  */
 
+
 class segData {
-    public:
-        
+
+    public:    
+		
+		enum SDOStatusFlag {
+			SDO_SEG_FREE = 0,
+			SDO_SEG_WAITING = 3,
+			SDO_SEG_COLLECTING = 2,
+			SDO_SEG_PROCESSING = 1,
+		};
+	
         segData() {
             bytesReceived = 0;
-            finishedTransmission = true;
-            locked = false;
             objectID = 0x00;
             objectSubID = 0x00;
+            
+            statusFlag = 0;
             }
 
         ~segData() {}
 
         void resetTransferData() {
-            if (locked == false) {
-                bytesReceived = 0;
-                data.clear();
-                finishedTransmission = true;
-                objectID = 0x0000;
-                objectSubID = 0x00;
-            }
+            bytesReceived = 0;
+            data.clear();
+            objectID = 0x0000;
+            objectSubID = 0x00;
+            
+            statusFlag = 0;
         }
             
         
@@ -90,15 +98,18 @@ class segData {
 
         int bytesReceived; //number of data bytes already received in current SDO Upload process      
 
-        bool finishedTransmission; //no more segments to receive
-
-        bool locked; //prevent Data from beeing resetted before read out has been proceeded
+        /*combines different status flags and represents the workflow from 3 to 0: 
+        	3: SDORequest sent, waiting for transmission !If you are expecting a Segmented answer, this must be set during the request!
+        	2: SDO process initiated, collecting data
+        	1: finished transmission, waiting for data processing
+        	0: SDO workflow finished, free for new transmission
+        */
+        int statusFlag;
 
         int objectID;
         int objectSubID;
 
         std::vector<unsigned char> data; //this vector holds received bytes as a stream. Little endian conversion is already done during receive. 
-
 };
 
 #endif

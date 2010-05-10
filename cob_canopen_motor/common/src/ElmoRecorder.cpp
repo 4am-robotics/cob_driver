@@ -58,7 +58,6 @@
 
 ElmoRecorder::ElmoRecorder(CanDriveHarmonica * pParentHarmonicaDrive) {
 	pHarmonicaDrive = pParentHarmonicaDrive;
-	
 }
 
 ElmoRecorder::~ElmoRecorder() {
@@ -158,6 +157,7 @@ int ElmoRecorder::processData(segData& SDOData) {
 	
 	logToFile(sLogFilename, vfResData);
 
+	SDOData.statusFlag = segData::SDO_SEG_FREE;
 	return 0;
 }
 

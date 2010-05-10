@@ -987,8 +987,7 @@ void CanDriveHarmonica::sendSDOAbort(int iObjIndex, int iObjSubIndex, unsigned i
 //-----------------------------------------------
 void CanDriveHarmonica::receivedSDOTransferAbort(unsigned int iErrorCode){
 	std::cout << "SDO Abort Transfer received with error code: " << iErrorCode;
-	seg_Data.locked = false;
-	seg_Data.finishedTransmission = true;
+	seg_Data.statusFlag = segData::SDO_SEG_FREE;
 }
 
 //-----------------------------------------------
@@ -1038,11 +1037,10 @@ int CanDriveHarmonica::getSDODataInt32(CanMsg& CMsg)
 //-----------------------------------------------
 int CanDriveHarmonica::receivedSDOSegmentedInitiation(CanMsg& msg) {
 
-	if(seg_Data.locked == false) { //only accept new SDO Segmented Upload if seg_Data message is open for write
+	if(seg_Data.statusFlag == segData::SDO_SEG_WAITING) { //only accept new SDO Segmented Upload if seg_Data is waitning for
 		m_SDOSegmentToggleBit = 0;
 		seg_Data.resetTransferData();
-		seg_Data.finishedTransmission = false;
-		seg_Data.locked = true;
+		seg_Data.statusFlag = segData::SDO_SEG_COLLECTING;
 
 		//read out objectIDs
 		evalSDO(msg, &seg_Data.objectID, &seg_Data.objectSubID);
@@ -1071,10 +1069,9 @@ int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
 	}
         
 	if( (msg.getAt(0) & 0x01) == 0x00) { //Finished bit is set
-		seg_Data.finishedTransmission = false;
+		seg_Data.statusFlag = segData::SDO_SEG_COLLECTING;
 	} else {
-		seg_Data.finishedTransmission = true;
-		seg_Data.locked = true;
+		seg_Data.statusFlag = segData::SDO_SEG_PROCESSING;
 	};
 
 	numEmptyBytes = (msg.getAt(0) >> 1) & 0x07; //Byte 1: SSS T NNN C | SSS=Cmd-Specifier, T=ToggleBit, NNN=num of empty bytes, C=Finished
@@ -1098,7 +1095,7 @@ int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
     
 	std::cout << "ONE SEGMENT END" << std::endl;
 
-	if(seg_Data.finishedTransmission) {
+	if(seg_Data.statusFlag == segData::SDO_SEG_PROCESSING) {
 		finishedSDOSegmentedTransfer();		
 	} else {
 		m_SDOSegmentToggleBit = !m_SDOSegmentToggleBit;
@@ -1134,10 +1131,10 @@ void CanDriveHarmonica::sendSDOUploadSegmentConfirmation(bool toggleBit) {
 }
 
 void CanDriveHarmonica::finishedSDOSegmentedTransfer() {
-	seg_Data.finishedTransmission = true;
+	seg_Data.statusFlag = segData::SDO_SEG_PROCESSING;
 	
 	if(seg_Data.objectID == 0x2030) {
-		if(ElmoRec->processData(seg_Data) == 0) seg_Data.locked = false;
+		if(ElmoRec->processData(seg_Data) == 0) seg_Data.statusFlag = segData::SDO_SEG_FREE;
 	}
 }
 
@@ -1374,9 +1371,10 @@ int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 			return 0;
 					
 		case 1: //Query upload of previous recorded data, data is being proceeded after complete upload, param = recorded ID, filename
-			if(seg_Data.locked == false) {
+			if(seg_Data.statusFlag == segData::SDO_SEG_FREE) {
 				ElmoRec->sLogFilename = sParam;
 				ElmoRec->readoutRecorder(1 << iParam); //shift this bit, according to the specified recording sources in RC
+				seg_Data.statusFlag == segData::SDO_SEG_WAITING;
 				return 0;
 			} else {
 				std::cout << "Previous transmission not finished or colected data hasn't been proceeded yet" << std::endl;
@@ -1386,18 +1384,20 @@ int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 			break;
 			
 		case 2: //request status, still collecting data?
-			if(seg_Data.finishedTransmission == false) {
+			if(seg_Data.statusFlag == segData::SDO_SEG_COLLECTING) {
 				std::cout << "Transmission of data is still in progress" << std::endl;
 				return 2;
-			} else {
-				if(seg_Data.locked == true) {
-					std::cout << "Transmission of data finished, data not proceeded yet" << std::endl;
-					return 3;
-				} else { //finished transmission and finished proceeding
-					return 0;
-				}
-				break;
+			} else if(seg_Data.statusFlag == segData::SDO_SEG_PROCESSING) {
+				std::cout << "Transmission of data finished, data not proceeded yet" << std::endl;
+				return 3;
+			} else if(seg_Data.statusFlag == segData::SDO_SEG_WAITING) {
+				std::cout << "Still waiting for transmission to begin" << std::endl;
+				return 2;			
+			} else { //finished transmission and finished proceeding
+				return 0;
 			}
+			
+			break;
 			
 		case 99: //Abort ongoing SDO data Transmission and clear collected data
 			sendSDOAbort(0x2030, 0x00, 0x08000020); //send general error abort

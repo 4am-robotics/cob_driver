@@ -1316,4 +1316,3 @@ bool CanCtrlPltfCOb3::printElmoRecordings(std::string Filename) {
 	m_Mutex.unlock();
 }
 
-

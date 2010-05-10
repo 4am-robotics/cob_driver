@@ -83,6 +83,7 @@ class ElmoRecorder {
 		std::string sLogFilename;
 		
 	private:
+	
 		unsigned int m_iCurrentObject;
 		float m_fRecordingStepSec;
 	
