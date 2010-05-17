@@ -78,7 +78,8 @@ class segData {
             bytesReceived = 0;
             objectID = 0x00;
             objectSubID = 0x00;
-            
+            toggleBit = false;
+
             statusFlag = 0;
             }
 
@@ -89,6 +90,7 @@ class segData {
             data.clear();
             objectID = 0x0000;
             objectSubID = 0x00;
+            toggleBit = false;
             
             statusFlag = 0;
         }
@@ -108,6 +110,8 @@ class segData {
 
         int objectID;
         int objectSubID;
+        
+        bool toggleBit;
 
         std::vector<unsigned char> data; //this vector holds received bytes as a stream. Little endian conversion is already done during receive. 
 };

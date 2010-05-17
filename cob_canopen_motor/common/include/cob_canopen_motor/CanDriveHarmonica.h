@@ -433,8 +433,6 @@ protected:
 	bool m_bWatchdogActive;
 
     segData seg_Data;
-    
-    bool m_SDOSegmentToggleBit;
 
 
 	// ------------------------- Member functions

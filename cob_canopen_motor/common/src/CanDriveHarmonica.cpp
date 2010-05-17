@@ -1048,7 +1048,7 @@ int CanDriveHarmonica::getSDODataInt32(CanMsg& CMsg)
 int CanDriveHarmonica::receivedSDOSegmentedInitiation(CanMsg& msg) {
 
 	if(seg_Data.statusFlag == segData::SDO_SEG_WAITING) { //only accept new SDO Segmented Upload if seg_Data is waitning for
-		m_SDOSegmentToggleBit = 0;
+		seg_Data.toggleBit = 0;
 		seg_Data.resetTransferData();
 		seg_Data.statusFlag = segData::SDO_SEG_COLLECTING;
 
@@ -1060,7 +1060,7 @@ int CanDriveHarmonica::receivedSDOSegmentedInitiation(CanMsg& msg) {
 			seg_Data.numTotalBytes = msg.getAt(4) | msg.getAt(5) << 8 | msg.getAt(6) << 16 | msg.getAt(7) << 24;
 		} else seg_Data.numTotalBytes = 0;
 
-		sendSDOUploadSegmentConfirmation(m_SDOSegmentToggleBit);
+		sendSDOUploadSegmentConfirmation(seg_Data.toggleBit);
 	}
 
 	return 0;
@@ -1072,7 +1072,7 @@ int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
 
 	int numEmptyBytes = 0;
 
-	if( (msg.getAt(0) & 0x10) != (m_SDOSegmentToggleBit << 4) ) { 
+	if( (msg.getAt(0) & 0x10) != (seg_Data.toggleBit << 4) ) { 
 		std::cout << "Toggle Bit error, send Abort SDO with \"Toggle bit not alternated\" error" << std::endl;
 		sendSDOAbort(seg_Data.objectID, seg_Data.objectSubID, 0x05030000); //Send SDO Abort with error code Toggle-Bit not alternated
 		return 1;
@@ -1108,8 +1108,8 @@ int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
 	if(seg_Data.statusFlag == segData::SDO_SEG_PROCESSING) {
 		finishedSDOSegmentedTransfer();		
 	} else {
-		m_SDOSegmentToggleBit = !m_SDOSegmentToggleBit;
-		sendSDOUploadSegmentConfirmation(m_SDOSegmentToggleBit);
+		seg_Data.toggleBit = !seg_Data.toggleBit;
+		sendSDOUploadSegmentConfirmation(seg_Data.toggleBit);
 	}
 		
 	return 0;
