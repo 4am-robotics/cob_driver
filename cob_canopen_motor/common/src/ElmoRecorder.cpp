@@ -81,9 +81,14 @@ int ElmoRecorder::configureElmoRecorder(int iRecordingGap){ //iRecordingGap = N 
 	// Set Recording Gap
 	pHarmonicaDrive->IntprtSetInt(8, 'R', 'G', 0, iRecordingGap);
 	// ----> Total Recording Time = 90us * 4 * RG * RL
+
+	// Set trigger type to immediate and start recording
+	pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 3, 0);
+	pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, 2); //2 launches immediately (8, 'R', 'R', 0, 1) launches at next BG
+	
 	
 	// Arm Recorder, by Trigger Event of "BG"-Command (Begin Motion)
-	pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, 2); //2 launches immediately (8, 'R', 'R', 0, 1) launches at next BG
+	// pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, 1); //launches at next BG
 	
 	m_fRecordingStepSec = 0.000090 * 4 * iRecordingGap;
 	
