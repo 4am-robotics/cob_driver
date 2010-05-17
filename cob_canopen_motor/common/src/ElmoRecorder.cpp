@@ -99,6 +99,11 @@ int ElmoRecorder::configureElmoRecorder(int iRecordingGap){ //iRecordingGap = N 
 int ElmoRecorder::readoutRecorder(int iObjSubIndex){ // iObjSubIndex: shift this bit, according to the specified recording sources in RC
 	//initialize Upload of Recorded Data (object 0x2030)
 	int iObjIndex = 0x2030;
+	
+	//Defines the part of the Recorder that is read out next
+	pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 8, 0);
+	pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 9, 0);
+	
 	pHarmonicaDrive->sendSDOUpload(iObjIndex, iObjSubIndex);
 	m_iCurrentObject = iObjSubIndex;
 	

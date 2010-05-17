@@ -245,7 +245,15 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 			float* pfVal;
 			pfVal=(float*)&iVal;
 			m_dMotorCurr = *pfVal;			
-		}		
+		}	
+		else if( (msg.getAt(0) == 'R') && (msg.getAt(1) == 'R') )
+		{
+			
+			iPara = (msg.getAt(7) << 24) | (msg.getAt(6) << 16)
+				| (msg.getAt(5) << 8) | (msg.getAt(4) );
+
+			std::cout << "Answer from Recorder: RR = " << iPara << std::endl; //-1: No valid data in recorder, 0: action finished and recorder filled
+		}	
 		else
 		{
 		}
@@ -264,9 +272,11 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 		if( (msg.getAt(0) >> 5) == 0) { //Received Upload SDO Segment (scs = 0)
 			receivedSDODataSegment(msg);
 			std::cout << "SDO Segment received" << std::endl;
+			
 		} else if( (msg.getAt(0) & 0x42) == 0x40) { //Received Initiate SDO Upload, that is not expedited -> start segmented upload (scs = 2 AND expedited flag = 0)
 			receivedSDOSegmentedInitiation(msg);
 			std::cout << "SDO Initiate Segmented Upload, Object ID: " << (msg.getAt(1) | (msg.getAt(2) << 8) ) << std::endl;
+			
 		} else if( (msg.getAt(0) >> 5) == 4) { // Received an Abort SDO Transfer message, cs = 4
 			unsigned int iErrorNum = (msg.getAt(4) | msg.getAt(5) << 8 | msg.getAt(6) << 16 | msg.getAt(7) << 24);
 			receivedSDOTransferAbort(iErrorNum);
