@@ -111,59 +111,69 @@ int ElmoRecorder::readoutRecorder(int iObjSubIndex){ // iObjSubIndex: shift this
 }
 
 int ElmoRecorder::processData(segData& SDOData) {
-	int iItemSize = 0;
+	const int iItemSize = 4;
 	int iItemCount= 0;
 	unsigned int iNumDataItems = 0;
-	bool bCollectFloats;
+	bool bCollectFloats = true;
+	float fFloatingPointFactor = 0;
+	int iTimeQuantum = 1;
 	
 	std::vector<float> vfResData[2];
 	
 	//see SimplIQ CANopen DS 301 Implementation Guide, object 0x2030
-
-	//Header Byte Sequence (Byte0 to Byte 7)
+	
+	//HEADER
 	//--------------------------------------
-	//SDOData.data[0] //Variable type for user. Contains info, whether floats or integers are transmitted.
-	//SDOData.data[1]
-	if(((SDOData.data[0] << 8) | SDOData.data[1]) == 0) {
+	//First 7 Bytes of the data sequence contain header information:
+	//Byte 0: First four bits: 4 = Int data type, 1 = Float data type
+	//			Next four bits: Time Quantum in n * TS
+	//Byte 2, Byte 3: Number of recorded data points
+	//Byte 3 to 6: Floating point factor for data to be multiplied with
+	//
+	//Byte 7 to Byte (7+ iNumdataItems * 4) contain data
+	
+	
+	//B[0]: Time quantum and data type
+	if((SDOData.data[0] >> 4) == 4) {
 		bCollectFloats = false;
 	} else {
 		bCollectFloats = true;
 	}
 	
-	std::cout << ">>>>>HEADER INFOS<<<<<\nbCollectFloats: " << bCollectFloats << std::endl;
+	iTimeQuantum = (SDOData.data[0] & 0x0F); //Time quantum is specified in Bit 4 to 7
 	
 	
-	//SDOData.data[2] << 8 | SDOData.data[3]; //Data width: number of hex character of single transmitted data item.
-	//short integer = two bytes, long integer = four bytes
-	iItemSize = (SDOData.data[2] << 8 | SDOData.data[3]) / 2; //2 to get bytes from hex-charaters
+	std::cout << ">>>>>HEADER INFOS<<<<<\nData type is float: " << bCollectFloats << std::endl;
+	
+	//B[1]..[2] //Number of recorded items
+	iNumDataItems = (SDOData.data[2] << 8 | SDOData.data[1]);
+	std::cout << "Number of recorded data points: " << iNumDataItems << std::endl;
 
-	std::cout << "Size of one data item: " << iItemSize << std::endl;
-
-	//SDOData.data[4] ... [7] //Data length: actual number of transmitted data items.
-	iNumDataItems = (SDOData.data[4] << 24) | (SDOData.data[5] << 16) | (SDOData.data[6] << 8) | (SDOData.data[7]);
-
-	std::cout << "Total Num of data items: " << iNumDataItems << std::endl;
+	//B[3] ... [6] //Floating point factor
+	fFlaotingPointFactor = convertBinaryToFloat( (SDOData.data[6] << 24) | (SDOData.data[5] << 16) | (SDOData.data[4] << 8) | (SDOData.data[3]) );
 	
-	if( ((SDOData.data.size()-8)/iItemSize) != iNumDataItems) 
-		std::cout << "SDODataSize " << ((SDOData.data.size()-8)/iItemSize) << " differs from Num Data Items! " <<  iNumDataItems << std::endl;
+	if( ((SDOData.numTotalBytes-7)/iItemSize) != iNumDataItems) 
+		std::cout << "SDODataSize expected " << ((SDOData.numTotalBytes-7)/iItemSize) << " differs from Num Data Items! " <<  iNumDataItems << std::endl;
 	
+	//END HEADER
+	//--------------------------------------
+
 	
 	vfResData[0].assign(iNumDataItems, 0.0);
 	vfResData[1].assign(iNumDataItems, 0.0);
 	iItemCount = 0;
 	
 	//extract values from data stream, consider Little Endian conversion for every single object!
-	for(int i=8;i<=SDOData.data.size() - (iItemSize-1); i=i+iItemSize) {
+	for(int i=7;i<=SDOData.data.size() - iItemSize -1; i=i+iItemSize) {
 		if(bCollectFloats) {
 			vfResData[iItemCount][1] = convertBinaryToFloat( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
 			iItemCount ++;
 		} else {
-			if(iItemSize==2) vfResData[iItemCount][1] = (float)((SDOData.data[i] << 0) | (SDOData.data[i+1] << 8)); //collect 2-byte integers (short int)
-			else vfResData[iItemCount][1] = (float)((SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24)); //collect 4-byte integers (long int)
+			vfResData[iItemCount][1] = (float)( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
 			iItemCount ++;
 		}
 		
-		vfResData[iItemCount][0] = m_fRecordingStepSec * i;
+		vfResData[iItemCount][0] = m_fRecordingStepSec * iItemCount;
 	}
 	
 	logToFile(sLogFilename, vfResData);

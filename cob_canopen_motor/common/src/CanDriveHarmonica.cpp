@@ -1048,7 +1048,6 @@ int CanDriveHarmonica::getSDODataInt32(CanMsg& CMsg)
 int CanDriveHarmonica::receivedSDOSegmentedInitiation(CanMsg& msg) {
 
 	if(seg_Data.statusFlag == segData::SDO_SEG_WAITING) { //only accept new SDO Segmented Upload if seg_Data is waitning for
-		seg_Data.toggleBit = 0;
 		seg_Data.resetTransferData();
 		seg_Data.statusFlag = segData::SDO_SEG_COLLECTING;
 
@@ -1057,7 +1056,7 @@ int CanDriveHarmonica::receivedSDOSegmentedInitiation(CanMsg& msg) {
 
 		//data in byte 4 to 7 contain the number of bytes to be uploaded (if Size indicator flag is set)
 		if( (msg.getAt(0) & 0x01) == 1) {
-			seg_Data.numTotalBytes = msg.getAt(4) | msg.getAt(5) << 8 | msg.getAt(6) << 16 | msg.getAt(7) << 24;
+			seg_Data.numTotalBytes = msg.getAt(7) << 24 | msg.getAt(6) << 16 | msg.getAt(5) << 8 | msg.getAt(4);
 		} else seg_Data.numTotalBytes = 0;
 
 		sendSDOUploadSegmentConfirmation(seg_Data.toggleBit);
