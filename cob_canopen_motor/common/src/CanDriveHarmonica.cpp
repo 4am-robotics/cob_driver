@@ -1106,6 +1106,7 @@ int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
 	return 0;
 }
 
+//-----------------------------------------------
 void CanDriveHarmonica::sendSDOUploadSegmentConfirmation(bool toggleBit) {
 
 	CanMsg CMsgTr;
@@ -1128,9 +1129,9 @@ void CanDriveHarmonica::sendSDOUploadSegmentConfirmation(bool toggleBit) {
 
 	CMsgTr.set(cMsg[0], cMsg[1], cMsg[2], cMsg[3], cMsg[4], cMsg[5], cMsg[6], cMsg[7]);
 	m_pCanCtrl->transmitMsg(CMsgTr);
-
 }
 
+//-----------------------------------------------
 void CanDriveHarmonica::finishedSDOSegmentedTransfer() {
 	seg_Data.statusFlag = segData::SDO_SEG_PROCESSING;
 	
