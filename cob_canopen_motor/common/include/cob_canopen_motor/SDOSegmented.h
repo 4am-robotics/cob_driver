@@ -56,64 +56,53 @@
 
 #include <vector>
 
-/** Measure system time.
- * Use this class for measure system time accurately. Under Windows, it uses
- * QueryPerformanceCounter(), which has a resolution of approx. one micro-second.
- * The difference between two time stamps can be calculated.
- */
-
-
 class segData {
 
-    public:    
-		
+	public:    
+
 		enum SDOStatusFlag {
 			SDO_SEG_FREE = 0,
 			SDO_SEG_WAITING = 3,
 			SDO_SEG_COLLECTING = 2,
 			SDO_SEG_PROCESSING = 1,
 		};
-	
-        segData() {
-            bytesReceived = 0;
-            objectID = 0x00;
-            objectSubID = 0x00;
-            toggleBit = false;
 
-            statusFlag = 0;
-            }
+		segData() {
+			objectID = 0x0000;
+			objectSubID = 0x00;
+			toggleBit = false;
+			statusFlag = SDO_SEG_FREE;
+		}
 
-        ~segData() {}
+		~segData() {}
 
-        void resetTransferData() {
-            bytesReceived = 0;
-            data.clear();
-            objectID = 0x0000;
-            objectSubID = 0x00;
-            toggleBit = false;
-            
-            statusFlag = 0;
-        }
-            
-        
-        unsigned int numTotalBytes; //contains the number of bytes to be uploaded (if specified)
+		void resetTransferData() {
+			data.clear();
+			objectID = 0x0000;
+			objectSubID = 0x00;
+			toggleBit = false;
+			statusFlag = SDO_SEG_FREE;
+		}
 
-        int bytesReceived; //number of data bytes already received in current SDO Upload process      
+		//public attributes
+		//all attributes are public, as this class is used only as ~data array
 
-        /*combines different status flags and represents the workflow from 3 to 0: 
-        	3: SDORequest sent, waiting for transmission !If you are expecting a Segmented answer, this must be set during the request!
-        	2: SDO process initiated, collecting data
-        	1: finished transmission, waiting for data processing
-        	0: SDO workflow finished, free for new transmission
-        */
-        int statusFlag;
+		/*combines different status flags and represents the workflow from 3 to 0: 
+			3: SDORequest sent, waiting for transmission !If you are expecting a Segmented answer, this must be set during the request!
+			2: SDO process initiated, collecting data
+			1: finished transmission, waiting for data processing
+			0: SDO workflow finished, free for new transmission
+		*/
+		int statusFlag;
 
-        int objectID;
-        int objectSubID;
-        
-        bool toggleBit;
+		int objectID;
+		int objectSubID;
 
-        std::vector<unsigned char> data; //this vector holds received bytes as a stream. Little endian conversion is already done during receive. 
+		bool toggleBit;
+
+		unsigned int numTotalBytes; //contains the number of bytes to be uploaded (if specified)
+
+		std::vector<unsigned char> data; //this vector holds received bytes as a stream.
 };
 
 #endif

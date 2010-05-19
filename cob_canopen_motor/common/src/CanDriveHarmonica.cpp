@@ -1071,36 +1071,28 @@ int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
 
 	int numEmptyBytes = 0;
 
+	//Read SDO Upload Protocol:
+	//Byte 0: SSS T NNN C | SSS=Cmd-Specifier, T=ToggleBit, NNN=num of empty bytes, C=Finished
+	//Byte 1 to 7: Data
+
 	if( (msg.getAt(0) & 0x10) != (seg_Data.toggleBit << 4) ) { 
 		std::cout << "Toggle Bit error, send Abort SDO with \"Toggle bit not alternated\" error" << std::endl;
 		sendSDOAbort(seg_Data.objectID, seg_Data.objectSubID, 0x05030000); //Send SDO Abort with error code Toggle-Bit not alternated
 		return 1;
 	}
         
-	if( (msg.getAt(0) & 0x01) == 0x00) { //Finished bit is set
+	if( (msg.getAt(0) & 0x01) == 0x00) { //Is finished-bit not set?
 		seg_Data.statusFlag = segData::SDO_SEG_COLLECTING;
 	} else {
 		seg_Data.statusFlag = segData::SDO_SEG_PROCESSING;
 	};
 
-	numEmptyBytes = (msg.getAt(0) >> 1) & 0x07; //Byte 1: SSS T NNN C | SSS=Cmd-Specifier, T=ToggleBit, NNN=num of empty bytes, C=Finished
+	numEmptyBytes = (msg.getAt(0) >> 1) & 0x07;
 	std::cout << "NUM empty bytes in SDO :" << numEmptyBytes << std::endl;
 	
-	//-------
-	/*for(int i=7-numEmptyBytes;i>=1;i--) { //because of "little endian", start to read bytes from the "end" to the beginning
+	for(int i=1; i<=7-numEmptyBytes; i++) {
 		seg_Data.data.push_back(msg.getAt(i));
-		seg_Data.bytesReceived ++;
-        
-		//std::cout << msg.getAt(i);
-	}*/ 
-	//------- ..because we want to do Little Endian later for every single number..
-	
-	for(int i=1; i<=7-numEmptyBytes;i++) {
-		seg_Data.data.push_back(msg.getAt(i));
-		seg_Data.bytesReceived ++;
-        
-		//std::cout << msg.getAt(i);
-	} 	
+	}
     
 	std::cout << "ONE SEGMENT END" << std::endl;
 
@@ -1141,6 +1133,12 @@ void CanDriveHarmonica::sendSDOUploadSegmentConfirmation(bool toggleBit) {
 
 void CanDriveHarmonica::finishedSDOSegmentedTransfer() {
 	seg_Data.statusFlag = segData::SDO_SEG_PROCESSING;
+	
+	if( (seg_Data.data.size() != seg_Data.numTotalBytes) & (seg_Data.numTotalBytes != 0) ) {
+		std::cout << "WARNING: SDO tranfer finished but number of collected bytes " 
+			<< seg_Data.data.size() << " != expected number of bytes: " << seg_Data.numTotalBytes << std::endl;
+		//abort processing?
+	}
 	
 	if(seg_Data.objectID == 0x2030) {
 		if(ElmoRec->processData(seg_Data) == 0) seg_Data.statusFlag = segData::SDO_SEG_FREE;

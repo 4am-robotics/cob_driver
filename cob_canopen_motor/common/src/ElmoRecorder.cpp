@@ -150,7 +150,7 @@ int ElmoRecorder::processData(segData& SDOData) {
 	std::cout << "Number of recorded data points: " << iNumDataItems << std::endl;
 
 	//B[3] ... [6] //Floating point factor
-	fFlaotingPointFactor = convertBinaryToFloat( (SDOData.data[6] << 24) | (SDOData.data[5] << 16) | (SDOData.data[4] << 8) | (SDOData.data[3]) );
+	fFloatingPointFactor = convertBinaryToFloat( (SDOData.data[6] << 24) | (SDOData.data[5] << 16) | (SDOData.data[4] << 8) | (SDOData.data[3]) );
 	
 	if( ((SDOData.numTotalBytes-7)/iItemSize) != iNumDataItems) 
 		std::cout << "SDODataSize expected " << ((SDOData.numTotalBytes-7)/iItemSize) << " differs from Num Data Items! " <<  iNumDataItems << std::endl;
@@ -164,12 +164,12 @@ int ElmoRecorder::processData(segData& SDOData) {
 	iItemCount = 0;
 	
 	//extract values from data stream, consider Little Endian conversion for every single object!
-	for(int i=7;i<=SDOData.data.size() - iItemSize -1; i=i+iItemSize) {
+	for(unsigned int i=7;i<=SDOData.data.size() - iItemSize -1; i=i+iItemSize) {
 		if(bCollectFloats) {
-			vfResData[iItemCount][1] = convertBinaryToFloat( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
+			vfResData[iItemCount][1] = fFloatingPointFactor * convertBinaryToFloat( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
 			iItemCount ++;
 		} else {
-			vfResData[iItemCount][1] = (float)( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
+			vfResData[iItemCount][1] = fFloatingPointFactor * (float)( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
 			iItemCount ++;
 		}
 		
