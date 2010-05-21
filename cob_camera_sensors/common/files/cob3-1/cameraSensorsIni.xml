@@ -120,7 +120,7 @@
   <!-- respnsible for emitting the trigger signal to other cameras -->
   <!-- The slave is synchronizing its image acquisition with the trigger signal -->
   <!-- Valid roles: MASTER oR SLAVE -->
-  <Role value="MASTER" />
+  <Role value="SLAVE" />
 
   <!-- Valid values: appropriate framerte or AUTO and DEFAULT -->
   <FrameRate fps="3" />

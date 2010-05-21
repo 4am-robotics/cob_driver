@@ -2,6 +2,8 @@
 typedef unsigned char uint8_t;
 #include <inttypes.h>
 #include <iostream>
+#include <ros/ros.h>
+#include <std_msgs/Float32MultiArray.h>
 #include <cob_forcetorque/ForceTorqueCtrl.h>
 #include <cob_forcetorque/UDPSocketASIO.h>
 
@@ -12,6 +14,11 @@ typedef unsigned char uint8_t;
 
 int main(int argc, char ** argv)
 {
+	bool simu = true;
+	ros::init(argc, argv, "talker");
+  	ros::NodeHandle n;
+  	ros::Publisher force_pub = n.advertise<std_msgs::Float32MultiArray>("force_values", 100);
+
 	ForceTorqueCtrl ftc;
 	SNDServer * m_sender;
 	boost::asio::io_service SND_service;
@@ -28,27 +35,46 @@ int main(int argc, char ** argv)
 	ftc.SetTZGain(60.1009854270179, -400.19573754971, 29.142908672741, -392.119024237625, 70.9306507180567, -478.104759057292);
 
 	ftc.SetCalibMatrix();
-	ftc.Init();
+	if(simu == false)
+		ftc.Init();
 
-	
-	for(int i = 0; i<100; i++)
-	while(1)
+	ros::Rate loop_rate(5);
+	//for(int i = 0; i<100; i++)
+	while(ros::ok())
 	{
 		double Fx, Fy, Fz, Tx, Ty, Tz = 0;
-		ftc.ReadSGData(Fx, Fy, Fz, Tx, Ty, Tz);
-
-		Fx -= -13.4964;
+		
+		if(simu == false)
+			ftc.ReadSGData(Fx, Fy, Fz, Tx, Ty, Tz);
+		else
+		{
+			Fx = 10.0;
+			Fy = -10.0;
+			Fz = 4.0;
+			Tx = 1.5;
+			Ty = -1.0;
+			Tz = 1.2;
+		}
+		std_msgs::Float32MultiArray msg;
+		msg.data.push_back(Fx);
+		msg.data.push_back(Fy);
+		msg.data.push_back(Fz);
+		msg.data.push_back(Tx);
+		msg.data.push_back(Ty);
+		msg.data.push_back(Tz);
+		force_pub.publish(msg);
+/*		Fx -= -13.4964;
 		Fy -= -1.3;
 		Fz -= 18;
-/*
+
 		Tx -= 1.72288; 
 		Ty -= 1.34723;
 		Tz -= -0.460466;*/
 		m_sender->sendForce(Fx, Fy, Fz, Tx, Ty, Tz);
 		SND_service.poll();
-		std::cout<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<" Tx: "<<Tx<<" Ty: "<<Ty<<" Tz: "<<Tz<<std::endl;
-		//out<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<" Tx: "<<Tx<<" Ty: "<<Ty<<" Tz: "<<Tz<<std::endl;
-		usleep(50000);
+		ros::spinOnce();
+		//std::cout<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<" Tx: "<<Tx<<" Ty: "<<Ty<<" Tz: "<<Tz<<std::endl;
+		loop_rate.sleep();
 	}
 	return 0;
 }

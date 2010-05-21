@@ -8,17 +8,17 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_common
- * ROS package name: base_drive_chain
- * Description: custom Mutex implementation
+ * ROS stack name: cob_drivers
+ * ROS package name: cob_generic_can
+ * Description: This class implements the interface to an ESD can node
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
  * Author: Christian Connette, email:christian.connette@ipa.fhg.de
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
- * Date of creation: Feb 2009
- * ToDo: - Remove this class
+ * Date of creation: April 2010
+ * ToDo: - Remove Mutex.h search for a Boost lib
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
@@ -51,60 +51,73 @@
  *
  ****************************************************************/
 
-#ifndef MUTEX_INCLUDEDEF_H
-#define MUTEX_INCLUDEDEF_H
+
+#ifndef CANESD_INCLUDEDEF_H
+#define CANESD_INCLUDEDEF_H
 //-----------------------------------------------
-#include <pthread.h>
 
-const unsigned int INFINITE = 0;
+// general includes
+#include <iostream>
+#include <errno.h>
 
+// Headers provided by other cob-packages
+#include <cob_generic_can/CanItf.h>
 
-class Mutex
+// Headers provided by other cob-packages which should be avoided/removed
+#include <cob_utilities/IniFile.h>
+#include <cob_utilities/windows.h>
+#include <cob_utilities/Mutex.h>
+
+#include <libntcan/ntcan.h>
+
+//-----------------------------------------------
+/**
+ * Driver of the CAN controller of ESD.
+ */
+class CanESD : public CanItf
 {
 private:
-	pthread_mutex_t m_hMutex;
+	BYTE m_DeviceNr;
+	BYTE m_BaudRate;
+	HANDLE m_Handle;
+	int m_LastID;
+	bool m_bObjectMode;
+	bool m_bIsTXError;
+	Mutex m_Mutex;
+
+	IniFile m_IniFile;
+
+	void initIntern();
 
 public:
-	Mutex()
-	{
-		pthread_mutex_init(&m_hMutex, 0);
-	}
+	CanESD(const char* cIniFile, bool bObjectMode = false);
+	~CanESD();
+	void init(){};
+	bool transmitMsg(CanMsg CMsg, bool bBlocking = true);
+	bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry);
+	bool receiveMsg(CanMsg* pCMsg);
+	bool isObjectMode() { return m_bObjectMode; }
+	bool isTransmitError() { return m_bIsTXError; }
+protected:
 
-	Mutex( std::string sName)
-	{
-// no named Mutexes for POSIX
-		pthread_mutex_init(&m_hMutex, 0);
-	}
-
-	~Mutex()
-	{
-		pthread_mutex_destroy(&m_hMutex);
-	}
-
-	/** Returns true if log was successful.
+    /*!
+        \fn CanESD::invert(int id)
+     */
+	/**
+	 * Invert a give ID in 1-complement.
+	 * <b>Note:</b> Only 11 bits are used, i.e. the range is from 0x00 to 0x7FF.
+	 * @param id The id to be inverted.
+	 * @return The inverted id.
 	 */
-	bool lock( unsigned int uiTimeOut = INFINITE )
+	int invert(int id)
 	{
-		int ret;
-
-		if (uiTimeOut == INFINITE)
-		{
-			ret = pthread_mutex_lock(&m_hMutex);
-		}
-		else
-		{
-			timespec abstime = { time(0) + uiTimeOut, 0 };
-			ret = pthread_mutex_timedlock(&m_hMutex, &abstime);
-		}
-
-		return ! ret;
+		return (~id) & 0x7F8;
 	}
+	
+	int canIdAddGroup(HANDLE handle, int id);
 
-	void unlock()
-	{
-		pthread_mutex_unlock(&m_hMutex);
-	}
+	std::string GetErrorStr(int ntstatus) const;
+	int readEvent();
 };
 //-----------------------------------------------
 #endif
-
