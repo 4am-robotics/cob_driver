@@ -60,7 +60,7 @@
 #include <ros/ros.h>
 #include <urdf/model.h>
 #include <actionlib/server/simple_action_server.h>
-#include <cob_actions/JointTrajectoryAction.h>
+#include <pr2_controllers_msgs/JointTrajectoryAction.h>
 
 // ROS message includes
 #include <sensor_msgs/JointState.h>
@@ -96,11 +96,11 @@ class NodeClass
         ros::ServiceServer srvServer_SetOperationMode;
         
         // action lib server
-		actionlib::SimpleActionServer<cob_actions::JointTrajectoryAction> as_;
+		actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
 		std::string action_name_;
 		// create messages that are used to published feedback/result
-		cob_actions::JointTrajectoryFeedback feedback_;
-		cob_actions::JointTrajectoryResult result_;
+		pr2_controllers_msgs::JointTrajectoryFeedback feedback_;
+		pr2_controllers_msgs::JointTrajectoryResult result_;
         
         // declaration of service clients
         //--
@@ -118,6 +118,7 @@ class NodeClass
 		XmlRpc::XmlRpcValue MaxAcc_param;
 		std::vector<double> MaxAcc;
 		bool isInitialized;
+		bool finished_;
 		
 		trajectory_msgs::JointTrajectory traj;
 		trajectory_msgs::JointTrajectoryPoint traj_point;
@@ -130,6 +131,7 @@ class NodeClass
         {
 			isInitialized = false;
 			traj_point_nr = 0;
+			finished_ = false;
 
         	PCube = new PowerCubeCtrl();
         	PCubeParams = new PowerCubeCtrlParams();
@@ -323,13 +325,14 @@ class NodeClass
         }
 */
         
-		void executeCB(const cob_actions::JointTrajectoryGoalConstPtr &goal)
+		void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal)
 		{
 			ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
 			// saving goal into local variables
 			traj = goal->trajectory;
 			traj_point_nr = 0;
 			traj_point = traj.points[traj_point_nr];
+			finished_ = false;
 			
 			// stoping arm to prepare for new trajectory
 			std::vector<double> VelZero;
@@ -343,9 +346,24 @@ class NodeClass
 				// set the action state to preempted
 				as_.setPreempted();
 			}
+			
+			usleep(500000); // needed sleep until sdh starts to change status from idle to moving
+			
+			while(finished_ == false)
+			{
+				if (as_.isNewGoalAvailable())
+				{
+					ROS_WARN("%s: Aborted", action_name_.c_str());
+					as_.setAborted();
+					return;
+				}
+		   		usleep(10000);
+				//feedback_ = 
+				//as_.send feedback_
+			}
 
 			// set the action state to succeed			
-			result_.result.data = "executing trajectory";
+			//result_.result.data = "executing trajectory";
 			ROS_INFO("%s: Succeeded", action_name_.c_str());
 			// set the action state to succeeded
 			as_.setSucceeded(result_);
@@ -506,7 +524,7 @@ class NodeClass
 				    ROS_DEBUG("moving powercubes in position mode");
 			    	if (PCube->statusMoving() == false)
 			    	{
-				    	feedback_.isMoving = false;
+				    	//feedback_.isMoving = false;
 				    	
 				    	ROS_DEBUG("next point is %d from %d",traj_point_nr,traj.points.size());
 				    	
@@ -517,13 +535,14 @@ class NodeClass
 					    	traj_point = traj.points[traj_point_nr];
 					    	PCube->MoveJointSpaceSync(traj_point.positions);
 				    		traj_point_nr++;
-					    	feedback_.isMoving = true;
-					    	feedback_.pointNr = traj_point_nr;
-	    					as_.publishFeedback(feedback_);
+					    	//feedback_.isMoving = true;
+					    	//feedback_.pointNr = traj_point_nr;
+	    					//as_.publishFeedback(feedback_);
 					    }
 					    else
 					    {
 					    	ROS_DEBUG("...reached end of trajectory");
+					    	finished_ = true;
 					    }
 					}
 					else
