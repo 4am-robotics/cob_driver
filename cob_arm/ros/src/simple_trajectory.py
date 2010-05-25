@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import roslib; roslib.load_manifest('cob3_arm')
+import roslib; roslib.load_manifest('cob_arm')
 import rospy
 import actionlib
 
@@ -16,7 +16,7 @@ if __name__ == '__main__':
     goal.trajectory.header.stamp = rospy.Time.now()
     
     # First, the joint names, which apply to all waypoints
-    goal.trajectory.joint_names=["joint_arm1","joint_arm2","joint_arm3","joint_arm4","joint_arm5","joint_arm6","joint_arm7"]
+    goal.trajectory.joint_names=["arm_1_joint","arm_2_joint","arm_3_joint","arm_4_joint","arm_5_joint","arm_6_joint","arm_7_joint"]
 
     # here you specify a list of trajectory points
     point=JointTrajectoryPoint()
