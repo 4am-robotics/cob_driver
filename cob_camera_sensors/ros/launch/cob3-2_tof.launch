@@ -5,7 +5,7 @@
   <node pkg="cob_camera_sensors" type="tof_camera" name="tof_camera" ns="sr4000" cwd="node" respawn="false" output="screen">
 	<param name="configuration_files" value="$(find cob_camera_sensors)/common/files/cob3-2/"/>
 	<param name="camera_index" value="0"/>
-	<param name="tof_camera_type" value="CAM_VIRTUAL"/>
+	<param name="tof_camera_type" value="CAM_SWISSRANGER"/>
 	<!-- The intrinsics of the color sensors are optimized to the following camera -->
 	<param name="tof_camera_intrinsic_type" value="CAM_PROSILICA" />
 	<param name="tof_camera_intrinsic_id" value="0" />
