@@ -50,13 +50,13 @@ public:
     pr2_controllers_msgs::JointTrajectoryGoal goal;
 
     // First, the joint names, which apply to all waypoints
-    goal.trajectory.joint_names.push_back("joint_arm1");
-    goal.trajectory.joint_names.push_back("joint_arm2");
-    goal.trajectory.joint_names.push_back("joint_arm3");
-    goal.trajectory.joint_names.push_back("joint_arm4");
-    goal.trajectory.joint_names.push_back("joint_arm5");
-    goal.trajectory.joint_names.push_back("joint_arm6");
-    goal.trajectory.joint_names.push_back("joint_arm7");
+    goal.trajectory.joint_names.push_back("arm_1_joint");
+    goal.trajectory.joint_names.push_back("arm_2_joint");
+    goal.trajectory.joint_names.push_back("arm_3_joint");
+    goal.trajectory.joint_names.push_back("arm_4_joint");
+    goal.trajectory.joint_names.push_back("arm_5_joint");
+    goal.trajectory.joint_names.push_back("arm_6_joint");
+    goal.trajectory.joint_names.push_back("arm_7_joint");
 
     // We will have two waypoints in this goal trajectory
     goal.trajectory.points.resize(5);
