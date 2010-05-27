@@ -59,6 +59,7 @@
 
 // ROS includes
 #include <ros/ros.h>
+#include <cv_bridge/CvBridge.h>
 
 // ROS message includes
 #include <sensor_msgs/Image.h>
@@ -74,6 +75,9 @@
 //#### PcPublisher class ####
 class PcPublisher
 {
+	private:
+		IplImage* xyz_image_32F3_;	///< Received point cloud form tof sensor
+		sensor_msgs::CvBridge cv_bridge_; ///< Converts ROS image messages to openCV IplImages
     //
     public:
 	    // create a handle for this node, initialize node
@@ -108,11 +112,26 @@ class PcPublisher
 
         // topic callback functions 
         // function will be called when a new message arrives on a topic
-        void topicCallback_xyzImage(const sensor_msgs::Image::ConstPtr& xyz_msg)
+        void topicCallback_xyzImage(const sensor_msgs::Image::ConstPtr& tof_camera_xyz_data)
         {
             ROS_INFO("convert xyz_image to point_cloud");
+            sensor_msgs::PointCloud pc_msg;
 			// create point_cloud message
-			sensor_msgs::PointCloud pc_msg;
+			xyz_image_32F3_ = cv_bridge_.imgMsgToCv(tof_camera_xyz_data, "passthrough");
+			float* f_ptr = 0;
+			for (int row = 0; row < xyz_image_32F3_->height; row++)
+			{
+				f_ptr = (float*)(xyz_image_32F3_->imageData + row*xyz_image_32F3_->widthStep);
+				for (int col = 0; col < xyz_image_32F3_->height; col++)
+				{
+					geometry_msgs::Point32 pt;
+					pt.x = f_ptr[3*col + 0];
+					pt.x = f_ptr[3*col + 1];
+					pt.x = f_ptr[3*col + 2];
+					pc_msg.points.push_back(pt); 
+				}
+			}
+			
 			pc_msg.header.stamp = ros::Time::now();
 			
 			//TODO: fill message with xyz_msg values
