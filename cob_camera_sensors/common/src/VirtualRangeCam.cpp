@@ -278,21 +278,6 @@ unsigned long VirtualRangeCam::Open()
 					}
 
 					if ((dir_itr->path().extension() == ".xml") &&
-						filename.find( "RangeCamDepth_32F1_" + sCameraIndex, 0 ) != std::string::npos)
-					{
-						++rangeImageCounter;
-						//std::cout << "VirtualRangeCam::Open(): Reading '" << dir_itr->path().string() << "\n";
-						m_RangeImageFileNames.push_back(dir_itr->path().string());
-						if (m_ImageWidth == -1 || m_ImageHeight == -1)
-						{
-							image = (IplImage*) cvLoad(m_RangeImageFileNames.back().c_str(), 0);
-							m_ImageWidth = image->width;
-							m_ImageHeight = image->height;
-							cvReleaseImage(&image);
-						}
-					}
-
-					if ((dir_itr->path().extension() == ".xml") &&
 						filename.find( "RangeCamCoordinate_32F3_" + sCameraIndex, 0 ) != std::string::npos)
 					{
 						++coordinateImageCounter;
@@ -316,29 +301,23 @@ unsigned long VirtualRangeCam::Open()
 		}
 		std::sort(m_IntensityImageFileNames.begin(),m_IntensityImageFileNames.end());
 		std::sort(m_AmplitudeImageFileNames.begin(),m_AmplitudeImageFileNames.end());
-		std::sort(m_RangeImageFileNames.begin(),m_RangeImageFileNames.end());
 		std::sort(m_CoordinateImageFileNames.begin(),m_CoordinateImageFileNames.end());
 		std::cout << "INFO - VirtualRangeCam::Open:" << std::endl;
 		std::cout << "\t ... Extracted '" << intensityImageCounter << "' intensity images (16 bit/value)\n";
 		std::cout << "\t ... Extracted '" << amplitudeImageCounter << "' amplitude images (16 bit/value)\n";
-		std::cout << "\t ... Extracted '" << rangeImageCounter << "' range images (16 bit/value)\n";
 		std::cout << "\t ... Extracted '" << coordinateImageCounter << "' coordinate images (3*16 bit/value)\n";
 
-		if (intensityImageCounter == 0)
+		if (intensityImageCounter == 0 && amplitudeImageCounter == 0)
 		{
 			std::cerr << "ERROR - VirtualRangeCam::Open:" << std::endl;
-			std::cerr << "\t ... Could not detect any intensity or range images" << std::endl;
+			std::cerr << "\t ... Could not detect any intensity or amplitude images" << std::endl;
 			std::cerr << "\t ... from the specified directory." << std::endl;
 			return ipa_CameraSensors::RET_FAILED;
 		}
-		/*if (intensityImageCounter != rangeImageCounter)
-		{
-			std::cerr << "ERROR - VirtualRangeCam::Open:" << std::endl;
-			std::cerr << "\t ... Number of intensity and range images must agree." << std::endl;
-			return ipa_CameraSensors::RET_FAILED;
-		}*/
+
 		if (coordinateImageCounter != 0 &&
-			(intensityImageCounter != coordinateImageCounter /*|| rangeImageCounter != coordinateImageCounter*/))
+			intensityImageCounter != coordinateImageCounter &&
+			amplitudeImageCounter != coordinateImageCounter)
 		{
 			std::cerr << "ERROR - VirtualRangeCam::Open:" << std::endl;
 			std::cerr << "\t ... Number of intensity, range and coordinate images must agree." << std::endl;
@@ -351,9 +330,6 @@ unsigned long VirtualRangeCam::Open()
 			std::cerr << "\t ... Coordinate images must be available for calibration mode NATIVE or MATLAB_NO_Z." << std::endl;
 			return ipa_CameraSensors::RET_FAILED;
 		}
-
-		//SetDistortionParameters(m_k1, m_k2, m_p1, m_p2, m_ImageWidth, m_ImageHeight);
-
 	}
 	else
 	{
