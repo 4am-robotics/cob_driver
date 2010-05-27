@@ -60,6 +60,10 @@
 // ROS includes
 #include <ros/ros.h>
 #include <cv_bridge/CvBridge.h>
+#include <image_transport/image_transport.h>
+#include <image_transport/subscriber_filter.h>
+#include <message_filters/sync_policies/approximate_time.h>
+#include <message_filters/synchronizer.h>
 
 // ROS message includes
 #include <sensor_msgs/Image.h>
@@ -70,6 +74,11 @@
 
 // external includes
 //--
+#include <cob_vision_utils/OpenCVUtils.h>
+
+using namespace message_filters;
+
+typedef sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> SyncPolicy;
 
 //####################
 //#### PcPublisher class ####
@@ -77,7 +86,15 @@ class PcPublisher
 {
 	private:
 		IplImage* xyz_image_32F3_;	///< Received point cloud form tof sensor
-		sensor_msgs::CvBridge cv_bridge_; ///< Converts ROS image messages to openCV IplImages
+		IplImage* grey_image_32F1_;	///< Received gray values from tof sensor
+		sensor_msgs::CvBridge cv_bridge_0_; ///< Converts ROS image messages to openCV IplImages
+		sensor_msgs::CvBridge cv_bridge_1_; ///< Converts ROS image messages to openCV IplImages
+		
+		image_transport::ImageTransport image_transport_;       ///< Image transport instance
+
+		
+		message_filters::Synchronizer<SyncPolicy> tof_sync_;
+
     //
     public:
 	    // create a handle for this node, initialize node
@@ -87,7 +104,8 @@ class PcPublisher
         ros::Publisher topicPub_pointCloud_;
         
 	    // topics to subscribe, callback is called for new messages arriving
-        ros::Subscriber topicSub_xyzImage_;
+	    image_transport::SubscriberFilter xyz_image_subscriber_;        ///< Subscribes to xyz image data
+        image_transport::SubscriberFilter grey_image_subscriber_;       ///< Subscribes to gray image data
         
         // service servers
         //--
@@ -100,9 +118,19 @@ class PcPublisher
 
         // Constructor
         PcPublisher()
+           : xyz_image_32F3_(0),
+           	grey_image_32F1_(0),
+           	image_transport_(n_),
+        	tof_sync_(SyncPolicy(3))
         {
-            topicPub_pointCloud_ = n_.advertise<sensor_msgs::PointCloud>("point_cloud", 1);
-            topicSub_xyzImage_ = n_.subscribe("xyz_image", 1, &PcPublisher::topicCallback_xyzImage, this);
+			topicPub_pointCloud_ = n_.advertise<sensor_msgs::PointCloud>("point_cloud", 1);
+			xyz_image_subscriber_.subscribe(image_transport_, "image_xyz", 1);
+			grey_image_subscriber_.subscribe(image_transport_,"image_grey", 1);
+
+			tof_sync_.connectInput(xyz_image_subscriber_, grey_image_subscriber_);
+			tof_sync_.registerCallback(boost::bind(&PcPublisher::syncCallback, this, _1, _2));
+
+           // topicSub_xyzImage_ = n_.subscribe("xyz_image", 1, &PcPublisher::topicCallback_xyzImage, this);
         }
         
         // Destructor
@@ -112,12 +140,15 @@ class PcPublisher
 
         // topic callback functions 
         // function will be called when a new message arrives on a topic
-        void topicCallback_xyzImage(const sensor_msgs::Image::ConstPtr& tof_camera_xyz_data)
+        void syncCallback(const sensor_msgs::Image::ConstPtr& tof_camera_xyz_data, const sensor_msgs::Image::ConstPtr& tof_camera_grey_data)
         {
             ROS_INFO("convert xyz_image to point_cloud");
             sensor_msgs::PointCloud pc_msg;
 			// create point_cloud message
-			xyz_image_32F3_ = cv_bridge_.imgMsgToCv(tof_camera_xyz_data, "passthrough");
+			xyz_image_32F3_ = cv_bridge_0_.imgMsgToCv(tof_camera_xyz_data, "passthrough");
+			grey_image_32F1_ = cv_bridge_1_.imgMsgToCv(tof_camera_grey_data, "passthrough");
+	       ipa_Utils::MaskImage2(xyz_image_32F3_, xyz_image_32F3_, grey_image_32F1_, grey_image_32F1_, 500, 65000, 3);
+
 			float* f_ptr = 0;
 			for (int row = 0; row < xyz_image_32F3_->height; row++)
 			{

@@ -30,3 +30,6 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #target_link_libraries(example ${PROJECT_NAME})
 
 rosbuild_add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp)
+
+# add compile flag
+rosbuild_add_compile_flags(${PROJECT_NAME} -D__LINUX__ -D__COB_ROS__)
