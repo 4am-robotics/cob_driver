@@ -85,43 +85,32 @@ typedef sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> S
 class PcPublisher
 {
 	private:
-		IplImage* xyz_image_32F3_;	///< Received point cloud form tof sensor
-		IplImage* grey_image_32F1_;	///< Received gray values from tof sensor
-		sensor_msgs::CvBridge cv_bridge_0_; ///< Converts ROS image messages to openCV IplImages
-		sensor_msgs::CvBridge cv_bridge_1_; ///< Converts ROS image messages to openCV IplImages
+		ros::NodeHandle n_; ///< ROS node handle
 		
+		// topics to subscribe, callback is called for new messages arriving
 		image_transport::ImageTransport image_transport_;       ///< Image transport instance
-
-		
-		message_filters::Synchronizer<SyncPolicy> tof_sync_;
-
-    //
-    public:
-	    // create a handle for this node, initialize node
-	    ros::NodeHandle n_;
-                
-        // topics to publish
-        ros::Publisher topicPub_pointCloud_;
-        
-	    // topics to subscribe, callback is called for new messages arriving
 	    image_transport::SubscriberFilter xyz_image_subscriber_;        ///< Subscribes to xyz image data
         image_transport::SubscriberFilter grey_image_subscriber_;       ///< Subscribes to gray image data
         
-        // service servers
-        //--
-            
-        // service clients
-        //--
+        message_filters::Synchronizer<SyncPolicy> tof_sync_;
         
-        // global variables
-        //--
-
+        sensor_msgs::CvBridge cv_bridge_0_; ///< Converts ROS image messages to openCV IplImages
+		sensor_msgs::CvBridge cv_bridge_1_; ///< Converts ROS image messages to openCV IplImages
+     		
+		IplImage* xyz_image_32F3_;	///< Received point cloud form tof sensor
+		IplImage* grey_image_32F1_;	///< Received gray values from tof sensor
+		                
+        // topics to publish
+        ros::Publisher topicPub_pointCloud_;
+    public:
+	    
         // Constructor
         PcPublisher()
-           : xyz_image_32F3_(0),
-           	grey_image_32F1_(0),
-           	image_transport_(n_),
-        	tof_sync_(SyncPolicy(3))
+        	: image_transport_(n_),
+        	tof_sync_(SyncPolicy(3)),
+        	xyz_image_32F3_(0),
+           	grey_image_32F1_(0)
+           	
         {
 			topicPub_pointCloud_ = n_.advertise<sensor_msgs::PointCloud>("point_cloud", 1);
 			xyz_image_subscriber_.subscribe(image_transport_, "image_xyz", 1);
