@@ -97,6 +97,7 @@ class NodeClass
         ros::ServiceServer srvServer_Shutdown;
         ros::ServiceServer srvServer_SetMotionType;
         ros::ServiceServer srvServer_GetJointState;
+        ros::ServiceServer srvServer_ElmoRecorder;
             
         // service clients
         //--
@@ -106,6 +107,8 @@ class NodeClass
 		CanCtrlPltfCOb3 m_CanCtrlPltf;
 		bool m_bisInitialized;
         int m_iNumMotors;
+        
+        bool m_bEvalCanMsg;
 
     	struct ParamType
 	    { 
@@ -117,27 +120,29 @@ class NodeClass
 	    ParamType m_Param;
 		std::string sIniDirectory;
 
-        // Constructor
-        NodeClass()
-        {
+		// Constructor
+		NodeClass()
+		{
 			// initialization of variables
 			m_bisInitialized = false;
 			m_iNumMotors = 8;
+			m_bEvalCanMsg = false;
 			
 			// implementation of topics
-            // published topics
-            topicPub_JointState = n.advertise<sensor_msgs::JointState>("JointState", 1);
-            topicPub_Diagnostic = n.advertise<diagnostic_msgs::DiagnosticStatus>("Diagnostic", 1);
-            // subscribed topics
-            topicSub_JointStateCmd = n.subscribe("JointStateCmd", 1, &NodeClass::topicCallback_JointStateCmd, this);
+			// published topics
+			topicPub_JointState = n.advertise<sensor_msgs::JointState>("JointState", 1);
+			topicPub_Diagnostic = n.advertise<diagnostic_msgs::DiagnosticStatus>("Diagnostic", 1);
+			// subscribed topics
+			topicSub_JointStateCmd = n.subscribe("JointStateCmd", 1, &NodeClass::topicCallback_JointStateCmd, this);
 
-            // implementation of service servers
-            srvServer_Init = n.advertiseService("Init", &NodeClass::srvCallback_Init, this);
-            srvServer_Reset = n.advertiseService("Reset", &NodeClass::srvCallback_Reset, this);
-            srvServer_Shutdown = n.advertiseService("Shutdown", &NodeClass::srvCallback_Shutdown, this);
-            //srvServer_isPltfError = n.advertiseService("isPltfError", &NodeClass::srvCallback_isPltfError, this); --> Publish this along with JointStates
-            srvServer_GetJointState = n.advertiseService("GetJointState", &NodeClass::srvCallback_GetJointState, this);
-        }
+			// implementation of service servers
+			srvServer_Init = n.advertiseService("Init", &NodeClass::srvCallback_Init, this);
+            srvServer_ElmoRecorder = n.advertiseService("ElmoRecorder", &NodeClass::srvCallback_ElmoRecorder, this);
+			srvServer_Reset = n.advertiseService("Reset", &NodeClass::srvCallback_Reset, this);
+			srvServer_Shutdown = n.advertiseService("Shutdown", &NodeClass::srvCallback_Shutdown, this);
+			//srvServer_isPltfError = n.advertiseService("isPltfError", &NodeClass::srvCallback_isPltfError, this); --> Publish this along with JointStates
+			srvServer_GetJointState = n.advertiseService("GetJointState", &NodeClass::srvCallback_GetJointState, this);
+		}
         
         // Destructor
         ~NodeClass() 
@@ -218,6 +223,17 @@ class NodeClass
             }            
             return true;
         }
+		
+		bool srvCallback_ElmoRecorder(cob_srvs::Switch::Request &req,
+                              cob_srvs::Switch::Response &res ){
+                              
+			m_CanCtrlPltf.printElmoRecordings("~/myRec");
+			m_bEvalCanMsg = true;
+			
+			return true;
+		}
+		
+		
 		
 		// reset Can-Configuration
         bool srvCallback_Reset(cob_srvs::Switch::Request &req,
@@ -400,15 +416,18 @@ int main(int argc, char** argv)
  	
 	// currently only waits for callbacks -> if it should run cyclical
 	// -> specify looprate
- 	// ros::Rate loop_rate(10); // Hz 
+	ros::Rate loop_rate(50); // Hz
 
 
     
-    while(nodeClass.n.ok())
+	while(nodeClass.n.ok())
     {
-
-
-        ros::spinOnce();
+		ros::spinOnce();
+		
+		if(nodeClass.m_bEvalCanMsg == true) {
+			nodeClass.m_CanCtrlPltf.evalCanBuffer();
+		}
+		
 		// -> let it sleep for a while
         //loop_rate.sleep();
     }
@@ -462,5 +481,5 @@ bool NodeClass::initDrives()
 	// debug log
 	ROS_INFO("Initializing done");
 
-    return bTemp1;
+	return bTemp1;
 }

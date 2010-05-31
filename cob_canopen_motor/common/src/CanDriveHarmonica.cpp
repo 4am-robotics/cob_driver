@@ -92,7 +92,9 @@ CanDriveHarmonica::CanDriveHarmonica()
 	m_bOutputOfFailure = false;
 	
 	m_bIsInitialized = false;
+	
 
+	ElmoRec = new ElmoRecorder(this);
 
 }
 
@@ -210,7 +212,7 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 
 			std::cout << "pm " << iPara << std::endl;
 		}
-		
+
 		else if( (msg.getAt(0) == 'A') && (msg.getAt(1) == 'C') )
 		{
 			iPara = (msg.getAt(7) << 24) | (msg.getAt(6) << 16)
@@ -218,7 +220,7 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 
 			std::cout << "ac " << iPara << std::endl;
 		}
-		
+
 		else if( (msg.getAt(0) == 'D') && (msg.getAt(1) == 'C') )
 		{
 			iPara = (msg.getAt(7) << 24) | (msg.getAt(6) << 16)
@@ -243,7 +245,15 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 			float* pfVal;
 			pfVal=(float*)&iVal;
 			m_dMotorCurr = *pfVal;			
-		}		
+		}	
+		else if( (msg.getAt(0) == 'R') && (msg.getAt(1) == 'R') )
+		{
+			
+			iPara = (msg.getAt(7) << 24) | (msg.getAt(6) << 16)
+				| (msg.getAt(5) << 8) | (msg.getAt(4) );
+
+			std::cout << "Answer from Recorder: RR = " << iPara << std::endl; //-1: No valid data in recorder, 0: action finished and recorder filled
+		}	
 		else
 		{
 		}
@@ -258,12 +268,19 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 	if (msg.m_iID == m_ParamCanOpen.iTxSDO)
 	{
 		m_WatchdogTime.SetNow();
-        
-        if( (msg.getAt(0) >> 5) == 0) { //Received Upload SDO Segment (scs = 0)
-            receivedSDODataSegment(msg);
-        } else if( (msg.getAt(0) & 0x02) == 0) { //Received Initiate SDO Upload, that is not expedited -> start segmented upload (scs = 2 AND expedited flag = 0)
-            receivedSDODataSegment(msg);
-        }
+
+		if( (msg.getAt(0) >> 5) == 0) { //Received Upload SDO Segment (scs = 0)
+			receivedSDODataSegment(msg);
+			std::cout << "SDO Segment received" << std::endl;
+			
+		} else if( (msg.getAt(0) & 0xE2) == 0x40) { //Received Initiate SDO Upload, that is not expedited -> start segmented upload (scs = 2 AND expedited flag = 0)
+			receivedSDOSegmentedInitiation(msg);
+			std::cout << "SDO Initiate Segmented Upload, Object ID: " << (msg.getAt(1) | (msg.getAt(2) << 8) ) << std::endl;
+			
+		} else if( (msg.getAt(0) >> 5) == 4) { // Received an Abort SDO Transfer message, cs = 4
+			unsigned int iErrorNum = (msg.getAt(4) | msg.getAt(5) << 8 | msg.getAt(6) << 16 | msg.getAt(7) << 24);
+			receivedSDOTransferAbort(iErrorNum);
+		}
 
 		bRet = true;
 	}
@@ -345,7 +362,7 @@ bool CanDriveHarmonica::init()
 	m_bWatchdogActive = false;
 	
 	if( bRet )
-		 m_bIsInitialized = true;
+		m_bIsInitialized = true;
 	 
 	return bRet;	
 }
@@ -926,6 +943,10 @@ void CanDriveHarmonica::IntprtSetFloat(int iDataLen, char cCmdChar1, char cCmdCh
 }
 
 //-----------------------------------------------
+// SDO Communication Protocol, most functions are used for general SDO Segmented Transfer
+//-----------------------------------------------
+
+//-----------------------------------------------
 void CanDriveHarmonica::sendSDOUpload(int iObjIndex, int iObjSubIndex)
 {
 	CanMsg CMsgTr;
@@ -950,7 +971,7 @@ void CanDriveHarmonica::sendSDOUpload(int iObjIndex, int iObjSubIndex)
 }
 
 //-----------------------------------------------
-void CanDriveHarmonica::sendSDOAbort(int iObjIndex, int iObjSubIndex, int errCode)
+void CanDriveHarmonica::sendSDOAbort(int iObjIndex, int iObjSubIndex, unsigned int iErrorCode)
 {
 	CanMsg CMsgTr;
 	const int ciAbortTransferReq = 0x04 << 5;
@@ -964,13 +985,19 @@ void CanDriveHarmonica::sendSDOAbort(int iObjIndex, int iObjSubIndex, int errCod
 	cMsg[1] = iObjIndex;
 	cMsg[2] = iObjIndex >> 8;
 	cMsg[3] = iObjSubIndex;
-	cMsg[4] = errCode;
-	cMsg[5] = errCode >> 8;
-	cMsg[6] = errCode >> 16;
-	cMsg[7] = errCode >> 24;
+	cMsg[4] = iErrorCode;
+	cMsg[5] = iErrorCode >> 8;
+	cMsg[6] = iErrorCode >> 16;
+	cMsg[7] = iErrorCode >> 24;
 
 	CMsgTr.set(cMsg[0], cMsg[1], cMsg[2], cMsg[3], cMsg[4], cMsg[5], cMsg[6], cMsg[7]);
 	m_pCanCtrl->transmitMsg(CMsgTr);
+}
+
+//-----------------------------------------------
+void CanDriveHarmonica::receivedSDOTransferAbort(unsigned int iErrorCode){
+	std::cout << "SDO Abort Transfer received with error code: " << iErrorCode;
+	seg_Data.statusFlag = segData::SDO_SEG_FREE;
 }
 
 //-----------------------------------------------
@@ -1015,6 +1042,108 @@ int CanDriveHarmonica::getSDODataInt32(CanMsg& CMsg)
 		(CMsg.getAt(5) << 8) | CMsg.getAt(4);
 
 	return iData;
+}
+
+//-----------------------------------------------
+int CanDriveHarmonica::receivedSDOSegmentedInitiation(CanMsg& msg) {
+
+	if(seg_Data.statusFlag == segData::SDO_SEG_WAITING) { //only accept new SDO Segmented Upload if seg_Data is waitning for
+		seg_Data.resetTransferData();
+		seg_Data.statusFlag = segData::SDO_SEG_COLLECTING;
+
+		//read out objectIDs
+		evalSDO(msg, &seg_Data.objectID, &seg_Data.objectSubID);
+
+		//data in byte 4 to 7 contain the number of bytes to be uploaded (if Size indicator flag is set)
+		if( (msg.getAt(0) & 0x01) == 1) {
+			seg_Data.numTotalBytes = msg.getAt(7) << 24 | msg.getAt(6) << 16 | msg.getAt(5) << 8 | msg.getAt(4);
+		} else seg_Data.numTotalBytes = 0;
+
+		sendSDOUploadSegmentConfirmation(seg_Data.toggleBit);
+	}
+
+	return 0;
+
+}
+
+//-----------------------------------------------
+int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
+
+	int numEmptyBytes = 0;
+
+	//Read SDO Upload Protocol:
+	//Byte 0: SSS T NNN C | SSS=Cmd-Specifier, T=ToggleBit, NNN=num of empty bytes, C=Finished
+	//Byte 1 to 7: Data
+
+	if( (msg.getAt(0) & 0x10) != (seg_Data.toggleBit << 4) ) { 
+		std::cout << "Toggle Bit error, send Abort SDO with \"Toggle bit not alternated\" error" << std::endl;
+		sendSDOAbort(seg_Data.objectID, seg_Data.objectSubID, 0x05030000); //Send SDO Abort with error code Toggle-Bit not alternated
+		return 1;
+	}
+        
+	if( (msg.getAt(0) & 0x01) == 0x00) { //Is finished-bit not set?
+		seg_Data.statusFlag = segData::SDO_SEG_COLLECTING;
+	} else {
+		seg_Data.statusFlag = segData::SDO_SEG_PROCESSING;
+	};
+
+	numEmptyBytes = (msg.getAt(0) >> 1) & 0x07;
+	std::cout << "NUM empty bytes in SDO :" << numEmptyBytes << std::endl;
+	
+	for(int i=1; i<=7-numEmptyBytes; i++) {
+		seg_Data.data.push_back(msg.getAt(i));
+	}
+    
+	std::cout << "ONE SEGMENT END" << std::endl;
+
+	if(seg_Data.statusFlag == segData::SDO_SEG_PROCESSING) {
+		finishedSDOSegmentedTransfer();		
+	} else {
+		seg_Data.toggleBit = !seg_Data.toggleBit;
+		sendSDOUploadSegmentConfirmation(seg_Data.toggleBit);
+	}
+		
+	return 0;
+}
+
+//-----------------------------------------------
+void CanDriveHarmonica::sendSDOUploadSegmentConfirmation(bool toggleBit) {
+
+	CanMsg CMsgTr;
+	int iConfirmSegment = 0x60; //first three bits must be css = 3 : 011 00000
+	iConfirmSegment = iConfirmSegment | (toggleBit << 4); //fourth bit is toggle bit: 011T0000
+	
+	CMsgTr.m_iLen = 8;
+	CMsgTr.m_iID = m_ParamCanOpen.iRxSDO;
+
+	unsigned char cMsg[8];
+	
+	cMsg[0] = iConfirmSegment;
+	cMsg[1] = 0x00;
+	cMsg[2] = 0x00;
+	cMsg[3] = 0x00;
+	cMsg[4] = 0x00;
+	cMsg[5] = 0x00;
+	cMsg[6] = 0x00;
+	cMsg[7] = 0x00;
+
+	CMsgTr.set(cMsg[0], cMsg[1], cMsg[2], cMsg[3], cMsg[4], cMsg[5], cMsg[6], cMsg[7]);
+	m_pCanCtrl->transmitMsg(CMsgTr);
+}
+
+//-----------------------------------------------
+void CanDriveHarmonica::finishedSDOSegmentedTransfer() {
+	seg_Data.statusFlag = segData::SDO_SEG_PROCESSING;
+	
+	if( (seg_Data.data.size() != seg_Data.numTotalBytes) & (seg_Data.numTotalBytes != 0) ) {
+		std::cout << "WARNING: SDO tranfer finished but number of collected bytes " 
+			<< seg_Data.data.size() << " != expected number of bytes: " << seg_Data.numTotalBytes << std::endl;
+		//abort processing?
+	}
+	
+	if(seg_Data.objectID == 0x2030) {
+		if(ElmoRec->processData(seg_Data) == 0) seg_Data.statusFlag = segData::SDO_SEG_FREE;
+	}
 }
 
 //-----------------------------------------------
@@ -1235,129 +1364,54 @@ void CanDriveHarmonica::getMotorTorque(double* dTorqueNm)
 	
 }
 
-//-----------------------------------------------
-//Upload data from Elmo Recorder, cpc-pk
-
-
-//-----------------------------------------------
-int CanDriveHarmonica::initiateSDOSegmentedUpload(CanMsg& msg) {
-/*
-    m_SDOSegmentToggleBit = 0;
-
-    if(rec_Data.locked == false) { //only accept new SDO Segmented Upload if rec_Data message is open for write
-        rec_Data.resetTransferData();
-
-        //read out objectIDs
-        evalSDO(msg, &rec_Data.objectID, &rec_Data.objectSubID);
-
-        //data in byte 4 to 7 contain the number of bytes to be uploaded (if Size indicator flag is set)
-        if( (msg.getAt(0) & 0x01) == 1) {
-            rec_Data.numTotalBytes = msg.getAt(4) | msg.getAt(5) << 8 | msg.getAt(6) << 16 | msg.getAt(7) << 24;
-        } else rec_Data.numTotalBytes = 0;
-
-        sendSDOUploadSegmentConfirmation(m_SDOSegmentToggleBit);
-    }
-*/
-    return 0;
-
-}
-
-//-----------------------------------------------
-int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
-/*
-    int numEmptyBytes = 0;    
-
-    if( (msg.getAt(0) & 0x10) != (m_SDOSegmentToggleBit << 4) ) { 
-        //std::cout << "Toggle Bit error, send Abort SDO with \"Toggle bit not alternated\" error" << std::endl;
-        sendSDOAbort(rec_Data.objectID, rec_Data.objectSubID, 0x05030000);
-        return 1;
-    }
-        
-    if( (msg.getAt(0) & 0x01) == 0x00) { //Finished bit is set
-        rec_Data.finishedTransmission = false;
-    } else {
-        rec_Data.finishedTransmission = true;
-        rec_Data.locked = true;
-    };
-
-    numEmptyBytes = (msg.getAt(0) >> 1) & 0x07; //Byte 1: SSS T NNN C | SSS=Cmd-Specifier, T=ToggleBit, NNN=num of empty bytes, C=Finished
-    //std::cout << std::endl << "NUM unused bytes :" << numEmptyBytes << std::endl;
-    //For now, get all bytes, even empty/unused ones!
-    numEmptyBytes = 0;
-
-    for(int i=7-numEmptyBytes;i>=1;i--) { //because of "little endian", start to read bytes from the "end" to the beginning
-        rec_Data.data.push_back(msg.getAt(i));
-        rec_Data.bytesReceived ++;
-        
-        std::cout << msg.getAt(i);
-    }
-    
-    //std::cout << "MESSAGE END" << std::endl;
-
-    m_SDOSegmentToggleBit = !m_SDOSegmentToggleBit;
-    if(!rec_Data.finishedTransmission) sendSDOUploadSegmentConfirmation(m_SDOSegmentToggleBit);
-
-*/
-
-    return 0;
-}
-
-void CanDriveHarmonica::sendSDOUploadSegmentConfirmation(bool toggleBit) {
-/*
-    CanMsg CMsgTr;
-    int iConfirmSegment = 0x60; //first three bits must be css = 3 : 011 00000
-    iConfirmSegment = iConfirmSegment | (toggleBit << 4); //fourth bit is toggle bit: 011T0000
-	
-	CMsgTr.m_iLen = 8;
-	CMsgTr.m_iID = m_ParamCanOpen.iRxSDO;
-
-	unsigned char cMsg[8];
-	
-	cMsg[0] = iConfirmSegment;
-	cMsg[1] = 0x00;
-	cMsg[2] = 0x00;
-	cMsg[3] = 0x00;
-	cMsg[4] = 0x00;
-	cMsg[5] = 0x00;
-	cMsg[6] = 0x00;
-	cMsg[7] = 0x00;
-
-	CMsgTr.set(cMsg[0], cMsg[1], cMsg[2], cMsg[3], cMsg[4], cMsg[5], cMsg[6], cMsg[7]);
-	m_pCanCtrl->transmitMsg(CMsgTr);
-*/
-}
 
 
 //----------------
 //----------------
-//Functions that proceed Elmo recorder readout
+//Function, that proceeds (Elmo-) recorder readout
 
 //-----------------------------------------------
-bool CanDriveHarmonica::collectRecordedData(int flag, recData ** output) {
-/*
-    //returns true if collecting has finished
+int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 
-    int iObjIndex, iObjSubIndex;
+	switch(iFlag) {
+		case 0: //Configure Elmo Recorder for new Record, param = iRecordingGap, which specifies every which time quantum (4*90usec) a new data point is recorded
+			ElmoRec->configureElmoRecorder(iParam);
+			return 0;
+					
+		case 1: //Query upload of previous recorded data, data is being proceeded after complete upload, param = recorded ID, filename
+			if(seg_Data.statusFlag == segData::SDO_SEG_FREE) {
+				ElmoRec->sLogFilename = sParam;
+				ElmoRec->readoutRecorder(1 << iParam); //shift this bit, according to the specified recording sources in RC
+				seg_Data.statusFlag = segData::SDO_SEG_WAITING;
+				return 0;
+			} else {
+				std::cout << "Previous transmission not finished or colected data hasn't been proceeded yet" << std::endl;
+				return 2;
+			}
+			
+			break;
+			
+		case 2: //request status, still collecting data?
+			if(seg_Data.statusFlag == segData::SDO_SEG_COLLECTING) {
+				std::cout << "Transmission of data is still in progress" << std::endl;
+				return 2;
+			} else if(seg_Data.statusFlag == segData::SDO_SEG_PROCESSING) {
+				std::cout << "Transmission of data finished, data not proceeded yet" << std::endl;
+				return 3;
+			} else if(seg_Data.statusFlag == segData::SDO_SEG_WAITING) {
+				std::cout << "Still waiting for transmission to begin" << std::endl;
+				return 2;			
+			} else { //finished transmission and finished proceeding
+				return 0;
+			}
+			
+			break;
+			
+		case 99: //Abort ongoing SDO data Transmission and clear collected data
+			sendSDOAbort(0x2030, 0x00, 0x08000020); //send general error abort
+			seg_Data.resetTransferData(); //!overwrites previous collected data (even from other processes)
+			return 0;
+	}
 
-    if(flag == 0) { //flag = 0: clear recordings and query new upload
-        //initialize Upload of Recorded Data (object 0x2030)
-        rec_Data.locked = false;
-        
-        iObjIndex = 0x2030;
-        iObjSubIndex = 1 << 0; //shift this bit, according to the specified recording sources in RC
-        sendSDOUpload(iObjIndex, iObjSubIndex);
-
-    } else if(flag == 1) { //flag = 1: give back data or continue collecting
-        if(rec_Data.finishedTransmission == true) {
-            *output = &rec_Data;
-            return true;
-        } else {
-            *output = NULL;
-            return false;
-        }
-    }
-
-*/
-    return false;
+	return 0;
 }
-

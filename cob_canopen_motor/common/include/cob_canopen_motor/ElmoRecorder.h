@@ -8,9 +8,9 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob_drivers
- * ROS package name: cob_canopen_motor
- * Description: Holds data, that is collected during a SDO Segmented Upload process
+ * ROS stack name: cob3_common
+ * ROS package name: canopen_motor
+ * Description: This class provides functions to read out and log recorded data by the built in Elmo Recorder via CAN-protocol.
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
@@ -51,58 +51,45 @@
  *
  ****************************************************************/
 
-#ifndef _RecorderData_H
-#define _RecorderData_H
+#ifndef _ElmoRecorder_H
+#define _ElmoRecorder_H
 
-#include <vector>
+#include <string>
+#include <cob_canopen_motor/SDOSegmented.h>
 
-class segData {
+class CanDriveHarmonica;
 
-	public:    
+class ElmoRecorder {
+	public:
+		
+		ElmoRecorder(CanDriveHarmonica * pParentHarmonicaDrive);
 
-		enum SDOStatusFlag {
-			SDO_SEG_FREE = 0,
-			SDO_SEG_WAITING = 3,
-			SDO_SEG_COLLECTING = 2,
-			SDO_SEG_PROCESSING = 1,
-		};
-
-		segData() {
-			objectID = 0x0000;
-			objectSubID = 0x00;
-			toggleBit = false;
-			statusFlag = SDO_SEG_FREE;
-		}
-
-		~segData() {}
-
-		void resetTransferData() {
-			data.clear();
-			objectID = 0x0000;
-			objectSubID = 0x00;
-			toggleBit = false;
-			statusFlag = SDO_SEG_FREE;
-		}
-
-		//public attributes
-		//all attributes are public, as this class is used only as ~data array
-
-		/*combines different status flags and represents the workflow from 3 to 0: 
-			3: SDORequest sent, waiting for transmission !If you are expecting a Segmented answer, this must be set during the request!
-			2: SDO process initiated, collecting data
-			1: finished transmission, waiting for data processing
-			0: SDO workflow finished, free for new transmission
+		~ElmoRecorder();
+		
+		int processData(segData& SDOData);
+		
+		/** 
+		* Configures the Elmo Recorder (internal) to log internal data with high frequency
+		* (This can be used for identification of the drive chain)
+		* @param iRecordingGap iRecordingGap = N indicates that a new sample should be taken once per N time quanta (= 4 * 90 usec)
 		*/
-		int statusFlag;
-
-		int objectID;
-		int objectSubID;
-
-		bool toggleBit;
-
-		unsigned int numTotalBytes; //contains the number of bytes to be uploaded (if specified)
-
-		std::vector<unsigned char> data; //this vector holds received bytes as a stream.
+		int configureElmoRecorder(int iRecordingGap);
+		
+		int readoutRecorder(int iObjSubIndex);
+		
+		int logToFile(std::string filename, std::vector<float> vtValues[]);
+		
+		//Attributes
+		std::string sLogFilename;
+		
+	private:
+	
+		unsigned int m_iCurrentObject;
+		float m_fRecordingStepSec;
+	
+		CanDriveHarmonica* pHarmonicaDrive;
+		
+		float convertBinaryToFloat(unsigned int binaryRepresentation);
 };
 
 #endif

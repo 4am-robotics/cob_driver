@@ -255,9 +255,9 @@ public:
 	virtual void IntprtSetInt(int iDataLen, char cCmdChar1, char cCmdChar2, int iIndex, int iData) = 0;
 
     /**
-     *Read out Recorder Data from Elmo Controller. cpc-pk
+     *Provides several functions for recording purposes. By now, only implemented for the Elmo-recorder. cpc-pk
      */
-    virtual bool collectRecordedData(int flag, recData ** output) = 0;
+    virtual	int setRecorder(int iFlag, int iParam = 0, std::string sParam = "/home/MyLog") = 0;
 
 	/**
 	 * Sends Requests for "active current" to motor via CAN

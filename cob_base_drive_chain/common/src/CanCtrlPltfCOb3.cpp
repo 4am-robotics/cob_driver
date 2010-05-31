@@ -1292,62 +1292,18 @@ void CanCtrlPltfCOb3::setMotorTorque(int iCanIdent, double dTorqueNm)
 	m_Mutex.unlock();
 }
 
-
-
-//-----------------------------------------------
-// Configuration of Elmo-Recorder
-//-----------------------------------------------
-
-//-----------------------------------------------
-void CanCtrlPltfCOb3::configureElmoRecorder(int iRecordingGap)
-{
-
-	m_Mutex.lock();
-
-	// Recorder for each single drive will be configured
-	for(unsigned int i = 0; i < m_vpMotor.size(); i++)
-	{
-		m_vpMotor[i]->IntprtSetInt(8, 'R', 'R', 0, -1);	// Stop Recorder if it's active
-		// Record Main speed (index 0, ID1) 
-		// Active Current (index 9, ID10)
-		// Main Position (index 1, ID2)
-		// Speed Command (index 15, ID16)
-		// RC = 2^(Signal1Index) + 2^(Signal2Index) + ..; e.g.: 2^0 + 2^1 + 2^9 + 2^15 = 33283;
-		m_vpMotor[i]->IntprtSetInt(8, 'R', 'C', 0, 33283);	
-		// Set Recording Length
-		// RL = (4096 / Number of Signals)
-		m_vpMotor[i]->IntprtSetInt(8, 'R', 'L', 0, 1024);
-		// Set Time Quantum, Default: RP=0 -> TS * 4; TS is 90us by default
-		m_vpMotor[i]->IntprtSetInt(8, 'R', 'P', 0, 0);
-		// Set Recording Gap
-		m_vpMotor[i]->IntprtSetInt(8, 'R', 'G', 0, iRecordingGap);	
-		// ----> Total Recording Time = 90us * 4 * RG * RL
-		// Arm Recorder, by Trigger Event of "BG"-Command (Begin Motion)
-		m_vpMotor[i]->IntprtSetInt(8, 'R', 'R', 0, 1);	
-	}
-
-	m_Mutex.unlock();
-
-}
-
 //-----------------------------------------------
 // Read out Elmo-Recorder via CAN (cpc-pk)
 //-----------------------------------------------
 
 //-----------------------------------------------
-bool CanCtrlPltfCOb3::printElmoRecordings(std::string LogDirectory) {
-    m_Mutex.lock();
-    
-    recData *dataOut;
-    m_vpMotor[1]->collectRecordedData(0, &dataOut); //Motor 1 -> steering motor
+bool CanCtrlPltfCOb3::printElmoRecordings(std::string Filename) {
+	//Motor 1 -> steering motor
+	m_vpMotor[1]->setRecorder(0, 10); //Configure Elmo Recorder with RecordingGap and start immediately
 
-    while(m_vpMotor[1]->collectRecordedData(1, &dataOut) == false) {
-        usleep(1000);
-    }
+	usleep(5000000); //5sec
 
-    return true;
+	m_vpMotor[1]->setRecorder(1, 0, Filename); //Query Readout of Index to Log Directory
 
-    m_Mutex.unlock();
+	return true;
 }
-
-

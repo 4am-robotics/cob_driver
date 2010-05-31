@@ -228,18 +228,11 @@ public:
 
 	//--------------------------------- Commands specific for a certain motor controller
 	// have to be implemented here, to keep the CanDriveItf generic
-    /** 
-	 * Configures the Elmo Recorder (internal) to log internal data with high frequency
-	 * (This can be used for identification of the drive chain
-	 * data is downloaded via the Elmo's serial interface
-	 * @param iRecordingGap Sleep Time before Recording starts (check whether this is correct)
-	 */
-	void configureElmoRecorder(int iRecordingGap);
 
     /**
      *Receives recorded data from Elmos via CAN and saves them into LOG-files
      */
-    bool printElmoRecordings(std::string LogDirectory);
+    bool printElmoRecordings(std::string Filename);
 
 
 	//--------------------------------- Commands for other nodes

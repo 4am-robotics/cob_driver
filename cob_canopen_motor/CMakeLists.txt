@@ -33,4 +33,4 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/lib)
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 # add project libs
-rosbuild_add_library(${PROJECT_NAME}_harmonica common/src/CanDriveHarmonica.cpp)
+rosbuild_add_library(${PROJECT_NAME}_harmonica common/src/CanDriveHarmonica.cpp common/src/ElmoRecorder.cpp)
