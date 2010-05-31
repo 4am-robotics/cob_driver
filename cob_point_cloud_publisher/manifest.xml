@@ -1,0 +1,18 @@
+<package>
+  <description brief="cob_point_cloud_publisher">
+
+     cob_point_cloud_publisher
+
+  </description>
+  <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_point_cloud_publisher</url>
+  
+  <depend package="sensor_msgs"/>
+  <depend package="cob_camera_sensors"/>
+  <depend package="cob_vision_utils"/>
+
+</package>
+
+
