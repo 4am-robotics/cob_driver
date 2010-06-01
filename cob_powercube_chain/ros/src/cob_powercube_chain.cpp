@@ -275,6 +275,8 @@ class NodeClass
 				//std::cout << "Offset[" << JointNames_[i].c_str() << "] = " << Offsets[i] << std::endl;
 			}
 			PCubeParams_->SetAngleOffsets(Offsets);
+			
+			cmd_vel_.resize(ModIds_param_.size());
         }
         
         // Destructor
