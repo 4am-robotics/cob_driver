@@ -98,6 +98,7 @@ class NodeClass
         ros::ServiceServer srvServer_SetMotionType;
         ros::ServiceServer srvServer_GetJointState;
         ros::ServiceServer srvServer_ElmoRecorder;
+        ros::ServiceServer srvServer_ElmoRecorderReadout;
             
         // service clients
         //--
@@ -138,6 +139,8 @@ class NodeClass
 			// implementation of service servers
 			srvServer_Init = n.advertiseService("Init", &NodeClass::srvCallback_Init, this);
             srvServer_ElmoRecorder = n.advertiseService("ElmoRecorder", &NodeClass::srvCallback_ElmoRecorder, this);
+            srvServer_ElmoRecorderReadout = n.advertiseService("ElmoRecorderReadout", &NodeClass::srvCallback_ElmoRecorderReadout, this);
+            
 			srvServer_Reset = n.advertiseService("Reset", &NodeClass::srvCallback_Reset, this);
 			srvServer_Shutdown = n.advertiseService("Shutdown", &NodeClass::srvCallback_Shutdown, this);
 			//srvServer_isPltfError = n.advertiseService("isPltfError", &NodeClass::srvCallback_isPltfError, this); --> Publish this along with JointStates
@@ -226,10 +229,18 @@ class NodeClass
 		
 		bool srvCallback_ElmoRecorder(cob_srvs::Switch::Request &req,
                               cob_srvs::Switch::Response &res ){
-                              
-			m_CanCtrlPltf.printElmoRecordings("~/myRec");
 			m_bEvalCanMsg = true;
-			
+			m_CanCtrlPltf.evalCanBuffer();
+			m_CanCtrlPltf.ElmoRecordings(0, "");
+
+			return true;
+		}
+		bool srvCallback_ElmoRecorderReadout(cob_srvs::Switch::Request &req,
+                              cob_srvs::Switch::Response &res ){
+			m_bEvalCanMsg = true;
+			m_CanCtrlPltf.evalCanBuffer();
+			m_CanCtrlPltf.ElmoRecordings(1, "~/PhilsRec");
+
 			return true;
 		}
 		
@@ -416,21 +427,18 @@ int main(int argc, char** argv)
  	
 	// currently only waits for callbacks -> if it should run cyclical
 	// -> specify looprate
-	ros::Rate loop_rate(50); // Hz
+	ros::Rate loop_rate(500); // Hz
 
 
     
 	while(nodeClass.n.ok())
-    {
-		ros::spinOnce();
-		
+	{
 		if(nodeClass.m_bEvalCanMsg == true) {
 			nodeClass.m_CanCtrlPltf.evalCanBuffer();
 		}
-		
-		// -> let it sleep for a while
-        //loop_rate.sleep();
-    }
+		ros::spinOnce();
+		loop_rate.sleep();
+	}
     
 //    ros::spin();
 

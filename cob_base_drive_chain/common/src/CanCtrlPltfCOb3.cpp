@@ -759,6 +759,7 @@ int CanCtrlPltfCOb3::evalCanBuffer()
 
 		if (bRet == false)
 		{
+			std::cout << "evalCanBuffer(): Received CAN_Message with unknown identifier " << m_CanMsgRec.m_iID << std::endl;
 		}		
 	};
 	
@@ -1297,13 +1298,20 @@ void CanCtrlPltfCOb3::setMotorTorque(int iCanIdent, double dTorqueNm)
 //-----------------------------------------------
 
 //-----------------------------------------------
-bool CanCtrlPltfCOb3::printElmoRecordings(std::string Filename) {
-	//Motor 1 -> steering motor
-	m_vpMotor[1]->setRecorder(0, 10); //Configure Elmo Recorder with RecordingGap and start immediately
+bool CanCtrlPltfCOb3::ElmoRecordings(int iFlag, std::string Filename) {
+	switch(iFlag) {
 
-	usleep(5000000); //5sec
+		case 0: //Flag = 0 means reset recorder and configure it
+			//Motor 1 -> steering motor
+			m_vpMotor[0]->setRecorder(0, 1); //Configure Elmo Recorder with RecordingGap and start immediately
+			return true;
 
-	m_vpMotor[1]->setRecorder(1, 0, Filename); //Query Readout of Index to Log Directory
-
-	return true;
+		case 1: //Flag = 1 means start readout process, mustn't be called too early (while Rec is in process..)
+			if(m_vpMotor[0]->setRecorder(1, 1, Filename) != 0) return false; //Query Readout of Index to Log Directory
+			else return true;
+		
+		default:
+			return false;
+	
+	}
 }

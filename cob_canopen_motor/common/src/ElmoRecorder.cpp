@@ -66,27 +66,32 @@ ElmoRecorder::~ElmoRecorder() {
 
 int ElmoRecorder::configureElmoRecorder(int iRecordingGap){ //iRecordingGap = N indicates that a new sample should be taken once per N time quanta
 
-	pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, -1);	// Stop Recorder if it's active
+	pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, 0);	// Stop Recorder if it's active	
+	usleep(20000);	
 	// Record Main speed (index 0, ID1) 
 	// Active Current (index 9, ID10)
 	// Main Position (index 1, ID2)
 	// Speed Command (index 15, ID16)
 	// RC = 2^(Signal1Index) + 2^(Signal2Index) + ..; e.g.: 2^0 + 2^1 + 2^9 + 2^15 = 33283;
-	pHarmonicaDrive->IntprtSetInt(8, 'R', 'C', 0, 33283);	
+	pHarmonicaDrive->IntprtSetInt(8, 'R', 'C', 0, 33283);
+	usleep(20000);
+	// Set trigger type to immediate
+	pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 3, 0);
+	usleep(20000);
+	// Set Recording Gap
+	pHarmonicaDrive->IntprtSetInt(8, 'R', 'G', 0, iRecordingGap);
+	usleep(20000);
 	// Set Recording Length
 	// RL = (4096 / Number of Signals)
 	pHarmonicaDrive->IntprtSetInt(8, 'R', 'L', 0, 1024);
+	usleep(20000);
+	
 	// Set Time Quantum, Default: RP=0 -> TS * 4; TS is 90us by default
-	pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 0, 0);
-	// Set Recording Gap
-	pHarmonicaDrive->IntprtSetInt(8, 'R', 'G', 0, iRecordingGap);
+	// pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 0, 0);
 	// ----> Total Recording Time = 90us * 4 * RG * RL
 
-	// Set trigger type to immediate and start recording
-	pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 3, 0);
 	pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, 2); //2 launches immediately (8, 'R', 'R', 0, 1) launches at next BG
-	
-	
+	usleep(20000);
 	// Arm Recorder, by Trigger Event of "BG"-Command (Begin Motion)
 	// pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, 1); //launches at next BG
 	
@@ -100,9 +105,9 @@ int ElmoRecorder::readoutRecorder(int iObjSubIndex){ // iObjSubIndex: shift this
 	//initialize Upload of Recorded Data (object 0x2030)
 	int iObjIndex = 0x2030;
 	
-	//Defines the part of the Recorder that is read out next
-	pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 8, 0);
-	pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 9, 0);
+	//Defines the part of the Recorder that is read out next - not neccessary on CAN-Read-out
+	//pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 8, 0);
+	//pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 9, 0);
 	
 	pHarmonicaDrive->sendSDOUpload(iObjIndex, iObjSubIndex);
 	m_iCurrentObject = iObjSubIndex;

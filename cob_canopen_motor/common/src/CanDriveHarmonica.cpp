@@ -139,6 +139,8 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 			VelMotIncrPeriodToVelGearRadS(iTemp2);
 
 		m_WatchdogTime.SetNow();
+
+		bRet = true;
 	}	
 	
 	//-----------------------
@@ -245,7 +247,10 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 			float* pfVal;
 			pfVal=(float*)&iVal;
 			m_dMotorCurr = *pfVal;			
-		}	
+		}
+		
+		//Elmo-Recorder related answers (mostly during configuration process)
+		
 		else if( (msg.getAt(0) == 'R') && (msg.getAt(1) == 'R') )
 		{
 			
@@ -253,7 +258,13 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 				| (msg.getAt(5) << 8) | (msg.getAt(4) );
 
 			std::cout << "Answer from Recorder: RR = " << iPara << std::endl; //-1: No valid data in recorder, 0: action finished and recorder filled
-		}	
+		}
+		
+		else if( (msg.getAt(0) == 'R') && (msg.getAt(1) == 'C') ) // Recording targets
+		{
+			std::cout << "Answer from Recorder RC" << std::endl;
+		}
+		
 		else
 		{
 		}
@@ -269,13 +280,15 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 	{
 		m_WatchdogTime.SetNow();
 
+		std::cout << "SDO-message"  << (msg.getAt(1) | (msg.getAt(2) << 8) ) << std::endl;
+
 		if( (msg.getAt(0) >> 5) == 0) { //Received Upload SDO Segment (scs = 0)
 			receivedSDODataSegment(msg);
-			std::cout << "SDO Segment received" << std::endl;
+			std::cout << "SDO Upload Segment received" << std::endl;
 			
 		} else if( (msg.getAt(0) & 0xE2) == 0x40) { //Received Initiate SDO Upload, that is not expedited -> start segmented upload (scs = 2 AND expedited flag = 0)
 			receivedSDOSegmentedInitiation(msg);
-			std::cout << "SDO Initiate Segmented Upload, Object ID: " << (msg.getAt(1) | (msg.getAt(2) << 8) ) << std::endl;
+			std::cout << "SDO Initiate Segmented Upload received, Object ID: " << (msg.getAt(1) | (msg.getAt(2) << 8) ) << std::endl;
 			
 		} else if( (msg.getAt(0) >> 5) == 4) { // Received an Abort SDO Transfer message, cs = 4
 			unsigned int iErrorNum = (msg.getAt(4) | msg.getAt(5) << 8 | msg.getAt(6) << 16 | msg.getAt(7) << 24);
@@ -947,30 +960,6 @@ void CanDriveHarmonica::IntprtSetFloat(int iDataLen, char cCmdChar1, char cCmdCh
 //-----------------------------------------------
 
 //-----------------------------------------------
-void CanDriveHarmonica::sendSDOUpload(int iObjIndex, int iObjSubIndex)
-{
-	CanMsg CMsgTr;
-	const int ciInitUploadReq = 0x40;
-	
-	CMsgTr.m_iLen = 8;
-	CMsgTr.m_iID = m_ParamCanOpen.iRxSDO;
-
-	unsigned char cMsg[8];
-	
-	cMsg[0] = ciInitUploadReq;
-	cMsg[1] = iObjIndex;
-	cMsg[2] = iObjIndex >> 8;
-	cMsg[3] = iObjSubIndex;
-	cMsg[4] = 0x00;
-	cMsg[5] = 0x00;
-	cMsg[6] = 0x00;
-	cMsg[7] = 0x00;
-
-	CMsgTr.set(cMsg[0], cMsg[1], cMsg[2], cMsg[3], cMsg[4], cMsg[5], cMsg[6], cMsg[7]);
-	m_pCanCtrl->transmitMsg(CMsgTr);
-}
-
-//-----------------------------------------------
 void CanDriveHarmonica::sendSDOAbort(int iObjIndex, int iObjSubIndex, unsigned int iErrorCode)
 {
 	CanMsg CMsgTr;
@@ -998,6 +987,32 @@ void CanDriveHarmonica::sendSDOAbort(int iObjIndex, int iObjSubIndex, unsigned i
 void CanDriveHarmonica::receivedSDOTransferAbort(unsigned int iErrorCode){
 	std::cout << "SDO Abort Transfer received with error code: " << iErrorCode;
 	seg_Data.statusFlag = segData::SDO_SEG_FREE;
+}
+
+//-----------------------------------------------
+void CanDriveHarmonica::sendSDOUpload(int iObjIndex, int iObjSubIndex)
+{
+	CanMsg CMsgTr;
+	const int ciInitUploadReq = 0x40;
+	
+	CMsgTr.m_iLen = 8;
+	CMsgTr.m_iID = m_ParamCanOpen.iRxSDO;
+
+	unsigned char cMsg[8];
+	
+	cMsg[0] = ciInitUploadReq;
+	cMsg[1] = iObjIndex;
+	cMsg[2] = iObjIndex >> 8;
+	cMsg[3] = iObjSubIndex;
+	cMsg[4] = 0x00;
+	cMsg[5] = 0x00;
+	cMsg[6] = 0x00;
+	cMsg[7] = 0x00;
+
+	CMsgTr.set(cMsg[0], cMsg[1], cMsg[2], cMsg[3], cMsg[4], cMsg[5], cMsg[6], cMsg[7]);
+	m_pCanCtrl->transmitMsg(CMsgTr);
+
+	std::cout << "SendSDOUpload " << cMsg[0] << "|" << cMsg[1] << "|" << cMsg[2] << "|" << cMsg[3] << "|" << std::endl;
 }
 
 //-----------------------------------------------
