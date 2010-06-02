@@ -3,11 +3,11 @@
 
   <!-- start hokuyo node -->
   <node name="hokuyo" pkg="hokuyo_node" type="hokuyo_node" respawn="false" output="screen">
-	<!--remap from="scan" to="scan_front"/-->
+
 	<param name="calibrate_time" type="bool" value="false"/>
-	<!--param name="model_04LX" type="bool" value="true"/-->
-	<param name="frameid" value="base_hokuyo"/>
+	<param name="frameid" value="base_laser_top"/>
   	<remap from="scan" to="scan_top"/>
+
   </node>
   
 </launch>

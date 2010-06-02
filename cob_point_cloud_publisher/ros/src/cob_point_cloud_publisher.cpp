@@ -86,24 +86,24 @@ class PcPublisher
 {
 	private:
 		ros::NodeHandle n_; ///< ROS node handle
-		
+
 		// topics to subscribe, callback is called for new messages arriving
 		image_transport::ImageTransport image_transport_;       ///< Image transport instance
-	    image_transport::SubscriberFilter xyz_image_subscriber_;        ///< Subscribes to xyz image data
-        image_transport::SubscriberFilter grey_image_subscriber_;       ///< Subscribes to gray image data
-        
-        message_filters::Synchronizer<SyncPolicy> tof_sync_;
-        
-        sensor_msgs::CvBridge cv_bridge_0_; ///< Converts ROS image messages to openCV IplImages
+		image_transport::SubscriberFilter xyz_image_subscriber_;        ///< Subscribes to xyz image data
+		image_transport::SubscriberFilter grey_image_subscriber_;       ///< Subscribes to gray image data
+
+		message_filters::Synchronizer<SyncPolicy> tof_sync_;
+
+		sensor_msgs::CvBridge cv_bridge_0_; ///< Converts ROS image messages to openCV IplImages
 		sensor_msgs::CvBridge cv_bridge_1_; ///< Converts ROS image messages to openCV IplImages
-     		
+
 		IplImage* xyz_image_32F3_;	///< Received point cloud form tof sensor
 		IplImage* grey_image_32F1_;	///< Received gray values from tof sensor
-		                
-        // topics to publish
-        ros::Publisher topicPub_pointCloud_;
+		
+		// topics to publish
+		ros::Publisher topicPub_pointCloud_;
+		
     public:
-	    
         // Constructor
         PcPublisher()
         	: image_transport_(n_),
@@ -131,9 +131,11 @@ class PcPublisher
         // function will be called when a new message arrives on a topic
         void syncCallback(const sensor_msgs::Image::ConstPtr& tof_camera_xyz_data, const sensor_msgs::Image::ConstPtr& tof_camera_grey_data)
         {
-            ROS_INFO("convert xyz_image to point_cloud");
+            ROS_DEBUG("convert xyz_image to point_cloud");
             sensor_msgs::PointCloud pc_msg;
 			// create point_cloud message
+			pc_msg.header.stamp = ros::Time::now();
+			pc_msg.header.frame_id = "head_tof_camera_link";
 			xyz_image_32F3_ = cv_bridge_0_.imgMsgToCv(tof_camera_xyz_data, "passthrough");
 			grey_image_32F1_ = cv_bridge_1_.imgMsgToCv(tof_camera_grey_data, "passthrough");
 	       ipa_Utils::MaskImage2(xyz_image_32F3_, xyz_image_32F3_, grey_image_32F1_, grey_image_32F1_, 500, 65000, 3);
@@ -146,15 +148,13 @@ class PcPublisher
 				{
 					geometry_msgs::Point32 pt;
 					pt.x = f_ptr[3*col + 0];
-					pt.x = f_ptr[3*col + 1];
-					pt.x = f_ptr[3*col + 2];
+					pt.y = f_ptr[3*col + 1];
+					pt.z = f_ptr[3*col + 2];
 					pc_msg.points.push_back(pt); 
 				}
 			}
 			
 			pc_msg.header.stamp = ros::Time::now();
-			
-			//TODO: fill message with xyz_msg values
             
             topicPub_pointCloud_.publish(pc_msg);
         }

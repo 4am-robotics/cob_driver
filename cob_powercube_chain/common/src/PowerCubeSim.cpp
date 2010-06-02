@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
- * ROS package name: powercube_chain
+ * ROS stack name: cob_driver
+ * ROS package name: cob_powercube_chain
  * Description: This class simulates the PowerCubes in a very simply and rough way.
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

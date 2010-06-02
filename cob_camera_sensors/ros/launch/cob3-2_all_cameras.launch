@@ -10,6 +10,7 @@ You can uncomment the viewer if you want to view the image stream.
 -->
 
 <launch>
+
 	<include file="$(find cob_camera_sensors)/ros/launch/cob3-2_color_cameras.launch" />
 	<include file="$(find cob_camera_sensors)/ros/launch/cob3-2_tof.launch" />
 

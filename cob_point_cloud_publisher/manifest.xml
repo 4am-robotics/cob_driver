@@ -1,7 +1,7 @@
 <package>
   <description brief="cob_point_cloud_publisher">
 
-     cob_point_cloud_publisher
+     This package converts grey- and xyz-images from cob_camera_sensors into a point_cloud and publishes it.
 
   </description>
   <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>

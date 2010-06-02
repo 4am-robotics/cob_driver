@@ -1,21 +1,17 @@
 <package>
-  <description brief="cob3_arm">
+  <description brief="cob_arm">
 
-     cob3_arm
+     Launch files to configure and startup the Care-O-bot arm (lwa 3 from Schunk).
 
   </description>
   <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
-  <url>http://www.care-o-bot.org</url>
+  <url>http://ros.org/wiki/cob_arm</url>
 
-  <depend package="roscpp"/>
-  <depend package="cob_msgs"/>
-  <depend package="cob_srvs"/>
   <depend package="cob_powercube_chain"/>
-  <depend package="cob_defs"/>
   <depend package="actionlib"/>
   <depend package="pr2_controllers_msgs"/>
-  <depend package="geometry_msgs"/>
+  <depend package="trajectory_msgs"/>
 
 </package>
