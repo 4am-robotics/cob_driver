@@ -4,10 +4,11 @@
      Driver for the Schunk LWA 3 Force Torque Controller based on ATI Mini 45.
 
   </description>
-  <author>Alexander Bubeck, email:bubeck@ipa.fhg.de</author>
-  <license>BSD</license>
+  <author>Alexander Bubeck, email:alexander.bubeck@ipa.fhg.de</author>
+  <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_forcetorque</url>
+  
   <depend package="roscpp"/>
   <depend package="eigen"/>
   <depend package="std_msgs"/>

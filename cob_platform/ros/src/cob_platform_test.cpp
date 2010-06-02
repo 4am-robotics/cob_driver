@@ -9,7 +9,7 @@
  *
  * Project name: care-o-bot
  * ROS stack name: cob_driver
- * ROS package name: cob3_platform
+ * ROS package name: cob_platform
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			

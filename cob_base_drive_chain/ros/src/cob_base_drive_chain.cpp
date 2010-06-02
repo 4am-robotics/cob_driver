@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_drivers
- * ROS package name: base_drive_chain
+ * ROS stack name: cob_drivers
+ * ROS package name: cob_base_drive_chain
  * Description:
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

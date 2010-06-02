@@ -8,13 +8,13 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
- * ROS package name: powercube_chain
+ * ROS stack name: cob_driver
+ * ROS package name: cob_powercube_chain
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
  * Author: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
- * Supervised by: Alexander Bubeck, email:alexander.bubeck@ipa.fhg.de
+ * Supervised by: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
  *
  * Date of creation: Jan 2010
  * ToDo:

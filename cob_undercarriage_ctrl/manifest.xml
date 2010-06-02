@@ -7,7 +7,7 @@
   <author>Christian Connette, email:christian.connette@ipa.fhg.de</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
-  <url>http://www.care-o-bot.org</url>
+  <url>http://ros.org/wiki/cob_undercarriage_ctrl</url>
 
   <!-- Dependencies from other packages or external libs-->
   <depend package="roscpp"/>

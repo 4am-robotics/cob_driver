@@ -14,7 +14,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
  * Author: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
- * Supervised by: Alexander Bubeck, email:alexander.bubeck@ipa.fhg.de
+ * Supervised by: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
  *
  * Date of creation: Jan 2010
  * ToDo:

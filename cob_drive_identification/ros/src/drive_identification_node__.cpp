@@ -8,14 +8,14 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_apps
- * ROS package name: drive_identification
+ * ROS stack name: cob_driver
+ * ROS package name: cob_drive_identification
  * Description:
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
- * Author: cpc-pk
- * Supervised by: cpc
+ * Author: Philipp Koehler
+ * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
  * Date of creation: Mar 2010
  * ToDo:
