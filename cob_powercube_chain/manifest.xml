@@ -22,6 +22,7 @@
   <depend package="pr2_controllers_msgs"/>
   <depend package="cob_defs"/>
   <depend package="libpcan"/>
+  <depend package="libwm4"/>
   <depend package="libm5api"/>
   <depend package="libntcan"/>
 

@@ -33,10 +33,13 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/lib)
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 # add project executable
-rosbuild_add_executable(${PROJECT_NAME} ros/src/cob_powercube_chain.cpp common/src/PowerCubeCtrl.cpp common/src/moveCommand.cpp)
+rosbuild_add_executable(${PROJECT_NAME} ros/src/cob_powercube_chain.cpp common/src/PowerCubeCtrl.cpp common/src/TimeStamp.cpp common/src/moveCommand.cpp)
+rosbuild_add_executable(${PROJECT_NAME}_sim ros/src/cob_powercube_chain.cpp common/src/simulatedArm.cpp common/src/simulatedMotor.cpp common/src/TimeStamp.cpp common/src/moveCommand.cpp)
 rosbuild_add_executable(${PROJECT_NAME}_test ros/src/cob_powercube_chain_test.cpp)
 rosbuild_add_compile_flags(${PROJECT_NAME} -D__LINUX__ -DUSE_ESD)
+rosbuild_add_compile_flags(${PROJECT_NAME}_sim -D__LINUX__ -DUSE_ESD -DSIMU)
 
 # link libraries
 target_link_libraries(${PROJECT_NAME} m5api pcan ntcan)
 target_link_libraries(${PROJECT_NAME}_test m5api pcan ntcan)
+target_link_libraries(${PROJECT_NAME}_sim m5api pcan ntcan)

@@ -54,8 +54,6 @@
 #include <powercube_chain/simulatedMotor.h>
 #include <math.h>
 
-#include <rtt/TaskContext.hpp>
-using namespace RTT;
 		
 simulatedMotor::simulatedMotor(double lowLimit, double upLimit, double maxAcc, double maxVel)
 	: m_lastMove(0, 0, 0, 1, 1)

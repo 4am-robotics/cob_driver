@@ -72,6 +72,7 @@
 
 // external includes
 #include <powercube_chain/PowerCubeCtrl.h>
+#include <powercube_chain/simulatedArm.h>
 
 //####################
 //#### node class ####
@@ -106,7 +107,11 @@ class NodeClass
         //--
         
         // global variables
+#ifndef SIMU
         PowerCubeCtrl* PCube;
+#else
+        simulatedArm* PCube;
+#endif
 		PowerCubeCtrlParams* PCubeParams;
 		std::string CanModule;
 		int CanDevice;
@@ -132,8 +137,11 @@ class NodeClass
 			isInitialized = false;
 			traj_point_nr = 0;
 			finished_ = false;
-
+#ifndef SIMU
         	PCube = new PowerCubeCtrl();
+#else
+        	PCube = new simulatedArm();
+#endif
         	PCubeParams = new PowerCubeCtrlParams();
 
             // implementation of topics to publish
@@ -547,14 +555,14 @@ class NodeClass
 					}
 					else
 					{
-						//ROS_INFO("...powercubes moving to point[%d]",traj_point_nr);
+						ROS_INFO("...powercubes still moving to point[%d]",traj_point_nr);
 					}
 			    }
 			    else if (operationMode == "velocity")
 			    {
 			    	ROS_DEBUG("moving powercubes in velocity mode");
-			        //PCube->MoveVel(goal->trajectory.points[0].velocities);
-			        ROS_WARN("Moving in velocity mode currently disabled");
+			        PCube->MoveVel(traj_point.velocities);
+
 			    }
 			    else
 			    {

@@ -54,7 +54,7 @@
 #ifndef _SIMULATED_ARM_H_
 #define _SIMULATED_ARM_H_
 
-//#include "simulatedMotor.h"
+#include <powercube_chain/PowerCubeCtrl.h>
 #include <vector>
 #include <string>
 
@@ -67,7 +67,7 @@ class simulatedArm
 		simulatedArm();
 		virtual ~simulatedArm();
 		
-		bool Init(const char* iniFile);
+		bool Init(PowerCubeCtrlParams * params);
 
 		bool isInitialized() const { return m_Initialized; }
 
