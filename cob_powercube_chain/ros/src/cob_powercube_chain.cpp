@@ -108,9 +108,9 @@ class NodeClass
         
         // global variables
 #ifndef SIMU
-        PowerCubeCtrl* PCube;
+        PowerCubeCtrl* PCube_;
 #else
-        simulatedArm* PCube;
+        simulatedArm* PCube_;
 #endif
 		PowerCubeCtrlParams* PCubeParams_;
 		std::string CanModule_;
@@ -140,11 +140,11 @@ class NodeClass
 			finished_ = false;
 
 #ifndef SIMU
-        	PCube = new PowerCubeCtrl();
+        	PCube_ = new PowerCubeCtrl();
 #else
-        	PCube = new simulatedArm();
+        	PCube_ = new simulatedArm();
 #endif
-        	PCubeParams = new PowerCubeCtrlParams();
+        	PCubeParams_ = new PowerCubeCtrlParams();
 
             // implementation of topics to publish
             topicPub_JointState_ = n_.advertise<sensor_msgs::JointState>("/joint_states", 1);
@@ -523,7 +523,7 @@ class NodeClass
 					}
 					else
 					{
-						ROS_INFO("...powercubes still moving to point[%d]",traj_point_nr);
+						ROS_INFO("...powercubes still moving to point[%d]",traj_point_nr_);
 					}
 			    }
 			    else if (operationMode == "velocity")
