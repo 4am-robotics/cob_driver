@@ -61,6 +61,7 @@
 #include <urdf/model.h>
 #include <actionlib/server/simple_action_server.h>
 #include <pr2_controllers_msgs/JointTrajectoryAction.h>
+#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 
 // ROS message includes
 #include <sensor_msgs/JointState.h>
@@ -108,9 +109,9 @@ class NodeClass
         
         // global variables
 #ifndef SIMU
-        PowerCubeCtrl* PCube;
+        PowerCubeCtrl* PCube_;
 #else
-        simulatedArm* PCube;
+        simulatedArm* PCube_;
 #endif
 		PowerCubeCtrlParams* PCubeParams_;
 		std::string CanModule_;
@@ -140,14 +141,15 @@ class NodeClass
 			finished_ = false;
 
 #ifndef SIMU
-        	PCube = new PowerCubeCtrl();
+        	PCube_ = new PowerCubeCtrl();
 #else
-        	PCube = new simulatedArm();
+        	PCube_ = new simulatedArm();
 #endif
-        	PCubeParams = new PowerCubeCtrlParams();
+        	PCubeParams_ = new PowerCubeCtrlParams();
 
             // implementation of topics to publish
             topicPub_JointState_ = n_.advertise<sensor_msgs::JointState>("/joint_states", 1);
+            topicPub_ControllerState_ = n_.advertise<pr2_controllers_msgs::JointTrajectoryControllerState>("controller_state", 1);
             
             // implementation of topics to subscribe
             topicSub_DirectCommand_ = n_.subscribe("command", 1, &NodeClass::topicCallback_DirectCommand, this);
@@ -261,7 +263,7 @@ class NodeClass
 			for (int i = 0; i<ModIds_param_.size(); i++ )
 			{
 				LowerLimits[i] = model.getJoint(JointNames_[i].c_str())->limits->lower;
-				//std::cout << "LowerLimits[" << JointNames_[i].c_str() << "] = " << LowerLimits[i] << std::endl;
+				std::cout << "LowerLimits[" << JointNames_[i].c_str() << "] = " << LowerLimits[i] << std::endl;
 			}
 			PCubeParams_->SetLowerLimits(LowerLimits);
 
@@ -271,7 +273,7 @@ class NodeClass
 			for (int i = 0; i<ModIds_param_.size(); i++ )
 			{
 				UpperLimits[i] = model.getJoint(JointNames_[i].c_str())->limits->upper;
-				//std::cout << "UpperLimits[" << JointNames_[i].c_str() << "] = " << UpperLimits[i] << std::endl;
+				std::cout << "UpperLimits[" << JointNames_[i].c_str() << "] = " << UpperLimits[i] << std::endl;
 			}
 			PCubeParams_->SetUpperLimits(UpperLimits);
 
@@ -469,7 +471,7 @@ class NodeClass
 				PCube_->getConfig(ActualPos);
 				PCube_->getJointVelocities(ActualVel);
 
-		        sensor_msgs::JointState msg;
+				sensor_msgs::JointState msg;
 		        msg.header.stamp = ros::Time::now();
 		        msg.name.resize(DOF);
 		        msg.position.resize(DOF);
@@ -485,7 +487,24 @@ class NodeClass
 		        }
 		            
 		        // publish message
-		        topicPub_JointState_.publish(msg); 
+		        topicPub_JointState_.publish(msg);
+
+		        pr2_controllers_msgs::JointTrajectoryControllerState controllermsg;
+		        controllermsg.header.stamp = ros::Time::now();
+		        controllermsg.joint_names.resize(DOF);
+		        controllermsg.actual.positions.resize(DOF);
+		        controllermsg.actual.velocities.resize(DOF);
+
+		        controllermsg.joint_names = JointNames_;
+
+				for (int i = 0; i<DOF; i++ )
+				{
+					controllermsg.actual.positions[i] = ActualPos[i];
+					controllermsg.actual.velocities[i] = ActualVel[i];
+   //					std::cout << "Joint " << msg.name[i] <<": pos="<<  msg.position[i] << "vel=" << msg.velocity[i] << std::endl;
+				}
+				topicPub_ControllerState_.publish(controllermsg);
+
 			}
 		}
 			
@@ -523,7 +542,7 @@ class NodeClass
 					}
 					else
 					{
-						ROS_INFO("...powercubes still moving to point[%d]",traj_point_nr);
+						ROS_INFO("...powercubes still moving to point[%d]",traj_point_nr_);
 					}
 			    }
 			    else if (operationMode == "velocity")
@@ -555,7 +574,7 @@ int main(int argc, char** argv)
     NodeClass nodeClass("joint_trajectory_action");
  
     // main loop
- 	ros::Rate loop_rate(5); // Hz
+ 	ros::Rate loop_rate(50); // Hz
     while(nodeClass.n_.ok())
     {
         // publish JointState
