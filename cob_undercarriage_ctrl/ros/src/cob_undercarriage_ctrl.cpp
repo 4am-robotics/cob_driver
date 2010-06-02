@@ -71,7 +71,7 @@
 #include <cob_msgs/EmergencyStopState.h>
 
 // ROS service includes
-#include <cob_srvs/Switch.h>
+#include <cob_srvs/Trigger.h>
 #include <cob_srvs/GetJointState.h>
 
 // external includes
@@ -243,7 +243,7 @@ class NodeClass
         // function will be called when a service is querried
 
 		// Init Controller Configuration
-        bool srvCallbackInit(cob_srvs::Switch::Request &req, cob_srvs::Switch::Response &res )
+        bool srvCallbackInit(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res )
         {
             if(is_initialized_bool_ == false)
             {
@@ -273,7 +273,7 @@ class NodeClass
         }
 		
 		// reset Controller Configuration
-        bool srvCallbackReset(cob_srvs::Switch::Request &req, cob_srvs::Switch::Response &res )
+        bool srvCallbackReset(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res )
         {
 			bool ctrlr_reset;
 
@@ -337,8 +337,8 @@ class NodeClass
         }
 		
 		// shutdown Controller
-        bool srvCallbackShutdown(cob_srvs::Switch::Request &req,
-                                     cob_srvs::Switch::Response &res )
+        bool srvCallbackShutdown(cob_srvs::Trigger::Request &req,
+                                     cob_srvs::Trigger::Response &res )
         {
 			if (is_initialized_bool_)
 			{

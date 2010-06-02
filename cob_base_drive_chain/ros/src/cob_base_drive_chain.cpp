@@ -8,7 +8,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob_drivers
+ * ROS stack name: cob_driver
  * ROS package name: cob_base_drive_chain
  * Description:
  *								
@@ -66,7 +66,7 @@
 #include <diagnostic_msgs/DiagnosticStatus.h>
 
 // ROS service includes
-#include <cob_srvs/Switch.h>
+#include <cob_srvs/Trigger.h>
 #include <cob_srvs/GetJointState.h>
 
 
@@ -190,8 +190,8 @@ class NodeClass
         // function will be called when a service is querried
 
 		// Init Can-Configuration
-        bool srvCallback_Init(cob_srvs::Switch::Request &req,
-                              cob_srvs::Switch::Response &res )
+        bool srvCallback_Init(cob_srvs::Trigger::Request &req,
+                              cob_srvs::Trigger::Response &res )
         {
 			ROS_DEBUG("Service Callback Init");
             if(m_bisInitialized == false)
@@ -220,8 +220,8 @@ class NodeClass
         }
 		
 		// reset Can-Configuration
-        bool srvCallback_Reset(cob_srvs::Switch::Request &req,
-                                     cob_srvs::Switch::Response &res )
+        bool srvCallback_Reset(cob_srvs::Trigger::Request &req,
+                                     cob_srvs::Trigger::Response &res )
         {
 			ROS_DEBUG("Service Callback Reset");
 	    	res.success = m_CanCtrlPltf.resetPltf();
@@ -235,8 +235,8 @@ class NodeClass
         }
 		
 		// shutdown Drivers and Can-Node
-        bool srvCallback_Shutdown(cob_srvs::Switch::Request &req,
-                                     cob_srvs::Switch::Response &res )
+        bool srvCallback_Shutdown(cob_srvs::Trigger::Request &req,
+                                     cob_srvs::Trigger::Response &res )
         {
 			ROS_DEBUG("Service Callback Shutdown");
 	    	res.success = m_CanCtrlPltf.shutdownPltf();
