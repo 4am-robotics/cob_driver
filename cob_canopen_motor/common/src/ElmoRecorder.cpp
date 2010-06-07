@@ -54,6 +54,7 @@
 #include <math.h>
 #include <vector>
 #include <stdio.h>
+#include <sstream>
 #include <cob_canopen_motor/ElmoRecorder.h>
 #include <cob_canopen_motor/CanDriveHarmonica.h>
 
@@ -155,10 +156,13 @@ int ElmoRecorder::processData(segData& SDOData) {
 	std::cout << "Number of recorded data points: " << iNumDataItems << std::endl;
 
 	//B[3] ... [6] //Floating point factor
+	std::cout << ( (SDOData.data[6] << 24) | (SDOData.data[5] << 16) | (SDOData.data[4] << 8) | (SDOData.data[3]) ) << std::endl;
+
 	fFloatingPointFactor = convertBinaryToFloat( (SDOData.data[6] << 24) | (SDOData.data[5] << 16) | (SDOData.data[4] << 8) | (SDOData.data[3]) );
+	std::cout << "Floating point factor for recorded values is: " << fFloatingPointFactor << std::endl;
 	
 	if( ((SDOData.numTotalBytes-7)/iItemSize) != iNumDataItems) 
-		std::cout << "SDODataSize expected " << ((SDOData.numTotalBytes-7)/iItemSize) << " differs from Num Data Items! " <<  iNumDataItems << std::endl;
+		std::cout << "SDODataSize announced in SDO-Header" << ((SDOData.numTotalBytes-7)/iItemSize) << " differs from NumDataItems by Elmo" <<  iNumDataItems << std::endl;
 	
 	//END HEADER
 	//--------------------------------------
@@ -171,14 +175,14 @@ int ElmoRecorder::processData(segData& SDOData) {
 	//extract values from data stream, consider Little Endian conversion for every single object!
 	for(unsigned int i=7;i<=SDOData.data.size() - iItemSize -1; i=i+iItemSize) {
 		if(bCollectFloats) {
-			vfResData[iItemCount][1] = fFloatingPointFactor * convertBinaryToFloat( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
+			vfResData[1][iItemCount] = fFloatingPointFactor * convertBinaryToFloat( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
 			iItemCount ++;
 		} else {
-			vfResData[iItemCount][1] = fFloatingPointFactor * (float)( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
+			vfResData[1][iItemCount] = fFloatingPointFactor * (float)( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
 			iItemCount ++;
 		}
 		
-		vfResData[iItemCount][0] = m_fRecordingStepSec * iItemCount;
+		vfResData[0][iItemCount] = m_fRecordingStepSec * iItemCount;
 	}
 	
 	logToFile(sLogFilename, vfResData);
@@ -216,22 +220,23 @@ float ElmoRecorder::convertBinaryToFloat(unsigned int iBinaryRepresentation) {
 
 // Function for writing Logfile
 int ElmoRecorder::logToFile(std::string filename, std::vector<float> vtValues[]) {
-    filename = filename + "_" + (char)m_iCurrentObject + ".log";
+	std::stringstream outputFileName;
+	outputFileName << filename << "_" << m_iCurrentObject << ".log";
 
 	FILE* pFile;
 	//open FileStream
-	pFile = fopen(filename.c_str(), "w");
+	pFile = fopen(outputFileName.str().c_str(), "w");
 	
 	//Check if there was a problem
 	if( pFile == NULL ) 
 	{	
-		std::cout << "Error while writing file: " << filename << " Maybe the selected folder does'nt exist." << std::endl;
+		std::cout << "Error while writing file: " << outputFileName.str() << " Maybe the selected folder does'nt exist." << std::endl;
 	} 
 	else 
 	{
 		// write all data from vector to file
 		for (unsigned int i = 0; i < vtValues[0].size(); i++)
-			fprintf(pFile, "%e %e\n", vtValues[i][0], vtValues[i][1]);
+			fprintf(pFile, "%e %e\n", vtValues[0][i], vtValues[1][i]);
 	}
 	fclose(pFile);
 	return true;

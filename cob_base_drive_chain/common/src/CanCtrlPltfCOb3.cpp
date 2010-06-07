@@ -1307,7 +1307,7 @@ bool CanCtrlPltfCOb3::ElmoRecordings(int iFlag, std::string Filename) {
 			return true;
 
 		case 1: //Flag = 1 means start readout process, mustn't be called too early (while Rec is in process..)
-			if(m_vpMotor[0]->setRecorder(1, 1, Filename) != 0) return false; //Query Readout of Index to Log Directory
+			if(m_vpMotor[0]->setRecorder(1, 16, Filename) != 0) return false; //Query Readout of Index to Log Directory
 			else return true;
 		
 		default:

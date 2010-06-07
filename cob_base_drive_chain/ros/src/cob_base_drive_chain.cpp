@@ -239,7 +239,7 @@ class NodeClass
                               cob_srvs::Switch::Response &res ){
 			m_bEvalCanMsg = true;
 			m_CanCtrlPltf.evalCanBuffer();
-			m_CanCtrlPltf.ElmoRecordings(1, "~/PhilsRec");
+			m_CanCtrlPltf.ElmoRecordings(1, "/home/cpc-pk/PhilsRec");
 
 			return true;
 		}
@@ -488,6 +488,12 @@ bool NodeClass::initDrives()
 	bTemp1 =  m_CanCtrlPltf.initPltf(sIniDirectory);
 	// debug log
 	ROS_INFO("Initializing done");
+
+	//!!!!!!!!!!!!!!!!!!!!!!
+	//WATCHDOG DEACTIVATE FOR DEBUG
+	//!!!!!!!!!!!!!!!!!!!!!!
+	m_CanCtrlPltf.startWatchdog(false);
+	
 
 	return bTemp1;
 }

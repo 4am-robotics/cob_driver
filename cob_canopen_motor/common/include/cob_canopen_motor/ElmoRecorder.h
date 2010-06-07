@@ -84,7 +84,7 @@ class ElmoRecorder {
 		
 	private:
 	
-		unsigned int m_iCurrentObject;
+		int m_iCurrentObject;
 		float m_fRecordingStepSec;
 	
 		CanDriveHarmonica* pHarmonicaDrive;

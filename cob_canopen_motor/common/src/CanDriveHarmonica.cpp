@@ -280,15 +280,15 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 	{
 		m_WatchdogTime.SetNow();
 
-		std::cout << "SDO-message"  << (msg.getAt(1) | (msg.getAt(2) << 8) ) << std::endl;
+		//std::cout << "SDO-message"  << (msg.getAt(1) | (msg.getAt(2) << 8) ) << std::endl;
 
 		if( (msg.getAt(0) >> 5) == 0) { //Received Upload SDO Segment (scs = 0)
-			receivedSDODataSegment(msg);
 			std::cout << "SDO Upload Segment received" << std::endl;
+			receivedSDODataSegment(msg);
 			
 		} else if( (msg.getAt(0) & 0xE2) == 0x40) { //Received Initiate SDO Upload, that is not expedited -> start segmented upload (scs = 2 AND expedited flag = 0)
-			receivedSDOSegmentedInitiation(msg);
 			std::cout << "SDO Initiate Segmented Upload received, Object ID: " << (msg.getAt(1) | (msg.getAt(2) << 8) ) << std::endl;
+			receivedSDOSegmentedInitiation(msg);
 			
 		} else if( (msg.getAt(0) >> 5) == 4) { // Received an Abort SDO Transfer message, cs = 4
 			unsigned int iErrorNum = (msg.getAt(4) | msg.getAt(5) << 8 | msg.getAt(6) << 16 | msg.getAt(7) << 24);
@@ -1099,6 +1099,7 @@ int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
 	if( (msg.getAt(0) & 0x01) == 0x00) { //Is finished-bit not set?
 		seg_Data.statusFlag = segData::SDO_SEG_COLLECTING;
 	} else {
+		std::cout << "SDO Segmented Transfer finished bit found!" << std::endl;
 		seg_Data.statusFlag = segData::SDO_SEG_PROCESSING;
 	};
 
@@ -1108,8 +1109,6 @@ int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
 	for(int i=1; i<=7-numEmptyBytes; i++) {
 		seg_Data.data.push_back(msg.getAt(i));
 	}
-    
-	std::cout << "ONE SEGMENT END" << std::endl;
 
 	if(seg_Data.statusFlag == segData::SDO_SEG_PROCESSING) {
 		finishedSDOSegmentedTransfer();		
