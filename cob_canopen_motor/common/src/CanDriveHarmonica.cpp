@@ -1395,7 +1395,7 @@ int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 		case 1: //Query upload of previous recorded data, data is being proceeded after complete upload, param = recorded ID, filename
 			if(seg_Data.statusFlag == segData::SDO_SEG_FREE) {
 				ElmoRec->sLogFilename = sParam;
-				ElmoRec->readoutRecorder(1 << iParam); //shift this bit, according to the specified recording sources in RC
+				ElmoRec->readoutRecorder(iParam); //as subindex, give the recorded variable
 				seg_Data.statusFlag = segData::SDO_SEG_WAITING;
 				return 0;
 			} else {

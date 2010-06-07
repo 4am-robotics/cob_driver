@@ -173,7 +173,7 @@ int ElmoRecorder::processData(segData& SDOData) {
 	iItemCount = 0;
 	
 	//extract values from data stream, consider Little Endian conversion for every single object!
-	for(unsigned int i=7;i<=SDOData.data.size() - iItemSize -1; i=i+iItemSize) {
+	for(unsigned int i=7;i<=SDOData.data.size() - iItemSize; i=i+iItemSize) {
 		if(bCollectFloats) {
 			vfResData[1][iItemCount] = fFloatingPointFactor * convertBinaryToFloat( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
 			iItemCount ++;
@@ -194,9 +194,9 @@ int ElmoRecorder::processData(segData& SDOData) {
 float ElmoRecorder::convertBinaryToFloat(unsigned int iBinaryRepresentation) {
 	//Converting binary-numbers to 32bit float values according to IEEE 754 see http://de.wikipedia.org/wiki/IEEE_754
 	int iSign;
-	unsigned int iExponent;
+	int iExponent;
 	unsigned int iMantissa;
-	float iNumMantissa = 0;
+	float iNumMantissa = 0.0f;
 
 	if((iBinaryRepresentation & (1 << 31)) == 0) //first bit is sign bit: 0 = +, 1 = -
 		iSign = 1;
@@ -204,16 +204,17 @@ float ElmoRecorder::convertBinaryToFloat(unsigned int iBinaryRepresentation) {
 		iSign = -1;
 
 	iExponent = ((iBinaryRepresentation >> 23) & 0xFF) - 127; //take away Bias(127) for positive and negative exponents
-	
+
 	iMantissa = (iBinaryRepresentation & 0x7FFFFF); //only keep mantissa part of binary number
-	iNumMantissa = 1;
+
+	iNumMantissa = 1.0f;
 	
 	for(int i=1; i<=23; i++) { //calculate decimal places (convert binary mantissa to decimal number
 		if((iMantissa & (1 << (23-i))) > 0) {
-			iNumMantissa = iNumMantissa + 1 * pow(2,-1*i);
+			iNumMantissa = iNumMantissa + pow(2,(-1)*i);
 		}
 	}
-	
+
 	return iSign * pow(2,iExponent) * iNumMantissa;
 }
 

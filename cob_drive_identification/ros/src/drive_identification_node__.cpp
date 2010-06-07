@@ -56,14 +56,13 @@
 
 // standard includes
 // Headers provided by cob-packages which should be avoided/removed
-#include <cob3_utilities/IniFile.h>
-
 
 // ROS includes
 #include <ros/ros.h>
+#include <stdio.h>
 
 // ROS message includes
-#include <sensor_msgs/JointState.h>
+//#include <sensor_msgs/JointState.h>
 
 // ROS service includes
 //#include <std_srvs/Empty.h>
@@ -85,10 +84,47 @@
 // function will be called when a service is querried
 //--
 
+float convertBinaryToFloat(unsigned int iBinaryRepresentation) {
+	//Converting binary-numbers to 32bit float values according to IEEE 754 see http://de.wikipedia.org/wiki/IEEE_754
+	int iSign;
+	int iExponent;
+	unsigned int iMantissa;
+	float iNumMantissa = 0.0f;
+	
+	std::cout << iBinaryRepresentation << std::endl;
+
+
+	if((iBinaryRepresentation & (1 << 31)) == 0) //first bit is sign bit: 0 = +, 1 = -
+		iSign = 1;
+	else
+		iSign = -1;
+
+	iExponent = ((iBinaryRepresentation >> 23) & 0xFF) - 127; //take away Bias(127) for positive and negative exponents
+	std::cout << "Exp: " << iExponent << std::endl;
+	
+	iMantissa = (iBinaryRepresentation & 0x7FFFFF); //only keep mantissa part of binary number
+	std::cout << iMantissa << std::endl;
+
+	iNumMantissa = 1.0f;
+	
+	for(int i=1; i<=23; i++) { //calculate decimal places (convert binary mantissa to decimal number
+		if((iMantissa & (1 << (23-i))) > 0) {
+			iNumMantissa = iNumMantissa + pow(2,(-1)*i);
+		}
+	}
+	std::cout << iNumMantissa << std::endl;
+	
+	return iSign * pow(2,iExponent) * iNumMantissa;
+}
+
 //#######################
 //#### main programm ####
 int main(int argc, char** argv)
 {
+	std::cout << convertBinaryToFloat(0x5D8929CC) << std::endl;
+
+	
+	/*
 	// initialize ROS, spezify name of node
 	ros::init(argc, argv, "node_name");
 
@@ -141,5 +177,5 @@ int main(int argc, char** argv)
         loop_rate.sleep();
     }
     
-    return 0;
+    return 0; */
 }
