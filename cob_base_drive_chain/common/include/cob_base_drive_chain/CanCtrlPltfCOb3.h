@@ -232,7 +232,7 @@ public:
 	/**
 	 *Receives recorded data from Elmos via CAN and saves them into LOG-files
 	*/
-	bool ElmoRecordings(int iFlag=0, std::string Filename = "~/myRec");
+	bool ElmoRecordings(int iFlag, int iParam, std::string Filename = "~/myRec");
 
 	//--------------------------------- Commands for other nodes
 

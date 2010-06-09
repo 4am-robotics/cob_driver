@@ -62,7 +62,7 @@ class CanDriveHarmonica;
 class ElmoRecorder {
 	public:
 		
-		ElmoRecorder(CanDriveHarmonica * pParentHarmonicaDrive);
+		ElmoRecorder(CanDriveHarmonica * pParentHarmonicaDrive, int iDriveID);
 
 		~ElmoRecorder();
 		
@@ -73,9 +73,13 @@ class ElmoRecorder {
 		* (This can be used for identification of the drive chain)
 		* @param iRecordingGap iRecordingGap = N indicates that a new sample should be taken once per N time quanta (= 4 * 90 usec)
 		*/
-		int configureElmoRecorder(int iRecordingGap);
+		int configureElmoRecorder(int iRecordingGap, int startImmediately = 1);
 		
 		int readoutRecorder(int iObjSubIndex);
+		
+		int readoutRecorderTry(int iObjSubIndex);
+
+		int readoutRecorderTryStatus(int iStatusReg);
 		
 		int logToFile(std::string filename, std::vector<float> vtValues[]);
 		
@@ -83,11 +87,15 @@ class ElmoRecorder {
 		std::string sLogFilename;
 		
 	private:
-	
 		int m_iCurrentObject;
 		float m_fRecordingStepSec;
+		
+		int m_iReadoutRecorderTry;
+		int m_iReadoutRecorderTryObject;
 	
 		CanDriveHarmonica* pHarmonicaDrive;
+		
+		int m_iDriveID;
 		
 		float convertBinaryToFloat(unsigned int binaryRepresentation);
 };

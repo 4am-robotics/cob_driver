@@ -58,14 +58,17 @@
 #include <cob_canopen_motor/ElmoRecorder.h>
 #include <cob_canopen_motor/CanDriveHarmonica.h>
 
-ElmoRecorder::ElmoRecorder(CanDriveHarmonica * pParentHarmonicaDrive) {
+ElmoRecorder::ElmoRecorder(CanDriveHarmonica * pParentHarmonicaDrive, int iDriveID) {
 	pHarmonicaDrive = pParentHarmonicaDrive;
+	m_iDriveID = iDriveID;
+	
+	m_iReadoutRecorderTry = 0;
 }
 
 ElmoRecorder::~ElmoRecorder() {
 }
 
-int ElmoRecorder::configureElmoRecorder(int iRecordingGap){ //iRecordingGap = N indicates that a new sample should be taken once per N time quanta
+int ElmoRecorder::configureElmoRecorder(int iRecordingGap, int startImmediately){ //iRecordingGap = N indicates that a new sample should be taken once per N time quanta
 
 	pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, 0);	// Stop Recorder if it's active	
 	usleep(20000);	
@@ -91,25 +94,49 @@ int ElmoRecorder::configureElmoRecorder(int iRecordingGap){ //iRecordingGap = N 
 	// pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 0, 0);
 	// ----> Total Recording Time = 90us * 4 * RG * RL
 
-	pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, 2); //2 launches immediately (8, 'R', 'R', 0, 1) launches at next BG
+	pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, startImmediately + 1); //2 launches immediately (8, 'R', 'R', 0, 1) launches at next BG
 	usleep(20000);
-	// Arm Recorder, by Trigger Event of "BG"-Command (Begin Motion)
-	// pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, 1); //launches at next BG
 	
 	m_fRecordingStepSec = 0.000090 * 4 * iRecordingGap;
 	
 	return 0;
 }
 
+int ElmoRecorder::readoutRecorderTry(int iObjSubIndex) {
+	m_iReadoutRecorderTry = 1;
+	m_iReadoutRecorderTryObject = iObjSubIndex;
+	
+	pHarmonicaDrive->requestStatus();
+	
+	return 0;
+}
 
-int ElmoRecorder::readoutRecorder(int iObjSubIndex){ // iObjSubIndex: shift this bit, according to the specified recording sources in RC
+int ElmoRecorder::readoutRecorderTryStatus(int iStatusReg) {
+	if(m_iReadoutRecorderTry == 0) return 0;
+	
+	int iRecorderStatus;
+	m_iReadoutRecorderTry = 0;
+	
+	//Bits 16-17 of status register contain recorder information
+	iRecorderStatus = (iStatusReg >> 15) & 0x03;
+	if(iRecorderStatus == 0) {
+		std::cout << "Recorder inactive with no valid data to upload" << std::endl;
+	} else if(iRecorderStatus == 1) {
+		std::cout << "Recorder waiting for a trigger event" << std::endl;
+	} else if(iRecorderStatus == 2) {
+		std::cout << "Recorder finished, valid data ready for use" << std::endl;
+		readoutRecorder(m_iReadoutRecorderTryObject);
+	} else if(iRecorderStatus == 3) {
+		std::cout << "Recorder is still recording" << std::endl;
+	}
+	
+	return 0;
+}
+
+int ElmoRecorder::readoutRecorder(int iObjSubIndex){
 	//initialize Upload of Recorded Data (object 0x2030)
 	int iObjIndex = 0x2030;
-	
-	//Defines the part of the Recorder that is read out next - not neccessary on CAN-Read-out
-	//pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 8, 0);
-	//pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 9, 0);
-	
+
 	pHarmonicaDrive->sendSDOUpload(iObjIndex, iObjSubIndex);
 	m_iCurrentObject = iObjSubIndex;
 	
@@ -118,7 +145,7 @@ int ElmoRecorder::readoutRecorder(int iObjSubIndex){ // iObjSubIndex: shift this
 
 int ElmoRecorder::processData(segData& SDOData) {
 	const int iItemSize = 4;
-	int iItemCount= 0;
+	int iItemCount = 0;
 	unsigned int iNumDataItems = 0;
 	bool bCollectFloats = true;
 	float fFloatingPointFactor = 0;
@@ -138,6 +165,7 @@ int ElmoRecorder::processData(segData& SDOData) {
 	//
 	//Byte 7 to Byte (7+ iNumdataItems * 4) contain data
 	
+	std::cout << ">>>>>HEADER INFOS<<<<<\nData type is float: " << bCollectFloats << std::endl;
 	
 	//B[0]: Time quantum and data type
 	if((SDOData.data[0] >> 4) == 4) {
@@ -145,29 +173,24 @@ int ElmoRecorder::processData(segData& SDOData) {
 	} else {
 		bCollectFloats = true;
 	}
+	iTimeQuantum = (SDOData.data[0] & 0x0F) * 0.000090 * 4; //Time quantum is specified in Bit 4 to 7
+	std::cout << "iTimeQuantum from Header is " << iTimeQuantum << " m_fRecordingStepSec is " << m_fRecordingStepSec << std::endl;
 	
-	iTimeQuantum = (SDOData.data[0] & 0x0F); //Time quantum is specified in Bit 4 to 7
-	
-	
-	std::cout << ">>>>>HEADER INFOS<<<<<\nData type is float: " << bCollectFloats << std::endl;
 	
 	//B[1]..[2] //Number of recorded items
 	iNumDataItems = (SDOData.data[2] << 8 | SDOData.data[1]);
 	std::cout << "Number of recorded data points: " << iNumDataItems << std::endl;
 
 	//B[3] ... [6] //Floating point factor
-	std::cout << ( (SDOData.data[6] << 24) | (SDOData.data[5] << 16) | (SDOData.data[4] << 8) | (SDOData.data[3]) ) << std::endl;
-
 	fFloatingPointFactor = convertBinaryToFloat( (SDOData.data[6] << 24) | (SDOData.data[5] << 16) | (SDOData.data[4] << 8) | (SDOData.data[3]) );
 	std::cout << "Floating point factor for recorded values is: " << fFloatingPointFactor << std::endl;
 	
-	if( ((SDOData.numTotalBytes-7)/iItemSize) != iNumDataItems) 
-		std::cout << "SDODataSize announced in SDO-Header" << ((SDOData.numTotalBytes-7)/iItemSize) << " differs from NumDataItems by Elmo" <<  iNumDataItems << std::endl;
 	
+	if( ((SDOData.numTotalBytes-7)/iItemSize) != iNumDataItems) 
+		std::cout << "SDODataSize announced in SDO-Header" << ((SDOData.numTotalBytes-7)/iItemSize) << " differs from NumDataItems by ElmoData-Header" <<  iNumDataItems << std::endl;
 	//END HEADER
 	//--------------------------------------
 
-	
 	vfResData[0].assign(iNumDataItems, 0.0);
 	vfResData[1].assign(iNumDataItems, 0.0);
 	iItemCount = 0;
@@ -222,7 +245,7 @@ float ElmoRecorder::convertBinaryToFloat(unsigned int iBinaryRepresentation) {
 // Function for writing Logfile
 int ElmoRecorder::logToFile(std::string filename, std::vector<float> vtValues[]) {
 	std::stringstream outputFileName;
-	outputFileName << filename << "_" << m_iCurrentObject << ".log";
+	outputFileName << filename << "mot_" << m_iDriveID << "_" << m_iCurrentObject << ".log";
 
 	FILE* pFile;
 	//open FileStream

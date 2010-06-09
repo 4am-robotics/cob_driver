@@ -231,7 +231,7 @@ class NodeClass
                               cob_srvs::Switch::Response &res ){
 			m_bEvalCanMsg = true;
 			m_CanCtrlPltf.evalCanBuffer();
-			m_CanCtrlPltf.ElmoRecordings(0, "");
+			m_CanCtrlPltf.ElmoRecordings(0, 1, "");
 
 			return true;
 		}
@@ -239,7 +239,7 @@ class NodeClass
                               cob_srvs::Switch::Response &res ){
 			m_bEvalCanMsg = true;
 			m_CanCtrlPltf.evalCanBuffer();
-			m_CanCtrlPltf.ElmoRecordings(1, "/home/cpc-pk/PhilsRec");
+			m_CanCtrlPltf.ElmoRecordings(1, 0, "/home/cpc-pk/PhilsRec");
 
 			return true;
 		}

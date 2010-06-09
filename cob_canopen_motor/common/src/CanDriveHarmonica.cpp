@@ -94,7 +94,7 @@ CanDriveHarmonica::CanDriveHarmonica()
 	m_bIsInitialized = false;
 	
 
-	ElmoRec = new ElmoRecorder(this);
+	ElmoRec = new ElmoRecorder(this, m_DriveParam.getDriveIdent());
 
 }
 
@@ -188,6 +188,8 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 				| (msg.getAt(5) << 8) | (msg.getAt(4) );
 
 			evalStatusRegister(m_iStatusCtrl);
+			ElmoRec->readoutRecorderTryStatus(m_iStatusCtrl);
+			
 		}
 
 		else if( (msg.getAt(0) == 'M') && (msg.getAt(1) == 'F') ) // motor failure
@@ -279,8 +281,6 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 	if (msg.m_iID == m_ParamCanOpen.iTxSDO)
 	{
 		m_WatchdogTime.SetNow();
-
-		//std::cout << "SDO-message"  << (msg.getAt(1) | (msg.getAt(2) << 8) ) << std::endl;
 
 		if( (msg.getAt(0) >> 5) == 0) { //Received Upload SDO Segment (scs = 0)
 			std::cout << "SDO Upload Segment received" << std::endl;
@@ -1011,8 +1011,6 @@ void CanDriveHarmonica::sendSDOUpload(int iObjIndex, int iObjSubIndex)
 
 	CMsgTr.set(cMsg[0], cMsg[1], cMsg[2], cMsg[3], cMsg[4], cMsg[5], cMsg[6], cMsg[7]);
 	m_pCanCtrl->transmitMsg(CMsgTr);
-
-	std::cout << "SendSDOUpload " << cMsg[0] << "|" << cMsg[1] << "|" << cMsg[2] << "|" << cMsg[3] << "|" << std::endl;
 }
 
 //-----------------------------------------------
@@ -1389,14 +1387,15 @@ int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 
 	switch(iFlag) {
 		case 0: //Configure Elmo Recorder for new Record, param = iRecordingGap, which specifies every which time quantum (4*90usec) a new data point is recorded
-			ElmoRec->configureElmoRecorder(iParam);
+			if(iParam < 1) iParam = 1;
+			ElmoRec->configureElmoRecorder(iParam); //int startImmediately is default = 1
 			return 0;
 					
 		case 1: //Query upload of previous recorded data, data is being proceeded after complete upload, param = recorded ID, filename
 			if(seg_Data.statusFlag == segData::SDO_SEG_FREE) {
+				if( (iParam != 0) | (iParam != 1) | (iParam != 9) | (iParam != 15) ) iParam = 0;
 				ElmoRec->sLogFilename = sParam;
-				ElmoRec->readoutRecorder(iParam); //as subindex, give the recorded variable
-				seg_Data.statusFlag = segData::SDO_SEG_WAITING;
+				ElmoRec->readoutRecorderTry(iParam); //as subindex, give the recorded variable
 				return 0;
 			} else {
 				std::cout << "Previous transmission not finished or colected data hasn't been proceeded yet" << std::endl;
