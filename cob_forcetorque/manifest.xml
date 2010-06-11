@@ -15,6 +15,7 @@
   <depend package="cob_srvs"/>
   <depend package="std_msgs"/>
   <depend package="libntcan"/>
+<depend package="visualization_msgs"/>
 
 </package>
 
