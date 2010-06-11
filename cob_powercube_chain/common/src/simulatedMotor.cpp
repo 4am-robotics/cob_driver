@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
- * ROS package name: powercube_chain
+ * ROS stack name: cob_driver
+ * ROS package name: cob_powercube_chain
  * Description: This class simulates a PowerCube.
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -54,8 +54,6 @@
 #include <powercube_chain/simulatedMotor.h>
 #include <math.h>
 
-#include <rtt/TaskContext.hpp>
-using namespace RTT;
 		
 simulatedMotor::simulatedMotor(double lowLimit, double upLimit, double maxAcc, double maxVel)
 	: m_lastMove(0, 0, 0, 1, 1)

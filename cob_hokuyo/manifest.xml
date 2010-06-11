@@ -1,13 +1,13 @@
 <package>
   <description brief="cob_hokuyo">
 
-     cob_hokuyo
+     This Package is simply a Care-O-bot specific setup for the hokuyo scanner.
 
   </description>
   <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
-  <url>http://www.care-o-bot.org</url>
+  <url>http://ros.org/wiki/cob_hokuyo</url>
   
   <depend package="hokuyo_node"/>
 
