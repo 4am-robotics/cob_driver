@@ -62,6 +62,7 @@ typedef unsigned char uint8_t;
 #include <cob_srvs/Trigger.h>
 
 #include <tf/transform_listener.h>
+#include <visualization_msgs/Marker.h>
 
 #include <math.h>
 #include <iostream>
@@ -80,11 +81,13 @@ public:
   bool srvCallback_Calibrate(cob_srvs::Trigger::Request &req,
 			cob_srvs::Trigger::Response &res );
   void updateFTData();
+  void visualizeData(double x, double y, double z);
 
 private:
   // declaration of topics to publish
   ros::Publisher topicPub_ForceData_;
   ros::Publisher topicPub_ForceDataBase_;
+  ros::Publisher topicPub_Marker_;
 
   // service servers
   ros::ServiceServer srvServer_Init_;
@@ -104,6 +107,7 @@ bool ForceTorqueNode::init()
   m_isInitialized = false;
   topicPub_ForceData_ = nh_.advertise<std_msgs::Float32MultiArray>("force_values", 100);
   topicPub_ForceDataBase_ = nh_.advertise<std_msgs::Float32MultiArray>("force_values_base", 100);
+  topicPub_Marker_ = nh_.advertise<visualization_msgs::Marker>("visualization_marker", 1);
   srvServer_Init_ = nh_.advertiseService("Init", &ForceTorqueNode::srvCallback_Init, this);
   srvServer_Calibrate_ = nh_.advertiseService("Calibrate", &ForceTorqueNode::srvCallback_Calibrate, this);
 
@@ -214,8 +218,34 @@ void ForceTorqueNode::updateFTData()
       base_msg.data.push_back(0.0);
       base_msg.data.push_back(0.0);
       topicPub_ForceDataBase_.publish(base_msg);
+      visualizeData(fdata_base.getOrigin().x(), fdata_base.getOrigin().y(), fdata_base.getOrigin().z());
     }
 }
+
+void ForceTorqueNode::visualizeData(double x, double y, double z)
+{
+  visualization_msgs::Marker marker;
+  uint32_t shape = visualization_msgs::Marker::ARROW;
+  marker.header.frame_id = "/arm_7_link";
+  marker.header.stamp = ros::Time::now();
+  marker.ns = "basic_shapes";
+  marker.id = 0;
+  marker.type = shape;
+  marker.action = visualization_msgs::Marker::ADD;
+  marker.pose.position.x = 0;
+  marker.pose.position.y = 0;
+  marker.pose.position.z = 0;
+  marker.scale.x = x;
+  marker.scale.y = y;
+  marker.scale.z = z;
+  marker.color.r = 0.0f;
+  marker.color.g = 1.0f;
+  marker.color.b = 0.0f;
+  marker.color.a = 1.0;
+  marker.lifetime = ros::Duration();
+  topicPub_Marker_.publish(marker);
+}
+
 
 
 
