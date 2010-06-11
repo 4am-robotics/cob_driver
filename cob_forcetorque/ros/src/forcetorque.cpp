@@ -164,6 +164,7 @@ bool ForceTorqueNode::srvCallback_Calibrate(cob_srvs::Trigger::Request &req,
 	  F_avg[3] += Tx;
 	  F_avg[4] += Ty;
 	  F_avg[5] += Tz;
+	  usleep(10000);
 	}
       for(int i = 0; i < 6; i++)
 	F_avg[i] /= measurements;
@@ -197,13 +198,13 @@ void ForceTorqueNode::updateFTData()
       fdata.setOrigin(tf::Vector3(Fx-F_avg[0], Fy-F_avg[1], Fz-F_avg[2]));
 
       try{
-        tflistener.lookupTransform("arm_7_link", "base_link", ros::Time::now(), transform_ee_base);
+        tflistener.lookupTransform("arm_7_link", "base_link", ros::Time(0), transform_ee_base);
       }
       catch (tf::TransformException ex){
 	ROS_ERROR("%s",ex.what());
       }
 
-      fdata_base = fdata * transform_ee_base;
+      fdata_base = transform_ee_base * fdata;
 
       std_msgs::Float32MultiArray base_msg;
       base_msg.data.push_back(fdata_base.getOrigin().x());
