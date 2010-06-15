@@ -216,10 +216,14 @@ bool simulatedArm::MoveVel(const std::vector<double>& Vel)
 {
     PSIM_CHECK_INITIALIZED();
 
+//	std::cerr << ".";
+//	std::cerr << "Vels: ";
 	for (int i=0; i < m_DOF; i++)
-		if(Vel[i] > 0.0)
-			m_motors[i].moveVel(Vel[i]);
-	
+	{
+//		std::cerr << Vel[i] << " ";
+		m_motors[i].moveVel(Vel[i]);
+	}
+//	std::cerr << "\n";
 	return true;
 }	
 

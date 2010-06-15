@@ -98,29 +98,18 @@ void simulatedMotor::moveVel(double vel)
 	double x = m_lastMove.pos();
 	double v = m_lastMove.vel();
 	
-	double targetAngle;
+	double targetAngle = x;
 	
 	// Move with constant v is RampMove to the corresponding limit!
 	if ( vel > 0 ) 
 		targetAngle = m_ul;
 	else if ( vel < 0)
 		targetAngle = m_ll;
-	else
-		targetAngle = x; // v=0, stay at current position
 	
 	double vm = fabs(vel);
 	if ( vm > m_vmax ) vm = m_vmax;	
 	
 	double a = fabs(vel-v) / T0;
-	// RampCommand does not work properly if a is zero!
-	if ( a < 0.001 )
-	{
-		a = m_amax;
-	}
-	// this is just a workaround. It would be desirable to simulate a PT2 element!
-	
-	//log(Info) << "RampCommand(" << x << ", " << v << ", " << targetAngle << ", " << a;
-	//log(Info) << ", " << vm << ")" << endlog();
 	
 	m_lastMove = RampCommand(x, v, targetAngle, a, vm);
 	m_lastMove.start();

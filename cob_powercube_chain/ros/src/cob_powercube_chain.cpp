@@ -126,6 +126,7 @@ class NodeClass
 		bool isInitialized_;
 		bool finished_;
 		std::vector<double>cmd_vel_;
+		bool newvel_;
 		
 		trajectory_msgs::JointTrajectory traj_;
 		trajectory_msgs::JointTrajectoryPoint traj_point_;
@@ -288,6 +289,7 @@ class NodeClass
 			PCubeParams_->SetAngleOffsets(Offsets);
 			
 			cmd_vel_.resize(ModIds_param_.size());
+			newvel_ = false;
         }
         
         // Destructor
@@ -299,7 +301,8 @@ class NodeClass
         // function will be called when a new message arrives on a topic
         void topicCallback_DirectCommand(const trajectory_msgs::JointTrajectory::ConstPtr& msg)
         {
-			ROS_DEBUG("Received new direct command");
+			ROS_INFO("Received new direct command");
+			newvel_ = true;
 			cmd_vel_ = msg->points[0].velocities;
         }
         
@@ -398,6 +401,7 @@ class NodeClass
                               cob_srvs::Trigger::Response &res )
         {
        	    ROS_INFO("Stopping powercubes");
+	    newvel_ = false;
         	
         	// set current trajectory to be finished
 			traj_point_nr_ = traj_.points.size();
@@ -548,7 +552,12 @@ class NodeClass
 			    else if (operationMode == "velocity")
 			    {
 			    	ROS_DEBUG("moving powercubes in velocity mode");
-			        PCube_->MoveVel(cmd_vel_);
+				if(newvel_)
+				{	
+					ROS_INFO("MoveVel Call");
+			        	PCube_->MoveVel(cmd_vel_);
+					newvel_ = false;
+				 }
 			        //ROS_WARN("Moving in velocity mode currently disabled");
 			    }
 			    else
