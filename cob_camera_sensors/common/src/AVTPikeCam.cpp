@@ -3436,7 +3436,8 @@ unsigned long AVTPikeCam::SetParameters()
 
 unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 { 
-	TiXmlDocument* p_configXmlDocument = new TiXmlDocument( filename );
+	boost::shared_ptr<TiXmlDocument> p_configXmlDocument (new TiXmlDocument( filename ));
+
 	if (!p_configXmlDocument->LoadFile())
 	{
 		std::cerr << "ERROR - AVTPikeCam::LoadParameters:" << std::endl;
@@ -4045,6 +4046,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 			return (RET_FAILED | RET_XML_TAG_NOT_FOUND);
 		}
 	}
+
+	
 
 	return RET_OK;
 }

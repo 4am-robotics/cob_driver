@@ -107,7 +107,7 @@ bool ForceTorqueNode::init()
   m_isInitialized = false;
   topicPub_ForceData_ = nh_.advertise<std_msgs::Float32MultiArray>("force_values", 100);
   topicPub_ForceDataBase_ = nh_.advertise<std_msgs::Float32MultiArray>("force_values_base", 100);
-  topicPub_Marker_ = nh_.advertise<visualization_msgs::Marker>("visualization_marker", 1);
+  topicPub_Marker_ = nh_.advertise<visualization_msgs::Marker>("/visualization_marker", 1);
   srvServer_Init_ = nh_.advertiseService("Init", &ForceTorqueNode::srvCallback_Init, this);
   srvServer_Calibrate_ = nh_.advertiseService("Calibrate", &ForceTorqueNode::srvCallback_Calibrate, this);
 
@@ -168,6 +168,7 @@ bool ForceTorqueNode::srvCallback_Calibrate(cob_srvs::Trigger::Request &req,
 	  F_avg[3] += Tx;
 	  F_avg[4] += Ty;
 	  F_avg[5] += Tz;
+	  usleep(10000);
 	}
       for(int i = 0; i < 6; i++)
 	F_avg[i] /= measurements;
@@ -201,13 +202,13 @@ void ForceTorqueNode::updateFTData()
       fdata.setOrigin(tf::Vector3(Fx-F_avg[0], Fy-F_avg[1], Fz-F_avg[2]));
 
       try{
-        tflistener.lookupTransform("arm_7_link", "base_link", ros::Time::now(), transform_ee_base);
+        tflistener.lookupTransform("arm_7_link", "base_link", ros::Time(0), transform_ee_base);
       }
       catch (tf::TransformException ex){
 	ROS_ERROR("%s",ex.what());
       }
 
-      fdata_base = fdata * transform_ee_base;
+      fdata_base = transform_ee_base * fdata;
 
       std_msgs::Float32MultiArray base_msg;
       base_msg.data.push_back(fdata_base.getOrigin().x());
@@ -227,16 +228,16 @@ void ForceTorqueNode::visualizeData(double x, double y, double z)
   uint32_t shape = visualization_msgs::Marker::ARROW;
   marker.header.frame_id = "/arm_7_link";
   marker.header.stamp = ros::Time::now();
-  marker.ns = "basic_shapes";
+  marker.ns = "ForceTorqueData";
   marker.id = 0;
   marker.type = shape;
   marker.action = visualization_msgs::Marker::ADD;
   marker.pose.position.x = 0;
   marker.pose.position.y = 0;
   marker.pose.position.z = 0;
-  marker.scale.x = x;
-  marker.scale.y = y;
-  marker.scale.z = z;
+  marker.scale.x = x/100;
+  marker.scale.y = y/100;
+  marker.scale.z = z/100;
   marker.color.r = 0.0f;
   marker.color.g = 1.0f;
   marker.color.b = 0.0f;
