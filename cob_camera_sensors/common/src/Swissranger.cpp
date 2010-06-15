@@ -1213,7 +1213,8 @@ unsigned long Swissranger::SetParameters()
 unsigned long Swissranger::LoadParameters(const char* filename, int cameraIndex)
 {
 	/// Load SwissRanger parameters.
-	TiXmlDocument* p_configXmlDocument = new TiXmlDocument( filename );
+	boost::shared_ptr<TiXmlDocument> p_configXmlDocument (new TiXmlDocument( filename ));
+
 	if (!p_configXmlDocument->LoadFile())
 	{
 		std::cerr << "ERROR - Swissranger::LoadParameters:" << std::endl;
@@ -1634,6 +1635,8 @@ unsigned long Swissranger::LoadParameters(const char* filename, int cameraIndex)
 	
 	std::cout << "INFO - Swissranger::LoadParameters:" << std::endl;
 	std::cout << "\t ... Parsing xml calibration file: Done.\n";
+
+	
 
 	return RET_OK;
 }
