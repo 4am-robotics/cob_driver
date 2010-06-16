@@ -788,6 +788,16 @@ void CanDriveHarmonica::requestPosVel()
 }
 
 //-----------------------------------------------
+void CanDriveHarmonica::sendHeartbeat()
+{
+	CanMsg msg;
+	msg.m_iID  = 0x700;
+	msg.m_iLen = 5;
+	msg.set(0x00,0,0,0,0,0,0,0);
+	m_pCanCtrl->transmitMsg(msg);
+}
+
+//-----------------------------------------------
 void CanDriveHarmonica::requestStatus()
 {
 	IntprtSetInt(4, 'S', 'R', 0, 0);
@@ -1327,11 +1337,8 @@ void CanDriveHarmonica::setMotorTorque(double dTorqueNm)
 	m_pCanCtrl->transmitMsg(msg);
 
 	// send heartbeat to keep watchdog inactive
-	msg.m_iID  = 0x700;
-	msg.m_iLen = 5;
-	msg.set(0x00,0,0,0,0,0,0,0);
-	m_pCanCtrl->transmitMsg(msg);
-
+	sendHeartbeat();
+	
 	m_CurrentTime.SetNow();
 	double dt = m_CurrentTime - m_SendTime;
 	if (dt > 1.0)
@@ -1372,12 +1379,18 @@ int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 	switch(iFlag) {
 		case 0: //Configure Elmo Recorder for new Record, param = iRecordingGap, which specifies every which time quantum (4*90usec) a new data point is recorded
 			if(iParam < 1) iParam = 1;
+			ElmoRec->isInitialized(true);
 			ElmoRec->configureElmoRecorder(iParam, m_DriveParam.getDriveIdent()); //int startImmediately is default = 1
 			return 0;
 					
 		case 1: //Query upload of previous recorded data, data is being proceeded after complete upload, param = recorded ID, filename
+			if(!ElmoRec->isInitialized(false)) return 1;
+			
 			if(seg_Data.statusFlag == segData::SDO_SEG_FREE) {
-				if( (iParam != 1) && (iParam != 2) && (iParam != 10) && (iParam != 16) ) iParam = 1;
+				if( (iParam != 1) && (iParam != 2) && (iParam != 10) && (iParam != 16) ) {
+					iParam = 1;
+					std::cout << "Changed the Readout object to #1 as your object hasn't been recorded!" << std::endl;
+				}
 				ElmoRec->sLogFilename = sParam;
 				ElmoRec->readoutRecorderTry(iParam); //as subindex, give the recorded variable
 				return 0;
@@ -1394,7 +1407,7 @@ int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 				return 2;
 			} else if(seg_Data.statusFlag == segData::SDO_SEG_PROCESSING) {
 				std::cout << "Transmission of data finished, data not proceeded yet" << std::endl;
-				return 3;
+				return 2;
 			} else if(seg_Data.statusFlag == segData::SDO_SEG_WAITING) {
 				std::cout << "Still waiting for transmission to begin" << std::endl;
 				return 2;			

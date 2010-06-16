@@ -68,6 +68,8 @@
 // ROS service includes
 #include <cob_srvs/Trigger.h>
 #include <cob_srvs/GetJointState.h>
+#include <cob_base_drive_chain/ElmoRecorderGet.h>
+#include <cob_base_drive_chain/ElmoRecorderSetup.h>
 
 
 // external includes
@@ -97,7 +99,7 @@ class NodeClass
         ros::ServiceServer srvServer_Shutdown;
         ros::ServiceServer srvServer_SetMotionType;
         ros::ServiceServer srvServer_GetJointState;
-        ros::ServiceServer srvServer_ElmoRecorder;
+        ros::ServiceServer srvServer_ElmoRecorderConfig;
         ros::ServiceServer srvServer_ElmoRecorderReadout;
             
         // service clients
@@ -138,7 +140,7 @@ class NodeClass
 
 			// implementation of service servers
 			srvServer_Init = n.advertiseService("Init", &NodeClass::srvCallback_Init, this);
-            srvServer_ElmoRecorder = n.advertiseService("ElmoRecorder", &NodeClass::srvCallback_ElmoRecorder, this);
+            srvServer_ElmoRecorderConfig = n.advertiseService("ElmoRecorderConfig", &NodeClass::srvCallback_ElmoRecorderConfig, this);
             srvServer_ElmoRecorderReadout = n.advertiseService("ElmoRecorderReadout", &NodeClass::srvCallback_ElmoRecorderReadout, this);
             
 			srvServer_Reset = n.advertiseService("Reset", &NodeClass::srvCallback_Reset, this);
@@ -227,22 +229,26 @@ class NodeClass
             return true;
         }
 		
-		bool srvCallback_ElmoRecorder(cob_srvs::Switch::Request &req,
-                              cob_srvs::Switch::Response &res ){
+		bool srvCallback_ElmoRecorderConfig(cob_base_drive_chain::ElmoRecorderSetup::Request &req,
+                              cob_base_drive_chain::ElmoRecorderSetup::Response &res ){
 			if(m_bisInitialized) {			
 				m_bEvalCanMsg = true;
 				m_CanCtrlPltf.evalCanBuffer();
-				m_CanCtrlPltf.ElmoRecordings(0, 1, "");
+				res.success = m_CanCtrlPltf.ElmoRecordings(0, req.recordinggap, "");
+				res.message = "Successfully configured all motors for instant record";
 			}
 
 			return true;
 		}
-		bool srvCallback_ElmoRecorderReadout(cob_srvs::Switch::Request &req,
-                              cob_srvs::Switch::Response &res ){
+		bool srvCallback_ElmoRecorderReadout(cob_base_drive_chain::ElmoRecorderGet::Request &req,
+                              cob_base_drive_chain::ElmoRecorderGet::Response &res ){
 			if(m_bisInitialized) {
 				m_bEvalCanMsg = true;
 				m_CanCtrlPltf.evalCanBuffer();
-				m_CanCtrlPltf.ElmoRecordings(1, 2, "/home/cpc-pk/PhilsRec_");
+				res.success = m_CanCtrlPltf.ElmoRecordings(1, req.subindex, req.fileprefix);
+				if(res.success == 0) res.message = "Successfully requested reading out of Recorded data";
+				else if(res.success == 1) res.message = "Recorder hasn't been configured well yet";
+				else if(res.success == 2) res.message = "A previous transmission is still in progress";
 			}
 
 			return true;

@@ -304,6 +304,11 @@ public:
 	 */
 	void IntprtSetInt(int iDataLen, char cCmdChar1, char cCmdChar2, int iIndex, int iData);
 	
+	/**
+	 * Sends a heartbeat to the CAN-network to keep all listening watchdogs sleeping
+	 */
+	void sendHeartbeat();
+	
 
 	bool setEMStop() {
 		std::cout << "The function setEMStop() is not implemented!!!" << std::endl;
@@ -343,7 +348,7 @@ public:
 	 * @return Return Values are: 0 Success, 1 general Error, 2 data collection still in progress, 3 proceeding of data still in progress
 	 *
 	*/
-	int setRecorder(int iFlag, int iParam = 0, std::string sParam = "/home/MyLog");
+	int setRecorder(int iFlag, int iParam = 0, std::string sParam = "/home/MyLog_");
 	
 	
 	//--------------------------
@@ -432,7 +437,7 @@ protected:
 
 	bool m_bWatchdogActive;
 
-    segData seg_Data;
+	segData seg_Data;
 
 
 	// ------------------------- Member functions
@@ -452,15 +457,15 @@ protected:
 			return true;
 	}
 
-    void sendSDOUploadSegmentConfirmation(bool toggleBit);
+	void sendSDOUploadSegmentConfirmation(bool toggleBit);
     
-    int receivedSDODataSegment(CanMsg& msg);
+	int receivedSDODataSegment(CanMsg& msg);
 
-    int receivedSDOSegmentedInitiation(CanMsg& msg);
+	int receivedSDOSegmentedInitiation(CanMsg& msg);
     
-    void receivedSDOTransferAbort(unsigned int iErrorCode);
+	void receivedSDOTransferAbort(unsigned int iErrorCode);
     
-    void finishedSDOSegmentedTransfer();
+	void finishedSDOSegmentedTransfer();
 
 };
 //-----------------------------------------------

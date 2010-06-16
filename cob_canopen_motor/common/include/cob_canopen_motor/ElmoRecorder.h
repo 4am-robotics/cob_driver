@@ -75,6 +75,8 @@ class ElmoRecorder {
 		*/
 		int configureElmoRecorder(int iRecordingGap, int driveID, int startImmediately = 1);
 		
+		bool isInitialized(bool initNow);
+		
 		int readoutRecorder(int iObjSubIndex);
 		
 		int readoutRecorderTry(int iObjSubIndex);
@@ -88,6 +90,7 @@ class ElmoRecorder {
 		
 	private:
 		int m_iCurrentObject;
+		
 		float m_fRecordingStepSec;
 		
 		int m_iReadoutRecorderTry;
@@ -95,6 +98,8 @@ class ElmoRecorder {
 		CanDriveHarmonica* pHarmonicaDrive;
 		
 		int m_iDriveID;
+		
+		bool m_bIsInitialized;
 		
 		float convertBinaryToFloat(unsigned int binaryRepresentation);
 };

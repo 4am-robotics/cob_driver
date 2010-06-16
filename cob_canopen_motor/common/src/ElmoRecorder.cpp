@@ -61,41 +61,43 @@
 ElmoRecorder::ElmoRecorder(CanDriveHarmonica * pParentHarmonicaDrive) {
 	pHarmonicaDrive = pParentHarmonicaDrive;
 	
+	m_bIsInitialized = false;
 	m_iReadoutRecorderTry = 0;
 }
 
 ElmoRecorder::~ElmoRecorder() {
 }
 
+bool ElmoRecorder::isInitialized(bool initNow) {
+	if(initNow) m_bIsInitialized = true;
+	return m_bIsInitialized;
+}
+
 int ElmoRecorder::configureElmoRecorder(int iRecordingGap, int driveID, int startImmediately){ //iRecordingGap = N indicates that a new sample should be taken once per N time quanta
 	m_iDriveID = driveID;
+	
+	if(startImmediately >=2 ) startImmediately = 1;
 
 	pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, 0);	// Stop Recorder if it's active	
-	usleep(20000);	
 	// Record Main speed (index 0, ID1) 
 	// Active Current (index 9, ID10)
 	// Main Position (index 1, ID2)
 	// Speed Command (index 15, ID16)
 	// RC = 2^(Signal1Index) + 2^(Signal2Index) + ..; e.g.: 2^0 + 2^1 + 2^9 + 2^15 = 33283;
 	pHarmonicaDrive->IntprtSetInt(8, 'R', 'C', 0, 33283);
-	usleep(20000);
 	// Set trigger type to immediate
 	pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 3, 0);
-	usleep(20000);
 	// Set Recording Gap
 	pHarmonicaDrive->IntprtSetInt(8, 'R', 'G', 0, iRecordingGap);
-	usleep(20000);
 	// Set Recording Length
 	// RL = (4096 / Number of Signals)
 	pHarmonicaDrive->IntprtSetInt(8, 'R', 'L', 0, 1024);
-	usleep(20000);
 	
 	// Set Time Quantum, Default: RP=0 -> TS * 4; TS is 90us by default
 	// pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 0, 0);
 	// ----> Total Recording Time = 90us * 4 * RG * RL
 
 	pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, startImmediately + 1); //2 launches immediately (8, 'R', 'R', 0, 1) launches at next BG
-	usleep(20000);
 	
 	m_fRecordingStepSec = 0.000090 * 4 * iRecordingGap;
 	
@@ -159,13 +161,12 @@ int ElmoRecorder::processData(segData& SDOData) {
 	//--------------------------------------
 	//First 7 Bytes of the data sequence contain header information:
 	//Byte 0: First four bits: 4 = Int data type, 1 = Float data type
-	//			Next four bits: Time Quantum in n * TS
+	//			Next four bits: Recording frequency in 1 per n * TS => deltaT =  n * 90µsec
 	//Byte 2, Byte 3: Number of recorded data points
 	//Byte 3 to 6: Floating point factor for data to be multiplied with
 	//
 	//Byte 7 to Byte (7+ iNumdataItems * 4) contain data
 	
-	std::cout << ">>>>>HEADER INFOS<<<<<\nData type is float: " << bCollectFloats << std::endl;
 	
 	//B[0]: Time quantum and data type
 	if((SDOData.data[0] >> 4) == 4) {
@@ -173,8 +174,10 @@ int ElmoRecorder::processData(segData& SDOData) {
 	} else {
 		bCollectFloats = true;
 	}
+	std::cout << ">>>>>HEADER INFOS<<<<<\nData type is float: " << bCollectFloats << std::endl;
+	
 	fTimeQuantum = (SDOData.data[0] & 0x0F) * 0.000090; //Time quantum is specified in Bit 4 to 7
-	std::cout << "fTimeQuantum from Header is " << fTimeQuantum << " m_fRecordingStepSec is " << m_fRecordingStepSec << std::endl;
+	//std::cout << "fTimeQuantum from Header is " << fTimeQuantum << " m_fRecordingStepSec is " << m_fRecordingStepSec << std::endl;
 	
 	
 	//B[1]..[2] //Number of recorded items

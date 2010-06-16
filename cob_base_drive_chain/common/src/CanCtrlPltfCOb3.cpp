@@ -1298,23 +1298,30 @@ void CanCtrlPltfCOb3::setMotorTorque(int iCanIdent, double dTorqueNm)
 //-----------------------------------------------
 
 //-----------------------------------------------
-bool CanCtrlPltfCOb3::ElmoRecordings(int iFlag, int iParam, std::string Filename) {
-	bool bRet = true;
+int CanCtrlPltfCOb3::ElmoRecordings(int iFlag, int iParam, std::string sString) {
+	int tempRet = 0;
+	int bRet = 0;
 	
 	switch(iFlag) {
 		case 0: //Flag = 0 means reset recorder and configure it
 			for(unsigned int i = 0; i < m_vpMotor.size(); i++) {
 				m_vpMotor[i]->setRecorder(0, iParam); //Configure Elmo Recorder with RecordingGap and start immediately
 			}
-			return true;
+			return 0;
 
 		case 1: //Flag = 1 means start readout process, mustn't be called too early (while Rec is in process..)
 			for(unsigned int i = 0; i < m_vpMotor.size(); i++) {
-				if(m_vpMotor[i]->setRecorder(1, iParam, Filename) != 0) bRet = false; //Query Readout of Index to Log Directory
+				if(tempRet = m_vpMotor[i]->setRecorder(1, iParam, sString) > bRet) bRet = tempRet; //Query Readout of Index to Log Directory
 			}
 			return bRet;
 		
+		case 99:
+			for(unsigned int i = 0; i < m_vpMotor.size(); i++) {
+				m_vpMotor[i]->setRecorder(99, 0); //Configure Elmo Recorder with RecordingGap and start immediately
+			}
+			return 0;
+		
 		default:
-			return false;
+			return -1;
 	}
 }
