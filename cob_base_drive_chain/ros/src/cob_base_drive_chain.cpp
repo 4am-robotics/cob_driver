@@ -229,17 +229,21 @@ class NodeClass
 		
 		bool srvCallback_ElmoRecorder(cob_srvs::Switch::Request &req,
                               cob_srvs::Switch::Response &res ){
-			m_bEvalCanMsg = true;
-			m_CanCtrlPltf.evalCanBuffer();
-			m_CanCtrlPltf.ElmoRecordings(0, 1, "");
+			if(m_bisInitialized) {			
+				m_bEvalCanMsg = true;
+				m_CanCtrlPltf.evalCanBuffer();
+				m_CanCtrlPltf.ElmoRecordings(0, 1, "");
+			}
 
 			return true;
 		}
 		bool srvCallback_ElmoRecorderReadout(cob_srvs::Switch::Request &req,
                               cob_srvs::Switch::Response &res ){
-			m_bEvalCanMsg = true;
-			m_CanCtrlPltf.evalCanBuffer();
-			m_CanCtrlPltf.ElmoRecordings(1, 0, "/home/cpc-pk/PhilsRec");
+			if(m_bisInitialized) {
+				m_bEvalCanMsg = true;
+				m_CanCtrlPltf.evalCanBuffer();
+				m_CanCtrlPltf.ElmoRecordings(1, 2, "/home/cpc-pk/PhilsRec_");
+			}
 
 			return true;
 		}

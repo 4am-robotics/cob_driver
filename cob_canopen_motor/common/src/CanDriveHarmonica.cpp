@@ -94,7 +94,7 @@ CanDriveHarmonica::CanDriveHarmonica()
 	m_bIsInitialized = false;
 	
 
-	ElmoRec = new ElmoRecorder(this, m_DriveParam.getDriveIdent());
+	ElmoRec = new ElmoRecorder(this);
 
 }
 
@@ -250,23 +250,7 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 			pfVal=(float*)&iVal;
 			m_dMotorCurr = *pfVal;			
 		}
-		
-		//Elmo-Recorder related answers (mostly during configuration process)
-		
-		else if( (msg.getAt(0) == 'R') && (msg.getAt(1) == 'R') )
-		{
-			
-			iPara = (msg.getAt(7) << 24) | (msg.getAt(6) << 16)
-				| (msg.getAt(5) << 8) | (msg.getAt(4) );
 
-			std::cout << "Answer from Recorder: RR = " << iPara << std::endl; //-1: No valid data in recorder, 0: action finished and recorder filled
-		}
-		
-		else if( (msg.getAt(0) == 'R') && (msg.getAt(1) == 'C') ) // Recording targets
-		{
-			std::cout << "Answer from Recorder RC" << std::endl;
-		}
-		
 		else
 		{
 		}
@@ -283,7 +267,7 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 		m_WatchdogTime.SetNow();
 
 		if( (msg.getAt(0) >> 5) == 0) { //Received Upload SDO Segment (scs = 0)
-			std::cout << "SDO Upload Segment received" << std::endl;
+			//std::cout << "SDO Upload Segment received" << std::endl;
 			receivedSDODataSegment(msg);
 			
 		} else if( (msg.getAt(0) & 0xE2) == 0x40) { //Received Initiate SDO Upload, that is not expedited -> start segmented upload (scs = 2 AND expedited flag = 0)
@@ -1060,7 +1044,7 @@ int CanDriveHarmonica::getSDODataInt32(CanMsg& CMsg)
 //-----------------------------------------------
 int CanDriveHarmonica::receivedSDOSegmentedInitiation(CanMsg& msg) {
 
-	if(seg_Data.statusFlag == segData::SDO_SEG_WAITING) { //only accept new SDO Segmented Upload if seg_Data is waitning for
+	if(seg_Data.statusFlag == segData::SDO_SEG_FREE) { //only accept new SDO Segmented Upload if seg_Data is free
 		seg_Data.resetTransferData();
 		seg_Data.statusFlag = segData::SDO_SEG_COLLECTING;
 
@@ -1102,7 +1086,7 @@ int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
 	};
 
 	numEmptyBytes = (msg.getAt(0) >> 1) & 0x07;
-	std::cout << "NUM empty bytes in SDO :" << numEmptyBytes << std::endl;
+	//std::cout << "NUM empty bytes in SDO :" << numEmptyBytes << std::endl;
 	
 	for(int i=1; i<=7-numEmptyBytes; i++) {
 		seg_Data.data.push_back(msg.getAt(i));
@@ -1388,12 +1372,12 @@ int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 	switch(iFlag) {
 		case 0: //Configure Elmo Recorder for new Record, param = iRecordingGap, which specifies every which time quantum (4*90usec) a new data point is recorded
 			if(iParam < 1) iParam = 1;
-			ElmoRec->configureElmoRecorder(iParam); //int startImmediately is default = 1
+			ElmoRec->configureElmoRecorder(iParam, m_DriveParam.getDriveIdent()); //int startImmediately is default = 1
 			return 0;
 					
 		case 1: //Query upload of previous recorded data, data is being proceeded after complete upload, param = recorded ID, filename
 			if(seg_Data.statusFlag == segData::SDO_SEG_FREE) {
-				if( (iParam != 0) | (iParam != 1) | (iParam != 9) | (iParam != 15) ) iParam = 0;
+				if( (iParam != 1) && (iParam != 2) && (iParam != 10) && (iParam != 16) ) iParam = 1;
 				ElmoRec->sLogFilename = sParam;
 				ElmoRec->readoutRecorderTry(iParam); //as subindex, give the recorded variable
 				return 0;
@@ -1404,7 +1388,7 @@ int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 			
 			break;
 			
-		case 2: //request status, still collecting data?
+		case 2: //request status, still collecting data during ReadOut process?
 			if(seg_Data.statusFlag == segData::SDO_SEG_COLLECTING) {
 				std::cout << "Transmission of data is still in progress" << std::endl;
 				return 2;
