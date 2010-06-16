@@ -91,7 +91,6 @@ class ElmoRecorder {
 		float m_fRecordingStepSec;
 		
 		int m_iReadoutRecorderTry;
-		int m_iReadoutRecorderTryObject;
 	
 		CanDriveHarmonica* pHarmonicaDrive;
 		

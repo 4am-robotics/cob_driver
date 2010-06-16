@@ -104,7 +104,7 @@ int ElmoRecorder::configureElmoRecorder(int iRecordingGap, int startImmediately)
 
 int ElmoRecorder::readoutRecorderTry(int iObjSubIndex) {
 	m_iReadoutRecorderTry = 1;
-	m_iReadoutRecorderTryObject = iObjSubIndex;
+	m_iCurrentObject = iObjSubIndex;
 	
 	pHarmonicaDrive->requestStatus();
 	
@@ -125,7 +125,7 @@ int ElmoRecorder::readoutRecorderTryStatus(int iStatusReg) {
 		std::cout << "Recorder waiting for a trigger event" << std::endl;
 	} else if(iRecorderStatus == 2) {
 		std::cout << "Recorder finished, valid data ready for use" << std::endl;
-		readoutRecorder(m_iReadoutRecorderTryObject);
+		readoutRecorder(m_iCurrentObject);
 	} else if(iRecorderStatus == 3) {
 		std::cout << "Recorder is still recording" << std::endl;
 	}
