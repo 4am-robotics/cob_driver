@@ -58,9 +58,8 @@
 #include <cob_canopen_motor/ElmoRecorder.h>
 #include <cob_canopen_motor/CanDriveHarmonica.h>
 
-ElmoRecorder::ElmoRecorder(CanDriveHarmonica * pParentHarmonicaDrive, int iDriveID) {
+ElmoRecorder::ElmoRecorder(CanDriveHarmonica * pParentHarmonicaDrive) {
 	pHarmonicaDrive = pParentHarmonicaDrive;
-	m_iDriveID = iDriveID;
 	
 	m_iReadoutRecorderTry = 0;
 }
@@ -68,7 +67,8 @@ ElmoRecorder::ElmoRecorder(CanDriveHarmonica * pParentHarmonicaDrive, int iDrive
 ElmoRecorder::~ElmoRecorder() {
 }
 
-int ElmoRecorder::configureElmoRecorder(int iRecordingGap, int startImmediately){ //iRecordingGap = N indicates that a new sample should be taken once per N time quanta
+int ElmoRecorder::configureElmoRecorder(int iRecordingGap, int driveID, int startImmediately){ //iRecordingGap = N indicates that a new sample should be taken once per N time quanta
+	m_iDriveID = driveID;
 
 	pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, 0);	// Stop Recorder if it's active	
 	usleep(20000);	
@@ -113,21 +113,21 @@ int ElmoRecorder::readoutRecorderTry(int iObjSubIndex) {
 
 int ElmoRecorder::readoutRecorderTryStatus(int iStatusReg) {
 	if(m_iReadoutRecorderTry == 0) return 0;
-	
-	int iRecorderStatus;
+
 	m_iReadoutRecorderTry = 0;
 	
 	//Bits 16-17 of status register contain recorder information
-	iRecorderStatus = (iStatusReg >> 15) & 0x03;
+	int iRecorderStatus = (0x30000 & iStatusReg) >> 16;
+
 	if(iRecorderStatus == 0) {
-		std::cout << "Recorder inactive with no valid data to upload" << std::endl;
+		std::cout << "Recorder " << m_iDriveID << " inactive with no valid data to upload" << std::endl;
 	} else if(iRecorderStatus == 1) {
-		std::cout << "Recorder waiting for a trigger event" << std::endl;
+		std::cout << "Recorder " << m_iDriveID << " waiting for a trigger event" << std::endl;
 	} else if(iRecorderStatus == 2) {
-		std::cout << "Recorder finished, valid data ready for use" << std::endl;
-		readoutRecorder(m_iCurrentObject);
+		std::cout << "Recorder " << m_iDriveID << " finished, valid data ready for use" << std::endl;
+		readoutRecorder(m_iReadoutRecorderTryObject);
 	} else if(iRecorderStatus == 3) {
-		std::cout << "Recorder is still recording" << std::endl;
+		std::cout << "Recorder " << m_iDriveID << " is still recording" << std::endl;
 	}
 	
 	return 0;
@@ -149,7 +149,7 @@ int ElmoRecorder::processData(segData& SDOData) {
 	unsigned int iNumDataItems = 0;
 	bool bCollectFloats = true;
 	float fFloatingPointFactor = 0;
-	int iTimeQuantum = 1;
+	float fTimeQuantum = 1.0f;
 	
 	std::vector<float> vfResData[2];
 	
@@ -173,8 +173,8 @@ int ElmoRecorder::processData(segData& SDOData) {
 	} else {
 		bCollectFloats = true;
 	}
-	iTimeQuantum = (SDOData.data[0] & 0x0F) * 0.000090 * 4; //Time quantum is specified in Bit 4 to 7
-	std::cout << "iTimeQuantum from Header is " << iTimeQuantum << " m_fRecordingStepSec is " << m_fRecordingStepSec << std::endl;
+	fTimeQuantum = (SDOData.data[0] & 0x0F) * 0.000090; //Time quantum is specified in Bit 4 to 7
+	std::cout << "fTimeQuantum from Header is " << fTimeQuantum << " m_fRecordingStepSec is " << m_fRecordingStepSec << std::endl;
 	
 	
 	//B[1]..[2] //Number of recorded items

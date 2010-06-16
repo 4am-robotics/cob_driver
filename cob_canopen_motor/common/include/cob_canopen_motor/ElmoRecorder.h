@@ -62,7 +62,7 @@ class CanDriveHarmonica;
 class ElmoRecorder {
 	public:
 		
-		ElmoRecorder(CanDriveHarmonica * pParentHarmonicaDrive, int iDriveID);
+		ElmoRecorder(CanDriveHarmonica * pParentHarmonicaDrive);
 
 		~ElmoRecorder();
 		
@@ -73,7 +73,7 @@ class ElmoRecorder {
 		* (This can be used for identification of the drive chain)
 		* @param iRecordingGap iRecordingGap = N indicates that a new sample should be taken once per N time quanta (= 4 * 90 usec)
 		*/
-		int configureElmoRecorder(int iRecordingGap, int startImmediately = 1);
+		int configureElmoRecorder(int iRecordingGap, int driveID, int startImmediately = 1);
 		
 		int readoutRecorder(int iObjSubIndex);
 		

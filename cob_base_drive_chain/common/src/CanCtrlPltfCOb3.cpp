@@ -1310,27 +1310,11 @@ bool CanCtrlPltfCOb3::ElmoRecordings(int iFlag, int iParam, std::string Filename
 
 		case 1: //Flag = 1 means start readout process, mustn't be called too early (while Rec is in process..)
 			for(unsigned int i = 0; i < m_vpMotor.size(); i++) {
-				if(m_vpMotor[i]->setRecorder(1, 1, Filename) != 0) bRet = false; //Query Readout of Index to Log Directory
+				if(m_vpMotor[i]->setRecorder(1, iParam, Filename) != 0) bRet = false; //Query Readout of Index to Log Directory
 			}
 			return bRet;
 		
 		default:
 			return false;
 	}
-
-/* WORKING TEST STATE FOR ONE MOTOR
-		case 0: //Flag = 0 means reset recorder and configure it
-			//Motor 1 -> steering motor
-			m_vpMotor[0]->setRecorder(0, 1); //Configure Elmo Recorder with RecordingGap and start immediately
-			return true;
-
-		case 1: //Flag = 1 means start readout process, mustn't be called too early (while Rec is in process..)
-			if(m_vpMotor[0]->setRecorder(1, 1, Filename) != 0) return false; //Query Readout of Index to Log Directory
-			else return true;
-		
-		default:
-			return false;
-	
-	}
-*/
 }
