@@ -146,7 +146,7 @@ int ElmoRecorder::readoutRecorder(int iObjSubIndex){
 }
 
 int ElmoRecorder::processData(segData& SDOData) {
-	const int iItemSize = 4;
+	int iItemSize = 4;
 	int iItemCount = 0;
 	unsigned int iNumDataItems = 0;
 	bool bCollectFloats = true;
@@ -160,21 +160,33 @@ int ElmoRecorder::processData(segData& SDOData) {
 	//HEADER
 	//--------------------------------------
 	//First 7 Bytes of the data sequence contain header information:
-	//Byte 0: First four bits: 4 = Int data type, 1 = Float data type
+	//Byte 0: First four bits: 4 = Long Int data type, 1 = Half Float data type, 5 = Double Float
 	//			Next four bits: Recording frequency in 1 per n * TS => deltaT =  n * 90µsec
 	//Byte 2, Byte 3: Number of recorded data points
 	//Byte 3 to 6: Floating point factor for data to be multiplied with
 	//
 	//Byte 7 to Byte (7+ iNumdataItems * 4) contain data
 	
-	
 	//B[0]: Time quantum and data type
-	if((SDOData.data[0] >> 4) == 4) {
-		bCollectFloats = false;
-	} else {
-		bCollectFloats = true;
+	switch ((SDOData.data[0] >> 4) ) {
+		case 4:
+			bCollectFloats = false;
+			iItemSize = 4;
+			break;
+		case 5:
+			bCollectFloats = true;
+			iItemSize = 4;
+			break;
+		case 1:
+			bCollectFloats = true;
+			iItemSize = 2;
+			break;
+		default:
+			bCollectFloats = false;
+			iItemSize = 4;
+			break;
 	}
-	std::cout << ">>>>>HEADER INFOS<<<<<\nData type is float: " << bCollectFloats << std::endl;
+	std::cout << ">>>>>HEADER INFOS<<<<<\nData type is: " << (SDOData.data[0] >> 4) << std::endl;
 	
 	fTimeQuantum = (SDOData.data[0] & 0x0F) * 0.000090; //Time quantum is specified in Bit 4 to 7
 	//std::cout << "fTimeQuantum from Header is " << fTimeQuantum << " m_fRecordingStepSec is " << m_fRecordingStepSec << std::endl;
@@ -201,7 +213,9 @@ int ElmoRecorder::processData(segData& SDOData) {
 	//extract values from data stream, consider Little Endian conversion for every single object!
 	for(unsigned int i=7;i<=SDOData.data.size() - iItemSize; i=i+iItemSize) {
 		if(bCollectFloats) {
-			vfResData[1][iItemCount] = fFloatingPointFactor * convertBinaryToFloat( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
+			if(iItemSize == 4)
+				vfResData[1][iItemCount] = fFloatingPointFactor * convertBinaryToFloat( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
+			else vfResData[1][iItemCount] = fFloatingPointFactor * convertBinaryToHalfFloat( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
 			iItemCount ++;
 		} else {
 			vfResData[1][iItemCount] = fFloatingPointFactor * (float)( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
@@ -244,6 +258,32 @@ float ElmoRecorder::convertBinaryToFloat(unsigned int iBinaryRepresentation) {
 	return iSign * pow(2,iExponent) * iNumMantissa;
 }
 
+float ElmoRecorder::convertBinaryToHalfFloat(unsigned int iBinaryRepresentation) {
+	//Converting binary-numbers to 16bit float values according to IEEE 754 see http://de.wikipedia.org/wiki/IEEE_754
+	int iSign;
+	int iExponent;
+	unsigned int iMantissa;
+	float iNumMantissa = 0.0f;
+
+	if((iBinaryRepresentation & (1 << 15)) == 0) //first bit is sign bit: 0 = +, 1 = -
+		iSign = 1;
+	else
+		iSign = -1;
+
+	iExponent = ((iBinaryRepresentation >> 10) & 0x1F) - 15; //take away Bias(15) for positive and negative exponents
+
+	iMantissa = (iBinaryRepresentation & 0x3FF); //only keep mantissa part of binary number
+
+	iNumMantissa = 1.0f;
+	
+	for(int i=1; i<=10; i++) { //calculate decimal places (convert binary mantissa to decimal number
+		if((iMantissa & (1 << (10-i))) > 0) {
+			iNumMantissa = iNumMantissa + pow(2,(-1)*i);
+		}
+	}
+
+	return iSign * pow(2,iExponent) * iNumMantissa;
+}
 
 // Function for writing Logfile
 int ElmoRecorder::logToFile(std::string filename, std::vector<float> vtValues[]) {

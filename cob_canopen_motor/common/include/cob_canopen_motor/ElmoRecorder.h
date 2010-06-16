@@ -102,6 +102,8 @@ class ElmoRecorder {
 		bool m_bIsInitialized;
 		
 		float convertBinaryToFloat(unsigned int binaryRepresentation);
+
+		float convertBinaryToHalfFloat(unsigned int iBinaryRepresentation);
 };
 
 #endif
