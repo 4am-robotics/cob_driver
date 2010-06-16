@@ -304,7 +304,8 @@ int ElmoRecorder::logToFile(std::string filename, std::vector<float> vtValues[])
 		// write all data from vector to file
 		for (unsigned int i = 0; i < vtValues[0].size(); i++)
 			fprintf(pFile, "%e %e\n", vtValues[0][i], vtValues[1][i]);
+		fclose(pFile);
 	}
-	fclose(pFile);
+	
 	return true;
 }
