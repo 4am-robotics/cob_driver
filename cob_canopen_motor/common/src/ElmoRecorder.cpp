@@ -125,7 +125,7 @@ int ElmoRecorder::readoutRecorderTryStatus(int iStatusReg) {
 		std::cout << "Recorder " << m_iDriveID << " waiting for a trigger event" << std::endl;
 	} else if(iRecorderStatus == 2) {
 		std::cout << "Recorder " << m_iDriveID << " finished, valid data ready for use" << std::endl;
-		readoutRecorder(m_iReadoutRecorderTryObject);
+		readoutRecorder(m_iCurrentObject);
 	} else if(iRecorderStatus == 3) {
 		std::cout << "Recorder " << m_iDriveID << " is still recording" << std::endl;
 	}
