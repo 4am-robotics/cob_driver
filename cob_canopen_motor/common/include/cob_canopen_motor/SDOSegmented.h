@@ -8,7 +8,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob_drivers
+ * ROS stack name: cob_driver
  * ROS package name: cob_canopen_motor
  * Description: Holds data, that is collected during a SDO Segmented Upload process
  *								

@@ -1,13 +1,13 @@
 <package>
   <description brief="cob_sick_s300">
 
-     cob_sick_s300
+     This package published a laser scan message out of a Sick S300 laser scanner.
 
   </description>
   <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
-  <url>http://www.care-o-bot.org</url>
+  <url>http://ros.org/wiki/cob_sick_s300</url>
   
   <depend package="roscpp"/>
   <depend package="sensor_msgs"/>

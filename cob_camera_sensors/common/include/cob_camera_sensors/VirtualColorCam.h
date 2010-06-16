@@ -8,7 +8,7 @@
 * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 *
 * Project name: care-o-bot
-* ROS stack name: cob3_driver
+* ROS stack name: cob_driver
 * ROS package name: cob_camera_sensors
 * Description: Virtual color camera representation.
 *
@@ -69,11 +69,7 @@
 #include <vector>
 #include <iostream>
 #include <cstdlib>
-
-#include "boost/filesystem/operations.hpp"
-#include "boost/filesystem/convenience.hpp"
-#include "boost/filesystem/path.hpp"
-
+#include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;
 using namespace std;
 
@@ -141,6 +137,16 @@ class VirtualColorCam : public AbstractColorCamera
 		// Camera specific functions
 		//*******************************************************************************
 		
+		/// Returns the number of images in the directory
+		/// @return The number of images in the directory
+		int GetNumberOfImages();
+
+		/// Function specific to virtual camera.
+		/// Resets the image directory read from the configuration file.
+		/// @param path The camera path
+		/// @return Return code
+		unsigned long SetPathToImages(std::string path);
+
 };
 
 } // end namespace ipa_CameraSensors

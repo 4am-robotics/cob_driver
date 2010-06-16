@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
- * ROS package name: cob3_tf_broadcaster
+ * ROS stack name: cob_driver
+ * ROS package name: cob_tf_broadcaster
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
@@ -60,7 +60,6 @@
 #include <ros/ros.h>
 
 // ROS message includes
-//#include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
 
@@ -83,7 +82,7 @@ class NodeClass
 		tf::TransformBroadcaster br;
         
 	    // topics to subscribe, callback is called for new messages arriving
-        //ros::Subscriber topicSub_Odometry;
+        //--
         
         // service servers
         //--
@@ -98,7 +97,7 @@ class NodeClass
         // Constructor
         NodeClass()
         {
-            //topicSub_Odometry = n.subscribe("odometry", 10, &NodeClass::topicCallback_Odometry, this);
+            //--
         }
         
         // Destructor
@@ -108,14 +107,8 @@ class NodeClass
 
         // topic callback functions 
         // function will be called when a new message arrives on a topic
-/*        void topicCallback_Odometry(const nav_msgs::Odometry::ConstPtr& msg)
-        {
-			// publish tf for odom --> base_footprint
-			ROS_DEBUG("received new odometry message --> publishing tf");
-			tf::poseMsgToTF(msg->pose.pose,transform);
-			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "odom", "base_footprint"));
-        }
-*/
+		//--
+
         // service callback functions
         // function will be called when a service is querried
 		//--
@@ -123,19 +116,6 @@ class NodeClass
         // other function declarations
 		void updateTf()
         {
-/*			ROS_DEBUG("update dynamic tf cyclically, even if no message arrive to topicCallback");
-			
-			// publish tf for odom --> base_footprint
-			try
-			{
-				transformListener.lookupTransform("odom", "base_footprint", ros::Time(0), transform);
-			}
-			catch (tf::TransformException ex)
-			{
-				ROS_ERROR("%s",ex.what());
-			}
-			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "odom", "base_footprint"));
-*/
             ROS_DEBUG("update static tf cyclically");
 			
 			// publish tf for base_footprint --> base_link
@@ -147,18 +127,18 @@ class NodeClass
 			transform.setOrigin(tf::Vector3(0.325, 0.0, 0.1));
 			transform.setRotation(tf::Quaternion(0, 0, 0));
 //			transform.setRotation(tf::createQuaternionFromRPY(3.1415926, 0, 0));
-			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "base_laser_front"));
+			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "base_laser_front_link"));
 
 			// publish tf for base_link --> base_laser_rear
 			transform.setOrigin(tf::Vector3(-0.325, 0.0, 0.1));
 			transform.setRotation(tf::createQuaternionFromRPY(0, 0, 3.1415926));
-			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "base_laser_rear"));
+			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "base_laser_rear_link"));
 
 			// publish tf for base_link --> base_hokuyo
 			transform.setOrigin(tf::Vector3(-0.252, 0.0, 0.3));
 //			transform.setRotation(tf::Quaternion(0, 0, 0));
 			transform.setRotation(tf::createQuaternionFromRPY(0, 0, 3.1415926));
-			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "base_hokuyo"));
+			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "base_laser_top_link"));
 
 			// publish tf for base_link --> head TODO not static
 			transform.setOrigin(tf::Vector3(0.0, 0.0, 0.8));
@@ -191,7 +171,7 @@ class NodeClass
 int main(int argc, char** argv)
 {
     // initialize ROS, spezify name of node
-    ros::init(argc, argv, "cob3_tf_broadcaster");
+    ros::init(argc, argv, "cob_tf_broadcaster");
     
     NodeClass nodeClass;
 

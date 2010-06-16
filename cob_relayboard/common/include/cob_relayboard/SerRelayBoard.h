@@ -15,7 +15,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
  * Author: Philipp Koehler
- * Supervised by: Christian Connette
+ * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
  * Date of creation: March 2010
  * ToDo:
