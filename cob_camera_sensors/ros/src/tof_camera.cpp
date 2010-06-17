@@ -67,6 +67,8 @@
 #include <sensor_msgs/fill_image.h>
 #include <sensor_msgs/SetCameraInfo.h>
 
+#include <cob_srvs/GetTOFImages.h>
+
 // external includes
 #include <cob_camera_sensors/AbstractRangeImagingSensor.h>
 #include <cob_vision_utils/CameraSensorToolbox.h>
@@ -87,6 +89,7 @@ private:
 	sensor_msgs::CameraInfo camera_info_msg_;    ///< ROS camera information message (e.g. holding intrinsic parameters)
 
 	ros::ServiceServer camera_info_service_;		///< Service to set/modify camera parameters
+	ros::ServiceServer image_service_;
 
 	AbstractRangeImagingSensor* tof_camera_;     ///< Time-of-flight camera instance
 	
@@ -175,6 +178,7 @@ public:
 
 	        /// Advertise service for other nodes to set intrinsic calibration parameters
 		camera_info_service_ = node_handle_.advertiseService("set_camera_info", &CobTofCameraNode::setCameraInfo, this);
+		image_service_ = node_handle_.advertiseService("get_images", &CobTofCameraNode::imageSrvCallback, this);
 		xyz_image_publisher_ = image_transport_.advertiseCamera("image_xyz", 1);
 		grey_image_publisher_ = image_transport_.advertiseCamera("image_grey", 1);
 
@@ -400,6 +404,28 @@ public:
 			return false;
 		}
 
+		return true;
+	}
+
+	bool imageSrvCallback(cob_srvs::GetTOFImages::Request &req,
+			cob_srvs::GetTOFImages::Response &res)
+	{
+
+		// Convert openCV IplImages to ROS messages
+		try
+		{
+			res.greyImage = *(sensor_msgs::CvBridge::cvToImgMsg(grey_image_32F1_, "passthrough"));
+			res.xyzImage = *(sensor_msgs::CvBridge::cvToImgMsg(xyz_image_32F3_, "passthrough"));
+		}
+		catch (sensor_msgs::CvBridgeException error)
+		{
+			ROS_ERROR("[tof_camera_node] Could not convert IplImage to ROS message");
+		}
+
+		// Set time stamp
+		ros::Time now = ros::Time::now();
+		res.greyImage.header.stamp = now;
+		res.xyzImage.header.stamp = now;
 		return true;
 	}
 };
