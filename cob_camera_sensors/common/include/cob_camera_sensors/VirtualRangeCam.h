@@ -8,7 +8,7 @@
 * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 *
 * Project name: care-o-bot
-* ROS stack name: cob3_driver
+* ROS stack name: cob_driver
 * ROS package name: cob_camera_sensors
 * Description: Virtual range camera representation.
 *
@@ -76,9 +76,7 @@
 #include <Vision/Extern/TinyXml/tinyxml.h>
 #endif
 
-#include "boost/filesystem/operations.hpp"
-#include "boost/filesystem/convenience.hpp"
-#include "boost/filesystem/path.hpp"
+#include <boost/filesystem.hpp>
 
 #ifdef SWIG
 %module Sensors3D
@@ -137,6 +135,15 @@ public:
 	bool isInitialized() {return m_initialized;}
 	bool isOpen() {return m_open;}
 
+	/// Returns the number of images in the directory
+	/// @return The number of images in the directory
+	int GetNumberOfImages();
+
+	/// Function specific to virtual camera.
+	/// Resets the image directory read from the configuration file.
+	/// @param path The camera path
+	/// @return Return code
+	unsigned long SetPathToImages(std::string path);
 
 private:
 	//*******************************************************************************

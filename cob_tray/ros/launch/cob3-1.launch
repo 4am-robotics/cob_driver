@@ -2,9 +2,9 @@
 <launch>
 
   <!-- send parameters to parameter server -->
-  <rosparam command="load" ns="tray" file="$(find cob_tray)/ros/launch/cob3-1.yaml"/>
+  <rosparam command="load" ns="tray_controller" file="$(find cob_tray)/ros/launch/cob3-1.yaml"/>
 
   <!-- start powercube_chain -->
-  <node pkg="cob_powercube_chain" type="cob_powercube_chain" ns="tray" name="tray_node" cwd="node" respawn="false" output="screen" />
+  <node pkg="cob_powercube_chain" type="cob_powercube_chain" ns="tray_controller" name="tray_node" cwd="node" respawn="false" output="screen" />
 
 </launch>

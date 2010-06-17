@@ -8,7 +8,7 @@
 * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 *
 * Project name: care-o-bot
-* ROS stack name: cob3_driver
+* ROS stack name: cob_driver
 * ROS package name: cob_camera_sensors
 * Description: Abstract interface for time789-of-flight cameras.
 *
@@ -82,6 +82,8 @@
 #endif
 
 #include <iostream>
+#include <limits>
+#include <boost/shared_ptr.hpp>
 
 #ifdef __LINUX__
 #define __DLL_ABSTRACTRANGEIMAGINGSENSOR_H__
@@ -232,6 +234,16 @@ public:
 	/// @return return code
 	virtual unsigned long SetIntrinsics(CvMat* intrinsicMatrix,
 		IplImage* undistortMapX, IplImage* undistortMapY);
+
+	/// Returns the number of images in the directory
+	/// @return The number of images in the directory
+	virtual int GetNumberOfImages() {return std::numeric_limits<int>::max();};
+
+	/// Function specific to virtual camera.
+	/// Resets the image directory read from the configuration file.
+	/// @param path The camera path
+	/// @return Return code
+	virtual unsigned long SetPathToImages(std::string path) {return ipa_Utils::RET_OK;};
 
 protected:
 		

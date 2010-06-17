@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
- * ROS package name: cob3_camera_sensors
+ * ROS stack name: cob_driver
+ * ROS package name: cob_camera_sensors
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			

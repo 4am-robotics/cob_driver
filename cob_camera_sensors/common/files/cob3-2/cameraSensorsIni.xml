@@ -19,15 +19,15 @@
   <IntrinsicParameters>
     <Prosilica_0> 
       <IntrinsicMatrix fx="1051.83" fy="1048.59" cx="698.34" cy="542.34" />
-      <DistortionCoeffs k1="-0.2379" k2=" 0.1065" p1="0" p2="0" />
+      <DistortionCoeffs k1="-0.2379" k2=" 0.1065" p1="0.00159" p2="-0.00034" />
     </Prosilica_0>
     <Prosilica_1> 
       <IntrinsicMatrix fx="1051.90" fy="1047.52" cx="697.3" cy="541.94" />
-      <DistortionCoeffs k1="-0.2379" k2=" 0.1065" p1="0" p2="0" />
+      <DistortionCoeffs k1="-0.2379" k2=" 0.1065" p1="0.0016" p2="-0.0003" />
     </Prosilica_1>
     <Swissranger_0> 
       <IntrinsicMatrix fx="1051.41" fy="1048.55" cx="695.52" cy="542.49" />
-      <DistortionCoeffs k1="-0.238" k2=" 0.12" p1="0" p2="0" />
+      <DistortionCoeffs k1="-0.238" k2=" 0.12" p1="0.0013" p2="-0.00039" />
     </Swissranger_0> 
     <HandEye_0> 
       <IntrinsicMatrix fx="1051.36" fy="1052.11" cx="703.91" cy="536.26" />
@@ -68,11 +68,11 @@
   <IntrinsicParameters>
     <Prosilica_1>
       <IntrinsicMatrix fx="1055.51292" fy="1051.62" cx="708.51" cy="524.008" />
-      <DistortionCoeffs k1="-0.23302" k2=" 0.09197" p1="0" p2="0" />
+      <DistortionCoeffs k1="-0.23302" k2=" 0.09197" p1="-0.00045" p2="-0.00149" />
     </Prosilica_1>
     <Prosilica_0>
       <IntrinsicMatrix fx="1052.76" fy="1049.46" cx="708.49" cy="521.0268" />
-      <DistortionCoeffs k1="-0.23042" k2=" 0.09363" p1="-0.0013" p2="0" />
+      <DistortionCoeffs k1="-0.23042" k2=" 0.09363" p1="-0.0013" p2="-0.00212" />
     </Prosilica_0>
   </IntrinsicParameters>
 
@@ -182,7 +182,7 @@
 <VirtualRangeCam_0>
   <!-- Location of the image data on your hard disk -->
   <!-- The location is expressed relative to the link 'ConfigurationFiles' -->
-  <CameraDataDirectory relativePath="CameraData_0"/>	
+  <CameraDataDirectory relativePath="table"/>	
 
 	
   <!-- Specifies the prefered calibration method -->
@@ -225,7 +225,7 @@
 <VirtualColorCam_0> 
   <!-- Location of the image data on your hard disk -->
   <!-- The location is expressed relative to the link 'ConfigurationFiles' -->
-  <CameraDataDirectory relativePath="CameraData_0"/>	
+  <CameraDataDirectory relativePath="rotation_pltf_kitchen"/>	
 
   <!-- Intrinsic parameters -->
   <!-- The intrinsic parameters (focal length, principle point, distortion parameters) -->

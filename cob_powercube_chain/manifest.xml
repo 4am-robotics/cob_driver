@@ -20,8 +20,9 @@
   <depend package="actionlib"/>
   <depend package="cob_srvs"/>
   <depend package="pr2_controllers_msgs"/>
-  <depend package="cob_defs"/>
+  <depend package="cob_description"/>
   <depend package="libpcan"/>
+  <depend package="libwm4"/>
   <depend package="libm5api"/>
   <depend package="libntcan"/>
 
