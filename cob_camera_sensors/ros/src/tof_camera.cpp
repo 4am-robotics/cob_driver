@@ -79,6 +79,12 @@ using namespace ipa_CameraSensors;
 
 class CobTofCameraNode
 {
+	enum t_Mode
+	{
+		MODE_TOPIC = 0,
+		MODE_SERVICE
+	};
+
 private:
 	ros::NodeHandle node_handle_;	///< Node handle
 
@@ -106,6 +112,8 @@ private:
 	IplImage* xyz_image_32F3_;	/// OpenCV image holding the point cloud
 	IplImage* grey_image_32F1_;	/// OpenCV image holding the amplitude values
 
+	CobTofCameraNode::t_Mode ros_node_mode_;	///< Specifies if node is started as topic or service
+
 public:
 	/// Constructor.
     CobTofCameraNode(const ros::NodeHandle& node_handle)
@@ -132,6 +140,7 @@ public:
 	/// @return <code>false</code> on failure, <code>true</code> otherwise
     bool init()
     {
+    	ros_node_mode_=MODE_SERVICE;
 		if (loadParameters() == false)
 		{
 			ROS_ERROR("[color_camera] Could not read all parameters from launch file");
@@ -178,9 +187,15 @@ public:
 
 	        /// Advertise service for other nodes to set intrinsic calibration parameters
 		camera_info_service_ = node_handle_.advertiseService("set_camera_info", &CobTofCameraNode::setCameraInfo, this);
-		image_service_ = node_handle_.advertiseService("get_images", &CobTofCameraNode::imageSrvCallback, this);
-		xyz_image_publisher_ = image_transport_.advertiseCamera("image_xyz", 1);
-		grey_image_publisher_ = image_transport_.advertiseCamera("image_grey", 1);
+		if(ros_node_mode_==MODE_SERVICE)
+		{
+			image_service_ = node_handle_.advertiseService("get_images", &CobTofCameraNode::imageSrvCallback, this);
+		}
+		else if(ros_node_mode_==MODE_TOPIC)
+		{
+			xyz_image_publisher_ = image_transport_.advertiseCamera("image_xyz", 1);
+			grey_image_publisher_ = image_transport_.advertiseCamera("image_grey", 1);
+		}
 
 		CvMat* d = tof_sensor_toolbox->GetDistortionParameters(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_);
 		camera_info_msg_.D[0] = cvmGet(d, 0, 0);
@@ -410,6 +425,32 @@ public:
 	bool imageSrvCallback(cob_srvs::GetTOFImages::Request &req,
 			cob_srvs::GetTOFImages::Response &res)
 	{
+		sensor_msgs::Image::Ptr xyz_image_msg_ptr;
+		sensor_msgs::Image::Ptr grey_image_msg_ptr;
+		sensor_msgs::CameraInfo tof_image_info;
+
+		/// Release previously acquired IplImage
+		if (xyz_image_32F3_)
+		{
+				cvReleaseImage(&xyz_image_32F3_);
+				xyz_image_32F3_ = 0;
+		}
+
+		if (grey_image_32F1_)
+		{
+				cvReleaseImage(&grey_image_32F1_);
+				grey_image_32F1_ = 0;
+		}
+
+		if(tof_camera_->AcquireImages2(0, &grey_image_32F1_, &xyz_image_32F3_, false, false, ipa_CameraSensors::INTENSITY) & ipa_Utils::RET_FAILED)
+		{
+			ROS_ERROR("[tof_camera] Tof image acquisition failed");
+			return false;
+		}
+
+		/// Filter images by amplitude and remove tear-off edges
+		if(filter_tearoff_) ipa_Utils::FilterTearOffEdges(xyz_image_32F3_, 0, (float)pi_half_fraction_);
+		if(filter_amplitude_) ipa_Utils::FilterByAmplitude(xyz_image_32F3_, grey_image_32F1_, 0, 0, lower_amplitude_threshold_, upper_amplitude_threshold_);
 
 		// Convert openCV IplImages to ROS messages
 		try
@@ -448,7 +489,7 @@ int main(int argc, char** argv)
     if (!camera_node.init()) return 0;
 
 
-	camera_node.spin();
+	//camera_node.spin();
 
 	return 0;
 }
