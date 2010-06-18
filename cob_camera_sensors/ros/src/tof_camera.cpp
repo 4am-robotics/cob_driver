@@ -421,9 +421,9 @@ public:
 			return false;
 		}
 		/// Parameters are set within the launch file
-		if (node_handle_.getParam("sensor_fusion/ros_node_mode", tmp_string) == false)
+		if (node_handle_.getParam("tof_camera/ros_node_mode", tmp_string) == false)
 		{
-			ROS_ERROR("[sensor_fusion] Mode for sensor fusion node not specified");
+			ROS_ERROR("[tof_camera] Mode for sensor fusion node not specified");
 			return false;
 		}
 		if (tmp_string == "MODE_SERVICE")
@@ -436,7 +436,7 @@ public:
 		}
 		else
 		{
-			std::string str = "[sensor_fusion] Mode '" + tmp_string + "' unknown, try 'MODE_SERVICE' or 'MODE_TOPIC'";
+			std::string str = "[tof_camera] Mode '" + tmp_string + "' unknown, try 'MODE_SERVICE' or 'MODE_TOPIC'";
 			ROS_ERROR("%s", str.c_str());
 			return false;
 		}
