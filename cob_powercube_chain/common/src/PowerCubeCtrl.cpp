@@ -51,7 +51,7 @@
  *
  ****************************************************************/
 
-#include <powercube_chain/PowerCubeCtrl.h>
+#include <cob_powercube_chain/PowerCubeCtrl.h>
 #include <string>
 #include <sstream>
 #include <time.h>

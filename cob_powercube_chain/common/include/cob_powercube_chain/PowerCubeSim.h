@@ -10,14 +10,14 @@
  * Project name: care-o-bot
  * ROS stack name: cob_driver
  * ROS package name: cob_powercube_chain
- * Description: An interface class to the Powercube-hardware implementing armInterface.
+ * Description: This class simulates the PowerCubes in a very rough and simple way.
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
  * Author: Felix Geibel, email:Felix.Geibel@gmx.de
  * Supervised by: Alexander Bubeck, email:alexander.bubeck@ipa.fhg.de
  *
- * Date of creation: Apr 2007
+ * Date of creation: Aug 2007
  * ToDo:
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -51,180 +51,75 @@
  *
  ****************************************************************/
 
-#ifndef __POWER_CUBE_CTRL_H_
-#define __POWER_CUBE_CTRL_H_
+#ifndef __POWER_CUBE_SIM_H_
+#define __POWER_CUBE_SIM_H_
 
-//#define __LINUX__
-
-#include <libm5api/m5apiw32.h>
-#include <powercube_chain/moveCommand.h>
-#include <powercube_chain/PowerCubeCtrlParams.h>
-//#include "Utilities/mutex.h"
-
+#include <cob_powercube_chain/PowerCubeCtrl.h>
+#include <cob_powercube_chain/Joint.h>
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
-#include <string>
 
-//#include <pthread.h>
-
-// using namespace std;
-// Needs the Following Libraries to Compile:
-// -lm5api
-// -ldevice
-// -lutil
-// -lntcan
+using namespace std;
+#include <pthread.h>
 
 
 //-------------------------------------------------------------------------
 //                              Defines
 // -------------------------------------------------------------------------
-class PowerCubeCtrlParams
+
+#define MAX_VEL 0.5
+#define MAX_ACC 0.5
+#define K13 0.5
+#define K14 0.5
+#define K15 3
+#define DAEMPFUNG 0.5
+
+//#define __LINUX__
+
+#ifdef SWIG
+%module PowerCubeSim
+%include "Source/Manipulation/Interfaces/armInterface.h"
+%{
+	#include "PowerCubeSim.h"
+%}
+#endif 
+
+class PowerCubeSim;
+
+/* Thread arguments for simulation threads*/
+typedef struct
 {
+	PowerCubeSim * cubeSimPtr;
+	int cubeID;
+	double targetAngle;
+} SimThreadArgs;
 
-	public:
-		PowerCubeCtrlParams():m_DOF(0){;}
-		
-		int Init(std::string CanModule, int CanDevice, int BaudRate, std::vector<int> ModuleIDs)
-		{
-			SetCanModule(CanModule);
-			SetCanDevice(CanDevice);
-			SetBaudRate(BaudRate);	
-			SetNumberOfDOF(ModuleIDs.size());
-			for (unsigned int i=0; i < GetNumberOfDOF() ;i++)
-			{
-				m_IDModulesNumber.push_back(ModuleIDs[i]);
-			}
-			return 0;
-		}
-				
-		//DOF	
-		void SetNumberOfDOF(unsigned int DOF){m_DOF=DOF;}
-		unsigned int GetNumberOfDOF(){return m_DOF;}
-
-		//Can Module
-		void SetCanModule(std::string CanModule){m_CanModule = CanModule;}
-		std::string GetCanModule(){return m_CanModule;}
-
-		//Can Device
-		void SetCanDevice(int CanDevice){m_CanDevice = CanDevice;}
-		int GetCanDevice(){return m_CanDevice;}
-			
-		//BaudRate
-		void SetBaudRate(int BaudRate){m_BaudRate=BaudRate;}
-		int GetBaudRate(){return m_BaudRate;}
-	
-		//ModuleIDs
-		std::vector<int> GetModuleIDVector(){return m_IDModulesNumber;}
-		int GetModuleID(unsigned int no){if (no < GetNumberOfDOF()) return m_IDModulesNumber[no]; else return -1;}
-		int SetModuleID(unsigned int no, int id){
-			if (no < GetNumberOfDOF()) 
-			{
-				m_IDModulesNumber[no] = id;
-				return 0; 
-			}
-			else 
-				return -1;
-
-		}
-		
-		//Angular Constraints
-		int SetUpperLimits(std::vector<double> UpperLimits)
-		{
-			if (UpperLimits.size() == GetNumberOfDOF())
-			{
-				m_UpperLimits = UpperLimits;
-				return 0;
-
-			}
-			return -1;
-		}
-		int SetLowerLimits(std::vector<double> LowerLimits)
-		{
-			if (LowerLimits.size() == GetNumberOfDOF())
-			{
-				m_LowerLimits = LowerLimits;
-				return 0;
-			}
-			return -1;
-		}
-		int SetAngleOffsets(std::vector<double> AngleOffsets)
-		{
-			if (AngleOffsets.size() == GetNumberOfDOF())
-			{
-				m_Offsets = AngleOffsets;
-				return 0;
-			}
-			return -1;
-		}
-		int SetMaxVel(std::vector<double> MaxVel)
-		{
-			if (MaxVel.size() == GetNumberOfDOF())
-			{
-				m_MaxVel = MaxVel;
-				return 0;
-			}
-			return -1;
-		}
-		int SetMaxAcc(std::vector<double> MaxAcc)
-		{
-			if (MaxAcc.size() == GetNumberOfDOF())
-			{
-				m_MaxAcc = MaxAcc;
-				return 0;
-			}
-			return -1;
-		}
-		
-		std::vector<double> GetUpperLimits(){return m_UpperLimits;}
-		std::vector<double> GetLowerLimits(){return m_LowerLimits;}
-		std::vector<double> GetAngleOffsets(){return m_Offsets;}
-		std::vector<double> GetMaxAcc(){return m_MaxAcc;}
-		std::vector<double> GetMaxVel(){return m_MaxVel;}
-		
-		
-	private:
-		std::vector<int> m_IDModulesNumber;
-		unsigned int m_DOF;
-		std::string m_CanModule;
-		int m_CanDevice;
-		int m_BaudRate;
-		std::vector<double> m_Offsets;
-		std::vector<double> m_UpperLimits;
-		std::vector<double> m_LowerLimits;
-		std::vector<double> m_MaxVel;
-		std::vector<double> m_MaxAcc;
-};
-
-/* uncomment the following line to switch on debugging output: */
-// #define _POWER_CUBE_CTRL_DEBUG
-
-class PowerCubeCtrl
+class PowerCubeSim
 {
 	public:
 		
-		PowerCubeCtrl();
-		~PowerCubeCtrl();
+		PowerCubeSim();
+		~PowerCubeSim();
 		
+
 		bool Init(PowerCubeCtrlParams * params);
 
 		bool isInitialized() const { return m_Initialized; }
 
 		std::string getErrorMessage() const { return m_ErrorMessage; }
 
-		bool Close();
-
-		/////////////////////////////////
-		// Funktionen Arm-Ansteuerung: //
-		/////////////////////////////////
+		int Close(){return true;}
+		// Arm-Ansteuerung:
 		
+
 		/// @brief same as MoveJointSpace, but final angles should by reached simultaniously!
 		/// Returns the time that the movement will take
 		bool MoveJointSpaceSync(const std::vector<double>& Angle);
-		
+				
 		/// @brief Moves all cubes by the given velocities
-		bool MoveVel(const std::vector<double>& Vel);
+		bool MoveVel(const std::vector<double>& vel);
 		
 		/// @brief Stops the Manipulator immediately
 		bool Stop();
@@ -236,8 +131,9 @@ class PowerCubeCtrl
 		/// @brief Sets the maximum angular velocity (rad/s) for the Joints, use with care!
 		/// A Value of 0.5 is already pretty fast, you probably don't want anything more than one...
 		bool setMaxVelocity(double radpersec);
-		bool setMaxVelocity(const std::vector<double>& radpersec);
 		
+		bool setMaxVelocity(const std::vector<double>& radpersec);
+
 		/// @brief Sets the maximum angular acceleration (rad/s^2) for the Joints, use with care!
 		/// A Value of 0.5 is already pretty fast, you probably don't want anything more than one...
 		bool setMaxAcceleration(double radPerSecSquared);
@@ -252,11 +148,16 @@ class PowerCubeCtrl
 		bool getConfig(std::vector<double>& result);
 		
 		/// @brief Returns the current Angular velocities (Rad/s)
-		bool getJointVelocities(std::vector<double> & result);
+		bool getJointVelocities(std::vector<double>& result);
+
+		void setCurrentAngles(std::vector<double> Angles);
+
+		void setCurrentJointVelocities(std::vector<double> Angles);
 		
 		/// @brief Returns true if any of the Joints are still moving
 		/// Should also return true if Joints are accelerating or decelerating
 		bool statusMoving();
+		bool statusMoving(int cubeNo);
 		
 		/// @brief Returns true if any of the Joints are decelerating
 		bool statusDec();
@@ -264,43 +165,79 @@ class PowerCubeCtrl
 		/// @brief Returs true if any of the Joints are accelerating
 		bool statusAcc();
 
-		/// @brief Waits until all Modules are homed, writes status comments to out.
-		bool doHoming();
-		bool HomingDone();
+		/// @brief Looks for connected Modules and returns their Ids in a vector
+		//vector<int> getModuleMap(int dev);
 		
-		typedef enum
-		{
-			PC_CTRL_OK = 0,
-			PC_CTRL_NOT_REFERENCED = -1,
-			PC_CTRL_ERR = -2,
+		/// @brief Waits until all Modules are homed, writes status comments to out.
+		//void HomingDone();
+		
+                typedef enum
+                {
+                        PC_CTRL_OK = 0,
+                        PC_CTRL_NOT_REFERENCED = -1,
+                        PC_CTRL_ERR = -2,
 			PC_CTRL_POW_VOLT_ERR = -3
-		} PC_CTRL_STATE;
-        
-	    bool getStatus(PC_CTRL_STATE& error, std::vector<std::string>& errorMessages);
-        
-		/// @brief Tells the Modules not to start moving until PCubel_startMotionAll is called
-		bool waitForSync();
-		/// @brief Execute move commands immediately from now on:
-		bool dontWaitForSync();
+                } PC_CTRL_STATE;
+                //int getStatus(){return PC_CTRL_OK;}
+		double maxVel;
 
+		void setStatusMoving (int cubeNo, bool moving);
+		bool getStatusMoving (int cubeNo) const { return m_MovementInProgress[cubeNo]; }
+
+		vector<int>  getModuleMap() const {return m_IdModules;}
+	        std::vector<double>  getCurrentAngularMaxVel() {return m_CurrentAngularMaxVel;}
+	        std::vector<double>  getCurrentAngularMaxAccel() {return m_CurrentAngularMaxAccel;}
+	    void millisleep(unsigned int milliseconds) const;
 	protected:
 		
+		/// @brief Tells the Modules not to start moving until PCubel_startMotionAll is called
+		//void waitForSync();
+		/// @brief Execute move commands immediately from now on:
+		//void dontWaitForSync();
+		/// @brief Returns the time for a ramp-move about dtheta with v, a would take, assuming the module is currently moving at vnowClose 
+		double timeRampMove(double dtheta, double vnow, double v, double a);
 
-		/// @brief Returns the time for a ramp-move about dtheta with v, a would take, assuming the module is
-		/// currently moving at vnow.
-		void millisleep(unsigned int milliseconds) const;
+		int startSimulatedMovement(std::vector<double> target);
 
-		int m_DOF;
-		int m_Dev;
-		bool m_Initialized;
-		bool m_CANDeviceOpened;
+
+		//void* SimThreadRoutine (void*); 	
+	
+	
+		#ifdef COB3
+		Manipulator * m_Obj_Manipulator;
+#endif
 		
-		std::vector<int> m_IdModules;
+		int m_DOF;
+		int m_Initialized;
+		int m_NumOfModules;
+		int m_Dev;
+		vector<int> m_IdModules;
 		
 		std::vector<double> m_maxVel;
 		std::vector<double> m_maxAcc;
 
+		Jointd m_AngleOffsets;
+
+		std::vector<bool> m_MovementInProgress;
+
+		std::vector<double> m_CurrentAngles;
+		std::vector<double> m_CurrentAngularVel;
+		std::vector<double> m_CurrentAngularMaxVel;
+		std::vector<double> m_CurrentAngularMaxAccel;
+
+
+
+		//vector<unsigned long> startConf;
+		
 		std::string m_ErrorMessage;
+
+		float maxAcc;
+
+		pthread_mutex_t  m_Angles_Mutex;
+		pthread_mutex_t  m_AngularVel_Mutex;
+		pthread_mutex_t  m_Movement_Mutex;
+		pthread_t  * m_SimThreadID;
+		SimThreadArgs ** m_SimThreadArgs;
 		
 };
 

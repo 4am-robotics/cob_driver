@@ -10,14 +10,14 @@
  * Project name: care-o-bot
  * ROS stack name: cob_driver
  * ROS package name: cob_powercube_chain
- * Description: An interface class to a virtual manipulator.
+ * Description: An interface class to the Powercube-hardware implementing armInterface.
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
  * Author: Felix Geibel, email:Felix.Geibel@gmx.de
  * Supervised by: Alexander Bubeck, email:alexander.bubeck@ipa.fhg.de
  *
- * Date of creation: Oct 2007
+ * Date of creation: Apr 2007
  * ToDo:
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -51,21 +51,161 @@
  *
  ****************************************************************/
 
-#ifndef _SIMULATED_ARM_H_
-#define _SIMULATED_ARM_H_
+#ifndef __POWER_CUBE_CTRL_H_
+#define __POWER_CUBE_CTRL_H_
 
-#include <powercube_chain/PowerCubeCtrl.h>
+//#define __LINUX__
+
+#include <libm5api/m5apiw32.h>
+#include <cob_powercube_chain/moveCommand.h>
+#include <cob_powercube_chain/PowerCubeCtrlParams.h>
+//#include "Utilities/mutex.h"
+
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 #include <vector>
 #include <string>
 
-class simulatedMotor;
+//#include <pthread.h>
 
-class simulatedArm
+// using namespace std;
+// Needs the Following Libraries to Compile:
+// -lm5api
+// -ldevice
+// -lutil
+// -lntcan
+
+
+//-------------------------------------------------------------------------
+//                              Defines
+// -------------------------------------------------------------------------
+class PowerCubeCtrlParams
+{
+
+	public:
+		PowerCubeCtrlParams():m_DOF(0){;}
+		
+		int Init(std::string CanModule, int CanDevice, int BaudRate, std::vector<int> ModuleIDs)
+		{
+			SetCanModule(CanModule);
+			SetCanDevice(CanDevice);
+			SetBaudRate(BaudRate);	
+			SetNumberOfDOF(ModuleIDs.size());
+			for (unsigned int i=0; i < GetNumberOfDOF() ;i++)
+			{
+				m_IDModulesNumber.push_back(ModuleIDs[i]);
+			}
+			return 0;
+		}
+				
+		//DOF	
+		void SetNumberOfDOF(unsigned int DOF){m_DOF=DOF;}
+		unsigned int GetNumberOfDOF(){return m_DOF;}
+
+		//Can Module
+		void SetCanModule(std::string CanModule){m_CanModule = CanModule;}
+		std::string GetCanModule(){return m_CanModule;}
+
+		//Can Device
+		void SetCanDevice(int CanDevice){m_CanDevice = CanDevice;}
+		int GetCanDevice(){return m_CanDevice;}
+			
+		//BaudRate
+		void SetBaudRate(int BaudRate){m_BaudRate=BaudRate;}
+		int GetBaudRate(){return m_BaudRate;}
+	
+		//ModuleIDs
+		std::vector<int> GetModuleIDVector(){return m_IDModulesNumber;}
+		int GetModuleID(unsigned int no){if (no < GetNumberOfDOF()) return m_IDModulesNumber[no]; else return -1;}
+		int SetModuleID(unsigned int no, int id){
+			if (no < GetNumberOfDOF()) 
+			{
+				m_IDModulesNumber[no] = id;
+				return 0; 
+			}
+			else 
+				return -1;
+
+		}
+		
+		//Angular Constraints
+		int SetUpperLimits(std::vector<double> UpperLimits)
+		{
+			if (UpperLimits.size() == GetNumberOfDOF())
+			{
+				m_UpperLimits = UpperLimits;
+				return 0;
+
+			}
+			return -1;
+		}
+		int SetLowerLimits(std::vector<double> LowerLimits)
+		{
+			if (LowerLimits.size() == GetNumberOfDOF())
+			{
+				m_LowerLimits = LowerLimits;
+				return 0;
+			}
+			return -1;
+		}
+		int SetAngleOffsets(std::vector<double> AngleOffsets)
+		{
+			if (AngleOffsets.size() == GetNumberOfDOF())
+			{
+				m_Offsets = AngleOffsets;
+				return 0;
+			}
+			return -1;
+		}
+		int SetMaxVel(std::vector<double> MaxVel)
+		{
+			if (MaxVel.size() == GetNumberOfDOF())
+			{
+				m_MaxVel = MaxVel;
+				return 0;
+			}
+			return -1;
+		}
+		int SetMaxAcc(std::vector<double> MaxAcc)
+		{
+			if (MaxAcc.size() == GetNumberOfDOF())
+			{
+				m_MaxAcc = MaxAcc;
+				return 0;
+			}
+			return -1;
+		}
+		
+		std::vector<double> GetUpperLimits(){return m_UpperLimits;}
+		std::vector<double> GetLowerLimits(){return m_LowerLimits;}
+		std::vector<double> GetAngleOffsets(){return m_Offsets;}
+		std::vector<double> GetMaxAcc(){return m_MaxAcc;}
+		std::vector<double> GetMaxVel(){return m_MaxVel;}
+		
+		
+	private:
+		std::vector<int> m_IDModulesNumber;
+		unsigned int m_DOF;
+		std::string m_CanModule;
+		int m_CanDevice;
+		int m_BaudRate;
+		std::vector<double> m_Offsets;
+		std::vector<double> m_UpperLimits;
+		std::vector<double> m_LowerLimits;
+		std::vector<double> m_MaxVel;
+		std::vector<double> m_MaxAcc;
+};
+
+/* uncomment the following line to switch on debugging output: */
+// #define _POWER_CUBE_CTRL_DEBUG
+
+class PowerCubeCtrl
 {
 	public:
 		
-		simulatedArm();
-		virtual ~simulatedArm();
+		PowerCubeCtrl();
+		~PowerCubeCtrl();
 		
 		bool Init(PowerCubeCtrlParams * params);
 
@@ -73,7 +213,7 @@ class simulatedArm
 
 		std::string getErrorMessage() const { return m_ErrorMessage; }
 
-		bool Close() { m_Initialized = false; return true; }
+		bool Close();
 
 		/////////////////////////////////
 		// Funktionen Arm-Ansteuerung: //
@@ -83,13 +223,8 @@ class simulatedArm
 		/// Returns the time that the movement will take
 		bool MoveJointSpaceSync(const std::vector<double>& Angle);
 		
-		/// @brief moves all cubes to the given position
-		bool MovePos(const std::vector<double>&);
 		/// @brief Moves all cubes by the given velocities
-		bool MoveVel(const std::vector<double>&);
-		
-		/// @brief current movement currently not supported in simulation
-		//  bool MoveCur(const std::vector<double>&);
+		bool MoveVel(const std::vector<double>& Vel);
 		
 		/// @brief Stops the Manipulator immediately
 		bool Stop();
@@ -130,25 +265,43 @@ class simulatedArm
 		bool statusAcc();
 
 		/// @brief Waits until all Modules are homed, writes status comments to out.
-		// bool doHoming();
-		// bool HomingDone();
+		bool doHoming();
+		bool HomingDone();
 		
+		typedef enum
+		{
+			PC_CTRL_OK = 0,
+			PC_CTRL_NOT_REFERENCED = -1,
+			PC_CTRL_ERR = -2,
+			PC_CTRL_POW_VOLT_ERR = -3
+		} PC_CTRL_STATE;
+        
+	    bool getStatus(PC_CTRL_STATE& error, std::vector<std::string>& errorMessages);
+        
 		/// @brief Tells the Modules not to start moving until PCubel_startMotionAll is called
-		bool waitForSync() { return true; } // makes no difference in simulation
+		bool waitForSync();
 		/// @brief Execute move commands immediately from now on:
-		bool dontWaitForSync() { return true; } // makes no difference in simulation
-		
+		bool dontWaitForSync();
+
 	protected:
 		
+
+		/// @brief Returns the time for a ramp-move about dtheta with v, a would take, assuming the module is
+		/// currently moving at vnow.
+		void millisleep(unsigned int milliseconds) const;
+
 		int m_DOF;
+		int m_Dev;
 		bool m_Initialized;
-		std::string m_ErrorMessage;
+		bool m_CANDeviceOpened;
 		
-		std::vector<simulatedMotor> m_motors;
+		std::vector<int> m_IdModules;
 		
 		std::vector<double> m_maxVel;
 		std::vector<double> m_maxAcc;
 
+		std::string m_ErrorMessage;
+		
 };
 
 
