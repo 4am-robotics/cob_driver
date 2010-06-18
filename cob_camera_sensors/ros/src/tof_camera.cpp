@@ -488,7 +488,7 @@ int main(int argc, char** argv)
     /// Initialize camera node
     if (!camera_node.init()) return 0;
 
-
+    ros::spin();
 	//camera_node.spin();
 
 	return 0;
