@@ -2,7 +2,7 @@
 <launch>
 
   <!-- start base_drive_chain and locate IniFiles -->
-  <node pkg="cob_relayboard" type="cob_relayboard_node" name="cob_relayboard_node" respawn="false" output="screen">
+  <node pkg="cob_relayboard" type="cob_relayboard_node" name="relayboard" respawn="false" output="screen">
 	<param name="ComPort" value="/dev/ttyUSB0"/>
   </node>
   
