@@ -51,8 +51,8 @@
  *
  ****************************************************************/
 
-#ifndef _RecorderData_H
-#define _RecorderData_H
+#ifndef _SDOSegmented_H
+#define _SDOSegmented_H
 
 #include <vector>
 
