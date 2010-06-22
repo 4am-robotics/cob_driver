@@ -81,14 +81,14 @@ private:
 	double m_dCmdRotRobRadS;
 	double m_dCmdRotVelRadS;
 
-	// Interpolated Wheelspeeds (calculated from desired and current Pltf-Config)
+	/*// Interpolated Wheelspeeds (calculated from desired and current Pltf-Config)
 	std::vector<double> m_vdVelGearDriveIntpRadS;
 	std::vector<double> m_vdVelGearSteerIntpRadS;
 	std::vector<double> m_vdAngGearSteerIntpRad;
 
 	// Delta values for interpolating between two commands
 	std::vector<double> m_vdDeltaAngIntpRad;
-	std::vector<double> m_vdDeltaDriveIntpRadS;
+	std::vector<double> m_vdDeltaDriveIntpRadS;*/
 
 	// Desired Wheelspeeds set to ELMO-Ctrl's (calculated from desired Pltf-Movement)
 	std::vector<double> m_vdVelGearDriveCmdRadS;
@@ -163,7 +163,7 @@ private:
 	std::vector< std::vector<double> > m_vdCtrlVal;
 
 	// Factor for thread cycle time of ThreadMotionPltfCtrl and ThreadUnderCarriageCtrl	
-	double m_dThreadCycleMultiplier;
+	//double m_dThreadCycleMultiplier;
 	
 	// calculate inverse kinematics
 	void CalcInverse(void);

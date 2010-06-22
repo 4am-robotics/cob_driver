@@ -65,9 +65,9 @@ UndercarriageCtrlGeom::UndercarriageCtrlGeom(void)
 	m_vdDltAngGearDriveRad.assign(4,0);
 	m_vdAngGearSteerRad.assign(4,0);
 
-	m_vdVelGearDriveIntpRadS.assign(4,0);
-	m_vdVelGearSteerIntpRadS.assign(4,0);
-	m_vdAngGearSteerIntpRad.assign(4,0);
+	//m_vdVelGearDriveIntpRadS.assign(4,0);
+	//m_vdVelGearSteerIntpRadS.assign(4,0);
+	//m_vdAngGearSteerIntpRad.assign(4,0);
 
 	m_vdVelGearDriveCmdRadS.assign(4,0);
 	m_vdVelGearSteerCmdRadS.assign(4,0);
@@ -99,8 +99,8 @@ UndercarriageCtrlGeom::UndercarriageCtrlGeom(void)
 	
 	m_vdCtrlVal.assign( 4, std::vector<double> (2,0.0) );
 	
-	m_vdDeltaAngIntpRad.assign(4,0);
-	m_vdDeltaDriveIntpRadS.assign(4,0);
+	//m_vdDeltaAngIntpRad.assign(4,0);
+	//m_vdDeltaDriveIntpRadS.assign(4,0);
 
 	// init Prms of Impedance-Ctrlr
 	m_dSpring = 10.0;
@@ -153,17 +153,12 @@ void UndercarriageCtrlGeom::InitUndercarriageCtrl(void)
 	for(int i = 0; i<4; i++)
 	{	
 		m_UnderCarriagePrms.WheelNeutralPos[i] = MathSup::convDegToRad(m_UnderCarriagePrms.WheelNeutralPos[i]);
-		m_vdAngGearSteerIntpRad[i] = m_UnderCarriagePrms.WheelNeutralPos[i];
+		// provisorial --> skip interpolation
+		m_vdAngGearSteerCmdRad[i] = m_UnderCarriagePrms.WheelNeutralPos[i];
+		//m_vdAngGearSteerIntpRad[i] = m_UnderCarriagePrms.WheelNeutralPos[i];
 	}
 	
 	iniFile.GetKeyDouble("Thread", "ThrUCarrCycleTimeS", &m_UnderCarriagePrms.dCmdRateS, true);
-	
-	// calc cycle-time factor between Motion- and UCar-Thread for CMD-Interpolation
-	m_dThreadCycleMultiplier = 2.0;	// default value
-	double dThreadMotionPltf = 0.05;	
-	iniFile.GetKeyDouble("Thread", "ThrMotionCycleTimeS", &dThreadMotionPltf, true);
-	m_dThreadCycleMultiplier = dThreadMotionPltf/m_UnderCarriagePrms.dCmdRateS;
-	m_dThreadCycleMultiplier = 1.0; // just for debug of ros node implementation
 
 	// Read Values for Steering Position Controller from IniFile
 	iniFile.SetFileName("Platform/IniFiles/MotionCtrl.ini", "PltfHardwareCoB3.h");
@@ -221,7 +216,11 @@ void UndercarriageCtrlGeom::SetDesiredPltfVelocity(double dCmdVelLongMMS, double
 		MathSup::normalizePi(dtempDeltaPhi1RAD);
 		MathSup::normalizePi(dtempDeltaPhi2RAD);
 		
-		// interpolate between last setpoint and theone of the new setpoint, which is closest to the current configuration
+		// provisorial --> skip interpolation and always take Target1
+		m_vdVelGearDriveCmdRadS[i] = m_vdVelGearDriveTarget1RadS[i];
+		m_vdAngGearSteerCmdRad[i] = m_vdAngGearSteerTarget1Rad[i];
+
+		/*// interpolate between last setpoint and theone of the new setpoint, which is closest to the current configuration
 		if (fabs(dtempDeltaPhi1RAD) <= fabs(dtempDeltaPhi2RAD))
 		{
 			// difference between new target orientation and last (interpolated) target orientation
@@ -229,11 +228,11 @@ void UndercarriageCtrlGeom::SetDesiredPltfVelocity(double dCmdVelLongMMS, double
 			MathSup::normalizePi(dtempDeltaPhi1RAD);
 
 			// calculate interpolation step sizes, to reach target at end of the cycle
-			m_vdDeltaAngIntpRad[i] = dtempDeltaPhi1RAD/m_dThreadCycleMultiplier;
-			m_vdDeltaDriveIntpRadS[i] = (m_vdVelGearDriveTarget1RadS[i] - m_vdVelGearDriveIntpRadS[i])/m_dThreadCycleMultiplier;
+			m_vdDeltaAngIntpRad[i] = dtempDeltaPhi1RAD;
+			m_vdDeltaDriveIntpRadS[i] = (m_vdVelGearDriveTarget1RadS[i] - m_vdVelGearDriveIntpRadS[i]);
 
 			// additionally calculate meen change in angular config for feedforward cmd
-			m_vdVelGearSteerIntpRadS[i] = dtempDeltaPhi1RAD/(m_dThreadCycleMultiplier*m_UnderCarriagePrms.dCmdRateS);
+			//m_vdVelGearSteerIntpRadS[i] = dtempDeltaPhi1RAD/m_UnderCarriagePrms.dCmdRateS;
 		}
 		else
 		{
@@ -242,12 +241,12 @@ void UndercarriageCtrlGeom::SetDesiredPltfVelocity(double dCmdVelLongMMS, double
 			MathSup::normalizePi(dtempDeltaPhi2RAD);
 
 			// calculate interpolation step sizes, to reach target at end of the cycle
-			m_vdDeltaAngIntpRad[i] = dtempDeltaPhi2RAD/m_dThreadCycleMultiplier;
-			m_vdDeltaDriveIntpRadS[i] = (m_vdVelGearDriveTarget2RadS[i] - m_vdVelGearDriveIntpRadS[i])/m_dThreadCycleMultiplier;
+			m_vdDeltaAngIntpRad[i] = dtempDeltaPhi2RAD;
+			m_vdDeltaDriveIntpRadS[i] = (m_vdVelGearDriveTarget2RadS[i] - m_vdVelGearDriveIntpRadS[i]);
 
 			// additionally calculate meen change in angular config for feedforward cmd
-			m_vdVelGearSteerIntpRadS[i] = dtempDeltaPhi2RAD/(m_dThreadCycleMultiplier*m_UnderCarriagePrms.dCmdRateS);
-		}
+			//m_vdVelGearSteerIntpRadS[i] = dtempDeltaPhi2RAD/m_UnderCarriagePrms.dCmdRateS;
+		}*/
 	}
 }
 
@@ -310,6 +309,8 @@ void UndercarriageCtrlGeom::GetActualPltfVelocity(double & dDeltaLongMM, double 
 	dRotVelRadS = m_dRotVelRadS;
 
 	// calculate travelled distance and angle (from velocity) for output
+	// ToDo: make sure this corresponds to cycle-freqnecy of calling node
+	//       --> specify via config file
 	dDeltaLongMM = dVelLongMMS * m_UnderCarriagePrms.dCmdRateS;
 	dDeltaLatMM = dVelLatMMS * m_UnderCarriagePrms.dCmdRateS;
 	dDeltaRotRobRad = dRotRobRadS * m_UnderCarriagePrms.dCmdRateS;
@@ -462,6 +463,13 @@ void UndercarriageCtrlGeom::CalcControlStep(void)
 	{
 		m_vdVelGearDriveCmdRadS.assign(4,0.0);		// set velocity for drives to zero
 		m_vdVelGearSteerCmdRadS.assign(4,0.0);		// set velocity for steers to zero
+
+		// set internal states of controller to zero
+		for(int i=0; i<4; i++)
+		{
+			m_vdCtrlVal[i][0] = 0.0;
+			m_vdCtrlVal[i][1] = 0.0;
+		}
 		return;
 	}
 
@@ -470,7 +478,7 @@ void UndercarriageCtrlGeom::CalcControlStep(void)
 	double dDeltaPhi, dVelCmd;
 	double dForceDamp, dForceProp, dAccCmd, dVelCmdInt; // PI- and Impedance-Ctrl
 	
-	for (int i=0; i<4; i++)
+	/*for (int i=0; i<4; i++)
 	{
 		m_vdAngGearSteerIntpRad[i] += m_vdDeltaAngIntpRad[i];
 		MathSup::normalizePi(m_vdAngGearSteerIntpRad[i]);
@@ -478,7 +486,7 @@ void UndercarriageCtrlGeom::CalcControlStep(void)
 
 		m_vdVelGearDriveCmdRadS[i] = m_vdVelGearDriveIntpRadS[i];
 		m_vdAngGearSteerCmdRad[i] = m_vdAngGearSteerIntpRad[i];
-	}
+	}*/
 
 	for (int i = 0; i<4; i++)
 	{
@@ -491,7 +499,6 @@ void UndercarriageCtrlGeom::CalcControlStep(void)
 		// Impedance-Ctrl
 		// Calculate resulting desired forces, velocities
 		// double dForceDamp, dForceProp, dAccCmd, dVelCmdInt;
-		//dForceDamp = m_dDamp * (m_vdVelGearSteerIntpRadS[i] - m_vdCtrlVal[i][1]);
 		dForceDamp = - m_dDamp * m_vdCtrlVal[i][1];
 		dForceProp = m_dSpring * dDeltaPhi;
 		dAccCmd = (dForceDamp + dForceProp) / m_dVirtM;

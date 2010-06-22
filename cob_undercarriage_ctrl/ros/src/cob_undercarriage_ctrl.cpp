@@ -215,6 +215,26 @@ class NodeClass
 		// Listens for status of underlying hardware (base drive chain)
 		void topicCallbackDiagnostic(const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg)
 		{
+			sensor_msgs::JointState joint_state_cmd;
+			int num_joints = 8;
+
+			// prepare joint_cmds for heartbeat (compose header)
+			joint_state_cmd.header.stamp = ros::Time::now();
+			//joint_state_cmd.header.frame_id = frame_id; //Where to get this id from?
+			// ToDo: configure over Config-File (number of motors) and Msg
+			// assign right size to JointState data containers
+			//joint_state_cmd.set_name_size(m_iNumMotors);
+			joint_state_cmd.set_position_size(num_joints);
+			joint_state_cmd.set_velocity_size(num_joints);            
+			joint_state_cmd.set_effort_size(num_joints);
+			// compose jointcmds
+			for(int i=0; i<num_joints; i++)
+			{					
+				joint_state_cmd.position[i] = 0.0;
+				joint_state_cmd.velocity[i] = 0.0;
+				joint_state_cmd.effort[i] = 0.0;
+			}
+			
 			// set status of underlying drive chain to member variable 
 			drive_chain_diagnostic_ = msg->level;
 
@@ -233,6 +253,23 @@ class NodeClass
 					// Set desired value for Plattform Velocity to zero (setpoint setting)
 					ucar_ctrl_.SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
 					// ToDo: last value (0.0) is not used anymore --> remove from interface
+					
+					// if is not Initializing
+					if (drive_chain_diagnostic_ != diagnostic_status_lookup_.WARN)
+					{
+						// publish zero-vel. jointcmds to avoid Watchdogs stopping ctrlr
+						topic_pub_joint_state_cmd_.publish(joint_state_cmd);
+					}
+				}
+			}
+			// ... while controller is not initialized send heartbeats to keep motors alive
+			else
+			{
+				// ... as soon as base drive chain is initialized
+				if(drive_chain_diagnostic_ != diagnostic_status_lookup_.WARN)
+				{
+					// publish zero-vel. jointcmds to avoid Watchdogs stopping ctrlr
+					topic_pub_joint_state_cmd_.publish(joint_state_cmd);
 				}
 			}
 		}
@@ -509,6 +546,7 @@ void NodeClass::CalcCtrlStep()
 void NodeClass::GetJointState()
 {
 	int num_joints;
+	int iter_k, iter_j;
 	std::vector<double> drive_joint_ang_rad, drive_joint_vel_rads, drive_joint_effort_NM;
 	std::vector<double> steer_joint_ang_rad, steer_joint_vel_rads, steer_joint_effort_NM;
 	cob_srvs::GetJointState srv_get_joint;
@@ -526,6 +564,11 @@ void NodeClass::GetJointState()
 	steer_joint_ang_rad.assign(num_joints, 100.0);
 	steer_joint_vel_rads.assign(num_joints, 100.0);
 	steer_joint_effort_NM.assign(num_joints, 100.0);
+
+	// init iterators
+	iter_k = 0;
+	iter_j = 0;
+
 	for(int i = 0; i < num_joints; i++)
 	{
 		// associate inputs to according steer and drive joints
@@ -533,15 +576,17 @@ void NodeClass::GetJointState()
 		// ToDo: use joint names instead of magic integers
 		if( i == 1 || i == 3 || i == 5 || i == 7)
 		{
-			steer_joint_ang_rad[i] = srv_get_joint.response.jointstate.position[i];
-			steer_joint_vel_rads[i] = srv_get_joint.response.jointstate.velocity[i];
-			steer_joint_effort_NM[i] = srv_get_joint.response.jointstate.effort[i];
+			steer_joint_ang_rad[iter_k] = srv_get_joint.response.jointstate.position[i];
+			steer_joint_vel_rads[iter_k] = srv_get_joint.response.jointstate.velocity[i];
+			steer_joint_effort_NM[iter_k] = srv_get_joint.response.jointstate.effort[i];
+			iter_k = iter_k + 1;
 		}
 		else
 		{
-			drive_joint_ang_rad[i] = srv_get_joint.response.jointstate.position[i];
-			drive_joint_vel_rads[i] = srv_get_joint.response.jointstate.velocity[i];
-			drive_joint_effort_NM[i] = srv_get_joint.response.jointstate.effort[i];
+			drive_joint_ang_rad[iter_j] = srv_get_joint.response.jointstate.position[i];
+			drive_joint_vel_rads[iter_j] = srv_get_joint.response.jointstate.velocity[i];
+			drive_joint_effort_NM[iter_j] = srv_get_joint.response.jointstate.effort[i];
+			iter_j = iter_j + 1;
 		}
 	}
 
