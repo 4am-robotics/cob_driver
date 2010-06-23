@@ -125,6 +125,8 @@ class ElmoRecorder {
 		
 		float m_fRecordingStepSec;
 		
+		std::string m_sLogFilename;
+		
 		/**
 		* A flag that tells, whether we are waiting for read-out until the confirmation by SR, that the recorder is ready for read-out
 		*/

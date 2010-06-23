@@ -233,7 +233,7 @@ int ElmoRecorder::processData(segData& SDOData) {
 }
 
 int ElmoRecorder::setLogFilename(std::string sLogFileprefix) {
-	m_sLogFilename = sLogFilePrefix;
+	m_sLogFilename = sLogFileprefix;
 	return 0;
 }
 
