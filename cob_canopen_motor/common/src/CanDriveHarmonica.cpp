@@ -1389,9 +1389,9 @@ int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 			if(seg_Data.statusFlag == segData::SDO_SEG_FREE) {
 				if( (iParam != 1) && (iParam != 2) && (iParam != 10) && (iParam != 16) ) {
 					iParam = 1;
-					std::cout << "Changed the Readout object to #1 as your object hasn't been recorded!" << std::endl;
+					std::cout << "Changed the Readout object to #1 as your selected object hasn't been recorded!" << std::endl;
 				}
-				ElmoRec->sLogFilename = sParam;
+				ElmoRec->setLogFilename(sParam);
 				ElmoRec->readoutRecorderTry(iParam); //as subindex, give the recorded variable
 				return 0;
 			} else {

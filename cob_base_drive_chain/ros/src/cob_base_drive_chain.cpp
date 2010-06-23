@@ -10,7 +10,7 @@
  * Project name: care-o-bot
  * ROS stack name: cob_driver
  * ROS package name: cob_base_drive_chain
- * Description:
+ * Description: This node provides control of the care-o-bot platform drives to the ROS-"network". For this purpose it offers several services and publishes data on different topics.
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
@@ -79,48 +79,93 @@
 
 //####################
 //#### node class ####
+/**
+* This node provides control of the care-o-bot platform drives to the ROS-"network". For this purpose it offers several services and publishes data on different topics.
+*/
 class NodeClass
 {
-    //
     public:
 	    // create a handle for this node, initialize node
 	    ros::NodeHandle n;
                 
         // topics to publish
+        /**
+        * On this topic "JointState" of type sensor_msgs::JointState the node publishes joint states when they are requested over the appropriate service srvServer_GetJointState.
+        */
         ros::Publisher topicPub_JointState;
+        
+        /**
+        * On this topic "Diagnostic" of type diagnostic_msgs::DiagnosticStatus the node publishes states and error information about the platform.
+        */
 		ros::Publisher topicPub_Diagnostic;
         
+        
 	    // topics to subscribe, callback is called for new messages arriving
-        ros::Subscriber topicSub_JointStateCmd;
+		/**
+        * The node subscribes to the topic "JointStateCmd" and performs the requested motor commands
+        */
+		ros::Subscriber topicSub_JointStateCmd;
         
         // service servers
+        /**
+        * Service requests cob_srvs::Trigger and initializes platform and motors
+        */
         ros::ServiceServer srvServer_Init;
-        ros::ServiceServer srvServer_Reset;
-        ros::ServiceServer srvServer_Shutdown;
-        ros::ServiceServer srvServer_SetMotionType;
-        ros::ServiceServer srvServer_GetJointState;
-        ros::ServiceServer srvServer_ElmoRecorderConfig;
-        ros::ServiceServer srvServer_ElmoRecorderReadout;
-            
-        // service clients
-        //--
         
+        /**
+        * Service requests cob_srvs::Trigger and resets platform and motors
+        */
+        ros::ServiceServer srvServer_Reset;
+        
+        /**
+        * Service requests cob_srvs::Trigger and shuts down platform and motors
+        */
+		ros::ServiceServer srvServer_Shutdown;
+
+		ros::ServiceServer srvServer_SetMotionType;
+		
+		/**
+        * Service requests cob_srvs::GetJointState. It reads out the latest joint information from the CAN buffer and gives it back. It also publishes the informaion on the topic "JointState"
+        */
+		ros::ServiceServer srvServer_GetJointState;
+		
+		/**
+        * Service requests cob_base_drive_chain::ElmoRecorderSetup. It is used to configure the Elmo Recorder to record predefined sources. 
+        * Parameters are:
+        * int64 recordinggap #Specify every which time quantum (4*90usec) a new data point (of 1024 points in total) is recorded. the recording process starts immediately.
+        */
+		ros::ServiceServer srvServer_ElmoRecorderConfig;
+		
+		/**
+        * Service requests cob_base_drive_chain::ElmoRecorderGet. It is used to start the read-out process of previously recorded data by the Elmo Recorder.
+        * Parameters are:
+        * int64 subindex 
+        * #As Subindex, set the recorded source you want to read out:
+		* #1: Main Speed
+		* #2: Main Position
+		* #10: ActiveCurrent
+		* #16: Speed Command
+		*
+		* string fileprefix
+		* #Enter the path+file-prefix for the logfile (of an existing directory!)
+		* #The file-prefix is extended with _MotorNumber_RecordedSource.log
+        */
+		ros::ServiceServer srvServer_ElmoRecorderReadout;
+
         // global variables
-		// generate can-node handle -> should this really be public?
+		// generate can-node handle
 		CanCtrlPltfCOb3 m_CanCtrlPltf;
 		bool m_bisInitialized;
-        int m_iNumMotors;
+		int m_iNumMotors;
         
-        bool m_bEvalCanMsg;
+		struct ParamType
+		{ 
+			double dMaxDriveRateRadpS;
+			double dMaxSteerRateRadpS;
 
-    	struct ParamType
-	    { 
-	    	double dMaxDriveRateRadpS;
-	    	double dMaxSteerRateRadpS;
-
-	    	std::vector<double> vdWheelNtrlPosRad;
-	    };
-	    ParamType m_Param;
+			std::vector<double> vdWheelNtrlPosRad;
+		};
+		ParamType m_Param;
 		std::string sIniDirectory;
 
 		// Constructor
@@ -129,7 +174,6 @@ class NodeClass
 			// initialization of variables
 			m_bisInitialized = false;
 			m_iNumMotors = 8;
-			m_bEvalCanMsg = false;
 			
 			// implementation of topics
 			// published topics
@@ -232,7 +276,6 @@ class NodeClass
 		bool srvCallback_ElmoRecorderConfig(cob_base_drive_chain::ElmoRecorderSetup::Request &req,
                               cob_base_drive_chain::ElmoRecorderSetup::Response &res ){
 			if(m_bisInitialized) {			
-				m_bEvalCanMsg = true;
 				m_CanCtrlPltf.evalCanBuffer();
 				res.success = m_CanCtrlPltf.ElmoRecordings(0, req.recordinggap, "");
 				res.message = "Successfully configured all motors for instant record";
@@ -240,10 +283,10 @@ class NodeClass
 
 			return true;
 		}
+		
 		bool srvCallback_ElmoRecorderReadout(cob_base_drive_chain::ElmoRecorderGet::Request &req,
                               cob_base_drive_chain::ElmoRecorderGet::Response &res ){
 			if(m_bisInitialized) {
-				m_bEvalCanMsg = true;
 				m_CanCtrlPltf.evalCanBuffer();
 				res.success = m_CanCtrlPltf.ElmoRecordings(1, req.subindex, req.fileprefix);
 				if(res.success == 0) res.message = "Successfully requested reading out of Recorded data";
@@ -315,7 +358,7 @@ class NodeClass
 			// get time stamp for header
 			jointstate.header.stamp = ros::Time::now();
             // set frame_id for header            
-			//jointstate.header.frame_id = frame_id; //Where to get this id from?
+			// jointstate.header.frame_id = frame_id; //Where to get this id from?
 
 			// assign right size to JointState
 			jointstate.set_name_size(m_iNumMotors);
@@ -430,29 +473,22 @@ class NodeClass
 //#### main programm ####
 int main(int argc, char** argv)
 {
-    // initialize ROS, spezify name of node
-    ros::init(argc, argv, "base_drive_chain");
+	// initialize ROS, spezify name of node
+	ros::init(argc, argv, "base_drive_chain");
     
-    NodeClass nodeClass;
- 	
-	// currently only waits for callbacks -> if it should run cyclical
-	// -> specify looprate
-	ros::Rate loop_rate(500); // Hz
-
-
+	NodeClass nodeClass;
+	
+	ros::Time time_evalcan_buffer = ros::Time::now();
     
 	while(nodeClass.n.ok())
 	{
-		if(nodeClass.m_bEvalCanMsg == true) {
+		// Read out the CAN buffer only very 0.1 seconds; cycle the loop without any sleep time to make services available at all time.
+		if(ros::Time::now().toSec() - time_evalcan_buffer.toSec() > 0.1) {
 			nodeClass.m_CanCtrlPltf.evalCanBuffer();
+			time_evalcan_buffer = ros::Time::now();
 		}
-		ros::spinOnce();
-		loop_rate.sleep();
 	}
-    
-//    ros::spin();
-
-    return 0;
+	return 0;
 }
 
 //##################################
@@ -498,12 +534,6 @@ bool NodeClass::initDrives()
 	bTemp1 =  m_CanCtrlPltf.initPltf(sIniDirectory);
 	// debug log
 	ROS_INFO("Initializing done");
-
-	//!!!!!!!!!!!!!!!!!!!!!!
-	//WATCHDOG DEACTIVATE FOR DEBUG
-	//!!!!!!!!!!!!!!!!!!!!!!
-	m_CanCtrlPltf.startWatchdog(false);
-	
 
 	return bTemp1;
 }

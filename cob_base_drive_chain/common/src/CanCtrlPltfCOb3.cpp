@@ -1317,7 +1317,7 @@ int CanCtrlPltfCOb3::ElmoRecordings(int iFlag, int iParam, std::string sString) 
 		
 		case 99:
 			for(unsigned int i = 0; i < m_vpMotor.size(); i++) {
-				m_vpMotor[i]->setRecorder(99, 0); //Configure Elmo Recorder with RecordingGap and start immediately
+				m_vpMotor[i]->setRecorder(99, 0); //Stop any ongoing SDO transfer and clear corresponding data.
 			}
 			return 0;
 		

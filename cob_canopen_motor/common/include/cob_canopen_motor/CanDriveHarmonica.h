@@ -343,9 +343,13 @@ public:
 	void getMotorTorque(double* dTorqueNm);
 
 	/**
-	 * Provides several functions for recording purposes. By now, only implemented for the Elmo-recorder. cpc-pk
-	 * @param Flag 0: Configure with Param = iRecordingGap, 1: Query Upload of recorded element iParam and print to sParam=Filename 2: Request Status, 99: Abort and clear recording process
-	 * @return Return Values are: 0 Success, 1 general Error, 2 data collection still in progress, 3 proceeding of data still in progress
+	 * Provides several functions for drive information recording purposes using the built in ElmoRecorder, which allows to record drive information at a high frequency. 
+	 * @param iFlag To keep the interface slight, use iParam to command the recorder:
+	 * 0: Configure the Recorder to record the sources Main Speed(1), Main position(2), Active current(10), Speed command(16). With iParam = iRecordingGap you specify every which time quantum (4*90usec) a new data point (of 1024 points in total) is recorded; 
+	 * 1: Query Upload of recorded source (1=Main Speed, 2=Main position, 10=Active Current, 16=Speed command) with iParam and log data to file sParam = file prefix. Filename is extended with _MotorNumber_RecordedSource.log
+	 * 2: Request status of ongoing readout process
+	 * 99: Abort and clear current SDO readout process
+	 * @return 0: Success, 1: Recorder hasn't been configured yet, 2: data collection still in progress
 	 *
 	*/
 	int setRecorder(int iFlag, int iParam = 0, std::string sParam = "/home/MyLog_");
@@ -360,22 +364,22 @@ public:
 	void IntprtSetFloat(int iDataLen, char cCmdChar1, char cCmdChar2, int iIndex, float fData);
 
 	/**
-	 * Uploads a service data object. (in expedited transfer mode, means in only one message)
+	 * CANopen: Uploads a service data object (device to master). (in expedited transfer mode, means in only one message)
 	 */
 	void sendSDOUpload(int iObjIndex, int iObjSub);
 	
     /**
-	 * This protocol cancels an active segmented transmission due to the given Error Code
+	 * CANopen: This protocol cancels an active segmented transmission due to the given Error Code
 	 */
     void sendSDOAbort(int iObjIndex, int iObjSubIndex, unsigned int iErrorCode);
 
 	/**
-	 * Downloads a service data object. (in expedited transfer mode, means in only one message)
+	 * CANopen: Downloads a service data object (master to device). (in expedited transfer mode, means in only one message)
 	 */
 	void sendSDODownload(int iObjIndex, int iObjSub, int iData);
 	
 	/**
-	 * Evaluats a service data object.
+	 * CANopen: Evaluats a service data object and gives back object and sub-object ID
 	 */
 	void evalSDO(CanMsg& CMsg, int* pIndex, int* pSubindex);
 	
@@ -457,14 +461,40 @@ protected:
 			return true;
 	}
 
+	/**
+	 * CANopen: Answer a data mesage during a segmented SDO transfer including a toggling bit. Current toggle bit is stored in the SDOSegmented container.
+	 * Function is called, when any SDO transfer segment is received (by receivedSDODataSegment)
+	 */
 	void sendSDOUploadSegmentConfirmation(bool toggleBit);
     
+    /**
+	 * CANopen: Segment data is stored to the SDOSegmented container.
+	 * Function is called, when a segment during a segmented SDO transfer is received (by evalReceivedMsg). It analyzes the SDO transfer header to see, if the transfer is finished. If it's not finished, sendSDOUploadSegmentConfirmation is called to confirm the receive of the current segment and request the next one. 
+	 * @see evalReceivedMsg()
+	 * @see sendSDOUploadSegmentConfirmation()
+	 * @see finishedSDOSegmentedTransfer()
+	 */
 	int receivedSDODataSegment(CanMsg& msg);
 
+	/**
+	 * CANopen: Evaluates a service data object and gives back object and sub-object ID.
+	 * Function is called, when a SDO initialize transfer segment is received (by evalReceivedMsg)
+	 * @see evalReceivedMsg()
+	 */
 	int receivedSDOSegmentedInitiation(CanMsg& msg);
     
+    /**
+	 * CANopen: Function is called by evalReceivedMsg when the current segmented SDO transfer is cancelled with an error code.
+	 * @see evalReceivedMsg()
+	 */
 	void receivedSDOTransferAbort(unsigned int iErrorCode);
     
+    /**
+	 * CANopen: Give the collected data of a finished segmented SDO transfer to an appropriate (depending on the current object ID) processing function.
+	 * Function is called by receivedSDODataSegment, when the transfer is finished. 
+	 * Currently, only Elmo Recorder data is uploaded segmented and is processed here.
+	 * @see receivedSDODataSegment()
+	 */
 	void finishedSDOSegmentedTransfer();
 
 };

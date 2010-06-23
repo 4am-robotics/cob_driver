@@ -255,7 +255,7 @@ public:
 	virtual void IntprtSetInt(int iDataLen, char cCmdChar1, char cCmdChar2, int iIndex, int iData) = 0;
 
     /**
-     *Provides several functions for recording purposes. By now, only implemented for the Elmo-recorder. cpc-pk
+     *Provides several functions for drive information recording purposes. By now, only implemented for the Elmo-recorder. cpc-pk
      */
     virtual	int setRecorder(int iFlag, int iParam = 0, std::string sParam = "/home/MyLog") = 0;
 

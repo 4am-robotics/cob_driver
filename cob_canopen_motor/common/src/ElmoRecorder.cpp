@@ -59,7 +59,7 @@
 #include <cob_canopen_motor/CanDriveHarmonica.h>
 
 ElmoRecorder::ElmoRecorder(CanDriveHarmonica * pParentHarmonicaDrive) {
-	pHarmonicaDrive = pParentHarmonicaDrive;
+	m_pHarmonicaDrive = pParentHarmonicaDrive;
 	
 	m_bIsInitialized = false;
 	m_iReadoutRecorderTry = 0;
@@ -78,26 +78,26 @@ int ElmoRecorder::configureElmoRecorder(int iRecordingGap, int driveID, int star
 	
 	if(startImmediately >=2 ) startImmediately = 1;
 
-	pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, 0);	// Stop Recorder if it's active	
+	m_pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, 0);	// Stop Recorder if it's active	
 	// Record Main speed (index 0, ID1) 
 	// Active Current (index 9, ID10)
 	// Main Position (index 1, ID2)
 	// Speed Command (index 15, ID16)
 	// RC = 2^(Signal1Index) + 2^(Signal2Index) + ..; e.g.: 2^0 + 2^1 + 2^9 + 2^15 = 33283;
-	pHarmonicaDrive->IntprtSetInt(8, 'R', 'C', 0, 33283);
+	m_pHarmonicaDrive->IntprtSetInt(8, 'R', 'C', 0, 33283);
 	// Set trigger type to immediate
-	pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 3, 0);
+	m_pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 3, 0);
 	// Set Recording Gap
-	pHarmonicaDrive->IntprtSetInt(8, 'R', 'G', 0, iRecordingGap);
+	m_pHarmonicaDrive->IntprtSetInt(8, 'R', 'G', 0, iRecordingGap);
 	// Set Recording Length
 	// RL = (4096 / Number of Signals)
-	pHarmonicaDrive->IntprtSetInt(8, 'R', 'L', 0, 1024);
+	m_pHarmonicaDrive->IntprtSetInt(8, 'R', 'L', 0, 1024);
 	
 	// Set Time Quantum, Default: RP=0 -> TS * 4; TS is 90us by default
-	// pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 0, 0);
+	// m_pHarmonicaDrive->IntprtSetInt(8, 'R', 'P', 0, 0);
 	// ----> Total Recording Time = 90us * 4 * RG * RL
 
-	pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, startImmediately + 1); //2 launches immediately (8, 'R', 'R', 0, 1) launches at next BG
+	m_pHarmonicaDrive->IntprtSetInt(8, 'R', 'R', 0, startImmediately + 1); //2 launches immediately (8, 'R', 'R', 0, 1) launches at next BG
 	
 	m_fRecordingStepSec = 0.000090 * 4 * iRecordingGap;
 	
@@ -105,16 +105,17 @@ int ElmoRecorder::configureElmoRecorder(int iRecordingGap, int driveID, int star
 }
 
 int ElmoRecorder::readoutRecorderTry(int iObjSubIndex) {
+	//Request the SR (status register) and begin all the read-out process with this action.
 	m_iReadoutRecorderTry = 1;
 	m_iCurrentObject = iObjSubIndex;
 	
-	pHarmonicaDrive->requestStatus();
+	m_pHarmonicaDrive->requestStatus();
 	
 	return 0;
 }
 
 int ElmoRecorder::readoutRecorderTryStatus(int iStatusReg) {
-	if(m_iReadoutRecorderTry == 0) return 0;
+	if(m_iReadoutRecorderTry == 0) return 0; //only evaluate the SR, if we are really waiting for it (to save time and not to unintionally start a read-out)
 
 	m_iReadoutRecorderTry = 0;
 	
@@ -139,7 +140,7 @@ int ElmoRecorder::readoutRecorder(int iObjSubIndex){
 	//initialize Upload of Recorded Data (object 0x2030)
 	int iObjIndex = 0x2030;
 
-	pHarmonicaDrive->sendSDOUpload(iObjIndex, iObjSubIndex);
+	m_pHarmonicaDrive->sendSDOUpload(iObjIndex, iObjSubIndex);
 	m_iCurrentObject = iObjSubIndex;
 	
 	return 0;
@@ -225,11 +226,18 @@ int ElmoRecorder::processData(segData& SDOData) {
 		vfResData[0][iItemCount] = m_fRecordingStepSec * iItemCount;
 	}
 	
-	logToFile(sLogFilename, vfResData);
+	logToFile(m_sLogFilename, vfResData);
 
 	SDOData.statusFlag = segData::SDO_SEG_FREE;
 	return 0;
 }
+
+int ElmoRecorder::setLogFilename(std::string sLogFileprefix) {
+	m_sLogFilename = sLogFilePrefix;
+	return 0;
+}
+
+
 
 float ElmoRecorder::convertBinaryToFloat(unsigned int iBinaryRepresentation) {
 	//Converting binary-numbers to 32bit float values according to IEEE 754 see http://de.wikipedia.org/wiki/IEEE_754

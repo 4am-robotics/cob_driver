@@ -1,5 +1,24 @@
+#This service is used to start the read-out process of previously recorded data by the Elmo Recorder in Harmonica drives.
+#
+
+#As Subindex, set the recorded source you want to read out:
+#1: Main Speed
+#2: Main Position
+#10: ActiveCurrent
+#16: Speed Command
 int64 subindex
+
+#Enter the path+file-prefix for the logfile (of an existing directory!)
+#The file-prefix is extended with _MotorNumber_RecordedSource.log
 string fileprefix
+
 ---
+
+#As return you get a succes-code and an according message
+
+#0: Successfully requested reading out of Recorded data
+#1: Recorder hasn't been configured yet
+#2: A previous transmission is still in progress
 int64 success
+
 string message
