@@ -31,5 +31,3 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/lib)
 
 # add project executable
 rosbuild_add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp)
-rosbuild_add_executable(jointState_talker ros/src/cob_jointState_talker.cpp)
-rosbuild_add_executable(initial_jointStates ros/src/cob_initial_jointStates.cpp)

@@ -85,10 +85,10 @@ void CanESD::initIntern()
 {	
 	int ret=0;	
 	ret = 0;
-	int iCanNet = 0;
+	int iCanNet = 1;
 	m_IniFile.GetKeyInt( "CanCtrl", "NetESD", &iCanNet, true);
 	
-	int iBaudrateVal = 0;
+	int iBaudrateVal = 2;
 	m_IniFile.GetKeyInt( "CanCtrl", "BaudrateVal", &iBaudrateVal, true);
 
 	std::cout << "Initializing CAN network with id =" << iCanNet << ", baudrate=" << iBaudrateVal << std::endl;
@@ -300,7 +300,7 @@ bool CanESD::receiveMsg(CanMsg* pCMsg)
  * @param id The command id sent to the RCS5000.
  * @return NTCAN_SUCESS if ok, or an error code.
  */
-int CanESD::canIdAddGroup(HANDLE handle, int id)
+int CanESD::canIdAddGroup(NTCAN_HANDLE handle, int id)
 {
 	int result = NTCAN_SUCCESS;
 	int i = 0;

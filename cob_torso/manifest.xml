@@ -1,7 +1,7 @@
 <package>
   <description brief="cob_torso">
 
-  Launch files to configure and startup the Care-O-bot torso.
+    Launch files to configure and startup the Care-O-bot torso.
 
   </description>
   <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>

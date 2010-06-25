@@ -20,6 +20,7 @@
   <depend package="cob_utilities"/>
   <depend package="urdf"/>
   <depend package="libpcan"/>
+  <depend package="libntcan"/>
 
 </package>
 

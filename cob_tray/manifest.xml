@@ -1,7 +1,7 @@
 <package>
   <description brief="cob_tray">
 
-  Launch files to configure and startup the Care-O-bot tray.
+    Launch files to configure and startup the Care-O-bot tray.
 
   </description>
   <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>

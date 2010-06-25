@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
- * ROS package name: powercube_chain
+ * ROS stack name: cob_driver
+ * ROS package name: cob_powercube_chain
  * Description: Class definition of the datastructsManipulator.
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -56,7 +56,7 @@
 
 #include <libwm4/Wm4Matrix4.h>
 #include <libwm4/Wm4Matrix3.h>
-#include <powercube_chain/Joint.h>
+#include <cob_powercube_chain/Joint.h>
 #include <iostream>
 
 // never in headerfiles!
@@ -65,7 +65,7 @@
 #ifdef SWIG
 %module PowerCubeCtrl
 %{
-	#include <powercube_chain/datastructsManipulator.h>
+	#include <cob_powercube_chain/datastructsManipulator.h>
 %}
 #endif 
 

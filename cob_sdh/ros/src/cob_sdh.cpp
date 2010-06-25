@@ -9,12 +9,12 @@
  *
  * Project name: care-o-bot
  * ROS stack name: cob_driver
- * ROS package name: sdh
+ * ROS package name: cob_sdh
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
  * Author: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
- * Supervised by: Georg Arbeiter, email:georg.arbeiter@ipa.fhg.de
+ * Supervised by: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
  *
  * Date of creation: Jan 2010
  * ToDo:

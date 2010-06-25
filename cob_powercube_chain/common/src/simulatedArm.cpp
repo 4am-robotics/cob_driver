@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
- * ROS package name: powercube_chain
+ * ROS stack name: cob_driver
+ * ROS package name: cob_powercube_chain
  * Description: An interface class to a virtual manipulator.
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -51,8 +51,8 @@
  *
  ****************************************************************/
 
-#include <powercube_chain/simulatedArm.h>
-#include <powercube_chain/simulatedMotor.h>
+#include <cob_powercube_chain/simulatedArm.h>
+#include <cob_powercube_chain/simulatedMotor.h>
 #include <math.h>
 
 #define PSIM_CHECK_INITIALIZED() \
@@ -64,6 +64,7 @@ if ( isInitialized()==false )											\
 
 simulatedArm::simulatedArm()
 {
+	std::cerr << "==============Starting Simulated Arm\n";
 	m_DOF = 0;
 	m_Initialized = false;
 	m_motors.clear();
@@ -76,7 +77,7 @@ simulatedArm::~simulatedArm()
 	;
 }
 
-bool simulatedArm::Init(const char * initStr)
+bool simulatedArm::Init(PowerCubeCtrlParams * params)
 {
 	m_DOF = 7;
 	
@@ -85,6 +86,8 @@ bool simulatedArm::Init(const char * initStr)
 	
 	setMaxVelocity(vmax);
 	setMaxAcceleration(amax);
+	m_maxVel.resize(m_DOF);
+	m_maxAcc.resize(m_DOF);
 	
 	std::vector<double> ul(m_DOF);
 	std::vector<double> ll(m_DOF);
@@ -93,6 +96,8 @@ bool simulatedArm::Init(const char * initStr)
 	{
 		ul[i] = 115;
 		ll[i] = -ul[i];
+		m_maxVel[i] = vmax;
+		m_maxAcc[i] = amax;
 	}
 	
 	for (int i=0; i < m_DOF; i++)
@@ -104,7 +109,7 @@ bool simulatedArm::Init(const char * initStr)
 	{
 		m_motors.push_back( simulatedMotor(ll[i], ul[i], amax, vmax) );
 	}
-	
+	std::cerr << "===========Initializing Simulated Powercubes\n";
 	m_Initialized = true;
 	return true;
 }
@@ -119,23 +124,27 @@ bool simulatedArm::Stop()
 
 bool simulatedArm::MoveJointSpaceSync(const std::vector<double>& target)
 {
+	std::cerr << "======================TUTUTUTUT\n";
     PSIM_CHECK_INITIALIZED();
 
-	// Evtl. Fragen zur Rechnung / zum Verfahren an: Felix.Geibel@gmx.de
+
 	std::vector<double> acc(m_DOF);
 	std::vector<double> vel(m_DOF);
 	
 	double TG = 0;
 	
+
 	try 
 	{		
 		// Ermittle Joint, der bei max Geschw. und Beschl. am längsten braucht:
 
 		std::vector<double> posnow;
+		posnow.resize(m_DOF);
 		if ( getConfig(posnow) == false )
 		    return false;
 		    
 		std::vector<double> velnow;
+		velnow.resize(m_DOF);
 		if ( getJointVelocities(velnow) == false )
 		    return false;
 			
@@ -204,6 +213,7 @@ bool simulatedArm::MoveJointSpaceSync(const std::vector<double>& target)
 	// Jetzt Bewegung starten:	
 	for (int i=0; i < m_DOF; i++)
 	{
+		std::cout << "moving motor " << i << ": " << target[i] << ": " << vel[i] << ": " << acc[i] << "\n";
 		m_motors[i].moveRamp(target[i], vel[i], acc[i]);
 	}
 	
@@ -215,7 +225,8 @@ bool simulatedArm::MoveVel(const std::vector<double>& Vel)
     PSIM_CHECK_INITIALIZED();
 
 	for (int i=0; i < m_DOF; i++)
-		m_motors[i].moveVel(Vel[i]);
+		if(Vel[i] > 0.0)
+			m_motors[i].moveVel(Vel[i]);
 	
 	return true;
 }	
@@ -241,7 +252,7 @@ bool simulatedArm::setMaxVelocity(double radpersec)
 {
     PSIM_CHECK_INITIALIZED();
     
-    m_maxAcc.resize(m_DOF);
+    m_maxVel.resize(m_DOF);
 
 	for (int i=0; i < m_DOF; i++)
 	{

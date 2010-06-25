@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
- * ROS package name: powercube_chain
+ * ROS stack name: cob_driver
+ * ROS package name: cob_powercube_chain
  * Description:
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -52,10 +52,10 @@
  ****************************************************************/
 
 #ifdef __LINUX__
-#include <powercube_chain/TimeStamp.h>
+#include <cob_powercube_chain/TimeStamp.h>
 #else
 #include <windows.h>
-#include <powercube_chain/TimeStamp.h>
+#include <cob_powercube_chain/TimeStamp.h>
 
 namespace RTB {
 #endif

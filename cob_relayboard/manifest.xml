@@ -4,8 +4,8 @@
      cob_relayboard
 
   </description>
-  <author>cpc-pk</author>
-  <license>BSD</license>
+  <author>Christian Connette, email:christian.connette@ipa.fhg.de</author>
+  <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_relayboard</url>
 

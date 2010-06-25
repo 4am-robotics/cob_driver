@@ -14,7 +14,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
  * Author: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
- * Supervised by: Alexander Bubeck, email:alexander.bubeck@ipa.fhg.de
+ * Supervised by: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
  *
  * Date of creation: Jan 2010
  * ToDo:
@@ -100,7 +100,7 @@ int main(int argc, char** argv)
 
     // topics to publish
     //ros::Publisher topicPub_JointCommand = n.advertise<trajectory_msgs::JointTrajectory>("command", 1);
-	actionlib::SimpleActionClient<pr2_controllers_msgs::JointTrajectoryAction> ac("JointTrajectory", true); 
+	actionlib::SimpleActionClient<pr2_controllers_msgs::JointTrajectoryAction> ac("joint_trajectory_action", true); 
         
         
 	// topics to subscribe, callback is called for new messages arriving

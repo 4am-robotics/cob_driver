@@ -8,7 +8,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
+ * ROS stack name: cob_driver
  * ROS package name: cob_camera_sensors
  * Description:
  *
@@ -72,8 +72,8 @@ __DLL_ABSTRACTCOLORCAMERA_H__ AbstractColorCamera* APIENTRY CreateColorCamera_AV
 }
 #endif
 
-bool AVTPikeCam::m_CloseExecuted = false;
 bool AVTPikeCam::m_OpenExecuted = false;
+AVTPikeCam::AVTPikeCamDeleter AVTPikeCam::m_Deleter;
 
 
 AVTPikeCam::AVTPikeCam()
@@ -108,13 +108,7 @@ AVTPikeCam::~AVTPikeCam()
 		m_IEEE1394Info = 0;
 	}
 #else
-	// Close module and frees memory allocated by FireGrab
-	if (m_ColorCameraParameters.m_CameraRole == ipa_CameraSensors::MASTER &&
-		m_CloseExecuted == false)
-	{
-		FGExitModule();
-		m_CloseExecuted = true;
-	}
+	
 #endif
 }
 
@@ -420,7 +414,6 @@ unsigned long AVTPikeCam::Close()
 	{
 		std::cerr << "ERROR - AVTPikeCam::Close:" << std::endl;
 		std::cerr << "\t ... Could not stop camera device ( error " << err << " )" << std::endl;
-		return RET_FAILED;
 	}
 
 	/// Close capture logic and frees image buffers.
@@ -429,8 +422,7 @@ unsigned long AVTPikeCam::Close()
 	if(err!=FCE_NOERROR)
 	{
 		std::cerr << "ERROR - AVTPikeCam::Close:" << std::endl;
-		std::cerr << "\t ...  Could close capture logic. ( error " << err << " )" << std::endl;		return RET_FAILED;
-		return RET_FAILED;
+		std::cerr << "\t ...  Could not close capture logic. ( error " << err << " )" << std::endl;		return RET_FAILED;
 	}
 
 	/// Disonnect object from external IEEE1394 node
@@ -438,8 +430,7 @@ unsigned long AVTPikeCam::Close()
 	if(err!=FCE_NOERROR)
 	{
 		std::cerr << "ERROR - AVTPikeCam::Close:" << std::endl;
-		std::cerr << "\t ...  Could not close capture logic. ( error " << err << " )" << std::endl;		return RET_FAILED;
-		return RET_FAILED;
+		std::cerr << "\t ...  Could not disconnect camera. ( error " << err << " )" << std::endl;		return RET_FAILED;
 	}
 
 	
@@ -3436,7 +3427,8 @@ unsigned long AVTPikeCam::SetParameters()
 
 unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 { 
-	TiXmlDocument* p_configXmlDocument = new TiXmlDocument( filename );
+	boost::shared_ptr<TiXmlDocument> p_configXmlDocument (new TiXmlDocument( filename ));
+
 	if (!p_configXmlDocument->LoadFile())
 	{
 		std::cerr << "ERROR - AVTPikeCam::LoadParameters:" << std::endl;
@@ -4045,6 +4037,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 			return (RET_FAILED | RET_XML_TAG_NOT_FOUND);
 		}
 	}
+
+	
 
 	return RET_OK;
 }

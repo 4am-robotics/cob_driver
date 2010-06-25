@@ -35,12 +35,19 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 rosbuild_add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp )
 #rosbuild_add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp ros/src/sdhWrapper.cpp)
 rosbuild_add_executable(${PROJECT_NAME}_test ros/src/${PROJECT_NAME}_test.cpp)
+#rosbuild_add_executable(${PROJECT_NAME}_demo ros/src/${PROJECT_NAME}_demo.cpp ros/src/dsaboost.cpp)
+#rosbuild_add_executable(${PROJECT_NAME}_driver ros/src/${PROJECT_NAME}_driver.cpp ros/src/dsaboost.cpp)
 
 rosbuild_add_compile_flags(${PROJECT_NAME} -DOSNAME_LINUX)
+#rosbuild_add_compile_flags(${PROJECT_NAME}_demo -DOSNAME_LINUX)
+#rosbuild_add_compile_flags(${PROJECT_NAME}_driver -DOSNAME_LINUX)
+
 #rosbuild_add_compile_flags(${PROJECT_NAME} -DWITH_ESD_CAN)
 rosbuild_add_compile_flags(${PROJECT_NAME} -DWITH_PEAK_CAN)
+#rosbuild_add_compile_flags(${PROJECT_NAME}_driver -DWITH_PEAK_CAN)
 
 #target_link_libraries(${PROJECT_NAME} ${PROJECT_SOURCE_DIR}/common/lib/libSDHLibrary-CPP.a ntcan)
-target_link_libraries(${PROJECT_NAME}
-${PROJECT_SOURCE_DIR}/common/lib/libSDHLibrary-CPP.a ntcan pcan)
+target_link_libraries(${PROJECT_NAME} ${PROJECT_SOURCE_DIR}/common/lib/libSDHLibrary-CPP.a ntcan pcan)
+#target_link_libraries(${PROJECT_NAME}_demo ${PROJECT_SOURCE_DIR}/common/lib/libSDHLibrary-CPP.a ntcan pcan)
+#target_link_libraries(${PROJECT_NAME}_driver ${PROJECT_SOURCE_DIR}/common/lib/libSDHLibrary-CPP.a ntcan pcan)
 #${PROJECT_SOURCE_DIR}/common/lib/libSDHLibrary-CPP.so pcan)

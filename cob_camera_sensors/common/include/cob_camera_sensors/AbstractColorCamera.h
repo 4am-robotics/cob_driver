@@ -8,7 +8,7 @@
 * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 *
 * Project name: care-o-bot
-* ROS stack name: cob3_driver
+* ROS stack name: cob_driver
 * ROS package name: cob_camera_sensors
 * Description: Abstract interface for color cameras.
 *
@@ -88,6 +88,8 @@
 #endif
 
 #include <iostream>
+#include <limits>
+#include <boost/shared_ptr.hpp>
 
 namespace ipa_CameraSensors {
 
@@ -213,6 +215,16 @@ class AbstractColorCamera
 		/// @param filename Path to the camera initialization xml file.
 		/// @return Return code.
 		virtual unsigned long TestCamera(const char* filename);
+
+		/// Returns the number of images in the directory
+		/// @return The number of images in the directory
+		virtual int GetNumberOfImages() {return std::numeric_limits<int>::max();};
+
+		/// Function specific to virtual camera.
+		/// Resets the image directory read from the configuration file.
+		/// @param path The camera path
+		/// @return Return code
+		virtual unsigned long SetPathToImages(std::string path) {return RET_OK;};
 
 		/// Destructor
 		virtual ~AbstractColorCamera();
