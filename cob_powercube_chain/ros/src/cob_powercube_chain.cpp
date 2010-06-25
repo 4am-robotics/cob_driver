@@ -374,191 +374,193 @@ class NodeClass
         bool srvCallback_Init(cob_srvs::Trigger::Request &req,
                               cob_srvs::Trigger::Response &res )
         {
-			if (isInitialized == false)
+		if (isInitialized == false)
+		{
+			ROS_INFO("...initializing powercubes...");
+			// init powercubes 
+			if (PCube->Init(PCubeParams))
 			{
-				ROS_INFO("...initializing powercubes...");
-		      	// init powercubes 
-		        if (PCube->Init(PCubeParams))
-		        {
-		        	ROS_INFO("Initializing succesfull");
-					isInitialized = true;
-		        	res.success = 0; // 0 = true, else = false
-		        }
-		        else
-		        {
-		        	ROS_ERROR("Initializing powercubes not succesfull. error: %s", PCube->getErrorMessage().c_str());
-		        	res.success = 1; // 0 = true, else = false
-		        	res.errorMessage.data = PCube->getErrorMessage();
-		        }
+				ROS_INFO("Initializing succesfull");
+				isInitialized = true;
+				res.success = 0; // 0 = true, else = false
 			}
 			else
 			{
-				ROS_ERROR("...powercubes already initialized...");		        
-				res.success = 1;
-				res.errorMessage.data = "powercubes already initialized";
-			}
-
-	        // homing powercubes
-	        /*if (PCube->doHoming())
-	        {
-	        	ROS_INFO("Homing powercubes succesfull");
-	        	res.success = 0; // 0 = true, else = false
-	        }
-	        else
-	        {
-	        	ROS_ERROR("Homing powercubes not succesfull. error: %s", PCube->getErrorMessage().c_str());
-	        	res.success = 1; // 0 = true, else = false
-	        	res.errorMessage.data = PCube->getErrorMessage();
-	        	return true;
-	        }
-			*/
-
-		     return true;
-        }
-
-        bool srvCallback_Stop(cob_srvs::Trigger::Request &req,
-                              cob_srvs::Trigger::Response &res )
-        {
-       	    ROS_INFO("Stopping powercubes");
-        	
-        	// set current trajectory to be finished
-			traj_point_nr = traj.points.size();
-        	
-            // stopping all arm movements
-            if (PCube->Stop())
-            {
-            	ROS_INFO("Stopping powercubes succesfull");
-            	res.success = 0; // 0 = true, else = false
-            }
-            else
-            {
-            	ROS_ERROR("Stopping powercubes not succesfull. error: %s", PCube->getErrorMessage().c_str());
-            	res.success = 1; // 0 = true, else = false
-            	res.errorMessage.data = PCube->getErrorMessage();
-            }
-            return true;
-        }
-        
-        bool srvCallback_Recover(cob_srvs::Trigger::Request &req,
-                              	 cob_srvs::Trigger::Response &res )
-        {
-			if (isInitialized == true)
-			{
-		   	    ROS_INFO("Recovering powercubes");
-		    
-		        // stopping all arm movements
-		        if (PCube->Stop())
-		        {
-		        	ROS_INFO("Recovering powercubes succesfull");
-		        	res.success = 0; // 0 = true, else = false
-		        }
-		        else
-		        {
-		        	ROS_ERROR("Recovering powercubes not succesfull. error: %s", PCube->getErrorMessage().c_str());
-		        	res.success = 1; // 0 = true, else = false
-		        	res.errorMessage.data = PCube->getErrorMessage();
-		        }
-		    }
-		    else
-			{
-				ROS_ERROR("...powercubes already recovered...");		        
-				res.success = 1;
-				res.errorMessage.data = "powercubes already recovered";
-			}
-
-            return true;
-        }
-
-        bool srvCallback_SetOperationMode(cob_srvs::SetOperationMode::Request &req,
-                                          cob_srvs::SetOperationMode::Response &res )
-        {
-        	ROS_INFO("Set operation mode to [%s]", req.operationMode.data.c_str());
-            n.setParam("OperationMode", req.operationMode.data.c_str());
-            res.success = 0; // 0 = true, else = false
-            return true;
-        }
-                
-        // other function declarations
-        void publishJointState()
-        {
-			if (isInitialized == true)
-			{
-		        // create joint_state message
-		        int DOF = ModIds_param.size();
-		        std::vector<double> ActualPos;
-		        std::vector<double> ActualVel;
-		        ActualPos.resize(DOF);
-		        ActualVel.resize(DOF);
-
-				PCube->getConfig(ActualPos);
-				PCube->getJointVelocities(ActualVel);
-
-		        sensor_msgs::JointState msg;
-		        msg.header.stamp = ros::Time::now();
-		        msg.name.resize(DOF);
-		        msg.position.resize(DOF);
-		        msg.velocity.resize(DOF);
-		        
-				msg.name = JointNames;
-
-		        for (int i = 0; i<DOF; i++ )
-		        {
-		            msg.position[i] = ActualPos[i];
-		            msg.velocity[i] = ActualVel[i];
-//					std::cout << "Joint " << msg.name[i] <<": pos="<<  msg.position[i] << "vel=" << msg.velocity[i] << std::endl;
-		        }
-		            
-		        // publish message
-		        topicPub_JointState.publish(msg); 
+				ROS_ERROR("Initializing powercubes not succesfull. error: %s", PCube->getErrorMessage().c_str());
+				res.success = 1; // 0 = true, else = false
+				res.errorMessage.data = PCube->getErrorMessage();
 			}
 		}
-			
-		void updatePCubeCommands()
+		else
 		{
-			if (isInitialized == true)
+			ROS_ERROR("...powercubes already initialized...");		        
+			res.success = 1;
+			res.errorMessage.data = "powercubes already initialized";
+		}
+
+		// homing powercubes
+		/*if (PCube->doHoming())
+		  {
+		  ROS_INFO("Homing powercubes succesfull");
+		  res.success = 0; // 0 = true, else = false
+		  }
+		  else
+		  {
+		  ROS_ERROR("Homing powercubes not succesfull. error: %s", PCube->getErrorMessage().c_str());
+		  res.success = 1; // 0 = true, else = false
+		  res.errorMessage.data = PCube->getErrorMessage();
+		  return true;
+		  }
+		 */
+
+		return true;
+	}
+
+	bool srvCallback_Stop(cob_srvs::Trigger::Request &req,
+			cob_srvs::Trigger::Response &res )
+	{
+		ROS_INFO("Stopping powercubes");
+
+		// set current trajectory to be finished
+		traj_point_nr = traj.points.size();
+
+		// stopping all arm movements
+		if (PCube->Stop())
+		{
+			ROS_INFO("Stopping powercubes succesfull");
+			res.success = 0; // 0 = true, else = false
+		}
+		else
+		{
+			ROS_ERROR("Stopping powercubes not succesfull. error: %s", PCube->getErrorMessage().c_str());
+			res.success = 1; // 0 = true, else = false
+			res.errorMessage.data = PCube->getErrorMessage();
+		}
+		return true;
+	}
+
+	bool srvCallback_Recover(cob_srvs::Trigger::Request &req,
+			cob_srvs::Trigger::Response &res )
+	{
+		if (isInitialized == true)
+		{
+			// stopping all arm movements
+			if (PCube->Recover())
 			{
-			    std::string operationMode;
-			    n.getParam("OperationMode", operationMode);
-			    if (operationMode == "position")
-			    {
-				    ROS_DEBUG("moving powercubes in position mode");
-			    	if (PCube->statusMoving() == false)
-			    	{
-				    	//feedback_.isMoving = false;
-				    	
-				    	ROS_DEBUG("next point is %d from %d",traj_point_nr,traj.points.size());
-				    	
-				    	if (traj_point_nr < traj.points.size())
-				    	{
-				    		// if powercubes are not moving and not reached last point of trajectory, the send new target point
-				    		ROS_INFO("...moving to trajectory point[%d]",traj_point_nr);
-					    	traj_point = traj.points[traj_point_nr];
-					    	PCube->MoveJointSpaceSync(traj_point.positions);
-				    		traj_point_nr++;
-					    	//feedback_.isMoving = true;
-					    	//feedback_.pointNr = traj_point_nr;
-	    					//as_.publishFeedback(feedback_);
-					    }
-					    else
-					    {
-					    	ROS_DEBUG("...reached end of trajectory");
-					    	finished_ = true;
-					    }
+				ROS_INFO("Recovering powercubes succesfull");
+				res.success = 0; // 0 = true, else = false
+				return true;
+			}
+			else
+			{
+				ROS_ERROR("Recovering powercubes not succesfull. error: %s", PCube->getErrorMessage().c_str());
+				res.success = 1; // 0 = true, else = false
+				res.errorMessage.data = PCube->getErrorMessage();
+				return false;
+
+			}
+		}
+		else
+		{
+			ROS_ERROR("...powercubes not initialized, please call init first...");		        
+			res.success = 1;
+			res.errorMessage.data = "powercubes not initialized, please call init first";
+			return false;
+		}
+
+
+	}
+
+	bool srvCallback_SetOperationMode(cob_srvs::SetOperationMode::Request &req,
+			cob_srvs::SetOperationMode::Response &res )
+	{
+		ROS_INFO("Set operation mode to [%s]", req.operationMode.data.c_str());
+		n.setParam("OperationMode", req.operationMode.data.c_str());
+		res.success = 0; // 0 = true, else = false
+		return true;
+	}
+
+	// other function declarations
+	void publishJointState()
+	{
+		if (isInitialized == true)
+		{
+			// create joint_state message
+			int DOF = ModIds_param.size();
+			std::vector<double> ActualPos;
+			std::vector<double> ActualVel;
+			ActualPos.resize(DOF);
+			ActualVel.resize(DOF);
+
+			PCube->getConfig(ActualPos);
+			PCube->getJointVelocities(ActualVel);
+
+			sensor_msgs::JointState msg;
+			msg.header.stamp = ros::Time::now();
+			msg.name.resize(DOF);
+			msg.position.resize(DOF);
+			msg.velocity.resize(DOF);
+
+			msg.name = JointNames;
+
+			for (int i = 0; i<DOF; i++ )
+			{
+				msg.position[i] = ActualPos[i];
+				msg.velocity[i] = ActualVel[i];
+				//					std::cout << "Joint " << msg.name[i] <<": pos="<<  msg.position[i] << "vel=" << msg.velocity[i] << std::endl;
+			}
+
+			// publish message
+			topicPub_JointState.publish(msg); 
+		}
+	}
+
+	void updatePCubeCommands()
+	{
+		if (isInitialized == true)
+		{
+			std::string operationMode;
+			n.getParam("OperationMode", operationMode);
+			if (operationMode == "position")
+			{
+				ROS_DEBUG("moving powercubes in position mode");
+				if (PCube->statusMoving() == false)
+				{
+					//feedback_.isMoving = false;
+
+					ROS_DEBUG("next point is %d from %d",traj_point_nr,traj.points.size());
+
+					if (traj_point_nr < traj.points.size())
+					{
+						// if powercubes are not moving and not reached last point of trajectory, the send new target point
+						ROS_INFO("...moving to trajectory point[%d]",traj_point_nr);
+						traj_point = traj.points[traj_point_nr];
+						PCube->MoveJointSpaceSync(traj_point.positions);
+						traj_point_nr++;
+						//feedback_.isMoving = true;
+						//feedback_.pointNr = traj_point_nr;
+						//as_.publishFeedback(feedback_);
 					}
 					else
 					{
-						//ROS_INFO("...powercubes moving to point[%d]",traj_point_nr);
+						ROS_DEBUG("...reached end of trajectory");
+						finished_ = true;
 					}
-			    }
-			    else if (operationMode == "velocity")
-			    {
-			    	ROS_DEBUG("moving powercubes in velocity mode");
-			        //PCube->MoveVel(goal->trajectory.points[0].velocities);
-			        ROS_WARN("Moving in velocity mode currently disabled");
-			    }
-			    else
-			    {
-			        ROS_ERROR("powercubes neither in position nor in velocity mode. OperationMode = [%s]", operationMode.c_str());
+				}
+				else
+				{
+					//ROS_INFO("...powercubes moving to point[%d]",traj_point_nr);
+				}
+			}
+			else if (operationMode == "velocity")
+			{
+				ROS_DEBUG("moving powercubes in velocity mode");
+				//PCube->MoveVel(goal->trajectory.points[0].velocities);
+				ROS_WARN("Moving in velocity mode currently disabled");
+			}
+			else
+			{
+				ROS_ERROR("powercubes neither in position nor in velocity mode. OperationMode = [%s]", operationMode.c_str());
 			    }
 			}
 			else

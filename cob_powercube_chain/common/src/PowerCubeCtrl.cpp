@@ -706,3 +706,40 @@ void PowerCubeCtrl::millisleep(unsigned int milliseconds) const
 	timespec gewartet;
 	nanosleep(&warten, &gewartet);
 }
+
+bool PowerCubeCtrl::Recover()
+{
+
+	vector<string> errorMessages;
+	PC_CTRL_STATE status;
+	getStatus(status, errorMessages);
+	if (status == PC_CTRL_NOT_REFERENCED) 
+	{
+		std::cout << "PowerCubeCtrl:Init: Homing is executed ...\n";
+		bool successful = false;
+		successful = doHoming();
+		if (!successful)
+		{
+			std::cout << "PowerCubeCtrl:Init: homing not successful, aborting ...\n";
+		}
+	}
+	PCube_resetAll(m_Dev);
+
+	getStatus(status, errorMessages);
+	if ((status != PC_CTRL_OK))
+	{
+		m_ErrorMessage.assign("");
+		for (int i=0; i<m_DOF; i++)
+		{
+			m_ErrorMessage.append(errorMessages[i]);
+			m_ErrorMessage.append("\n");
+		}
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+
+
+}
