@@ -379,7 +379,7 @@ public:
 	void sendSDODownload(int iObjIndex, int iObjSub, int iData);
 	
 	/**
-	 * CANopen: Evaluats a service data object and gives back object and sub-object ID
+	 * CANopen: Evaluates a service data object and gives back object and sub-object ID
 	 */
 	void evalSDO(CanMsg& CMsg, int* pIndex, int* pSubindex);
 	
@@ -470,6 +470,7 @@ protected:
     /**
 	 * CANopen: Segment data is stored to the SDOSegmented container.
 	 * Function is called, when a segment during a segmented SDO transfer is received (by evalReceivedMsg). It analyzes the SDO transfer header to see, if the transfer is finished. If it's not finished, sendSDOUploadSegmentConfirmation is called to confirm the receive of the current segment and request the next one. 
+	 * -Currently only used for Elmo Recorder read-out
 	 * @see evalReceivedMsg()
 	 * @see sendSDOUploadSegmentConfirmation()
 	 * @see finishedSDOSegmentedTransfer()
