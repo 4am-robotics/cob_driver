@@ -505,7 +505,8 @@ bool NodeClass::initDrives()
 	IniFile iniFile;
 
 	/// Parameters are set within the launch file
-	n.param<std::string>("base_drive_chain_node/IniDirectory", sIniDirectory, "Platform/IniFiles/");
+	//n.param<std::string>("base_drive_chain_node/IniDirectory", sIniDirectory, "Platform/IniFiles/");
+	n.param<std::string>("base_drive_chain/IniDirectory", sIniDirectory, "Platform/IniFiles/");
 	ROS_INFO("IniDirectory loaded from Parameter-Server is: %s", sIniDirectory.c_str());
 	
 

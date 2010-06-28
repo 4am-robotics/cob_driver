@@ -51,4 +51,4 @@
  *
  ****************************************************************/
 
-#include <powercube_chain/Joint.h>
+#include <cob_powercube_chain/Joint.h>

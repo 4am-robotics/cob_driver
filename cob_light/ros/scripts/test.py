@@ -41,7 +41,7 @@
 # License, or (at your option) any later version.
 # 
 # This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# but WITHOUT ANY WARRANTY; withouself.ser = serial.Serial('/dev/ttyUSB0', 230400)t even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Lesser General Public License LGPL for more details.
 # 
@@ -51,7 +51,8 @@
 #
 #****************************************************************
 
-import roslib; 
+import time
+import roslib
 roslib.load_manifest('cob_light')
 import rospy
 from cob_msgs.msg import Light
@@ -59,12 +60,36 @@ from cob_msgs.msg import Light
 def changeColor():
 	pub = rospy.Publisher('command', Light)
 	rospy.init_node('light_test')
-	light = Light()
-	light.r = 123
-	light.g = 333
-	light.b = 444
-	rospy.loginfo("Setting rgb to [%d, %d, %d]",light.r,light.g,light.b)
-	pub.publish(light)
+	#color in rgb color space ranging from 0 to 999
+	red = Light()
+	red.r = 999
+	red.g = 0
+	red.b = 0
+	
+	yellow = Light()
+	yellow.r = 400
+	yellow.g = 999
+	yellow.b = 0
+	
+	green = Light()
+	green.r = 0
+	green.g = 999
+	green.b = 0
+	
+	blue = Light()
+	blue.r = 0
+	blue.g = 0
+	blue.b = 999
+	
+	white = Light()
+	white.r = 300
+	white.g = 999
+	white.b = 300
+	
+	for color in [red,yellow,green,blue,white]:
+		rospy.loginfo("Setting rgb to [%d, %d, %d]",color.r,color.g,color.b)
+		pub.publish(color)
+		time.sleep(3)
 
 if __name__ == '__main__':
     try:
