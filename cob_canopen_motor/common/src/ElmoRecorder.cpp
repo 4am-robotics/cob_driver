@@ -187,7 +187,7 @@ int ElmoRecorder::processData(segData& SDOData) {
 			iItemSize = 4;
 			break;
 	}
-	std::cout << ">>>>>HEADER INFOS<<<<<\nData type is: " << (SDOData.data[0] >> 4) << std::endl;
+	std::cout << ">>>>>ElmoRec: HEADER INFOS<<<<<\nData type is: " << (SDOData.data[0] >> 4) << std::endl;
 	
 	fTimeQuantum = (SDOData.data[0] & 0x0F) * 0.000090; //Time quantum is specified in Bit 4 to 7
 	//std::cout << "fTimeQuantum from Header is " << fTimeQuantum << " m_fRecordingStepSec is " << m_fRecordingStepSec << std::endl;
@@ -195,7 +195,7 @@ int ElmoRecorder::processData(segData& SDOData) {
 	
 	//B[1]..[2] //Number of recorded items
 	iNumDataItems = (SDOData.data[2] << 8 | SDOData.data[1]);
-	std::cout << "Number of recorded data points: " << iNumDataItems << std::endl;
+	//std::cout << "Number of recorded data points: " << iNumDataItems << std::endl;
 
 	//B[3] ... [6] //Floating point factor
 	fFloatingPointFactor = convertBinaryToFloat( (SDOData.data[6] << 24) | (SDOData.data[5] << 16) | (SDOData.data[4] << 8) | (SDOData.data[3]) );

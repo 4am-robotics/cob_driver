@@ -1091,7 +1091,7 @@ int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
 	if( (msg.getAt(0) & 0x01) == 0x00) { //Is finished-bit not set?
 		seg_Data.statusFlag = segData::SDO_SEG_COLLECTING;
 	} else {
-		std::cout << "SDO Segmented Transfer finished bit found!" << std::endl;
+		//std::cout << "SDO Segmented Transfer finished bit found!" << std::endl;
 		seg_Data.statusFlag = segData::SDO_SEG_PROCESSING;
 	};
 
