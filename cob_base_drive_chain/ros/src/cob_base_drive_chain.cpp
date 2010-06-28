@@ -482,11 +482,13 @@ int main(int argc, char** argv)
     
 	while(nodeClass.n.ok())
 	{
-		// Read out the CAN buffer only very 0.1 seconds; cycle the loop without any sleep time to make services available at all time.
-		if(ros::Time::now().toSec() - time_evalcan_buffer.toSec() > 0.1) {
-			nodeClass.m_CanCtrlPltf.evalCanBuffer();
+		// Read out the CAN buffer only every n seconds; cycle the loop without any sleep time to make services available at all time.
+		if(ros::Time::now().toSec() - time_evalcan_buffer.toSec() > 0.001) {
+			if(nodeClass.m_bisInitialized) nodeClass.m_CanCtrlPltf.evalCanBuffer();
+			//Read-out of CAN buffer is especially necessary during read-out of Elmo Recorder
 			time_evalcan_buffer = ros::Time::now();
 		}
+		ros::spinOnce();
 	}
 	return 0;
 }
@@ -535,6 +537,7 @@ bool NodeClass::initDrives()
 	bTemp1 =  m_CanCtrlPltf.initPltf(sIniDirectory);
 	// debug log
 	ROS_INFO("Initializing done");
+
 
 	return bTemp1;
 }
