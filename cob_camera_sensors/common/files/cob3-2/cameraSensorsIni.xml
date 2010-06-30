@@ -182,7 +182,7 @@
 <VirtualRangeCam_0>
   <!-- Location of the image data on your hard disk -->
   <!-- The location is expressed relative to the link 'ConfigurationFiles' -->
-  <CameraDataDirectory relativePath="rotation_pltf_kitchen"/>	
+  <CameraDataDirectory relativePath="table"/>	
 
 	
   <!-- Specifies the prefered calibration method -->

@@ -72,8 +72,8 @@
 #include <cob_srvs/SetOperationMode.h>
 
 // external includes
-#include <powercube_chain/PowerCubeCtrl.h>
-#include <powercube_chain/simulatedArm.h>
+#include <cob_powercube_chain/PowerCubeCtrl.h>
+#include <cob_powercube_chain/simulatedArm.h>
 
 //####################
 //#### node class ####

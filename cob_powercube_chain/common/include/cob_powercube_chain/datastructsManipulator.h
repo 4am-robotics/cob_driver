@@ -56,7 +56,7 @@
 
 #include <libwm4/Wm4Matrix4.h>
 #include <libwm4/Wm4Matrix3.h>
-#include <powercube_chain/Joint.h>
+#include <cob_powercube_chain/Joint.h>
 #include <iostream>
 
 // never in headerfiles!
@@ -65,7 +65,7 @@
 #ifdef SWIG
 %module PowerCubeCtrl
 %{
-	#include <powercube_chain/datastructsManipulator.h>
+	#include <cob_powercube_chain/datastructsManipulator.h>
 %}
 #endif 
 

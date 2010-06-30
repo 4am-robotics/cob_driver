@@ -107,13 +107,29 @@ namespace ipa_CameraSensors {
 /// Interface should also fit to other IEEE 1394 cameras.
 class AVTPikeCam : public AbstractColorCamera
 {
+	/// @class Deleter
+	/// We create a static object of deleter in order to
+	/// executes in its destructor operation that have to be executed
+	/// only once for AVTPike cameras and only when the last object
+	/// camera has been destroyed
+	class AVTPikeCamDeleter
+	{
+	public:
+		~AVTPikeCamDeleter() 
+		{
+#ifndef __LINUX__
+			FGExitModule();
+#endif
+		};
+	};
+
 	private:
 		/// Camera specific parameters
 		bool m_operationMode_B; ///< FireWire A (400Mbit/s) or FireWire B (800Mbit/s).
 		UINT32HL m_GUID;			///< GUID (worldwide unique identifier) of the IEEE1395 camera
-		static bool m_CloseExecuted; ///< Trigger takes care, that AVT library is  closed only once
 		static bool m_OpenExecuted; ///< Trigger takes care, that AVT library is opend only once
-
+		static AVTPikeCamDeleter m_Deleter; ///< Cleans up stuff that has to done only once independent
+											///< of the number of cameras from this type
 #ifdef __LINUX__
 		dc1394video_frame_t* m_Frame;
 		dc1394_t* m_IEEE1394Info;	///< Hold information about IEEE1394 nodes, connected cameras and camera properties

@@ -57,8 +57,8 @@
 //#define __LINUX__
 
 #include <libm5api/m5apiw32.h>
-#include <powercube_chain/moveCommand.h>
-#include <powercube_chain/PowerCubeCtrlParams.h>
+#include <cob_powercube_chain/moveCommand.h>
+#include <cob_powercube_chain/PowerCubeCtrlParams.h>
 //#include "Utilities/mutex.h"
 
 #include <iostream>
@@ -228,6 +228,9 @@ class PowerCubeCtrl
 		
 		/// @brief Stops the Manipulator immediately
 		bool Stop();
+		
+		/// @brief Recovery after emergency stop or power supply failure
+		bool Recover();
 		
 		///////////////////////////////////////////
 		// Funktionen zum setzen von Parametern: //

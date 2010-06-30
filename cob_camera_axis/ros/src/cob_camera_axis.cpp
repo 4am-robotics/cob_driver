@@ -130,7 +130,7 @@ class NodeClass
             //--
 
             // read parameters from parameter server
-            n.param<std::string>("CanDevice", CanDevice,"PCAN:1");
+            n.param<std::string>("CanDevice", CanDevice,"ESD:1");
             n.param<int>("CanBaudrate", CanBaudrate, 500);
             n.param<int>("ModId",ModID ,17 );
             n.param<std::string>("JointName",JointName ,"joint_head_eyes" );

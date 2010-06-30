@@ -51,7 +51,7 @@
  *
  ****************************************************************/
 
-#include <powercube_chain/simulatedMotor.h>
+#include <cob_powercube_chain/simulatedMotor.h>
 #include <math.h>
 
 		
