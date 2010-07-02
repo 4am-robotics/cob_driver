@@ -64,7 +64,7 @@ if ( isInitialized()==false )											\
 
 simulatedArm::simulatedArm()
 {
-	std::cerr << "==============Starting Simulated Arm\n";
+	std::cerr << "==============Starting Simulated Powercubes\n";
 	m_DOF = 0;
 	m_Initialized = false;
 	m_motors.clear();
@@ -79,7 +79,7 @@ simulatedArm::~simulatedArm()
 
 bool simulatedArm::Init(PowerCubeCtrlParams * params)
 {
-	m_DOF = 7;
+	m_DOF = params->GetNumberOfDOF();;
 	
 	double vmax = 1.0;
 	double amax = 1.5;
@@ -91,20 +91,12 @@ bool simulatedArm::Init(PowerCubeCtrlParams * params)
 	
 	std::vector<double> ul(m_DOF);
 	std::vector<double> ll(m_DOF);
+	ul = params->GetUpperLimits();
+	ll = params->GetLowerLimits();
+	m_maxVel = params->GetMaxVel();
+	m_maxAcc =  params->GetMaxAcc();
 	
-	for (int i=0; i < m_DOF; i++)
-	{
-		ul[i] = 115;
-		ll[i] = -ul[i];
-		m_maxVel[i] = vmax;
-		m_maxAcc[i] = amax;
-	}
-	
-	for (int i=0; i < m_DOF; i++)
-	{
-		ul[i] *= M_PI/180.0;
-	}
-	
+
 	for (int i=0; i < m_DOF; i++)
 	{
 		m_motors.push_back( simulatedMotor(ll[i], ul[i], amax, vmax) );
@@ -224,10 +216,14 @@ bool simulatedArm::MoveVel(const std::vector<double>& Vel)
 {
     PSIM_CHECK_INITIALIZED();
 
+//	std::cerr << ".";
+//	std::cerr << "Vels: ";
 	for (int i=0; i < m_DOF; i++)
-		if(Vel[i] > 0.0)
-			m_motors[i].moveVel(Vel[i]);
-	
+	{
+//		std::cerr << Vel[i] << " ";
+		m_motors[i].moveVel(Vel[i]);
+	}
+//	std::cerr << "\n";
 	return true;
 }	
 
