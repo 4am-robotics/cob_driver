@@ -59,18 +59,10 @@
 
 using namespace ipa_CameraSensors;
 
-/// Entry point function for enduser
-#ifdef __cplusplus
-extern "C" {
-#endif
-__DLL_ABSTRACTRANGEIMAGINGSENSOR_H__ AbstractRangeImagingSensor* APIENTRY CreateRangeImagingSensor_VirtualCam()
+__DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr ipa_CameraSensors::CreateRangeImagingSensor_VirtualCam()
 {
-	return (new VirtualRangeCam());
+	return AbstractRangeImagingSensorPtr(new VirtualRangeCam());
 }
-#ifdef __cplusplus
-}
-#endif
-
 
 VirtualRangeCam::VirtualRangeCam()
 {
@@ -104,10 +96,10 @@ unsigned long VirtualRangeCam::Init(std::string directory, int cameraIndex)
 
 	m_CameraType = ipa_CameraSensors::CAM_VIRTUALRANGE;
 
-	/// It is important to put this before LoadParameters
+	// It is important to put this before LoadParameters
 	m_CameraDataDirectory = directory;
 
-	/// Load SR parameters from xml-file
+	// Load SR parameters from xml-file
 	if (LoadParameters((directory + "cameraSensorsIni.xml").c_str(), cameraIndex) & RET_FAILED)
 	{
 		std::cerr << "ERROR - VirtualRangeCam::Init:" << std::endl;
@@ -118,74 +110,117 @@ unsigned long VirtualRangeCam::Init(std::string directory, int cameraIndex)
 	m_CoeffsInitialized = true;
 	if (m_CalibrationMethod == MATLAB)
 	{
-		/// Load z-calibration files
-		if(m_CoeffsA0.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA0.txt") & RET_FAILED)
+		// Load z-calibration files
+		std::string filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA0.xml";
+		CvMat* c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		if (! c_mat)
 		{
-			std::cerr << "ERROR - VirtualRangeCam::Init:" << std::endl;
+			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA0.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
 			// no RET_FAILED, as we might want to calibrate the camera to create these files
 		}
-
-		/// Load z-calibration files
-		if(m_CoeffsA1.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA1.txt") & RET_FAILED)
+		else
 		{
-			std::cerr << "ERROR - VirtualRangeCam::Init:" << std::endl;
+			m_CoeffsA0 = c_mat;
+			cvReleaseMat(&c_mat);
+		}
+
+		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA1.xml";
+		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		if (! c_mat)
+		{
+			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA1.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
 			// no RET_FAILED, as we might want to calibrate the camera to create these files
 		}
-
-		/// Load z-calibration files
-		if(m_CoeffsA2.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA2.txt") & RET_FAILED)
+		else
 		{
-			std::cerr << "ERROR - VirtualRangeCam::Init:" << std::endl;
+			m_CoeffsA1 = c_mat;
+			cvReleaseMat(&c_mat);
+		}
+
+		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA2.xml";
+		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		if (! c_mat)
+		{
+			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA2.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
 			// no RET_FAILED, as we might want to calibrate the camera to create these files
 		}
-
-		/// Load z-calibration files
-		if(m_CoeffsA3.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA3.txt") & RET_FAILED)
+		else
 		{
-			std::cerr << "ERROR - VirtualRangeCam::Init:" << std::endl;
+			m_CoeffsA2 = c_mat;
+			cvReleaseMat(&c_mat);
+		}
+
+		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA3.xml";
+		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		if (! c_mat)
+		{
+			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA3.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
 			// no RET_FAILED, as we might want to calibrate the camera to create these files
 		}
-
-		/// Load z-calibration files
-		if(m_CoeffsA4.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA4.txt") & RET_FAILED)
+		else
 		{
-			std::cerr << "ERROR - VirtualRangeCam::Init:" << std::endl;
+			m_CoeffsA3 = c_mat;
+			cvReleaseMat(&c_mat);
+		}
+
+		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA4.xml";
+		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		if (! c_mat)
+		{
+			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA4.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
 			// no RET_FAILED, as we might want to calibrate the camera to create these files
 		}
-
-		/// Load z-calibration files
-		if(m_CoeffsA5.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA5.txt") & RET_FAILED)
+		else
 		{
-			std::cerr << "ERROR - VirtualRangeCam::Init:" << std::endl;
+			m_CoeffsA4 = c_mat;
+			cvReleaseMat(&c_mat);
+		}
+
+		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA5.xml";
+		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		if (! c_mat)
+		{
+			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA5.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
 			// no RET_FAILED, as we might want to calibrate the camera to create these files
 		}
-
-		/// Load z-calibration files
-		if(m_CoeffsA6.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA6.txt") & RET_FAILED)
+		else
 		{
-			std::cerr << "ERROR - VirtualRangeCam::Init:" << std::endl;
+			m_CoeffsA5 = c_mat;
+			cvReleaseMat(&c_mat);
+		}
+
+		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA6.xml";
+		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		if (! c_mat)
+		{
+			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA6.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
 			// no RET_FAILED, as we might want to calibrate the camera to create these files
+		}
+		else
+		{
+			m_CoeffsA6 = c_mat;
+			cvReleaseMat(&c_mat);
 		}
 	}
 
@@ -210,7 +245,7 @@ unsigned long VirtualRangeCam::Open()
 		return (RET_OK | RET_CAMERA_ALREADY_OPEN);
 	}
 
-	/// Convert camera ID to string
+	// Convert camera ID to string
 	std::stringstream ss;
 	std::string sCameraIndex;
 	ss << m_CameraIndex;
@@ -219,7 +254,7 @@ unsigned long VirtualRangeCam::Open()
 	m_ImageWidth = -1;
 	m_ImageHeight = -1;
 
-	/// Create absolute filename and check if directory exists
+	// Create absolute filename and check if directory exists
 	fs::path absoluteDirectoryName( m_CameraDataDirectory );
 	if ( !fs::exists( absoluteDirectoryName ) )
 	{
@@ -232,8 +267,8 @@ unsigned long VirtualRangeCam::Open()
 	int intensityImageCounter = 0;
 	int rangeImageCounter = 0;
 	int coordinateImageCounter = 0;
-	/// Extract all image filenames from the directory
-	if ( fs::is_directory( absoluteDirectoryName ) )
+	// Extract all image filenames from the directory
+	if ( fs::exists( absoluteDirectoryName ) )
 	{
 		std::cout << "INFO - VirtualRangeCam::Open:" << std::endl;
 		std::cout << "\t ... Parsing directory '" << absoluteDirectoryName.directory_string() << "'" << std::endl;
@@ -411,9 +446,9 @@ unsigned long VirtualRangeCam::GetProperty(t_cameraProperty* cameraProperty)
 }
 
 
-/// Wrapper for IplImage retrival from AcquireImage
-/// Images have to be initialized prior to calling this function
-unsigned long VirtualRangeCam::AcquireImages(IplImage* rangeImage, IplImage* grayImage, IplImage* cartesianImage,
+// Wrapper for IplImage retrival from AcquireImage
+// Images have to be initialized prior to calling this function
+unsigned long VirtualRangeCam::AcquireImages(cv::Mat* rangeImage, cv::Mat* grayImage, cv::Mat* cartesianImage,
 											 bool getLatestFrame, bool undistort, ipa_CameraSensors::t_ToFGrayImageType grayImageType)
 {
 	//std::cout << m_ImageCounter << std::endl;
@@ -425,56 +460,23 @@ unsigned long VirtualRangeCam::AcquireImages(IplImage* rangeImage, IplImage* gra
 
 	if(rangeImage)
 	{
-		if(rangeImage->depth == IPL_DEPTH_32F &&
-			rangeImage->nChannels == 1 &&
-			rangeImage->width == m_ImageWidth &&
-			rangeImage->height == m_ImageHeight)
-		{
-			rangeImageData = rangeImage->imageData;
-			widthStepOneChannel = rangeImage->widthStep;
-		}
-		else
-		{
-			std::cerr << "ERROR - VirtualRangeCam::AcquireImages:" << std::endl;
-			std::cerr << "\t ... Could not acquire range image. Wrong image attributes." << std::endl;
-			return RET_FAILED;
-		}
+		rangeImage->create(m_ImageHeight, m_ImageWidth, CV_32FC1);
+		rangeImageData = (char*) rangeImage->data;
+		widthStepOneChannel = rangeImage->step;
 	}
 
 	if(grayImage)
 	{
-		if(grayImage->depth == IPL_DEPTH_32F &&
-			grayImage->nChannels == 1 &&
-			grayImage->width == m_ImageWidth &&
-			grayImage->height == m_ImageHeight)
-		{
-			grayImageData = grayImage->imageData;
-			widthStepOneChannel = grayImage->widthStep;
-		}
-		else
-		{
-			std::cerr << "ERROR - VirtualRangeCam::AcquireImages:" << std::endl;
-			std::cerr << "\t ... Could not acquire intensity image. Wrong image attributes." << std::endl;
-			return RET_FAILED;
-		}
+		grayImage->create(m_ImageHeight, m_ImageWidth, CV_32FC1);
+		grayImageData = (char*) grayImage->data;
+		widthStepOneChannel = grayImage->step;
 	}
 
 	if(cartesianImage)
 	{
-		if(cartesianImage->depth == IPL_DEPTH_32F &&
-			cartesianImage->nChannels == 3 &&
-			cartesianImage->width == m_ImageWidth &&
-			cartesianImage->height == m_ImageHeight)
-		{
-			cartesianImageData = cartesianImage->imageData;
-			widthStepOneChannel = cartesianImage->widthStep/3;
-		}
-		else
-		{
-			std::cerr << "ERROR - VirtualRangeCam::AcquireImages:" << std::endl;
-			std::cerr << "\t ... Could not acquire cartesian image. Wrong image attributes." << std::endl;
-			return RET_FAILED;
-		}
+		cartesianImage->create(m_ImageHeight, m_ImageWidth, CV_32FC3);
+		cartesianImageData = (char*) cartesianImage->data;
+		widthStepOneChannel = cartesianImage->step/3;
 	}
 
 	if (widthStepOneChannel == 0)
@@ -485,45 +487,6 @@ unsigned long VirtualRangeCam::AcquireImages(IplImage* rangeImage, IplImage* gra
 	return AcquireImages(widthStepOneChannel, rangeImageData, grayImageData, cartesianImageData, getLatestFrame, undistort, grayImageType);
 
 }
-
-/// Wrapper for IplImage retrival from AcquireImage
-unsigned long VirtualRangeCam::AcquireImages2(IplImage** rangeImage, IplImage** grayImage, IplImage** cartesianImage,
-											  bool getLatestFrame, bool undistort, ipa_CameraSensors::t_ToFGrayImageType grayImageType)
-{
-	char* rangeImageData = 0;
-	char* grayImageData = 0;
-	char* cartesianImageData = 0;
-	int widthStepOneChannel = -1;
-
-	if (rangeImage)
-	{
-		*rangeImage = cvCreateImage(cvSize(m_ImageWidth, m_ImageHeight), IPL_DEPTH_32F, 1);
-		rangeImageData = (*rangeImage)->imageData;
-		widthStepOneChannel = (*rangeImage)->widthStep;
-	}
-
-	if(grayImage)
-	{
-		*grayImage = cvCreateImage(cvSize(m_ImageWidth, m_ImageHeight), IPL_DEPTH_32F, 1);
-		grayImageData = (*grayImage)->imageData;
-		widthStepOneChannel = (*grayImage)->widthStep;
-	}
-
-	if(cartesianImage)
-	{
-		*cartesianImage = cvCreateImage(cvSize(m_ImageWidth, m_ImageHeight), IPL_DEPTH_32F, 3);
-		cartesianImageData = (*cartesianImage)->imageData;
-		widthStepOneChannel = ((*cartesianImage)->widthStep)/3;
-	}
-
-	if (widthStepOneChannel == -1)
-	{
-		return RET_OK;
-	}
-	AcquireImages(widthStepOneChannel, rangeImageData, grayImageData, cartesianImageData, getLatestFrame, undistort, grayImageType);
-	return RET_OK;
-}
-
 
 unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rangeImageData, char* grayImageData, char* cartesianImageData,
 											 bool getLatestFrame, bool undistort, ipa_CameraSensors::t_ToFGrayImageType grayImageType)
@@ -536,44 +499,50 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 	}
 
 ///***********************************************************************
-/// Range image (distorted or undistorted)
+// Range image (distorted or undistorted)
 ///***********************************************************************
 	if (rangeImageData)
 	{
-		IplImage* rangeImage = (IplImage*) cvLoad(m_RangeImageFileNames[m_ImageCounter].c_str(), 0);
+		float* f_ptr = 0;
+		float* f_ptr_dst = 0;
 		int widthStepRangeImage = widthStepOneChannel;
 
+		IplImage* rangeImage = (IplImage*) cvLoad(m_RangeImageFileNames[m_ImageCounter].c_str(), 0);
+		
 		if (!undistort)
 		{
 			// put data in corresponding IPLImage structures
 			for(unsigned int row=0; row<(unsigned int)m_ImageHeight; row++)
 			{
+				f_ptr = (float*) (rangeImage->imageData + row*rangeImage->widthStep);
+				f_ptr_dst = (float*) (rangeImageData + row*widthStepRangeImage);
+
 				for (unsigned int col=0; col<(unsigned int)m_ImageWidth; col++)
 				{
-					float* f_range_ptr = &((float*) (rangeImage->imageData + row*rangeImage->widthStep))[col];
-					/// This is the raw 16bit z value
-					((float*) (rangeImageData + row*widthStepRangeImage))[col] = f_range_ptr[0];
+					f_ptr_dst[col] = f_ptr[col];
 				}
 			}
 		}
 		else
 		{
-			CvMat* undistortedData = cvCreateMatHeader( m_ImageHeight, m_ImageWidth, CV_32FC1 );
-			undistortedData->data.fl = (float*) rangeImageData;
+			cv::Mat undistortedData (m_ImageHeight, m_ImageWidth, CV_32FC1, (float*) rangeImageData);
+			cv::Mat cpp_rangeImage = rangeImage;
 
-			assert (m_undistortMapX != 0 && m_undistortMapY != 0);
-			cvRemap(rangeImage, undistortedData, m_undistortMapX, m_undistortMapY);
-			cvReleaseMatHeader(&undistortedData);
+			assert (!m_undistortMapX.empty() && !m_undistortMapY.empty());
+			cv::remap(cpp_rangeImage, undistortedData, m_undistortMapX, m_undistortMapY, cv::INTER_LINEAR);
 		}
 
 		cvReleaseImage(&rangeImage);
 	} // End if (rangeImage)
 ///***********************************************************************
-/// Gray image based on amplitude or intensity (distorted or undistorted)
+// Gray image based on amplitude or intensity (distorted or undistorted)
 ///***********************************************************************
 	if(grayImageData)
 	{
+		float* f_ptr = 0;
+		float* f_ptr_dst = 0;
 		IplImage* grayImage = 0;
+
 		if (grayImageType == ipa_CameraSensors::INTENSITY)
 		{
 			grayImage = (IplImage*) cvLoad(m_IntensityImageFileNames[m_ImageCounter].c_str());
@@ -589,108 +558,63 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 		{
 			for(unsigned int row=0; row<(unsigned int)m_ImageHeight; row++)
 			{
+				f_ptr = (float*) (grayImage->imageData + row*grayImage->widthStep);
+				f_ptr_dst = (float*) (grayImageData + row*widthStepIntensityImage);
+
 				for (unsigned int col=0; col<(unsigned int)m_ImageWidth; col++)
 				{
-					float* f_intensity_ptr = &((float*) (grayImage->imageData + row*grayImage->widthStep))[col];
-					((float*) (grayImageData + row*widthStepIntensityImage))[col] = f_intensity_ptr[0];
+					f_ptr_dst[col] = f_ptr[col];
 				}
 			}
 		}
 		else
 		{
-			CvMat* undistortedData = cvCreateMatHeader( m_ImageHeight, m_ImageWidth, CV_32FC1 );
-			undistortedData->data.fl = (float*) grayImageData;
+			cv::Mat undistortedData(m_ImageHeight, m_ImageWidth, CV_32FC1, (float*) grayImageData);
+			cv::Mat cpp_grayImage = grayImage;
 
-			assert (m_undistortMapX != 0 && m_undistortMapY != 0);
-			cvRemap(grayImage, undistortedData, m_undistortMapX, m_undistortMapY);
-			cvReleaseMatHeader(&undistortedData);
+			assert (!m_undistortMapX.empty() && !m_undistortMapY.empty());
+			cv::remap(cpp_grayImage, undistortedData, m_undistortMapX, m_undistortMapY, cv::INTER_LINEAR);
 		}
 
 		cvReleaseImage(&grayImage);
 	}
 ///***********************************************************************
-/// Cartesian image (always undistorted)
+// Cartesian image (always undistorted)
 ///***********************************************************************
 	if(cartesianImageData)
 	{
-		IplImage* rangeImage = 0;//(IplImage*) cvLoad(m_RangeImageFileNames[m_ImageCounter].c_str(), 0);
 		int widthStepCartesianImage = widthStepOneChannel*3;
 		float x = -1;
 		float y = -1;
 		float zRaw = -1;
 		float zCalibrated = -1;
-		float* ptr = 0;
+		float* f_ptr = 0;
+		float* f_ptr_dst = 0;
+
 		if(m_CalibrationMethod==MATLAB)
 		{
-			if (m_CoeffsInitialized)
-			{
-				/// Calculate calibrated z values (in meter) based on 6 degree polynomial approximation
-				CvMat* distortedData = cvCreateMat( m_ImageHeight, m_ImageWidth, CV_32FC1 );
-
-				for(unsigned int row=0; row<(unsigned int)m_ImageHeight; row++)
-				{
-					for (unsigned int col=0; col<(unsigned int)m_ImageWidth; col++)
-					{
-						float* f_range_ptr = &((float*) (rangeImage->imageData + row*rangeImage->widthStep))[col];
-						zRaw = f_range_ptr[0];
-						GetCalibratedZMatlab(col, row, zRaw, zCalibrated);
-						((float*)(distortedData->data.ptr + row*widthStepOneChannel))[col] = zCalibrated;
-					}
-				}
-
-				/// Undistort
-				CvMat* undistortedData = cvCloneMat(distortedData);
-
-				assert (m_undistortMapX != 0 && m_undistortMapY != 0);
-				cvRemap(distortedData, undistortedData, m_undistortMapX, m_undistortMapY);
-
-				cvReleaseMat(&distortedData);
-
-				/// Calculate X and Y based on instrinsic rotation and translation
-				for(unsigned int row=0; row<(unsigned int)m_ImageHeight; row++)
-				{
-					for (unsigned int col=0; col<(unsigned int)m_ImageWidth; col++)
-					{
-						zCalibrated = undistortedData->data.fl[m_ImageWidth*row + col];
-
-						GetCalibratedXYMatlab(col, row, zCalibrated, x, y);
-
-						ptr = &((float*) (cartesianImageData + row*widthStepCartesianImage))[col*3];
-						ptr[0] = x;
-						ptr[1] = y;
-						ptr[2] = zCalibrated;
-						//CvScalar Val = cvScalar(x, y, z);
-						//cvSet2D(*cartesianImage, row, col, Val);
-					}
-				}
-				cvReleaseMat(&undistortedData);
-			}
-			else
-			{
-				std::cerr << "ERROR - VirtualRangeCam::AcquireImages:" << std::endl;
-				std::cerr << "\t ... m_CoeffsA0 ... m_CoeffsA6 not initialized.\n";
-				return RET_FAILED;
-			}
-
+			CV_Assert(false);
 		}
 		else if(m_CalibrationMethod==MATLAB_NO_Z)
 		{
-			/// XYZ image is assumed to be undistorted
-			/// Unfortunately we have no access to the swissranger calibration
+			// XYZ image is assumed to be undistorted
+			// Unfortunately we have no access to the swissranger calibration
 			IplImage* coordinateImage = (IplImage*) cvLoad(m_CoordinateImageFileNames[m_ImageCounter].c_str(), 0);
 			for(unsigned int row=0; row<(unsigned int)m_ImageHeight; row++)
 			{
+				f_ptr = (float*) (coordinateImage->imageData + row*coordinateImage->widthStep);
+				f_ptr_dst = (float*) (cartesianImageData + row*widthStepCartesianImage);
+
 				for (unsigned int col=0; col<(unsigned int)m_ImageWidth; col++)
 				{
-					GetCalibratedZNative(col, row, coordinateImage, zCalibrated);
+					int colTimes3 = 3*col;
+
+					zCalibrated = f_ptr[colTimes3+2];
 					GetCalibratedXYMatlab(col, row, zCalibrated, x, y);
 
-					ptr = &((float*) (cartesianImageData + row*widthStepCartesianImage))[col*3];
-					ptr[0] = x;
-					ptr[1] = y;
-					ptr[2] = zCalibrated;
-					//CvScalar Val = cvScalar(x, y, z);
-					//cvSet2D(*cartesianImage, row, col, Val);
+					f_ptr_dst[colTimes3] = x;
+					f_ptr_dst[colTimes3 + 1] = y;
+					f_ptr_dst[colTimes3 + 2] = zCalibrated;
 				}
 			}
 			cvReleaseImage(&coordinateImage);
@@ -700,17 +624,16 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 			IplImage* coordinateImage = (IplImage*) cvLoad(m_CoordinateImageFileNames[m_ImageCounter].c_str(), 0);
 			for(unsigned int row=0; row<(unsigned int)m_ImageHeight; row++)
 			{
+				f_ptr = (float*) (coordinateImage->imageData + row*coordinateImage->widthStep);
+				f_ptr_dst = (float*) (cartesianImageData + row*widthStepCartesianImage);
+
 				for (unsigned int col=0; col<(unsigned int)m_ImageWidth; col++)
 				{
-					GetCalibratedZNative(col, row, coordinateImage, zCalibrated);
-					GetCalibratedXYNative(col, row, coordinateImage, x, y);
+					int colTimes3 = 3*col;
 
-					//CvScalar Val = cvScalar(x, y, z);
-					//cvSet2D(*cartesianImage, row, col, Val);
-					ptr = &((float*) (cartesianImageData + row*widthStepCartesianImage))[col*3];
-					ptr[0] = x;
-					ptr[1] = y;
-					ptr[2] = zCalibrated;
+					f_ptr_dst[colTimes3] =f_ptr[colTimes3+0];;
+					f_ptr_dst[colTimes3 + 1] = f_ptr[colTimes3+1];
+					f_ptr_dst[colTimes3 + 2] = f_ptr[colTimes3+2];
 				}
 			}
 			cvReleaseImage(&coordinateImage);
@@ -730,7 +653,7 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 		(m_RangeImageFileNames.size() != 0 && m_ImageCounter >= m_RangeImageFileNames.size()) ||
 		(m_CoordinateImageFileNames.size() != 0 && m_ImageCounter >= m_CoordinateImageFileNames.size()))
 	{
-		/// Reset image counter
+		// Reset image counter
 		m_ImageCounter = 0;
 	}
 
@@ -749,10 +672,10 @@ int VirtualRangeCam::GetNumberOfImages()
 
 	int min=std::numeric_limits<int>::max();
 
-	if (m_IntensityImageFileNames.size() != 0) min = std::min((float)min, (float)m_IntensityImageFileNames.size());
-	if (m_AmplitudeImageFileNames.size() != 0) min = std::min((float)min, (float)m_AmplitudeImageFileNames.size());
-	if (m_RangeImageFileNames.size() != 0) min = std::min((float)min, (float)m_RangeImageFileNames.size());
-	if (m_CoordinateImageFileNames.size() != 0) min = std::min((float)min, (float)m_CoordinateImageFileNames.size());
+	if (m_IntensityImageFileNames.size() != 0) min = (int)std::min((float)min, (float)m_IntensityImageFileNames.size());
+	if (m_AmplitudeImageFileNames.size() != 0) min = (int)std::min((float)min, (float)m_AmplitudeImageFileNames.size());
+	if (m_RangeImageFileNames.size() != 0) min = (int)std::min((float)min, (float)m_RangeImageFileNames.size());
+	if (m_CoordinateImageFileNames.size() != 0) min = (int)std::min((float)min, (float)m_CoordinateImageFileNames.size());
 
 	return min;
 }
@@ -769,12 +692,12 @@ unsigned long VirtualRangeCam::SaveParameters(const char* filename)
 }
 
 
-/// Assert, that <code>m_CoeffsA.size()</code> and <code>m_CoeffsB.size()</code> is initialized
-/// Before calling <code>GetCalibratedZMatlab</code>
+// Assert, that <code>m_CoeffsA.size()</code> and <code>m_CoeffsB.size()</code> is initialized
+// Before calling <code>GetCalibratedZMatlab</code>
 unsigned long VirtualRangeCam::GetCalibratedZMatlab(int u, int v, float zRaw, float& zCalibrated)
 {
-	double c[7] = {m_CoeffsA0[v][u], m_CoeffsA1[v][u], m_CoeffsA2[v][u],
-		m_CoeffsA3[v][u], m_CoeffsA4[v][u], m_CoeffsA5[v][u], m_CoeffsA6[v][u]};
+	double c[7] = {m_CoeffsA0.at<double>(v,u), m_CoeffsA1.at<double>(v,u), m_CoeffsA2.at<double>(v,u), 
+		m_CoeffsA3.at<double>(v,u), m_CoeffsA4.at<double>(v,u), m_CoeffsA5.at<double>(v,u), m_CoeffsA6.at<double>(v,u)};
 	double y = 0;
 
 	ipa_Utils::EvaluatePolynomial((double) zRaw, 6, &c[0], &y);
@@ -783,38 +706,21 @@ unsigned long VirtualRangeCam::GetCalibratedZMatlab(int u, int v, float zRaw, fl
 	return RET_OK;
 }
 
-/// Return value is in m
-unsigned long VirtualRangeCam::GetCalibratedZNative(int u, int v, IplImage* coordinateImage, float& zCalibrated)
-{
-	float* f_coord_ptr = &((float*) (coordinateImage->imageData + v*coordinateImage->widthStep))[u*3+0];
-	zCalibrated = f_coord_ptr[2];
-	return RET_OK;
-}
-
-
-unsigned long VirtualRangeCam::GetCalibratedXYNative(int u, int v, IplImage* coordinateImage, float& x, float& y)
-{
-	float* f_coord_ptr = &((float*) (coordinateImage->imageData + v*coordinateImage->widthStep))[u*3+0];
-	x = f_coord_ptr[0];
-	y = f_coord_ptr[1];
-
-	return RET_OK;
-}
-
 unsigned long VirtualRangeCam::GetCalibratedXYMatlab(int u, int v, float z, float& x, float& y)
 {
-	/// Conversion form m to mm
+	// Conversion form m to mm
 	z *= 1000;
 
-	/// Use intrinsic camera parameters
+	// Use intrinsic camera parameters
 	double fx, fy, cx, cy;
-	fx = cvmGet(m_intrinsicMatrix,0,0);
-	fy = cvmGet(m_intrinsicMatrix,1,1);
 
-	cx = cvmGet(m_intrinsicMatrix,0,2);
-	cy = cvmGet(m_intrinsicMatrix,1,2);
+	fx = m_intrinsicMatrix.at<double>(0, 0);
+	fy = m_intrinsicMatrix.at<double>(1, 1);
 
-	/// Fundamental equation: u = (fx*x)/z + cx
+	cx = m_intrinsicMatrix.at<double>(0, 2);
+	cy = m_intrinsicMatrix.at<double>(1, 2);
+
+	// Fundamental equation: u = (fx*x)/z + cx
 	if (fx == 0)
 	{
 		std::cerr << "VirtualRangeCam::GetCalibratedXYMatlab:" << std::endl;
@@ -823,7 +729,7 @@ unsigned long VirtualRangeCam::GetCalibratedXYMatlab(int u, int v, float z, floa
 	}
 	x = (float) (z*(u-cx)/fx) ;
 
-	/// Fundamental equation: v = (fy*y)/z + cy
+	// Fundamental equation: v = (fy*y)/z + cy
 	if (fy == 0)
 	{
 		std::cerr << "VirtualRangeCam::GetCalibratedXYMatlab:" << std::endl;
@@ -832,7 +738,7 @@ unsigned long VirtualRangeCam::GetCalibratedXYMatlab(int u, int v, float z, floa
 	}
 	y = (float) (z*(v-cy)/fy);
 
-	/// Conversion from mm to m
+	// Conversion from mm to m
 	x /= 1000;
 	y /= 1000;
 
@@ -844,18 +750,18 @@ unsigned long VirtualRangeCam::GetCalibratedUV(double x, double y, double z, dou
 	if(m_CalibrationMethod==MATLAB || m_CalibrationMethod==MATLAB_NO_Z)
 	{
 		double fx, fy, cx, cy;
-		fx = cvmGet(m_intrinsicMatrix,0,0);
-		fy = cvmGet(m_intrinsicMatrix,1,1);
+		fx = m_intrinsicMatrix.at<double>(0, 0);
+		fy = m_intrinsicMatrix.at<double>(1, 1);
 
-		cx = cvmGet(m_intrinsicMatrix,0,2);
-		cy = cvmGet(m_intrinsicMatrix,1,2);
+		cx = m_intrinsicMatrix.at<double>(0, 2);
+		cy = m_intrinsicMatrix.at<double>(1, 2);
 
-		/// Conversion from m to mm
+		// Conversion from m to mm
 		x *= 1000;
 		y *= 1000;
 		z *= 1000;
 
-		/// Fundamental equation: u = (fx*x)/z + cx
+		// Fundamental equation: u = (fx*x)/z + cx
 		if (z == 0)
 		{
 			std::cerr << "ERROR - VirtualRangeCam::GetCalibratedUV:" << std::endl;
@@ -874,7 +780,7 @@ unsigned long VirtualRangeCam::GetCalibratedUV(double x, double y, double z, dou
 		return RET_FAILED;
 	}
 
-	/// Maybe skip this part... JBK skipped this - the calling function has to check!!
+	// Maybe skip this part... JBK skipped this - the calling function has to check!!
 
 	if(u<0) u=0;
 	if(u>=m_ImageWidth) u=m_ImageWidth-1;
@@ -886,7 +792,7 @@ unsigned long VirtualRangeCam::GetCalibratedUV(double x, double y, double z, dou
 
 unsigned long VirtualRangeCam::LoadParameters(const char* filename, int cameraIndex)
 {
-	/// Load SwissRanger parameters.
+	// Load SwissRanger parameters.
 	boost::shared_ptr<TiXmlDocument> p_configXmlDocument (new TiXmlDocument( filename ));
 
 	if (!p_configXmlDocument->LoadFile())
