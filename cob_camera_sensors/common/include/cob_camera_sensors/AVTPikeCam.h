@@ -57,38 +57,35 @@
 /// @date Novemeber, 2008
 
 
-#ifndef __AVT_PIKE_CAM_H__
-#define __AVT_PIKE_CAM_H__
+#ifndef __IPA_AVTPIKECAM_H__
+#define __IPA_AVTPIKECAM_H__
 
 #ifdef __COB_ROS__
-#include "cob_camera_sensors/AbstractColorCamera.h"
+	#include "cob_camera_sensors/AbstractColorCamera.h"
 #else
-#include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/AbstractColorCamera.h"
+	#include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/AbstractColorCamera.h"
 #endif
 
-#include <vector>
-#include <iostream>
 #include <cstdlib>
-using namespace std;
 
-#ifndef __LINUX__
-#include <fgcamera.h>
-#ifdef __MINGW__
-typedef unsigned char UINT8;
-#endif
+#ifdef _WIN32
+	#include <fgcamera.h>
+	#ifdef __MINGW__
+	typedef unsigned char UINT8;
+	#endif
 #endif
 
 #define UINT8P_CAST(x) reinterpret_cast<UINT8*>(x)
 
 #ifdef __LINUX__
-#include <dc1394/dc1394.h>
-typedef struct
-{
-  unsigned long Low;
-  unsigned long High;
-}UINT32HL;
-#define UINT32 unsigned long
-#define _UINT32HL
+	#include <dc1394/dc1394.h>
+	typedef struct
+	{
+	  unsigned long Low;
+	  unsigned long High;
+	}UINT32HL;
+	#define UINT32 unsigned long
+	#define _UINT32HL
 #endif
 
 #ifdef SWIG
@@ -100,14 +97,16 @@ typedef struct
 %}
 #endif
 
+using namespace std;
+
 namespace ipa_CameraSensors {
 
 /// @ingroup CameraSensorDriver
 /// Interface developed for AVT PIKE 145C camera.
 /// Interface should also fit to other IEEE 1394 cameras.
-class AVTPikeCam : public AbstractColorCamera
+class __DLL_LIBCAMERASENSORS__ AVTPikeCam : public AbstractColorCamera
 {
-	/// @class Deleter
+	/// @class AVTPikeCamDeleter
 	/// We create a static object of deleter in order to
 	/// executes in its destructor operation that have to be executed
 	/// only once for AVTPike cameras and only when the last object
@@ -143,7 +142,7 @@ class AVTPikeCam : public AbstractColorCamera
 		dc1394color_coding_t m_ColorCoding;	///< Necessary for Format 7 video mode. Here the color coding is not specified through the video mode   
 #endif
 
-#ifndef __LINUX__
+#ifdef _WIN32
 		CFGCamera m_cam;			///< The camera object for AVT FireGrab (part of AVT FirePackage)		
 		FGNODEINFO m_nodeInfo[5];	///< Array holds information about all detected firewire nodes
 		UINT32 m_NodeCnt;			///< Number of detected IEEE1394 nodes
@@ -178,8 +177,8 @@ class AVTPikeCam : public AbstractColorCamera
 		unsigned long Close();
 
 		unsigned long GetColorImage(char* colorImageData, bool getLatestFrame);
-		unsigned long GetColorImage(IplImage * Img, bool getLatestFrame);
-		unsigned long GetColorImage2(IplImage ** Img, bool getLatestFrame);
+		unsigned long GetColorImage(cv::Mat* colorImage, bool getLatestFrame);
+
 		unsigned long SaveParameters(const char* filename);		//speichert die Parameter in das File
 
 		/// Sets the camera properties.
@@ -212,10 +211,12 @@ class AVTPikeCam : public AbstractColorCamera
 		
 };
 
-
+/// Creates, intializes and returns a smart pointer object for the camera.
+/// @return Smart pointer, refering to the generated object
+__DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr CreateColorCamera_AVTPikeCam();
 
 } // end namespace ipa_CameraSensors
 
-#endif //__AVT_PIKE_CAM_H__
+#endif //__IPA_AVTPIKECAM_H__
 
 
