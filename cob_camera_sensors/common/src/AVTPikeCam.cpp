@@ -61,15 +61,12 @@ using namespace std;
 using namespace ipa_CameraSensors;
 
 bool AVTPikeCam::m_OpenExecuted = false;
+AVTPikeCam::AVTPikeCamDeleter AVTPikeCam::m_Deleter;
 
 __DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr ipa_CameraSensors::CreateColorCamera_AVTPikeCam()
 {
 	return AbstractColorCameraPtr(new AVTPikeCam());
 }
-
-bool AVTPikeCam::m_OpenExecuted = false;
-AVTPikeCam::AVTPikeCamDeleter AVTPikeCam::m_Deleter;
-
 
 AVTPikeCam::AVTPikeCam()
 {
