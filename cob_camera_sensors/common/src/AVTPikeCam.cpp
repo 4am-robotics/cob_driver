@@ -67,6 +67,10 @@ __DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr ipa_CameraSensors::CreateColorCa
 	return AbstractColorCameraPtr(new AVTPikeCam());
 }
 
+bool AVTPikeCam::m_OpenExecuted = false;
+AVTPikeCam::AVTPikeCamDeleter AVTPikeCam::m_Deleter;
+
+
 AVTPikeCam::AVTPikeCam()
 {
 	m_initialized = false;
@@ -403,7 +407,6 @@ unsigned long AVTPikeCam::Close()
 	{
 		std::cerr << "ERROR - AVTPikeCam::Close:" << std::endl;
 		std::cerr << "\t ... Could not stop camera device ( error " << err << " )" << std::endl;
-		return RET_FAILED;
 	}
 
 	// Close capture logic and frees image buffers.
@@ -412,8 +415,7 @@ unsigned long AVTPikeCam::Close()
 	if(err!=FCE_NOERROR)
 	{
 		std::cerr << "ERROR - AVTPikeCam::Close:" << std::endl;
-		std::cerr << "\t ...  Could close capture logic. ( error " << err << " )" << std::endl;		return RET_FAILED;
-		return RET_FAILED;
+		std::cerr << "\t ...  Could not close capture logic. ( error " << err << " )" << std::endl;		return RET_FAILED;
 	}
 
 	// Disonnect object from external IEEE1394 node
@@ -421,8 +423,7 @@ unsigned long AVTPikeCam::Close()
 	if(err!=FCE_NOERROR)
 	{
 		std::cerr << "ERROR - AVTPikeCam::Close:" << std::endl;
-		std::cerr << "\t ...  Could not close capture logic. ( error " << err << " )" << std::endl;		return RET_FAILED;
-		return RET_FAILED;
+		std::cerr << "\t ...  Could not disconnect camera. ( error " << err << " )" << std::endl;		return RET_FAILED;
 	}
 
 	

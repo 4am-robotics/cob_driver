@@ -150,7 +150,7 @@ int main(int argc, char** argv)
 //#### function implementations ####
 
 int NodeClass::init() {
-	n.param<std::string>("cob_relayboard_node/ComPort", sComPort, "/dev/ttyUSB2");
+	n.param<std::string>("relayboard/ComPort", sComPort, "/dev/ttyUSB2");
     
 	m_SerRelayBoard = new SerRelayBoard(sComPort);
 

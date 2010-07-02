@@ -1,6 +1,6 @@
 #ifndef __ELMO_CTRL_H__
 #define __ELMO_CTRL_H__
-
+#define NTCAN_CLEAN_NAMESPACE
 #include <cob_canopen_motor/CanDriveItf.h>
 #include <cob_canopen_motor/CanDriveHarmonica.h>
 #include <cob_generic_can/CanItf.h>

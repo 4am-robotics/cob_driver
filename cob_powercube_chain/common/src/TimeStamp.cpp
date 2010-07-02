@@ -52,10 +52,10 @@
  ****************************************************************/
 
 #ifdef __LINUX__
-#include <powercube_chain/TimeStamp.h>
+#include <cob_powercube_chain/TimeStamp.h>
 #else
 #include <windows.h>
-#include <powercube_chain/TimeStamp.h>
+#include <cob_powercube_chain/TimeStamp.h>
 
 namespace RTB {
 #endif

@@ -127,7 +127,8 @@ class __DLL_LIBCAMERASENSORS__ AVTPikeCam : public AbstractColorCamera
 		bool m_operationMode_B; ///< FireWire A (400Mbit/s) or FireWire B (800Mbit/s).
 		UINT32HL m_GUID;			///< GUID (worldwide unique identifier) of the IEEE1395 camera
 		static bool m_OpenExecuted; ///< Trigger takes care, that AVT library is opend only once
-
+		static AVTPikeCamDeleter m_Deleter; ///< Cleans up stuff that has to done only once independent
+											///< of the number of cameras from this type
 #ifdef __LINUX__
 		dc1394video_frame_t* m_Frame;
 		dc1394_t* m_IEEE1394Info;	///< Hold information about IEEE1394 nodes, connected cameras and camera properties

@@ -10,14 +10,14 @@
  * Project name: care-o-bot
  * ROS stack name: cob_driver
  * ROS package name: cob_powercube_chain
- * Description: This class simulates the PowerCubes in a very rough and simple way.
+ * Description: An interface class to a virtual manipulator.
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
  * Author: Felix Geibel, email:Felix.Geibel@gmx.de
  * Supervised by: Alexander Bubeck, email:alexander.bubeck@ipa.fhg.de
  *
- * Date of creation: Aug 2007
+ * Date of creation: Oct 2007
  * ToDo:
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -51,75 +51,45 @@
  *
  ****************************************************************/
 
-#ifndef __POWER_CUBE_SIM_H_
-#define __POWER_CUBE_SIM_H_
+#ifndef _SIMULATED_ARM_H_
+#define _SIMULATED_ARM_H_
 
-#include <powercube_chain/PowerCubeCtrl.h>
-#include <powercube_chain/Joint.h>
-#include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cob_powercube_chain/PowerCubeCtrl.h>
 #include <vector>
+#include <string>
 
-using namespace std;
-#include <pthread.h>
+class simulatedMotor;
 
-
-//-------------------------------------------------------------------------
-//                              Defines
-// -------------------------------------------------------------------------
-
-#define MAX_VEL 0.5
-#define MAX_ACC 0.5
-#define K13 0.5
-#define K14 0.5
-#define K15 3
-#define DAEMPFUNG 0.5
-
-//#define __LINUX__
-
-#ifdef SWIG
-%module PowerCubeSim
-%include "Source/Manipulation/Interfaces/armInterface.h"
-%{
-	#include "PowerCubeSim.h"
-%}
-#endif 
-
-class PowerCubeSim;
-
-/* Thread arguments for simulation threads*/
-typedef struct
-{
-	PowerCubeSim * cubeSimPtr;
-	int cubeID;
-	double targetAngle;
-} SimThreadArgs;
-
-class PowerCubeSim
+class simulatedArm
 {
 	public:
 		
-		PowerCubeSim();
-		~PowerCubeSim();
+		simulatedArm();
+		virtual ~simulatedArm();
 		
-
 		bool Init(PowerCubeCtrlParams * params);
 
 		bool isInitialized() const { return m_Initialized; }
 
 		std::string getErrorMessage() const { return m_ErrorMessage; }
 
-		int Close(){return true;}
-		// Arm-Ansteuerung:
-		
+		bool Close() { m_Initialized = false; return true; }
 
+		/////////////////////////////////
+		// Funktionen Arm-Ansteuerung: //
+		/////////////////////////////////
+		
 		/// @brief same as MoveJointSpace, but final angles should by reached simultaniously!
 		/// Returns the time that the movement will take
 		bool MoveJointSpaceSync(const std::vector<double>& Angle);
-				
+		
+		/// @brief moves all cubes to the given position
+		bool MovePos(const std::vector<double>&);
 		/// @brief Moves all cubes by the given velocities
-		bool MoveVel(const std::vector<double>& vel);
+		bool MoveVel(const std::vector<double>&);
+		
+		/// @brief current movement currently not supported in simulation
+		//  bool MoveCur(const std::vector<double>&);
 		
 		/// @brief Stops the Manipulator immediately
 		bool Stop();
@@ -131,9 +101,8 @@ class PowerCubeSim
 		/// @brief Sets the maximum angular velocity (rad/s) for the Joints, use with care!
 		/// A Value of 0.5 is already pretty fast, you probably don't want anything more than one...
 		bool setMaxVelocity(double radpersec);
-		
 		bool setMaxVelocity(const std::vector<double>& radpersec);
-
+		
 		/// @brief Sets the maximum angular acceleration (rad/s^2) for the Joints, use with care!
 		/// A Value of 0.5 is already pretty fast, you probably don't want anything more than one...
 		bool setMaxAcceleration(double radPerSecSquared);
@@ -148,16 +117,11 @@ class PowerCubeSim
 		bool getConfig(std::vector<double>& result);
 		
 		/// @brief Returns the current Angular velocities (Rad/s)
-		bool getJointVelocities(std::vector<double>& result);
-
-		void setCurrentAngles(std::vector<double> Angles);
-
-		void setCurrentJointVelocities(std::vector<double> Angles);
+		bool getJointVelocities(std::vector<double> & result);
 		
 		/// @brief Returns true if any of the Joints are still moving
 		/// Should also return true if Joints are accelerating or decelerating
 		bool statusMoving();
-		bool statusMoving(int cubeNo);
 		
 		/// @brief Returns true if any of the Joints are decelerating
 		bool statusDec();
@@ -165,80 +129,26 @@ class PowerCubeSim
 		/// @brief Returs true if any of the Joints are accelerating
 		bool statusAcc();
 
-		/// @brief Looks for connected Modules and returns their Ids in a vector
-		//vector<int> getModuleMap(int dev);
-		
 		/// @brief Waits until all Modules are homed, writes status comments to out.
-		//void HomingDone();
-		
-                typedef enum
-                {
-                        PC_CTRL_OK = 0,
-                        PC_CTRL_NOT_REFERENCED = -1,
-                        PC_CTRL_ERR = -2,
-			PC_CTRL_POW_VOLT_ERR = -3
-                } PC_CTRL_STATE;
-                //int getStatus(){return PC_CTRL_OK;}
-		double maxVel;
-
-		void setStatusMoving (int cubeNo, bool moving);
-		bool getStatusMoving (int cubeNo) const { return m_MovementInProgress[cubeNo]; }
-
-		vector<int>  getModuleMap() const {return m_IdModules;}
-	        std::vector<double>  getCurrentAngularMaxVel() {return m_CurrentAngularMaxVel;}
-	        std::vector<double>  getCurrentAngularMaxAccel() {return m_CurrentAngularMaxAccel;}
-	    void millisleep(unsigned int milliseconds) const;
-	protected:
+		// bool doHoming();
+		// bool HomingDone();
 		
 		/// @brief Tells the Modules not to start moving until PCubel_startMotionAll is called
-		//void waitForSync();
+		bool waitForSync() { return true; } // makes no difference in simulation
 		/// @brief Execute move commands immediately from now on:
-		//void dontWaitForSync();
-		/// @brief Returns the time for a ramp-move about dtheta with v, a would take, assuming the module is currently moving at vnowClose 
-		double timeRampMove(double dtheta, double vnow, double v, double a);
-
-		int startSimulatedMovement(std::vector<double> target);
-
-
-		//void* SimThreadRoutine (void*); 	
-	
-	
-		#ifdef COB3
-		Manipulator * m_Obj_Manipulator;
-#endif
+		bool dontWaitForSync() { return true; } // makes no difference in simulation
+		
+	protected:
 		
 		int m_DOF;
-		int m_Initialized;
-		int m_NumOfModules;
-		int m_Dev;
-		vector<int> m_IdModules;
+		bool m_Initialized;
+		std::string m_ErrorMessage;
+		
+		std::vector<simulatedMotor> m_motors;
 		
 		std::vector<double> m_maxVel;
 		std::vector<double> m_maxAcc;
 
-		Jointd m_AngleOffsets;
-
-		std::vector<bool> m_MovementInProgress;
-
-		std::vector<double> m_CurrentAngles;
-		std::vector<double> m_CurrentAngularVel;
-		std::vector<double> m_CurrentAngularMaxVel;
-		std::vector<double> m_CurrentAngularMaxAccel;
-
-
-
-		//vector<unsigned long> startConf;
-		
-		std::string m_ErrorMessage;
-
-		float maxAcc;
-
-		pthread_mutex_t  m_Angles_Mutex;
-		pthread_mutex_t  m_AngularVel_Mutex;
-		pthread_mutex_t  m_Movement_Mutex;
-		pthread_t  * m_SimThreadID;
-		SimThreadArgs ** m_SimThreadArgs;
-		
 };
 
 

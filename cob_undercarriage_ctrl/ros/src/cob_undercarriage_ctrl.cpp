@@ -132,7 +132,7 @@ class NodeClass
 			topic_pub_odometry_ = n.advertise<nav_msgs::Odometry>("Odometry", 50);
 
             // subscribed topics
-			topic_sub_CMD_pltf_twist_ = n.subscribe("cmd_vel", 1, &NodeClass::topicCallbackTwistCmd, this);
+			topic_sub_CMD_pltf_twist_ = n.subscribe("command", 1, &NodeClass::topicCallbackTwistCmd, this);
             topic_sub_EM_stop_state_ = n.subscribe("EMStopState", 1, &NodeClass::topicCallbackEMStop, this);
             topic_sub_drive_diagnostic_ = n.subscribe("Diagnostic", 1, &NodeClass::topicCallbackDiagnostic, this);
 			//<diagnostic_msgs::DiagnosticStatus>("Diagnostic", 1);
@@ -442,13 +442,24 @@ void NodeClass::CalcCtrlStep()
 	int j, k;
 	
 	// if controller is initialized and underlying hardware is operating normal
-	if (is_initialized_bool_ && (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK))
+	if (is_initialized_bool_) //&& (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK))
 	{
+		// as soon as (but only as soon as) platform drive chain is initialized start to send velocity commands
+		// Note: topicCallbackDiagnostic checks whether drives are operating nominal.
+		//       -> if warning or errors are issued target velocity is set to zero
+
 		// perform one control step,
 		// get the resulting cmd's for the wheel velocities and -angles from the controller class
 		// and output the achievable pltf velocity-cmds (if velocity limits where exceeded)
 		ucar_ctrl_.GetNewCtrlStateSteerDriveSetValues(drive_jointvel_cmds_rads,  steer_jointvel_cmds_rads, 									steer_jointang_cmds_rad, vx_cmd_ms, vy_cmd_ms, w_cmd_rads, dummy);
 		// ToDo: adapt interface of controller class --> remove last values (not used anymore)
+
+		// if drives not operating nominal -> force commands to zero
+		if(drive_chain_diagnostic_ != diagnostic_status_lookup_.OK)
+		{
+			steer_jointang_cmds_rad.assign(num_joints, 0.0);
+			steer_jointvel_cmds_rads.assign(num_joints, 0.0);
+		}
 
 		// convert variables to SI-Units
 		vx_cmd_ms = vx_cmd_ms/1000.0;
@@ -550,7 +561,8 @@ void NodeClass::UpdateOdometry()
 	ros::Time current_time;
 
 	// if drive chain already initialized process joint data
-	if (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK)
+	//if (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK)
+	if (is_initialized_bool_)
 	{
 		// Get resulting Pltf Velocities from Ctrl-Class (result of forward kinematics)
 		// !Careful! Controller internally calculates with mm instead of m
