@@ -73,7 +73,7 @@
 #include <cob_camera_sensors/AbstractRangeImagingSensor.h>
 #include <cob_vision_utils/CameraSensorToolbox.h>
 #include <cob_vision_utils/GlobalDefines.h>
-#include <cob_vision_utils/OpenCVUtils.h>
+#include <cob_vision_utils/VisionUtils.h>
 
 #include <boost/thread/mutex.hpp>
 
@@ -99,7 +99,7 @@ private:
 	ros::ServiceServer camera_info_service_;		///< Service to set/modify camera parameters
 	ros::ServiceServer image_service_;
 
-	AbstractRangeImagingSensor* tof_camera_;     ///< Time-of-flight camera instance
+	AbstractRangeImagingSensorPtr tof_camera_;     ///< Time-of-flight camera instance
 	
 	std::string config_directory_; ///< Directory of related IPA configuration file
 	int camera_index_;	///< Camera index of the color camera for IPA configuration file
@@ -111,8 +111,8 @@ private:
 	int upper_amplitude_threshold_;
 	double pi_half_fraction_;
 
-	IplImage* xyz_image_32F3_;	/// OpenCV image holding the point cloud
-	IplImage* grey_image_32F1_;	/// OpenCV image holding the amplitude values
+	cv::Mat xyz_image_32F3_;	/// OpenCV image holding the point cloud
+	cv::Mat grey_image_32F1_;	/// OpenCV image holding the amplitude values
 
 	CobTofCameraNode::t_Mode ros_node_mode_;	///< Specifies if node is started as topic or service
 	boost::mutex service_mutex_;
@@ -122,9 +122,9 @@ public:
     CobTofCameraNode(const ros::NodeHandle& node_handle)
     : node_handle_(node_handle),
 	  image_transport_(node_handle),
-          tof_camera_(0),
-          xyz_image_32F3_(0),
-          grey_image_32F1_(0)
+          tof_camera_(AbstractRangeImagingSensorPtr()),
+          xyz_image_32F3_(cv::Mat()),
+          grey_image_32F1_(cv::Mat())
     {
             /// Void
     }
@@ -133,10 +133,6 @@ public:
 	~CobTofCameraNode()
     {
 	tof_camera_->Close();
-	ipa_CameraSensors::ReleaseRangeImagingSensor(tof_camera_);
-
-	if (xyz_image_32F3_) cvReleaseImage(&xyz_image_32F3_);
-	if (grey_image_32F1_) cvReleaseImage(&grey_image_32F1_);
     }
 
     /// Initializes and opens the time-of-flight camera sensor.
@@ -158,7 +154,7 @@ public:
 			ss << camera_index_;
 			ss << " failed";
 			ROS_ERROR("[tof_camera] %s", ss.str().c_str());
-			tof_camera_ = 0;
+			tof_camera_ = AbstractRangeImagingSensorPtr();
 			return false;
 		}
 	
@@ -168,7 +164,7 @@ public:
 			ss << "Could not open tof camera ";
 			ss << camera_index_;
 			ROS_ERROR("[tof_camera] %s", ss.str().c_str());
-			tof_camera_ = 0;
+			tof_camera_ = AbstractRangeImagingSensorPtr();
 			return false;
 		}
 
@@ -178,14 +174,16 @@ public:
 		tof_camera_->GetProperty(&cameraProperty);
 		int range_sensor_width = cameraProperty.cameraResolution.xResolution;
 		int range_sensor_height = cameraProperty.cameraResolution.yResolution;
-		CvSize range_image_size = cvSize(range_sensor_width, range_sensor_height);
+		cv::Size range_image_size(range_sensor_width, range_sensor_height);
 
 		/// Setup camera toolbox
-		ipa_CameraSensors::CameraSensorToolbox* tof_sensor_toolbox = ipa_CameraSensors::CreateCameraSensorToolbox();
+		ipa_CameraSensors::CameraSensorToolboxPtr tof_sensor_toolbox = ipa_CameraSensors::CreateCameraSensorToolbox();
 		tof_sensor_toolbox->Init(config_directory_, tof_camera_->GetCameraType(), camera_index_, range_image_size);
-		tof_camera_->SetIntrinsics(tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_),
-			tof_sensor_toolbox->GetDistortionMapX(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_),
-			tof_sensor_toolbox->GetDistortionMapY(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_));
+
+		cv::Mat intrinsic_mat = tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_);
+		cv::Mat distortion_map_X = tof_sensor_toolbox->GetDistortionMapX(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_);
+		cv::Mat distortion_map_Y = tof_sensor_toolbox->GetDistortionMapY(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_);
+		tof_camera_->SetIntrinsics(intrinsic_mat, distortion_map_X, distortion_map_Y);
 
 	        /// Advertise service for other nodes to set intrinsic calibration parameters
 		camera_info_service_ = node_handle_.advertiseService("set_camera_info", &CobTofCameraNode::setCameraInfo, this);
@@ -193,30 +191,27 @@ public:
 		xyz_image_publisher_ = image_transport_.advertiseCamera("image_xyz", 1);
 		grey_image_publisher_ = image_transport_.advertiseCamera("image_grey", 1);
 
-		CvMat* d = tof_sensor_toolbox->GetDistortionParameters(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_);
-		camera_info_msg_.D[0] = cvmGet(d, 0, 0);
-		camera_info_msg_.D[1] = cvmGet(d, 0, 1);
-		camera_info_msg_.D[2] = cvmGet(d, 0, 2);
-		camera_info_msg_.D[3] = cvmGet(d, 0, 3);
+		cv::Mat d = tof_sensor_toolbox->GetDistortionParameters(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_);
+		camera_info_msg_.D[0] = d.at<double>(0, 0);
+		camera_info_msg_.D[1] = d.at<double>(0, 1);
+		camera_info_msg_.D[2] = d.at<double>(0, 2);
+		camera_info_msg_.D[3] = d.at<double>(0, 3);
 		camera_info_msg_.D[4] = 0;
-
-		CvMat* k = tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_);
-		camera_info_msg_.K[0] = cvmGet(k, 0, 0);
-		camera_info_msg_.K[1] = cvmGet(k, 0, 1);
-		camera_info_msg_.K[2] = cvmGet(k, 0, 2);
-		camera_info_msg_.K[3] = cvmGet(k, 1, 0);
-		camera_info_msg_.K[4] = cvmGet(k, 1, 1);
-		camera_info_msg_.K[5] = cvmGet(k, 1, 2);
-		camera_info_msg_.K[6] = cvmGet(k, 2, 0);
-		camera_info_msg_.K[7] = cvmGet(k, 2, 1);
-		camera_info_msg_.K[8] = cvmGet(k, 2, 2);
+	
+		cv::Mat k = tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_);
+		camera_info_msg_.K[0] = k.at<double>(0, 0);
+		camera_info_msg_.K[1] = k.at<double>(0, 1);
+		camera_info_msg_.K[2] = k.at<double>(0, 2);
+		camera_info_msg_.K[3] = k.at<double>(1, 0);
+		camera_info_msg_.K[4] = k.at<double>(1, 1);
+		camera_info_msg_.K[5] = k.at<double>(1, 2);
+		camera_info_msg_.K[6] = k.at<double>(2, 0);
+		camera_info_msg_.K[7] = k.at<double>(2, 1);
+		camera_info_msg_.K[8] = k.at<double>(2, 2);
 
 		camera_info_msg_.width = range_sensor_width;		
 		camera_info_msg_.height = range_sensor_height;
 
-
-		/// Release memory
-		if (tof_sensor_toolbox) ipa_CameraSensors::ReleaseCameraSensorToolbox(tof_sensor_toolbox);
 		return true;
 	}
 
@@ -244,32 +239,22 @@ public:
 		sensor_msgs::Image::Ptr grey_image_msg_ptr;
 		sensor_msgs::CameraInfo tof_image_info;
 	
-		/// Release previously acquired IplImage
-		if (xyz_image_32F3_)
-		{
-				cvReleaseImage(&xyz_image_32F3_);
-				xyz_image_32F3_ = 0;
-		}
-
-		if (grey_image_32F1_)
-		{
-				cvReleaseImage(&grey_image_32F1_);
-				grey_image_32F1_ = 0;
-		}
-
-		if(tof_camera_->AcquireImages2(0, &grey_image_32F1_, &xyz_image_32F3_, false, false, ipa_CameraSensors::INTENSITY) & ipa_Utils::RET_FAILED)
+		if(tof_camera_->AcquireImages(0, &grey_image_32F1_, &xyz_image_32F3_, false, false, ipa_CameraSensors::INTENSITY) & ipa_Utils::RET_FAILED)
 		{
 			ROS_ERROR("[tof_camera] Tof image acquisition failed");
 			return false;
 		}
 
 		/// Filter images by amplitude and remove tear-off edges
-		if(filter_tearoff_) ipa_Utils::FilterTearOffEdges(xyz_image_32F3_, 0, (float)pi_half_fraction_);
-		if(filter_amplitude_) ipa_Utils::FilterByAmplitude(xyz_image_32F3_, grey_image_32F1_, 0, 0, lower_amplitude_threshold_, upper_amplitude_threshold_);
+		if(filter_tearoff_ || filter_amplitude_)
+			ROS_ERROR("[tof_camera] FUNCTION UNCOMMENT BY JSF");
+//		if(filter_tearoff_) ipa_Utils::FilterTearOffEdges(xyz_image_32F3_, 0, (float)pi_half_fraction_);
+//		if(filter_amplitude_) ipa_Utils::FilterByAmplitude(xyz_image_32F3_, grey_image_32F1_, 0, 0, lower_amplitude_threshold_, upper_amplitude_threshold_);
 
 		try
 		{
-			xyz_image_msg_ptr = sensor_msgs::CvBridge::cvToImgMsg(xyz_image_32F3_, "passthrough");
+			IplImage img = xyz_image_32F3_;
+			xyz_image_msg_ptr = sensor_msgs::CvBridge::cvToImgMsg(&img, "passthrough");
 		}
 		catch (sensor_msgs::CvBridgeException error)
 		{
@@ -279,7 +264,8 @@ public:
 
 		try
 		{
-			grey_image_msg_ptr = sensor_msgs::CvBridge::cvToImgMsg(grey_image_32F1_, "passthrough");
+			IplImage img = grey_image_32F1_;
+			grey_image_msg_ptr = sensor_msgs::CvBridge::cvToImgMsg(&img, "passthrough");
 		}
 		catch (sensor_msgs::CvBridgeException error)
 		{
@@ -293,8 +279,8 @@ public:
 		grey_image_msg_ptr->header.stamp = now;
 
 		tof_image_info = camera_info_msg_;
-		tof_image_info.width = grey_image_32F1_->width;
-		tof_image_info.height = grey_image_32F1_->height;
+		tof_image_info.width = grey_image_32F1_.cols;
+		tof_image_info.height = grey_image_32F1_.rows;
 		tof_image_info.header.stamp = now;
 
 		/// publish message
@@ -311,8 +297,10 @@ public:
 		// Convert openCV IplImages to ROS messages
 		try
 		{
-			res.greyImage = *(sensor_msgs::CvBridge::cvToImgMsg(grey_image_32F1_, "passthrough"));
-			res.xyzImage = *(sensor_msgs::CvBridge::cvToImgMsg(xyz_image_32F3_, "passthrough"));
+			IplImage grey_img = grey_image_32F1_;
+			IplImage xyz_img = xyz_image_32F3_;
+			res.greyImage = *(sensor_msgs::CvBridge::cvToImgMsg(&grey_img, "passthrough"));
+			res.xyzImage = *(sensor_msgs::CvBridge::cvToImgMsg(&xyz_img, "passthrough"));
 		}
 		catch (sensor_msgs::CvBridgeException error)
 		{
