@@ -18,7 +18,7 @@
 
   <!-- As we deviate from the standard ROS Repository-Structure we have to tell ROS where to find header and lib -->
   <export>
-    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lSerialIO -lSerRelayBoard"/>
+    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lSerialIO -lcob_relayboard"/>
   </export>
 
 
