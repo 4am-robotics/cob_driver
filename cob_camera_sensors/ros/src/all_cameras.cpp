@@ -82,9 +82,9 @@ class CobAllCamerasNode
 private:
 	ros::NodeHandle node_handle_;
 
-	AbstractColorCamera* left_color_camera_;	///< Color camera instance
-	AbstractColorCamera* right_color_camera_;	///< Color camera instance
-	AbstractRangeImagingSensor* tof_camera_;	///< Time-of-flight camera instance
+	AbstractColorCameraPtr left_color_camera_;	///< Color camera instance
+	AbstractColorCameraPtr right_color_camera_;	///< Color camera instance
+	AbstractRangeImagingSensorPtr tof_camera_;	///< Time-of-flight camera instance
 	
 	std::string config_directory_;	///< Directory of the configuration files
 		
@@ -141,19 +141,16 @@ public:
 		{
 			ROS_INFO("[all_cameras] Shutting down left color camera (1)");
 			left_color_camera_->Close();
-			ipa_CameraSensors::ReleaseColorCamera(left_color_camera_);
 		}
 		if (right_color_camera_)
 		{
 			ROS_INFO("[all_cameras] Shutting down right color camera (0)");
 			right_color_camera_->Close();
-			ipa_CameraSensors::ReleaseColorCamera(right_color_camera_);
 		}
 		if (tof_camera_)
 		{
 			ROS_INFO("[all_cameras] Shutting down tof camera (0)");
 			tof_camera_->Close();
-			ipa_CameraSensors::ReleaseRangeImagingSensor(tof_camera_);
 		}
 		
 		if (left_color_image_8U3_) cvReleaseImage(&left_color_image_8U3_);
@@ -191,37 +188,32 @@ public:
 			left_color_camera_->GetProperty(&cameraProperty);
 			int color_sensor_width = cameraProperty.cameraResolution.xResolution;
 			int color_sensor_height = cameraProperty.cameraResolution.yResolution;
-			CvSize color_image_size = cvSize(color_sensor_width, color_sensor_height);
+			cv::Size color_image_size(color_sensor_width, color_sensor_height);
 			
 			/// Setup camera toolbox
-			ipa_CameraSensors::CameraSensorToolbox* color_sensor_toolbox = ipa_CameraSensors::CreateCameraSensorToolbox();
+			ipa_CameraSensors::CameraSensorToolboxPtr color_sensor_toolbox = ipa_CameraSensors::CreateCameraSensorToolbox();
 			color_sensor_toolbox->Init(config_directory_, left_color_camera_->GetCameraType(), camera_index, color_image_size);
 	
-			CvMat* d = color_sensor_toolbox->GetDistortionParameters(left_color_camera_intrinsic_type_, left_color_camera_intrinsic_id_);
-			left_color_camera_info_msg_.D[0] = cvmGet(d, 0, 0);
-			left_color_camera_info_msg_.D[1] = cvmGet(d, 0, 1);
-			left_color_camera_info_msg_.D[2] = cvmGet(d, 0, 2);
-			left_color_camera_info_msg_.D[3] = cvmGet(d, 0, 3);
+			cv::Mat d = color_sensor_toolbox->GetDistortionParameters(left_color_camera_intrinsic_type_, left_color_camera_intrinsic_id_);
+			left_color_camera_info_msg_.D[0] = d.at<double>(0, 0);
+			left_color_camera_info_msg_.D[1] = d.at<double>(0, 1);
+			left_color_camera_info_msg_.D[2] = d.at<double>(0, 2);
+			left_color_camera_info_msg_.D[3] = d.at<double>(0, 3);
 			left_color_camera_info_msg_.D[4] = 0;
-			cvReleaseMat(&d);	
 	
-			CvMat* k = color_sensor_toolbox->GetIntrinsicMatrix(left_color_camera_intrinsic_type_, left_color_camera_intrinsic_id_);
-			left_color_camera_info_msg_.K[0] = cvmGet(k, 0, 0);
-			left_color_camera_info_msg_.K[1] = cvmGet(k, 0, 1);
-			left_color_camera_info_msg_.K[2] = cvmGet(k, 0, 2);
-			left_color_camera_info_msg_.K[3] = cvmGet(k, 1, 0);
-			left_color_camera_info_msg_.K[4] = cvmGet(k, 1, 1);
-			left_color_camera_info_msg_.K[5] = cvmGet(k, 1, 2);
-			left_color_camera_info_msg_.K[6] = cvmGet(k, 2, 0);
-			left_color_camera_info_msg_.K[7] = cvmGet(k, 2, 1);
-			left_color_camera_info_msg_.K[8] = cvmGet(k, 2, 2);
-			cvReleaseMat(&k);
+			cv::Mat k = color_sensor_toolbox->GetIntrinsicMatrix(left_color_camera_intrinsic_type_, left_color_camera_intrinsic_id_);
+			left_color_camera_info_msg_.K[0] = k.at<double>(0, 0);
+			left_color_camera_info_msg_.K[1] = k.at<double>(0, 1);
+			left_color_camera_info_msg_.K[2] = k.at<double>(0, 2);
+			left_color_camera_info_msg_.K[3] = k.at<double>(1, 0);
+			left_color_camera_info_msg_.K[4] = k.at<double>(1, 1);
+			left_color_camera_info_msg_.K[5] = k.at<double>(1, 2);
+			left_color_camera_info_msg_.K[6] = k.at<double>(2, 0);
+			left_color_camera_info_msg_.K[7] = k.at<double>(2, 1);
+			left_color_camera_info_msg_.K[8] = k.at<double>(2, 2);
 	
 			left_color_camera_info_msg_.width = color_sensor_width;		
 			left_color_camera_info_msg_.height = color_sensor_height;		
-
-			/// Release memory
-			if (color_sensor_toolbox) ipa_CameraSensors::ReleaseCameraSensorToolbox(color_sensor_toolbox);
 		}
 
 		if (right_color_camera_ && (right_color_camera_->Init(config_directory_, 0) & ipa_CameraSensors::RET_FAILED))

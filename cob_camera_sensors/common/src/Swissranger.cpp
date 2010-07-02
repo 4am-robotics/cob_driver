@@ -69,10 +69,6 @@ Swissranger::Swissranger()
 	m_initialized = false;
 	m_open = false;
 
-	m_intrinsicMatrix = 0;
-	m_undistortMapX = 0;
-	m_undistortMapY = 0;
-
 	m_SRCam = 0;
 	m_DataBuffer = 0;
 	m_BufferSize = 1;

@@ -71,10 +71,6 @@ VirtualRangeCam::VirtualRangeCam()
 
 	m_BufferSize = 1;
 
-	m_intrinsicMatrix = 0;
-	m_undistortMapX = 0;
-	m_undistortMapY = 0;
-
 	m_ImageCounter = 0;
 }
 
@@ -265,7 +261,6 @@ unsigned long VirtualRangeCam::Open()
 
 	int amplitudeImageCounter = 0;
 	int intensityImageCounter = 0;
-	int rangeImageCounter = 0;
 	int coordinateImageCounter = 0;
 	// Extract all image filenames from the directory
 	if ( fs::exists( absoluteDirectoryName ) )
@@ -586,7 +581,6 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 		int widthStepCartesianImage = widthStepOneChannel*3;
 		float x = -1;
 		float y = -1;
-		float zRaw = -1;
 		float zCalibrated = -1;
 		float* f_ptr = 0;
 		float* f_ptr_dst = 0;
