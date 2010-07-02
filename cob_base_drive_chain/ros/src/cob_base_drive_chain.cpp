@@ -434,16 +434,16 @@ int main(int argc, char** argv)
 
 
     
-    while(nodeClass.n.ok())
+    /*while(nodeClass.n.ok())
     {
 
 
         ros::spinOnce();
 		// -> let it sleep for a while
         //loop_rate.sleep();
-    }
+    }*/
     
-//    ros::spin();
+    ros::spin();
 
     return 0;
 }
