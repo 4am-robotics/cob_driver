@@ -8,7 +8,7 @@
 * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 *
 * Project name: care-o-bot
-* ROS stack name: cob3_driver
+* ROS stack name: cob_driver
 * ROS package name: cob_camera_sensors
 * Description:
 *
@@ -80,9 +80,10 @@ VirtualRangeCam::VirtualRangeCam()
 	m_BufferSize = 1;
 
 	m_intrinsicMatrix = 0;
-	m_distortionParameters = 0;
+	m_undistortMapX = 0;
+	m_undistortMapY = 0;
 
-	m_ImageCounter = 1;
+	m_ImageCounter = 0;
 }
 
 
@@ -120,7 +121,7 @@ unsigned long VirtualRangeCam::Init(std::string directory, int cameraIndex)
 		/// Load z-calibration files
 		if(m_CoeffsA0.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA0.txt") & RET_FAILED)
 		{
-			std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
+			std::cerr << "ERROR - VirtualRangeCam::Init:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA0.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
@@ -130,7 +131,7 @@ unsigned long VirtualRangeCam::Init(std::string directory, int cameraIndex)
 		/// Load z-calibration files
 		if(m_CoeffsA1.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA1.txt") & RET_FAILED)
 		{
-			std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
+			std::cerr << "ERROR - VirtualRangeCam::Init:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA1.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
@@ -140,7 +141,7 @@ unsigned long VirtualRangeCam::Init(std::string directory, int cameraIndex)
 		/// Load z-calibration files
 		if(m_CoeffsA2.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA2.txt") & RET_FAILED)
 		{
-			std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
+			std::cerr << "ERROR - VirtualRangeCam::Init:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA2.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
@@ -150,7 +151,7 @@ unsigned long VirtualRangeCam::Init(std::string directory, int cameraIndex)
 		/// Load z-calibration files
 		if(m_CoeffsA3.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA3.txt") & RET_FAILED)
 		{
-			std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
+			std::cerr << "ERROR - VirtualRangeCam::Init:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA3.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
@@ -160,7 +161,7 @@ unsigned long VirtualRangeCam::Init(std::string directory, int cameraIndex)
 		/// Load z-calibration files
 		if(m_CoeffsA4.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA4.txt") & RET_FAILED)
 		{
-			std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
+			std::cerr << "ERROR - VirtualRangeCam::Init:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA4.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
@@ -170,7 +171,7 @@ unsigned long VirtualRangeCam::Init(std::string directory, int cameraIndex)
 		/// Load z-calibration files
 		if(m_CoeffsA5.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA5.txt") & RET_FAILED)
 		{
-			std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
+			std::cerr << "ERROR - VirtualRangeCam::Init:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA5.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
@@ -180,7 +181,7 @@ unsigned long VirtualRangeCam::Init(std::string directory, int cameraIndex)
 		/// Load z-calibration files
 		if(m_CoeffsA6.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA6.txt") & RET_FAILED)
 		{
-			std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
+			std::cerr << "ERROR - VirtualRangeCam::Init:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA6.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
@@ -277,21 +278,6 @@ unsigned long VirtualRangeCam::Open()
 					}
 
 					if ((dir_itr->path().extension() == ".xml") &&
-						filename.find( "RangeCamDepth_32F1_" + sCameraIndex, 0 ) != std::string::npos)
-					{
-						++rangeImageCounter;
-						//std::cout << "VirtualRangeCam::Open(): Reading '" << dir_itr->path().string() << "\n";
-						m_RangeImageFileNames.push_back(dir_itr->path().string());
-						if (m_ImageWidth == -1 || m_ImageHeight == -1)
-						{
-							image = (IplImage*) cvLoad(m_RangeImageFileNames.back().c_str(), 0);
-							m_ImageWidth = image->width;
-							m_ImageHeight = image->height;
-							cvReleaseImage(&image);
-						}
-					}
-
-					if ((dir_itr->path().extension() == ".xml") &&
 						filename.find( "RangeCamCoordinate_32F3_" + sCameraIndex, 0 ) != std::string::npos)
 					{
 						++coordinateImageCounter;
@@ -315,29 +301,23 @@ unsigned long VirtualRangeCam::Open()
 		}
 		std::sort(m_IntensityImageFileNames.begin(),m_IntensityImageFileNames.end());
 		std::sort(m_AmplitudeImageFileNames.begin(),m_AmplitudeImageFileNames.end());
-		std::sort(m_RangeImageFileNames.begin(),m_RangeImageFileNames.end());
 		std::sort(m_CoordinateImageFileNames.begin(),m_CoordinateImageFileNames.end());
 		std::cout << "INFO - VirtualRangeCam::Open:" << std::endl;
 		std::cout << "\t ... Extracted '" << intensityImageCounter << "' intensity images (16 bit/value)\n";
 		std::cout << "\t ... Extracted '" << amplitudeImageCounter << "' amplitude images (16 bit/value)\n";
-		std::cout << "\t ... Extracted '" << rangeImageCounter << "' range images (16 bit/value)\n";
 		std::cout << "\t ... Extracted '" << coordinateImageCounter << "' coordinate images (3*16 bit/value)\n";
 
-		if (intensityImageCounter == 0)
+		if (intensityImageCounter == 0 && amplitudeImageCounter == 0)
 		{
 			std::cerr << "ERROR - VirtualRangeCam::Open:" << std::endl;
-			std::cerr << "\t ... Could not detect any intensity or range images" << std::endl;
+			std::cerr << "\t ... Could not detect any intensity or amplitude images" << std::endl;
 			std::cerr << "\t ... from the specified directory." << std::endl;
 			return ipa_CameraSensors::RET_FAILED;
 		}
-		if (intensityImageCounter != rangeImageCounter)
-		{
-			std::cerr << "ERROR - VirtualRangeCam::Open:" << std::endl;
-			std::cerr << "\t ... Number of intensity and range images must agree." << std::endl;
-			return ipa_CameraSensors::RET_FAILED;
-		}
+
 		if (coordinateImageCounter != 0 &&
-			(intensityImageCounter != coordinateImageCounter || rangeImageCounter != coordinateImageCounter))
+			intensityImageCounter != coordinateImageCounter &&
+			amplitudeImageCounter != coordinateImageCounter)
 		{
 			std::cerr << "ERROR - VirtualRangeCam::Open:" << std::endl;
 			std::cerr << "\t ... Number of intensity, range and coordinate images must agree." << std::endl;
@@ -350,9 +330,6 @@ unsigned long VirtualRangeCam::Open()
 			std::cerr << "\t ... Coordinate images must be available for calibration mode NATIVE or MATLAB_NO_Z." << std::endl;
 			return ipa_CameraSensors::RET_FAILED;
 		}
-
-		SetDistortionParameters(m_k1, m_k2, m_p1, m_p2, m_ImageWidth, m_ImageHeight);
-
 	}
 	else
 	{
@@ -439,6 +416,8 @@ unsigned long VirtualRangeCam::GetProperty(t_cameraProperty* cameraProperty)
 unsigned long VirtualRangeCam::AcquireImages(IplImage* rangeImage, IplImage* grayImage, IplImage* cartesianImage,
 											 bool getLatestFrame, bool undistort, ipa_CameraSensors::t_ToFGrayImageType grayImageType)
 {
+	//std::cout << m_ImageCounter << std::endl;
+
 	char* rangeImageData = 0;
 	char* grayImageData = 0;
 	char* cartesianImageData = 0;
@@ -541,9 +520,7 @@ unsigned long VirtualRangeCam::AcquireImages2(IplImage** rangeImage, IplImage** 
 	{
 		return RET_OK;
 	}
-
 	AcquireImages(widthStepOneChannel, rangeImageData, grayImageData, cartesianImageData, getLatestFrame, undistort, grayImageType);
-
 	return RET_OK;
 }
 
@@ -584,12 +561,13 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 			CvMat* undistortedData = cvCreateMatHeader( m_ImageHeight, m_ImageWidth, CV_32FC1 );
 			undistortedData->data.fl = (float*) rangeImageData;
 
-			RemoveDistortion(rangeImage, undistortedData);
+			assert (m_undistortMapX != 0 && m_undistortMapY != 0);
+			cvRemap(rangeImage, undistortedData, m_undistortMapX, m_undistortMapY);
+			cvReleaseMatHeader(&undistortedData);
 		}
 
 		cvReleaseImage(&rangeImage);
 	} // End if (rangeImage)
-
 ///***********************************************************************
 /// Gray image based on amplitude or intensity (distorted or undistorted)
 ///***********************************************************************
@@ -623,25 +601,25 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 			CvMat* undistortedData = cvCreateMatHeader( m_ImageHeight, m_ImageWidth, CV_32FC1 );
 			undistortedData->data.fl = (float*) grayImageData;
 
-			RemoveDistortion(grayImage, undistortedData);
+			assert (m_undistortMapX != 0 && m_undistortMapY != 0);
+			cvRemap(grayImage, undistortedData, m_undistortMapX, m_undistortMapY);
+			cvReleaseMatHeader(&undistortedData);
 		}
 
 		cvReleaseImage(&grayImage);
 	}
-
 ///***********************************************************************
 /// Cartesian image (always undistorted)
 ///***********************************************************************
 	if(cartesianImageData)
 	{
-		IplImage* rangeImage = (IplImage*) cvLoad(m_RangeImageFileNames[m_ImageCounter].c_str(), 0);
+		IplImage* rangeImage = 0;//(IplImage*) cvLoad(m_RangeImageFileNames[m_ImageCounter].c_str(), 0);
 		int widthStepCartesianImage = widthStepOneChannel*3;
 		float x = -1;
 		float y = -1;
 		float zRaw = -1;
 		float zCalibrated = -1;
 		float* ptr = 0;
-
 		if(m_CalibrationMethod==MATLAB)
 		{
 			if (m_CoeffsInitialized)
@@ -662,7 +640,10 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 
 				/// Undistort
 				CvMat* undistortedData = cvCloneMat(distortedData);
-	 			RemoveDistortion(distortedData, undistortedData);
+
+				assert (m_undistortMapX != 0 && m_undistortMapY != 0);
+				cvRemap(distortedData, undistortedData, m_undistortMapX, m_undistortMapY);
+
 				cvReleaseMat(&distortedData);
 
 				/// Calculate X and Y based on instrinsic rotation and translation
@@ -742,6 +723,7 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 		}
 	}
 
+	std::cout << m_ImageCounter << "        \r" << std::endl;
 	m_ImageCounter++;
 	if ((m_IntensityImageFileNames.size() != 0 && m_ImageCounter >= m_IntensityImageFileNames.size()) ||
 		(m_AmplitudeImageFileNames.size() != 0 && m_ImageCounter >= m_AmplitudeImageFileNames.size()) ||
@@ -753,6 +735,32 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 	}
 
 	return RET_OK;
+}
+
+int VirtualRangeCam::GetNumberOfImages()
+{
+	if (m_IntensityImageFileNames.size() == 0 && 
+		m_AmplitudeImageFileNames.size() == 0 &&
+		m_RangeImageFileNames.size() == 0 && 
+		m_CoordinateImageFileNames.size() == 0)
+	{
+		return 0;
+	}
+
+	int min=std::numeric_limits<int>::max();
+
+	if (m_IntensityImageFileNames.size() != 0) min = std::min((float)min, (float)m_IntensityImageFileNames.size());
+	if (m_AmplitudeImageFileNames.size() != 0) min = std::min((float)min, (float)m_AmplitudeImageFileNames.size());
+	if (m_RangeImageFileNames.size() != 0) min = std::min((float)min, (float)m_RangeImageFileNames.size());
+	if (m_CoordinateImageFileNames.size() != 0) min = std::min((float)min, (float)m_CoordinateImageFileNames.size());
+
+	return min;
+}
+
+unsigned long VirtualRangeCam::SetPathToImages(std::string path) 
+{
+	m_CameraDataDirectory = path;
+	return ipa_Utils::RET_OK;
 }
 
 unsigned long VirtualRangeCam::SaveParameters(const char* filename)
@@ -879,7 +887,8 @@ unsigned long VirtualRangeCam::GetCalibratedUV(double x, double y, double z, dou
 unsigned long VirtualRangeCam::LoadParameters(const char* filename, int cameraIndex)
 {
 	/// Load SwissRanger parameters.
-	TiXmlDocument* p_configXmlDocument = new TiXmlDocument( filename );
+	boost::shared_ptr<TiXmlDocument> p_configXmlDocument (new TiXmlDocument( filename ));
+
 	if (!p_configXmlDocument->LoadFile())
 	{
 		std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
@@ -972,90 +981,6 @@ unsigned long VirtualRangeCam::LoadParameters(const char* filename, int cameraIn
 				{
 					std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
 					std::cerr << "\t ... Can't find tag 'CalibrationMethod'." << std::endl;
-					return (RET_FAILED | RET_XML_TAG_NOT_FOUND);
-				}
-
-//************************************************************************************
-//	BEGIN LibCameraSensors->VirtualRangeCam->IntrinsicParameters
-//************************************************************************************
-				// Subtag element "IntrinsicParameters" of Xml Inifile
-				p_xmlElement_Child = NULL;
-				p_xmlElement_Child = p_xmlElement_Root_VirtualRangeCam->FirstChildElement( "IntrinsicParameters" );
-				if ( p_xmlElement_Child )
-				{
-					double fx, fy, cx, cy;
-					// read and save value of attribute
-					if ( p_xmlElement_Child->QueryValueAttribute( "fx", &fx ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'fx' of tag 'IntrinsicParameters'." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "fy", &fy ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'fy' of tag 'IntrinsicParameters'." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "cx", &cx ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'cx' of tag 'IntrinsicParameters'." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "cy", &cy ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'cy' of tag 'IntrinsicParameters'." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					SetIntrinsicParameters(fx, fy, cx, cy);
-				}
-				else
-				{
-					std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-					std::cerr << "\t ... Can't find tag 'IntrinsicParameters'." << std::endl;
-					return (RET_FAILED | RET_XML_TAG_NOT_FOUND);
-				}
-
-//************************************************************************************
-//	BEGIN LibCameraSensors->VirtualRangeCam->DistortionCoeffs
-//************************************************************************************
-				// Subtag element "DistortionCoeffs " of Xml Inifile
-				p_xmlElement_Child = NULL;
-				p_xmlElement_Child = p_xmlElement_Root_VirtualRangeCam->FirstChildElement( "DistortionCoeffs" );
-				if ( p_xmlElement_Child )
-				{
-					// read and save value of attribute
-					if ( p_xmlElement_Child->QueryValueAttribute( "k1", &m_k1 ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'k1' of tag 'DistortionCoeffs '." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "k2", &m_k2 ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'k2' of tag 'DistortionCoeffs '." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "p1", &m_p1 ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'p1' of tag 'DistortionCoeffs '." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "p2", &m_p2 ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'p2' of tag 'DistortionCoeffs '." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-				}
-				else
-				{
-					std::cerr << "ERROR - VirtualRangeCam::LoadParameters:" << std::endl;
-					std::cerr << "\t ... Can't find tag 'DistortionCoeffs '." << std::endl;
 					return (RET_FAILED | RET_XML_TAG_NOT_FOUND);
 				}
 			}

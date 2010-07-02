@@ -1,22 +1,23 @@
 <package>
-  <description brief="generic_can">
+  <description brief="cob_generic_can">
 
-     "generic_can" provides an interface for nodes on a can-bus and examplary wrappers for two PeakSys-can-libs. When a can-bus-device is generated (for an example see base_dirve_chain) you can use generic_can to create as many itfs as there will be components communicating via this can-bus. Assign type of the can communication device (e.g. usb-to-can or can-card of a specific vendor) and can-address of the target device. This package comes with wrappers for PeakSys and PeakSysUSB adapters.
+     "cob_generic_can" provides an interface for nodes on a can-bus and examplary wrappers for two PeakSys-can-libs. When a can-bus-device is generated (for an example see base_dirve_chain) you can use generic_can to create as many itfs as there will be components communicating via this can-bus. Assign type of the can communication device (e.g. usb-to-can or can-card of a specific vendor) and can-address of the target device. This package comes with wrappers for PeakSys and PeakSysUSB adapters.
 
   </description>
   <author>Christian Connette, email:christian.connette@ipa.fhg.de</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
-  <url>http://www.care-o-bot.org</url>
+  <url>http://ros.org/wiki/cob_generic_can</url>
 
   <!-- Dependencies from other packages or external libs-->
   <depend package="roscpp"/>
   <depend package="cob_utilities"/>
   <depend package="libpcan"/>
+  <depend package="libntcan"/>
 
   <!-- As we deviate from the standard ROS Repository-Structure we have to tell ROS where to find header and lib -->
   <export>
-    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_generic_can_peaksysusb -lcob_generic_can_peaksys"/>
+    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_generic_can_peaksysusb -lcob_generic_can_peaksys -lcob_generic_can_esd"/>
   </export>
 
 </package>

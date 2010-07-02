@@ -1,31 +1,13 @@
 <package>
   <description brief="cob_camera_sensors">
-
-	cob_camera_sensors HowTo
-	Before running the AVTPike C145 cameras from Care-O-bot 3 do the following
-	1. Create udev rules to get access right to the ieee1394 devices located at /dev/raw1394 and /dev/video1394
-	1.1 Create a file called 01-ieee1394.rules in /etc/udev/rules.d/ with the following content
-		#firewire camera devices
-		KERNEL=="raw1394*",GROUP="users",MODE="0664"
-		KERNEL=="video1394*",GROUP="users",MODE="0664"
-	2. Add your linux user account to the groups 'users' and 'video' to access ieee1394 devices
-	3. Add your linux user account to the group 'usb' to access usb devices of Swissranger4000 (if not connected to eth)
-	4. Install and start 'coriander' to check if ieee1394 AVTPike camera is properly set up
-	4. Install dependecies and build cob_camera_sensors
-	5. launch the left IEEE1394 camera with 'roslaunch cob_camera_sensors cob3-1_color_camera_left.launch'
-	6. launch the right IEEE1394 camera with 'roslaunch cob_camera_sensors cob3-1_color_camera_right.launch'
-	7. launch the Swissranger camera with 'roslaunch cob_camera_sensors cob3-1_tof.launch'
-	8. launch 'image_view' from ROS to show images from the color camera with parameter image:=/camera/left/color_camera_stream/image_raw
-	9. launch the Tof image viewer with 'roslaunch cob_camera_sensors tof_camera_viewer.launch'
-
-	Note: Camera parameters are currently not set through ROS, but with a configuration file located at common/files/cob3-1/ in package cob_camera_sensors
+  
+	For more information read the readme.htm file located in <i>cob_driver/cob_camera_sensors</i>.
 	
-
   </description>
   <author>Jan Fischer, email:jan.fischer@ipa.fhg.de</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
-  <url>http://www.care-o-bot.org</url>
+  <url>http://ros.org/wiki/cob_camera_sensors</url>
 
   <depend package="roscpp"/>
   <depend package="sensor_msgs"/>
@@ -36,6 +18,7 @@
   <depend package="polled_camera"/>
   <depend package="cv_bridge"/>
   <depend package="cob_vision_utils"/>
+  <depend package="cob_srvs"/>
 
   <export>
     <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_camera_sensors"/>
@@ -43,6 +26,6 @@
 
   <rosdep name="libdc1394"/>
   <rosdep name="libmesasr"/>
-   <rosdep name="glut"/>
+  <rosdep name="glut"/>
 
 </package>

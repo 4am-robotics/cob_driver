@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- send parameters to parameter server -->
+  <rosparam command="load" ns="arm_controller" file="$(find cob_arm)/ros/launch/$(env ROBOT).yaml"/>
+
+  <!-- start powercube_chain -->
+  <node pkg="cob_powercube_chain" type="cob_powercube_chain" name="arm_node" ns="arm_controller" cwd="node" respawn="false" output="screen" />
+
+</launch>

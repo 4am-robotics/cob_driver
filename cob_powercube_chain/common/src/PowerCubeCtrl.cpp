@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
- * ROS package name: powercube_chain
+ * ROS stack name: cob_driver
+ * ROS package name: cob_powercube_chain
  * Description: An interface class to the Powercube-hardware implementing armInterface.
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -51,7 +51,7 @@
  *
  ****************************************************************/
 
-#include <powercube_chain/PowerCubeCtrl.h>
+#include <cob_powercube_chain/PowerCubeCtrl.h>
 #include <string>
 #include <sstream>
 #include <time.h>
@@ -88,7 +88,8 @@ PowerCubeCtrl::PowerCubeCtrl()
 
 bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 {
-	int CanDevice= 0;
+	std::string CanModule = "";
+	int CanDevice = 0;
 	int CanBaudRate = 0;
 	std::vector<double> offsets;
 	std::vector<double> upperLimits;
@@ -97,8 +98,9 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 	{
 		m_DOF=params->GetNumberOfDOF();
 		m_IdModules = params->GetModuleIDVector();
-		CanBaudRate = params->GetBaudRate();
+		CanModule = params->GetCanModule();
 		CanDevice = params->GetCanDevice();
+		CanBaudRate = params->GetBaudRate();
 		m_maxAcc = params->GetMaxAcc();
 		upperLimits = params->GetUpperLimits();
 		lowerLimits = params->GetLowerLimits();
@@ -122,8 +124,9 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 	std::cout<<"=========================================================================== "<<endl;
 	std::cout<<"PowerCubeCtrl:Init: Successfully initialized with the following parameters: "<<endl;
 	std::cout<<"DOF: "<<m_DOF<<endl;
-	std::cout<<"CanBaudRate: "<<CanBaudRate<<endl;
+	std::cout<<"CanModule: "<<CanModule<<endl;
 	std::cout<<"CanDevice: "<<CanDevice<<endl;
+	std::cout<<"CanBaudRate: "<<CanBaudRate<<endl;
 	std::cout<<"Ids: ";
 	for (int i = 0; i< m_DOF; i++)
 	{
@@ -156,7 +159,7 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 	}
 	std::cout<<endl<<"=========================================================================== "<<endl;
 	ostringstream initStr;
-	initStr << "PCAN:" << CanDevice << "," << CanBaudRate;
+	initStr << CanModule << ":" << CanDevice << "," << CanBaudRate;
 	std::cout << "initstring = " << initStr.str().c_str() << std::endl;
 	int ret = 0;
 	ret = PCube_openDevice (&m_Dev, initStr.str().c_str());
@@ -702,4 +705,41 @@ void PowerCubeCtrl::millisleep(unsigned int milliseconds) const
 	warten.tv_nsec = (milliseconds % 1000) * 1000000;
 	timespec gewartet;
 	nanosleep(&warten, &gewartet);
+}
+
+bool PowerCubeCtrl::Recover()
+{
+
+	vector<string> errorMessages;
+	PC_CTRL_STATE status;
+	getStatus(status, errorMessages);
+	if (status == PC_CTRL_NOT_REFERENCED) 
+	{
+		std::cout << "PowerCubeCtrl:Init: Homing is executed ...\n";
+		bool successful = false;
+		successful = doHoming();
+		if (!successful)
+		{
+			std::cout << "PowerCubeCtrl:Init: homing not successful, aborting ...\n";
+		}
+	}
+	PCube_resetAll(m_Dev);
+
+	getStatus(status, errorMessages);
+	if ((status != PC_CTRL_OK))
+	{
+		m_ErrorMessage.assign("");
+		for (int i=0; i<m_DOF; i++)
+		{
+			m_ErrorMessage.append(errorMessages[i]);
+			m_ErrorMessage.append("\n");
+		}
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+
+
 }

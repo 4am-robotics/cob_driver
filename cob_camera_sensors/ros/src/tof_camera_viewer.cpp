@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
- * ROS package name: cob3_camera_sensors
+ * ROS stack name: cob_driver
+ * ROS package name: cob_camera_sensors
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
@@ -99,7 +99,7 @@ public:
           xyz_image_8U3_(0),
           grey_image_32F1_(0),
           grey_image_8U3_(0),
-		  		grey_image_counter_(0)
+		  grey_image_counter_(0)
         {
 					///Void
         }
@@ -114,7 +114,7 @@ public:
 			if (grey_image_8U3_) cvReleaseImage(&grey_image_8U3_);
 
 			if(cvGetWindowHandle("z data"))cvDestroyWindow("z data");
-			if(cvGetWindowHandle("gray data"))cvDestroyWindow("gray data");
+			if(cvGetWindowHandle("grey data"))cvDestroyWindow("grey data");
         }
 
 	/// initialize tof camera viewer.
@@ -124,7 +124,7 @@ public:
 		/// Create viewer windows
 		cvStartWindowThread();
 		cvNamedWindow("z data");		
-		cvNamedWindow("gray data");		
+		cvNamedWindow("grey data");		
 
 		xyz_image_subscriber_ = image_transport_.subscribe("image_xyz", 1, &CobTofCameraViewerNode::xyzImageCallback, this);
 		grey_image_subscriber_ = image_transport_.subscribe("image_grey", 1, &CobTofCameraViewerNode::greyImageCallback, this);
@@ -139,6 +139,7 @@ public:
 	{
 		/// Do not release <code>m_GrayImage32F3</code>
 		/// Image allocation is managed by Cv_Bridge object 
+		ROS_INFO("Grey Image Callback");
 
 		try
 		{
@@ -149,10 +150,11 @@ public:
 				grey_image_8U3_ = cvCreateImage(cvGetSize(grey_image_32F1_), IPL_DEPTH_8U, 3);
 			}
 
-			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1);
+			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1, 0, 800);
 			cvShowImage("grey data", grey_image_8U3_);
+			usleep(100);
 			int c = cvWaitKey(50);
-			if (c=='s')
+			if (c=='s' || c==536871027)
 			{
 				std::stringstream ss;
 				char counterBuffer [50];
@@ -169,6 +171,7 @@ public:
 		{
 			ROS_ERROR("[tof_camera_viewer] Could not convert from '%s' to '32FC1'.", grey_image_msg->encoding.c_str());
 		}
+		ROS_INFO("Image Processed");
 	}
 
 	/// Topic callback functions. 
@@ -179,14 +182,9 @@ public:
 		/// Do not release <code>xyz_image_32F3_</code>
 		/// Image allocation is managed by Cv_Bridge object 
 
-		static IplImage* xyz_image_32F3_temp = 0;
-		static IplImage* xyz_image_32F3_temp2 = 0;
-
 		try
 		{
-			xyz_image_32F3_temp2 = xyz_image_32F3_temp;
 			xyz_image_32F3_ = cv_bridge_1_.imgMsgToCv(xyz_image_msg, "passthrough");
-			xyz_image_32F3_temp = cvCloneImage(xyz_image_32F3_);
 			
 			if (xyz_image_8U3_ == 0)
 			{
@@ -195,13 +193,6 @@ public:
 
 			ipa_Utils::ConvertToShowImage(xyz_image_32F3_, xyz_image_8U3_, 3);
 			cvShowImage("z data", xyz_image_8U3_);
-			/// Now, we can savely release the memory of the previous point cloud without
-			/// Disturbing the point cloud renderer
-			if (xyz_image_32F3_temp2)
-			{
-				cvReleaseImage(&xyz_image_32F3_temp2);
-				xyz_image_32F3_temp2 = 0;
-			}
 		}
 		catch (sensor_msgs::CvBridgeException& e)
 		{

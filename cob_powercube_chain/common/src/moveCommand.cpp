@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_driver
- * ROS package name: powercube_chain
+ * ROS stack name: cob_driver
+ * ROS package name: cob_powercube_chain
  * Description: Function implementation for motion command classes.
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -51,12 +51,13 @@
  *
  ****************************************************************/
 
-#include <powercube_chain/moveCommand.h>
+#include <cob_powercube_chain/moveCommand.h>
 #include <math.h>
 #include <stddef.h>
 
 RampCommand::RampCommand(double x0, double v0, double xtarget, double amax, double vmax)
-	:   m_x0(x0), 
+	: moveCommand(),
+		m_x0(x0),
 		m_v0(v0), 
 		m_xtarget(xtarget), 
 		m_amax(amax), 
@@ -459,3 +460,78 @@ void RampCommand::calculateAV(double x0, double v0, double xtarget, double time,
 	//debug.flush();
 }
 
+/*
+CartesianRamp::CartesianRamp(AbsPos start, AbsPos ziel, double a, double v)
+{
+	m_x0 = start;
+	m_xtarget = ziel;
+	m_richtung = ziel - start;
+	m_amax = a;
+	m_vmax = v;
+	if (m_richtung.getPosLength() > v*v/a)
+	{
+		// Phase mit konst. Geschw. wird erreicht:
+
+		m_T1 = m_T3 = v / a;
+		m_T2 = (m_richtung.getPosLength() - v*v/a) / v;
+
+		// Wegparameter s immer positiv, deswegen keine weitere Fallunterscheidung nötig:
+		m_a1 = a / m_richtung.getPosLength();
+		m_v2 = v / m_richtung.getPosLength();
+		m_a3 = -a / m_richtung.getPosLength();
+	}
+	else {
+		// Phase konst. Geschw. wird nicht erreicht:
+
+		m_a1 = a / m_richtung.getPosLength();
+		m_v2 = sqrt(a / m_richtung.getPosLength());
+		m_a3 = -a / m_richtung.getPosLength();
+
+		m_T2 = 0.0;
+		m_T1 = m_T3 = 1.0 / sqrt(m_a1);
+	}
+	// Bewegung vollständig charakterisiert.
+}
+
+
+/// @brief returns the planned position for TimeElapsed (seconds)
+AbsPos CartesianRamp::getPos(double TimeElapsed) const
+{
+	if (TimeElapsed >= m_T1 + m_T2 + m_T3)
+		return m_xtarget;
+	else if (TimeElapsed >= m_T1 + m_T2)
+	{
+		return m_x0 + m_richtung * ( m_a1*m_T1*m_T1 + m_v2*m_T2 + m_a3*sqr(TimeElapsed-m_T1-m_T2) );
+	}
+	else if (TimeElapsed >= m_T1)
+	{
+		return m_x0 + m_richtung * ( m_a1*m_T1*m_T1 + m_v2*(TimeElapsed-m_T1) );
+	}
+	else if (TimeElapsed > 0.0)
+	{
+		return m_x0 + m_richtung * (m_a1*TimeElapsed*TimeElapsed);
+	}
+	else return m_x0;
+}
+
+
+/// @brief returns the planned velocity for TimeElapsed (seconds)
+AbsPos CartesianRamp::getVel(double TimeElapsed) const
+{
+	if (TimeElapsed >= m_T1 + m_T2 + m_T3)
+		return m_richtung * 0.0;
+	else if (TimeElapsed >= m_T1 + m_T2)
+	{
+		return m_richtung * (m_v2 + m_a3 * (TimeElapsed-m_T1-m_T2));
+	}
+	else if (TimeElapsed >= m_T1)
+	{
+		return m_richtung * m_v2;
+	}
+	else if (TimeElapsed > 0.0)
+	{
+		return m_richtung * (m_a1*TimeElapsed);
+	}
+	else return m_richtung * 0.0;
+}
+*/

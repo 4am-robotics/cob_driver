@@ -1,15 +1,14 @@
 <package>
   <description brief="cob_torso">
 
-     cob_torso
+    Launch files to configure and startup the Care-O-bot torso.
 
   </description>
-  <author>fmw</author>
-  <license>BSD</license>
+  <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>
+  <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_torso</url>
+  
   <depend package="cob_powercube_chain"/>
 
 </package>
-
-

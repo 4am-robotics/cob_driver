@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="cob_sick_s300" type="cob_sick_s300" name="scanner_front" respawn="false" output="screen" >
+	  <param name="port" type="string" value="/dev/ttyUSB1"/>
+	  <param name="baud" type="int" value="500000"/>
+	  <param name="inverted" type="bool" value="true"/>
+	  <param name="frame_id" type="string" value="/base_laser_front_link"/>
+	  <!--remap from="scan" to="scan_front"/-->
+  </node>
+</launch>

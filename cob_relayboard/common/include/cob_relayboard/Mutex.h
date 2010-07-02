@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_common
- * ROS package name: base_drive_chain
+ * ROS stack name: cob_driver
+ * ROS package name: cob_relayboard
  * Description: custom Mutex implementation
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

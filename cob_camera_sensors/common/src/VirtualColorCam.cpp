@@ -8,7 +8,7 @@
 * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 *
 * Project name: care-o-bot
-* ROS stack name: cob3_driver
+* ROS stack name: cob_driver
 * ROS package name: cob_camera_sensors
 * Description:
 *
@@ -225,19 +225,28 @@ unsigned long VirtualColorCam::Open()
 
 }
 
+int VirtualColorCam::GetNumberOfImages()
+{
+	return (int)std::min(0.0f, (float)m_ColorImageFileNames.size());
+}
 
 unsigned long VirtualColorCam::SaveParameters(const char* filename)
 { 
 	return RET_FAILED;
 }
 
+unsigned long VirtualColorCam::SetPathToImages(std::string path) 
+{
+	m_CameraDataDirectory = path;
+	return RET_OK;
+}
 
 
 unsigned long VirtualColorCam::Close()
 {
 	if (!isOpen())
 	{
-		return (RET_OK);
+		return RET_OK;
 	}
 
 	m_open = false;
@@ -395,7 +404,7 @@ unsigned long VirtualColorCam::TestCamera(const char* filename)
 
 unsigned long VirtualColorCam::LoadParameters(const char* filename, int cameraIndex)
 {  //m_intrinsicMatrix; m_distortionParameters
-	TiXmlDocument* p_configXmlDocument = new TiXmlDocument( filename );
+	boost::shared_ptr<TiXmlDocument> p_configXmlDocument (new TiXmlDocument( filename ));
 	if (!p_configXmlDocument->LoadFile())
 	{
 		std::cerr << "ERROR - VirtualColorCam::LoadParameters:" << std::endl;

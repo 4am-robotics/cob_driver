@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- send parameters to parameter server -->
+  <rosparam command="load" ns="arm_controller" file="$(find cob_arm)/ros/launch/test.yaml"/>
+
+  <!-- start powercube_chain -->
+  <node pkg="cob_powercube_chain" type="cob_powercube_chain_test" name="arm_test" ns="arm_controller" cwd="node" respawn="false" output="screen" />
+
+</launch>

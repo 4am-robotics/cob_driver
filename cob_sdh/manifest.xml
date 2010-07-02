@@ -1,13 +1,13 @@
 <package>
   <description brief="cob_sdh">
 
-     cob_sdh
+     This package provides an interface for operating the Schunk SDH hand, including the tactile sensors.
 
   </description>
   <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
-  <url>http://www.care-o-bot.org</url>
+  <url>http://ros.org/wiki/cob_sdh</url>
   
   <depend package="roscpp"/>
   <depend package="urdf"/>
@@ -18,5 +18,6 @@
   <depend package="cob_srvs"/>
   <depend package="cob_actions"/>
   <depend package="libntcan"/>
+  <depend package="libpcan"/>
 
 </package>

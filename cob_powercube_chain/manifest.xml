@@ -1,13 +1,17 @@
 <package>
-  <description brief="powercube_chain">
+  <description brief="cob_powercube_chain">
 
-     powercube_chain
+  This packages provides a configurable driver of a chain 
+  of Schunk powercubes. The powercube chain is configured 
+  through parameters. Most users will not directly interact 
+  with this package but with the corresponding launch files 
+  in other packages, e.g. cob_tray, cob_torso, ... 
 
   </description>
   <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
-  <url>http://www.care-o-bot.org</url>
+  <url>http://ros.org/wiki/cob_powercube_chain</url>
   
   <depend package="roscpp"/>
   <depend package="sensor_msgs"/>
@@ -15,9 +19,11 @@
   <depend package="trajectory_msgs"/>
   <depend package="actionlib"/>
   <depend package="cob_srvs"/>
-  <depend package="cob_actions"/>
-  <depend package="cob_defs"/>
+  <depend package="pr2_controllers_msgs"/>
+  <depend package="cob_description"/>
   <depend package="libpcan"/>
+  <depend package="libwm4"/>
   <depend package="libm5api"/>
+  <depend package="libntcan"/>
 
 </package>

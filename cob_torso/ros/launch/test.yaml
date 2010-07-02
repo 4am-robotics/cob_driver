@@ -1,0 +1,34 @@
+JointNames: [torso_lower_neck_pan_joint, torso_lower_neck_tilt_joint, torso_upper_neck_pan_joint, torso_upper_neck_tilt_joint]
+Trajectories:
+  [
+    [
+      [0.0,0.0,0.0,0.0] #home
+    ],
+    [
+      [0.0,0.05,0.0,0.1] #frontside
+    ],
+    [
+      [0.0,-0.05,0.0,-0.1] #backside
+    ],
+    [
+      [0.05,0.0,0.1,0.0] #right
+    ],
+    [ 
+      [-0.05,0.0,-0.1,0.0] #left
+    ],
+    [ 
+      [0.05,0.05,0.1,0.1] #frontright
+    ],
+    [ 
+      [-0.05,0.05,-0.1,0.1] #frontleft
+    ],
+    [
+      [0.0,0.0,0.0,0.0], #home
+      [-0.05,0.0,-0.1,0.0], #left
+      [-0.05,0.05,-0.1,0.1], #frontleft
+      [0.05,0.05,0.1,0.1], #frontright
+      [0.0,0.05,0.0,0.1], #frontside
+      [0.0,-0.05,0.0,-0.1], #backside
+      [0.0,0.0,0.0,0.0] #home
+    ]
+  ]

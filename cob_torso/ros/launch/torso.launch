@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- send parameters to parameter server -->
+  <rosparam command="load" ns="torso_controller" file="$(find cob_torso)/ros/launch/$(env ROBOT).yaml"/>
+
+  <!-- start powercube_chain -->
+  <node pkg="cob_powercube_chain" type="cob_powercube_chain" name="torso_node" ns="torso_controller" cwd="node" respawn="false" output="screen" />
+
+</launch>

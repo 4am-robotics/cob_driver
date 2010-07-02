@@ -8,7 +8,7 @@
 * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 *
 * Project name: care-o-bot
-* ROS stack name: cob3_driver
+* ROS stack name: cob_driver
 * ROS package name: cob_camera_sensors
 * Description:
 *
@@ -78,12 +78,12 @@ Swissranger::Swissranger()
 	m_open = false;
 
 	m_intrinsicMatrix = 0;
-	m_distortionParameters = 0;
+	m_undistortMapX = 0;
+	m_undistortMapY = 0;
 
 	m_SRCam = 0;
 	m_DataBuffer = 0;
 	m_BufferSize = 1;
-	m_Fake = false;
 
 	m_CoeffsInitialized = false;
 }
@@ -818,7 +818,8 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 
 			CvMat* distortedData = cvCloneMat(undistortedData);
  
-			RemoveDistortion(distortedData, undistortedData);
+			assert (m_undistortMapX != 0 && m_undistortMapY != 0);
+			cvRemap(distortedData, undistortedData, m_undistortMapX, m_undistortMapY);
 
 			cvReleaseMat(&distortedData);
 		}
@@ -861,7 +862,8 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 
 			CvMat* distortedData = cvCloneMat(undistortedData);
  
-			RemoveDistortion(distortedData, undistortedData);
+			assert (m_undistortMapX != 0 && m_undistortMapY != 0);
+			cvRemap(distortedData, undistortedData, m_undistortMapX, m_undistortMapY);
 
 			cvReleaseMat(&distortedData);
 		}
@@ -906,7 +908,8 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 
 				/// Undistort
 				CvMat* undistortedData = cvCloneMat(distortedData);
-	 			RemoveDistortion(distortedData, undistortedData);
+	 			assert (m_undistortMapX != 0 && m_undistortMapY != 0);
+				cvRemap(distortedData, undistortedData, m_undistortMapX, m_undistortMapY);
 				cvReleaseMat(&distortedData);
 				
 				/*IplImage dummy;
@@ -960,7 +963,8 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 
 			/// Undistort
 			CvMat* undistortedData = cvCloneMat(distortedData);
- 			RemoveDistortion(distortedData, undistortedData);
+ 			assert (m_undistortMapX != 0 && m_undistortMapY != 0);
+			cvRemap(distortedData, undistortedData, m_undistortMapX, m_undistortMapY);
 			cvReleaseMat(&distortedData);
 
 			/// Calculate X and Y based on instrinsic rotation and translation
@@ -1019,32 +1023,21 @@ unsigned long Swissranger::SaveParameters(const char* filename)
 
 unsigned long Swissranger::GetCalibratedZMatlab(int u, int v, float zRaw, float& zCalibrated)
 {
-	if (!m_Fake)
-	{
-		double c[7] = {m_CoeffsA0[v][u], m_CoeffsA1[v][u], m_CoeffsA2[v][u], 
-			m_CoeffsA3[v][u], m_CoeffsA4[v][u], m_CoeffsA5[v][u], m_CoeffsA6[v][u]};
-		double y = 0;
-		ipa_Utils::EvaluatePolynomial((double) zRaw, 6, &c[0], &y);
-		zCalibrated = (float) y;
-	}
-	else
-	{
-		zCalibrated = 100;
-	}
+
+	double c[7] = {m_CoeffsA0[v][u], m_CoeffsA1[v][u], m_CoeffsA2[v][u], 
+		m_CoeffsA3[v][u], m_CoeffsA4[v][u], m_CoeffsA5[v][u], m_CoeffsA6[v][u]};
+	double y = 0;
+	ipa_Utils::EvaluatePolynomial((double) zRaw, 6, &c[0], &y);
+	zCalibrated = (float) y;
+
 	return RET_OK;
 }
 
 /// Return value is in m
 unsigned long Swissranger::GetCalibratedZSwissranger(int u, int v, int width, float& zCalibrated)
 {
-	if (!m_Fake)
-	{
-		zCalibrated = (float) m_Z[v*width + u];
-	}
-	else
-	{
-		zCalibrated = 100;
-	}
+	zCalibrated = (float) m_Z[v*width + u];
+
 	return RET_OK;
 }
 
@@ -1220,7 +1213,8 @@ unsigned long Swissranger::SetParameters()
 unsigned long Swissranger::LoadParameters(const char* filename, int cameraIndex)
 {
 	/// Load SwissRanger parameters.
-	TiXmlDocument* p_configXmlDocument = new TiXmlDocument( filename );
+	boost::shared_ptr<TiXmlDocument> p_configXmlDocument (new TiXmlDocument( filename ));
+
 	if (!p_configXmlDocument->LoadFile())
 	{
 		std::cerr << "ERROR - Swissranger::LoadParameters:" << std::endl;
@@ -1615,91 +1609,6 @@ unsigned long Swissranger::LoadParameters(const char* filename, int cameraIndex)
 					return (RET_FAILED | RET_XML_TAG_NOT_FOUND);
 				}
 			
-//************************************************************************************
-//	BEGIN LibCameraSensors->Swissranger->IntrinsicParameters
-//************************************************************************************
-				// Subtag element "IntrinsicParameters" of Xml Inifile
-				p_xmlElement_Child = NULL;
-				p_xmlElement_Child = p_xmlElement_Root_SR31->FirstChildElement( "IntrinsicParameters" );
-				if ( p_xmlElement_Child )
-				{
-					double fx, fy, cx, cy;
-					// read and save value of attribute
-					if ( p_xmlElement_Child->QueryValueAttribute( "fx", &fx ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - Swissranger::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'fx' of tag 'IntrinsicParameters'." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "fy", &fy ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - Swissranger::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'fy' of tag 'IntrinsicParameters'." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "cx", &cx ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - Swissranger::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'cx' of tag 'IntrinsicParameters'." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "cy", &cy ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - Swissranger::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'cy' of tag 'IntrinsicParameters'." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					SetIntrinsicParameters(fx, fy, cx, cy);	
-				}
-				else
-				{
-					std::cerr << "ERROR - Swissranger::LoadParameters:" << std::endl;
-					std::cerr << "\t ... Can't find tag 'IntrinsicParameters'." << std::endl;
-					return (RET_FAILED | RET_XML_TAG_NOT_FOUND);
-				}
-
-//************************************************************************************
-//	BEGIN LibCameraSensors->Swissranger->DistortionCoeffs
-//************************************************************************************
-				// Subtag element "DistortionCoeffs " of Xml Inifile
-				p_xmlElement_Child = NULL;
-				p_xmlElement_Child = p_xmlElement_Root_SR31->FirstChildElement( "DistortionCoeffs" );
-				if ( p_xmlElement_Child )
-				{
-					double k1, k2, p1, p2;
-					// read and save value of attribute
-					if ( p_xmlElement_Child->QueryValueAttribute( "k1", &k1 ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - Swissranger::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'k1' of tag 'DistortionCoeffs '." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "k2", &k2 ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - Swissranger::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'k2' of tag 'DistortionCoeffs '." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "p1", &p1 ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - Swissranger::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'p1' of tag 'DistortionCoeffs '." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					if ( p_xmlElement_Child->QueryValueAttribute( "p2", &p2 ) != TIXML_SUCCESS)
-					{
-						std::cerr << "ERROR - Swissranger::LoadParameters:" << std::endl;
-						std::cerr << "\t ... Can't find attribute 'p2' of tag 'DistortionCoeffs '." << std::endl;
-						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
-					}
-					SetDistortionParameters(k1, k2, p1, p2, 176, 144);	
-				}
-				else
-				{
-					std::cerr << "ERROR - Swissranger::LoadParameters:" << std::endl;
-					std::cerr << "\t ... Can't find tag 'DistortionCoeffs '." << std::endl;
-					return (RET_FAILED | RET_XML_TAG_NOT_FOUND);
-				}
 			}
 //************************************************************************************
 //	END LibCameraSensors->Swissranger
@@ -1726,6 +1635,8 @@ unsigned long Swissranger::LoadParameters(const char* filename, int cameraIndex)
 	
 	std::cout << "INFO - Swissranger::LoadParameters:" << std::endl;
 	std::cout << "\t ... Parsing xml calibration file: Done.\n";
+
+	
 
 	return RET_OK;
 }
