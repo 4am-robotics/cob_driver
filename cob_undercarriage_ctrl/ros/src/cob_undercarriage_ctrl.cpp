@@ -180,6 +180,7 @@ class NodeClass
 				// Set desired value for Plattform Velocity to zero (setpoint setting)
 				ucar_ctrl_.SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
 				// ToDo: last value (0.0) is not used anymore --> remove from interface
+				ROS_INFO("Forced platform-velocity cmds to zero");
 			}
 		}
 
@@ -206,6 +207,7 @@ class NodeClass
 				// Set desired value for Plattform Velocity to zero (setpoint setting)
 				ucar_ctrl_.SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
 				// ToDo: last value (0.0) is not used anymore --> remove from interface
+				ROS_INFO("Forced platform-velocity cmds to zero");
 		
 				// Set EM flag and stop Ctrlr
 				ucar_ctrl_.setEMStopActive(true);
@@ -253,6 +255,7 @@ class NodeClass
 					// Set desired value for Plattform Velocity to zero (setpoint setting)
 					ucar_ctrl_.SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
 					// ToDo: last value (0.0) is not used anymore --> remove from interface
+					ROS_INFO("Forced platform-velocity cmds to zero");
 					
 					// if is not Initializing
 					if (drive_chain_diagnostic_ != diagnostic_status_lookup_.WARN)
@@ -324,6 +327,7 @@ class NodeClass
 				// Set desired value for Plattform Velocity to zero (setpoint setting)
 				ucar_ctrl_.SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
 				// ToDo: last value (0.0) is not used anymore --> remove from interface
+				ROS_INFO("Forced platform-velocity cmds to zero");
 				// Set EM flag and stop Ctrlr
 				ucar_ctrl_.setEMStopActive(true);
 
@@ -336,6 +340,7 @@ class NodeClass
 					// Set desired value for Plattform Velocity to zero (setpoint setting)
 					ucar_ctrl_.SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
 					// ToDo: last value (0.0) is not used anymore --> remove from interface
+					ROS_INFO("Forced platform-velocity cmds to zero");
 					// Set EM flag and stop Ctrlr
 					ucar_ctrl_.setEMStopActive(false);
 
@@ -382,6 +387,7 @@ class NodeClass
 				// stop controller
 				// Set desired value for Plattform Velocity to zero (setpoint setting)
 				ucar_ctrl_.SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
+				ROS_INFO("Forced platform-velocity cmds to zero");
 
 				// flag that controller is not running anymore
 				is_initialized_bool_ = false;
@@ -557,13 +563,13 @@ void NodeClass::GetJointState()
 	// copy configuration into vector classes
 	num_joints = srv_get_joint.response.jointstate.position.size();
 	// drive joints
-	drive_joint_ang_rad.assign(num_joints, 100.0);
-	drive_joint_vel_rads.assign(num_joints, 100.0);
-	drive_joint_effort_NM.assign(num_joints, 100.0);
+	drive_joint_ang_rad.assign(num_joints, 0.0);
+	drive_joint_vel_rads.assign(num_joints, 0.0);
+	drive_joint_effort_NM.assign(num_joints, 0.0);
 	// steer joints
-	steer_joint_ang_rad.assign(num_joints, 100.0);
-	steer_joint_vel_rads.assign(num_joints, 100.0);
-	steer_joint_effort_NM.assign(num_joints, 100.0);
+	steer_joint_ang_rad.assign(num_joints, 0.0);
+	steer_joint_vel_rads.assign(num_joints, 0.0);
+	steer_joint_effort_NM.assign(num_joints, 0.0);
 
 	// init iterators
 	iter_k = 0;

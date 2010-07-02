@@ -54,14 +54,28 @@
 #ifndef UndercarriageCtrlGeom_INCLUDEDEF_H
 #define UndercarriageCtrlGeom_INCLUDEDEF_H
 
+//#include <time.h>
+
 #include <cob_utilities/IniFile.h>
 #include <cob_utilities/MathSup.h>
+#include <cob_utilities/TimeStamp.h>
 
 class UndercarriageCtrlGeom
 {
 private:
 	
 	bool m_bEMStopActive;
+	
+	/*// Logging for debugging
+	// create Filepointers
+	FILE * m_pfileDesVel, * m_pfileMeasVel;
+	FILE * m_pfileSteerAngTarget1, * m_pfileSteerAngTarget2;
+	FILE * m_pfileSteerAngTarget, * m_pfileDriveVelTarget;
+	FILE * m_pfileSteerAngCmd, * m_pfileSteerVelCmd, * m_pfileDriveVelCmd;
+	// create TimeStamp
+	TimeStamp m_RawTime, m_StartTime;
+	double m_dNowTime;*/
+
 	
 	// Actual Values for PltfMovement (calculated from Actual Wheelspeeds)
 	double m_dVelLongMMS;
@@ -101,6 +115,8 @@ private:
 	std::vector<double> m_vdVelGearDriveTarget1RadS;
 	std::vector<double> m_vdAngGearSteerTarget2Rad; // alternativ 2 for steering angle (+/- PI)
 	std::vector<double> m_vdVelGearDriveTarget2RadS;
+	std::vector<double> m_vdAngGearSteerTargetRad; // choosen alternativ for steering angle
+	std::vector<double> m_vdVelGearDriveTargetRadS;
 
 	/** Position of the Wheels' Steering Axis'
 	 *  in cartesian (X/Y) and polar (Dist/Ang) coordinates
