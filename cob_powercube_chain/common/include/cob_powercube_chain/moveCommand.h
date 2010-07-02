@@ -54,8 +54,8 @@
 #ifndef __MOVE_COMMAND_H__
 #define __MOVE_COMMAND_H__
 
-#include <powercube_chain/datastructsManipulator.h>
-#include <powercube_chain/TimeStamp.h>
+#include <cob_powercube_chain/datastructsManipulator.h>
+#include <cob_powercube_chain/TimeStamp.h>
 
 class moveCommand
 {

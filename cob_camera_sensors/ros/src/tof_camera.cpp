@@ -75,10 +75,18 @@
 #include <cob_vision_utils/GlobalDefines.h>
 #include <cob_vision_utils/OpenCVUtils.h>
 
+#include <boost/thread/mutex.hpp>
+
 using namespace ipa_CameraSensors;
 
 class CobTofCameraNode
 {
+	enum t_Mode
+	{
+		MODE_TOPIC = 0,
+		MODE_SERVICE
+	};
+
 private:
 	ros::NodeHandle node_handle_;	///< Node handle
 
@@ -105,6 +113,9 @@ private:
 
 	IplImage* xyz_image_32F3_;	/// OpenCV image holding the point cloud
 	IplImage* grey_image_32F1_;	/// OpenCV image holding the amplitude values
+
+	CobTofCameraNode::t_Mode ros_node_mode_;	///< Specifies if node is started as topic or service
+	boost::mutex service_mutex_;
 
 public:
 	/// Constructor.
@@ -228,74 +239,90 @@ public:
     	/// Continuously advertises xyz and grey images.
 	bool spin()
 	{
+		boost::mutex::scoped_lock lock(service_mutex_);
 		sensor_msgs::Image::Ptr xyz_image_msg_ptr;
 		sensor_msgs::Image::Ptr grey_image_msg_ptr;
 		sensor_msgs::CameraInfo tof_image_info;
 	
-		ros::Rate rate(10);
-		while(node_handle_.ok())
+		/// Release previously acquired IplImage
+		if (xyz_image_32F3_)
 		{
-			/// Release previously acquired IplImage 
-			if (xyz_image_32F3_)
-			{
-					cvReleaseImage(&xyz_image_32F3_);
-					xyz_image_32F3_ = 0;
-			}
-
-			if (grey_image_32F1_)
-			{
-					cvReleaseImage(&grey_image_32F1_);
-					grey_image_32F1_ = 0;
-			}
-	
-			if(tof_camera_->AcquireImages2(0, &grey_image_32F1_, &xyz_image_32F3_, false, false, ipa_CameraSensors::INTENSITY) & ipa_Utils::RET_FAILED)
-			{
-				ROS_ERROR("[tof_camera] Tof image acquisition failed");
-				return false;
-			}
-
-			/// Filter images by amplitude and remove tear-off edges
-			if(filter_tearoff_) ipa_Utils::FilterTearOffEdges(xyz_image_32F3_, 0, (float)pi_half_fraction_);
-			if(filter_amplitude_) ipa_Utils::FilterByAmplitude(xyz_image_32F3_, grey_image_32F1_, 0, 0, lower_amplitude_threshold_, upper_amplitude_threshold_);
-
-			try
-			{
-				xyz_image_msg_ptr = sensor_msgs::CvBridge::cvToImgMsg(xyz_image_32F3_, "passthrough");
-			}
-			catch (sensor_msgs::CvBridgeException error)
-			{
-				ROS_ERROR("[tof_camera] Could not convert 32bit xyz IplImage to ROS message");
-				return false;
-			}
-	
-			try
-			{
-				grey_image_msg_ptr = sensor_msgs::CvBridge::cvToImgMsg(grey_image_32F1_, "passthrough");
-			}
-			catch (sensor_msgs::CvBridgeException error)
-			{
-				ROS_ERROR("[tof_camera] Could not convert 32bit grey IplImage to ROS message");
-				return false;
-			}
-	
-			/// Set time stamp
-			ros::Time now = ros::Time::now();
-			xyz_image_msg_ptr->header.stamp = now;
-			grey_image_msg_ptr->header.stamp = now;
-
-			tof_image_info = camera_info_msg_;
-			tof_image_info.width = grey_image_32F1_->width;
-			tof_image_info.height = grey_image_32F1_->height;
-			tof_image_info.header.stamp = now;
-
-			/// publish message
-			xyz_image_publisher_.publish(*xyz_image_msg_ptr, tof_image_info);
-			grey_image_publisher_.publish(*grey_image_msg_ptr, tof_image_info);
-
-			ros::spinOnce();
-			rate.sleep();
+				cvReleaseImage(&xyz_image_32F3_);
+				xyz_image_32F3_ = 0;
 		}
 
+		if (grey_image_32F1_)
+		{
+				cvReleaseImage(&grey_image_32F1_);
+				grey_image_32F1_ = 0;
+		}
+
+		if(tof_camera_->AcquireImages2(0, &grey_image_32F1_, &xyz_image_32F3_, false, false, ipa_CameraSensors::INTENSITY) & ipa_Utils::RET_FAILED)
+		{
+			ROS_ERROR("[tof_camera] Tof image acquisition failed");
+			return false;
+		}
+
+		/// Filter images by amplitude and remove tear-off edges
+		if(filter_tearoff_) ipa_Utils::FilterTearOffEdges(xyz_image_32F3_, 0, (float)pi_half_fraction_);
+		if(filter_amplitude_) ipa_Utils::FilterByAmplitude(xyz_image_32F3_, grey_image_32F1_, 0, 0, lower_amplitude_threshold_, upper_amplitude_threshold_);
+
+		try
+		{
+			xyz_image_msg_ptr = sensor_msgs::CvBridge::cvToImgMsg(xyz_image_32F3_, "passthrough");
+		}
+		catch (sensor_msgs::CvBridgeException error)
+		{
+			ROS_ERROR("[tof_camera] Could not convert 32bit xyz IplImage to ROS message");
+			return false;
+		}
+
+		try
+		{
+			grey_image_msg_ptr = sensor_msgs::CvBridge::cvToImgMsg(grey_image_32F1_, "passthrough");
+		}
+		catch (sensor_msgs::CvBridgeException error)
+		{
+			ROS_ERROR("[tof_camera] Could not convert 32bit grey IplImage to ROS message");
+			return false;
+		}
+
+		/// Set time stamp
+		ros::Time now = ros::Time::now();
+		xyz_image_msg_ptr->header.stamp = now;
+		grey_image_msg_ptr->header.stamp = now;
+
+		tof_image_info = camera_info_msg_;
+		tof_image_info.width = grey_image_32F1_->width;
+		tof_image_info.height = grey_image_32F1_->height;
+		tof_image_info.header.stamp = now;
+
+		/// publish message
+		xyz_image_publisher_.publish(*xyz_image_msg_ptr, tof_image_info);
+		grey_image_publisher_.publish(*grey_image_msg_ptr, tof_image_info);
+
+		return true;
+	}
+
+	bool imageSrvCallback(cob_srvs::GetTOFImages::Request &req,
+			cob_srvs::GetTOFImages::Response &res)
+	{
+		boost::mutex::scoped_lock lock(service_mutex_);
+		// Convert openCV IplImages to ROS messages
+		try
+		{
+			res.greyImage = *(sensor_msgs::CvBridge::cvToImgMsg(grey_image_32F1_, "passthrough"));
+			res.xyzImage = *(sensor_msgs::CvBridge::cvToImgMsg(xyz_image_32F3_, "passthrough"));
+		}
+		catch (sensor_msgs::CvBridgeException error)
+		{
+			ROS_ERROR("[tof_camera_node] Could not convert IplImage to ROS message");
+		}
+
+		// Set time stamp
+		ros::Time now = ros::Time::now();
+		res.greyImage.header.stamp = now;
+		res.xyzImage.header.stamp = now;
 		return true;
 	}
 
@@ -403,29 +430,29 @@ public:
 			ROS_ERROR("[tof_camera] Tof camera pi_half_fraction not specified");
 			return false;
 		}
-
-		return true;
-	}
-
-	bool imageSrvCallback(cob_srvs::GetTOFImages::Request &req,
-			cob_srvs::GetTOFImages::Response &res)
-	{
-
-		// Convert openCV IplImages to ROS messages
-		try
+		/// Parameters are set within the launch file
+		if (node_handle_.getParam("tof_camera/ros_node_mode", tmp_string) == false)
 		{
-			res.greyImage = *(sensor_msgs::CvBridge::cvToImgMsg(grey_image_32F1_, "passthrough"));
-			res.xyzImage = *(sensor_msgs::CvBridge::cvToImgMsg(xyz_image_32F3_, "passthrough"));
+			ROS_ERROR("[tof_camera] Mode for sensor fusion node not specified");
+			return false;
 		}
-		catch (sensor_msgs::CvBridgeException error)
+		if (tmp_string == "MODE_SERVICE")
 		{
-			ROS_ERROR("[tof_camera_node] Could not convert IplImage to ROS message");
+			ros_node_mode_ = CobTofCameraNode::MODE_SERVICE;
+		}
+		else if (tmp_string == "MODE_TOPIC")
+		{
+			ros_node_mode_ = CobTofCameraNode::MODE_TOPIC;
+		}
+		else
+		{
+			std::string str = "[tof_camera] Mode '" + tmp_string + "' unknown, try 'MODE_SERVICE' or 'MODE_TOPIC'";
+			ROS_ERROR("%s", str.c_str());
+			return false;
 		}
 
-		// Set time stamp
-		ros::Time now = ros::Time::now();
-		res.greyImage.header.stamp = now;
-		res.xyzImage.header.stamp = now;
+		ROS_INFO("ROS node mode: %s", tmp_string.c_str());
+
 		return true;
 	}
 };
@@ -447,8 +474,14 @@ int main(int argc, char** argv)
     /// Initialize camera node
     if (!camera_node.init()) return 0;
 
-
-	camera_node.spin();
+    //ros::spin();
+	ros::Rate rate(10);
+	while(nh.ok())
+	{
+		camera_node.spin();
+		ros::spinOnce();
+		rate.sleep();
+	}
 
 	return 0;
 }
