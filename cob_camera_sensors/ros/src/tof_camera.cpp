@@ -246,8 +246,8 @@ public:
 		}
 
 		/// Filter images by amplitude and remove tear-off edges
-		if(filter_tearoff_ || filter_amplitude_)
-			ROS_ERROR("[tof_camera] FUNCTION UNCOMMENT BY JSF");
+		//if(filter_tearoff_ || filter_amplitude_)
+		//	ROS_ERROR("[tof_camera] FUNCTION UNCOMMENT BY JSF");
 		if(filter_tearoff_) ipa_Utils::FilterTearOffEdges(xyz_image_32F3_, 0, (float)pi_half_fraction_);
 		if(filter_amplitude_) ipa_Utils::FilterByAmplitude(xyz_image_32F3_, grey_image_32F1_, 0, 0, lower_amplitude_threshold_, upper_amplitude_threshold_);
 
