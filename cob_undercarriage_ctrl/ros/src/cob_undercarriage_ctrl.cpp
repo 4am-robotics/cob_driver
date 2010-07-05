@@ -645,7 +645,7 @@ void NodeClass::UpdateOdometry()
 	// calculation from ROS odom publisher tutorial http://www.ros.org/wiki/navigation/Tutorials/RobotSetup/Odom
 	x_rob_m_ = x_rob_m_ + (vel_x_rob_ms * cos(theta_rob_rad_) - vel_y_rob_ms * sin(theta_rob_rad_)) * dt;
 	y_rob_m_ = y_rob_m_ + (vel_x_rob_ms * sin(theta_rob_rad_) + vel_y_rob_ms * cos(theta_rob_rad_)) * dt;
-	theta_rob_rad_ = rot_rob_rads * dt;
+	theta_rob_rad_ = theta_rob_rad_ + rot_rob_rads * dt;
 
 	// format data for compatibility with tf-package and standard odometry msg
 	// generate quaternion for rotation
@@ -656,7 +656,7 @@ void NodeClass::UpdateOdometry()
 	// compose header
 	odom_tf.header.stamp = current_time;
 	odom_tf.header.frame_id = "/odom";
-	odom_tf.child_frame_id = "/base_footprint";
+	odom_tf.child_frame_id = "/base_link";
 	// compose data container
 	odom_tf.transform.translation.x = x_rob_m_;
 	odom_tf.transform.translation.y = y_rob_m_;
@@ -668,7 +668,7 @@ void NodeClass::UpdateOdometry()
 	// compose header
     odom_top.header.stamp = current_time;
     odom_top.header.frame_id = "/odom";
-    odom_top.child_frame_id = "/base_footprint";
+    odom_top.child_frame_id = "/base_link";
     // compose pose of robot
     odom_top.pose.pose.position.x = x_rob_m_;
     odom_top.pose.pose.position.y = y_rob_m_;
