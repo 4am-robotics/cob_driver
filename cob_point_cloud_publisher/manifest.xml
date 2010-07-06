@@ -4,7 +4,7 @@
      This package converts grey- and xyz-images from cob_camera_sensors into a point_cloud and publishes it.
 
   </description>
-  <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>
+  <author>Jan Fischer, email:jan.fischer@ipa.fhg.de</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_point_cloud_publisher</url>
