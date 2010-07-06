@@ -309,6 +309,11 @@ class NodeClass
 		void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal)
 		{
 			ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
+			if (!isInitialized_)
+			{
+				as_.setAborted();
+				return;
+			}
 			// saving goal into local variables
 			traj_ = goal->trajectory;
 			traj_point_nr_ = 0;
