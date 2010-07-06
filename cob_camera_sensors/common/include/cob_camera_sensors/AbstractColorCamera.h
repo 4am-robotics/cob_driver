@@ -56,49 +56,36 @@
 /// @author Jan Fischer
 /// @date May 2008.
 
-#ifndef __ABSTRACTCOLORCAMERA_H__
-#define __ABSTRACTCOLORCAMERA_H__
-
-#ifdef __LINUX__
-#define __DLL_ABSTRACTCOLORCAMERA_H__ 
-#define APIENTRY
-#else
-	#include <windows.h>
-#ifdef __LIBCAMERASENSORS_EXPORT__
-	#define __DLL_ABSTRACTCOLORCAMERA_H__ __declspec(dllexport)
-	#else
-	#define __DLL_ABSTRACTCOLORCAMERA_H__ __declspec(dllimport)
-	#endif
-#endif
+#ifndef __IPA_ABSTRACTCOLORCAMERA_H__
+#define __IPA_ABSTRACTCOLORCAMERA_H__
 
 #ifdef __COB_ROS__
-	#include <opencv/highgui.h>
-	#include <opencv/cv.h>
-	#include <opencv/cxcore.h>
-	
-	#include "tinyxml/tinyxml.h"
-	#include "cob_vision_utils/CameraSensorTypes.h"
-#else
-	#include <highgui.h>
-	#include <cv.h>
-	#include <cxcore.h>
-	
-	#include "Vision/Extern/TinyXml/tinyxml.h"
-	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/CameraSensorTypes.h"
-#endif
+	#include "cob_vision_utils/CameraSensorDefines.h"
 
-#include <iostream>
-#include <limits>
-#include <boost/shared_ptr.hpp>
+	#include "tinyxml/tinyxml.h"
+
+	#include "cob_vision_utils/CameraSensorTypes.h"
+	#include "cob_vision_utils/VisionUtils.h"
+#else
+	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/CameraSensorDefines.h"
+
+	#include "Vision/Extern/TinyXml/tinyxml.h"
+
+	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/CameraSensorTypes.h"
+	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/VisionUtils.h"
+#endif
 
 namespace ipa_CameraSensors {
 
+/// Define smart pointer type for toolbox
+class AbstractColorCamera;
+typedef boost::shared_ptr<AbstractColorCamera> AbstractColorCameraPtr;
 
 /// An interface for common color cameras.
 ///	All color/mono cameras that are used within the project
 /// must derive from this class to guarantee
 /// interoperability with the already existing code.
-class AbstractColorCamera
+class __DLL_LIBCAMERASENSORS__ AbstractColorCamera
 {
 	public: 
 
@@ -161,23 +148,14 @@ class AbstractColorCamera
 		/// @return Return code
 		unsigned long GetColorImage(char* colorImageData, bool getLatestFrame=true) {return RET_FAILED;}
 
-		/// Retrieves an OpenCV IplImage from the camera.
-		/// IplImage must be created (cvCreateImage) before passing it to GetColorImage.
+		/// Retrieves an image from the camera.
+		/// <code>cv::Mat</code> object is initialized on demand.
 		/// @param colorImage The image that has been acquired by the camera.
 		/// @param getLatestFrame If true, the camera acquires a new frame and returns it.
 		///						  Otherwise, the next frame following the last returned frame
 		///						  is returned from the internal camera buffer.
-		/// @return Return code.
-		virtual unsigned long GetColorImage(IplImage* colorImage, bool getLatestFrame=true)=0;
-
-		/// Retrieves an OpenCV IplImage from the camera.
-		/// IplImage must be a null pointer before passing it to GetColorImage.
-		/// @param colorImage The image that has been acquired by the camera.
-		/// @param getLatestFrame If true, the camera acquires a new frame and returns it.
-		///						  Otherwise, the next frame following the last returned frame
-		///						  is returned from the internal camera buffer.
-		/// @return Return code.
-		virtual unsigned long GetColorImage2(IplImage** colorImage, bool getLatestFrame=true) {return (RET_FAILED | RET_FUNCTION_NOT_IMPLEMENTED);}
+		/// @throw IPA_Exception Throws an exception, if camera access failed
+		virtual unsigned long GetColorImage(cv::Mat* colorImage, bool getLatestFrame=true)=0;
 
 		/// Returns the camera type.
 		/// @return The camera type
@@ -253,20 +231,13 @@ class AbstractColorCamera
 
 };
 
-/// Factory function to create an object of LibObjectDetector
-#ifdef __cplusplus
-extern "C" {
-#endif
+/// Creates, intializes and returns a smart pointer object for the camera.
+/// @return Smart pointer, refering to the generated object
+__DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr CreateColorCamera_VirtualCam();
+__DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr CreateColorCamera_ICCam();
+__DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr CreateColorCamera_AxisCam();
+__DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr CreateColorCamera_AVTPikeCam();
 
-__DLL_ABSTRACTCOLORCAMERA_H__ AbstractColorCamera* APIENTRY CreateColorCamera_AVTPikeCam();
-__DLL_ABSTRACTCOLORCAMERA_H__ AbstractColorCamera* APIENTRY CreateColorCamera_ICCam();
-__DLL_ABSTRACTCOLORCAMERA_H__ AbstractColorCamera* APIENTRY CreateColorCamera_AxisCam();
-__DLL_ABSTRACTCOLORCAMERA_H__ AbstractColorCamera* APIENTRY CreateColorCamera_VirtualCam();
-__DLL_ABSTRACTCOLORCAMERA_H__ void APIENTRY ReleaseColorCamera(AbstractColorCamera* colorCamera);
-
-#ifdef __cplusplus
-}
-#endif
 
 } // end namespace
-#endif // __ABSTRACTCOLORCAMERA_H_
+#endif // __IPA_ABSTRACTCOLORCAMERA_H__

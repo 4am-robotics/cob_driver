@@ -52,34 +52,22 @@
 ****************************************************************/
  
 #ifdef __COB_ROS__
-#include "cob_camera_sensors/Swissranger.h"
+	#include "cob_camera_sensors/Swissranger.h"
 #else
-#include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/Swissranger.h"
+	#include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/Swissranger.h"
 #endif
 
 using namespace ipa_CameraSensors;
 
-/// Entry point function for enduser
-#ifdef __cplusplus
-extern "C" {
-#endif
-__DLL_ABSTRACTRANGEIMAGINGSENSOR_H__ AbstractRangeImagingSensor* APIENTRY CreateRangeImagingSensor_Swissranger()
+__DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr ipa_CameraSensors::CreateRangeImagingSensor_Swissranger()
 {
-	return (new Swissranger());
+	return AbstractRangeImagingSensorPtr(new Swissranger());
 }
-#ifdef __cplusplus
-}
-#endif
-
 
 Swissranger::Swissranger()
 {
 	m_initialized = false;
 	m_open = false;
-
-	m_intrinsicMatrix = 0;
-	m_undistortMapX = 0;
-	m_undistortMapY = 0;
 
 	m_SRCam = 0;
 	m_DataBuffer = 0;
@@ -101,11 +89,11 @@ int ipa_CameraSensors::LibMesaCallback(SRCAM srCam, unsigned int msg, unsigned i
 {
 	switch(msg)
 	{
-		case CM_MSG_DISPLAY: /// Redirects all output to console
+		case CM_MSG_DISPLAY: // Redirects all output to console
 		{
 			if (param==MC_ETH)
 			{
-				/// Do nothing
+				// Do nothing
 				return 0;
 			}
 			else
@@ -116,7 +104,7 @@ int ipa_CameraSensors::LibMesaCallback(SRCAM srCam, unsigned int msg, unsigned i
 		}
 		default:
 		{
-			/// Default handling
+			// Default handling
 			return SR_GetDefaultCallback()(0,msg,param,data);
 		}
 	}
@@ -133,7 +121,7 @@ unsigned long Swissranger::Init(std::string directory, int cameraIndex)
 
 	m_CameraType = ipa_CameraSensors::CAM_SWISSRANGER;
 
-	/// Load SR parameters from xml-file
+	// Load SR parameters from xml-file
 	if (LoadParameters((directory + "cameraSensorsIni.xml").c_str(), cameraIndex) & RET_FAILED)
 	{
 		std::cerr << "ERROR - Swissranger::Init:" << std::endl;
@@ -143,78 +131,122 @@ unsigned long Swissranger::Init(std::string directory, int cameraIndex)
 	
 	m_CoeffsInitialized = true;
 
-	/// Set callback function, to catch annoying ethernet messages
+	// Set callback function, to catch annoying ethernet messages
 	SR_SetCallback(LibMesaCallback);
 
 	if (m_CalibrationMethod == MATLAB)
 	{
-		/// Load z-calibration files
-		if(m_CoeffsA0.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA0.txt") & RET_FAILED)
+		// Load z-calibration files
+		std::string filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA0.xml";
+		CvMat* c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		if (! c_mat)
 		{
-			std::cerr << "ERROR - Swissranger::Init:" << std::endl;
+			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA0.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
 			// no RET_FAILED, as we might want to calibrate the camera to create these files
 		}
-
-		/// Load z-calibration files
-		if(m_CoeffsA1.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA1.txt") & RET_FAILED)
+		else
 		{
-			std::cerr << "ERROR - Swissranger::Init:" << std::endl;
+			m_CoeffsA0 = c_mat;
+			cvReleaseMat(&c_mat);
+		}
+
+		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA1.xml";
+		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		if (! c_mat)
+		{
+			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA1.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
 			// no RET_FAILED, as we might want to calibrate the camera to create these files
 		}
-
-		/// Load z-calibration files
-		if(m_CoeffsA2.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA2.txt") & RET_FAILED)
+		else
 		{
-			std::cerr << "ERROR - Swissranger::Init:" << std::endl;
+			m_CoeffsA1 = c_mat;
+			cvReleaseMat(&c_mat);
+		}
+
+		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA2.xml";
+		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		if (! c_mat)
+		{
+			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA2.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
 			// no RET_FAILED, as we might want to calibrate the camera to create these files
 		}
-
-		/// Load z-calibration files
-		if(m_CoeffsA3.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA3.txt") & RET_FAILED)
+		else
 		{
-			std::cerr << "ERROR - Swissranger::Init:" << std::endl;
+			m_CoeffsA2 = c_mat;
+			cvReleaseMat(&c_mat);
+		}
+
+		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA3.xml";
+		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		if (! c_mat)
+		{
+			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA3.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
 			// no RET_FAILED, as we might want to calibrate the camera to create these files
 		}
-
-		/// Load z-calibration files
-		if(m_CoeffsA4.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA4.txt") & RET_FAILED)
+		else
 		{
-			std::cerr << "ERROR - Swissranger::Init:" << std::endl;
+			m_CoeffsA3 = c_mat;
+			cvReleaseMat(&c_mat);
+		}
+
+		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA4.xml";
+		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		if (! c_mat)
+		{
+			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA4.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
 			// no RET_FAILED, as we might want to calibrate the camera to create these files
 		}
-
-		/// Load z-calibration files
-		if(m_CoeffsA5.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA5.txt") & RET_FAILED)
+		else
 		{
-			std::cerr << "ERROR - Swissranger::Init:" << std::endl;
+			m_CoeffsA4 = c_mat;
+			cvReleaseMat(&c_mat);
+		}
+
+		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA5.xml";
+		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		if (! c_mat)
+		{
+			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA5.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
 			// no RET_FAILED, as we might want to calibrate the camera to create these files
-		}/// Load z-calibration files
-
-		if(m_CoeffsA6.Load(directory + "MatlabCalibrationData/SR/ZCoeffsA6.txt") & RET_FAILED)
+		}
+		else
 		{
-			std::cerr << "ERROR - Swissranger::Init:" << std::endl;
+			m_CoeffsA5 = c_mat;
+			cvReleaseMat(&c_mat);
+		}
+
+		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA6.xml";
+		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		if (! c_mat)
+		{
+			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
 			std::cerr << "\t ... Error while loading " << directory + "MatlabCalibrationData/ZcoeffsA6.txt" << "." << std::endl;
 			std::cerr << "\t ... Data is necessary for z-calibration of swissranger camera" << std::endl;
 			m_CoeffsInitialized = false;
 			// no RET_FAILED, as we might want to calibrate the camera to create these files
+		}
+		else
+		{
+			m_CoeffsA6 = c_mat;
+			cvReleaseMat(&c_mat);
 		}
 	}
 	
@@ -239,8 +271,8 @@ unsigned long Swissranger::Open()
 	}
 
 	std::string sInterface = "";
-	m_RangeCameraParameters.m_Interface.clear(); /// Clear flags
-	m_RangeCameraParameters.m_Interface.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_RangeCameraParameters.m_Interface.clear(); // Clear flags
+	m_RangeCameraParameters.m_Interface.seekg(0); // Set Pointer to position 0 within stringstream
 	m_RangeCameraParameters.m_Interface >> sInterface;
 
 	if (sInterface == "USB")
@@ -256,8 +288,8 @@ unsigned long Swissranger::Open()
 	else if (sInterface == "ETHERNET")
 	{
 		std::string sIP = "";
-		m_RangeCameraParameters.m_IP.clear(); /// Clear flags
-		m_RangeCameraParameters.m_IP.seekg(0); /// Set Pointer to position 0 within stringstream
+		m_RangeCameraParameters.m_IP.clear(); // Clear flags
+		m_RangeCameraParameters.m_IP.seekg(0); // Set Pointer to position 0 within stringstream
 		m_RangeCameraParameters.m_IP >> sIP;
 		if(SR_OpenETH(&m_SRCam, sIP.c_str())<=0)
 		{
@@ -343,7 +375,7 @@ unsigned long Swissranger::SetProperty(t_cameraProperty* cameraProperty)
 				}
 				else if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_DEFAULT)
 				{
-					/// Void
+					// Void
 				}
 				else
 				{
@@ -384,7 +416,7 @@ unsigned long Swissranger::SetProperty(t_cameraProperty* cameraProperty)
 				}
 				else if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_DEFAULT)
 				{
-					/// Void
+					// Void
 				}
 				else
 				{
@@ -432,7 +464,7 @@ unsigned long Swissranger::SetProperty(t_cameraProperty* cameraProperty)
 				}
 				else if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_DEFAULT)
 				{
-					/// Void
+					// Void
 				}
 				else
 				{
@@ -443,16 +475,16 @@ unsigned long Swissranger::SetProperty(t_cameraProperty* cameraProperty)
 			}
 			else if (cameraProperty->propertyType & (ipa_CameraSensors::TYPE_STRING))
 			{
-				/// MF_40MHz, SR3k: maximal range 3.75m
-                /// MF_30MHz, SR3k, SR4k: maximal range 5m
-                /// MF_21MHz, SR3k: maximal range 7.14m
-                /// MF_20MHz, SR3k: maximal range 7.5m
-                /// MF_19MHz, SR3k: maximal range 7.89m
-                /// MF_60MHz, SR4k: maximal range 2.5m 
-                /// MF_15MHz, SR4k: maximal range 10m
-                /// MF_10MHz, SR4k: maximal range 15m
-                /// MF_29MHz, SR4k: maximal range 5.17m
-                /// MF_31MHz
+				// MF_40MHz, SR3k: maximal range 3.75m
+                // MF_30MHz, SR3k, SR4k: maximal range 5m
+                // MF_21MHz, SR3k: maximal range 7.14m
+                // MF_20MHz, SR3k: maximal range 7.5m
+                // MF_19MHz, SR3k: maximal range 7.89m
+                // MF_60MHz, SR4k: maximal range 2.5m 
+                // MF_15MHz, SR4k: maximal range 10m
+                // MF_10MHz, SR4k: maximal range 15m
+                // MF_29MHz, SR4k: maximal range 5.17m
+                // MF_31MHz
 				if (cameraProperty->stringData == "MF_40MHz")
 				{
 					err = SR_SetModulationFrequency(m_SRCam, MF_40MHz);
@@ -619,9 +651,9 @@ unsigned long Swissranger::GetProperty(t_cameraProperty* cameraProperty)
 }
 
 
-/// Wrapper for IplImage retrival from AcquireImage
-/// Images have to be initialized prior to calling this function
-unsigned long Swissranger::AcquireImages(IplImage* rangeImage, IplImage* grayImage, IplImage* cartesianImage, 
+// Wrapper for IplImage retrival from AcquireImage
+// Images have to be initialized prior to calling this function
+unsigned long Swissranger::AcquireImages(cv::Mat* rangeImage, cv::Mat* grayImage, cv::Mat* cartesianImage, 
 										 bool getLatestFrame, bool undistort, ipa_CameraSensors::t_ToFGrayImageType grayImageType)
 {
 	char* rangeImageData = 0;
@@ -639,56 +671,23 @@ unsigned long Swissranger::AcquireImages(IplImage* rangeImage, IplImage* grayIma
 
 	if(rangeImage)
 	{
-		if(rangeImage->depth == IPL_DEPTH_32F &&
-			rangeImage->nChannels == 1 &&
-			rangeImage->width == width &&
-			rangeImage->height == height)
-		{
-			rangeImageData = rangeImage->imageData;
-			widthStepOneChannel = rangeImage->widthStep;
-		}
-		else
-		{
-			std::cerr << "ERROR - Swissranger::AcquireImages:" << std::endl;
-			std::cerr << "\t ... Could not acquire range image. Wrong image attributes." << std::endl;
-			return RET_FAILED;
-		}
+		rangeImage->create(height, width, CV_32FC(1));
+		rangeImageData = rangeImage->ptr<char>(0);
+		widthStepOneChannel = rangeImage->step;
 	}
 
 	if(grayImage)
 	{
-		if(grayImage->depth == IPL_DEPTH_32F &&
-			grayImage->nChannels == 1 &&
-			grayImage->width == width &&
-			grayImage->height == height)
-		{
-			grayImageData = grayImage->imageData;
-			widthStepOneChannel = grayImage->widthStep;
-		}
-		else
-		{
-			std::cerr << "ERROR - Swissranger::AcquireImages:" << std::endl;
-			std::cerr << "\t ... Could not acquire intensity image. Wrong image attributes." << std::endl;
-			return RET_FAILED;
-		}
+		grayImage->create(height, width, CV_32FC(1));
+		grayImageData = grayImage->ptr<char>(0);
+		widthStepOneChannel = grayImage->step;
 	}	
 
 	if(cartesianImage)
 	{
-		if(cartesianImage->depth == IPL_DEPTH_32F &&
-			cartesianImage->nChannels == 3 &&
-			cartesianImage->width == width &&
-			cartesianImage->height == height)
-		{
-			cartesianImageData = cartesianImage->imageData;
-			widthStepOneChannel = cartesianImage->widthStep/3;
-		}
-		else
-		{
-			std::cout << "ERROR - Swissranger::AcquireImages:" << std::endl;
-			std::cerr << "\t ... Could not acquire cartesian image. Wrong image attributes." << std::endl;
-			return RET_FAILED;
-		}
+		cartesianImage->create(height, width, CV_32FC(3));
+		cartesianImageData = cartesianImage->ptr<char>(0);
+		widthStepOneChannel = cartesianImage->step/3;
 	}
 
 	if (widthStepOneChannel == 0)
@@ -700,58 +699,12 @@ unsigned long Swissranger::AcquireImages(IplImage* rangeImage, IplImage* grayIma
 	
 }
 
-/// Wrapper for IplImage retrival from AcquireImage
-unsigned long Swissranger::AcquireImages2(IplImage** rangeImage, IplImage** grayImage, IplImage** cartesianImage,
-										  bool getLatestFrame, bool undistort, ipa_CameraSensors::t_ToFGrayImageType grayImageType)
-{
-	char* rangeImageData = 0;
-	char* grayImageData = 0;
-	char* cartesianImageData = 0;
-	int widthStepOneChannel = -1;
-
-	int width = -1;
-	int height = -1;
-	ipa_CameraSensors::t_cameraProperty cameraProperty;
-	cameraProperty.propertyID = PROP_CAMERA_RESOLUTION;
-	GetProperty(&cameraProperty);
-	width = cameraProperty.cameraResolution.xResolution;
-	height = cameraProperty.cameraResolution.yResolution;
-
-	if (rangeImage)
-	{
-		*rangeImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_32F, 1);
-		rangeImageData = (*rangeImage)->imageData;
-		widthStepOneChannel = (*rangeImage)->widthStep;
-	} 
-
-	if(grayImage)
-	{
-		*grayImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_32F, 1);
-		grayImageData = (*grayImage)->imageData;
-		widthStepOneChannel = (*grayImage)->widthStep;
-	}
-
-	if(cartesianImage)
-	{
-		*cartesianImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_32F, 3);
-		cartesianImageData = (*cartesianImage)->imageData;
-		widthStepOneChannel = ((*cartesianImage)->widthStep)/3;
-	}
-
-	if (widthStepOneChannel == -1)
-	{
-		return RET_OK;
-	}
-	
-	return AcquireImages(widthStepOneChannel, rangeImageData, grayImageData, cartesianImageData, getLatestFrame, undistort, grayImageType);
-}
-
 // Enables faster image retrival than AcquireImage
 unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeImageData, char* grayImageData, char* cartesianImageData,
 										 bool getLatestFrame, bool undistort, ipa_CameraSensors::t_ToFGrayImageType grayImageType)
 {
 ///***********************************************************************
-/// Get data from camera
+// Get data from camera
 ///***********************************************************************
 	if (!m_open)
 	{
@@ -794,41 +747,40 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 	}
 	WORD* pixels =(WORD*) SR_GetImage(m_SRCam, 0);
 ///***********************************************************************
-/// Range image (distorted or undistorted)
+// Range image (distorted or undistorted)
 ///***********************************************************************
 	if (rangeImageData)
 	{
 		int widthStepRangeImage = widthStepOneChannel;
-		float rangeValue = -1;
+		int imageStep = -1;
+		float* f_ptr = 0;
 		
 		// put data in corresponding IPLImage structures
 		for(unsigned int row=0; row<(unsigned int)height; row++)
 		{
+			imageStep = row*width;
+			f_ptr = (float*)(rangeImageData + row*widthStepRangeImage);
+
 			for (unsigned int col=0; col<(unsigned int)width; col++)
 			{
-				rangeValue = (float)(pixels[width*row + col]);
-				((float*) (rangeImageData + row*widthStepRangeImage))[col] = rangeValue;
+				f_ptr[col] = (float)(pixels[imageStep + col]);
 			}	
 		}
 		
 		if (undistort)
 		{
-			CvMat* undistortedData = cvCreateMat(height, width, CV_32FC1 );
-			undistortedData->data.fl = (float*) rangeImageData;
-
-			CvMat* distortedData = cvCloneMat(undistortedData);
+			cv::Mat undistortedData(height, width, CV_32FC(1), (float*) rangeImageData);
+			cv::Mat distortedData;
  
-			assert (m_undistortMapX != 0 && m_undistortMapY != 0);
-			cvRemap(distortedData, undistortedData, m_undistortMapX, m_undistortMapY);
-
-			cvReleaseMat(&distortedData);
+			assert (!m_undistortMapX.empty() && !m_undistortMapY.empty());
+			cv::remap(distortedData, undistortedData, m_undistortMapX, m_undistortMapY, cv::INTER_LINEAR);
 		}
 
 	} // End if (rangeImage)
 
 ///***********************************************************************
-/// Intensity/Amplitude image
-/// ATTENTION: SR provides only amplitude information
+// Intensity/Amplitude image
+// ATTENTION: SR provides only amplitude information
 ///***********************************************************************
 	if(grayImageData)
 	{
@@ -842,36 +794,34 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 		}
 
 		int widthStepGrayImage = widthStepOneChannel;
-		float grayValue = 0;
 		int imageSize = width*height;
+		int imageStep = 0;
+		float* f_ptr = 0;
 
 		for(unsigned int row=0; row<(unsigned int)height-1; row++)
 		{
+			imageStep = imageSize+row*width;
+			f_ptr = (float*)(grayImageData + row*widthStepGrayImage);
+
 			for (unsigned int col=0; col<(unsigned int)width-1; col++)
 			{
-				grayValue = (float)(pixels[imageSize+row*width+col]);
-				((float*) (grayImageData + row*widthStepGrayImage))[col] = grayValue;
-				//cvSetReal2D(*grayImage, row, col, grayValue);
+				f_ptr[col] = (float)(pixels[imageStep+col]);
 			}	
 		}
 		
 		if (undistort)
 		{
-			CvMat* undistortedData = cvCreateMat( height, width, CV_32FC1 );
-			undistortedData->data.fl = (float*) grayImageData;
-
-			CvMat* distortedData = cvCloneMat(undistortedData);
+			cv::Mat undistortedData( height, width, CV_32FC1, (float*) grayImageData);
+			cv::Mat distortedData;
  
-			assert (m_undistortMapX != 0 && m_undistortMapY != 0);
-			cvRemap(distortedData, undistortedData, m_undistortMapX, m_undistortMapY);
-
-			cvReleaseMat(&distortedData);
+			assert (!m_undistortMapX.empty() && !m_undistortMapY.empty());
+			cv::remap(distortedData, undistortedData, m_undistortMapX, m_undistortMapY, cv::INTER_LINEAR);
 		}
 
 	}
 
 ///***********************************************************************
-/// Cartesian image (always undistorted)
+// Cartesian image (always undistorted)
 ///***********************************************************************
 	if(cartesianImageData)
 	{
@@ -879,22 +829,24 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 		float x = -1;
 		float y = -1;
 		float zRaw = -1;
+		float* zCalibratedPtr = 0;
 		float zCalibrated = -1;
-		float* ptr = 0;
+		float* f_ptr = 0;
 
 		if(m_CalibrationMethod==MATLAB)
 		{
 			if (m_CoeffsInitialized)
 			{
-				/// Calculate calibrated z values (in meter) based on 6 degree polynomial approximation
-				CvMat* distortedData = cvCreateMat( height, width, CV_32FC1 );
+				// Calculate calibrated z values (in meter) based on 6 degree polynomial approximation
+				cv::Mat distortedData( height, width, CV_32FC1 );
 				for(unsigned int row=0; row<(unsigned int)height; row++)
 				{
+					f_ptr = distortedData.ptr<float>(row);
 					for (unsigned int col=0; col<(unsigned int)width; col++)
 					{
 						zRaw = (float)(pixels[width*row + col]);
 						GetCalibratedZMatlab(col, row, zRaw, zCalibrated);
-						((float*) (distortedData->data.ptr + row*widthStepOneChannel))[col] = zCalibrated;
+						f_ptr[col] = zCalibrated;
 					}	
 				}
 				/*IplImage dummy;
@@ -906,11 +858,10 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 				cvWaitKey();
 				*/
 
-				/// Undistort
-				CvMat* undistortedData = cvCloneMat(distortedData);
-	 			assert (m_undistortMapX != 0 && m_undistortMapY != 0);
-				cvRemap(distortedData, undistortedData, m_undistortMapX, m_undistortMapY);
-				cvReleaseMat(&distortedData);
+				// Undistort
+				cv::Mat undistortedData;
+	 			assert (!m_undistortMapX.empty() && !m_undistortMapY.empty());
+				cv::remap(distortedData, undistortedData, m_undistortMapX, m_undistortMapY, cv::INTER_LINEAR);
 				
 				/*IplImage dummy;
 				IplImage* z = cvGetImage(undistortedData, &dummy);
@@ -920,24 +871,22 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 				cvShowImage("Z", image);
 				cvWaitKey();*/
 
-				/// Calculate X and Y based on instrinsic rotation and translation
+				// Calculate X and Y based on instrinsic rotation and translation
 				for(unsigned int row=0; row<(unsigned int)height; row++)
 				{
+					zCalibratedPtr = undistortedData.ptr<float>(row);
+					f_ptr = (float*)(cartesianImageData + row*widthStepCartesianImage);
+
 					for (unsigned int col=0; col<(unsigned int)width; col++)
 					{
-						zCalibrated = undistortedData->data.fl[width*row + col];
+						int colTimes3 = 3*col;
+						GetCalibratedXYMatlab(col, row, zCalibratedPtr[col], x, y);
 
-						GetCalibratedXYMatlab(col, row, zCalibrated, x, y);
-
-						ptr = &((float*) (cartesianImageData + row*widthStepCartesianImage))[col*3];
-						ptr[0] = x;
-						ptr[1] = y;
-						ptr[2] = zCalibrated;
-						//CvScalar Val = cvScalar(x, y, z);
-						//cvSet2D(*cartesianImage, row, col, Val);
+						f_ptr[colTimes3] = x;
+						f_ptr[colTimes3 + 1] = y;
+						f_ptr[colTimes3 + 2] = zCalibratedPtr[col];
 					}
 				}
-				cvReleaseMat(&undistortedData);
 			}
 			else
 			{
@@ -950,41 +899,39 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 		else if(m_CalibrationMethod==MATLAB_NO_Z)
 		{
 			SR_CoordTrfFlt(m_SRCam, m_X, m_Y, m_Z, sizeof(float), sizeof(float), sizeof(float));
-			/// Calculate calibrated z values (in meter) based on 6 degree polynomial approximation
-			CvMat* distortedData = cvCreateMat( height, width, CV_32FC1 );
+			// Calculate calibrated z values (in meter) based on 6 degree polynomial approximation
+			cv::Mat distortedData( height, width, CV_32FC1 );
 			for(unsigned int row=0; row<(unsigned int)height; row++)
 			{
+				f_ptr = distortedData.ptr<float>(row);
 				for (unsigned int col=0; col<(unsigned int)width; col++)
 				{
 					GetCalibratedZSwissranger(col, row, width, zCalibrated);
-					((float*) (distortedData->data.ptr + row*widthStepOneChannel))[col] = zCalibrated;
+					f_ptr[col] = zCalibrated;
 				}	
 			}
 
-			/// Undistort
-			CvMat* undistortedData = cvCloneMat(distortedData);
- 			assert (m_undistortMapX != 0 && m_undistortMapY != 0);
-			cvRemap(distortedData, undistortedData, m_undistortMapX, m_undistortMapY);
-			cvReleaseMat(&distortedData);
+			// Undistort
+			cv::Mat undistortedData;
+ 			assert (!m_undistortMapX.empty() && !m_undistortMapY.empty());
+			cv::remap(distortedData, undistortedData, m_undistortMapX, m_undistortMapY, cv::INTER_LINEAR);
 
-			/// Calculate X and Y based on instrinsic rotation and translation
+			// Calculate X and Y based on instrinsic rotation and translation
 			for(unsigned int row=0; row<(unsigned int)height; row++)
 			{
+				zCalibratedPtr = undistortedData.ptr<float>(row);
+				f_ptr = (float*)(cartesianImageData + row*widthStepCartesianImage);
+
 				for (unsigned int col=0; col<(unsigned int)width; col++)
 				{
-					zCalibrated = undistortedData->data.fl[width*row + col];
+					int colTimes3 = 3*col;
+					GetCalibratedXYMatlab(col, row, zCalibratedPtr[col], x, y);
 
-					GetCalibratedXYMatlab(col, row, zCalibrated, x, y);
-
-					ptr = &((float*) (cartesianImageData + row*widthStepCartesianImage))[col*3];
-					ptr[0] = x;
-					ptr[1] = y;
-					ptr[2] = zCalibrated;
-					//CvScalar Val = cvScalar(x, y, z);
-					//cvSet2D(*cartesianImage, row, col, Val);
+					f_ptr[colTimes3] = x;
+					f_ptr[colTimes3 + 1] = y;
+					f_ptr[colTimes3 + 2] = zCalibratedPtr[col];
 				}
 			}
-			cvReleaseMat(&undistortedData);
 		}
 		else if(m_CalibrationMethod==NATIVE)
 		{
@@ -992,17 +939,18 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 					
 			for(unsigned int row=0; row<(unsigned int)height; row++)
 			{
+				f_ptr = (float*)(cartesianImageData + row*widthStepCartesianImage);
+
 				for (unsigned int col=0; col<(unsigned int)width; col++)
 				{
+					int colTimes3 = 3*col;
+
 					GetCalibratedZSwissranger(col, row, width, zCalibrated);
 					GetCalibratedXYSwissranger(col, row, width, x, y);
 
-					//CvScalar Val = cvScalar(x, y, z);
-					//cvSet2D(*cartesianImage, row, col, Val);
-					ptr = &((float*) (cartesianImageData + row*widthStepCartesianImage))[col*3];
-					ptr[0] = x;
-					ptr[1] = y;
-					ptr[2] = zCalibrated;
+					f_ptr[colTimes3] = x;
+					f_ptr[colTimes3 + 1] = y;
+					f_ptr[colTimes3 + 2] = zCalibrated;
 				}
 			}
 		}
@@ -1024,8 +972,8 @@ unsigned long Swissranger::SaveParameters(const char* filename)
 unsigned long Swissranger::GetCalibratedZMatlab(int u, int v, float zRaw, float& zCalibrated)
 {
 
-	double c[7] = {m_CoeffsA0[v][u], m_CoeffsA1[v][u], m_CoeffsA2[v][u], 
-		m_CoeffsA3[v][u], m_CoeffsA4[v][u], m_CoeffsA5[v][u], m_CoeffsA6[v][u]};
+	double c[7] = {m_CoeffsA0.at<double>(v,u), m_CoeffsA1.at<double>(v,u), m_CoeffsA2.at<double>(v,u), 
+		m_CoeffsA3.at<double>(v,u), m_CoeffsA4.at<double>(v,u), m_CoeffsA5.at<double>(v,u), m_CoeffsA6.at<double>(v,u)};
 	double y = 0;
 	ipa_Utils::EvaluatePolynomial((double) zRaw, 6, &c[0], &y);
 	zCalibrated = (float) y;
@@ -1033,7 +981,7 @@ unsigned long Swissranger::GetCalibratedZMatlab(int u, int v, float zRaw, float&
 	return RET_OK;
 }
 
-/// Return value is in m
+// Return value is in m
 unsigned long Swissranger::GetCalibratedZSwissranger(int u, int v, int width, float& zCalibrated)
 {
 	zCalibrated = (float) m_Z[v*width + u];
@@ -1041,21 +989,22 @@ unsigned long Swissranger::GetCalibratedZSwissranger(int u, int v, int width, fl
 	return RET_OK;
 }
 
-/// u and v are assumed to be distorted coordinates
+// u and v are assumed to be distorted coordinates
 unsigned long Swissranger::GetCalibratedXYMatlab(int u, int v, float z, float& x, float& y)
 {
-	/// Conversion form m to mm
+	// Conversion form m to mm
 	z *= 1000;
 
-	/// Use intrinsic camera parameters
+	// Use intrinsic camera parameters
 	double fx, fy, cx, cy;
-	fx = cvmGet(m_intrinsicMatrix,0,0);
-	fy = cvmGet(m_intrinsicMatrix,1,1);
 
-	cx = cvmGet(m_intrinsicMatrix,0,2);
-	cy = cvmGet(m_intrinsicMatrix,1,2);
+	fx = m_intrinsicMatrix.at<double>(0, 0);
+	fy = m_intrinsicMatrix.at<double>(1, 1);
 
-	/// Fundamental equation: u = (fx*x)/z + cx
+	cx = m_intrinsicMatrix.at<double>(0, 2);
+	cy = m_intrinsicMatrix.at<double>(1, 2);
+
+	// Fundamental equation: u = (fx*x)/z + cx
 	if (fx == 0)
 	{
 		std::cerr << "ERROR - Swissranger::GetCalibratedXYZ:" << std::endl;
@@ -1064,7 +1013,7 @@ unsigned long Swissranger::GetCalibratedXYMatlab(int u, int v, float z, float& x
 	}
 	x = (float) (z*(u-cx)/fx) ; 
 	
-	/// Fundamental equation: v = (fy*y)/z + cy
+	// Fundamental equation: v = (fy*y)/z + cy
 	if (fy == 0)
 	{
 		std::cerr << "ERROR - Swissranger::GetCalibratedXYZ:" << std::endl;
@@ -1073,7 +1022,7 @@ unsigned long Swissranger::GetCalibratedXYMatlab(int u, int v, float z, float& x
 	}
 	y = (float) (z*(v-cy)/fy); 
 
-	/// Conversion from mm to m
+	// Conversion from mm to m
 	x /= 1000;
 	y /= 1000;
 
@@ -1095,13 +1044,13 @@ unsigned long Swissranger::SetParameters()
 	ipa_CameraSensors::t_cameraProperty cameraProperty;
 
 
-/// -----------------------------------------------------------------
-/// Set amplitude threshold
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Set amplitude threshold
+// -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_AMPLITUDE_THRESHOLD;
 	std::string sAmplitudeThreshold = "";
-	m_RangeCameraParameters.m_AmplitudeThreshold.clear(); /// Clear flags
-	m_RangeCameraParameters.m_AmplitudeThreshold.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_RangeCameraParameters.m_AmplitudeThreshold.clear(); // Clear flags
+	m_RangeCameraParameters.m_AmplitudeThreshold.seekg(0); // Set Pointer to position 0 within stringstream
 	m_RangeCameraParameters.m_AmplitudeThreshold >> sAmplitudeThreshold;
 	if (sAmplitudeThreshold == "AUTO")
 	{
@@ -1116,8 +1065,8 @@ unsigned long Swissranger::SetParameters()
 	else
 	{
 		cameraProperty.propertyType = (ipa_CameraSensors::TYPE_UNSIGNED | ipa_CameraSensors::TYPE_SHORT);
-		m_RangeCameraParameters.m_AmplitudeThreshold.clear(); /// Clear flags
-		m_RangeCameraParameters.m_AmplitudeThreshold.seekg(0); /// Set Pointer to position 0 within stringstream
+		m_RangeCameraParameters.m_AmplitudeThreshold.clear(); // Clear flags
+		m_RangeCameraParameters.m_AmplitudeThreshold.seekg(0); // Set Pointer to position 0 within stringstream
 		m_RangeCameraParameters.m_AmplitudeThreshold >> cameraProperty.u_shortData;
 	}
 
@@ -1127,13 +1076,13 @@ unsigned long Swissranger::SetParameters()
 		std::cout << "\t ... Could not set amplitude threshold" << std::endl;
 	}
 
-/// -----------------------------------------------------------------
-/// Set integration time
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Set integration time
+// -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_INTEGRATION_TIME;
 	std::string sIntegrationTime = "";
-	m_RangeCameraParameters.m_IntegrationTime.clear(); /// Clear flags
-	m_RangeCameraParameters.m_IntegrationTime.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_RangeCameraParameters.m_IntegrationTime.clear(); // Clear flags
+	m_RangeCameraParameters.m_IntegrationTime.seekg(0); // Set Pointer to position 0 within stringstream
 	m_RangeCameraParameters.m_IntegrationTime >> sIntegrationTime;
 	if (sIntegrationTime == "AUTO")
 	{
@@ -1149,8 +1098,8 @@ unsigned long Swissranger::SetParameters()
 	{
 		std::string tempValue;
 		cameraProperty.propertyType = (ipa_CameraSensors::TYPE_UNSIGNED | ipa_CameraSensors::TYPE_CHARACTER);
-		m_RangeCameraParameters.m_IntegrationTime.clear(); /// Clear flags
-		m_RangeCameraParameters.m_IntegrationTime.seekg(0); /// Set Pointer to position 0 within stringstream
+		m_RangeCameraParameters.m_IntegrationTime.clear(); // Clear flags
+		m_RangeCameraParameters.m_IntegrationTime.seekg(0); // Set Pointer to position 0 within stringstream
 		m_RangeCameraParameters.m_IntegrationTime >> tempValue;
 		cameraProperty.u_charData = (unsigned char)atoi(tempValue.c_str());
 	}
@@ -1161,13 +1110,13 @@ unsigned long Swissranger::SetParameters()
 		std::cout << "\t ... Could not set integration time" << std::endl;
 	}
 
-/// -----------------------------------------------------------------
-/// Set modulation frequency
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Set modulation frequency
+// -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_MODULATION_FREQUENCY;
 	std::string sModulationFrequency = "";
-	m_RangeCameraParameters.m_ModulationFrequency.clear(); /// Clear flags
-	m_RangeCameraParameters.m_ModulationFrequency.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_RangeCameraParameters.m_ModulationFrequency.clear(); // Clear flags
+	m_RangeCameraParameters.m_ModulationFrequency.seekg(0); // Set Pointer to position 0 within stringstream
 	m_RangeCameraParameters.m_ModulationFrequency >> sModulationFrequency;
 	if (sModulationFrequency == "AUTO")
 	{
@@ -1182,8 +1131,8 @@ unsigned long Swissranger::SetParameters()
 	else
 	{
 		cameraProperty.propertyType = (ipa_CameraSensors::TYPE_STRING);
-		m_RangeCameraParameters.m_ModulationFrequency.clear(); /// Clear flags
-		m_RangeCameraParameters.m_ModulationFrequency.seekg(0); /// Set Pointer to position 0 within stringstream
+		m_RangeCameraParameters.m_ModulationFrequency.clear(); // Clear flags
+		m_RangeCameraParameters.m_ModulationFrequency.seekg(0); // Set Pointer to position 0 within stringstream
 		m_RangeCameraParameters.m_ModulationFrequency >> cameraProperty.stringData;
 	}
 
@@ -1193,13 +1142,13 @@ unsigned long Swissranger::SetParameters()
 		std::cout << "\t ... Could not set modulation frequency" << std::endl;
 	}
 
-/// -----------------------------------------------------------------
-/// Set acquire mode
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Set acquire mode
+// -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_ACQUIRE_MODE;
 	cameraProperty.propertyType = ipa_CameraSensors::TYPE_INTEGER;
-	m_RangeCameraParameters.m_AcquireMode.clear(); /// Set Pointer to position 0 within stringstream
-	m_RangeCameraParameters.m_AcquireMode.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_RangeCameraParameters.m_AcquireMode.clear(); // Set Pointer to position 0 within stringstream
+	m_RangeCameraParameters.m_AcquireMode.seekg(0); // Set Pointer to position 0 within stringstream
 	m_RangeCameraParameters.m_AcquireMode >> cameraProperty.integerData;
 	if (SetProperty(&cameraProperty) & ipa_CameraSensors::RET_FAILED)
 	{
@@ -1212,7 +1161,7 @@ unsigned long Swissranger::SetParameters()
 
 unsigned long Swissranger::LoadParameters(const char* filename, int cameraIndex)
 {
-	/// Load SwissRanger parameters.
+	// Load SwissRanger parameters.
 	boost::shared_ptr<TiXmlDocument> p_configXmlDocument (new TiXmlDocument( filename ));
 
 	if (!p_configXmlDocument->LoadFile())
@@ -1303,14 +1252,14 @@ unsigned long Swissranger::LoadParameters(const char* filename, int cameraIndex)
 					}
 					if (tempString == "USB")
 					{
-						m_RangeCameraParameters.m_Interface.str( " " );	/// Clear stringstream
-						m_RangeCameraParameters.m_Interface.clear();		/// Reset flags
+						m_RangeCameraParameters.m_Interface.str( " " );	// Clear stringstream
+						m_RangeCameraParameters.m_Interface.clear();		// Reset flags
 						m_RangeCameraParameters.m_Interface << tempString;
 					}
 					else if (tempString == "ETHERNET")
 					{
-						m_RangeCameraParameters.m_Interface.str( " " );	/// Clear stringstream
-						m_RangeCameraParameters.m_Interface.clear();		/// Reset flags
+						m_RangeCameraParameters.m_Interface.str( " " );	// Clear stringstream
+						m_RangeCameraParameters.m_Interface.clear();		// Reset flags
 						m_RangeCameraParameters.m_Interface << tempString;
 						// read and save value of attribute
 						if ( p_xmlElement_Child->QueryValueAttribute( "ip", &tempString ) != TIXML_SUCCESS)
@@ -1319,8 +1268,8 @@ unsigned long Swissranger::LoadParameters(const char* filename, int cameraIndex)
 							std::cerr << "\t ... Can't find attribute 'ip' of tag 'Interface'." << std::endl;
 							return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
 						}
-						m_RangeCameraParameters.m_IP.str( " " );	/// Clear stringstream
-						m_RangeCameraParameters.m_IP.clear();		/// Reset flags
+						m_RangeCameraParameters.m_IP.str( " " );	// Clear stringstream
+						m_RangeCameraParameters.m_IP.clear();		// Reset flags
 						m_RangeCameraParameters.m_IP << tempString;
 					}
 					else
@@ -1354,8 +1303,8 @@ unsigned long Swissranger::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_RangeCameraParameters.m_AmplitudeThreshold.str( " " );	/// Clear stringstream
-						m_RangeCameraParameters.m_AmplitudeThreshold.clear();		/// Reset flags
+						m_RangeCameraParameters.m_AmplitudeThreshold.str( " " );	// Clear stringstream
+						m_RangeCameraParameters.m_AmplitudeThreshold.clear();		// Reset flags
 						m_RangeCameraParameters.m_AmplitudeThreshold << tempString;
 					}
 				}
@@ -1383,8 +1332,8 @@ unsigned long Swissranger::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_RangeCameraParameters.m_IntegrationTime.str( " " );	/// Clear stringstream
-						m_RangeCameraParameters.m_IntegrationTime.clear();		/// Reset flags
+						m_RangeCameraParameters.m_IntegrationTime.str( " " );	// Clear stringstream
+						m_RangeCameraParameters.m_IntegrationTime.clear();		// Reset flags
 						m_RangeCameraParameters.m_IntegrationTime << tempString;
 					}
 				}
@@ -1412,8 +1361,8 @@ unsigned long Swissranger::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_RangeCameraParameters.m_ModulationFrequency.str( " " );	/// Clear stringstream
-						m_RangeCameraParameters.m_ModulationFrequency.clear();		/// Reset flags
+						m_RangeCameraParameters.m_ModulationFrequency.str( " " );	// Clear stringstream
+						m_RangeCameraParameters.m_ModulationFrequency.clear();		// Reset flags
 						m_RangeCameraParameters.m_ModulationFrequency << tempString;
 					}
 				}
@@ -1566,8 +1515,8 @@ unsigned long Swissranger::LoadParameters(const char* filename, int cameraIndex)
 						if (tempString == "ON") acquireMode |= AM_MEDIANCROSS;
 					}
 
-					m_RangeCameraParameters.m_AcquireMode.str( " " );	/// Clear stringstream
-					m_RangeCameraParameters.m_AcquireMode.clear();		/// Reset flags
+					m_RangeCameraParameters.m_AcquireMode.str( " " );	// Clear stringstream
+					m_RangeCameraParameters.m_AcquireMode.clear();		// Reset flags
 					m_RangeCameraParameters.m_AcquireMode << acquireMode;
 				}
 				else

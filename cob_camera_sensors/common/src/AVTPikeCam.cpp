@@ -60,21 +60,13 @@
 using namespace std;
 using namespace ipa_CameraSensors;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-__DLL_ABSTRACTCOLORCAMERA_H__ AbstractColorCamera* APIENTRY CreateColorCamera_AVTPikeCam()
-
-{
-	return (new AVTPikeCam());
-}
-#ifdef __cplusplus
-}
-#endif
-
 bool AVTPikeCam::m_OpenExecuted = false;
 AVTPikeCam::AVTPikeCamDeleter AVTPikeCam::m_Deleter;
 
+__DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr ipa_CameraSensors::CreateColorCamera_AVTPikeCam()
+{
+	return AbstractColorCameraPtr(new AVTPikeCam());
+}
 
 AVTPikeCam::AVTPikeCam()
 {
@@ -107,8 +99,6 @@ AVTPikeCam::~AVTPikeCam()
 		dc1394_free(m_IEEE1394Info);
 		m_IEEE1394Info = 0;
 	}
-#else
-	
 #endif
 }
 
@@ -124,7 +114,7 @@ unsigned long AVTPikeCam::Init(std::string directory, int cameraIndex)
 
 	#ifdef __LINUX__
 
-		/// Load parameters from xml initialization file
+		// Load parameters from xml initialization file
 		std::string iniFileNameAndPath = directory + "cameraSensorsIni.xml";
 		if (LoadParameters(iniFileNameAndPath.c_str(), cameraIndex) & RET_FAILED)
 		{
@@ -132,7 +122,7 @@ unsigned long AVTPikeCam::Init(std::string directory, int cameraIndex)
 		}
 
 
-		/// Search for available cameras
+		// Search for available cameras
 		if (m_IEEE1394Info == 0)
 		{
 			m_IEEE1394Info = dc1394_new();
@@ -166,12 +156,12 @@ unsigned long AVTPikeCam::Init(std::string directory, int cameraIndex)
 
 		UINT32 err; ///< Error code variable
 
-		/// Prepare FireGrab library for use
+		// Prepare FireGrab library for use
 		if (m_OpenExecuted == false)
 		{
 			m_OpenExecuted = true;
 			UINT32 err = FGInitModule(NULL);
-			if(err!=FCE_NOERROR) /// err=1001 means library is already initialized (i.e. by other Pike camera)
+			if(err!=FCE_NOERROR) // err=1001 means library is already initialized (i.e. by other Pike camera)
 			{
 				std::cerr << "ERROR - AVTPikeCam::Init:" << std::endl;
 				std::cerr << "\t ... Initialization of FireGrab library failed. ( error " << err << " )" << std::endl;
@@ -179,8 +169,8 @@ unsigned long AVTPikeCam::Init(std::string directory, int cameraIndex)
 			}
 		}
 
-		/// Retrieve a list of all nodes currently connected to the system
-		/// At most 5 nodes are retrieved. Actual number is stored in nodeCnt
+		// Retrieve a list of all nodes currently connected to the system
+		// At most 5 nodes are retrieved. Actual number is stored in nodeCnt
 		m_NodeCnt = 0;
 		err=FGGetNodeList(m_nodeInfo, 5, &m_NodeCnt);
 		if(err!=FCE_NOERROR)
@@ -227,7 +217,7 @@ unsigned long AVTPikeCam::Open()
 #ifdef __LINUX__
 	dc1394error_t err;
 	
-	/// Connect with IEEE1394 node
+	// Connect with IEEE1394 node
 	unsigned int i=0;
 	for(; i<m_IEEE1394Cameras->num; i++)
 	{
@@ -236,7 +226,7 @@ unsigned long AVTPikeCam::Open()
 		uint64_t guid = (high << 32) + low;
 		if (m_IEEE1394Cameras->ids[i].guid == guid) break; 
 	}
-	/// Check if specified GUID has been found
+	// Check if specified GUID has been found
 	if (i == m_IEEE1394Cameras->num)
 	{
 		printf ("ERROR - AVTPikeCam::Open: \n\t ... Could not detect specified camera GUID %#08lX %#08lX on IEEE1394 bus\n", m_GUID.High, m_GUID.Low);
@@ -252,7 +242,7 @@ unsigned long AVTPikeCam::Open()
 
 	dc1394_camera_free_list(m_IEEE1394Cameras);
 
-	/// Set Parameters
+	// Set Parameters
 	if (SetParameters() & ipa_CameraSensors::RET_FAILED)
 	{
 		std::cerr << "ERROR - AVTPikeCam::Open:" << std::endl;
@@ -261,7 +251,7 @@ unsigned long AVTPikeCam::Open()
 	}
 
 	err = dc1394_capture_setup(m_cam, m_BufferSize, DC1394_CAPTURE_FLAGS_DEFAULT);
-	/// Relase allocated bandwidth and retry
+	// Relase allocated bandwidth and retry
 	if (err!=DC1394_SUCCESS) 
 	{   
 		std::cout << "INFO - AVTPikeCam::Open:" << std::endl;
@@ -294,7 +284,7 @@ unsigned long AVTPikeCam::Open()
 	}
 
 
-	/// Start transmission
+	// Start transmission
 	err=dc1394_video_set_transmission(m_cam, DC1394_ON);                  
 	if (err!=DC1394_SUCCESS) 
 	{    
@@ -308,14 +298,14 @@ unsigned long AVTPikeCam::Open()
 
 	UINT32 err;
 
-	/// Connect with IEEE1394 node
+	// Connect with IEEE1394 node
 	unsigned int i=0;
 	for(; i<m_NodeCnt; i++)
 	{
 		if (m_nodeInfo[i].Guid.Low - m_GUID.Low == 0 && 
 			m_nodeInfo[i].Guid.High - m_GUID.High == 0) break;
 	}
-	/// Check if specified GUID has been found
+	// Check if specified GUID has been found
 	if (i == m_NodeCnt)
 	{
 		printf ("ERROR - AVTPikeCam::Open: \n\t ... Could not detect specified camera GUID %#08lX %#08lX on IEEE1394 bus\n", m_GUID.High, m_GUID.Low);
@@ -355,7 +345,7 @@ unsigned long AVTPikeCam::Open()
 		return RET_FAILED;
 	}
 	
-	/// Start image acquisition
+	// Start image acquisition
 	err=m_cam.StartDevice();
 	if(err!=FCE_NOERROR)
 	{
@@ -392,7 +382,7 @@ unsigned long AVTPikeCam::Close()
 #ifdef __LINUX__
 	if (m_cam != 0)
 	{
-		/// Stop transmission
+		// Stop transmission
 		dc1394error_t err;
 	    err=dc1394_video_set_transmission(m_cam, DC1394_OFF);                
 		if (err!=DC1394_SUCCESS) 
@@ -407,7 +397,7 @@ unsigned long AVTPikeCam::Close()
 		m_cam = 0;
 	}
 #else
-	/// Stops image acquisition
+	// Stops image acquisition
 	UINT32 err;
 	err=m_cam.StopDevice();
 	if(err!=FCE_NOERROR)
@@ -416,8 +406,8 @@ unsigned long AVTPikeCam::Close()
 		std::cerr << "\t ... Could not stop camera device ( error " << err << " )" << std::endl;
 	}
 
-	/// Close capture logic and frees image buffers.
-	/// Also frees all allocated resource on the FireWire bus.
+	// Close capture logic and frees image buffers.
+	// Also frees all allocated resource on the FireWire bus.
 	err=m_cam.CloseCapture();
 	if(err!=FCE_NOERROR)
 	{
@@ -425,7 +415,7 @@ unsigned long AVTPikeCam::Close()
 		std::cerr << "\t ...  Could not close capture logic. ( error " << err << " )" << std::endl;		return RET_FAILED;
 	}
 
-	/// Disonnect object from external IEEE1394 node
+	// Disonnect object from external IEEE1394 node
 	err=m_cam.Disconnect();
 	if(err!=FCE_NOERROR)
 	{
@@ -605,7 +595,7 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 
 	if (m_Frame)
 	{
-		/// Release the buffer from previous function call
+		// Release the buffer from previous function call
 		err=dc1394_capture_enqueue(m_cam, m_Frame);                            
 		if (err!=DC1394_SUCCESS) 
 		{    
@@ -621,7 +611,7 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 
 	if (getLatestFrame)
 	{
-		/// Flush the DMA ring buffer
+		// Flush the DMA ring buffer
 		do
 		{
 			m_Frame = 0;
@@ -654,7 +644,7 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 	//std::cout << "INFO - AVTPikeCam::GetColorImage:" << std::endl;
 	//std::cout << "\t ... Waiting for images" << std::endl;
 
-	/// Capture
+	// Capture
 	err=dc1394_capture_dequeue(m_cam, DC1394_CAPTURE_POLICY_WAIT, &m_Frame);
 	if (err!=DC1394_SUCCESS) 
 	{    
@@ -666,7 +656,7 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 	unsigned char * src = (unsigned char *)m_Frame->image;
 	unsigned char * dst = (unsigned char *)colorImageData;
 	
-	/// Convert RGB to BGR
+	// Convert RGB to BGR
 	int width;
 	int height;
 	ipa_CameraSensors::t_cameraProperty cameraProperty;
@@ -691,7 +681,7 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 	
 	UINT32 err;
 
-	/// Release previously acquired m_Frame
+	// Release previously acquired m_Frame
 	if (m_Frame.pData != 0)
 	{
 		// Return m_Frame to module
@@ -706,8 +696,8 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 		
 	if (getLatestFrame)
 	{
-		/// One shot mode
-		/// Reset image buffer to guarantee, that the latest images are returned 
+		// One shot mode
+		// Reset image buffer to guarantee, that the latest images are returned 
 		err = m_cam.DiscardFrames();
 		if(err!=FCE_NOERROR)
 		{
@@ -718,7 +708,7 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 	}
 
 	
-	/// Blocking-Wait for the next m_Frame
+	// Blocking-Wait for the next m_Frame
 	err = m_cam.GetFrame(&m_Frame);
 	if(err!=FCE_NOERROR)
 	{
@@ -730,7 +720,7 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 	unsigned char * src = (unsigned char *)m_Frame.pData;
 	unsigned char * dst = (unsigned char *)colorImageData;
 	
-	/// Convert RGB to BGR
+	// Convert RGB to BGR
 	int width;
 	int height;
 	ipa_CameraSensors::t_cameraProperty cameraProperty;
@@ -754,8 +744,7 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 #endif
 }
 
-
-unsigned long AVTPikeCam::GetColorImage(IplImage* colorImage, bool getLatestFrame)
+unsigned long AVTPikeCam::GetColorImage(cv::Mat* colorImage, bool getLatestFrame)
 {
 	if (!isOpen())
 	{
@@ -763,6 +752,8 @@ unsigned long AVTPikeCam::GetColorImage(IplImage* colorImage, bool getLatestFram
 		std::cerr << "\t ... Color camera not open." << std::endl;
 		return (RET_FAILED | RET_CAMERA_NOT_OPEN);
 	}
+
+	CV_Assert(colorImage != 0);
 
 	int width;
 	int height;
@@ -772,47 +763,10 @@ unsigned long AVTPikeCam::GetColorImage(IplImage* colorImage, bool getLatestFram
 	width = cameraProperty.cameraResolution.xResolution;
 	height = cameraProperty.cameraResolution.yResolution;
 
-
-	if(colorImage->depth == IPL_DEPTH_8U &&
-		colorImage->nChannels == 3 &&
-		colorImage->width == width &&
-		colorImage->height == height)
-	{
-		return GetColorImage(colorImage->imageData, getLatestFrame);
-	}
-	else
-	{
-		std::cerr << "ERROR - AVTPikeCam::GetColorImage:" << std::endl;
-		std::cerr << "\t ... Could not acquire color image. IplImage initialized with wrong attributes." << std::endl;
-		return RET_FAILED;
-	}
-
-	return RET_FAILED;
+	// Create color image, if necessary
+	colorImage->create(height, width, CV_8UC3);
+	return GetColorImage(colorImage->ptr<char>(0), getLatestFrame);
 }
-
-unsigned long AVTPikeCam::GetColorImage2(IplImage** colorImage, bool getLatestFrame)
-{
-	if (!isOpen())
-	{
-		std::cerr << "ERROR - AVTPikeCam::GetColorImage2" << std::endl;
-		std::cerr << "\t ... Color camera not open." << std::endl;
-		return (RET_FAILED | RET_CAMERA_NOT_OPEN);
-	}
-
-	int width;
-	int height;
-	ipa_CameraSensors::t_cameraProperty cameraProperty;
-	cameraProperty.propertyID = PROP_CAMERA_RESOLUTION;
-	if (GetProperty(&cameraProperty) & RET_FAILED) return RET_FAILED;
-	width = cameraProperty.cameraResolution.xResolution;
-	height = cameraProperty.cameraResolution.yResolution;
-
-	*colorImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 3);
-	return GetColorImage((*colorImage)->imageData, getLatestFrame);
-	
-	return RET_FAILED;
-}
-
 
 unsigned long AVTPikeCam::PrintCameraInformation()
 {
@@ -924,7 +878,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 	switch (cameraProperty->propertyID)
 	{
 ///====================================================================
-/// PROP_SHUTTER
+// PROP_SHUTTER
 ///====================================================================
 		case PROP_AMPLITUDE_THRESHOLD:
 		case PROP_INTEGRATION_TIME:
@@ -937,7 +891,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 		case PROP_OPTICAL_FILTER:
 		case PROP_SHARPNESS:
 		case PROP_MODULATION_FREQUENCY:
-			/// Not implemented
+			// Not implemented
 			break;
 		case PROP_SHUTTER:	
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
@@ -965,7 +919,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				}
 				else if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_DEFAULT)
 				{
-					/// Void
+					// Void
 				}
 				else
 				{
@@ -1029,7 +983,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			}
 			break;
 ///====================================================================
-/// PROP_BRIGHTNESS
+// PROP_BRIGHTNESS
 ///====================================================================
 		case PROP_BRIGHTNESS:
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
@@ -1057,7 +1011,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				}
 				else if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_DEFAULT)
 				{
-					/// Void
+					// Void
 				}
 				else
 				{
@@ -1119,7 +1073,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			}
 			break;
 ///====================================================================
-/// PROP_EXPOSURE_TIME
+// PROP_EXPOSURE_TIME
 ///====================================================================
 		case PROP_EXPOSURE_TIME:
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
@@ -1147,7 +1101,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				}
 				else if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_DEFAULT)
 				{
-					/// Void
+					// Void
 				}
 				else
 				{
@@ -1210,7 +1164,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			}
 			break;
 ///====================================================================
-/// PROP_WHITE_BALANCE_U
+// PROP_WHITE_BALANCE_U
 ///====================================================================
 		case PROP_WHITE_BALANCE_U:
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
@@ -1238,7 +1192,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				}
 				else if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_DEFAULT)
 				{
-					/// Void
+					// Void
 				}
 				else
 				{
@@ -1304,7 +1258,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			}
 			break;
 ///====================================================================
-/// PROP_WHITE_BALANCE_V
+// PROP_WHITE_BALANCE_V
 ///====================================================================
 		case PROP_WHITE_BALANCE_V:	
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
@@ -1332,7 +1286,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				}
 				else if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_DEFAULT)
 				{
-					/// Void
+					// Void
 				}
 				else
 				{
@@ -1398,7 +1352,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			}
 			break;
 ///====================================================================
-/// PROP_HUE
+// PROP_HUE
 ///====================================================================
 		case PROP_HUE:
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
@@ -1426,7 +1380,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				}
 				else if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_DEFAULT)
 				{
-					/// Void
+					// Void
 				}
 				else
 				{
@@ -1489,7 +1443,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			}
 			break;
 ///====================================================================
-/// PROP_SATURATION
+// PROP_SATURATION
 ///====================================================================
 		case PROP_SATURATION:	
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
@@ -1517,7 +1471,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				}
 				else if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_DEFAULT)
 				{
-					/// Void
+					// Void
 				}
 				else
 				{
@@ -1578,7 +1532,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			}
 			break;
 ///====================================================================
-/// PROP_GAMMA
+// PROP_GAMMA
 ///====================================================================
 		case PROP_GAMMA:	
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
@@ -1606,7 +1560,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				}
 				else if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_DEFAULT)
 				{
-					/// Void
+					// Void
 				}
 				else
 				{
@@ -1668,7 +1622,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			}
 			break;
 ///====================================================================
-/// PROP_GAIN
+// PROP_GAIN
 ///====================================================================			
 		case PROP_GAIN:		
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
@@ -1696,7 +1650,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				}
 				else if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_DEFAULT)
 				{
-					/// Void
+					// Void
 				}
 				else
 				{
@@ -1758,7 +1712,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			}
 			break;
 ///====================================================================
-/// VIDEO FORMAT, VIDEO MODE and COLOR CODING
+// VIDEO FORMAT, VIDEO MODE and COLOR CODING
 ///====================================================================	
 		case PROP_VIDEO_ALL:		
 			if (cameraProperty->propertyType ==
@@ -2173,7 +2127,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			break;
 
 ///====================================================================
-/// PROP_FRAME_RATE
+// PROP_FRAME_RATE
 ///====================================================================	
 		case PROP_FRAME_RATE:
 #ifdef __LINUX__
@@ -2187,8 +2141,8 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				return RET_FAILED;
 			}
 			
-			/// Format 7
-			/// Bytes_per_packet = (fps * width * height * ByteDepth * 125microsec)/1000000
+			// Format 7
+			// Bytes_per_packet = (fps * width * height * ByteDepth * 125microsec)/1000000
 			if (videoMode==DC1394_VIDEO_MODE_FORMAT7_0 ||
 				videoMode==DC1394_VIDEO_MODE_FORMAT7_1 ||
 				videoMode==DC1394_VIDEO_MODE_FORMAT7_2 ||
@@ -2209,8 +2163,8 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				return RET_FAILED;
 			}
 			
-			/// Format 7
-			/// Bytes_per_packet = (fps * width * height * ByteDepth * 125microsec)/1000000
+			// Format 7
+			// Bytes_per_packet = (fps * width * height * ByteDepth * 125microsec)/1000000
 			if (IMGRES(imageFormat)==RES_SCALABLE)
 			{
 #endif
@@ -2219,7 +2173,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_AUTO || 
 						cameraProperty->specialValue == ipa_CameraSensors::VALUE_DEFAULT)
 					{
-						/// Void
+						// Void
 					}
 				}
 				else if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_FLOAT)
@@ -2300,7 +2254,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 							bytesPerPacket = max;
 						}
 
-						/// Bytes per packet must be a multiple of min bytes
+						// Bytes per packet must be a multiple of min bytes
 						bytesPerPacket = ((int)(bytesPerPacket/min))*min;
 
 						err = dc1394_format7_set_packet_size(m_cam, videoMode, bytesPerPacket);
@@ -2368,7 +2322,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 							bytesPerPacket = packetSizeInfo.MaxValue;
 						}
 						
-						/// Bytes per packet must be a multiple of min bytes
+						// Bytes per packet must be a multiple of min bytes
 						bytesPerPacket = ((int)(bytesPerPacket/packetSizeInfo.MinValue))*packetSizeInfo.MinValue;
 
 						err = m_cam.SetParameter(FGP_PACKETSIZE, bytesPerPacket);
@@ -2395,7 +2349,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					return RET_FAILED;
 				}
 			}
-			/// Other formats than Format 7
+			// Other formats than Format 7
 			else
 			{
 				if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
@@ -2423,7 +2377,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					}
 					if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_DEFAULT)
 					{
-						/// Void
+						// Void
 					}
 					else
 					{
@@ -2524,7 +2478,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			return RET_OK;
 			break;
 ///====================================================================
-/// PROP_FW_OPERATION_MODE
+// PROP_FW_OPERATION_MODE
 ///====================================================================	
 		case PROP_FW_OPERATION_MODE:
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
@@ -2574,7 +2528,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			}
 			break;
 ///====================================================================
-/// PROP_ISO_SPEED
+// PROP_ISO_SPEED
 ///====================================================================	
 		case PROP_ISO_SPEED:
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
@@ -2682,7 +2636,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			}
 			break;
 ///====================================================================
-/// PROP_RESOLUTION
+// PROP_RESOLUTION
 ///====================================================================	
 		case PROP_RESOLUTION:
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
@@ -2709,7 +2663,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				}
 				else if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_DEFAULT)
 				{
-					/// Void
+					// Void
 				}
 				else
 				{
@@ -2741,8 +2695,8 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					std::cout << "\t ... Setting maximal y resolution" << std::endl;
 				}
 
-				/// Set x/y resolution. If values are out of range, 
-				/// the maximal possible reolution is set through the AVT library
+				// Set x/y resolution. If values are out of range, 
+				// the maximal possible reolution is set through the AVT library
 				err = m_cam.SetParameter(FGP_XSIZE, cameraProperty->cameraResolution.xResolution);
 				if(err!=FCE_NOERROR)
 				{
@@ -2767,7 +2721,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			}
 			break;
 ///====================================================================
-/// DEFAULT
+// DEFAULT
 ///====================================================================	
 		default: 
 			std::cerr << "ERROR - VTPikeCam::SetProperty:" << std::endl;
@@ -2783,16 +2737,16 @@ unsigned long AVTPikeCam::SetParameters()
 {
 	ipa_CameraSensors::t_cameraProperty cameraProperty;
 
-/// -----------------------------------------------------------------
-/// Setup trigger
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Setup trigger
+// -----------------------------------------------------------------
 	if (m_ColorCameraParameters.m_CameraRole == MASTER)
 	{
 		std::cout << "Info - AVTPikeCam::SetProperty:" << std::endl;
 		std::cout << "\t ... Setting camera in MASTER mode." << std::endl;
 #ifdef __LINUX__
-		/// Trigger OFF, Trigger mode 3 -> Edge mode 0, falling
-		/// Trigger OFF -> Edge mode 0, falling
+		// Trigger OFF, Trigger mode 3 -> Edge mode 0, falling
+		// Trigger OFF -> Edge mode 0, falling
 		dc1394error_t err;
 		err = dc1394_external_trigger_set_power(m_cam, DC1394_OFF);
 		if (err!=DC1394_SUCCESS) 
@@ -2812,7 +2766,7 @@ unsigned long AVTPikeCam::SetParameters()
 		}
 #else
 		UINT32 err;
-		/// Use internal trigger
+		// Use internal trigger
 		UINT32 triggerValue;
 		triggerValue=MAKETRIGGER(0, 0, 0, 0, 0);
 		err = m_cam.SetParameter(FGP_TRIGGER,triggerValue);
@@ -2829,7 +2783,7 @@ unsigned long AVTPikeCam::SetParameters()
 		std::cout << "Info - AVTPikeCam::SetProperty:" << std::endl;
 		std::cout << "\t ... Setting camera in SLAVE mode." << std::endl;
 #ifdef __LINUX__
-		/// Trigger ON, Trigger mode 0, low -> Edge mode 0, rizing
+		// Trigger ON, Trigger mode 0, low -> Edge mode 0, rizing
 		dc1394error_t err;
 		err = dc1394_external_trigger_set_power(m_cam, DC1394_ON);
 		if (err!=DC1394_SUCCESS) 
@@ -2876,13 +2830,13 @@ unsigned long AVTPikeCam::SetParameters()
 #endif
 	}
 
-/// -----------------------------------------------------------------
-/// Set isochronous speed
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Set isochronous speed
+// -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_ISO_SPEED;
 	std::string sIsoSpeed = "";
-	m_ColorCameraParameters.m_IsoSpeed.clear(); /// Clear flags within stringstream
-	m_ColorCameraParameters.m_IsoSpeed.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_ColorCameraParameters.m_IsoSpeed.clear(); // Clear flags within stringstream
+	m_ColorCameraParameters.m_IsoSpeed.seekg(0); // Set Pointer to position 0 within stringstream
 	m_ColorCameraParameters.m_IsoSpeed >> sIsoSpeed;
 	if (sIsoSpeed == "AUTO")
 	{
@@ -2897,8 +2851,8 @@ unsigned long AVTPikeCam::SetParameters()
 	else
 	{
 		cameraProperty.propertyType = (ipa_CameraSensors::TYPE_UNSIGNED | ipa_CameraSensors::TYPE_LONG);
-		m_ColorCameraParameters.m_IsoSpeed.clear(); /// Clear flags within stringstream
-		m_ColorCameraParameters.m_IsoSpeed.seekg(0); /// Set Pointer to position 0 within stringstream
+		m_ColorCameraParameters.m_IsoSpeed.clear(); // Clear flags within stringstream
+		m_ColorCameraParameters.m_IsoSpeed.seekg(0); // Set Pointer to position 0 within stringstream
 		m_ColorCameraParameters.m_IsoSpeed >> cameraProperty.u_longData;
 	}
 
@@ -2908,9 +2862,9 @@ unsigned long AVTPikeCam::SetParameters()
 		std::cout << "\t ... Could not set ISO speed." << std::endl;
 	}
 
-/// -----------------------------------------------------------------
-/// Set video mode, video format and color mode
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Set video mode, video format and color mode
+// -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_VIDEO_ALL;
 	cameraProperty.propertyType = (ipa_CameraSensors::TYPE_VIDEO_FORMAT | 
 				ipa_CameraSensors::TYPE_VIDEO_MODE | 
@@ -2919,8 +2873,8 @@ unsigned long AVTPikeCam::SetParameters()
 	std::string sVideoMode = "";
 	std::string sColorMode = "";
 	
-	m_ColorCameraParameters.m_VideoFormat.clear(); /// Clear flags within stringstream
-	m_ColorCameraParameters.m_VideoFormat.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_ColorCameraParameters.m_VideoFormat.clear(); // Clear flags within stringstream
+	m_ColorCameraParameters.m_VideoFormat.seekg(0); // Set Pointer to position 0 within stringstream
 	m_ColorCameraParameters.m_VideoFormat >> sVideoFormat;
 	if (sVideoFormat == "FORMAT_DEFAULT")
 	{
@@ -2943,8 +2897,8 @@ unsigned long AVTPikeCam::SetParameters()
 		cameraProperty.videoFormat = FORMAT_7;
 	}
 
-	m_ColorCameraParameters.m_VideoMode.clear(); /// Clear flags within stringstream
-	m_ColorCameraParameters.m_VideoMode.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_ColorCameraParameters.m_VideoMode.clear(); // Clear flags within stringstream
+	m_ColorCameraParameters.m_VideoMode.seekg(0); // Set Pointer to position 0 within stringstream
 	m_ColorCameraParameters.m_VideoMode >> sVideoMode;
 	if (sVideoMode == "MODE_DEFAULT")
 	{
@@ -2983,8 +2937,8 @@ unsigned long AVTPikeCam::SetParameters()
 		cameraProperty.videoMode = MODE_7;
 	}
 
-	m_ColorCameraParameters.m_ColorMode.clear(); /// Clear flags within stringstream
-	m_ColorCameraParameters.m_ColorMode.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_ColorCameraParameters.m_ColorMode.clear(); // Clear flags within stringstream
+	m_ColorCameraParameters.m_ColorMode.seekg(0); // Set Pointer to position 0 within stringstream
 	m_ColorCameraParameters.m_ColorMode >> sColorMode;
 	if (sColorMode == "COLOR_DEFAULT")
 	{
@@ -3038,20 +2992,20 @@ unsigned long AVTPikeCam::SetParameters()
 	}
 
 
-/// -----------------------------------------------------------------
-/// Set resolution
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Set resolution
+// -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_RESOLUTION;
 	std::string sImageWidth = "";
 	std::string sImageHeight = "";
 	int iImageWidth = -1;
 	int iImageHeight = -1;
 
-	m_ColorCameraParameters.m_ImageWidth.clear(); /// Clear flags within stringstream
-	m_ColorCameraParameters.m_ImageWidth.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_ColorCameraParameters.m_ImageWidth.clear(); // Clear flags within stringstream
+	m_ColorCameraParameters.m_ImageWidth.seekg(0); // Set Pointer to position 0 within stringstream
 	m_ColorCameraParameters.m_ImageWidth >> sImageWidth;
-	m_ColorCameraParameters.m_ImageHeight.clear(); /// Clear flags within stringstream
-	m_ColorCameraParameters.m_ImageHeight.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_ColorCameraParameters.m_ImageHeight.clear(); // Clear flags within stringstream
+	m_ColorCameraParameters.m_ImageHeight.seekg(0); // Set Pointer to position 0 within stringstream
 	m_ColorCameraParameters.m_ImageHeight >> sImageHeight;
 
 	if (sImageWidth == "AUTO" || sImageHeight == "Auto")
@@ -3067,11 +3021,11 @@ unsigned long AVTPikeCam::SetParameters()
 	else
 	{
 		cameraProperty.propertyType = (ipa_CameraSensors::TYPE_UNSIGNED | ipa_CameraSensors::TYPE_LONG);
-		m_ColorCameraParameters.m_ImageWidth.clear(); /// Clear flags within stringstream
-		m_ColorCameraParameters.m_ImageWidth.seekg(0); /// Set Pointer to position 0 within stringstream
+		m_ColorCameraParameters.m_ImageWidth.clear(); // Clear flags within stringstream
+		m_ColorCameraParameters.m_ImageWidth.seekg(0); // Set Pointer to position 0 within stringstream
 		m_ColorCameraParameters.m_ImageWidth >> iImageWidth;
-		m_ColorCameraParameters.m_ImageHeight.clear(); /// Clear flags within stringstream
-		m_ColorCameraParameters.m_ImageHeight.seekg(0); /// Set Pointer to position 0 within stringstream
+		m_ColorCameraParameters.m_ImageHeight.clear(); // Clear flags within stringstream
+		m_ColorCameraParameters.m_ImageHeight.seekg(0); // Set Pointer to position 0 within stringstream
 		m_ColorCameraParameters.m_ImageHeight >> iImageHeight;
 	}
 
@@ -3082,14 +3036,14 @@ unsigned long AVTPikeCam::SetParameters()
 	}
 
 
-/// -----------------------------------------------------------------
-/// Set exposure time
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Set exposure time
+// -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_EXPOSURE_TIME;
 	std::string sExposureTime = "";
 
-	m_ColorCameraParameters.m_ExposureTime.clear(); /// Clear flags within stringstream
-	m_ColorCameraParameters.m_ExposureTime.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_ColorCameraParameters.m_ExposureTime.clear(); // Clear flags within stringstream
+	m_ColorCameraParameters.m_ExposureTime.seekg(0); // Set Pointer to position 0 within stringstream
 	m_ColorCameraParameters.m_ExposureTime >> sExposureTime;
 
 	if (sExposureTime == "AUTO")
@@ -3105,8 +3059,8 @@ unsigned long AVTPikeCam::SetParameters()
 	else
 	{
 		cameraProperty.propertyType = (ipa_CameraSensors::TYPE_UNSIGNED | ipa_CameraSensors::TYPE_LONG);
-		m_ColorCameraParameters.m_ExposureTime.clear(); /// Clear flags within stringstream
-		m_ColorCameraParameters.m_ExposureTime.seekg(0); /// Set Pointer to position 0 within stringstream
+		m_ColorCameraParameters.m_ExposureTime.clear(); // Clear flags within stringstream
+		m_ColorCameraParameters.m_ExposureTime.seekg(0); // Set Pointer to position 0 within stringstream
 		m_ColorCameraParameters.m_ExposureTime >> cameraProperty.u_longData;
 	}
 
@@ -3116,14 +3070,14 @@ unsigned long AVTPikeCam::SetParameters()
 		std::cout << "\t ... Could not set auto exposure." << std::endl;
 	}
 
-/// -----------------------------------------------------------------
-/// Set frame rate
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Set frame rate
+// -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_FRAME_RATE;
 	std::string sFrameRate = "";
 
-	m_ColorCameraParameters.m_FrameRate.clear(); /// Clear flags within stringstream
-	m_ColorCameraParameters.m_FrameRate.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_ColorCameraParameters.m_FrameRate.clear(); // Clear flags within stringstream
+	m_ColorCameraParameters.m_FrameRate.seekg(0); // Set Pointer to position 0 within stringstream
 	m_ColorCameraParameters.m_FrameRate >> sFrameRate;
 
 	if (sFrameRate == "AUTO")
@@ -3139,8 +3093,8 @@ unsigned long AVTPikeCam::SetParameters()
 	else
 	{
 		cameraProperty.propertyType = ipa_CameraSensors::TYPE_FLOAT;
-		m_ColorCameraParameters.m_FrameRate.clear(); /// Clear flags within stringstream
-		m_ColorCameraParameters.m_FrameRate.seekg(0); /// Set Pointer to position 0 within stringstream
+		m_ColorCameraParameters.m_FrameRate.clear(); // Clear flags within stringstream
+		m_ColorCameraParameters.m_FrameRate.seekg(0); // Set Pointer to position 0 within stringstream
 		m_ColorCameraParameters.m_FrameRate >> cameraProperty.floatData;
 	}
 
@@ -3151,14 +3105,14 @@ unsigned long AVTPikeCam::SetParameters()
 	}
 
 
-/// -----------------------------------------------------------------
-/// Set shutter
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Set shutter
+// -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_SHUTTER;
 	std::string sShutter = "";
 
-	m_ColorCameraParameters.m_Shutter.clear(); /// Clear flags within stringstream
-	m_ColorCameraParameters.m_Shutter.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_ColorCameraParameters.m_Shutter.clear(); // Clear flags within stringstream
+	m_ColorCameraParameters.m_Shutter.seekg(0); // Set Pointer to position 0 within stringstream
 	m_ColorCameraParameters.m_Shutter >> sShutter;
 
 	if (sShutter == "AUTO")
@@ -3174,7 +3128,7 @@ unsigned long AVTPikeCam::SetParameters()
 	else
 	{
 		cameraProperty.propertyType = (ipa_CameraSensors::TYPE_UNSIGNED | ipa_CameraSensors::TYPE_LONG);
-		m_ColorCameraParameters.m_Shutter.clear(); /// Clear flags within stringstream
+		m_ColorCameraParameters.m_Shutter.clear(); // Clear flags within stringstream
 		m_ColorCameraParameters.m_Shutter.seekg(0);
 		m_ColorCameraParameters.m_Shutter >> cameraProperty.u_longData;
 	}
@@ -3185,14 +3139,14 @@ unsigned long AVTPikeCam::SetParameters()
 		std::cout << "\t ... Could not set shutter." << std::endl;
 	}
 
-/// -----------------------------------------------------------------
-/// Set brightness
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Set brightness
+// -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_BRIGHTNESS;
 	std::string sBrightness = "";
 
-	m_ColorCameraParameters.m_Brightness.clear(); /// Clear flags within stringstream
-	m_ColorCameraParameters.m_Brightness.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_ColorCameraParameters.m_Brightness.clear(); // Clear flags within stringstream
+	m_ColorCameraParameters.m_Brightness.seekg(0); // Set Pointer to position 0 within stringstream
 	m_ColorCameraParameters.m_Brightness >> sBrightness;
 
 	if (sBrightness == "AUTO")
@@ -3208,8 +3162,8 @@ unsigned long AVTPikeCam::SetParameters()
 	else
 	{
 		cameraProperty.propertyType = (ipa_CameraSensors::TYPE_UNSIGNED | ipa_CameraSensors::TYPE_LONG);
-		m_ColorCameraParameters.m_Brightness.clear(); /// Clear flags within stringstream
-		m_ColorCameraParameters.m_Brightness.seekg(0); /// Set Pointer to position 0 within stringstream
+		m_ColorCameraParameters.m_Brightness.clear(); // Clear flags within stringstream
+		m_ColorCameraParameters.m_Brightness.seekg(0); // Set Pointer to position 0 within stringstream
 		m_ColorCameraParameters.m_Brightness >> cameraProperty.u_longData;
 	}
 
@@ -3219,14 +3173,14 @@ unsigned long AVTPikeCam::SetParameters()
 		std::cout << "\t ... Could not set brightness." << std::endl;
 	}
 
-/// -----------------------------------------------------------------
-/// Set gain
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Set gain
+// -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_GAIN;
 	std::string sGain = "";
 
-	m_ColorCameraParameters.m_Gain.clear(); /// Clear flags within stringstream
-	m_ColorCameraParameters.m_Gain.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_ColorCameraParameters.m_Gain.clear(); // Clear flags within stringstream
+	m_ColorCameraParameters.m_Gain.seekg(0); // Set Pointer to position 0 within stringstream
 	m_ColorCameraParameters.m_Gain >> sGain;
 
 	if (sGain == "AUTO")
@@ -3242,8 +3196,8 @@ unsigned long AVTPikeCam::SetParameters()
 	else
 	{
 		cameraProperty.propertyType = (ipa_CameraSensors::TYPE_UNSIGNED | ipa_CameraSensors::TYPE_LONG);
-		m_ColorCameraParameters.m_Gain.clear(); /// Clear flags within stringstream
-		m_ColorCameraParameters.m_Gain.seekg(0); /// Set Pointer to position 0 within stringstream
+		m_ColorCameraParameters.m_Gain.clear(); // Clear flags within stringstream
+		m_ColorCameraParameters.m_Gain.seekg(0); // Set Pointer to position 0 within stringstream
 		m_ColorCameraParameters.m_Gain >> cameraProperty.u_longData;
 	}
 
@@ -3253,14 +3207,14 @@ unsigned long AVTPikeCam::SetParameters()
 		std::cout << "\t ... Could not set gain." << std::endl;
 	}
 
-/// -----------------------------------------------------------------
-/// Set gamma
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Set gamma
+// -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_GAMMA;
 	std::string sGamma = "";
 
-	m_ColorCameraParameters.m_Gamma.clear(); /// Clear flags within stringstream
-	m_ColorCameraParameters.m_Gamma.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_ColorCameraParameters.m_Gamma.clear(); // Clear flags within stringstream
+	m_ColorCameraParameters.m_Gamma.seekg(0); // Set Pointer to position 0 within stringstream
 	m_ColorCameraParameters.m_Gamma >> sGamma;
 
 	if (sGamma == "AUTO")
@@ -3276,8 +3230,8 @@ unsigned long AVTPikeCam::SetParameters()
 	else
 	{
 		cameraProperty.propertyType = (ipa_CameraSensors::TYPE_UNSIGNED | ipa_CameraSensors::TYPE_LONG);
-		m_ColorCameraParameters.m_Gamma.clear(); /// Clear flags within stringstream
-		m_ColorCameraParameters.m_Gamma.seekg(0); /// Set Pointer to position 0 within stringstream
+		m_ColorCameraParameters.m_Gamma.clear(); // Clear flags within stringstream
+		m_ColorCameraParameters.m_Gamma.seekg(0); // Set Pointer to position 0 within stringstream
 		m_ColorCameraParameters.m_Gamma >> cameraProperty.u_longData;
 	}
 
@@ -3287,14 +3241,14 @@ unsigned long AVTPikeCam::SetParameters()
 		std::cout << "\t ... Could not set gamma." << std::endl;
 	}
 
-/// -----------------------------------------------------------------
-/// Set hue
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Set hue
+// -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_HUE;
 	std::string sHue = "";
 
-	m_ColorCameraParameters.m_Hue.clear(); /// Clear flags within stringstream
-	m_ColorCameraParameters.m_Hue.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_ColorCameraParameters.m_Hue.clear(); // Clear flags within stringstream
+	m_ColorCameraParameters.m_Hue.seekg(0); // Set Pointer to position 0 within stringstream
 	m_ColorCameraParameters.m_Hue >> sHue;
 
 	if (sHue == "AUTO")
@@ -3310,8 +3264,8 @@ unsigned long AVTPikeCam::SetParameters()
 	else
 	{
 		cameraProperty.propertyType = (ipa_CameraSensors::TYPE_UNSIGNED | ipa_CameraSensors::TYPE_LONG);
-		m_ColorCameraParameters.m_Hue.clear(); /// Clear flags within stringstream
-		m_ColorCameraParameters.m_Hue.seekg(0); /// Set Pointer to position 0 within stringstream
+		m_ColorCameraParameters.m_Hue.clear(); // Clear flags within stringstream
+		m_ColorCameraParameters.m_Hue.seekg(0); // Set Pointer to position 0 within stringstream
 		m_ColorCameraParameters.m_Hue >> cameraProperty.u_longData;
 	}
 
@@ -3321,14 +3275,14 @@ unsigned long AVTPikeCam::SetParameters()
 		std::cout << "\t ... Could not set hue." << std::endl;
 	}
 
-/// -----------------------------------------------------------------
-/// Set saturation
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Set saturation
+// -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_SATURATION;
 	std::string sSaturation = "";
 
-	m_ColorCameraParameters.m_Saturation.clear(); /// Clear flags within stringstream
-	m_ColorCameraParameters.m_Saturation.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_ColorCameraParameters.m_Saturation.clear(); // Clear flags within stringstream
+	m_ColorCameraParameters.m_Saturation.seekg(0); // Set Pointer to position 0 within stringstream
 	m_ColorCameraParameters.m_Saturation >> sSaturation;
 
 	if (sSaturation == "AUTO")
@@ -3344,8 +3298,8 @@ unsigned long AVTPikeCam::SetParameters()
 	else
 	{
 		cameraProperty.propertyType = (ipa_CameraSensors::TYPE_UNSIGNED | ipa_CameraSensors::TYPE_LONG);
-		m_ColorCameraParameters.m_Saturation.clear(); /// Clear flags within stringstream
-		m_ColorCameraParameters.m_Saturation.seekg(0); /// Set Pointer to position 0 within stringstream
+		m_ColorCameraParameters.m_Saturation.clear(); // Clear flags within stringstream
+		m_ColorCameraParameters.m_Saturation.seekg(0); // Set Pointer to position 0 within stringstream
 		m_ColorCameraParameters.m_Saturation >> cameraProperty.u_longData;
 	}
 
@@ -3355,14 +3309,14 @@ unsigned long AVTPikeCam::SetParameters()
 		std::cout << "\t ... Could not set saturation." << std::endl;
 	}
 
-/// -----------------------------------------------------------------
-/// Set white balance U
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Set white balance U
+// -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_WHITE_BALANCE_U;
 	std::string sWhiteBalanceU = "";
 
-	m_ColorCameraParameters.m_WhiteBalanceU.clear(); /// Clear flags within stringstream
-	m_ColorCameraParameters.m_WhiteBalanceU.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_ColorCameraParameters.m_WhiteBalanceU.clear(); // Clear flags within stringstream
+	m_ColorCameraParameters.m_WhiteBalanceU.seekg(0); // Set Pointer to position 0 within stringstream
 	m_ColorCameraParameters.m_WhiteBalanceU >> sWhiteBalanceU;
 
 	if (sWhiteBalanceU == "AUTO")
@@ -3378,8 +3332,8 @@ unsigned long AVTPikeCam::SetParameters()
 	else
 	{
 		cameraProperty.propertyType = (ipa_CameraSensors::TYPE_UNSIGNED | ipa_CameraSensors::TYPE_LONG);
-		m_ColorCameraParameters.m_WhiteBalanceU.clear(); /// Clear flags within stringstream
-		m_ColorCameraParameters.m_WhiteBalanceU.seekg(0); /// Set Pointer to position 0 within stringstream
+		m_ColorCameraParameters.m_WhiteBalanceU.clear(); // Clear flags within stringstream
+		m_ColorCameraParameters.m_WhiteBalanceU.seekg(0); // Set Pointer to position 0 within stringstream
 		m_ColorCameraParameters.m_WhiteBalanceU >> cameraProperty.u_longData;
 	}
 
@@ -3389,14 +3343,14 @@ unsigned long AVTPikeCam::SetParameters()
 		std::cout << "\t ... Could not set white balance U." << std::endl;
 	}
 
-/// -----------------------------------------------------------------
-/// Set white balance V
-/// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// Set white balance V
+// -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_WHITE_BALANCE_V;
 	std::string sWhiteBalanceV = "";
 
-	m_ColorCameraParameters.m_WhiteBalanceV.clear(); /// Clear flags within stringstream
-	m_ColorCameraParameters.m_WhiteBalanceV.seekg(0); /// Set Pointer to position 0 within stringstream
+	m_ColorCameraParameters.m_WhiteBalanceV.clear(); // Clear flags within stringstream
+	m_ColorCameraParameters.m_WhiteBalanceV.seekg(0); // Set Pointer to position 0 within stringstream
 	m_ColorCameraParameters.m_WhiteBalanceV >> sWhiteBalanceV;
 
 	if (sWhiteBalanceV == "AUTO")
@@ -3412,8 +3366,8 @@ unsigned long AVTPikeCam::SetParameters()
 	else
 	{
 		cameraProperty.propertyType = (ipa_CameraSensors::TYPE_UNSIGNED | ipa_CameraSensors::TYPE_LONG);
-		m_ColorCameraParameters.m_WhiteBalanceV.clear(); /// Clear flags within stringstream
-		m_ColorCameraParameters.m_WhiteBalanceV.seekg(0); /// Set Pointer to position 0 within stringstream
+		m_ColorCameraParameters.m_WhiteBalanceV.clear(); // Clear flags within stringstream
+		m_ColorCameraParameters.m_WhiteBalanceV.seekg(0); // Set Pointer to position 0 within stringstream
 		m_ColorCameraParameters.m_WhiteBalanceV >> cameraProperty.u_longData;
 	}
 
@@ -3546,8 +3500,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_ColorCameraParameters.m_VideoFormat.str( " " );	/// Clear stringstream
-						m_ColorCameraParameters.m_VideoFormat.clear();		/// Reset flags
+						m_ColorCameraParameters.m_VideoFormat.str( " " );	// Clear stringstream
+						m_ColorCameraParameters.m_VideoFormat.clear();		// Reset flags
 						m_ColorCameraParameters.m_VideoFormat << tempString;
 					}
 				}
@@ -3575,8 +3529,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_ColorCameraParameters.m_VideoMode.str( " " );	/// Clear stringstream
-						m_ColorCameraParameters.m_VideoMode.clear();		/// Reset flags
+						m_ColorCameraParameters.m_VideoMode.str( " " );	// Clear stringstream
+						m_ColorCameraParameters.m_VideoMode.clear();		// Reset flags
 						m_ColorCameraParameters.m_VideoMode << tempString;
 					}
 
@@ -3605,8 +3559,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_ColorCameraParameters.m_ImageWidth.str( " " );	/// Clear stringstream
-						m_ColorCameraParameters.m_ImageWidth.clear();		/// Reset flags
+						m_ColorCameraParameters.m_ImageWidth.str( " " );	// Clear stringstream
+						m_ColorCameraParameters.m_ImageWidth.clear();		// Reset flags
 						m_ColorCameraParameters.m_ImageWidth << tempString;
 					}
 					// read and save value of attribute
@@ -3618,8 +3572,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_ColorCameraParameters.m_ImageHeight.str( " " );	/// Clear stringstream
-						m_ColorCameraParameters.m_ImageHeight.clear();		/// Reset flags
+						m_ColorCameraParameters.m_ImageHeight.str( " " );	// Clear stringstream
+						m_ColorCameraParameters.m_ImageHeight.clear();		// Reset flags
 						m_ColorCameraParameters.m_ImageHeight << tempString;
 					}
 				}
@@ -3647,8 +3601,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_ColorCameraParameters.m_FrameRate.str( " " );	/// Clear stringstream
-						m_ColorCameraParameters.m_FrameRate.clear();		/// Reset flags
+						m_ColorCameraParameters.m_FrameRate.str( " " );	// Clear stringstream
+						m_ColorCameraParameters.m_FrameRate.clear();		// Reset flags
 						m_ColorCameraParameters.m_FrameRate << tempString;
 					}
 
@@ -3678,8 +3632,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_ColorCameraParameters.m_ColorMode.str( " " );	/// Clear stringstream
-						m_ColorCameraParameters.m_ColorMode.clear();		/// Reset flags
+						m_ColorCameraParameters.m_ColorMode.str( " " );	// Clear stringstream
+						m_ColorCameraParameters.m_ColorMode.clear();		// Reset flags
 						m_ColorCameraParameters.m_ColorMode << tempString;
 					}
 
@@ -3708,8 +3662,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_ColorCameraParameters.m_IsoSpeed.str( " " );	/// Clear stringstream
-						m_ColorCameraParameters.m_IsoSpeed.clear();		/// Reset flags
+						m_ColorCameraParameters.m_IsoSpeed.str( " " );	// Clear stringstream
+						m_ColorCameraParameters.m_IsoSpeed.clear();		// Reset flags
 						m_ColorCameraParameters.m_IsoSpeed << tempString;
 					}
 
@@ -3769,8 +3723,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_ColorCameraParameters.m_Shutter.str( " " );	/// Clear stringstream
-						m_ColorCameraParameters.m_Shutter.clear();		/// Reset flags
+						m_ColorCameraParameters.m_Shutter.str( " " );	// Clear stringstream
+						m_ColorCameraParameters.m_Shutter.clear();		// Reset flags
 						m_ColorCameraParameters.m_Shutter << tempString;
 					}
 				}
@@ -3798,8 +3752,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_ColorCameraParameters.m_Brightness.str( " " );	/// Clear stringstream
-						m_ColorCameraParameters.m_Brightness.clear();		/// Reset flags
+						m_ColorCameraParameters.m_Brightness.str( " " );	// Clear stringstream
+						m_ColorCameraParameters.m_Brightness.clear();		// Reset flags
 						m_ColorCameraParameters.m_Brightness << tempString;
 					}
 
@@ -3828,8 +3782,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_ColorCameraParameters.m_ExposureTime.str( " " );	/// Clear stringstream
-						m_ColorCameraParameters.m_ExposureTime.clear();		/// Reset flags
+						m_ColorCameraParameters.m_ExposureTime.str( " " );	// Clear stringstream
+						m_ColorCameraParameters.m_ExposureTime.clear();		// Reset flags
 						m_ColorCameraParameters.m_ExposureTime << tempString;
 					}
 
@@ -3858,8 +3812,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_ColorCameraParameters.m_WhiteBalanceU.str( " " );	/// Clear stringstream
-						m_ColorCameraParameters.m_WhiteBalanceU.clear();		/// Reset flags
+						m_ColorCameraParameters.m_WhiteBalanceU.str( " " );	// Clear stringstream
+						m_ColorCameraParameters.m_WhiteBalanceU.clear();		// Reset flags
 						m_ColorCameraParameters.m_WhiteBalanceU << tempString;
 					}
 				}
@@ -3887,8 +3841,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_ColorCameraParameters.m_WhiteBalanceV.str( " " );	/// Clear stringstream
-						m_ColorCameraParameters.m_WhiteBalanceV.clear();		/// Reset flags
+						m_ColorCameraParameters.m_WhiteBalanceV.str( " " );	// Clear stringstream
+						m_ColorCameraParameters.m_WhiteBalanceV.clear();		// Reset flags
 						m_ColorCameraParameters.m_WhiteBalanceV << tempString;
 					}
 				}
@@ -3916,8 +3870,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_ColorCameraParameters.m_Hue.str( " " );	/// Clear stringstream
-						m_ColorCameraParameters.m_Hue.clear();		/// Reset flags
+						m_ColorCameraParameters.m_Hue.str( " " );	// Clear stringstream
+						m_ColorCameraParameters.m_Hue.clear();		// Reset flags
 						m_ColorCameraParameters.m_Hue << tempString;
 					}
 				}
@@ -3945,8 +3899,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_ColorCameraParameters.m_Saturation.str( " " );	/// Clear stringstream
-						m_ColorCameraParameters.m_Saturation.clear();		/// Reset flags
+						m_ColorCameraParameters.m_Saturation.str( " " );	// Clear stringstream
+						m_ColorCameraParameters.m_Saturation.clear();		// Reset flags
 						m_ColorCameraParameters.m_Saturation << tempString;
 					}
 				}
@@ -3974,8 +3928,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_ColorCameraParameters.m_Gamma.str( " " );	/// Clear stringstream
-						m_ColorCameraParameters.m_Gamma.clear();		/// Reset flags
+						m_ColorCameraParameters.m_Gamma.str( " " );	// Clear stringstream
+						m_ColorCameraParameters.m_Gamma.clear();		// Reset flags
 						m_ColorCameraParameters.m_Gamma << tempString;
 					}
 				}
@@ -4003,8 +3957,8 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 					}
 					else
 					{
-						m_ColorCameraParameters.m_Gain.str( " " );	/// Clear stringstream
-						m_ColorCameraParameters.m_Gain.clear();		/// Reset flags
+						m_ColorCameraParameters.m_Gain.str( " " );	// Clear stringstream
+						m_ColorCameraParameters.m_Gain.clear();		// Reset flags
 						m_ColorCameraParameters.m_Gain << tempString;
 					}
 				}

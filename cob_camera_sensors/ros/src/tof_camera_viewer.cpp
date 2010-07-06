@@ -65,7 +65,7 @@
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 
-#include <cob_vision_utils/OpenCVUtils.h>
+#include <cob_vision_utils/VisionUtils.h>
 #include <sstream>
 
 //####################
@@ -83,9 +83,9 @@ private:
 	sensor_msgs::CvBridge cv_bridge_1_;
 	
 	IplImage* xyz_image_32F3_;	/// OpenCV image holding the 32bit point cloud
-	IplImage* xyz_image_8U3_;	/// OpenCV image holding the transformed 8bit RGB point cloud
+	cv::Mat xyz_mat_8U3_;		/// OpenCV image holding the transformed 8bit RGB point cloud
 	IplImage* grey_image_32F1_;	/// OpenCV image holding the 32bit amplitude values
-	IplImage* grey_image_8U3_;	/// OpenCV image holding the transformed 8bit RGB amplitude values
+	cv::Mat grey_mat_8U3_;	/// OpenCV image holding the transformed 8bit RGB amplitude values
 
 	int grey_image_counter_; 
 
@@ -96,10 +96,10 @@ public:
         : m_NodeHandle(node_handle),
           image_transport_(node_handle),
           xyz_image_32F3_(0),
-          xyz_image_8U3_(0),
+          xyz_mat_8U3_(cv::Mat()),
           grey_image_32F1_(0),
-          grey_image_8U3_(0),
-		  grey_image_counter_(0)
+          grey_mat_8U3_(cv::Mat()),
+	  grey_image_counter_(0)
         {
 					///Void
         }
@@ -110,11 +110,9 @@ public:
 		/// Do not release <code>m_GrayImage32F3</code>
 		/// Do not release <code>xyz_image_32F3_</code>
 		/// Image allocation is managed by Cv_Bridge object 
-			if (xyz_image_8U3_) cvReleaseImage(&xyz_image_8U3_);
-			if (grey_image_8U3_) cvReleaseImage(&grey_image_8U3_);
 
-			if(cvGetWindowHandle("z data"))cvDestroyWindow("z data");
-			if(cvGetWindowHandle("grey data"))cvDestroyWindow("grey data");
+		if(cvGetWindowHandle("z data"))cvDestroyWindow("z data");
+		if(cvGetWindowHandle("grey data"))cvDestroyWindow("grey data");
         }
 
 	/// initialize tof camera viewer.
@@ -123,8 +121,8 @@ public:
 	{
 		/// Create viewer windows
 		cvStartWindowThread();
-		cvNamedWindow("z data");		
-		cvNamedWindow("grey data");		
+		cv::namedWindow("z data");		
+		cv::namedWindow("grey data");		
 
 		xyz_image_subscriber_ = image_transport_.subscribe("image_xyz", 1, &CobTofCameraViewerNode::xyzImageCallback, this);
 		grey_image_subscriber_ = image_transport_.subscribe("image_grey", 1, &CobTofCameraViewerNode::greyImageCallback, this);
@@ -145,13 +143,9 @@ public:
 		{
 			grey_image_32F1_ = cv_bridge_0_.imgMsgToCv(grey_image_msg, "passthrough");
 
-			if (grey_image_8U3_ == 0)
-			{
-				grey_image_8U3_ = cvCreateImage(cvGetSize(grey_image_32F1_), IPL_DEPTH_8U, 3);
-			}
-
-			ipa_Utils::ConvertToShowImage(grey_image_32F1_, grey_image_8U3_, 1, 0, 800);
-			cvShowImage("grey data", grey_image_8U3_);
+			cv::Mat grey_mat_32F1 = grey_image_32F1_;
+			ipa_Utils::ConvertToShowImage(grey_mat_32F1, grey_mat_8U3_, 1, 0, 800);
+			cv::imshow("grey data", grey_mat_8U3_);
 			usleep(100);
 			int c = cvWaitKey(50);
 			if (c=='s' || c==536871027)
@@ -162,7 +156,7 @@ public:
 				ss << "greyImage8U3_";
 				ss << counterBuffer;
 				ss << ".bmp";
-				cvSaveImage(ss.str().c_str(),grey_image_8U3_);
+				cv::imwrite(ss.str().c_str(),grey_mat_8U3_);
 				std::cout << "Image " << grey_image_counter_ << " saved." << std::endl;
 				grey_image_counter_++;
 			}
@@ -186,13 +180,9 @@ public:
 		{
 			xyz_image_32F3_ = cv_bridge_1_.imgMsgToCv(xyz_image_msg, "passthrough");
 			
-			if (xyz_image_8U3_ == 0)
-			{
-				xyz_image_8U3_ = cvCreateImage(cvGetSize(xyz_image_32F3_), IPL_DEPTH_8U, 3);
-			}
-
-			ipa_Utils::ConvertToShowImage(xyz_image_32F3_, xyz_image_8U3_, 3);
-			cvShowImage("z data", xyz_image_8U3_);
+			cv::Mat xyz_mat_32F3 = xyz_image_32F3_;
+			ipa_Utils::ConvertToShowImage(xyz_mat_32F3, xyz_mat_8U3_, 3);
+			cv::imshow("z data", xyz_mat_8U3_);
 		}
 		catch (sensor_msgs::CvBridgeException& e)
 		{
