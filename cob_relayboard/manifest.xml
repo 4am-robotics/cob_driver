@@ -9,7 +9,6 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_relayboard</url>
 
-
   <depend package="roscpp"/>
   <depend package="std_msgs"/>
   <depend package="cob_msgs"/>
@@ -21,7 +20,4 @@
     <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lSerialIO -lcob_relayboard"/>
   </export>
 
-
 </package>
-
-
