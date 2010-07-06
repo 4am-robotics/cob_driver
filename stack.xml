@@ -10,7 +10,6 @@
   <url>http://ros.org/wiki/cob_driver</url>
   <depend stack="cob_common" /> <!-- cob_msgs, cob_utilities, cob_vision_utils, cob_actions, cob_srvs, cob_description -->
   <depend stack="cob_extern" /> <!-- libpcan, libm5api, libntcan -->
-  <depend stack="cob_sandbox" /> <!-- libwm4 -->
   <depend stack="common" /> <!-- actionlib, tinyxml -->
   <depend stack="common_msgs" /> <!-- nav_msgs, geometry_msgs, sensor_msgs, diagnostic_msgs -->
   <depend stack="geometry" /> <!-- tf, eigen -->
