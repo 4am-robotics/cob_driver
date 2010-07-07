@@ -68,8 +68,8 @@
 // ROS service includes
 #include <cob_srvs/Trigger.h>
 #include <cob_srvs/GetJointState.h>
-#include <cob_base_drive_chain/ElmoRecorderGet.h>
-#include <cob_base_drive_chain/ElmoRecorderSetup.h>
+#include <cob_base_drive_chain/ElmoRecorderReadout.h>
+#include <cob_base_drive_chain/ElmoRecorderConfig.h>
 
 
 // external includes
@@ -277,8 +277,8 @@ class NodeClass
 			return true;
 		}
 		
-		bool srvCallback_ElmoRecorderConfig(cob_base_drive_chain::ElmoRecorderSetup::Request &req,
-							  cob_base_drive_chain::ElmoRecorderSetup::Response &res ){
+		bool srvCallback_ElmoRecorderConfig(cob_base_drive_chain::ElmoRecorderConfig::Request &req,
+							  cob_base_drive_chain::ElmoRecorderConfig::Response &res ){
 			if(m_bisInitialized) {			
 				m_CanCtrlPltf.evalCanBuffer();
 				res.success = m_CanCtrlPltf.ElmoRecordings(0, req.recordinggap, "");
@@ -288,8 +288,8 @@ class NodeClass
 			return true;
 		}
 		
-		bool srvCallback_ElmoRecorderReadout(cob_base_drive_chain::ElmoRecorderGet::Request &req,
-							  cob_base_drive_chain::ElmoRecorderGet::Response &res ){
+		bool srvCallback_ElmoRecorderReadout(cob_base_drive_chain::ElmoRecorderReadout::Request &req,
+							  cob_base_drive_chain::ElmoRecorderReadout::Response &res ){
 			if(m_bisInitialized) {
 				m_CanCtrlPltf.evalCanBuffer();
 				res.success = m_CanCtrlPltf.ElmoRecordings(1, req.subindex, req.fileprefix);
