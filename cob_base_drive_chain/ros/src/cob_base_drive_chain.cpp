@@ -332,18 +332,6 @@ class NodeClass
 			return true;
 		}
 
-		bool srvCallback_GetJointState(cob_srvs::GetJointState::Request &req,
-									 cob_srvs::GetJointState::Response &res )
-		{
-	    	res.success = m_CanCtrlPltf.shutdownPltf();
-	    	if (res.success)
-       	    	ROS_INFO("Drives shut down");
-	    	else
-       	    	ROS_INFO("Shutdown of Drives FAILED");
-
-	    	return true;
-        }
-
         bool srvCallback_GetJointState(cob_srvs::GetJointState::Request &req,
                                      cob_srvs::GetJointState::Response &res )
         {
