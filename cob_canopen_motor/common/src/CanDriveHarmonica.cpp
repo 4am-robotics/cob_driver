@@ -19,7 +19,7 @@
  *
  * Date of creation: Feb 2009
  * ToDo: - Assign Adsress of digital input for homing switch "iHomeDigIn" via parameters (in evalReceived Message, Line 116).
- *       - Homing Event should be defined by a parameterfile and handed to CanDrive... e.g. via the DriveParam.h (in inithoming, Line 531).
+ *	   - Homing Event should be defined by a parameterfile and handed to CanDrive... e.g. via the DriveParam.h (in inithoming, Line 531).
  *		 - Check whether "requestStatus" can/should be done in the class implementing the component
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -27,15 +27,15 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
- *       Engineering and Automation (IPA) nor the names of its
- *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
+ *	 * Redistributions of source code must retain the above copyright
+ *	   notice, this list of conditions and the following disclaimer.
+ *	 * Redistributions in binary form must reproduce the above copyright
+ *	   notice, this list of conditions and the following disclaimer in the
+ *	   documentation and/or other materials provided with the distribution.
+ *	 * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *	   Engineering and Automation (IPA) nor the names of its
+ *	   contributors may be used to endorse or promote products derived from
+ *	   this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License LGPL as 
@@ -297,7 +297,7 @@ bool CanDriveHarmonica::init()
 
 	// Set Values for Modulo-Counting. Neccessary to preserve absolute position for homed motors (after encoder overflow)
 	int iIncrRevWheel = int( (double)m_DriveParam.getGearRatio() * (double)m_DriveParam.getBeltRatio()
-			        * (double)m_DriveParam.getEncIncrPerRevMot() * 3 );
+					* (double)m_DriveParam.getEncIncrPerRevMot() * 3 );
 	IntprtSetInt(8, 'M', 'O', 0, 0);
 	usleep(20000);
 	IntprtSetInt(8, 'X', 'M', 2, iIncrRevWheel * 5000);
@@ -865,7 +865,7 @@ bool CanDriveHarmonica::setTypeMotion(int iType)
 		
 		
 	}
-    else if (iType == MOTIONTYPE_TORQUECTRL)
+	else if (iType == MOTIONTYPE_TORQUECTRL)
 	{
 		// Switch to TorqueControll-Mode
 		// switch off Motor to change Unit-Mode
@@ -937,7 +937,7 @@ void CanDriveHarmonica::IntprtSetFloat(int iDataLen, char cCmdChar1, char cCmdCh
 	CMsgTr.m_iLen = iDataLen;
 
 	cIndex[0] = iIndex;
-    // for sending float values bit 6 has to be zero and bit 7 one (according to Elmo Implementation guide)
+	// for sending float values bit 6 has to be zero and bit 7 one (according to Elmo Implementation guide)
 	cIndex[1] = (iIndex >> 8) & 0x3F;	// setting bit 6 to zero with mask 0b10111111->0xBF
 	cIndex[1] = cIndex[1] | 0x80;		// setting bit 7 to one with mask 0b10000000 ->0x80
 
@@ -1087,7 +1087,7 @@ int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
 		sendSDOAbort(seg_Data.objectID, seg_Data.objectSubID, 0x05030000); //Send SDO Abort with error code Toggle-Bit not alternated
 		return 1;
 	}
-        
+		
 	if( (msg.getAt(0) & 0x01) == 0x00) { //Is finished-bit not set?
 		seg_Data.statusFlag = segData::SDO_SEG_COLLECTING;
 	} else {
