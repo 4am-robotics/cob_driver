@@ -119,9 +119,9 @@ class NodeClass
             ROS_DEBUG("update static tf cyclically");
 			
 			// publish tf for base_footprint --> base_link
-			transform.setOrigin(tf::Vector3(0.0, 0.0, 0.2));
-			transform.setRotation(tf::Quaternion(0, 0, 0));
-			br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_footprint", "base_link"));
+			//transform.setOrigin(tf::Vector3(0.0, 0.0, 0.2));
+			//transform.setRotation(tf::Quaternion(0, 0, 0));
+			//br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_footprint", "base_link"));
 
 			// publish tf for base_link --> base_laser_front
 			transform.setOrigin(tf::Vector3(0.325, 0.0, 0.1));

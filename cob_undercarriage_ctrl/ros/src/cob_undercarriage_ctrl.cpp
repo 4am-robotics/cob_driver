@@ -132,7 +132,7 @@ class NodeClass
 			topic_pub_odometry_ = n.advertise<nav_msgs::Odometry>("Odometry", 50);
 
             // subscribed topics
-			topic_sub_CMD_pltf_twist_ = n.subscribe("cmd_vel", 1, &NodeClass::topicCallbackTwistCmd, this);
+			topic_sub_CMD_pltf_twist_ = n.subscribe("command", 1, &NodeClass::topicCallbackTwistCmd, this);
             topic_sub_EM_stop_state_ = n.subscribe("EMStopState", 1, &NodeClass::topicCallbackEMStop, this);
             topic_sub_drive_diagnostic_ = n.subscribe("Diagnostic", 1, &NodeClass::topicCallbackDiagnostic, this);
 			//<diagnostic_msgs::DiagnosticStatus>("Diagnostic", 1);
@@ -180,6 +180,7 @@ class NodeClass
 				// Set desired value for Plattform Velocity to zero (setpoint setting)
 				ucar_ctrl_.SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
 				// ToDo: last value (0.0) is not used anymore --> remove from interface
+				ROS_DEBUG("Forced platform-velocity cmds to zero");
 			}
 		}
 
@@ -206,6 +207,7 @@ class NodeClass
 				// Set desired value for Plattform Velocity to zero (setpoint setting)
 				ucar_ctrl_.SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
 				// ToDo: last value (0.0) is not used anymore --> remove from interface
+				ROS_DEBUG("Forced platform-velocity cmds to zero");
 		
 				// Set EM flag and stop Ctrlr
 				ucar_ctrl_.setEMStopActive(true);
@@ -215,6 +217,26 @@ class NodeClass
 		// Listens for status of underlying hardware (base drive chain)
 		void topicCallbackDiagnostic(const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg)
 		{
+			sensor_msgs::JointState joint_state_cmd;
+			int num_joints = 8;
+
+			// prepare joint_cmds for heartbeat (compose header)
+			joint_state_cmd.header.stamp = ros::Time::now();
+			//joint_state_cmd.header.frame_id = frame_id; //Where to get this id from?
+			// ToDo: configure over Config-File (number of motors) and Msg
+			// assign right size to JointState data containers
+			//joint_state_cmd.set_name_size(m_iNumMotors);
+			joint_state_cmd.set_position_size(num_joints);
+			joint_state_cmd.set_velocity_size(num_joints);            
+			joint_state_cmd.set_effort_size(num_joints);
+			// compose jointcmds
+			for(int i=0; i<num_joints; i++)
+			{					
+				joint_state_cmd.position[i] = 0.0;
+				joint_state_cmd.velocity[i] = 0.0;
+				joint_state_cmd.effort[i] = 0.0;
+			}
+			
 			// set status of underlying drive chain to member variable 
 			drive_chain_diagnostic_ = msg->level;
 
@@ -233,6 +255,24 @@ class NodeClass
 					// Set desired value for Plattform Velocity to zero (setpoint setting)
 					ucar_ctrl_.SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
 					// ToDo: last value (0.0) is not used anymore --> remove from interface
+					ROS_DEBUG("Forced platform-velocity cmds to zero");
+					
+					// if is not Initializing
+					if (drive_chain_diagnostic_ != diagnostic_status_lookup_.WARN)
+					{
+						// publish zero-vel. jointcmds to avoid Watchdogs stopping ctrlr
+						topic_pub_joint_state_cmd_.publish(joint_state_cmd);
+					}
+				}
+			}
+			// ... while controller is not initialized send heartbeats to keep motors alive
+			else
+			{
+				// ... as soon as base drive chain is initialized
+				if(drive_chain_diagnostic_ != diagnostic_status_lookup_.WARN)
+				{
+					// publish zero-vel. jointcmds to avoid Watchdogs stopping ctrlr
+					topic_pub_joint_state_cmd_.publish(joint_state_cmd);
 				}
 			}
 		}
@@ -287,6 +327,7 @@ class NodeClass
 				// Set desired value for Plattform Velocity to zero (setpoint setting)
 				ucar_ctrl_.SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
 				// ToDo: last value (0.0) is not used anymore --> remove from interface
+				ROS_DEBUG("Forced platform-velocity cmds to zero");
 				// Set EM flag and stop Ctrlr
 				ucar_ctrl_.setEMStopActive(true);
 
@@ -299,6 +340,7 @@ class NodeClass
 					// Set desired value for Plattform Velocity to zero (setpoint setting)
 					ucar_ctrl_.SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
 					// ToDo: last value (0.0) is not used anymore --> remove from interface
+					ROS_DEBUG("Forced platform-velocity cmds to zero");
 					// Set EM flag and stop Ctrlr
 					ucar_ctrl_.setEMStopActive(false);
 
@@ -345,6 +387,7 @@ class NodeClass
 				// stop controller
 				// Set desired value for Plattform Velocity to zero (setpoint setting)
 				ucar_ctrl_.SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
+				ROS_DEBUG("Forced platform-velocity cmds to zero");
 
 				// flag that controller is not running anymore
 				is_initialized_bool_ = false;
@@ -442,13 +485,24 @@ void NodeClass::CalcCtrlStep()
 	int j, k;
 	
 	// if controller is initialized and underlying hardware is operating normal
-	if (is_initialized_bool_ && (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK))
+	if (is_initialized_bool_) //&& (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK))
 	{
+		// as soon as (but only as soon as) platform drive chain is initialized start to send velocity commands
+		// Note: topicCallbackDiagnostic checks whether drives are operating nominal.
+		//       -> if warning or errors are issued target velocity is set to zero
+
 		// perform one control step,
 		// get the resulting cmd's for the wheel velocities and -angles from the controller class
 		// and output the achievable pltf velocity-cmds (if velocity limits where exceeded)
 		ucar_ctrl_.GetNewCtrlStateSteerDriveSetValues(drive_jointvel_cmds_rads,  steer_jointvel_cmds_rads, 									steer_jointang_cmds_rad, vx_cmd_ms, vy_cmd_ms, w_cmd_rads, dummy);
 		// ToDo: adapt interface of controller class --> remove last values (not used anymore)
+
+		// if drives not operating nominal -> force commands to zero
+		if(drive_chain_diagnostic_ != diagnostic_status_lookup_.OK)
+		{
+			steer_jointang_cmds_rad.assign(num_joints, 0.0);
+			steer_jointvel_cmds_rads.assign(num_joints, 0.0);
+		}
 
 		// convert variables to SI-Units
 		vx_cmd_ms = vx_cmd_ms/1000.0;
@@ -498,6 +552,7 @@ void NodeClass::CalcCtrlStep()
 void NodeClass::GetJointState()
 {
 	int num_joints;
+	int iter_k, iter_j;
 	std::vector<double> drive_joint_ang_rad, drive_joint_vel_rads, drive_joint_effort_NM;
 	std::vector<double> steer_joint_ang_rad, steer_joint_vel_rads, steer_joint_effort_NM;
 	cob_srvs::GetJointState srv_get_joint;
@@ -508,13 +563,18 @@ void NodeClass::GetJointState()
 	// copy configuration into vector classes
 	num_joints = srv_get_joint.response.jointstate.position.size();
 	// drive joints
-	drive_joint_ang_rad.assign(num_joints, 100.0);
-	drive_joint_vel_rads.assign(num_joints, 100.0);
-	drive_joint_effort_NM.assign(num_joints, 100.0);
+	drive_joint_ang_rad.assign(num_joints, 0.0);
+	drive_joint_vel_rads.assign(num_joints, 0.0);
+	drive_joint_effort_NM.assign(num_joints, 0.0);
 	// steer joints
-	steer_joint_ang_rad.assign(num_joints, 100.0);
-	steer_joint_vel_rads.assign(num_joints, 100.0);
-	steer_joint_effort_NM.assign(num_joints, 100.0);
+	steer_joint_ang_rad.assign(num_joints, 0.0);
+	steer_joint_vel_rads.assign(num_joints, 0.0);
+	steer_joint_effort_NM.assign(num_joints, 0.0);
+
+	// init iterators
+	iter_k = 0;
+	iter_j = 0;
+
 	for(int i = 0; i < num_joints; i++)
 	{
 		// associate inputs to according steer and drive joints
@@ -522,15 +582,17 @@ void NodeClass::GetJointState()
 		// ToDo: use joint names instead of magic integers
 		if( i == 1 || i == 3 || i == 5 || i == 7)
 		{
-			steer_joint_ang_rad[i] = srv_get_joint.response.jointstate.position[i];
-			steer_joint_vel_rads[i] = srv_get_joint.response.jointstate.velocity[i];
-			steer_joint_effort_NM[i] = srv_get_joint.response.jointstate.effort[i];
+			steer_joint_ang_rad[iter_k] = srv_get_joint.response.jointstate.position[i];
+			steer_joint_vel_rads[iter_k] = srv_get_joint.response.jointstate.velocity[i];
+			steer_joint_effort_NM[iter_k] = srv_get_joint.response.jointstate.effort[i];
+			iter_k = iter_k + 1;
 		}
 		else
 		{
-			drive_joint_ang_rad[i] = srv_get_joint.response.jointstate.position[i];
-			drive_joint_vel_rads[i] = srv_get_joint.response.jointstate.velocity[i];
-			drive_joint_effort_NM[i] = srv_get_joint.response.jointstate.effort[i];
+			drive_joint_ang_rad[iter_j] = srv_get_joint.response.jointstate.position[i];
+			drive_joint_vel_rads[iter_j] = srv_get_joint.response.jointstate.velocity[i];
+			drive_joint_effort_NM[iter_j] = srv_get_joint.response.jointstate.effort[i];
+			iter_j = iter_j + 1;
 		}
 	}
 
@@ -550,7 +612,8 @@ void NodeClass::UpdateOdometry()
 	ros::Time current_time;
 
 	// if drive chain already initialized process joint data
-	if (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK)
+	//if (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK)
+	if (is_initialized_bool_)
 	{
 		// Get resulting Pltf Velocities from Ctrl-Class (result of forward kinematics)
 		// !Careful! Controller internally calculates with mm instead of m
@@ -582,7 +645,7 @@ void NodeClass::UpdateOdometry()
 	// calculation from ROS odom publisher tutorial http://www.ros.org/wiki/navigation/Tutorials/RobotSetup/Odom
 	x_rob_m_ = x_rob_m_ + (vel_x_rob_ms * cos(theta_rob_rad_) - vel_y_rob_ms * sin(theta_rob_rad_)) * dt;
 	y_rob_m_ = y_rob_m_ + (vel_x_rob_ms * sin(theta_rob_rad_) + vel_y_rob_ms * cos(theta_rob_rad_)) * dt;
-	theta_rob_rad_ = rot_rob_rads * dt;
+	theta_rob_rad_ = theta_rob_rad_ + rot_rob_rads * dt;
 
 	// format data for compatibility with tf-package and standard odometry msg
 	// generate quaternion for rotation
@@ -593,7 +656,7 @@ void NodeClass::UpdateOdometry()
 	// compose header
 	odom_tf.header.stamp = current_time;
 	odom_tf.header.frame_id = "/odom";
-	odom_tf.child_frame_id = "/base_footprint";
+	odom_tf.child_frame_id = "/base_link";
 	// compose data container
 	odom_tf.transform.translation.x = x_rob_m_;
 	odom_tf.transform.translation.y = y_rob_m_;
@@ -605,7 +668,7 @@ void NodeClass::UpdateOdometry()
 	// compose header
     odom_top.header.stamp = current_time;
     odom_top.header.frame_id = "/odom";
-    odom_top.child_frame_id = "/base_footprint";
+    odom_top.child_frame_id = "/base_link";
     // compose pose of robot
     odom_top.pose.pose.position.x = x_rob_m_;
     odom_top.pose.pose.position.y = y_rob_m_;

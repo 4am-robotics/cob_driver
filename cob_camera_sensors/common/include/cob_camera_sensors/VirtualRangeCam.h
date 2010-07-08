@@ -56,25 +56,19 @@
 /// @author Jan Fischer 
 /// @date 2009
 
-#ifndef __VIRTUALRANGECAM_H__
-#define __VIRTUALRANGECAM_H__
+#ifndef __IPA_VIRTUALRANGECAM_H__
+#define __IPA_VIRTUALRANGECAM_H__
 
-#include <fstream>
-#include <iostream>
+#ifdef __COB_ROS__
+	#include <cob_camera_sensors/AbstractRangeImagingSensor.h>
+#else
+	#include <cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/AbstractRangeImagingSensor.h>
+#endif
+
 #include <stdio.h>
-#include <string>
-#include <vector>
 #include <math.h>
 #include <assert.h>
 #include <sstream>
-
-#ifdef __COB_ROS__
-#include <cob_camera_sensors/AbstractRangeImagingSensor.h>
-#include <tinyxml/tinyxml.h>
-#else
-#include <cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/AbstractRangeImagingSensor.h>
-#include <Vision/Extern/TinyXml/tinyxml.h>
-#endif
 
 #include <boost/filesystem.hpp>
 
@@ -98,7 +92,7 @@ static const int SWISSRANGER_ROWS = 144;
 /// Interface class to virtual range camera like Swissranger 3000/4000.
 /// The class offers an interface to a virtual range camera, that is equal to the interface of a real range camera.
 /// However, pictures are read from a directory instead of the camera.
-class VirtualRangeCam : public AbstractRangeImagingSensor
+class __DLL_LIBCAMERASENSORS__ VirtualRangeCam : public AbstractRangeImagingSensor
 {
 public:
 
@@ -121,11 +115,8 @@ public:
 	unsigned long AcquireImages(int widthStepOneChannel, char* rangeImage=NULL, char* intensityImage=NULL,
 		char* cartesianImage=NULL, bool getLatestFrame=true, bool undistort=true,
 		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY);
-	unsigned long AcquireImages(IplImage* rangeImage=NULL, IplImage* intensityImage=NULL,
-		IplImage* cartesianImage=NULL, bool getLatestFrame = true, bool undistort = true,
-		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY);
-	unsigned long AcquireImages2(IplImage** rangeImage=NULL, IplImage** intensityImage=NULL, 
-		IplImage** cartesianImage=NULL, bool getLatestFrame = true, bool undistort = true,
+	unsigned long AcquireImages(cv::Mat* rangeImage = 0, cv::Mat* intensityImage = 0,
+		cv::Mat* cartesianImage = 0, bool getLatestFrame = true, bool undistort = true,
 		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY);
 
 	unsigned long GetCalibratedUV(double x, double y, double z, double& u, double& v);
@@ -151,9 +142,7 @@ private:
 	//*******************************************************************************
 
 	unsigned long GetCalibratedZMatlab(int u, int v, float zRaw, float& zCalibrated);
-	unsigned long GetCalibratedZNative(int u, int v, IplImage* coordinateImage, float& zCalibrated);
 	unsigned long GetCalibratedXYMatlab(int u, int v, float z, float& x, float& y);
-	unsigned long GetCalibratedXYNative(int u, int v, IplImage* coordinateImage, float& x, float& y);
 	
 	/// Load general range camera parameters .
 	/// @param filename Configuration file-path and file-name.
@@ -168,13 +157,13 @@ private:
 	/// z(u,v)=a0(u,v)+a1(u,v)*d(u,v)+a2(u,v)*d(u,v)^2
 	///       +a3(u,v)*d(u,v)^3+a4(u,v)*d(u,v)^4+a5(u,v)*d(u,v)^5
 	///       +a6(u,v)*d(u,v)^6;
-	DblMatrix m_CoeffsA0; ///< a0 z-calibration parameters. One matrix entry corresponds to one pixel
-	DblMatrix m_CoeffsA1; ///< a1 z-calibration parameters. One matrix entry corresponds to one pixel
-	DblMatrix m_CoeffsA2; ///< a2 z-calibration parameters. One matrix entry corresponds to one pixel
-	DblMatrix m_CoeffsA3; ///< a3 z-calibration parameters. One matrix entry corresponds to one pixel
-	DblMatrix m_CoeffsA4; ///< a4 z-calibration parameters. One matrix entry corresponds to one pixel
-	DblMatrix m_CoeffsA5; ///< a5 z-calibration parameters. One matrix entry corresponds to one pixel
-	DblMatrix m_CoeffsA6; ///< a6 z-calibration parameters. One matrix entry corresponds to one pixel
+	cv::Mat m_CoeffsA0; ///< a0 z-calibration parameters. One matrix entry corresponds to one pixel
+	cv::Mat m_CoeffsA1; ///< a1 z-calibration parameters. One matrix entry corresponds to one pixel
+	cv::Mat m_CoeffsA2; ///< a2 z-calibration parameters. One matrix entry corresponds to one pixel
+	cv::Mat m_CoeffsA3; ///< a3 z-calibration parameters. One matrix entry corresponds to one pixel
+	cv::Mat m_CoeffsA4; ///< a4 z-calibration parameters. One matrix entry corresponds to one pixel
+	cv::Mat m_CoeffsA5; ///< a5 z-calibration parameters. One matrix entry corresponds to one pixel
+	cv::Mat m_CoeffsA6; ///< a6 z-calibration parameters. One matrix entry corresponds to one pixel
 
 	std::string m_CameraDataDirectory; ///< Directory where the image data resides
 	int m_CameraIndex; ///< Index of the specified camera. Important, when several cameras of the same type are present
@@ -184,15 +173,17 @@ private:
 	std::vector<std::string> m_RangeImageFileNames ;
 	std::vector<std::string> m_CoordinateImageFileNames ;
 
-	unsigned int m_ImageCounter; ///< Holds the index of the image that is extracted during the next call of <code>AcquireImages</code>
 	int m_ImageWidth;  ///< Image width
 	int m_ImageHeight; ///< Image height
 
 	double m_k1, m_k2, m_p1, m_p2; ///< Distortion parameters
 };
 
+/// Creates, intializes and returns a smart pointer object for the camera.
+/// @return Smart pointer, refering to the generated object
+__DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_VirtualCam();
 
 } // end namespace ipa_CameraSensors
-#endif // __VIRTUALRANGECAM_H__
+#endif // __IPA_VIRTUALRANGECAM_H__
 
 

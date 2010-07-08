@@ -72,8 +72,8 @@
 #include <cob_srvs/SetOperationMode.h>
 
 // external includes
-#include <powercube_chain/PowerCubeCtrl.h>
-#include <powercube_chain/simulatedArm.h>
+#include <cob_powercube_chain/PowerCubeCtrl.h>
+#include <cob_powercube_chain/simulatedArm.h>
 
 //####################
 //#### node class ####
@@ -309,6 +309,11 @@ class NodeClass
 		void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal)
 		{
 			ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
+			if (!isInitialized_)
+			{
+				as_.setAborted();
+				return;
+			}
 			// saving goal into local variables
 			traj_ = goal->trajectory;
 			traj_point_nr_ = 0;

@@ -10,7 +10,7 @@
 * Project name: care-o-bot
 * ROS stack name: cob_driver
 * ROS package name: cob_camera_sensors
-* Description: Abstract interface for time789-of-flight cameras.
+* Description: Abstract interface for time-of-flight cameras.
 *
 * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 *
@@ -56,52 +56,40 @@
 /// @author Jan Fischer
 /// @date May 2008.
 
-#ifndef __ABSTRACTRANGEIMAGINGSENSOR_H__
-#define __ABSTRACTRANGEIMAGINGSENSOR_H__
+#ifndef __IPA_ABSTRACTRANGEIMAGINGSENSOR_H__
+#define __IPA_ABSTRACTRANGEIMAGINGSENSOR_H__
 
 #ifdef __COB_ROS__
-	#include <opencv/highgui.h>
-	#include <opencv/cv.h>
-	#include <opencv/cxcore.h>
+	#include "cob_vision_utils/CameraSensorDefines.h"
 
 	#include "tinyxml/tinyxml.h"
-	#include "cob_vision_utils/ThreeDUtils.h"
-	#include "cob_vision_utils/OpenCVUtils.h"
-	#include "cob_vision_utils/MathUtils.h"
+
+	#include "cob_vision_utils/VisionUtils.h"
 	#include "cob_vision_utils/CameraSensorTypes.h"
 #else
-	#include <highgui.h>
-	#include <cv.h>
-	#include <cxcore.h>
+	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/CameraSensorDefines.h"
 
 	#include "Vision/Extern/TinyXml/tinyxml.h"
-	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/ThreeDUtils.h"
-	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/OpenCVUtils.h"
-	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/MathUtils.h"
+
+	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/VisionUtils.h"
 	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/CameraSensorTypes.h"
 #endif
 
 #include <iostream>
 #include <limits>
-#include <boost/shared_ptr.hpp>
+#include <vector>
 
-#ifdef __LINUX__
-#define __DLL_ABSTRACTRANGEIMAGINGSENSOR_H__
-#define APIENTRY
-#else
-	#include <windows.h>
-	#ifdef __LIBCAMERASENSORS_EXPORT__
-	#define __DLL_ABSTRACTRANGEIMAGINGSENSOR_H__ __declspec(dllexport)
-	#else
-	#define __DLL_ABSTRACTRANGEIMAGINGSENSOR_H__ __declspec(dllimport)
-	#endif
-#endif
+#include <boost/shared_ptr.hpp>
 
 namespace ipa_CameraSensors {
 
+/// Define smart pointer type for toolbox
+class AbstractRangeImagingSensor;
+typedef boost::shared_ptr<AbstractRangeImagingSensor> AbstractRangeImagingSensorPtr;
+
 /// @ingroup RangeCameraDriver
 /// Abstract interface for range imaging sensors.
-class AbstractRangeImagingSensor
+class __DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensor
 {
 public:
 
@@ -161,31 +149,17 @@ public:
 	virtual unsigned long GetProperty(t_cameraProperty* cameraProperty) =0;
 
 	/// Acquires an image from SwissRanger camera.
-	/// Data is read from the camera and put into a corresponding openCV IplImage data type.
-	/// The IplImages must be allocated already and are initialized within the function.
-	/// @param rangeImage OpenCV IplImage with depth information.
-	/// @param grayImage OpenCV IplImage with grayscale information.
-	/// @param cartesianImage OpenCV IplImage with cartesian (x,y,z) information in meters.
+	/// Data is read from the camera and put into a corresponding OpenCV <code>cv::Mat</code> data type.
+	/// The <code>cv::Mat</code> are allocated on demand.
+	/// @param rangeImage OpenCV conform image with depth information.
+	/// @param grayImage OpenCV conform image with grayscale information.
+	/// @param cartesianImage OpenCV conform image with cartesian (x,y,z) information in meters.
 	/// @param getLatestFrame Set true to acquire a new image on calling instead of returning the one acquired last time
 	/// @param useCalibratedZ Calibrate z values 
 	/// @param grayImageType Either gray image data is filled with amplitude image or intensity image
-	/// @return Return code.
-	virtual unsigned long AcquireImages(IplImage* rangeImage=NULL, IplImage* intensityImage=NULL,
-		IplImage* cartesianImage=NULL, bool getLatestFrame=true, bool undistort=true,
-		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY) = 0;
-
-	/// Acquires an image from SwissRanger.
-	/// Data is read from the camera and put into a corresponding openCV IplImage data type.
-	/// The IplImages are allocated and initialized within the function.
-	/// @param rangeImage OpenCV IplImage with depth information.
-	/// @param grayImage OpenCV IplImage with grayscale information.
-	/// @param cartesianImage OpenCV IplImage with cartesian (x,y,z) information in meters.
-	/// @param getLatestFrame Set true to acquire a new image on calling instead of returning the one acquired last time
-	/// @param useCalibratedZ Calibrate z values 
-	/// @param grayImageType Either gray image data is filled with amplitude image or intensity image
-	/// @return Return code.
-	virtual unsigned long AcquireImages2(IplImage** rangeImage=NULL, IplImage** intensityImage=NULL,
-		IplImage** cartesianImage=NULL, bool getLatestFrame=true, bool undistort=true,
+	/// @throw IPA_Exception Throws an exception, if camera access failed
+	virtual unsigned long AcquireImages(cv::Mat* rangeImage = 0, cv::Mat* intensityImage = 0,
+		cv::Mat* cartesianImage = 0, bool getLatestFrame=true, bool undistort=true,
 		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY) = 0;
 
 	/// Acquires an image from SwissRanger.
@@ -232,8 +206,8 @@ public:
 	/// @param undistortMapX undistortMapX The undistortion map for x direction
 	/// @param undistortMapY undistortMapY The undistortion map for y direction
 	/// @return return code
-	virtual unsigned long SetIntrinsics(CvMat* intrinsicMatrix,
-		IplImage* undistortMapX, IplImage* undistortMapY);
+	virtual unsigned long SetIntrinsics(cv::Mat& intrinsicMatrix,
+		cv::Mat& undistortMapX, cv::Mat& undistortMapY);
 
 	/// Returns the number of images in the directory
 	/// @return The number of images in the directory
@@ -244,6 +218,8 @@ public:
 	/// @param path The camera path
 	/// @return Return code
 	virtual unsigned long SetPathToImages(std::string path) {return ipa_Utils::RET_OK;};
+
+	unsigned int m_ImageCounter; ///< Holds the index of the image that is extracted during the next call of <code>AcquireImages</code>
 
 protected:
 		
@@ -256,9 +232,9 @@ protected:
 
 	unsigned int m_BufferSize; ///< Number of images, the camera buffers internally
 
-	CvMat* m_intrinsicMatrix;		///< Intrinsic parameters [fx 0 cx; 0 fy cy; 0 0 1]
-	IplImage* m_undistortMapX;		///< The output array of x coordinates for the undistortion map
-	IplImage* m_undistortMapY;		///< The output array of Y coordinates for the undistortion map
+	cv::Mat m_intrinsicMatrix;		///< Intrinsic parameters [fx 0 cx; 0 fy cy; 0 0 1]
+	cv::Mat m_undistortMapX;		///< The output array of x coordinates for the undistortion map
+	cv::Mat m_undistortMapY;		///< The output array of Y coordinates for the undistortion map
 
 private:
 	
@@ -270,19 +246,12 @@ private:
 	virtual unsigned long LoadParameters(const char* filename, int cameraIndex) = 0;
 };
 
-
-/// Factory function to create an object of an range imaging sensor
-#ifdef __cplusplus
-extern "C" {
-#endif
-__DLL_ABSTRACTRANGEIMAGINGSENSOR_H__ AbstractRangeImagingSensor* APIENTRY CreateRangeImagingSensor_Swissranger();
-__DLL_ABSTRACTRANGEIMAGINGSENSOR_H__ AbstractRangeImagingSensor* APIENTRY CreateRangeImagingSensor_PMDCamCube();
-__DLL_ABSTRACTRANGEIMAGINGSENSOR_H__ AbstractRangeImagingSensor* APIENTRY CreateRangeImagingSensor_VirtualCam();
-__DLL_ABSTRACTRANGEIMAGINGSENSOR_H__ void APIENTRY ReleaseRangeImagingSensor(AbstractRangeImagingSensor* rangeImagingSensor);
-#ifdef __cplusplus
-}
-#endif
+/// Creates, intializes and returns a smart pointer object for the camera.
+/// @return Smart pointer, refering to the generated object
+__DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_VirtualCam();
+__DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_Swissranger();
+__DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_PMDCamCube();
 
 } // end namespace ipa_CameraSensors
-#endif
+#endif // __IPA_ABSTRACTRANGEIMAGINGSENSOR_H__
 

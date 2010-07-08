@@ -1,0 +1,13 @@
+<package>
+  <description brief="cob_joy">
+
+     This Package is simply a Care-O-bot specific setup for joysticks.
+
+  </description>
+  <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_joy</url>
+  <depend package="joy"/>
+
+</package>

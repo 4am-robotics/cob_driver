@@ -81,8 +81,8 @@ class NodeClass
 {
     //
     public:
-	    // create a handle for this node, initialize node
-	    ros::NodeHandle n;
+	// create a handle for this node, initialize node
+	ros::NodeHandle n;
                 
         // topics to publish
         ros::Publisher topicPub_JointState;
@@ -152,6 +152,7 @@ class NodeClass
 			// only process cmds when system is initialized
 			if(m_bisInitialized == true)
 			{
+				ROS_DEBUG("Topic Callback JointStateCmd - Sending Commands to drives (initialized)");
 		   		int iRet;
 				sensor_msgs::JointState JointStateCmd = *msg;
             	// check if velocities lie inside allowed boundaries
@@ -169,15 +170,18 @@ class NodeClass
 				    	    JointStateCmd.velocity[i] = -m_Param.dMaxSteerRateRadpS;
 				        }
             	    }
-            	    else    // for driving motors
-				    if (JointStateCmd.velocity[i] > m_Param.dMaxDriveRateRadpS)
-				    {
-				    	JointStateCmd.velocity[i] = m_Param.dMaxDriveRateRadpS;
-				    }
-				    if (JointStateCmd.velocity[i] < -m_Param.dMaxDriveRateRadpS)
+					// for driving motors
+            	    else
 					{
-				    	JointStateCmd.velocity[i] = -m_Param.dMaxDriveRateRadpS;
-			    	}
+				    	if (JointStateCmd.velocity[i] > m_Param.dMaxDriveRateRadpS)
+				    	{
+				    		JointStateCmd.velocity[i] = m_Param.dMaxDriveRateRadpS;
+				    	}
+				    	if (JointStateCmd.velocity[i] < -m_Param.dMaxDriveRateRadpS)
+						{
+				    		JointStateCmd.velocity[i] = -m_Param.dMaxDriveRateRadpS;
+			    		}
+					}
 
                 	// and cmd velocities to Can-Nodes
                 	//m_CanCtrlPltf.setVelGearRadS(iCanIdent, dVelEncRadS);
@@ -253,11 +257,12 @@ class NodeClass
         {
 			ROS_DEBUG("Service Callback GetJointState");
             // init local variables
-            int iCanEvalStatus, ret, j, k;
+            int iCanEvalStatus, ret, j, k, ret_sprintf;
             bool bIsError;
             std::vector<double> vdAngGearRad, vdVelGearRad, vdEffortGearNM;
-			std::string str_steer, str_drive, str_cat;
-			std::stringstream str_num;
+			std::string str_steer, str_drive, str_num, str_cat;
+			// ToDo: search for a more elegant way to compose JointNames
+			char c_num [1];
 
 			// init strings
 			str_steer = "Steer";
@@ -291,12 +296,35 @@ class NodeClass
 				// as long as system is not initialized
 				bIsError = false;
 
+    	        j = 0;
+				k = 0;
+
 	            // set data to jointstate            
 	            for(int i = 0; i<m_iNumMotors; i++)
 	            {
 	                jointstate.position[i] = 0.0;
 	                jointstate.velocity[i] = 0.0;
 	                jointstate.effort[i] = 0.0;
+
+					// set joint names
+   	            	if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
+                	{
+						// create name for identification in JointState msg
+                    	j = j+1;
+						ret_sprintf = sprintf(c_num, "%i", j);
+						str_num.assign(1, c_num[0]);
+						str_cat = str_steer + str_num;
+                	}
+					else
+					{
+						// create name for identification in JointState msg
+						k = k+1;
+						ret_sprintf = sprintf(c_num, "%i", k);
+						str_num.assign(1, c_num[0]);
+						str_cat = str_drive + str_num;
+					}
+					// set joint names
+					jointstate.name[i] = str_cat;
 	            }
 			}
 			else
@@ -318,15 +346,17 @@ class NodeClass
 	                	MathSup::normalizePi(vdAngGearRad[i]);
                     	j = j+1;
 						// create name for identification in JointState msg
-						str_num << j;
-						str_cat = str_steer + str_num.str();
+						ret_sprintf = sprintf(c_num, "%i", j);
+						str_num.assign(1, c_num[0]);
+						str_cat = str_steer + str_num;
                 	}
 					else
 					{
 						// create name for identification in JointState msg
 						k = k+1;
-						str_num << k;
-						str_cat = str_drive + str_num.str();
+						ret_sprintf = sprintf(c_num, "%i", k);
+						str_num.assign(1, c_num[0]);
+						str_cat = str_drive + str_num;
 					}
 					// set joint names
 					jointstate.name[i] = str_cat;
@@ -404,16 +434,16 @@ int main(int argc, char** argv)
 
 
     
-    while(nodeClass.n.ok())
+    /*while(nodeClass.n.ok())
     {
 
 
         ros::spinOnce();
 		// -> let it sleep for a while
         //loop_rate.sleep();
-    }
+    }*/
     
-//    ros::spin();
+    ros::spin();
 
     return 0;
 }
@@ -432,7 +462,7 @@ bool NodeClass::initDrives()
 	IniFile iniFile;
 
 	/// Parameters are set within the launch file
-	n.param<std::string>("base_drive_chain_node/IniDirectory", sIniDirectory, "Platform/IniFiles/");
+	n.param<std::string>("IniDirectory", sIniDirectory, "Platform/IniFiles/");
 	ROS_INFO("IniDirectory loaded from Parameter-Server is: %s", sIniDirectory.c_str());
 	
 

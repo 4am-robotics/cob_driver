@@ -59,42 +59,16 @@
 
 using namespace ipa_CameraSensors;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-__DLL_ABSTRACTRANGEIMAGINGSENSOR_H__ void APIENTRY ReleaseRangeImagingSensor(AbstractRangeImagingSensor* rangeImagingSensor)
-{
-	delete rangeImagingSensor;
-}
-#ifdef __cplusplus
-}
-#endif
-
-
 AbstractRangeImagingSensor::~AbstractRangeImagingSensor()
 {
-	if (m_intrinsicMatrix) cvReleaseMat(&m_intrinsicMatrix);
-	if (m_undistortMapX) cvReleaseImage(&m_undistortMapX);
-	if (m_undistortMapY) cvReleaseImage(&m_undistortMapY);
 }
 
-unsigned long AbstractRangeImagingSensor::SetIntrinsics(CvMat* intrinsicMatrix,
-		IplImage* undistortMapX, IplImage* undistortMapY)
+unsigned long AbstractRangeImagingSensor::SetIntrinsics(cv::Mat& intrinsicMatrix,
+		cv::Mat& undistortMapX, cv::Mat& undistortMapY)
 {
-	if (m_intrinsicMatrix) cvReleaseMat(&m_intrinsicMatrix);
-	if (m_undistortMapX) cvReleaseImage(&m_undistortMapX);
-	if (m_undistortMapY) cvReleaseImage(&m_undistortMapY);
-
-	if (intrinsicMatrix == 0 || undistortMapX == 0 || undistortMapY == 0)
-	{
-		std::cout << "ERROR - AbstractRangeImagingSensor::SetIntrinsics" << std::endl;
-		std::cout << "\t... One of the parameters is NULL" << std::endl;
-		return RET_FAILED;
-	}
-
-	m_intrinsicMatrix = cvCloneMat(intrinsicMatrix);
-	m_undistortMapX = cvCloneImage(undistortMapX);
-	m_undistortMapY = cvCloneImage(undistortMapY);
+	m_intrinsicMatrix = intrinsicMatrix.clone();
+	m_undistortMapX = undistortMapX.clone();
+	m_undistortMapY = undistortMapY.clone();
 
 	return RET_OK; 
 }
