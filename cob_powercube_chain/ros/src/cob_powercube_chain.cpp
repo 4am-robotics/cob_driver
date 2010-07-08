@@ -311,6 +311,7 @@ class NodeClass
 			ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
 			if (!isInitialized_)
 			{
+				ROS_ERROR("%s: Rejected, powercubes not initialized", action_name_.c_str());
 				as_.setAborted();
 				return;
 			}
@@ -551,7 +552,7 @@ class NodeClass
 					}
 					else
 					{
-						ROS_INFO("...powercubes still moving to point[%d]",traj_point_nr_);
+						ROS_DEBUG("...powercubes still moving to point[%d]",traj_point_nr_);
 					}
 			    }
 			    else if (operationMode == "velocity")
