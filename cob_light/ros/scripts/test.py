@@ -58,7 +58,7 @@ import rospy
 from cob_msgs.msg import Light
 
 def changeColor():
-	pub = rospy.Publisher('command', Light)
+	pub = rospy.Publisher('light_controller/command', Light)
 	rospy.init_node('light_test')
 	#color in rgb color space ranging from 0 to 999
 	red = Light()
