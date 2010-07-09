@@ -62,32 +62,37 @@ def changeColor():
 	rospy.init_node('light_test')
 	#color in rgb color space ranging from 0 to 999
 	red = Light()
+	red.name.data = "red"
 	red.r = 999
 	red.g = 0
 	red.b = 0
 	
 	yellow = Light()
+	yellow.name.data = "yellow"
 	yellow.r = 400
 	yellow.g = 999
 	yellow.b = 0
 	
 	green = Light()
+	green.name.data = "green"
 	green.r = 0
 	green.g = 999
 	green.b = 0
 	
 	blue = Light()
+	blue.name.data = "blue"
 	blue.r = 0
 	blue.g = 0
 	blue.b = 999
 	
 	white = Light()
+	white.name.data = "white"
 	white.r = 300
 	white.g = 999
 	white.b = 300
 	
 	for color in [red,yellow,green,blue,white]:
-		rospy.loginfo("Setting rgb to [%d, %d, %d]",color.r,color.g,color.b)
+		rospy.loginfo("Setting rgb to %s [%d, %d, %d]",color.name.data,color.r,color.g,color.b)
 		pub.publish(color)
 		time.sleep(3)
 

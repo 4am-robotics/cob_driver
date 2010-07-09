@@ -77,6 +77,7 @@ class LightControl:
 
 	def LightCallback(self,light):
 		rospy.loginfo("Received new color: rgb = [%d, %d, %d]",light.r,light.g,light.b)
+		print light.name.data
 		self.setRGB(light.r,light.g,light.b)
 
 if __name__ == '__main__':
