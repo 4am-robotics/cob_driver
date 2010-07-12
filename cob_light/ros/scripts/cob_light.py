@@ -63,7 +63,6 @@ class LightControl:
 	def __init__(self):
 		rospy.loginfo("trying to initializing serial connection")
 		try:
-			print "asd"
 			self.ser = serial.Serial('/dev/ttyUSB3', 230400)
 		except serial.serialutil.SerialException:
 			rospy.logerr("Could not initialize serial connection")
@@ -78,11 +77,12 @@ class LightControl:
 
 	def LightCallback(self,light):
 		rospy.loginfo("Received new color: rgb = [%d, %d, %d]",light.r,light.g,light.b)
+		print light.name.data
 		self.setRGB(light.r,light.g,light.b)
 
 if __name__ == '__main__':
 	rospy.init_node('light_controller')
 	lc = LightControl()
-	rospy.Subscriber("command", Light, lc.LightCallback)
+	rospy.Subscriber("light_controller/command", Light, lc.LightCallback)
 	rospy.loginfo(rospy.get_name() + " running")
 	rospy.spin()
