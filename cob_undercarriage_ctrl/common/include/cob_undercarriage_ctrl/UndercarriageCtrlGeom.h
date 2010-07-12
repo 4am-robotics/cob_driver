@@ -54,14 +54,28 @@
 #ifndef UndercarriageCtrlGeom_INCLUDEDEF_H
 #define UndercarriageCtrlGeom_INCLUDEDEF_H
 
+//#include <time.h>
+
 #include <cob_utilities/IniFile.h>
 #include <cob_utilities/MathSup.h>
+#include <cob_utilities/TimeStamp.h>
 
 class UndercarriageCtrlGeom
 {
 private:
 	
 	bool m_bEMStopActive;
+	
+	/*// Logging for debugging
+	// create Filepointers
+	FILE * m_pfileDesVel, * m_pfileMeasVel;
+	FILE * m_pfileSteerAngTarget1, * m_pfileSteerAngTarget2;
+	FILE * m_pfileSteerAngTarget, * m_pfileDriveVelTarget;
+	FILE * m_pfileSteerAngCmd, * m_pfileSteerVelCmd, * m_pfileDriveVelCmd;
+	// create TimeStamp
+	TimeStamp m_RawTime, m_StartTime;
+	double m_dNowTime;*/
+
 	
 	// Actual Values for PltfMovement (calculated from Actual Wheelspeeds)
 	double m_dVelLongMMS;
@@ -81,14 +95,14 @@ private:
 	double m_dCmdRotRobRadS;
 	double m_dCmdRotVelRadS;
 
-	// Interpolated Wheelspeeds (calculated from desired and current Pltf-Config)
+	/*// Interpolated Wheelspeeds (calculated from desired and current Pltf-Config)
 	std::vector<double> m_vdVelGearDriveIntpRadS;
 	std::vector<double> m_vdVelGearSteerIntpRadS;
 	std::vector<double> m_vdAngGearSteerIntpRad;
 
 	// Delta values for interpolating between two commands
 	std::vector<double> m_vdDeltaAngIntpRad;
-	std::vector<double> m_vdDeltaDriveIntpRadS;
+	std::vector<double> m_vdDeltaDriveIntpRadS;*/
 
 	// Desired Wheelspeeds set to ELMO-Ctrl's (calculated from desired Pltf-Movement)
 	std::vector<double> m_vdVelGearDriveCmdRadS;
@@ -101,6 +115,8 @@ private:
 	std::vector<double> m_vdVelGearDriveTarget1RadS;
 	std::vector<double> m_vdAngGearSteerTarget2Rad; // alternativ 2 for steering angle (+/- PI)
 	std::vector<double> m_vdVelGearDriveTarget2RadS;
+	std::vector<double> m_vdAngGearSteerTargetRad; // choosen alternativ for steering angle
+	std::vector<double> m_vdVelGearDriveTargetRadS;
 
 	/** Position of the Wheels' Steering Axis'
 	 *  in cartesian (X/Y) and polar (Dist/Ang) coordinates
@@ -163,7 +179,7 @@ private:
 	std::vector< std::vector<double> > m_vdCtrlVal;
 
 	// Factor for thread cycle time of ThreadMotionPltfCtrl and ThreadUnderCarriageCtrl	
-	double m_dThreadCycleMultiplier;
+	//double m_dThreadCycleMultiplier;
 	
 	// calculate inverse kinematics
 	void CalcInverse(void);

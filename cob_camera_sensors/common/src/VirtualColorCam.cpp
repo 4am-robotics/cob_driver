@@ -60,19 +60,10 @@
 using namespace std;
 using namespace ipa_CameraSensors;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-__DLL_ABSTRACTCOLORCAMERA_H__ AbstractColorCamera* APIENTRY CreateColorCamera_VirtualCam()
-
+__DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr ipa_CameraSensors::CreateColorCamera_VirtualCam()
 {
-	return (new VirtualColorCam());
+	return AbstractColorCameraPtr(new VirtualColorCam());
 }
-#ifdef __cplusplus
-}
-#endif
-
-
 
 VirtualColorCam::VirtualColorCam()
 {
@@ -105,7 +96,7 @@ unsigned long VirtualColorCam::Init(std::string directory, int cameraIndex)
 
 	m_CameraType = ipa_CameraSensors::CAM_VIRTUALCOLOR;
 
-	/// It is important to put this before LoadParameters
+	// It is important to put this before LoadParameters
 	m_CameraDataDirectory = directory;
 	if (LoadParameters((directory + "cameraSensorsIni.xml").c_str(), cameraIndex) & RET_FAILED)
 	{
@@ -135,7 +126,7 @@ unsigned long VirtualColorCam::Open()
 		return (RET_OK | RET_CAMERA_ALREADY_OPEN);
 	}
 
-	/// Convert camera ID to string
+	// Convert camera ID to string
 	std::stringstream ss;
 	std::string sCameraIndex;
 	ss << m_CameraIndex;
@@ -144,7 +135,7 @@ unsigned long VirtualColorCam::Open()
 	m_ImageWidth = -1;
 	m_ImageHeight = -1;
 
-	/// Create absolute filename and check if directory exists
+	// Create absolute filename and check if directory exists
 	fs::path absoluteDirectoryName( m_CameraDataDirectory );
 	if ( !fs::exists( absoluteDirectoryName ) )
 	{
@@ -154,7 +145,7 @@ unsigned long VirtualColorCam::Open()
 	}
 
 	int colorImageCounter = 0;
-	/// Extract all image filenames from the directory
+	// Extract all image filenames from the directory
 	if ( fs::is_directory( absoluteDirectoryName ) )
 	{
 		std::cout << "INFO - VirtualColorCam::Open:" << std::endl;
@@ -179,7 +170,7 @@ unsigned long VirtualColorCam::Open()
 						++colorImageCounter;
 						//std::cout << "VirtualColorCam::Open(): Reading '" << dir_itr->path().string() << "\n";
 						m_ColorImageFileNames.push_back(dir_itr->path().string());
-						/// Get image size
+						// Get image size
 						if (m_ImageWidth == -1 || m_ImageHeight == -1)
 						{
 							IplImage* image = (IplImage*) cvLoadImage(m_ColorImageFileNames.back().c_str(), CV_LOAD_IMAGE_COLOR);
@@ -336,7 +327,7 @@ unsigned long VirtualColorCam::GetColorImage(char* colorImageData, bool getLates
 	m_ImageCounter++;
 	if (m_ImageCounter >= m_ColorImageFileNames.size())
 	{
-		/// Reset image counter
+		// Reset image counter
 		m_ImageCounter = 0;
 	}
 
@@ -344,7 +335,7 @@ unsigned long VirtualColorCam::GetColorImage(char* colorImageData, bool getLates
 }
 
 
-unsigned long VirtualColorCam::GetColorImage(IplImage* colorImage, bool getLatestFrame)
+unsigned long VirtualColorCam::GetColorImage(cv::Mat* colorImage, bool getLatestFrame)
 {
 	if (!isOpen())
 	{
@@ -353,38 +344,14 @@ unsigned long VirtualColorCam::GetColorImage(IplImage* colorImage, bool getLates
 		return (RET_FAILED | RET_CAMERA_NOT_OPEN);
 	}
 
-	if(colorImage->depth == IPL_DEPTH_8U &&
-		colorImage->nChannels == 3 &&
-		colorImage->width == (int) m_ImageWidth &&
-		colorImage->height == (int) m_ImageHeight)
-	{
-		return GetColorImage(colorImage->imageData, getLatestFrame);
-	}
-	else
-	{
-		std::cerr << "ERROR - VirtualColorCam::GetColorImage:" << std::endl;
-		std::cerr << "\t ... Could not acquire color image. IplImage initialized with wrong attributes." << std::endl;
-		return RET_FAILED;
-	}
+	CV_Assert(colorImage != 0);
+
+	colorImage->create(m_ImageHeight, m_ImageWidth, CV_8UC3);
+
+	return GetColorImage((char*)(colorImage->ptr<unsigned char>(0)), getLatestFrame);
 
 	return RET_FAILED;
 }
-
-unsigned long VirtualColorCam::GetColorImage2(IplImage** colorImage, bool getLatestFrame)
-{
-	if (!isOpen())
-	{
-		std::cerr << "ERROR - VirtualColorCam::GetColorImage2:" << std::endl;
-		std::cerr << "\t ... Color camera not open." << std::endl;
-		return (RET_FAILED | RET_CAMERA_NOT_OPEN);
-	}
-
-	*colorImage = cvCreateImage(cvSize(m_ImageWidth, m_ImageHeight), IPL_DEPTH_8U, 3);
-	return GetColorImage((*colorImage)->imageData, getLatestFrame);
-	
-	return RET_FAILED;
-}
-
 
 unsigned long VirtualColorCam::PrintCameraInformation()
 {

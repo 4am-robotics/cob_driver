@@ -61,19 +61,20 @@ import sys
 
 class LightControl:
 	def __init__(self):
-			rospy.loginfo("trying to initializing serial connection")
-			try:
-				print "asd"
-				#self.ser = serial.Serial('/dev/ttyUSB0', 230400)
-			except serial.serialutil.SerialException:
-				rospy.logerr("Could not initialize serial connection")
-				sys.exit()
-			rospy.loginfo("serial connection initialized successfully")
+		rospy.loginfo("trying to initializing serial connection")
+		try:
+			print "asd"
+			self.ser = serial.Serial('/dev/ttyUSB3', 230400)
+		except serial.serialutil.SerialException:
+			rospy.logerr("Could not initialize serial connection")
+			sys.exit()
+		rospy.loginfo("serial connection initialized successfully")
 
 	def setRGB(self, red, green, blue):
-			print "setRGB", red, green, blue
-			if(red <= 999 and green <= 999 and blue <= 999):
-				self.ser.write(str(red)+ " " + str(green)+ " " + str(blue)+"\n\r")
+		#color in rgb color space ranging from 0 to 999
+		#print "setRGB", red, green, blue
+		if(red <= 999 and green <= 999 and blue <= 999):
+			self.ser.write(str(red)+ " " + str(green)+ " " + str(blue)+"\n\r")
 
 	def LightCallback(self,light):
 		rospy.loginfo("Received new color: rgb = [%d, %d, %d]",light.r,light.g,light.b)

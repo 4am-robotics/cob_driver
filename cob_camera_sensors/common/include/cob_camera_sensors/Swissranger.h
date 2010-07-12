@@ -62,12 +62,11 @@
 #define __IPA_SWISSRANGER_H__
 
 // Windows
-#ifndef __LINUX__
-#include <windows.h>
-// Windows with MinGW
-#ifdef __MINGW__
-typedef short __wchar_t;
-#endif
+#ifdef _WIN32
+	// Windows with MinGW
+	#ifdef __MINGW__
+		typedef short __wchar_t;
+	#endif
 #endif
 
 // Linux
@@ -75,25 +74,17 @@ typedef short __wchar_t;
 typedef unsigned long DWORD;
 #endif
 
-#include <fstream>
-#include <iostream>
-#include <stdio.h>
-#include <string>
-#include <vector>
-#include <math.h>
-#include <assert.h>
-
-#include <libMesaSR.h>
-
-#include <sstream>
-
 #ifdef __COB_ROS__
-#include <cob_camera_sensors/AbstractRangeImagingSensor.h>
-#include <tinyxml/tinyxml.h>
+	#include <cob_camera_sensors/AbstractRangeImagingSensor.h>
 #else
-#include <cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/AbstractRangeImagingSensor.h>
-#include <Vision/Extern/TinyXml/tinyxml.h>
+	#include <cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/AbstractRangeImagingSensor.h>
 #endif
+
+#include <stdio.h>
+#include <math.h>
+#include <sstream>
+#include <assert.h>
+#include <libMesaSR.h>
 
 #ifdef SWIG
 %module Sensors3D
@@ -125,7 +116,7 @@ int LibMesaCallback(SRCAM srCam, unsigned int msg, unsigned int param, void* dat
 /// Interface class to SwissRanger camera SR-3000.
 /// Platform independent interface to SwissRanger camera SR-3000. Implementation depends on
 /// libusbSR library.
-class Swissranger : public AbstractRangeImagingSensor
+class __DLL_LIBCAMERASENSORS__ Swissranger : public AbstractRangeImagingSensor
 {
 public:
 
@@ -148,11 +139,8 @@ public:
 	unsigned long AcquireImages(int widthStepOneChannel, char* RangeImage=NULL, char* IntensityImage=NULL,
 		char* cartesianImage=NULL, bool getLatestFrame=true, bool undistort=true,
 		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY);
-	unsigned long AcquireImages(IplImage* rangeImage=NULL, IplImage* grayImage=NULL,
-		IplImage* cartesianImage=NULL, bool getLatestFrame = true, bool undistort = true,
-		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY);
-	unsigned long AcquireImages2(IplImage** rangeImage=NULL, IplImage** grayImage=NULL,
-		IplImage** cartesianImage=NULL,	bool getLatestFrame = true, bool undistort = true,
+	unsigned long AcquireImages(cv::Mat* rangeImage = 0, cv::Mat* grayImage = 0,
+		cv::Mat* cartesianImage = 0, bool getLatestFrame = true, bool undistort = true,
 		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY);
 
 	unsigned long SaveParameters(const char* filename);
@@ -198,15 +186,18 @@ private:
 	/// z(u,v)=a0(u,v)+a1(u,v)*d(u,v)+a2(u,v)*d(u,v)^2
 	///       +a3(u,v)*d(u,v)^3+a4(u,v)*d(u,v)^4+a5(u,v)*d(u,v)^5
 	///       +a6(u,v)*d(u,v)^6;
-	DblMatrix m_CoeffsA0; ///< a0 z-calibration parameters. One matrix entry corresponds to one pixel
-	DblMatrix m_CoeffsA1; ///< a1 z-calibration parameters. One matrix entry corresponds to one pixel
-	DblMatrix m_CoeffsA2; ///< a2 z-calibration parameters. One matrix entry corresponds to one pixel
-	DblMatrix m_CoeffsA3; ///< a3 z-calibration parameters. One matrix entry corresponds to one pixel
-	DblMatrix m_CoeffsA4; ///< a4 z-calibration parameters. One matrix entry corresponds to one pixel
-	DblMatrix m_CoeffsA5; ///< a5 z-calibration parameters. One matrix entry corresponds to one pixel
-	DblMatrix m_CoeffsA6; ///< a6 z-calibration parameters. One matrix entry corresponds to one pixel
+	cv::Mat m_CoeffsA0; ///< a0 z-calibration parameters. One matrix entry corresponds to one pixel
+	cv::Mat m_CoeffsA1; ///< a1 z-calibration parameters. One matrix entry corresponds to one pixel
+	cv::Mat m_CoeffsA2; ///< a2 z-calibration parameters. One matrix entry corresponds to one pixel
+	cv::Mat m_CoeffsA3; ///< a3 z-calibration parameters. One matrix entry corresponds to one pixel
+	cv::Mat m_CoeffsA4; ///< a4 z-calibration parameters. One matrix entry corresponds to one pixel
+	cv::Mat m_CoeffsA5; ///< a5 z-calibration parameters. One matrix entry corresponds to one pixel
+	cv::Mat m_CoeffsA6; ///< a6 z-calibration parameters. One matrix entry corresponds to one pixel
 };
 
+/// Creates, intializes and returns a smart pointer object for the camera.
+/// @return Smart pointer, refering to the generated object
+__DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_Swissranger();
 
 } // End namespace ipa_CameraSensors
 #endif // __IPA_SWISSRANGER_H__

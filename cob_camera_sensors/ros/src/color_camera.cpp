@@ -82,7 +82,7 @@ private:
 	ros::NodeHandle node_handle_;
 	polled_camera::PublicationServer image_poll_server_;
 
-	AbstractColorCamera* color_camera_;	///< Color camera instance
+	AbstractColorCameraPtr color_camera_;	///< Color camera instance
 
 	std::string config_directory_; ///< Directory of related IPA configuration file
 	int camera_index_;	///< Camera index of the color camera for IPA configuration file
@@ -93,13 +93,13 @@ private:
 
 	ros::ServiceServer camera_info_service_;
 
-	IplImage* color_image_8U3_;
+	cv::Mat color_image_8U3_;
 
 public:
 	CobColorCameraNode(const ros::NodeHandle& node_handle)
 	: node_handle_(node_handle),
-	  color_camera_(0),
-	  color_image_8U3_(0)
+	  color_camera_(AbstractColorCameraPtr()),
+	  color_image_8U3_(cv::Mat())
 	{
 		/// Void
 	}
@@ -108,9 +108,6 @@ public:
 	{
 		image_poll_server_.shutdown();
 		color_camera_->Close();
-		ipa_CameraSensors::ReleaseColorCamera(color_camera_);
-		
-		if (color_image_8U3_) cvReleaseImage(&color_image_8U3_);
 	} 
 
 	/// Opens the camera sensor
@@ -129,7 +126,8 @@ public:
 			ss << camera_index_;
 			ss << " failed"; 
 			ROS_ERROR("[color_camera] %s", ss.str().c_str());
-			color_camera_ = 0;
+			color_camera_->Close();
+			color_camera_ = AbstractColorCameraPtr();
 			return false;
 		}
 
@@ -139,7 +137,8 @@ public:
 			ss << "Could not open color camera ";
 			ss << camera_index_;
 			ROS_ERROR("[color_camera] %s", ss.str().c_str());
-			color_camera_ = 0;
+			color_camera_->Close();
+			color_camera_ = AbstractColorCameraPtr();
 			return false;
 		} 
 		
@@ -149,37 +148,32 @@ public:
 		color_camera_->GetProperty(&cameraProperty);
 		int color_sensor_width = cameraProperty.cameraResolution.xResolution;
 		int color_sensor_height = cameraProperty.cameraResolution.yResolution;
-		CvSize color_image_size = cvSize(color_sensor_width, color_sensor_height);
+		cv::Size color_image_size(color_sensor_width, color_sensor_height);
 
 		/// Setup camera toolbox
-		ipa_CameraSensors::CameraSensorToolbox* color_sensor_toolbox = ipa_CameraSensors::CreateCameraSensorToolbox();
+		ipa_CameraSensors::CameraSensorToolboxPtr color_sensor_toolbox = ipa_CameraSensors::CreateCameraSensorToolbox();
 		color_sensor_toolbox->Init(config_directory_, color_camera_->GetCameraType(), camera_index_, color_image_size);
 
-		CvMat* d = color_sensor_toolbox->GetDistortionParameters(color_camera_intrinsic_type_, color_camera_intrinsic_id_);
-		camera_info_msg_.D[0] = cvmGet(d, 0, 0);
-		camera_info_msg_.D[1] = cvmGet(d, 0, 1);
-		camera_info_msg_.D[2] = cvmGet(d, 0, 2);
-		camera_info_msg_.D[3] = cvmGet(d, 0, 3);
+		cv::Mat d = color_sensor_toolbox->GetDistortionParameters(color_camera_intrinsic_type_, color_camera_intrinsic_id_);
+		camera_info_msg_.D[0] = d.at<double>(0, 0);
+		camera_info_msg_.D[1] = d.at<double>(0, 1);
+		camera_info_msg_.D[2] = d.at<double>(0, 2);
+		camera_info_msg_.D[3] = d.at<double>(0, 3);
 		camera_info_msg_.D[4] = 0;
-		cvReleaseMat(&d);	
 
-		CvMat* k = color_sensor_toolbox->GetIntrinsicMatrix(color_camera_intrinsic_type_, color_camera_intrinsic_id_);
-		camera_info_msg_.K[0] = cvmGet(k, 0, 0);
-		camera_info_msg_.K[1] = cvmGet(k, 0, 1);
-		camera_info_msg_.K[2] = cvmGet(k, 0, 2);
-		camera_info_msg_.K[3] = cvmGet(k, 1, 0);
-		camera_info_msg_.K[4] = cvmGet(k, 1, 1);
-		camera_info_msg_.K[5] = cvmGet(k, 1, 2);
-		camera_info_msg_.K[6] = cvmGet(k, 2, 0);
-		camera_info_msg_.K[7] = cvmGet(k, 2, 1);
-		camera_info_msg_.K[8] = cvmGet(k, 2, 2);
-		cvReleaseMat(&k);
+		cv::Mat k = color_sensor_toolbox->GetIntrinsicMatrix(color_camera_intrinsic_type_, color_camera_intrinsic_id_);
+		camera_info_msg_.K[0] = k.at<double>(0, 0);
+		camera_info_msg_.K[1] = k.at<double>(0, 1);
+		camera_info_msg_.K[2] = k.at<double>(0, 2);
+		camera_info_msg_.K[3] = k.at<double>(1, 0);
+		camera_info_msg_.K[4] = k.at<double>(1, 1);
+		camera_info_msg_.K[5] = k.at<double>(1, 2);
+		camera_info_msg_.K[6] = k.at<double>(2, 0);
+		camera_info_msg_.K[7] = k.at<double>(2, 1);
+		camera_info_msg_.K[8] = k.at<double>(2, 2);
 
 		camera_info_msg_.width = color_sensor_width;		
 		camera_info_msg_.height = color_sensor_height;		
-
-		/// Release memory
-		if (color_sensor_toolbox) ipa_CameraSensors::ReleaseCameraSensorToolbox(color_sensor_toolbox);
 
 		/// Advertise service for other nodes to set intrinsic calibration parameters
 		camera_info_service_ = node_handle_.advertiseService("set_camera_info", &CobColorCameraNode::setCameraInfo, this);
@@ -210,15 +204,8 @@ public:
 	bool pollCallback(polled_camera::GetPolledImage::Request& req, 
 			sensor_msgs::Image& image_msg, sensor_msgs::CameraInfo& info)
 	{
-   		/// Release previously acquired IplImage 
-		if (color_image_8U3_) 
-		{
-			cvReleaseImage(&color_image_8U3_);
-			color_image_8U3_ = 0;
-		}
-
 		/// Acquire new image
-		if (color_camera_->GetColorImage2(&color_image_8U3_) & ipa_Utils::RET_FAILED)
+		if (color_camera_->GetColorImage(&color_image_8U3_) & ipa_Utils::RET_FAILED)
 		{
 			ROS_ERROR("[color_camera] Color image acquisition failed");
 			return false;
@@ -226,7 +213,8 @@ public:
 
 		try
   		{
-			image_msg = *(sensor_msgs::CvBridge::cvToImgMsg(color_image_8U3_, "bgr8"));
+			IplImage img = color_image_8U3_;
+			image_msg = *(sensor_msgs::CvBridge::cvToImgMsg(&img, "bgr8"));
 		}
 		catch (sensor_msgs::CvBridgeException error)
 		{
@@ -238,8 +226,8 @@ public:
 		image_msg.header.stamp = now;    
 
 		info = camera_info_msg_;
-		info.width = color_image_8U3_->width;
-		info.height = color_image_8U3_->height;
+		info.width = color_image_8U3_.cols;
+		info.height = color_image_8U3_.rows;
 		info.header.stamp = now;
 
     		return true;
@@ -295,10 +283,6 @@ public:
 		else if (tmp_string == "CAM_PROSILICA")
 		{
 			color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_PROSILICA;
-		} 
-		else if (tmp_string == "CAM_SWISSRANGER")
-		{
-			color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_SWISSRANGER;
 		} 
 		else
 		{

@@ -2,10 +2,10 @@
 <launch>
 
   <!-- send arm urdf to parameter server -->
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_description)/ros/robots/cob3-1.urdf.xacro'" />
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_description)/ros/robots/$(env ROBOT).urdf.xacro'" />
 
   <!-- send parameters to parameter server -->
-  <rosparam command="load" ns="arm_controller" file="$(find cob_arm)/ros/launch/cob3-1.yaml"/>
+  <rosparam command="load" ns="arm_controller" file="$(find cob_arm)/ros/launch/$(env ROBOT).yaml"/>
 
   <!-- start powercube_chain -->
   <node pkg="cob_powercube_chain" type="cob_powercube_chain" name="arm_node" ns="arm_controller" cwd="node" respawn="false" output="screen" />

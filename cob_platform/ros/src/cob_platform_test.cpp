@@ -105,6 +105,8 @@ int main(int argc, char** argv)
         
     // service clients
     ros::ServiceClient srvClient_Init = n.serviceClient<cob_srvs::Trigger>("Init");
+    ros::ServiceClient srvClient_base_Init = n.serviceClient<cob_srvs::Trigger>("base_driver/Init");
+    ros::ServiceClient srvClient_ctrl_Init = n.serviceClient<cob_srvs::Trigger>("base_controller/Init");
     ros::ServiceClient srvClient_Stop = n.serviceClient<cob_srvs::Trigger>("Stop");
     ros::ServiceClient srvClient_Shutdown = n.serviceClient<cob_srvs::Trigger>("Shutdown");
     
@@ -151,6 +153,26 @@ int main(int argc, char** argv)
             	//ROS_INFO("querry service [Init]");
                 cob_srvs::Trigger srv;
                 srv_querry = srvClient_Init.call(srv);
+                srv_execute = srv.response.success;
+                srv_errorMessage = srv.response.errorMessage.data.c_str();
+              	break;
+            }
+            
+            case 'x':
+            {
+            	//ROS_INFO("querry service [Init] for base drive chain");
+                cob_srvs::Trigger srv;
+                srv_querry = srvClient_base_Init.call(srv);
+                srv_execute = srv.response.success;
+                srv_errorMessage = srv.response.errorMessage.data.c_str();
+              	break;
+            }
+            
+            case 'y':
+            {
+            	//ROS_INFO("querry service [Init] for base controller");
+                cob_srvs::Trigger srv;
+                srv_querry = srvClient_ctrl_Init.call(srv);
                 srv_execute = srv.response.success;
                 srv_errorMessage = srv.response.errorMessage.data.c_str();
               	break;

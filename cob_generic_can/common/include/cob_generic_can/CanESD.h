@@ -56,7 +56,9 @@
 #define CANESD_INCLUDEDEF_H
 //-----------------------------------------------
 
+#include <libntcan/ntcan.h>
 // general includes
+#include <cob_utilities/windows.h>
 #include <iostream>
 #include <errno.h>
 
@@ -65,10 +67,8 @@
 
 // Headers provided by other cob-packages which should be avoided/removed
 #include <cob_utilities/IniFile.h>
-#include <cob_utilities/windows.h>
 #include <cob_utilities/Mutex.h>
 
-#include <libntcan/ntcan.h>
 
 //-----------------------------------------------
 /**
@@ -79,7 +79,7 @@ class CanESD : public CanItf
 private:
 	BYTE m_DeviceNr;
 	BYTE m_BaudRate;
-	HANDLE m_Handle;
+	NTCAN_HANDLE m_Handle;
 	int m_LastID;
 	bool m_bObjectMode;
 	bool m_bIsTXError;
@@ -114,7 +114,7 @@ protected:
 		return (~id) & 0x7F8;
 	}
 	
-	int canIdAddGroup(HANDLE handle, int id);
+	int canIdAddGroup(NTCAN_HANDLE handle, int id);
 
 	std::string GetErrorStr(int ntstatus) const;
 	int readEvent();

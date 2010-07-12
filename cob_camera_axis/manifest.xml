@@ -7,7 +7,7 @@
   <author>Ulrich Reiser, email:ulrich.reiser@ipa.fraunhofer.de</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
-  <url>http://www.care-o-bot.org</url>
+  <url>http://ros.org/wiki/cob_camera_axis</url>
 
   <depend package="roscpp"/>
   <depend package="sensor_msgs"/>
@@ -20,7 +20,6 @@
   <depend package="cob_utilities"/>
   <depend package="urdf"/>
   <depend package="libpcan"/>
+  <depend package="libntcan"/>
 
 </package>
-
-
