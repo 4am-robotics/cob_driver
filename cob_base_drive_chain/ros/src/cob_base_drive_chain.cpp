@@ -68,8 +68,8 @@
 // ROS service includes
 #include <cob_srvs/Trigger.h>
 #include <cob_srvs/GetJointState.h>
-#include <cob_base_drive_chain/ElmoRecorderReadout.h>
-#include <cob_base_drive_chain/ElmoRecorderConfig.h>
+#include <cob_srvs/ElmoRecorderReadout.h>
+#include <cob_srvs/ElmoRecorderConfig.h>
 
 
 // external includes
@@ -130,14 +130,14 @@ class NodeClass
 		ros::ServiceServer srvServer_GetJointState;
 
 		/**
-		* Service requests cob_base_drive_chain::ElmoRecorderSetup. It is used to configure the Elmo Recorder to record predefined sources. 
+		* Service requests cob_srvs::ElmoRecorderSetup. It is used to configure the Elmo Recorder to record predefined sources. 
 		* Parameters are:
 		* int64 recordinggap #Specify every which time quantum (4*90usec) a new data point (of 1024 points in total) is recorded. the recording process starts immediately.
 		*/
 		ros::ServiceServer srvServer_ElmoRecorderConfig;
 
 		/**
-		* Service requests cob_base_drive_chain::ElmoRecorderGet. It is used to start the read-out process of previously recorded data by the Elmo Recorder.
+		* Service requests cob_srvs::ElmoRecorderGet. It is used to start the read-out process of previously recorded data by the Elmo Recorder.
 		* Parameters are:
 		* int64 subindex 
 		* #As Subindex, set the recorded source you want to read out:
@@ -277,8 +277,8 @@ class NodeClass
 			return true;
 		}
 		
-		bool srvCallback_ElmoRecorderConfig(cob_base_drive_chain::ElmoRecorderConfig::Request &req,
-							  cob_base_drive_chain::ElmoRecorderConfig::Response &res ){
+		bool srvCallback_ElmoRecorderConfig(cob_srvs::ElmoRecorderConfig::Request &req,
+							  cob_srvs::ElmoRecorderConfig::Response &res ){
 			if(m_bisInitialized) {			
 				m_CanCtrlPltf.evalCanBuffer();
 				res.success = m_CanCtrlPltf.ElmoRecordings(0, req.recordinggap, "");
@@ -288,8 +288,8 @@ class NodeClass
 			return true;
 		}
 		
-		bool srvCallback_ElmoRecorderReadout(cob_base_drive_chain::ElmoRecorderReadout::Request &req,
-							  cob_base_drive_chain::ElmoRecorderReadout::Response &res ){
+		bool srvCallback_ElmoRecorderReadout(cob_srvs::ElmoRecorderReadout::Request &req,
+							  cob_srvs::ElmoRecorderReadout::Response &res ){
 			if(m_bisInitialized) {
 				m_CanCtrlPltf.evalCanBuffer();
 				res.success = m_CanCtrlPltf.ElmoRecordings(1, req.subindex, req.fileprefix);
