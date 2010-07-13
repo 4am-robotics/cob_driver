@@ -18,12 +18,12 @@
   <!-- p2 Second order tangential distortion coefficient -->
   <IntrinsicParameters>
     <Prosilica_0> 
-      <IntrinsicMatrix fx="1051.83" fy="1048.59" cx="698.34" cy="542.34" />
-      <DistortionCoeffs k1="-0.2379" k2=" 0.1065" p1="0.00159" p2="-0.00034" />
+      <IntrinsicMatrix fx="1046.16197" fy="1043.87094" cx="695.62128" cy="544.32183" />
+      <DistortionCoeffs k1="-0.23268" k2="0.08580" p1="0.00098" p2="-0.00022" />
     </Prosilica_0>
     <Prosilica_1> 
-      <IntrinsicMatrix fx="1051.90" fy="1047.52" cx="697.3" cy="541.94" />
-      <DistortionCoeffs k1="-0.2379" k2=" 0.1065" p1="0.0016" p2="-0.0003" />
+      <IntrinsicMatrix fx="1046.63752" fy="1043.96691" cx="697.86745" cy="543.68966" />
+      <DistortionCoeffs k1="-0.23177" k2="0.08304" p1="0.00101" p2="-0.00040" />
     </Prosilica_1>
     <Swissranger_0> 
       <IntrinsicMatrix fx="1051.41" fy="1048.55" cx="695.52" cy="542.49" />
@@ -41,8 +41,8 @@
   <!-- X_This = R * X_Other + T -->
   <ExtrinsicParameters>
     <Prosilica_1>
-      <Translation x="-119.6628" y="-0.75573" z="2.79847" />
-      <Rotation x11="1.0000" x12="-0.0036" x13="0.0064" x21="0.0036" x22="1.0000" x23="0.0019" x31="-0.0064" x32="-0.0019" x33="1.0000" />
+      <Translation x="-119.73281" y="-0.94609" z="0.65641" />
+      <Rotation x11="0.9999" x12="-0.0036" x13="0.0103" x21="0.0036" x22="1.0000" x23="0.0014" x31="-0.0103" x32="-0.0014" x33="0.9999" />
     </Prosilica_1> 
     <Swissranger_0>
       <Translation x="-59.66" y="-0.31" z="5.15" />
@@ -67,12 +67,12 @@
   <!-- p2 Second order tangential distortion coefficient -->
   <IntrinsicParameters>
     <Prosilica_1>
-      <IntrinsicMatrix fx="1055.51292" fy="1051.62" cx="708.51" cy="524.008" />
-      <DistortionCoeffs k1="-0.23302" k2=" 0.09197" p1="-0.00045" p2="-0.00149" />
+      <IntrinsicMatrix fx="1050.13834" fy="1047.17913" cx="714.32851" cy="525.75449" />
+      <DistortionCoeffs k1="-0.23672" k2="0.09703" p1="-0.00094" p2="-0.00037" />
     </Prosilica_1>
     <Prosilica_0>
-      <IntrinsicMatrix fx="1052.76" fy="1049.46" cx="708.49" cy="521.0268" />
-      <DistortionCoeffs k1="-0.23042" k2=" 0.09363" p1="-0.0013" p2="-0.00212" />
+      <IntrinsicMatrix fx="1051.26170" fy="1049.22351" cx="713.11186" cy="522.98362" />
+      <DistortionCoeffs k1="-0.23793" k2="0.09945" p1="-0.00089" p2="-0.00059" />
     </Prosilica_0>
   </IntrinsicParameters>
 
