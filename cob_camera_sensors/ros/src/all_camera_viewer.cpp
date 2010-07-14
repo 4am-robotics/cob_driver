@@ -73,7 +73,7 @@
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/fill_image.h>
 
-#include<std_srvs/Empty.h>
+#include <cob_srvs/AcquireCalibrationImages.h>
 
 // external includes
 #include <cob_vision_utils/VisionUtils.h>
@@ -147,6 +147,8 @@ private:
 	ros::ServiceServer save_camera_images_service_;
 
 	boost::mutex m_ServiceMutex;
+
+	std::string absolute_output_directory_path_; ///< Directory, where camera images are saved
 
 	bool use_tof_camera_;
 	bool use_left_color_camera_;
@@ -319,7 +321,7 @@ public:
 		cv::Mat left_color_8U3;
 		cv::resize(left_color_mat_8U3_, left_color_8U3, cv::Size(), 0.5, 0.5);
 		cv::imshow("Left color data", left_color_8U3);
-		cv::waitKey();
+		cv::waitKey(1000);
 
 		ROS_INFO("[all_camera_viewer] allModeSrvCallback [OK]");
 	}
@@ -354,7 +356,7 @@ public:
 		cv::Mat right_color_8U3;
 		cv::resize(right_color_mat_8U3_, right_color_8U3, cv::Size(), 0.5, 0.5);
 		cv::imshow("Right color data", right_color_8U3);
-		cv::waitKey();
+		cv::waitKey(1000);
 	}
 
 	/// Callback is executed, when stereo mode is selected
@@ -388,18 +390,19 @@ public:
 		cv::Mat left_color_8U3;
 		cv::resize(left_color_mat_8U3_, left_color_8U3, cv::Size(), 0.5, 0.5);
 		cv::imshow("Left color data", left_color_8U3);
-		cv::waitKey();
+		cv::waitKey(1000);
 
 		ROS_INFO("[all_camera_viewer] stereoModeSrvCallback [OK]");
 	}
 
-	bool saveCameraImagesServiceCallback(std_srvs::Empty::Request &req,
-			std_srvs::Empty::Response &res)
+	bool saveCameraImagesServiceCallback(cob_srvs::AcquireCalibrationImages::Request &req,
+			cob_srvs::AcquireCalibrationImages::Response &res)
 	{
-		boost::mutex::scoped_lock lock(m_ServiceMutex);
 		ROS_INFO("[all_camera_viewer] Service Callback");
+		boost::mutex::scoped_lock lock(m_ServiceMutex);
 
-		std::stringstream ss;
+		if (req.reset_image_counter) image_counter_ = 0;
+
 		char counterBuffer [50];
 		sprintf(counterBuffer, "%04d", image_counter_);
 
@@ -414,8 +417,8 @@ public:
 			ss << "right_color_image_";
 			ss << counterBuffer;
 			ss << ".bmp";
-			cv::imwrite(ss.str(), right_color_mat_8U3_);
-			ROS_INFO("[all_camera_viewer] Saved right color image %d", image_counter_);
+			cv::imwrite(absolute_output_directory_path_ + ss.str(), right_color_mat_8U3_);
+			ROS_INFO("[all_camera_viewer] Saved right color image %d to %s", image_counter_, ss.str().c_str());
 		}
 			
 		if (use_left_color_camera_ && left_color_mat_8U3_.empty())
@@ -429,8 +432,8 @@ public:
 			ss << "left_color_image_";
 			ss << counterBuffer;
 			ss << ".bmp";
-			cv::imwrite(ss.str(), left_color_mat_8U3_);
-			ROS_INFO("[all_camera_viewer] Saved left color image %d", image_counter_);
+			cv::imwrite(absolute_output_directory_path_ + ss.str(), left_color_mat_8U3_);
+			ROS_INFO("[all_camera_viewer] Saved left color image %d to %s", image_counter_, ss.str().c_str());
 		}
 
 		
@@ -445,9 +448,8 @@ public:
 			ss << "tof_grey_image_";
 			ss << counterBuffer;
 			ss << ".bmp";
-			cv::imwrite(ss.str(), grey_mat_8U3_);
-			ROS_INFO("[all_camera_viewer] Saved tof grey image %d", image_counter_);
-
+			cv::imwrite(absolute_output_directory_path_ + ss.str(), grey_mat_8U3_);
+			ROS_INFO("[all_camera_viewer] Saved tof grey image %d to %s", image_counter_, ss.str().c_str());
 		}
 
 		image_counter_++;
@@ -477,6 +479,13 @@ public:
 		if (node_handle_.getParam("all_camera_viewer/use_left_color_camera", use_left_color_camera_) == false)
 		{
 			ROS_ERROR("[all_camera_viewer] 'use_left_color_camera' not specified");
+			return false;
+		}
+		ROS_INFO("use left color camera: %d", use_left_color_camera_);
+
+		if (node_handle_.getParam("all_camera_viewer/absolute_output_directory_path", absolute_output_directory_path_) == false)
+		{
+			ROS_ERROR("[all_camera_viewer] 'absolute_output_directory_path' not specified");
 			return false;
 		}
 		ROS_INFO("use left color camera: %d", use_left_color_camera_);
