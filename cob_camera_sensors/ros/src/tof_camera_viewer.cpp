@@ -146,8 +146,8 @@ public:
 			cv::Mat grey_mat_32F1 = grey_image_32F1_;
 			ipa_Utils::ConvertToShowImage(grey_mat_32F1, grey_mat_8U3_, 1, 0, 800);
 			cv::imshow("grey data", grey_mat_8U3_);
-			usleep(100);
-			int c = cvWaitKey(50);
+			int c = cvWaitKey(500);
+			std::cout << c << std::endl;
 			if (c=='s' || c==536871027)
 			{
 				std::stringstream ss;
@@ -157,7 +157,7 @@ public:
 				ss << counterBuffer;
 				ss << ".bmp";
 				cv::imwrite(ss.str().c_str(),grey_mat_8U3_);
-				std::cout << "Image " << grey_image_counter_ << " saved." << std::endl;
+				std::cout << "[tof_camera_viewer] Image " << grey_image_counter_ << " saved." << std::endl;
 				grey_image_counter_++;
 			}
 		}
