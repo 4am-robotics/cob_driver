@@ -65,9 +65,11 @@
 #include <actionlib/server/simple_action_server.h>
 
 // ROS message includes
-#include <cob_msgs/JointCommand.h>
+//#include <cob_msgs/JointCommand.h>
+#include <trajectory_msgs/JointTrajectory.h>
 #include <sensor_msgs/JointState.h>
-#include <cob_actions/JointCommandAction.h>
+//#include <cob_actions/JointCommandAction.h>
+#include <pr2_controllers_msgs/JointTrajectoryAction.h>
 #include <cob_msgs/TactileSensor.h>
 #include <cob_msgs/TactileMatrix.h>
 
@@ -97,10 +99,11 @@ class SdhNode
         ros::ServiceServer srvServer_SetOperationMode_;
 
         // action lib server
-		actionlib::SimpleActionServer<cob_actions::JointCommandAction> as_;
+//		actionlib::SimpleActionServer<cob_actions::JointCommandAction> as_;
+		actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
 		std::string action_name_;
-		cob_actions::JointCommandFeedback feedback_;
-		cob_actions::JointCommandResult result_;
+		//cob_actions::JointCommandFeedback feedback_;
+		//cob_actions::JointCommandResult result_;
 
 		// service clients
 		//--
@@ -123,7 +126,8 @@ class SdhNode
 		int DOF_HW_,DOF_ROS_;
 		double pi_;
 		
-		cob_msgs::JointCommand command_;
+		//cob_msgs::JointCommand command_;
+		trajectory_msgs::JointTrajectory traj_;
 		
 		std::vector<std::string> JointNames_;
 		std::vector<std::string> JointNamesAll_;
@@ -239,8 +243,10 @@ class SdhNode
 			return true;
 		}
 
-		void executeCB(const cob_actions::JointCommandGoalConstPtr &goal)
+//		void executeCB(const cob_actions::JointCommandGoalConstPtr &goal)
+        void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal)
 		{			
+	        ROS_INFO("sdh: executeCB");
 			if (!isInitialized_)
 			{
 				ROS_ERROR("%s: Rejected, sdh not initialized", action_name_.c_str());
@@ -251,6 +257,7 @@ class SdhNode
 			while (hasNewGoal_ == true ) usleep(10000);
 
 			targetAngles_.resize(DOF_HW_);
+			/*
 			targetAngles_[0] = goal->command.positions[3]*180.0/pi_; // joint_palm_finger11
 			targetAngles_[1] = goal->command.positions[7]*180.0/pi_; // joint_finger21_finger22
 			targetAngles_[2] = goal->command.positions[8]*180.0/pi_; // joint_finger22_finger23
@@ -258,6 +265,14 @@ class SdhNode
 			targetAngles_[4] = goal->command.positions[2]*180.0/pi_; // joint_thumb2_thumb3
 			targetAngles_[5] = goal->command.positions[4]*180.0/pi_; // joint_finger11_finger12
 			targetAngles_[6] = goal->command.positions[5]*180.0/pi_; // joint_finger12_finger13
+			*/
+			targetAngles_[0] = goal->trajectory.points[0].positions[2]*180.0/pi_; // joint_palm_finger11
+			targetAngles_[1] = goal->trajectory.points[0].positions[6]*180.0/pi_; // joint_finger21_finger22
+			targetAngles_[2] = goal->trajectory.points[0].positions[7]*180.0/pi_; // joint_finger22_finger23
+			targetAngles_[3] = goal->trajectory.points[0].positions[0]*180.0/pi_; // joint_thumb1_thumb2
+			targetAngles_[4] = goal->trajectory.points[0].positions[1]*180.0/pi_; // joint_thumb2_thumb3
+			targetAngles_[5] = goal->trajectory.points[0].positions[3]*180.0/pi_; // joint_finger11_finger12
+			targetAngles_[6] = goal->trajectory.points[0].positions[4]*180.0/pi_; // joint_finger12_finger13
 			std::cout << "received new position goal: " << targetAngles_[0] << " , " << targetAngles_[1] << " , " << targetAngles_[2] << " , " << targetAngles_[3] << " , " << targetAngles_[4] << " , " << targetAngles_[5] << " , " << targetAngles_[6] << std::endl;
 		
 			hasNewGoal_ = true;
@@ -292,9 +307,10 @@ class SdhNode
 
 			// set the action state to succeeded			
 			ROS_INFO("%s: Succeeded", action_name_.c_str());
-			result_.result.data = "succesfully received new goal";
-			result_.success = 1;
-			as_.setSucceeded(result_);
+			//result_.result.data = "succesfully received new goal";
+			//result_.success = 1;
+			//as_.setSucceeded(result_);
+			as_.setSucceeded();
 		}
 
 		// service callback functions
@@ -333,7 +349,10 @@ class SdhNode
 				catch (SDH::cSDHLibraryException* e)
 				{
 					ROS_ERROR("An exception was caught: %s", e->what());
+					res.success = 1;
+					res.errorMessage.data = e->what();
 					delete e;
+					return false;
 				}
 				
 				//Init tactile data
@@ -363,6 +382,7 @@ class SdhNode
 				res.errorMessage.data = "sdh already initialized";
 			}
 			
+			res.success = 0;
 			return true;
 		}
 
@@ -552,11 +572,10 @@ class SdhNode
 //#### main programm ####
 int main(int argc, char** argv)
 {
-	int n=0;
 	// initialize ROS, spezify name of node
 	ros::init(argc, argv, "cob_sdh");
 
-	SdhNode sdh_node("JointCommand");
+	SdhNode sdh_node("joint_trajectory_action");
 	if (!sdh_node.init()) return 0;
 	
 	ROS_INFO("...sdh node running...");
@@ -568,10 +587,6 @@ int main(int argc, char** argv)
 		for(int i=0; i<7; i++)
 		{
 			sdh_node.readTactileData();
-			/*
-			if(++n % 30 == 0)
-				std::cout << n << std::endl;
-				*/
 		}
 		// publish JointState
 		sdh_node.updateSdh();
@@ -580,8 +595,8 @@ int main(int argc, char** argv)
 		
 		// sleep and waiting for messages, callbacks    
 		ros::spinOnce();
-		usleep(200000);
-		//loop_rate.sleep();
+		//usleep(200000);
+		loop_rate.sleep();
 	}
 
 	return 0;
