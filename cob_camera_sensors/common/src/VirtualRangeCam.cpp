@@ -71,11 +71,7 @@ VirtualRangeCam::VirtualRangeCam()
 
 	m_BufferSize = 1;
 
-	m_intrinsicMatrix = 0;
-	m_undistortMapX = 0;
-	m_undistortMapY = 0;
-
-	m_ImageCounter = 0;
+	m_ImageCounter = 0;//290;//175;
 }
 
 
