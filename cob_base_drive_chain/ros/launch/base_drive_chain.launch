@@ -2,9 +2,9 @@
 <launch>
 
   <!-- start base_drive_chain and locate IniFiles -->
-  <node pkg="cob_base_drive_chain" type="cob_base_drive_chain_node" name="base_drive_chain_node" respawn="false" output="screen">
-    <param name="IniDirectory" value="$(find cob_platform)/ros/bin/Platform/IniFiles/"/>
-  </node>
+  <node pkg="cob_base_drive_chain" type="cob_base_drive_chain_node" name="base_drive_chain" ns="base_driver" respawn="false" output="screen"/>
+
+  <param name="base_driver/IniDirectory" value="$(find cob_platform)/ros/bin/Platform/IniFiles/"/>
 
 
 

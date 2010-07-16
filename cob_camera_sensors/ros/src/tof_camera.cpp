@@ -73,7 +73,7 @@
 #include <cob_camera_sensors/AbstractRangeImagingSensor.h>
 #include <cob_vision_utils/CameraSensorToolbox.h>
 #include <cob_vision_utils/GlobalDefines.h>
-#include <cob_vision_utils/OpenCVUtils.h>
+#include <cob_vision_utils/VisionUtils.h>
 
 #include <boost/thread/mutex.hpp>
 
@@ -99,20 +99,19 @@ private:
 	ros::ServiceServer camera_info_service_;		///< Service to set/modify camera parameters
 	ros::ServiceServer image_service_;
 
-	AbstractRangeImagingSensor* tof_camera_;     ///< Time-of-flight camera instance
+	AbstractRangeImagingSensorPtr tof_camera_;     ///< Time-of-flight camera instance
 	
 	std::string config_directory_; ///< Directory of related IPA configuration file
-	int camera_index_;	///< Camera index of the color camera for IPA configuration file
-	int tof_camera_intrinsic_id_;	///< Instrinsic matrix id of left color camera
-	ipa_CameraSensors::t_cameraType tof_camera_intrinsic_type_;	///< Instrinsic matrix type of left color camera
-	bool filter_amplitude_;
-	bool filter_tearoff_;
+	int tof_camera_index_;	///< Camera index of the color camera for IPA configuration file
+	ipa_CameraSensors::t_cameraType tof_camera_type_; ///< Type of tof camera
+	bool filter_xyz_by_amplitude_;
+	bool filter_xyz_tearoff_edges_;
 	int lower_amplitude_threshold_;
 	int upper_amplitude_threshold_;
-	double pi_half_fraction_;
+	double tearoff_tear_half_fraction_;
 
-	IplImage* xyz_image_32F3_;	/// OpenCV image holding the point cloud
-	IplImage* grey_image_32F1_;	/// OpenCV image holding the amplitude values
+	cv::Mat xyz_image_32F3_;	/// OpenCV image holding the point cloud
+	cv::Mat grey_image_32F1_;	/// OpenCV image holding the amplitude values
 
 	CobTofCameraNode::t_Mode ros_node_mode_;	///< Specifies if node is started as topic or service
 	boost::mutex service_mutex_;
@@ -122,9 +121,9 @@ public:
     CobTofCameraNode(const ros::NodeHandle& node_handle)
     : node_handle_(node_handle),
 	  image_transport_(node_handle),
-          tof_camera_(0),
-          xyz_image_32F3_(0),
-          grey_image_32F1_(0)
+          tof_camera_(AbstractRangeImagingSensorPtr()),
+          xyz_image_32F3_(cv::Mat()),
+          grey_image_32F1_(cv::Mat())
     {
             /// Void
     }
@@ -133,10 +132,6 @@ public:
 	~CobTofCameraNode()
     {
 	tof_camera_->Close();
-	ipa_CameraSensors::ReleaseRangeImagingSensor(tof_camera_);
-
-	if (xyz_image_32F3_) cvReleaseImage(&xyz_image_32F3_);
-	if (grey_image_32F1_) cvReleaseImage(&grey_image_32F1_);
     }
 
     /// Initializes and opens the time-of-flight camera sensor.
@@ -150,15 +145,15 @@ public:
 		}		
 		
 
-		if (tof_camera_->Init(config_directory_, camera_index_) & ipa_CameraSensors::RET_FAILED)
+		if (tof_camera_->Init(config_directory_, tof_camera_index_) & ipa_CameraSensors::RET_FAILED)
 		{
 
 			std::stringstream ss;
 			ss << "Initialization of tof camera ";
-			ss << camera_index_;
+			ss << tof_camera_index_;
 			ss << " failed";
 			ROS_ERROR("[tof_camera] %s", ss.str().c_str());
-			tof_camera_ = 0;
+			tof_camera_ = AbstractRangeImagingSensorPtr();
 			return false;
 		}
 	
@@ -166,9 +161,9 @@ public:
 		{
 			std::stringstream ss;
 			ss << "Could not open tof camera ";
-			ss << camera_index_;
+			ss << tof_camera_index_;
 			ROS_ERROR("[tof_camera] %s", ss.str().c_str());
-			tof_camera_ = 0;
+			tof_camera_ = AbstractRangeImagingSensorPtr();
 			return false;
 		}
 
@@ -178,14 +173,16 @@ public:
 		tof_camera_->GetProperty(&cameraProperty);
 		int range_sensor_width = cameraProperty.cameraResolution.xResolution;
 		int range_sensor_height = cameraProperty.cameraResolution.yResolution;
-		CvSize range_image_size = cvSize(range_sensor_width, range_sensor_height);
+		cv::Size range_image_size(range_sensor_width, range_sensor_height);
 
 		/// Setup camera toolbox
-		ipa_CameraSensors::CameraSensorToolbox* tof_sensor_toolbox = ipa_CameraSensors::CreateCameraSensorToolbox();
-		tof_sensor_toolbox->Init(config_directory_, tof_camera_->GetCameraType(), camera_index_, range_image_size);
-		tof_camera_->SetIntrinsics(tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_),
-			tof_sensor_toolbox->GetDistortionMapX(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_),
-			tof_sensor_toolbox->GetDistortionMapY(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_));
+		ipa_CameraSensors::CameraSensorToolboxPtr tof_sensor_toolbox = ipa_CameraSensors::CreateCameraSensorToolbox();
+		tof_sensor_toolbox->Init(config_directory_, tof_camera_->GetCameraType(), tof_camera_index_, range_image_size);
+
+		cv::Mat intrinsic_mat = tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_type_, tof_camera_index_);
+		cv::Mat distortion_map_X = tof_sensor_toolbox->GetDistortionMapX(tof_camera_type_, tof_camera_index_);
+		cv::Mat distortion_map_Y = tof_sensor_toolbox->GetDistortionMapY(tof_camera_type_, tof_camera_index_);
+		tof_camera_->SetIntrinsics(intrinsic_mat, distortion_map_X, distortion_map_Y);
 
 	        /// Advertise service for other nodes to set intrinsic calibration parameters
 		camera_info_service_ = node_handle_.advertiseService("set_camera_info", &CobTofCameraNode::setCameraInfo, this);
@@ -193,30 +190,27 @@ public:
 		xyz_image_publisher_ = image_transport_.advertiseCamera("image_xyz", 1);
 		grey_image_publisher_ = image_transport_.advertiseCamera("image_grey", 1);
 
-		CvMat* d = tof_sensor_toolbox->GetDistortionParameters(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_);
-		camera_info_msg_.D[0] = cvmGet(d, 0, 0);
-		camera_info_msg_.D[1] = cvmGet(d, 0, 1);
-		camera_info_msg_.D[2] = cvmGet(d, 0, 2);
-		camera_info_msg_.D[3] = cvmGet(d, 0, 3);
+		cv::Mat d = tof_sensor_toolbox->GetDistortionParameters(tof_camera_type_, tof_camera_index_);
+		camera_info_msg_.D[0] = d.at<double>(0, 0);
+		camera_info_msg_.D[1] = d.at<double>(0, 1);
+		camera_info_msg_.D[2] = d.at<double>(0, 2);
+		camera_info_msg_.D[3] = d.at<double>(0, 3);
 		camera_info_msg_.D[4] = 0;
-
-		CvMat* k = tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_);
-		camera_info_msg_.K[0] = cvmGet(k, 0, 0);
-		camera_info_msg_.K[1] = cvmGet(k, 0, 1);
-		camera_info_msg_.K[2] = cvmGet(k, 0, 2);
-		camera_info_msg_.K[3] = cvmGet(k, 1, 0);
-		camera_info_msg_.K[4] = cvmGet(k, 1, 1);
-		camera_info_msg_.K[5] = cvmGet(k, 1, 2);
-		camera_info_msg_.K[6] = cvmGet(k, 2, 0);
-		camera_info_msg_.K[7] = cvmGet(k, 2, 1);
-		camera_info_msg_.K[8] = cvmGet(k, 2, 2);
+	
+		cv::Mat k = tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_type_, tof_camera_index_);
+		camera_info_msg_.K[0] = k.at<double>(0, 0);
+		camera_info_msg_.K[1] = k.at<double>(0, 1);
+		camera_info_msg_.K[2] = k.at<double>(0, 2);
+		camera_info_msg_.K[3] = k.at<double>(1, 0);
+		camera_info_msg_.K[4] = k.at<double>(1, 1);
+		camera_info_msg_.K[5] = k.at<double>(1, 2);
+		camera_info_msg_.K[6] = k.at<double>(2, 0);
+		camera_info_msg_.K[7] = k.at<double>(2, 1);
+		camera_info_msg_.K[8] = k.at<double>(2, 2);
 
 		camera_info_msg_.width = range_sensor_width;		
 		camera_info_msg_.height = range_sensor_height;
 
-
-		/// Release memory
-		if (tof_sensor_toolbox) ipa_CameraSensors::ReleaseCameraSensorToolbox(tof_sensor_toolbox);
 		return true;
 	}
 
@@ -244,32 +238,22 @@ public:
 		sensor_msgs::Image::Ptr grey_image_msg_ptr;
 		sensor_msgs::CameraInfo tof_image_info;
 	
-		/// Release previously acquired IplImage
-		if (xyz_image_32F3_)
-		{
-				cvReleaseImage(&xyz_image_32F3_);
-				xyz_image_32F3_ = 0;
-		}
-
-		if (grey_image_32F1_)
-		{
-				cvReleaseImage(&grey_image_32F1_);
-				grey_image_32F1_ = 0;
-		}
-
-		if(tof_camera_->AcquireImages2(0, &grey_image_32F1_, &xyz_image_32F3_, false, false, ipa_CameraSensors::INTENSITY) & ipa_Utils::RET_FAILED)
+		if(tof_camera_->AcquireImages(0, &grey_image_32F1_, &xyz_image_32F3_, false, false, ipa_CameraSensors::INTENSITY) & ipa_Utils::RET_FAILED)
 		{
 			ROS_ERROR("[tof_camera] Tof image acquisition failed");
 			return false;
 		}
 
 		/// Filter images by amplitude and remove tear-off edges
-		if(filter_tearoff_) ipa_Utils::FilterTearOffEdges(xyz_image_32F3_, 0, (float)pi_half_fraction_);
-		if(filter_amplitude_) ipa_Utils::FilterByAmplitude(xyz_image_32F3_, grey_image_32F1_, 0, 0, lower_amplitude_threshold_, upper_amplitude_threshold_);
+		//if(filter_xyz_tearoff_edges_ || filter_xyz_by_amplitude_)
+		//	ROS_ERROR("[tof_camera] FUNCTION UNCOMMENT BY JSF");
+		if(filter_xyz_tearoff_edges_) ipa_Utils::FilterTearOffEdges(xyz_image_32F3_, 0, (float)tearoff_tear_half_fraction_);
+		if(filter_xyz_by_amplitude_) ipa_Utils::FilterByAmplitude(xyz_image_32F3_, grey_image_32F1_, 0, 0, lower_amplitude_threshold_, upper_amplitude_threshold_);
 
 		try
 		{
-			xyz_image_msg_ptr = sensor_msgs::CvBridge::cvToImgMsg(xyz_image_32F3_, "passthrough");
+			IplImage img = xyz_image_32F3_;
+			xyz_image_msg_ptr = sensor_msgs::CvBridge::cvToImgMsg(&img, "passthrough");
 		}
 		catch (sensor_msgs::CvBridgeException error)
 		{
@@ -279,7 +263,8 @@ public:
 
 		try
 		{
-			grey_image_msg_ptr = sensor_msgs::CvBridge::cvToImgMsg(grey_image_32F1_, "passthrough");
+			IplImage img = grey_image_32F1_;
+			grey_image_msg_ptr = sensor_msgs::CvBridge::cvToImgMsg(&img, "passthrough");
 		}
 		catch (sensor_msgs::CvBridgeException error)
 		{
@@ -293,8 +278,8 @@ public:
 		grey_image_msg_ptr->header.stamp = now;
 
 		tof_image_info = camera_info_msg_;
-		tof_image_info.width = grey_image_32F1_->width;
-		tof_image_info.height = grey_image_32F1_->height;
+		tof_image_info.width = grey_image_32F1_.cols;
+		tof_image_info.height = grey_image_32F1_.rows;
 		tof_image_info.header.stamp = now;
 
 		/// publish message
@@ -311,12 +296,14 @@ public:
 		// Convert openCV IplImages to ROS messages
 		try
 		{
-			res.greyImage = *(sensor_msgs::CvBridge::cvToImgMsg(grey_image_32F1_, "passthrough"));
-			res.xyzImage = *(sensor_msgs::CvBridge::cvToImgMsg(xyz_image_32F3_, "passthrough"));
+			IplImage grey_img = grey_image_32F1_;
+			IplImage xyz_img = xyz_image_32F3_;
+			res.greyImage = *(sensor_msgs::CvBridge::cvToImgMsg(&grey_img, "passthrough"));
+			res.xyzImage = *(sensor_msgs::CvBridge::cvToImgMsg(&xyz_img, "passthrough"));
 		}
 		catch (sensor_msgs::CvBridgeException error)
 		{
-			ROS_ERROR("[tof_camera_node] Could not convert IplImage to ROS message");
+			ROS_ERROR("[tof_camera_type_node] Could not convert IplImage to ROS message");
 		}
 
 		// Set time stamp
@@ -340,20 +327,28 @@ public:
 		ROS_INFO("Configuration directory: %s", config_directory_.c_str());
 
 		/// Parameters are set within the launch file
-		if (node_handle_.getParam("tof_camera/camera_index", camera_index_) == false)
+		if (node_handle_.getParam("tof_camera/tof_camera_index", tof_camera_index_) == false)
 		{
-			ROS_ERROR("[tof_camera] Tof camera index (0 or 1) not specified");
+			ROS_ERROR("[tof_camera] 'tof_camera_index' (0 or 1) not specified");
 			return false;
 		}
 
 		/// Parameters are set within the launch file
 		if (node_handle_.getParam("tof_camera/tof_camera_type", tmp_string) == false)
 		{
-			ROS_ERROR("[tof_camera] tof camera type not specified");
+			ROS_ERROR("[tof_camera] 'tof_camera_type' not specified");
 			return false;
 		}
-		if (tmp_string == "CAM_SWISSRANGER") tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_Swissranger();
-		else if (tmp_string == "CAM_VIRTUAL") tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_VirtualCam();
+		if (tmp_string == "CAM_SWISSRANGER") 
+		{
+			tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_Swissranger();
+			tof_camera_type_ = ipa_CameraSensors::CAM_SWISSRANGER;
+		}
+		else if (tmp_string == "CAM_VIRTUAL") 
+		{
+			tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_VirtualCam();
+			tof_camera_type_ = ipa_CameraSensors::CAM_VIRTUALRANGE;
+		}
 		else
 		{
 			std::string str = "[tof_camera] Camera type '" + tmp_string + "' unknown, try 'CAM_SWISSRANGER'";
@@ -361,73 +356,36 @@ public:
 			return false;
 		}
 
-		ROS_INFO("Camera type: %s_%d", tmp_string.c_str(), camera_index_);
-
-		// There are several intrinsic matrices, optimized to different cameras
-		// Here, we specified the desired intrinsic matrix for each camera
-		if (node_handle_.getParam("tof_camera/tof_camera_intrinsic_type", tmp_string) == false)
-		{
-			ROS_ERROR("[tof_camera] Intrinsic camera type for tof camera not specified");
-			return false;
-		}
-		if (tmp_string == "CAM_AVTPIKE")
-		{
-			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_AVTPIKE;
-		}
-		else if (tmp_string == "CAM_PROSILICA")
-		{
-			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_PROSILICA;
-		} 
-		else if (tmp_string == "CAM_SWISSRANGER")
-		{
-			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_SWISSRANGER;
-		} 
-		else if (tmp_string == "CAM_VIRTUALRANGE")
-		{
-			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALRANGE;
-		}
-		else
-		{
-			std::string str = "[tof_camera] Camera type '" + tmp_string + "' for intrinsics  unknown, try 'CAM_AVTPIKE','CAM_PROSILICA' or 'CAM_SWISSRANGER'";
-			ROS_ERROR("%s", str.c_str());
-			return false;
-		}
-		if (node_handle_.getParam("tof_camera/tof_camera_intrinsic_id", tof_camera_intrinsic_id_) == false)
-		{
-			ROS_ERROR("[tof_camera] Intrinsic camera id for tof camera not specified");
-			return false;
-		}	
-		
-		ROS_INFO("Intrinsic for tof camera: %s_%d", tmp_string.c_str(), tof_camera_intrinsic_id_);
+		ROS_INFO("Camera type: %s_%d", tmp_string.c_str(), tof_camera_index_);
 
 		/// Parameters are set within the launch file
-		if (node_handle_.getParam("tof_camera/filter_amplitude", filter_amplitude_) == false)
+		if (node_handle_.getParam("tof_camera/filter_xyz_by_amplitude", filter_xyz_by_amplitude_) == false)
 		{
-			ROS_ERROR("[tof_camera] Tof camera filter_amplitude not specified");
+			ROS_ERROR("[tof_camera] 'filter_xyz_by_amplitude not specified");
 			return false;
 		}
 		/// Parameters are set within the launch file
-		if (node_handle_.getParam("tof_camera/filter_tearoff", filter_tearoff_) == false)
+		if (node_handle_.getParam("tof_camera/filter_xyz_tearoff_edges", filter_xyz_tearoff_edges_) == false)
 		{
-			ROS_ERROR("[tof_camera] Tof camera filter_tearoff not specified");
+			ROS_ERROR("[tof_camera] 'filter_xyz_tearoff_edges_' not specified");
 			return false;
 		}
 		/// Parameters are set within the launch file
 		if (node_handle_.getParam("tof_camera/lower_amplitude_threshold", lower_amplitude_threshold_) == false)
 		{
-			ROS_ERROR("[tof_camera] Tof camera lower_amplitude_threshold not specified");
+			ROS_ERROR("[tof_camera] 'lower_amplitude_threshold' not specified");
 			return false;
 		}
 		/// Parameters are set within the launch file
 		if (node_handle_.getParam("tof_camera/upper_amplitude_threshold", upper_amplitude_threshold_) == false)
 		{
-			ROS_ERROR("[tof_camera] Tof camera upper_amplitude_threshold not specified");
+			ROS_ERROR("[tof_camera] 'upper_amplitude_threshold' not specified");
 			return false;
 		}
 		/// Parameters are set within the launch file
-		if (node_handle_.getParam("tof_camera/pi_half_fraction", pi_half_fraction_) == false)
+		if (node_handle_.getParam("tof_camera/tearoff_pi_half_fraction", tearoff_tear_half_fraction_) == false)
 		{
-			ROS_ERROR("[tof_camera] Tof camera pi_half_fraction not specified");
+			ROS_ERROR("[tof_camera] 'tearoff_pi_half_fraction' not specified");
 			return false;
 		}
 		/// Parameters are set within the launch file

@@ -74,7 +74,6 @@
 
 // external includes
 //--
-#include <cob_vision_utils/OpenCVUtils.h>
 
 using namespace message_filters;
 
@@ -97,8 +96,8 @@ class PcPublisher
 		sensor_msgs::CvBridge cv_bridge_0_; ///< Converts ROS image messages to openCV IplImages
 		sensor_msgs::CvBridge cv_bridge_1_; ///< Converts ROS image messages to openCV IplImages
 
-		IplImage* xyz_image_32F3_;	///< Received point cloud form tof sensor
-		IplImage* grey_image_32F1_;	///< Received gray values from tof sensor
+		IplImage* c_xyz_image_32F3_;	///< Received point cloud form tof sensor
+		IplImage* c_grey_image_32F1_;	///< Received gray values from tof sensor
 		
 		// topics to publish
 		ros::Publisher topicPub_pointCloud_;
@@ -108,8 +107,8 @@ class PcPublisher
         PcPublisher()
         	: image_transport_(n_),
         	tof_sync_(SyncPolicy(3)),
-        	xyz_image_32F3_(0),
-           	grey_image_32F1_(0)
+        	c_xyz_image_32F3_(0),
+           	c_grey_image_32F1_(0)
            	
         {
 			topicPub_pointCloud_ = n_.advertise<sensor_msgs::PointCloud>("point_cloud", 1);
@@ -136,15 +135,16 @@ class PcPublisher
 			// create point_cloud message
 			pc_msg.header.stamp = ros::Time::now();
 			pc_msg.header.frame_id = "head_tof_camera_link";
-			xyz_image_32F3_ = cv_bridge_0_.imgMsgToCv(tof_camera_xyz_data, "passthrough");
-			grey_image_32F1_ = cv_bridge_1_.imgMsgToCv(tof_camera_grey_data, "passthrough");
-	       ipa_Utils::MaskImage2(xyz_image_32F3_, xyz_image_32F3_, grey_image_32F1_, grey_image_32F1_, 500, 65000, 3);
-
+			c_xyz_image_32F3_ = cv_bridge_0_.imgMsgToCv(tof_camera_xyz_data, "passthrough");
+			c_grey_image_32F1_ = cv_bridge_1_.imgMsgToCv(tof_camera_grey_data, "passthrough");
+			cv::Mat cpp_xyz_image_32F3 = c_xyz_image_32F3_;
+			cv::Mat cpp_grey_image_32F1 = c_grey_image_32F1_;
+			
 			float* f_ptr = 0;
-			for (int row = 0; row < xyz_image_32F3_->height; row++)
+			for (int row = 0; row < cpp_xyz_image_32F3.rows; row++)
 			{
-				f_ptr = (float*)(xyz_image_32F3_->imageData + row*xyz_image_32F3_->widthStep);
-				for (int col = 0; col < xyz_image_32F3_->height; col++)
+				f_ptr = cpp_xyz_image_32F3.ptr<float>(row);
+				for (int col = 0; col < cpp_xyz_image_32F3.cols; col++)
 				{
 					geometry_msgs::Point32 pt;
 					pt.x = f_ptr[3*col + 0];
