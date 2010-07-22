@@ -231,6 +231,9 @@ void ForceTorqueNode::visualizeData(double x, double y, double z)
   marker.ns = "ForceTorqueData";
   marker.id = 0;
   marker.type = shape;
+// first delete old markers
+  marker.action = visualization_msgs::Marker::DELETE;
+  topicPub_Marker_.publish(marker);	
   marker.action = visualization_msgs::Marker::ADD;
   marker.pose.position.x = 0;
   marker.pose.position.y = 0;
