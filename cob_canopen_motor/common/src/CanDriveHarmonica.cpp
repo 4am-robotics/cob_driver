@@ -571,7 +571,7 @@ bool CanDriveHarmonica::initHoming()
 
 
 //-----------------------------------------------
-bool CanDriveHarmonica::execHoming()
+bool CanDriveHarmonica::execHoming() //not used by CanCtrlPltf, that has its own homing implementation
 {
 	int iCnt;
 	CanMsg Msg;
@@ -628,13 +628,15 @@ bool CanDriveHarmonica::execHoming()
 	if(iCnt>=1000)
 	{
 		std::cout << "Homing failed - limit switch " << iNrDrive << " not reached" << std::endl;
+		bRet = false;
 	}
 	else
 	{
 		std::cout << "Homing successful - limit switch " << iNrDrive << " ok" << std::endl;
+		bRet = true;
 	}
 
-	return true;
+	return bRet;
 }
 //-----------------------------------------------
 void CanDriveHarmonica::setGearPosVelRadS(double dPosGearRad, double dVelGearRadS)

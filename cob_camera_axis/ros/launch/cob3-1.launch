@@ -5,6 +5,7 @@
   <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_defs)/ros/robots/cob3-1.urdf.xacro'" />
 
   <!-- send parameters to parameter server -->
+  <param name="head/CanIniFile" value="$(find cob_camera_axis)/ros/bin/IniFiles/CanCtrlCamAxis.ini" />
   <rosparam command="load" ns="head" file="$(find cob_camera_axis)/ros/launch/cob3-1.yaml"/>
 
   <!-- start powercube_chain -->

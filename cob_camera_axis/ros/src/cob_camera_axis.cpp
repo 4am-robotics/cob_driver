@@ -100,6 +100,7 @@ class NodeClass
 		std::string CanDevice;
 		std::string CanIniFile;
 		int CanBaudrate;
+		int HomingDir;
 		int ModID;
 		double LowerLimit;
 		double UpperLimit; 
@@ -132,11 +133,13 @@ class NodeClass
             // read parameters from parameter server
             n.param<std::string>("CanDevice", CanDevice,"ESD:1");
             n.param<int>("CanBaudrate", CanBaudrate, 500);
+            n.param<int>("HomingDir", HomingDir, -1);
             n.param<int>("ModId",ModID ,17 );
             n.param<std::string>("JointName",JointName ,"joint_head_eyes" );
             n.param<std::string>("CanIniFile",CanIniFile ,"IniFiles/CanCtrlCamAxis.ini" );
 			ROS_INFO("CanDevice=%s, CanBaudrate=%d,ModID=%d",CanDevice.c_str(),CanBaudrate,ModID);
 			CamAxisParams->SetCanIniFile(CanIniFile);
+			CamAxisParams->SetHomingDir(HomingDir);
 
 			// get ModIds from parameter server
 			/*
@@ -248,13 +251,13 @@ class NodeClass
 		      	// init powercubes 
 		        if (CamAxis->Init(CamAxisParams))
 		        {
-		        	ROS_INFO("Initializing succesfull");
+		        	ROS_INFO("Initializing of camera axis succesful");
 					isInitialized = true;
 		        	res.success = 0; // 0 = true, else = false
 		        }
 		        else
 		        {
-		        	ROS_ERROR("Initializing camera axis not succesfull \n");
+		        	ROS_ERROR("Initializing camera axis not succesful \n");
 		        	//res.success = 1; // 0 = true, else = false
 		        	//res.errorMessage.data = PCube->getErrorMessage();
 		        }

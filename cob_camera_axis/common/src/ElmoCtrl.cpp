@@ -63,8 +63,17 @@ ElmoCtrl::~ElmoCtrl()
 bool ElmoCtrl::Home()
 {
 	bool success = false;
-	if (m_Joint != NULL)
+	if (m_Joint != NULL) {
 			m_Joint->initHoming();
+			
+			// You have to overwrite the trigger channel for Homing-event
+			// iHomeEvent = 5 : event according to defined FLS switch (for scara arm)
+			// iHomeEvent = 9 : event according to definded DIN1 switch (for full steerable wheels COb3)
+			// TO DO: via param or .ini
+			m_Joint->IntprtSetInt(8, 'H', 'M', 3, 5); 
+			usleep(20000);
+	}
+
 	//ToDo: UHR: necessary?
 	Sleep(10);
 	int HomingDir = m_Params->GetHomingDir();
@@ -127,13 +136,15 @@ bool ElmoCtrl::RecoverAfterEmergencyStop()
 }
 
 
-bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home)
+bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) //home = true by default
 {
 	bool success = false;
 	
 	string CanIniFile;
 	string CanDevice;
 	int baudrate = 0;
+	
+	m_Params = params;
 
 	if (params == NULL)
 	{
@@ -184,7 +195,7 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home)
 
 		if (success)
 		{
-			printf("The following parameters were successfully read from the ini file: \n");
+			printf("The following parameters were successfully read from the parameter server (given through *params): \n");
 			printf("CanIniFile: 	%s\n",CanIniFile.c_str());
 			printf("CanDEvice: 	%s\n",CanDevice.c_str());
 			printf("Baudrate: 	%d\n",baudrate);
@@ -269,6 +280,7 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home)
 	  }
 	  if (success)
 			  success = SetMotionCtrlType(m_MotionCtrlType);
+			  if(!success) std::cout << "Failed to SetMotionCtrlType to " << m_MotionCtrlType << std::endl;
 
 	  if (success)
 	  {
@@ -289,12 +301,12 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home)
 
 	  if (success && home)
 	  {
+	  	std::cout << "Start homing procedure now.." << std::endl;
 			  success = Home();
 	  }
 	  //Thread init
 	  if (success)
 	  {
-
 			  pthread_mutex_init(&m_Mutex,NULL);	
 			  //pthread_mutex_init(&m_AngularVel_Mutex,NULL);	
 			  //pthread_mutex_init(&m_cs_elmoCtrlIO,NULL);	

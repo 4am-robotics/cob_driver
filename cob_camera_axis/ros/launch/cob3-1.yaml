@@ -4,4 +4,5 @@ CanBaudrate: 500
 ModIds: [19]
 JointNames: [joint_camera_axis]
 MaxAcc: [0.8]
+HomingDir: -1
 OperationMode: position
