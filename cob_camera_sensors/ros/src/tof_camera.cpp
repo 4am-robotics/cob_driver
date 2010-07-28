@@ -349,10 +349,6 @@ public:
 			tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_VirtualCam();
 			tof_camera_type_ = ipa_CameraSensors::CAM_VIRTUALRANGE;
 		}
-		else if (tmp_string == "CAM_VIRTUALCOLOR")
-		{
-			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALCOLOR;
-		}
 		else
 		{
 			std::string str = "[tof_camera] Camera type '" + tmp_string + "' unknown, try 'CAM_SWISSRANGER'";

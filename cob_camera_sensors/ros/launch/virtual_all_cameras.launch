@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- start all cameras -->
+  <node pkg="cob_camera_sensors" type="all_cameras" name="all_cameras" cwd="node" respawn="false" output="screen">
+	<!-- Path to IPA configuration file -->
+	<param name="configuration_files" value="../../common/files/cob3-2/"/>
+	
+	<!-- Specifies the used color camera type -->
+	<!-- CAM_AVTPIKE or CAM_PROSILICA -->
+	<param name="color_camera_type" value="CAM_VIRTUAL" />
+	
+	<!-- Specifies the used tof camera type -->
+ 	<!-- CAM_SWISSRANGER -->
+	<param name="tof_camera_type" value="CAM_VIRTUAL" />	
+	
+	<!-- The intrinsics of the tof sensor are optimized to the following camera -->
+	<param name="tof_camera_intrinsic_type" value="CAM_VIRTUALCOLOR" />
+	<param name="tof_camera_intrinsic_id" value="0" />
+	<!-- The intrinsics of the left color sensor are optimized to the following camera -->
+	<param name="left_color_camera_intrinsic_type" value="CAM_VIRTUALCOLOR" />
+	<param name="left_color_camera_intrinsic_id" value="0" />
+	<!-- The intrinsics of the right color sensor are optimized to the following camera -->
+	<param name="right_color_camera_intrinsic_type" value="CAM_VIRTUALRANGE" />
+	<param name="right_color_camera_intrinsic_id" value="0" />
+
+	<remap from="pike_145C/right/image_color" to="prosilica/right/image_color"/>
+	<remap from="pike_145C/right/camera_info" to="prosilica/right/camera_info"/>
+  </node>
+
+</launch>
+

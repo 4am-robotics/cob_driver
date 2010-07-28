@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- start virtual tof -->
+  <node pkg="cob_camera_sensors" type="tof_camera" name="tof_camera" ns="sr4000" cwd="node" respawn="false" output="screen">
+	<param name="configuration_files" value="$(find cob_camera_sensors)/common/files/cob3-2/"/>
+	<param name="camera_index" value="0"/>
+	<param name="tof_camera_type" value="CAM_VIRTUAL"/>
+	<!-- The intrinsics of the color sensors are optimized to the following camera -->
+	<param name="tof_camera_intrinsic_type" value="CAM_VIRTUALRANGE" />
+	<param name="tof_camera_intrinsic_id" value="0" />
+	<param name="filter_amplitude" value="true" />
+	<param name="filter_tearoff" value="true" />
+	<param name="lower_amplitude_threshold" value="500" />
+	<param name="upper_amplitude_threshold" value="50000" />
+	<param name="pi_half_fraction" value="10" />
+	<!-- Start node as service or topic -->
+	<!-- MODE_SERVICE or MODE_TOPIC -->
+	<param name="ros_node_mode" value="MODE_TOPIC" />
+  </node>
+
+</launch>
