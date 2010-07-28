@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- start tof camera viewer -->
+  <node pkg="cob_camera_sensors" type="all_camera_viewer" name="all_camera_viewer" cwd="node" respawn="false" output="screen">
+	<remap from="right/image_color" to="prosilica/right/image_color"/>
+	<remap from="left/image_color" to="prosilica/left/image_color"/>
+	<remap from="right/camera_info" to="prosilica/right/camera_info"/>
+	<remap from="left/camera_info" to="prosilica/left/camera_info"/>
+	<remap from="image_xyz" to="sr4000/image_xyz"/>
+	<remap from="image_grey" to="sr4000/image_grey"/>
+	<remap from="save_camera_images" to="cob_camera_sensors/save_camera_images"/>
+
+	<param name="absolute_output_directory_path" value="$(find cob_camera_sensors)/common/files/cob3-2/calib/" />
+
+	<param name="use_right_color_camera" value="true" />
+	<param name="use_left_color_camera" value="true" />
+	<param name="use_tof_camera" value="true" />
+  </node>
+
+</launch>

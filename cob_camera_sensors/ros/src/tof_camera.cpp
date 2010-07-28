@@ -102,14 +102,13 @@ private:
 	AbstractRangeImagingSensorPtr tof_camera_;     ///< Time-of-flight camera instance
 	
 	std::string config_directory_; ///< Directory of related IPA configuration file
-	int camera_index_;	///< Camera index of the color camera for IPA configuration file
-	int tof_camera_intrinsic_id_;	///< Instrinsic matrix id of left color camera
-	ipa_CameraSensors::t_cameraType tof_camera_intrinsic_type_;	///< Instrinsic matrix type of left color camera
-	bool filter_amplitude_;
-	bool filter_tearoff_;
+	int tof_camera_index_;	///< Camera index of the color camera for IPA configuration file
+	ipa_CameraSensors::t_cameraType tof_camera_type_; ///< Type of tof camera
+	bool filter_xyz_by_amplitude_;
+	bool filter_xyz_tearoff_edges_;
 	int lower_amplitude_threshold_;
 	int upper_amplitude_threshold_;
-	double pi_half_fraction_;
+	double tearoff_tear_half_fraction_;
 
 	cv::Mat xyz_image_32F3_;	/// OpenCV image holding the point cloud
 	cv::Mat grey_image_32F1_;	/// OpenCV image holding the amplitude values
@@ -146,12 +145,12 @@ public:
 		}		
 		
 
-		if (tof_camera_->Init(config_directory_, camera_index_) & ipa_CameraSensors::RET_FAILED)
+		if (tof_camera_->Init(config_directory_, tof_camera_index_) & ipa_CameraSensors::RET_FAILED)
 		{
 
 			std::stringstream ss;
 			ss << "Initialization of tof camera ";
-			ss << camera_index_;
+			ss << tof_camera_index_;
 			ss << " failed";
 			ROS_ERROR("[tof_camera] %s", ss.str().c_str());
 			tof_camera_ = AbstractRangeImagingSensorPtr();
@@ -162,7 +161,7 @@ public:
 		{
 			std::stringstream ss;
 			ss << "Could not open tof camera ";
-			ss << camera_index_;
+			ss << tof_camera_index_;
 			ROS_ERROR("[tof_camera] %s", ss.str().c_str());
 			tof_camera_ = AbstractRangeImagingSensorPtr();
 			return false;
@@ -178,11 +177,11 @@ public:
 
 		/// Setup camera toolbox
 		ipa_CameraSensors::CameraSensorToolboxPtr tof_sensor_toolbox = ipa_CameraSensors::CreateCameraSensorToolbox();
-		tof_sensor_toolbox->Init(config_directory_, tof_camera_->GetCameraType(), camera_index_, range_image_size);
+		tof_sensor_toolbox->Init(config_directory_, tof_camera_->GetCameraType(), tof_camera_index_, range_image_size);
 
-		cv::Mat intrinsic_mat = tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_);
-		cv::Mat distortion_map_X = tof_sensor_toolbox->GetDistortionMapX(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_);
-		cv::Mat distortion_map_Y = tof_sensor_toolbox->GetDistortionMapY(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_);
+		cv::Mat intrinsic_mat = tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_type_, tof_camera_index_);
+		cv::Mat distortion_map_X = tof_sensor_toolbox->GetDistortionMapX(tof_camera_type_, tof_camera_index_);
+		cv::Mat distortion_map_Y = tof_sensor_toolbox->GetDistortionMapY(tof_camera_type_, tof_camera_index_);
 		tof_camera_->SetIntrinsics(intrinsic_mat, distortion_map_X, distortion_map_Y);
 
 	        /// Advertise service for other nodes to set intrinsic calibration parameters
@@ -191,14 +190,14 @@ public:
 		xyz_image_publisher_ = image_transport_.advertiseCamera("image_xyz", 1);
 		grey_image_publisher_ = image_transport_.advertiseCamera("image_grey", 1);
 
-		cv::Mat d = tof_sensor_toolbox->GetDistortionParameters(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_);
+		cv::Mat d = tof_sensor_toolbox->GetDistortionParameters(tof_camera_type_, tof_camera_index_);
 		camera_info_msg_.D[0] = d.at<double>(0, 0);
 		camera_info_msg_.D[1] = d.at<double>(0, 1);
 		camera_info_msg_.D[2] = d.at<double>(0, 2);
 		camera_info_msg_.D[3] = d.at<double>(0, 3);
 		camera_info_msg_.D[4] = 0;
 	
-		cv::Mat k = tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_);
+		cv::Mat k = tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_type_, tof_camera_index_);
 		camera_info_msg_.K[0] = k.at<double>(0, 0);
 		camera_info_msg_.K[1] = k.at<double>(0, 1);
 		camera_info_msg_.K[2] = k.at<double>(0, 2);
@@ -246,10 +245,10 @@ public:
 		}
 
 		/// Filter images by amplitude and remove tear-off edges
-		//if(filter_tearoff_ || filter_amplitude_)
+		//if(filter_xyz_tearoff_edges_ || filter_xyz_by_amplitude_)
 		//	ROS_ERROR("[tof_camera] FUNCTION UNCOMMENT BY JSF");
-		if(filter_tearoff_) ipa_Utils::FilterTearOffEdges(xyz_image_32F3_, 0, (float)pi_half_fraction_);
-		if(filter_amplitude_) ipa_Utils::FilterByAmplitude(xyz_image_32F3_, grey_image_32F1_, 0, 0, lower_amplitude_threshold_, upper_amplitude_threshold_);
+		if(filter_xyz_tearoff_edges_) ipa_Utils::FilterTearOffEdges(xyz_image_32F3_, 0, (float)tearoff_tear_half_fraction_);
+		if(filter_xyz_by_amplitude_) ipa_Utils::FilterByAmplitude(xyz_image_32F3_, grey_image_32F1_, 0, 0, lower_amplitude_threshold_, upper_amplitude_threshold_);
 
 		try
 		{
@@ -304,7 +303,7 @@ public:
 		}
 		catch (sensor_msgs::CvBridgeException error)
 		{
-			ROS_ERROR("[tof_camera_node] Could not convert IplImage to ROS message");
+			ROS_ERROR("[tof_camera_type_node] Could not convert IplImage to ROS message");
 		}
 
 		// Set time stamp
@@ -328,51 +327,27 @@ public:
 		ROS_INFO("Configuration directory: %s", config_directory_.c_str());
 
 		/// Parameters are set within the launch file
-		if (node_handle_.getParam("tof_camera/camera_index", camera_index_) == false)
+		if (node_handle_.getParam("tof_camera/tof_camera_index", tof_camera_index_) == false)
 		{
-			ROS_ERROR("[tof_camera] Tof camera index (0 or 1) not specified");
+			ROS_ERROR("[tof_camera] 'tof_camera_index' (0 or 1) not specified");
 			return false;
 		}
 
 		/// Parameters are set within the launch file
 		if (node_handle_.getParam("tof_camera/tof_camera_type", tmp_string) == false)
 		{
-			ROS_ERROR("[tof_camera] tof camera type not specified");
+			ROS_ERROR("[tof_camera] 'tof_camera_type' not specified");
 			return false;
 		}
-		if (tmp_string == "CAM_SWISSRANGER") tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_Swissranger();
-		else if (tmp_string == "CAM_VIRTUAL") tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_VirtualCam();
-		else
+		if (tmp_string == "CAM_SWISSRANGER") 
 		{
-			std::string str = "[tof_camera] Camera type '" + tmp_string + "' unknown, try 'CAM_SWISSRANGER'";
-			ROS_ERROR("%s", str.c_str());
-			return false;
+			tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_Swissranger();
+			tof_camera_type_ = ipa_CameraSensors::CAM_SWISSRANGER;
 		}
-
-		ROS_INFO("Camera type: %s_%d", tmp_string.c_str(), camera_index_);
-
-		// There are several intrinsic matrices, optimized to different cameras
-		// Here, we specified the desired intrinsic matrix for each camera
-		if (node_handle_.getParam("tof_camera/tof_camera_intrinsic_type", tmp_string) == false)
+		else if (tmp_string == "CAM_VIRTUAL") 
 		{
-			ROS_ERROR("[tof_camera] Intrinsic camera type for tof camera not specified");
-			return false;
-		}
-		if (tmp_string == "CAM_AVTPIKE")
-		{
-			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_AVTPIKE;
-		}
-		else if (tmp_string == "CAM_PROSILICA")
-		{
-			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_PROSILICA;
-		} 
-		else if (tmp_string == "CAM_SWISSRANGER")
-		{
-			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_SWISSRANGER;
-		} 
-		else if (tmp_string == "CAM_VIRTUALRANGE")
-		{
-			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALRANGE;
+			tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_VirtualCam();
+			tof_camera_type_ = ipa_CameraSensors::CAM_VIRTUALRANGE;
 		}
 		else if (tmp_string == "CAM_VIRTUALCOLOR")
 		{
@@ -380,46 +355,41 @@ public:
 		}
 		else
 		{
-			std::string str = "[tof_camera] Camera type '" + tmp_string + "' for intrinsics  unknown, try 'CAM_AVTPIKE','CAM_PROSILICA' or 'CAM_SWISSRANGER'";
+			std::string str = "[tof_camera] Camera type '" + tmp_string + "' unknown, try 'CAM_SWISSRANGER'";
 			ROS_ERROR("%s", str.c_str());
 			return false;
 		}
-		if (node_handle_.getParam("tof_camera/tof_camera_intrinsic_id", tof_camera_intrinsic_id_) == false)
-		{
-			ROS_ERROR("[tof_camera] Intrinsic camera id for tof camera not specified");
-			return false;
-		}	
-		
-		ROS_INFO("Intrinsic for tof camera: %s_%d", tmp_string.c_str(), tof_camera_intrinsic_id_);
+
+		ROS_INFO("Camera type: %s_%d", tmp_string.c_str(), tof_camera_index_);
 
 		/// Parameters are set within the launch file
-		if (node_handle_.getParam("tof_camera/filter_amplitude", filter_amplitude_) == false)
+		if (node_handle_.getParam("tof_camera/filter_xyz_by_amplitude", filter_xyz_by_amplitude_) == false)
 		{
-			ROS_ERROR("[tof_camera] Tof camera filter_amplitude not specified");
+			ROS_ERROR("[tof_camera] 'filter_xyz_by_amplitude not specified");
 			return false;
 		}
 		/// Parameters are set within the launch file
-		if (node_handle_.getParam("tof_camera/filter_tearoff", filter_tearoff_) == false)
+		if (node_handle_.getParam("tof_camera/filter_xyz_tearoff_edges", filter_xyz_tearoff_edges_) == false)
 		{
-			ROS_ERROR("[tof_camera] Tof camera filter_tearoff not specified");
+			ROS_ERROR("[tof_camera] 'filter_xyz_tearoff_edges_' not specified");
 			return false;
 		}
 		/// Parameters are set within the launch file
 		if (node_handle_.getParam("tof_camera/lower_amplitude_threshold", lower_amplitude_threshold_) == false)
 		{
-			ROS_ERROR("[tof_camera] Tof camera lower_amplitude_threshold not specified");
+			ROS_ERROR("[tof_camera] 'lower_amplitude_threshold' not specified");
 			return false;
 		}
 		/// Parameters are set within the launch file
 		if (node_handle_.getParam("tof_camera/upper_amplitude_threshold", upper_amplitude_threshold_) == false)
 		{
-			ROS_ERROR("[tof_camera] Tof camera upper_amplitude_threshold not specified");
+			ROS_ERROR("[tof_camera] 'upper_amplitude_threshold' not specified");
 			return false;
 		}
 		/// Parameters are set within the launch file
-		if (node_handle_.getParam("tof_camera/pi_half_fraction", pi_half_fraction_) == false)
+		if (node_handle_.getParam("tof_camera/tearoff_pi_half_fraction", tearoff_tear_half_fraction_) == false)
 		{
-			ROS_ERROR("[tof_camera] Tof camera pi_half_fraction not specified");
+			ROS_ERROR("[tof_camera] 'tearoff_pi_half_fraction' not specified");
 			return false;
 		}
 		/// Parameters are set within the launch file
