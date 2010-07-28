@@ -182,7 +182,7 @@
 <VirtualRangeCam_0>
   <!-- Location of the image data on your hard disk -->
   <!-- The location is expressed relative to the link 'ConfigurationFiles' -->
-  <CameraDataDirectory relativePath="table"/>	
+  <CameraDataDirectory relativePath="simu_test"/>	
 
 	
   <!-- Specifies the prefered calibration method -->
@@ -225,7 +225,7 @@
 <VirtualColorCam_0> 
   <!-- Location of the image data on your hard disk -->
   <!-- The location is expressed relative to the link 'ConfigurationFiles' -->
-  <CameraDataDirectory relativePath="rotation_pltf_kitchen"/>	
+  <CameraDataDirectory relativePath="simu_test"/>	
 
   <!-- Intrinsic parameters -->
   <!-- The intrinsic parameters (focal length, principle point, distortion parameters) -->
@@ -280,7 +280,7 @@
 <VirtualColorCam_1> 
   <!-- Location of the image data on your hard disk -->
   <!-- The location is expressed relative to the link 'ConfigurationFiles' -->
-  <CameraDataDirectory relativePath="CameraData_0"/>	
+  <CameraDataDirectory relativePath="simu_test"/>	
 
   <!-- Intrinsic parameters -->
   <!-- The intrinsic parameters (focal length, principle point, distortion parameters) -->

@@ -438,11 +438,11 @@ public:
 			if (tof_camera_)
 			{
 				//ROS_INFO("[all_cameras] TOF");
-				if(tof_camera_->AcquireImages(0, &grey_tof_image_32F1_, &xyz_tof_image_32F3_, false, false, ipa_CameraSensors::AMPLITUDE) & ipa_Utils::RET_FAILED)
+				if(tof_camera_->AcquireImages(0, &grey_tof_image_32F1_, &xyz_tof_image_32F3_, false, false, ipa_CameraSensors::INTENSITY) & ipa_Utils::RET_FAILED)
 				{
 					ROS_ERROR("[all_cameras] Tof image acquisition failed");
 					tof_camera_->Close();
-		                        tof_camera_ = AbstractRangeImagingSensorPtr();
+		      tof_camera_ = AbstractRangeImagingSensorPtr();
 					break;	
 				}
 	
@@ -504,6 +504,13 @@ public:
 			left_color_camera_ns_ = "pike_145C";
 			right_color_camera_ns_ = "pike_145C";
 		}
+		if (tmp_string == "CAM_VIRTUAL") 
+		{
+			right_color_camera_ = ipa_CameraSensors::CreateColorCamera_VirtualCam();
+			left_color_camera_ = ipa_CameraSensors::CreateColorCamera_VirtualCam();
+			left_color_camera_ns_ = "pike_145C";
+			right_color_camera_ns_ = "pike_145C";
+		}
 		else if (tmp_string == "CAM_PROSILICA") ROS_ERROR("[all_cameras] Color camera type not CAM_PROSILICA not yet implemented");
 		else
 		{
@@ -523,6 +530,11 @@ public:
 		if (tmp_string == "CAM_SWISSRANGER") 
 		{
 			tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_Swissranger();
+			tof_camera_ns_ = "sr4000";
+		}
+		else if (tmp_string == "CAM_VIRTUAL") 
+		{
+			tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_VirtualCam();
 			tof_camera_ns_ = "sr4000";
 		}
 		else
@@ -551,6 +563,14 @@ public:
 		else if (tmp_string == "CAM_SWISSRANGER")
 		{
 			left_color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_SWISSRANGER;
+		} 
+		else if (tmp_string == "CAM_VIRTUALRANGE")
+		{
+			left_color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALRANGE;
+		} 
+		else if (tmp_string == "CAM_VIRTUALCOLOR")
+		{
+			left_color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALCOLOR;
 		} 
 		else
 		{
@@ -586,6 +606,14 @@ public:
 		{
 			right_color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_SWISSRANGER;
 		} 
+		else if (tmp_string == "CAM_VIRTUALRANGE")
+		{
+			right_color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALRANGE;
+		} 
+		else if (tmp_string == "CAM_VIRTUALCOLOR")
+		{
+			right_color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALCOLOR;
+		} 
 		else
 		{
 			std::string str = "[all_cameras] Camera type '" + tmp_string + "' for intrinsics  unknown, try 'CAM_AVTPIKE','CAM_PROSILICA' or 'CAM_SWISSRANGER'";
@@ -618,6 +646,14 @@ public:
 		else if (tmp_string == "CAM_SWISSRANGER")
 		{
 			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_SWISSRANGER;
+		} 
+		else if (tmp_string == "CAM_VIRTUALRANGE")
+		{
+			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALRANGE;
+		} 
+		else if (tmp_string == "CAM_VIRTUALCOLOR")
+		{
+			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALCOLOR;
 		} 
 		else
 		{

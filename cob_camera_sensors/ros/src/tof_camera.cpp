@@ -374,6 +374,10 @@ public:
 		{
 			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALRANGE;
 		}
+		else if (tmp_string == "CAM_VIRTUALCOLOR")
+		{
+			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALCOLOR;
+		}
 		else
 		{
 			std::string str = "[tof_camera] Camera type '" + tmp_string + "' for intrinsics  unknown, try 'CAM_AVTPIKE','CAM_PROSILICA' or 'CAM_SWISSRANGER'";
@@ -421,7 +425,7 @@ public:
 		/// Parameters are set within the launch file
 		if (node_handle_.getParam("tof_camera/ros_node_mode", tmp_string) == false)
 		{
-			ROS_ERROR("[tof_camera] Mode for sensor fusion node not specified");
+			ROS_ERROR("[tof_camera] Mode for tof camera node not specified");
 			return false;
 		}
 		if (tmp_string == "MODE_SERVICE")
