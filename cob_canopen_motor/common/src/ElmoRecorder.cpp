@@ -216,6 +216,11 @@ int ElmoRecorder::processData(segData& SDOData) {
 		if(bCollectFloats) {
 			if(iItemSize == 4)
 				vfResData[1][iItemCount] = fFloatingPointFactor * convertBinaryToFloat( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
+				
+				//DEBUG
+				if(iItemCount == 120)
+					std::cout << (unsigned int)( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) ) << std::endl;
+				
 			else vfResData[1][iItemCount] = fFloatingPointFactor * convertBinaryToHalfFloat( (SDOData.data[i] << 0) | (SDOData.data[i+1] << 8) | (SDOData.data[i+2] << 16) | (SDOData.data[i+3] << 24) );
 			iItemCount ++;
 		} else {
