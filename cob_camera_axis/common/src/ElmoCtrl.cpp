@@ -58,8 +58,7 @@ using namespace std;
 
 void Sleep(int msecs){usleep(1000*msecs);}
 
-bool ElmoCtrl::sendNetStartCanOpen(CanItf* canCtrl)
-{
+bool ElmoCtrl::sendNetStartCanOpen(CanItf* canCtrl) {
 	bool ret = false;	
 
 	CanMsg msg;
@@ -71,15 +70,11 @@ bool ElmoCtrl::sendNetStartCanOpen(CanItf* canCtrl)
 
 	usleep(100000);
 
-
 	return ret;
 }
 
 
-
-
-ElmoCtrl::ElmoCtrl()
-{
+ElmoCtrl::ElmoCtrl() {
 	m_Joint = NULL;
 	m_JointParams = NULL;
 	m_CanCtrl = NULL;
@@ -88,31 +83,28 @@ ElmoCtrl::ElmoCtrl()
 	m_MaxVel = 2.0;
 	m_Params = NULL;
 }
-ElmoCtrl::~ElmoCtrl()
-{
 
-
+ElmoCtrl::~ElmoCtrl() {
 	if (m_Joint)
 		delete m_Joint;
 	if (m_JointParams)
 		delete m_JointParams;
 	if (m_CanCtrl)
 		delete m_CanCtrl;
-
 }
 
 bool ElmoCtrl::Home()
 {
 	bool success = false;
 	if (m_Joint != NULL) {
-			m_Joint->initHoming();
-			
-			// You have to overwrite the trigger channel for Homing-event
-			// iHomeEvent = 5 : event according to defined FLS switch (for scara arm)
-			// iHomeEvent = 9 : event according to definded DIN1 switch (for full steerable wheels COb3)
-			// TO DO: via param or .ini
-			m_Joint->IntprtSetInt(8, 'H', 'M', 3, 5); 
-			usleep(20000);
+		m_Joint->initHoming();
+		
+		// You have to overwrite the trigger channel for Homing-event
+		// iHomeEvent = 5 : event according to defined FLS switch (for scara arm)
+		// iHomeEvent = 9 : event according to definded DIN1 switch (for full steerable wheels COb3)
+		// TO DO: via param or .ini
+		m_Joint->IntprtSetInt(8, 'H', 'M', 3, 5); 
+		usleep(20000);
 	}
 
 	//ToDo: UHR: necessary?
@@ -122,62 +114,50 @@ bool ElmoCtrl::Home()
 	m_Joint->setGearVelRadS(HomingDir*0.3);
 	//ToDo: UHR: necessary?
 	Sleep(750);
-	success =m_Joint->execHoming();
+	success = m_Joint->execHoming();
 	m_Joint->setGearVelRadS(0.0);
 
 	return success;
-
-
 }
 
 
-int ElmoCtrl::evalCanBuffer()
-{
+int ElmoCtrl::evalCanBuffer() {
 	bool bRet;
 	
 	//pthread_mutex_lock(&(m_Mutex));
 
 	// as long as there is something in the can buffer -> read out next message
-	while(m_CanCtrl->receiveMsg(&m_CanMsgRec) == true)
-	{
+	while(m_CanCtrl->receiveMsg(&m_CanMsgRec) == true) {
 		bRet = false;
-		// check for every motor if message belongs to it
+		// check if the message belongs to camera_axis motor
 		bRet |= m_Joint->evalReceivedMsg(m_CanMsgRec);
 
 		if (bRet == true) {
 		} else std::cout << "cob_camera_axis: Unknown CAN-msg: " << m_CanMsgRec.m_iID << "  " << (int)m_CanMsgRec.getAt(0) << " " << (int)m_CanMsgRec.getAt(1) << std::endl;
-			
-	};
+	}
 	
-
 	//pthread_mutex_unlock(&(m_Mutex));
 
 	return 0;
 }
 
-bool ElmoCtrl::RecoverAfterEmergencyStop()
-{
+bool ElmoCtrl::RecoverAfterEmergencyStop() {
 	
 	bool success = false;
 	printf("Resetting motor ...\n");
 	success = m_Joint->start();
-	if (!success)
-	{
-			printf("failed!\n");
-	}
-	else
-	{	
-			printf("successful\n");
-			m_Joint->setGearVelRadS(0);
+	if (!success) {
+		printf("failed!\n");
+	} else {	
+		printf("successful\n");
+		m_Joint->setGearVelRadS(0);
 	}
 	Sleep(1000);
 	return success;
-
 }
 
 
-bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) //home = true by default
-{
+bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by default
 	bool success = false;
 	
 	string CanIniFile;
@@ -186,22 +166,17 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) //home = true by default
 	
 	m_Params = params;
 
-	if (params == NULL)
-	{
+	if (params == NULL) {
 		printf("ElmoCtrlParams:Error:%s:%d:, invalid parameters!\n",__FILE__,__LINE__);
 		success = false;
-	}
-	else
-	{
+	} else {
 		success = true;
 	}
 
-	if (success)
-	{
-
+	if (success) {
 		printf( "------------ ElmoCtrl Init ---------------\n");
 		
-		//Allocate memory
+		//Allocate memory and read params e.g. gotten from ROS parameter server
 		m_Joint = new CanDriveHarmonica();
 		m_JointParams = new DriveParam();
 		m_CanBaseAddress = params->GetModuleID();
@@ -209,34 +184,31 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) //home = true by default
 		m_MaxVel = params->GetMaxVel();
 		m_HomingDir = params->GetHomingDir();
 		
-		if (CanIniFile.length() == 0)
-		{	
+		if (CanIniFile.length() == 0) {	
 			printf("%s,%d:Error: Parameter 'CanIniFile' not given!\n",__FILE__,__LINE__);
 			success = false;
 		}
+		
 		CanDevice = params->GetCanDevice();
-		if (CanDevice.length() == 0)
-		{	
+		if (CanDevice.length() == 0) {	
 			printf("%s,%d:Error: Parameter 'Can-Device' not given!\n",__FILE__,__LINE__);
 			success = false;
 		}
+		
 		baudrate = params->GetBaudRate();
-		if (baudrate == 0)
-		{	
+		if (baudrate == 0) {	
 			printf("%s,%d:Error: Parameter 'Baud-Rate' not given!\n",__FILE__,__LINE__);
 			success = false;
 		}
 		
-		if (success)
-		{
+		//Setting motor model data		
+		if (success) {
 			m_JointOffset = params->GetAngleOffset();
 			m_UpperLimit = params->GetUpperLimit();
 			m_LowerLimit = params->GetLowerLimit();
 		}
 
-
-		if (success)
-		{
+		if (success) {
 			printf("The following parameters were successfully read from the parameter server (given through *params): \n");
 			printf("CanIniFile: 	%s\n",CanIniFile.c_str());
 			printf("CanDEvice: 	%s\n",CanDevice.c_str());
@@ -247,32 +219,27 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) //home = true by default
 			printf("Offset/Limit(min/max)  %f/(%f,%f)\n",m_JointOffset,m_LowerLimit,m_UpperLimit);
 		}
 	}
-	if (success)
-	{
+	
+	//Setting up CAN interface
+	
+	if (success) {
 		m_CanCtrl = new CanESD(CanIniFile.c_str(), false);
 		//m_CanCtrl = new CANPeakSysUSB(CanIniFile.c_str());
-		if (m_CanCtrl == NULL)
-		{
+		if (m_CanCtrl == NULL) {
 			printf("%s,%d:Error: Could not open Can Device!\n",__FILE__,__LINE__);
 			success = false;
 		}
 	  }
-
-
-	  
 	
-	  if (success)
-	  {
-		  /* WRONG CAN-identifiers
-		  //m_CanBaseAddress = params->GetModulID(i);
+	if (success) {
+			/* WRONG CAN-identifiers
+			//m_CanBaseAddress = params->GetModulID(i);
 			m_CanAddress.TxPDO1 = 0x181 + m_CanBaseAddress -1;
 			m_CanAddress.TxPDO2 = 0x285 + m_CanBaseAddress -1;
 			m_CanAddress.RxPDO2 = 0x301 + m_CanBaseAddress -1;
 			m_CanAddress.TxSDO = 0x491 + m_CanBaseAddress -1;
 			m_CanAddress.RxSDO = 0x511 + m_CanBaseAddress -1;
-		  */
-		  
-		  	//m_CanBaseAddress = params->GetModulID(i);
+			*/
 			m_CanAddress.TxPDO1 = 0x181 + m_CanBaseAddress -1;
 			m_CanAddress.TxPDO2 = 0x281 + m_CanBaseAddress -1;
 			m_CanAddress.RxPDO2 = 0x301 + m_CanBaseAddress -1;
@@ -280,10 +247,11 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) //home = true by default
 			m_CanAddress.RxSDO = 0x601 + m_CanBaseAddress -1;
 			m_Joint->setCanItf(m_CanCtrl);
 			m_Joint->setCanOpenParam(m_CanAddress.TxPDO1, 
-						    m_CanAddress.TxPDO2, 
-						    m_CanAddress.RxPDO2, 
-						    m_CanAddress.TxSDO, 
-						    m_CanAddress.RxSDO );
+							m_CanAddress.TxPDO2, 
+							m_CanAddress.RxPDO2, 
+							m_CanAddress.TxSDO, 
+							m_CanAddress.RxSDO );
+							
 			printf("CanAdresses set to %d (Base), %x, %x, %x, %x, %x...\n", m_CanBaseAddress,
 																		m_CanAddress.TxPDO1,
 																		m_CanAddress.TxPDO2,
@@ -292,28 +260,28 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) //home = true by default
 																		m_CanAddress.RxSDO);
 		
 	  }
-	  if (success)
-	  {
+	  
+	  if (success) {
 	  	success = sendNetStartCanOpen(m_CanCtrl);
 	  }
-	  if (success)
-	  {
-			  //ToDo: Read from File!
-			  m_JointParams->setParam( //parameters taken from CanCtrl.ini
-							  0, //int iDriveIdent,
-							  4096,//int iEncIncrPerRevMot,
-							  1,//double dVelMeasFrqHz,
-							  1,//double dBeltRatio,
-							  47.77,//double dGearRatio,
-							  -1.0,//int iSign,
-							  740000,//double dVelMaxEncIncrS,
-							  1000000,//80000,//double dAccIncrS2,
-							  1000000//80000//double dDecIncrS2),
-					  //(int)m_JointOffsets[i], //iEncOffsetIncr
-					  //false
+	  
+	  if (success) {
+		//ToDo: Read from File!
+		m_JointParams->setParam( //parameters taken from CanCtrl.ini
+							0, //int iDriveIdent,
+							4096,//int iEncIncrPerRevMot,
+							1,//double dVelMeasFrqHz,
+							1,//double dBeltRatio,
+							47.77,//double dGearRatio,
+							-1.0,//int iSign,
+							740000,//double dVelMaxEncIncrS,
+							1000000,//80000,//double dAccIncrS2,
+							1000000//80000//double dDecIncrS2),
+					  		//(int)m_JointOffsets[i], //iEncOffsetIncr
+					  		//false
 					  );
-			  m_Joint->setDriveParam(*m_JointParams);
-	  }
+		m_Joint->setDriveParam(*m_JointParams);
+		}
 
 	  if (success)
 	  {

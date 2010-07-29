@@ -62,8 +62,8 @@
 #include <actionlib/client/terminal_state.h>
 
 // ROS message includes
-#include <cob_msgs/JointCommand.h>
-#include <cob_actions/JointCommandAction.h>
+#include <trajectory_msgs/JointTrajectory.h>
+#include <pr2_controllers_msgs/JointTrajectoryAction.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -97,8 +97,8 @@ int main(int argc, char** argv)
 	ros::NodeHandle n;
 
 	// topics to publish
-	actionlib::SimpleActionClient<cob_actions::JointCommandAction> ac("JointCommand", true);
-	ros::Publisher topic_pub_joint_commands = n.advertise<cob_msgs::JointCommand>("/head/joint_commands", 50);
+	actionlib::SimpleActionClient<cob_actions::JointCommandAction> ac("joint_trajectory_action", true);
+	ros::Publisher topic_pub_joint_commands = n.advertise<cob_msgs::JointCommand>("/head_controller/commands", 50);
 		
 	// topics to subscribe, callback is called for new messages arriving
 	//--

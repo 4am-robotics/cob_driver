@@ -11,16 +11,14 @@
 
   <depend package="roscpp"/>
   <depend package="sensor_msgs"/>
-  <depend package="cob_msgs"/>
   <depend package="cob_srvs"/>
-  <depend package="cob_actions"/>
   <depend package="actionlib"/>
   <depend package="cob_generic_can"/>
   <depend package="cob_canopen_motor"/>
   <depend package="cob_utilities"/>
   <depend package="urdf"/>
-  <depend package="libpcan"/>
   <depend package="libntcan"/>
+  <depend package="pr2_controllers_msgs"/>
 
 </package>
 
