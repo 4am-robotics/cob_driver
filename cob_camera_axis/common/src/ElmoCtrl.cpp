@@ -1,19 +1,60 @@
+/****************************************************************
+ *
+ * Copyright (c) 2010
+ *
+ * Fraunhofer Institute for Manufacturing Engineering	
+ * and Automation (IPA)
+ *
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ *
+ * Project name: care-o-bot
+ * ROS stack name: cob3_driver
+ * ROS package name: cob_camera_axis
+ *								
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ *			
+ * Author: Ulrich Reiser, email:ulrich.reiser@ipa.fhg.de
+ *
+ * Date of creation: Jul 2010
+ * ToDo:
+ *
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *       Engineering and Automation (IPA) nor the names of its
+ *       contributors may be used to endorse or promote products derived from
+ *       this software without specific prior written permission.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License LGPL as 
+ * published by the Free Software Foundation, either version 3 of the 
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License LGPL for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public 
+ * License LGPL along with this program. 
+ * If not, see <http://www.gnu.org/licenses/>.
+ *
+ ****************************************************************/
+
+
 #include <cob_camera_axis/ElmoCtrl.h>
 
-//#include <Neobotix/Drivers/Can/CANPeakSysUSB.h>
-//#include <canopen_motor/CanDummy.h>
-
-
-/*
-#include "Neobotix/Utilities/LogApp.h"
-#include "Extern/Neobotix/Compat.h"
-#include "Extern/Neobotix/Drivers/Can/CanItf.h"
-*/
 #include <iostream>
 
 using namespace std;
-//void * ElmoThreadRoutine(void* threadArgs);
-
 
 void Sleep(int msecs){usleep(1000*msecs);}
 
@@ -103,9 +144,8 @@ int ElmoCtrl::evalCanBuffer()
 		// check for every motor if message belongs to it
 		bRet |= m_Joint->evalReceivedMsg(m_CanMsgRec);
 
-		if (bRet == true)
-		{
-		}
+		if (bRet == true) {
+		} else std::cout << "cob_camera_axis: Unknown CAN-msg: " << m_CanMsgRec.m_iID << "  " << (int)m_CanMsgRec.getAt(0) << " " << (int)m_CanMsgRec.getAt(1) << std::endl;
 			
 	};
 	
@@ -223,13 +263,21 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) //home = true by default
 	
 	  if (success)
 	  {
-		  
-		  	//m_CanBaseAddress = params->GetModulID(i);
+		  /* WRONG CAN-identifiers
+		  //m_CanBaseAddress = params->GetModulID(i);
 			m_CanAddress.TxPDO1 = 0x181 + m_CanBaseAddress -1;
 			m_CanAddress.TxPDO2 = 0x285 + m_CanBaseAddress -1;
 			m_CanAddress.RxPDO2 = 0x301 + m_CanBaseAddress -1;
 			m_CanAddress.TxSDO = 0x491 + m_CanBaseAddress -1;
 			m_CanAddress.RxSDO = 0x511 + m_CanBaseAddress -1;
+		  */
+		  
+		  	//m_CanBaseAddress = params->GetModulID(i);
+			m_CanAddress.TxPDO1 = 0x181 + m_CanBaseAddress -1;
+			m_CanAddress.TxPDO2 = 0x281 + m_CanBaseAddress -1;
+			m_CanAddress.RxPDO2 = 0x301 + m_CanBaseAddress -1;
+			m_CanAddress.TxSDO = 0x581 + m_CanBaseAddress -1;
+			m_CanAddress.RxSDO = 0x601 + m_CanBaseAddress -1;
 			m_Joint->setCanItf(m_CanCtrl);
 			m_Joint->setCanOpenParam(m_CanAddress.TxPDO1, 
 						    m_CanAddress.TxPDO2, 
@@ -239,8 +287,8 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) //home = true by default
 			printf("CanAdresses set to %d (Base), %x, %x, %x, %x, %x...\n", m_CanBaseAddress,
 																		m_CanAddress.TxPDO1,
 																		m_CanAddress.TxPDO2,
+																		m_CanAddress.RxPDO2,
 																		m_CanAddress.TxSDO,
-																		m_CanAddress.RxSDO,
 																		m_CanAddress.RxSDO);
 		
 	  }
@@ -309,133 +357,13 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) //home = true by default
 	  //Thread init
 	  if (success)
 	  {
-			  pthread_mutex_init(&m_Mutex,NULL);	
-			  //pthread_mutex_init(&m_AngularVel_Mutex,NULL);	
-			  //pthread_mutex_init(&m_cs_elmoCtrlIO,NULL);	
-			  //m_ElmoCtrlThreadArgs = new ElmoThreadArgs();
-			  //m_ElmoCtrlThreadArgs->pElmoCtrl = this;
-			  //m_CurrentAngularVelocity = new Jointd(m_DOF);
-			  //m_CurrentJointAngles = new Jointd(m_DOF);
-			  //m_ElmoCtrlThreadActive = true;
-	
-			/*
-			  pthread_attr_t attr;
-					  sched_param param;
-
-					  pthread_attr_init(&attr);
-					  pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
-					  pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
-					  pthread_attr_getschedparam(&attr, &param);
-					  param.sched_priority = 7;
-					  pthread_attr_setschedparam(&attr, &param);
-
-			  pthread_create(&m_ElmoThreadID, &attr, ElmoThreadRoutine, (void*)(m_ElmoCtrlThreadArgs));
-			  printf("ElmoCtrlThread started\n\n\n");
-			*/
-
+			  pthread_mutex_init(&m_Mutex,NULL);
 	  }
-
 
 
 	  return success;
 }
-/*
-   void * ElmoThreadRoutine(void* threadArgs)
-   {
-//get context
-ElmoThreadArgs *args = (ElmoThreadArgs*)threadArgs;
-ElmoCtrl* elmoCtrl = args->pElmoCtrl;
-cout << "ElmoThreadRoutine running "<< endl;
-while (elmoCtrl->m_ElmoCtrlThreadActive==true)
-{
-//get joints
-Jointd jointsVel;
-Jointd joints;
 
-
-pthread_mutex_lock(&(elmoCtrl->m_cs_elmoCtrlIO));
-millisleep(1);
-CanMsg msg;
-elmoCtrl->m_Joint->requestStatus();
-//printf("request status %i\n", i);
-Sleep(40);
-while (elmoCtrl->GetCanCtrl()->receiveMsg(&msg))
-{
-//printf("ElmoThreadRoutine: Msg %02x received\n",msg.m_iID);
-bool ret = false;
-ret |= elmoCtrl->m_Joint->evalReceivedMsg(msg);
-if (ret)
-{
-double pos = 0.0;
-double vel = 0.0;
-elmoCtrl->m_Joint->getGearPosVelRadS(&pos,&vel);
-printf("ElmoThreadRoutine: Msg %d received, vel %f, pos %f\n",msg.m_iID,pos,vel);
-joints.set(i, pos);
-jointsVel.set(i, vel);
-}
-
-if (!ret)
-{
-//	printf("ElmoThreadRoutine: Warning, CanMsg received with unknown Address!\n");
-}
-else
-{
-
-//get current angles and angular velocities from ElmoCtrl via CAN
-
-//printf( "PowerCubeThreadRoutine: Unlocking for CriticalSection ... ");
-//printf("released\n");
-elmoCtrl->SetCurrentJointAngles(joints);	
-elmoCtrl->SetCurrentJointAngularVelocities(jointsVel);
-}
-}
-pthread_mutex_unlock(&(elmoCtrl->m_cs_elmoCtrlIO));
-
-}
-return NULL;
-}
- */
-/*
-   void ElmoCtrl::GetCurrentJointAngles( Jointd& joints )
-   {
-
-//std::cout << "setCurrentJoints: Waiting for Angular_Mutex ... "<<endl;
-pthread_mutex_lock(&m_Angles_Mutex);
-	joints = *(m_CurrentJointAngles);
-	//std::cout << "setCurrentJoint:  Releasing Angular_Mutex ... "<<endl;
-	pthread_mutex_unlock(&m_Angles_Mutex);
-}
-void ElmoCtrl::GetCurrentJointAngularVelocities( Jointd& joints  )
-{
-	//std::cout << "setCurrentJointVelocities: Waiting for Angular_Mutex ... "<<endl;
-	pthread_mutex_lock(&m_AngularVel_Mutex);
-	joints = *(m_CurrentAngularVelocity);
-	//std::cout << "setCurrentJoint:  Releasing Angular_Mutex ... "<<endl;
-	pthread_mutex_unlock(&m_AngularVel_Mutex);
-}
-void ElmoCtrl::SetCurrentJointAngularVelocities(const Jointd& joints )
-{
-	//std::cout << "setCurrentJointVelocities: Waiting for Angular_Mutex ... "<<endl;
-	pthread_mutex_lock(&m_AngularVel_Mutex);
-
-	*m_CurrentAngularVelocity = joints;
-
-	//std::cout << "setCurrentJoint:  Releasing Angular_Mutex ... "<<endl;
-	pthread_mutex_unlock(&m_AngularVel_Mutex);
-}
-void ElmoCtrl::SetCurrentJointAngles(const Jointd& joints )
-{
-	//std::cout << "setCurrentJoints "<<manipId<<": Waiting for Angular_Mutex ... "<<endl;
-	pthread_mutex_lock(&(m_Angles_Mutex));
-
-	*m_CurrentJointAngles = joints;
-
-	//std::cout << "setCurrentJoint:  "<<manipId<<" Releasing Angular_Mutex ... "<<endl;
-	pthread_mutex_unlock(&(m_Angles_Mutex));
-}
-
-/// @brief return the DOF of arm / neck:
-*/
 bool ElmoCtrl::SetMotionCtrlType(int type)
 {
 	m_MotionCtrlType = type;
@@ -473,9 +401,7 @@ int ElmoCtrl::getGearPosVelRadS( double* pdAngleGearRad, double* pdVelGearRadS)
 	*pdVelGearRadS = 0;
 
 	m_Joint->getGearPosVelRadS(pdAngleGearRad, pdVelGearRadS);
-	*pdAngleGearRad -= m_JointOffset;
-	
-	m_Joint->requestPosVel();
+	*pdAngleGearRad += m_JointOffset;
 	
 	return 0;
 }
@@ -506,9 +432,6 @@ int ElmoCtrl:: setGearPosVelRadS(double dPosRad, double dVelRadS)
 	return 0;
 }
 
-
-
-
 bool ElmoCtrl::Stop()
 {
 		//UHR: ToDo: what happens exactly in this method? Sudden stop?
@@ -521,41 +444,3 @@ bool ElmoCtrl::Stop()
 		//m_Joint[i]->shutdown();
 
 }
-
-/*
-Jointd ElmoCtrl::getJointVelocities()
-{
-	Jointd currentVel(m_DOF);
-	GetCurrentJointAngularVelocities(currentVel);
-
-	return currentVel;
-}
-
-Jointd ElmoCtrl::getConfig()
-{
-	Jointd currentConfig(m_DOF);
-	GetCurrentJointAngles(currentConfig);
-	for (int i=0; i < m_DOF; i++)
-	{
-		double pos = 0.0;
-		double vel = 0.0;
-		m_Joint[i]->getGearPosVelRadS(&pos,&vel);
-		currentConfig.set(i, pos);
-		Sleep(100);
-		//printf("Joint %d: current config/vel %f, %f\n",i,pos,vel);
-	}
-	
-
-
-	return currentConfig;
-}
-*/
-
-
-
-
-
-
-
-
-

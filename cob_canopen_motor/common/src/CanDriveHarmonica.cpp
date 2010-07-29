@@ -660,9 +660,7 @@ void CanDriveHarmonica::setGearPosVelRadS(double dPosGearRad, double dVelGearRad
 	{
 			//new: set VELOCITY for PTP Motion		
 			IntprtSetInt(8, 'S', 'P', 0, iVelEncIncrPeriod);
-			
-			std::cout << "setting motor to Pos " << iPosEncIncr << " @ vel = " << iVelEncIncrPeriod << std::endl;
-			
+
 			// Position Relativ ("PR") , because of positioning of driving wheel
 			// which is not initialized to zero on a specific position
 			// only when command is for homed steering wheel set absolute

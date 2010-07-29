@@ -23,15 +23,15 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
- *       Engineering and Automation (IPA) nor the names of its
- *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
+ *	 * Redistributions of source code must retain the above copyright
+ *	   notice, this list of conditions and the following disclaimer.
+ *	 * Redistributions in binary form must reproduce the above copyright
+ *	   notice, this list of conditions and the following disclaimer in the
+ *	   documentation and/or other materials provided with the distribution.
+ *	 * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *	   Engineering and Automation (IPA) nor the names of its
+ *	   contributors may be used to endorse or promote products derived from
+ *	   this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License LGPL as 
@@ -74,15 +74,15 @@
 //#### node class ####
 class NodeClass
 {
-    //
-    public:
-	    // create a handle for this node, initialize node
-	    ros::NodeHandle n;
+	//
+	public:
+	// create a handle for this node, initialize node
+	ros::NodeHandle n;
 		
 	// declaration of topics to publish
 	ros::Publisher topicPub_JointState;
 	
-	    // declaration of topics to subscribe, callback is called for new messages arriving
+	// declaration of topics to subscribe, callback is called for new messages arriving
 	ros::Subscriber topicSub_JointCommand;
 	
 	// declaration of service servers
@@ -90,55 +90,55 @@ class NodeClass
 	ros::ServiceServer srvServer_Stop;
 	ros::ServiceServer srvServer_Recover;
 	ros::ServiceServer srvServer_SetOperationMode;
-	    
+		
 	// declaration of service clients
 	//--
 	
 	// global variables
 	ElmoCtrl * CamAxis;
-		ElmoCtrlParams* CamAxisParams;
-		std::string CanDevice;
-		std::string CanIniFile;
-		int CanBaudrate;
-		int HomingDir;
-		double MaxVel;
-		int ModID;
-		double LowerLimit;
-		double UpperLimit; 
-		double Offset;
-		std::string JointName;
-		bool isInitialized;
+	ElmoCtrlParams* CamAxisParams;
+	std::string CanDevice;
+	std::string CanIniFile;
+	int CanBaudrate;
+	int HomingDir;
+	double MaxVel;
+	int ModID;
+	double LowerLimit;
+	double UpperLimit; 
+	double Offset;
+	std::string JointName;
+	bool isInitialized;
 
 	// Constructor
 	NodeClass()
 	{
-			isInitialized = false;
+		isInitialized = false;
 
 		CamAxis = new ElmoCtrl();
 		CamAxisParams = new ElmoCtrlParams();
 
-	    // implementation of topics to publish
-	    topicPub_JointState = n.advertise<sensor_msgs::JointState>("joint_states", 1);
-	    
-	    // implementation of topics to subscribe
-	    topicSub_JointCommand = n.subscribe("joint_commands", 1, &NodeClass::topicCallback_JointCommand, this);
-	    
-	    // implementation of service servers
-	    srvServer_Init = n.advertiseService("Init", &NodeClass::srvCallback_Init, this);
-	    srvServer_Stop = n.advertiseService("Stop", &NodeClass::srvCallback_Stop, this);
-	    srvServer_Recover = n.advertiseService("Recover", &NodeClass::srvCallback_Recover, this);
-	    
-	    // implementation of service clients
-	    //--
+		// implementation of topics to publish
+		topicPub_JointState = n.advertise<sensor_msgs::JointState>("joint_states", 1);
+		
+		// implementation of topics to subscribe
+		topicSub_JointCommand = n.subscribe("joint_commands", 1, &NodeClass::topicCallback_JointCommand, this);
+		
+		// implementation of service servers
+		srvServer_Init = n.advertiseService("Init", &NodeClass::srvCallback_Init, this);
+		srvServer_Stop = n.advertiseService("Stop", &NodeClass::srvCallback_Stop, this);
+		srvServer_Recover = n.advertiseService("Recover", &NodeClass::srvCallback_Recover, this);
+		
+		// implementation of service clients
+		//--
 
-	    // read parameters from parameter server
-	    n.param<std::string>("CanDevice", CanDevice,"ESD:1");
-	    n.param<int>("CanBaudrate", CanBaudrate, 500);
-	    n.param<int>("HomingDir", HomingDir, -1);
-	    n.param<int>("ModId",ModID ,17 );
-	    n.param<std::string>("JointName",JointName ,"joint_head_eyes" );
-	    n.param<std::string>("CanIniFile",CanIniFile ,"IniFiles/CanCtrlCamAxis.ini" );
-	    n.param<double>("MaxVel", MaxVel, 2.0);
+		// read parameters from parameter server
+		n.param<std::string>("CanDevice", CanDevice,"ESD:1");
+		n.param<int>("CanBaudrate", CanBaudrate, 500);
+		n.param<int>("HomingDir", HomingDir, -1);
+		n.param<int>("ModId",ModID ,17 );
+		n.param<std::string>("JointName",JointName ,"joint_head_eyes" );
+		n.param<std::string>("CanIniFile",CanIniFile ,"IniFiles/CanCtrlCamAxis.ini" );
+		n.param<double>("MaxVel", MaxVel, 2.0);
 		ROS_INFO("CanDevice=%s, CanBaudrate=%d,ModID=%d",CanDevice.c_str(),CanBaudrate,ModID);
 		
 		CamAxisParams->SetCanIniFile(CanIniFile);
@@ -217,12 +217,12 @@ class NodeClass
 	// service callback functions
 	// function will be called when a service is querried
 	bool srvCallback_Init(cob_srvs::Trigger::Request &req,
-			      cob_srvs::Trigger::Response &res )
+				  cob_srvs::Trigger::Response &res )
 	{
 			if (isInitialized == false)
 			{
 				ROS_INFO("...initializing camera axis...");
-		      	// init powercubes 
+			  	// init powercubes 
 			if (CamAxis->Init(CamAxisParams))
 			{
 				ROS_INFO("Initializing of camera axis succesful");
@@ -242,50 +242,34 @@ class NodeClass
 				res.success = 1;
 				res.errorMessage.data = "camera axis already initialized";
 			}
+			 return true;
+	}
 
-		// homing powercubes
-		/*if (PCube->doHoming())
+	bool srvCallback_Stop(cob_srvs::Trigger::Request &req,
+				  cob_srvs::Trigger::Response &res )
+	{
+	   		ROS_INFO("Stopping camera axis");
+	
+		// stopping all arm movements
+		if (CamAxis->Stop())
 		{
-			ROS_INFO("Homing powercubes succesfull");
+			ROS_INFO("Stopping camera axis succesful");
 			res.success = 0; // 0 = true, else = false
 		}
 		else
 		{
-			ROS_ERROR("Homing powercubes not succesfull. error: %s", PCube->getErrorMessage().c_str());
-			res.success = 1; // 0 = true, else = false
-			res.errorMessage.data = PCube->getErrorMessage();
-			return true;
+			ROS_ERROR("Stopping camera axis not succesful. error");
 		}
-			*/
-
-		     return true;
-	}
-
-	bool srvCallback_Stop(cob_srvs::Trigger::Request &req,
-			      cob_srvs::Trigger::Response &res )
-	{
-       	    ROS_INFO("Stopping camera axis");
-	
-	    // stopping all arm movements
-	    if (CamAxis->Stop())
-	    {
-	    	ROS_INFO("Stopping camera axis succesful");
-	    	res.success = 0; // 0 = true, else = false
-	    }
-	    else
-	    {
-	    	ROS_ERROR("Stopping camera axis not succesful. error");
-	    }
-	    return true;
+		return true;
 	}
 	
 	bool srvCallback_Recover(cob_srvs::Trigger::Request &req,
-			      	 cob_srvs::Trigger::Response &res )
+				  	 cob_srvs::Trigger::Response &res )
 	{
 			if (isInitialized == true)
 			{
-		   	    ROS_INFO("Recovering camera axis");
-		    
+		   		ROS_INFO("Recovering camera axis");
+			
 			// stopping all arm movements
 			if (CamAxis->Stop())
 			{
@@ -296,31 +280,29 @@ class NodeClass
 			{
 				ROS_ERROR("Recovering camera axis not succesful. error");
 			}
-		    }
-		    else
+			}
+			else
 			{
 				ROS_ERROR("...camera axis already recovered...");			
 			}
 
-	    return true;
+		return true;
 	}
 /*
 	bool srvCallback_SetOperationMode(cob_srvs::SetOperationMode::Request &req,
 					  cob_srvs::SetOperationMode::Response &res )
 	{
 		ROS_INFO("Set operation mode to [%s]", req.operationMode.data.c_str());
-	    n.setParam("OperationMode", req.operationMode.data.c_str());
-	    res.success = 0; // 0 = true, else = false
-	    return true;
+		n.setParam("OperationMode", req.operationMode.data.c_str());
+		res.success = 0; // 0 = true, else = false
+		return true;
 	}
-  */	      
+  */		  
 	// other function declarations
 	void publishJointState()
 	{
 		if (isInitialized == true)
-		{
-			//CamAxis->evalCanBuffer();
-			
+		{			
 			// create message
 			int DOF = 1;
 			double ActualPos;
@@ -328,7 +310,9 @@ class NodeClass
 			ActualPos=0.0;
 			ActualVel=0.0;
 
+			CamAxis->evalCanBuffer();
 			CamAxis->getGearPosVelRadS(&ActualPos,&ActualVel);
+			CamAxis->m_Joint->requestPosVel();
 
 			sensor_msgs::JointState msg;
 			msg.header.stamp = ros::Time::now();
@@ -342,7 +326,7 @@ class NodeClass
 
 
 			std::cout << "Joint " << msg.name[0] <<": pos="<<  msg.position[0] << " vel=" << msg.velocity[0] << std::endl;
-			    
+				
 			// publish message
 			topicPub_JointState.publish(msg);
 		}
@@ -354,19 +338,19 @@ class NodeClass
 //#### main programm ####
 int main(int argc, char** argv)
 {
-    // initialize ROS, spezify name of node
-    ros::init(argc, argv, "cob_camera_axis");
-    
-    // create nodeClass
-    NodeClass nodeClass;
+	// initialize ROS, spezify name of node
+	ros::init(argc, argv, "cob_camera_axis");
+	
+	// create nodeClass
+	NodeClass nodeClass;
  
-    // main loop
- 	ros::Rate loop_rate(10); // Hz
-    while(nodeClass.n.ok())
-    {
-      
+	// main loop
+ 	ros::Rate loop_rate(5); // Hz
+	while(nodeClass.n.ok())
+	{
+	  
 	// publish JointState
-	//nodeClass.publishJointState();
+	nodeClass.publishJointState();
 
 	// read parameter
 	//std::string operationMode;
@@ -376,9 +360,9 @@ int main(int argc, char** argv)
 	// sleep and waiting for messages, callbacks 
 	ros::spinOnce();
 	loop_rate.sleep();
-    }
-    
-//    ros::spin();
+	}
+	
+//	ros::spin();
 
-    return 0;
+	return 0;
 }
