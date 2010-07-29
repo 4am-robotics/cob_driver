@@ -259,6 +259,7 @@ public:
 			return false;
 		}
 		if (tmp_string == "CAM_AVTPIKE") color_camera_ = ipa_CameraSensors::CreateColorCamera_AVTPikeCam();
+		if (tmp_string == "CAM_VIRTUAL") color_camera_ = ipa_CameraSensors::CreateColorCamera_VirtualCam();
 		else if (tmp_string == "CAM_PROSILICA") ROS_ERROR("[color_camera] Color camera type not CAM_PROSILICA not yet implemented");
 		else
 		{
@@ -283,6 +284,10 @@ public:
 		else if (tmp_string == "CAM_PROSILICA")
 		{
 			color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_PROSILICA;
+		} 
+		else if (tmp_string == "CAM_VIRTUALRANGE")
+		{
+			color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALRANGE;
 		} 
 		else
 		{
