@@ -66,7 +66,6 @@
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
-#include <cob_srvs/SetOperationMode.h>
 
 // external includes
 #include <cob_camera_axis/ElmoCtrl.h>
@@ -90,7 +89,6 @@ class NodeClass
 	ros::ServiceServer srvServer_Init_;
 	ros::ServiceServer srvServer_Stop_;
 	ros::ServiceServer srvServer_Recover_;
-	ros::ServiceServer srvServer_SetOperationMode_;
 		
 	// declaration of service clients
 	//--
@@ -110,6 +108,7 @@ class NodeClass
 	int HomingDir_;
 	double MaxVel_;
 	int ModID_;
+	std::string operationMode_;
 	double LowerLimit_;
 	double UpperLimit_; 
 	double Offset_;
@@ -138,7 +137,6 @@ class NodeClass
 		topicPub_JointState_ = n_.advertise<sensor_msgs::JointState>("/joint_states", 1);
 		
 		// implementation of topics to subscribe
-		//topicSub_JointCommand = n.subscribe("joint_commands", 1, &NodeClass::topicCallback_JointCommand, this);
 		
 		// implementation of service servers
 		srvServer_Init_ = n_.advertiseService("Init", &NodeClass::srvCallback_Init, this);
@@ -155,6 +153,8 @@ class NodeClass
 		n_.param<int>("ModId",ModID_ ,17 );
 		n_.param<std::string>("JointName",JointName_ ,"joint_head_eyes" );
 		n_.param<std::string>("CanIniFile",CanIniFile_ ,"IniFiles/CanCtrlCamAxis.ini" );
+		n_.param<std::string>("OperationMode",operationMode_ ,"position" );
+		
 		//n_.param<double>("MaxVel", MaxVel_, 2.0); -> from urdf
 		ROS_INFO("CanDevice=%s, CanBaudrate=%d,ModID=%d",CanDevice_.c_str(),CanBaudrate_,ModID_);
 		
@@ -217,15 +217,8 @@ class NodeClass
 	{
 	}
 
-	// topic callback functions 
-	// function will be called when a new message arrives on a topic
-	void topicCallback_JointCommand(const trajectory_msgs::JointTrajectory::ConstPtr& msg)
-	{
-   		
-	}
-	
-	void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal)
-		{
+	void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal) {
+		if(isInitialized_) {	
 			ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
 			// saving goal into local variables
 			traj_ = goal->trajectory;
@@ -264,7 +257,12 @@ class NodeClass
 			ROS_INFO("%s: Succeeded", action_name_.c_str());
 			// set the action state to succeeded
 			as_.setSucceeded(result_);
+		
+		} else {
+			as_.setAborted();
+			ROS_WARN("Camera_axis not initialized yet!");
 		}
+	}
 
 	// service callback functions
 	// function will be called when a service is querried
@@ -334,25 +332,12 @@ class NodeClass
 		return true;
 	}
 
-/*
-	bool srvCallback_SetOperationMode(cob_srvs::SetOperationMode::Request &req,
-					  cob_srvs::SetOperationMode::Response &res )
-	{
-		ROS_INFO("Set operation mode to [%s]", req.operationMode.data.c_str());
-		n_.setParam("OperationMode", req.operationMode.data.c_str());
-		res.success = 0; // 0 = true, else = false
-		return true;
-	}
-*/		  
-
 	// other function declarations
 	void updateCommands()
 		{
 			if (isInitialized_ == true)
 			{
-			    std::string operationMode;
-			    n_.getParam("OperationMode", operationMode);
-			    if (operationMode == "position")
+			    if (operationMode_ == "position")
 			    {
 				    ROS_DEBUG("moving head_axis in position mode");
 			    	if (ActualVel_ == 0)
@@ -385,13 +370,13 @@ class NodeClass
 						ROS_INFO("...axis still moving to point[%d]",traj_point_nr_);
 					}
 			    }
-			    else if (operationMode == "velocity")
+			    else if (operationMode_ == "velocity")
 			    {
 			        ROS_WARN("Moving in velocity mode currently disabled");
 			    }
 			    else
 			    {
-			        ROS_ERROR("axis neither in position nor in velocity mode. OperationMode = [%s]", operationMode.c_str());
+			        ROS_ERROR("axis neither in position nor in velocity mode. OperationMode = [%s]", operationMode_.c_str());
 			    }
 			}
 			else
@@ -450,11 +435,6 @@ int main(int argc, char** argv)
 
 		// update commands
 		nodeClass.updateCommands();
-
-		// read parameter
-		//std::string operationMode;
-		//nodeClass.n_.getParam("OperationMode", operationMode);
-		//ROS_DEBUG("running with OperationMode [%s]", operationMode.c_str());
 
 		// sleep and waiting for messages, callbacks 
 		ros::spinOnce();
