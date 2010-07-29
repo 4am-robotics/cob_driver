@@ -179,7 +179,7 @@ private:
 	//CANPeakSysUSB * m_CanCtrl;
 	CanESD * m_CanCtrl;
 
-	float m_MaxVel;
+	double m_MaxVel;
 	int m_HomingDir;
 
 	double  m_UpperLimit;

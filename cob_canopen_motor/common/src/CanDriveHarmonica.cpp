@@ -645,7 +645,7 @@ void CanDriveHarmonica::setGearPosVelRadS(double dPosGearRad, double dVelGearRad
 	int iVelEncIncrPeriod;
 		
 	m_DriveParam.PosVelRadToIncr(dPosGearRad, dVelGearRadS, &iPosEncIncr, &iVelEncIncrPeriod);
-		
+	
 	if(iVelEncIncrPeriod > m_DriveParam.getVelMax())
 	{
 		iVelEncIncrPeriod = (int)m_DriveParam.getVelMax();
@@ -657,9 +657,11 @@ void CanDriveHarmonica::setGearPosVelRadS(double dPosGearRad, double dVelGearRad
 	}
 
 	if(m_iTypeMotion == MOTIONTYPE_POSCTRL)
-	{		
+	{
 			//new: set VELOCITY for PTP Motion		
 			IntprtSetInt(8, 'S', 'P', 0, iVelEncIncrPeriod);
+			
+			std::cout << "setting motor to Pos " << iPosEncIncr << " @ vel = " << iVelEncIncrPeriod << std::endl;
 			
 			// Position Relativ ("PR") , because of positioning of driving wheel
 			// which is not initialized to zero on a specific position
@@ -714,7 +716,7 @@ void CanDriveHarmonica::setGearVelRadS(double dVelGearRadS)
 
 	// request pos and vel by TPDO1, triggered by SYNC msg
 	// (to request pos by SDO use sendSDOUpload(0x6064, 0) )
-	// sync msg is: iID 0x08 with msg (0,0,0,0,0,0,0,0)
+	// sync msg is: iID 0x80 with msg (0,0,0,0,0,0,0,0)
 	CanMsg msg;
 	msg.m_iID  = 0x80;
 	msg.m_iLen = 0;

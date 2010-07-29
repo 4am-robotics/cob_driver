@@ -93,9 +93,8 @@ bool ElmoCtrl::Home()
 int ElmoCtrl::evalCanBuffer()
 {
 	bool bRet;
-//	char cBuf[200];
 	
-	pthread_mutex_lock(&(m_Mutex));
+	//pthread_mutex_lock(&(m_Mutex));
 
 	// as long as there is something in the can buffer -> read out next message
 	while(m_CanCtrl->receiveMsg(&m_CanMsgRec) == true)
@@ -104,13 +103,14 @@ int ElmoCtrl::evalCanBuffer()
 		// check for every motor if message belongs to it
 		bRet |= m_Joint->evalReceivedMsg(m_CanMsgRec);
 
-		if (bRet == false)
+		if (bRet == true)
 		{
-		}		
+		}
+			
 	};
 	
 
-	pthread_mutex_unlock(&(m_Mutex));
+	//pthread_mutex_unlock(&(m_Mutex));
 
 	return 0;
 }
@@ -168,6 +168,7 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) //home = true by default
 		CanIniFile = params->GetCanIniFile();	
 		m_MaxVel = params->GetMaxVel();
 		m_HomingDir = params->GetHomingDir();
+		
 		if (CanIniFile.length() == 0)
 		{	
 			printf("%s,%d:Error: Parameter 'CanIniFile' not given!\n",__FILE__,__LINE__);
@@ -185,6 +186,7 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) //home = true by default
 			printf("%s,%d:Error: Parameter 'Baud-Rate' not given!\n",__FILE__,__LINE__);
 			success = false;
 		}
+		
 		if (success)
 		{
 			m_JointOffset = params->GetAngleOffset();
@@ -471,6 +473,9 @@ int ElmoCtrl::getGearPosVelRadS( double* pdAngleGearRad, double* pdVelGearRadS)
 	*pdVelGearRadS = 0;
 
 	m_Joint->getGearPosVelRadS(pdAngleGearRad, pdVelGearRadS);
+	*pdAngleGearRad -= m_JointOffset;
+	
+	m_Joint->requestPosVel();
 	
 	return 0;
 }
@@ -479,11 +484,24 @@ int ElmoCtrl::getGearPosVelRadS( double* pdAngleGearRad, double* pdVelGearRadS)
 
 int ElmoCtrl:: setGearPosVelRadS(double dPosRad, double dVelRadS)
 {		
-	pthread_mutex_lock(&(m_Mutex));
+	//pthread_mutex_lock(&(m_Mutex));		
 
-	m_Joint->setGearPosVelRadS(dPosRad,dVelRadS);
+	if(dPosRad< m_LowerLimit) {
+		std::cout << "Position under LowerBound -> set up" << std::endl;
+		dPosRad = m_LowerLimit;
+	} else if(dPosRad > m_UpperLimit) {
+		std::cout << "Position over UpperBound -> set down" << std::endl;
+		dPosRad = m_UpperLimit;
+	}
+		
+	if(dVelRadS > m_MaxVel)
+		dVelRadS = m_MaxVel;
+	else if(dVelRadS < -m_MaxVel)
+		dVelRadS = -m_MaxVel;
+
+	m_Joint->setGearPosVelRadS(dPosRad + m_JointOffset, dVelRadS);
 	
-	pthread_mutex_unlock(&(m_Mutex));
+	//pthread_mutex_unlock(&(m_Mutex));
 	
 	return 0;
 }
