@@ -11,6 +11,7 @@ from pr2_controllers_msgs.msg import *
 from cob_srvs.srv import *
 from cob_actions.msg import *
 from trajectory_msgs.msg import *
+from geometry_msgs.msg import *
 
 class ik_solver:
 
@@ -28,24 +29,25 @@ class ik_solver:
 		self.service = rospy.Service("move_cart_abs", MoveCart, self.cbIKSolverAbs)
 		self.service = rospy.Service("move_cart_rel", MoveCart, self.cbIKSolverRel)
 		self.client = actionlib.SimpleActionClient('joint_trajectory_action', JointTrajectoryAction)
-		if not self.client.wait_for_server(rospy.Duration(5)):
+		if not self.client.wait_for_server(rospy.Duration(15)):
 			rospy.logerr("arm action server not ready within timeout, aborting...")
 			return
 		else:
 			rospy.logdebug("arm action server ready")
 
-		self.thread = threading.Thread(target=self.joint_states_listener)
-	        self.thread.start()
+		rospy.Subscriber('/joint_states', JointState, self.joint_states_callback)
+		#self.thread = threading.Thread(target=self.joint_states_listener)
+		#self.thread.start()
 		rospy.wait_for_service('get_ik')
 		self.iks = rospy.ServiceProxy('get_ik', GetPositionIK)		
 
 
 	#thread function: listen for joint_states messages
 	def joint_states_listener(self):
-		rospy.Subscriber('joint_states', JointState, self.joint_states_callback)
-		while not rospy.is_shutdown():
-			rospy.sleep(0.2)
-			rospy.spin()
+		print "joint_states_listener"
+		rospy.Subscriber('/joint_states', JointState, self.joint_states_callback)
+		rospy.spin()
+
 
 	#callback function: when a joint_states message arrives, save the values
 	def joint_states_callback(self, msg):
@@ -69,6 +71,7 @@ class ik_solver:
 
 	
 	def cbIKSolverRel(self, msg):
+		print "cbIKSolverRel"
 		try:
 			(trans,rot) = self.listener.lookupTransform('base_link', 'arm_7_link', rospy.Time(0))
 			print trans
@@ -80,14 +83,14 @@ class ik_solver:
 			print "Error Connectivity"
 			print cex
 		relpos = Pose()
-		relpos.position.x = trans[0] 
-		relpos.position.y = trans[1]
-		relpos.position.z = trans[2]
-		relpos.orientation.x = rot[0]
-		relpos.orientation.y = rot[1]
-		relpos.orientation.z = rot[2]
-		relpos.orientation.w = rot[3]
-		new_config = self.callIKSolver(relpos + msg.goal_pose.pose)
+		relpos.position.x = trans[0] + msg.goal_pose.pose.position.x
+		relpos.position.y = trans[1] + msg.goal_pose.pose.position.y
+		relpos.position.z = trans[2] + msg.goal_pose.pose.position.z
+		relpos.orientation.x = rot[0] + msg.goal_pose.pose.orientation.x
+		relpos.orientation.y = rot[1] + msg.goal_pose.pose.orientation.y
+		relpos.orientation.z = rot[2] + msg.goal_pose.pose.orientation.z
+		relpos.orientation.w = rot[3] + msg.goal_pose.pose.orientation.w
+		new_config = self.callIKSolver(relpos)
 		self.moveArm(new_config)
 	
 	def moveArm(self, pose):
