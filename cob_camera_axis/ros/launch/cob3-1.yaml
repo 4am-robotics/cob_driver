@@ -1,7 +1,6 @@
-CanModule: ESD
-CanDevice: 0
+CanDevice: ESD:1
 CanBaudrate: 500
-ModIds: [19]
-JointNames: [joint_camera_axis]
-MaxAcc: [0.8]
+ModId: 17
+JointName: joint_head_eyes
+HomingDir: -1
 OperationMode: position

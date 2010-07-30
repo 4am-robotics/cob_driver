@@ -228,19 +228,17 @@ public:
 
 	//--------------------------------- Commands specific for a certain motor controller
 	// have to be implemented here, to keep the CanDriveItf generic
-    /** 
-	 * Configures the Elmo Recorder (internal) to log internal data with high frequency
-	 * (This can be used for identification of the drive chain
-	 * data is downloaded via the Elmo's serial interface
-	 * @param iRecordingGap Sleep Time before Recording starts (check whether this is correct)
-	 */
-	void configureElmoRecorder(int iRecordingGap);
 
-    /**
-     *Receives recorded data from Elmos via CAN and saves them into LOG-files
-     */
-    bool printElmoRecordings(std::string LogDirectory);
-
+	/**
+	 * Provides several functions for drive information recording purposes using the built in ElmoRecorder, which allows to record drive information at a high frequency. 
+	 * @param iFlag To keep the interface slight, use iParam to command the recorder:
+	 * 0: Configure the Recorder to record the sources Main Speed(1), Main position(2), Active current(10), Speed command(16). With iParam = iRecordingGap you specify every which time quantum (4*90usec) a new data point (of 1024 points in total) is recorded; 
+	 * 1: Query Upload of recorded source (1=Main Speed, 2=Main position, 10=Active Current, 16=Speed command) with iParam and log data to file sParam = file prefix. Filename is extended with _MotorNumber_RecordedSource.log
+	 * 99: Abort and clear current SDO readout process
+	 * @return -1: Unknown flag set; 0: Success; 1: Recorder hasn't been configured yet; 2: data collection still in progress
+	 *
+	*/
+	int ElmoRecordings(int iFlag, int iParam, std::string sString);
 
 	//--------------------------------- Commands for other nodes
 

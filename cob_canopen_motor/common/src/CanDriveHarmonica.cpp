@@ -19,7 +19,7 @@
  *
  * Date of creation: Feb 2009
  * ToDo: - Assign Adsress of digital input for homing switch "iHomeDigIn" via parameters (in evalReceived Message, Line 116).
- *       - Homing Event should be defined by a parameterfile and handed to CanDrive... e.g. via the DriveParam.h (in inithoming, Line 531).
+ *	   - Homing Event should be defined by a parameterfile and handed to CanDrive... e.g. via the DriveParam.h (in inithoming, Line 531).
  *		 - Check whether "requestStatus" can/should be done in the class implementing the component
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -27,15 +27,15 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
- *       Engineering and Automation (IPA) nor the names of its
- *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
+ *	 * Redistributions of source code must retain the above copyright
+ *	   notice, this list of conditions and the following disclaimer.
+ *	 * Redistributions in binary form must reproduce the above copyright
+ *	   notice, this list of conditions and the following disclaimer in the
+ *	   documentation and/or other materials provided with the distribution.
+ *	 * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *	   Engineering and Automation (IPA) nor the names of its
+ *	   contributors may be used to endorse or promote products derived from
+ *	   this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License LGPL as 
@@ -92,7 +92,9 @@ CanDriveHarmonica::CanDriveHarmonica()
 	m_bOutputOfFailure = false;
 	
 	m_bIsInitialized = false;
+	
 
+	ElmoRec = new ElmoRecorder(this);
 
 }
 
@@ -137,6 +139,8 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 			VelMotIncrPeriodToVelGearRadS(iTemp2);
 
 		m_WatchdogTime.SetNow();
+
+		bRet = true;
 	}	
 	
 	//-----------------------
@@ -184,6 +188,8 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 				| (msg.getAt(5) << 8) | (msg.getAt(4) );
 
 			evalStatusRegister(m_iStatusCtrl);
+			ElmoRec->readoutRecorderTryStatus(m_iStatusCtrl);
+			
 		}
 
 		else if( (msg.getAt(0) == 'M') && (msg.getAt(1) == 'F') ) // motor failure
@@ -210,7 +216,7 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 
 			std::cout << "pm " << iPara << std::endl;
 		}
-		
+
 		else if( (msg.getAt(0) == 'A') && (msg.getAt(1) == 'C') )
 		{
 			iPara = (msg.getAt(7) << 24) | (msg.getAt(6) << 16)
@@ -218,7 +224,7 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 
 			std::cout << "ac " << iPara << std::endl;
 		}
-		
+
 		else if( (msg.getAt(0) == 'D') && (msg.getAt(1) == 'C') )
 		{
 			iPara = (msg.getAt(7) << 24) | (msg.getAt(6) << 16)
@@ -243,7 +249,8 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 			float* pfVal;
 			pfVal=(float*)&iVal;
 			m_dMotorCurr = *pfVal;			
-		}		
+		}
+
 		else
 		{
 		}
@@ -258,12 +265,19 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 	if (msg.m_iID == m_ParamCanOpen.iTxSDO)
 	{
 		m_WatchdogTime.SetNow();
-        
-        if( (msg.getAt(0) >> 5) == 0) { //Received Upload SDO Segment (scs = 0)
-            receivedSDODataSegment(msg);
-        } else if( (msg.getAt(0) & 0x02) == 0) { //Received Initiate SDO Upload, that is not expedited -> start segmented upload (scs = 2 AND expedited flag = 0)
-            receivedSDODataSegment(msg);
-        }
+
+		if( (msg.getAt(0) >> 5) == 0) { //Received Upload SDO Segment (scs = 0)
+			//std::cout << "SDO Upload Segment received" << std::endl;
+			receivedSDODataSegment(msg);
+			
+		} else if( (msg.getAt(0) & 0xE2) == 0x40) { //Received Initiate SDO Upload, that is not expedited -> start segmented upload (scs = 2 AND expedited flag = 0)
+			//std::cout << "SDO Initiate Segmented Upload received, Object ID: " << (msg.getAt(1) | (msg.getAt(2) << 8) ) << std::endl;
+			receivedSDOSegmentedInitiation(msg);
+			
+		} else if( (msg.getAt(0) >> 5) == 4) { // Received an Abort SDO Transfer message, cs = 4
+			unsigned int iErrorNum = (msg.getAt(4) | msg.getAt(5) << 8 | msg.getAt(6) << 16 | msg.getAt(7) << 24);
+			receivedSDOTransferAbort(iErrorNum);
+		}
 
 		bRet = true;
 	}
@@ -283,7 +297,7 @@ bool CanDriveHarmonica::init()
 
 	// Set Values for Modulo-Counting. Neccessary to preserve absolute position for homed motors (after encoder overflow)
 	int iIncrRevWheel = int( (double)m_DriveParam.getGearRatio() * (double)m_DriveParam.getBeltRatio()
-			        * (double)m_DriveParam.getEncIncrPerRevMot() * 3 );
+					* (double)m_DriveParam.getEncIncrPerRevMot() * 3 );
 	IntprtSetInt(8, 'M', 'O', 0, 0);
 	usleep(20000);
 	IntprtSetInt(8, 'X', 'M', 2, iIncrRevWheel * 5000);
@@ -345,7 +359,7 @@ bool CanDriveHarmonica::init()
 	m_bWatchdogActive = false;
 	
 	if( bRet )
-		 m_bIsInitialized = true;
+		m_bIsInitialized = true;
 	 
 	return bRet;	
 }
@@ -557,7 +571,7 @@ bool CanDriveHarmonica::initHoming()
 
 
 //-----------------------------------------------
-bool CanDriveHarmonica::execHoming()
+bool CanDriveHarmonica::execHoming() //not used by CanCtrlPltf, that has its own homing implementation
 {
 	int iCnt;
 	CanMsg Msg;
@@ -614,13 +628,15 @@ bool CanDriveHarmonica::execHoming()
 	if(iCnt>=1000)
 	{
 		std::cout << "Homing failed - limit switch " << iNrDrive << " not reached" << std::endl;
+		bRet = false;
 	}
 	else
 	{
 		std::cout << "Homing successful - limit switch " << iNrDrive << " ok" << std::endl;
+		bRet = true;
 	}
 
-	return true;
+	return bRet;
 }
 //-----------------------------------------------
 void CanDriveHarmonica::setGearPosVelRadS(double dPosGearRad, double dVelGearRadS)
@@ -629,7 +645,7 @@ void CanDriveHarmonica::setGearPosVelRadS(double dPosGearRad, double dVelGearRad
 	int iVelEncIncrPeriod;
 		
 	m_DriveParam.PosVelRadToIncr(dPosGearRad, dVelGearRadS, &iPosEncIncr, &iVelEncIncrPeriod);
-		
+	
 	if(iVelEncIncrPeriod > m_DriveParam.getVelMax())
 	{
 		iVelEncIncrPeriod = (int)m_DriveParam.getVelMax();
@@ -641,10 +657,10 @@ void CanDriveHarmonica::setGearPosVelRadS(double dPosGearRad, double dVelGearRad
 	}
 
 	if(m_iTypeMotion == MOTIONTYPE_POSCTRL)
-	{		
+	{
 			//new: set VELOCITY for PTP Motion		
 			IntprtSetInt(8, 'S', 'P', 0, iVelEncIncrPeriod);
-			
+
 			// Position Relativ ("PR") , because of positioning of driving wheel
 			// which is not initialized to zero on a specific position
 			// only when command is for homed steering wheel set absolute
@@ -698,7 +714,7 @@ void CanDriveHarmonica::setGearVelRadS(double dVelGearRadS)
 
 	// request pos and vel by TPDO1, triggered by SYNC msg
 	// (to request pos by SDO use sendSDOUpload(0x6064, 0) )
-	// sync msg is: iID 0x08 with msg (0,0,0,0,0,0,0,0)
+	// sync msg is: iID 0x80 with msg (0,0,0,0,0,0,0,0)
 	CanMsg msg;
 	msg.m_iID  = 0x80;
 	msg.m_iLen = 0;
@@ -774,6 +790,16 @@ void CanDriveHarmonica::requestPosVel()
 }
 
 //-----------------------------------------------
+void CanDriveHarmonica::sendHeartbeat()
+{
+	CanMsg msg;
+	msg.m_iID  = 0x700;
+	msg.m_iLen = 5;
+	msg.set(0x00,0,0,0,0,0,0,0);
+	m_pCanCtrl->transmitMsg(msg);
+}
+
+//-----------------------------------------------
 void CanDriveHarmonica::requestStatus()
 {
 	IntprtSetInt(4, 'S', 'R', 0, 0);
@@ -841,7 +867,7 @@ bool CanDriveHarmonica::setTypeMotion(int iType)
 		
 		
 	}
-    else if (iType == MOTIONTYPE_TORQUECTRL)
+	else if (iType == MOTIONTYPE_TORQUECTRL)
 	{
 		// Switch to TorqueControll-Mode
 		// switch off Motor to change Unit-Mode
@@ -913,7 +939,7 @@ void CanDriveHarmonica::IntprtSetFloat(int iDataLen, char cCmdChar1, char cCmdCh
 	CMsgTr.m_iLen = iDataLen;
 
 	cIndex[0] = iIndex;
-    // for sending float values bit 6 has to be zero and bit 7 one (according to Elmo Implementation guide)
+	// for sending float values bit 6 has to be zero and bit 7 one (according to Elmo Implementation guide)
 	cIndex[1] = (iIndex >> 8) & 0x3F;	// setting bit 6 to zero with mask 0b10111111->0xBF
 	cIndex[1] = cIndex[1] | 0x80;		// setting bit 7 to one with mask 0b10000000 ->0x80
 
@@ -923,6 +949,40 @@ void CanDriveHarmonica::IntprtSetFloat(int iDataLen, char cCmdChar1, char cCmdCh
 	
 	CMsgTr.set(cCmdChar1, cCmdChar2, cIndex[0], cIndex[1], cFloat[0], cFloat[1], cFloat[2], cFloat[3]);
 	m_pCanCtrl->transmitMsg(CMsgTr);
+}
+
+//-----------------------------------------------
+// SDO Communication Protocol, most functions are used for general SDO Segmented Transfer
+//-----------------------------------------------
+
+//-----------------------------------------------
+void CanDriveHarmonica::sendSDOAbort(int iObjIndex, int iObjSubIndex, unsigned int iErrorCode)
+{
+	CanMsg CMsgTr;
+	const int ciAbortTransferReq = 0x04 << 5;
+	
+	CMsgTr.m_iLen = 8;
+	CMsgTr.m_iID = m_ParamCanOpen.iRxSDO;
+
+	unsigned char cMsg[8];
+	
+	cMsg[0] = ciAbortTransferReq;
+	cMsg[1] = iObjIndex;
+	cMsg[2] = iObjIndex >> 8;
+	cMsg[3] = iObjSubIndex;
+	cMsg[4] = iErrorCode;
+	cMsg[5] = iErrorCode >> 8;
+	cMsg[6] = iErrorCode >> 16;
+	cMsg[7] = iErrorCode >> 24;
+
+	CMsgTr.set(cMsg[0], cMsg[1], cMsg[2], cMsg[3], cMsg[4], cMsg[5], cMsg[6], cMsg[7]);
+	m_pCanCtrl->transmitMsg(CMsgTr);
+}
+
+//-----------------------------------------------
+void CanDriveHarmonica::receivedSDOTransferAbort(unsigned int iErrorCode){
+	std::cout << "SDO Abort Transfer received with error code: " << iErrorCode;
+	seg_Data.statusFlag = segData::SDO_SEG_FREE;
 }
 
 //-----------------------------------------------
@@ -944,30 +1004,6 @@ void CanDriveHarmonica::sendSDOUpload(int iObjIndex, int iObjSubIndex)
 	cMsg[5] = 0x00;
 	cMsg[6] = 0x00;
 	cMsg[7] = 0x00;
-
-	CMsgTr.set(cMsg[0], cMsg[1], cMsg[2], cMsg[3], cMsg[4], cMsg[5], cMsg[6], cMsg[7]);
-	m_pCanCtrl->transmitMsg(CMsgTr);
-}
-
-//-----------------------------------------------
-void CanDriveHarmonica::sendSDOAbort(int iObjIndex, int iObjSubIndex, int errCode)
-{
-	CanMsg CMsgTr;
-	const int ciAbortTransferReq = 0x04 << 5;
-	
-	CMsgTr.m_iLen = 8;
-	CMsgTr.m_iID = m_ParamCanOpen.iRxSDO;
-
-	unsigned char cMsg[8];
-	
-	cMsg[0] = ciAbortTransferReq;
-	cMsg[1] = iObjIndex;
-	cMsg[2] = iObjIndex >> 8;
-	cMsg[3] = iObjSubIndex;
-	cMsg[4] = errCode;
-	cMsg[5] = errCode >> 8;
-	cMsg[6] = errCode >> 16;
-	cMsg[7] = errCode >> 24;
 
 	CMsgTr.set(cMsg[0], cMsg[1], cMsg[2], cMsg[3], cMsg[4], cMsg[5], cMsg[6], cMsg[7]);
 	m_pCanCtrl->transmitMsg(CMsgTr);
@@ -1015,6 +1051,107 @@ int CanDriveHarmonica::getSDODataInt32(CanMsg& CMsg)
 		(CMsg.getAt(5) << 8) | CMsg.getAt(4);
 
 	return iData;
+}
+
+//-----------------------------------------------
+int CanDriveHarmonica::receivedSDOSegmentedInitiation(CanMsg& msg) {
+
+	if(seg_Data.statusFlag == segData::SDO_SEG_FREE) { //only accept new SDO Segmented Upload if seg_Data is free
+		seg_Data.resetTransferData();
+		seg_Data.statusFlag = segData::SDO_SEG_COLLECTING;
+
+		//read out objectIDs
+		evalSDO(msg, &seg_Data.objectID, &seg_Data.objectSubID);
+
+		//data in byte 4 to 7 contain the number of bytes to be uploaded (if Size indicator flag is set)
+		if( (msg.getAt(0) & 0x01) == 1) {
+			seg_Data.numTotalBytes = msg.getAt(7) << 24 | msg.getAt(6) << 16 | msg.getAt(5) << 8 | msg.getAt(4);
+		} else seg_Data.numTotalBytes = 0;
+
+		sendSDOUploadSegmentConfirmation(seg_Data.toggleBit);
+	}
+
+	return 0;
+
+}
+
+//-----------------------------------------------
+int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
+
+	int numEmptyBytes = 0;
+
+	//Read SDO Upload Protocol:
+	//Byte 0: SSS T NNN C | SSS=Cmd-Specifier, T=ToggleBit, NNN=num of empty bytes, C=Finished
+	//Byte 1 to 7: Data
+
+	if( (msg.getAt(0) & 0x10) != (seg_Data.toggleBit << 4) ) { 
+		std::cout << "Toggle Bit error, send Abort SDO with \"Toggle bit not alternated\" error" << std::endl;
+		sendSDOAbort(seg_Data.objectID, seg_Data.objectSubID, 0x05030000); //Send SDO Abort with error code Toggle-Bit not alternated
+		return 1;
+	}
+		
+	if( (msg.getAt(0) & 0x01) == 0x00) { //Is finished-bit not set?
+		seg_Data.statusFlag = segData::SDO_SEG_COLLECTING;
+	} else {
+		//std::cout << "SDO Segmented Transfer finished bit found!" << std::endl;
+		seg_Data.statusFlag = segData::SDO_SEG_PROCESSING;
+	};
+
+	numEmptyBytes = (msg.getAt(0) >> 1) & 0x07;
+	//std::cout << "NUM empty bytes in SDO :" << numEmptyBytes << std::endl;
+	
+	for(int i=1; i<=7-numEmptyBytes; i++) {
+		seg_Data.data.push_back(msg.getAt(i));
+	}
+
+	if(seg_Data.statusFlag == segData::SDO_SEG_PROCESSING) {
+		finishedSDOSegmentedTransfer();		
+	} else {
+		seg_Data.toggleBit = !seg_Data.toggleBit;
+		sendSDOUploadSegmentConfirmation(seg_Data.toggleBit);
+	}
+		
+	return 0;
+}
+
+//-----------------------------------------------
+void CanDriveHarmonica::sendSDOUploadSegmentConfirmation(bool toggleBit) {
+
+	CanMsg CMsgTr;
+	int iConfirmSegment = 0x60; //first three bits must be css = 3 : 011 00000
+	iConfirmSegment = iConfirmSegment | (toggleBit << 4); //fourth bit is toggle bit: 011T0000
+	
+	CMsgTr.m_iLen = 8;
+	CMsgTr.m_iID = m_ParamCanOpen.iRxSDO;
+
+	unsigned char cMsg[8];
+	
+	cMsg[0] = iConfirmSegment;
+	cMsg[1] = 0x00;
+	cMsg[2] = 0x00;
+	cMsg[3] = 0x00;
+	cMsg[4] = 0x00;
+	cMsg[5] = 0x00;
+	cMsg[6] = 0x00;
+	cMsg[7] = 0x00;
+
+	CMsgTr.set(cMsg[0], cMsg[1], cMsg[2], cMsg[3], cMsg[4], cMsg[5], cMsg[6], cMsg[7]);
+	m_pCanCtrl->transmitMsg(CMsgTr);
+}
+
+//-----------------------------------------------
+void CanDriveHarmonica::finishedSDOSegmentedTransfer() {
+	seg_Data.statusFlag = segData::SDO_SEG_PROCESSING;
+	
+	if( (seg_Data.data.size() != seg_Data.numTotalBytes) & (seg_Data.numTotalBytes != 0) ) {
+		std::cout << "WARNING: SDO tranfer finished but number of collected bytes " 
+			<< seg_Data.data.size() << " != expected number of bytes: " << seg_Data.numTotalBytes << std::endl;
+		//abort processing?
+	}
+	
+	if(seg_Data.objectID == 0x2030) {
+		if(ElmoRec->processData(seg_Data) == 0) seg_Data.statusFlag = segData::SDO_SEG_FREE;
+	}
 }
 
 //-----------------------------------------------
@@ -1202,11 +1339,8 @@ void CanDriveHarmonica::setMotorTorque(double dTorqueNm)
 	m_pCanCtrl->transmitMsg(msg);
 
 	// send heartbeat to keep watchdog inactive
-	msg.m_iID  = 0x700;
-	msg.m_iLen = 5;
-	msg.set(0x00,0,0,0,0,0,0,0);
-	m_pCanCtrl->transmitMsg(msg);
-
+	sendHeartbeat();
+	
 	m_CurrentTime.SetNow();
 	double dt = m_CurrentTime - m_SendTime;
 	if (dt > 1.0)
@@ -1235,129 +1369,61 @@ void CanDriveHarmonica::getMotorTorque(double* dTorqueNm)
 	
 }
 
-//-----------------------------------------------
-//Upload data from Elmo Recorder, cpc-pk
-
-
-//-----------------------------------------------
-int CanDriveHarmonica::initiateSDOSegmentedUpload(CanMsg& msg) {
-/*
-    m_SDOSegmentToggleBit = 0;
-
-    if(rec_Data.locked == false) { //only accept new SDO Segmented Upload if rec_Data message is open for write
-        rec_Data.resetTransferData();
-
-        //read out objectIDs
-        evalSDO(msg, &rec_Data.objectID, &rec_Data.objectSubID);
-
-        //data in byte 4 to 7 contain the number of bytes to be uploaded (if Size indicator flag is set)
-        if( (msg.getAt(0) & 0x01) == 1) {
-            rec_Data.numTotalBytes = msg.getAt(4) | msg.getAt(5) << 8 | msg.getAt(6) << 16 | msg.getAt(7) << 24;
-        } else rec_Data.numTotalBytes = 0;
-
-        sendSDOUploadSegmentConfirmation(m_SDOSegmentToggleBit);
-    }
-*/
-    return 0;
-
-}
-
-//-----------------------------------------------
-int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
-/*
-    int numEmptyBytes = 0;    
-
-    if( (msg.getAt(0) & 0x10) != (m_SDOSegmentToggleBit << 4) ) { 
-        //std::cout << "Toggle Bit error, send Abort SDO with \"Toggle bit not alternated\" error" << std::endl;
-        sendSDOAbort(rec_Data.objectID, rec_Data.objectSubID, 0x05030000);
-        return 1;
-    }
-        
-    if( (msg.getAt(0) & 0x01) == 0x00) { //Finished bit is set
-        rec_Data.finishedTransmission = false;
-    } else {
-        rec_Data.finishedTransmission = true;
-        rec_Data.locked = true;
-    };
-
-    numEmptyBytes = (msg.getAt(0) >> 1) & 0x07; //Byte 1: SSS T NNN C | SSS=Cmd-Specifier, T=ToggleBit, NNN=num of empty bytes, C=Finished
-    //std::cout << std::endl << "NUM unused bytes :" << numEmptyBytes << std::endl;
-    //For now, get all bytes, even empty/unused ones!
-    numEmptyBytes = 0;
-
-    for(int i=7-numEmptyBytes;i>=1;i--) { //because of "little endian", start to read bytes from the "end" to the beginning
-        rec_Data.data.push_back(msg.getAt(i));
-        rec_Data.bytesReceived ++;
-        
-        std::cout << msg.getAt(i);
-    }
-    
-    //std::cout << "MESSAGE END" << std::endl;
-
-    m_SDOSegmentToggleBit = !m_SDOSegmentToggleBit;
-    if(!rec_Data.finishedTransmission) sendSDOUploadSegmentConfirmation(m_SDOSegmentToggleBit);
-
-*/
-
-    return 0;
-}
-
-void CanDriveHarmonica::sendSDOUploadSegmentConfirmation(bool toggleBit) {
-/*
-    CanMsg CMsgTr;
-    int iConfirmSegment = 0x60; //first three bits must be css = 3 : 011 00000
-    iConfirmSegment = iConfirmSegment | (toggleBit << 4); //fourth bit is toggle bit: 011T0000
-	
-	CMsgTr.m_iLen = 8;
-	CMsgTr.m_iID = m_ParamCanOpen.iRxSDO;
-
-	unsigned char cMsg[8];
-	
-	cMsg[0] = iConfirmSegment;
-	cMsg[1] = 0x00;
-	cMsg[2] = 0x00;
-	cMsg[3] = 0x00;
-	cMsg[4] = 0x00;
-	cMsg[5] = 0x00;
-	cMsg[6] = 0x00;
-	cMsg[7] = 0x00;
-
-	CMsgTr.set(cMsg[0], cMsg[1], cMsg[2], cMsg[3], cMsg[4], cMsg[5], cMsg[6], cMsg[7]);
-	m_pCanCtrl->transmitMsg(CMsgTr);
-*/
-}
 
 
 //----------------
 //----------------
-//Functions that proceed Elmo recorder readout
+//Function, that proceeds (Elmo-) recorder readout
 
 //-----------------------------------------------
-bool CanDriveHarmonica::collectRecordedData(int flag, recData ** output) {
-/*
-    //returns true if collecting has finished
+int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 
-    int iObjIndex, iObjSubIndex;
+	switch(iFlag) {
+		case 0: //Configure Elmo Recorder for new Record, param = iRecordingGap, which specifies every which time quantum (4*90usec) a new data point is recorded
+			if(iParam < 1) iParam = 1;
+			ElmoRec->isInitialized(true);
+			ElmoRec->configureElmoRecorder(iParam, m_DriveParam.getDriveIdent()); //int startImmediately is default = 1
+			return 0;
+					
+		case 1: //Query upload of previous recorded data, data is being proceeded after complete upload, param = recorded ID, filename
+			if(!ElmoRec->isInitialized(false)) return 1;
+			
+			if(seg_Data.statusFlag == segData::SDO_SEG_FREE) {
+				if( (iParam != 1) && (iParam != 2) && (iParam != 10) && (iParam != 16) ) {
+					iParam = 1;
+					std::cout << "Changed the Readout object to #1 as your selected object hasn't been recorded!" << std::endl;
+				}
+				ElmoRec->setLogFilename(sParam);
+				ElmoRec->readoutRecorderTry(iParam); //as subindex, give the recorded variable
+				return 0;
+			} else {
+				std::cout << "Previous transmission not finished or colected data hasn't been proceeded yet" << std::endl;
+				return 2;
+			}
+			
+			break;
+			
+		case 2: //request status, still collecting data during ReadOut process?
+			if(seg_Data.statusFlag == segData::SDO_SEG_COLLECTING) {
+				std::cout << "Transmission of data is still in progress" << std::endl;
+				return 2;
+			} else if(seg_Data.statusFlag == segData::SDO_SEG_PROCESSING) {
+				std::cout << "Transmission of data finished, data not proceeded yet" << std::endl;
+				return 2;
+			} else if(seg_Data.statusFlag == segData::SDO_SEG_WAITING) {
+				std::cout << "Still waiting for transmission to begin" << std::endl;
+				return 2;			
+			} else { //finished transmission and finished proceeding
+				return 0;
+			}
+			
+			break;
+			
+		case 99: //Abort ongoing SDO data Transmission and clear collected data
+			sendSDOAbort(0x2030, 0x00, 0x08000020); //send general error abort
+			seg_Data.resetTransferData(); //!overwrites previous collected data (even from other processes)
+			return 0;
+	}
 
-    if(flag == 0) { //flag = 0: clear recordings and query new upload
-        //initialize Upload of Recorded Data (object 0x2030)
-        rec_Data.locked = false;
-        
-        iObjIndex = 0x2030;
-        iObjSubIndex = 1 << 0; //shift this bit, according to the specified recording sources in RC
-        sendSDOUpload(iObjIndex, iObjSubIndex);
-
-    } else if(flag == 1) { //flag = 1: give back data or continue collecting
-        if(rec_Data.finishedTransmission == true) {
-            *output = &rec_Data;
-            return true;
-        } else {
-            *output = NULL;
-            return false;
-        }
-    }
-
-*/
-    return false;
+	return 0;
 }
-

@@ -90,6 +90,9 @@ public:
 	 */
 	DriveParam()
 	{
+	
+		m_bIsSteer = true; //has to be set, because it is checked for absolute / relative positioning
+	
 	}
 
 	/**

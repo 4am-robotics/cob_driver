@@ -28,15 +28,15 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
- *       Engineering and Automation (IPA) nor the names of its
- *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
+ *	 * Redistributions of source code must retain the above copyright
+ *	   notice, this list of conditions and the following disclaimer.
+ *	 * Redistributions in binary form must reproduce the above copyright
+ *	   notice, this list of conditions and the following disclaimer in the
+ *	   documentation and/or other materials provided with the distribution.
+ *	 * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *	   Engineering and Automation (IPA) nor the names of its
+ *	   contributors may be used to endorse or promote products derived from
+ *	   this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License LGPL as 
@@ -335,7 +335,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	m_IniFile.GetKeyDouble("Drive1", "DecIncrS", &(m_GearMotDrive1.dDecIncrS2), true);
 	m_IniFile.GetKeyInt("Drive1", "EncOffsetIncr",&(m_GearMotDrive1.iEncOffsetIncr),true);
 	m_IniFile.GetKeyBool("Drive1", "IsSteering", &(m_GearMotDrive1.bIsSteer), true);
-    m_IniFile.GetKeyDouble("Drive1", "CurrentToTorque", &(m_GearMotDrive1.dCurrentToTorque), false);
+	m_IniFile.GetKeyDouble("Drive1", "CurrentToTorque", &(m_GearMotDrive1.dCurrentToTorque), false);
 	m_IniFile.GetKeyDouble("Drive1", "CurrMax", &(m_GearMotDrive1.dCurrMax), false);
 
 	// "Drive Motor Type2" drive parameters	
@@ -349,7 +349,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	m_IniFile.GetKeyDouble("Drive2", "DecIncrS", &(m_GearMotDrive2.dDecIncrS2), true);
 	m_IniFile.GetKeyInt("Drive2", "EncOffsetIncr",&(m_GearMotDrive2.iEncOffsetIncr),true);
 	m_IniFile.GetKeyBool("Drive2", "IsSteering", &(m_GearMotDrive2.bIsSteer), true);
-    m_IniFile.GetKeyDouble("Drive2", "CurrentToTorque", &(m_GearMotDrive2.dCurrentToTorque), false);
+	m_IniFile.GetKeyDouble("Drive2", "CurrentToTorque", &(m_GearMotDrive2.dCurrentToTorque), false);
 	m_IniFile.GetKeyDouble("Drive2", "CurrMax", &(m_GearMotDrive2.dCurrMax), false);
 
 
@@ -364,7 +364,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	m_IniFile.GetKeyDouble("Drive3", "DecIncrS", &(m_GearMotDrive3.dDecIncrS2), true);
 	m_IniFile.GetKeyInt("Drive3", "EncOffsetIncr",&(m_GearMotDrive3.iEncOffsetIncr),true);
 	m_IniFile.GetKeyBool("Drive3", "IsSteering", &(m_GearMotDrive3.bIsSteer), true);
-    m_IniFile.GetKeyDouble("Drive3", "CurrentToTorque", &(m_GearMotDrive3.dCurrentToTorque), false);
+	m_IniFile.GetKeyDouble("Drive3", "CurrentToTorque", &(m_GearMotDrive3.dCurrentToTorque), false);
 	m_IniFile.GetKeyDouble("Drive3", "CurrMax", &(m_GearMotDrive3.dCurrMax), false);
    
 
@@ -379,7 +379,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	m_IniFile.GetKeyDouble("Drive4", "DecIncrS", &(m_GearMotDrive4.dDecIncrS2), true);
 	m_IniFile.GetKeyInt("Drive4", "EncOffsetIncr",&(m_GearMotDrive4.iEncOffsetIncr),true);
 	m_IniFile.GetKeyBool("Drive4", "IsSteering", &(m_GearMotDrive4.bIsSteer), true);
-    m_IniFile.GetKeyDouble("Drive4", "CurrentToTorque", &(m_GearMotDrive4.dCurrentToTorque), false);
+	m_IniFile.GetKeyDouble("Drive4", "CurrentToTorque", &(m_GearMotDrive4.dCurrentToTorque), false);
 	m_IniFile.GetKeyDouble("Drive4", "CurrMax", &(m_GearMotDrive4.dCurrMax), false);
 
 
@@ -394,7 +394,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	m_IniFile.GetKeyDouble("Steer1", "DecIncrS", &(m_GearMotSteer1.dDecIncrS2), true);
 	m_IniFile.GetKeyInt("Steer1", "EncOffsetIncr",&(m_GearMotSteer1.iEncOffsetIncr),true);
 	m_IniFile.GetKeyBool("Steer1", "IsSteering", &(m_GearMotSteer1.bIsSteer), true);
-    m_IniFile.GetKeyDouble("Steer1", "CurrentToTorque", &(m_GearMotSteer1.dCurrentToTorque), false);
+	m_IniFile.GetKeyDouble("Steer1", "CurrentToTorque", &(m_GearMotSteer1.dCurrentToTorque), false);
 	m_IniFile.GetKeyDouble("Steer1", "CurrMax", &(m_GearMotSteer1.dCurrMax), false);
 
 	// "Steer Motor Type2" drive parameters	
@@ -408,7 +408,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	m_IniFile.GetKeyDouble("Steer2", "DecIncrS", &(m_GearMotSteer2.dDecIncrS2), true);
 	m_IniFile.GetKeyInt("Steer2", "EncOffsetIncr",&(m_GearMotSteer2.iEncOffsetIncr),true);
 	m_IniFile.GetKeyBool("Steer2", "IsSteering", &(m_GearMotSteer2.bIsSteer), true);
-    m_IniFile.GetKeyDouble("Steer2", "CurrentToTorque", &(m_GearMotSteer2.dCurrentToTorque), false);
+	m_IniFile.GetKeyDouble("Steer2", "CurrentToTorque", &(m_GearMotSteer2.dCurrentToTorque), false);
 	m_IniFile.GetKeyDouble("Steer2", "CurrMax", &(m_GearMotSteer2.dCurrMax), false);
 
 	// "Steer Motor Type3" drive parameters	
@@ -422,7 +422,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	m_IniFile.GetKeyDouble("Steer3", "DecIncrS", &(m_GearMotSteer3.dDecIncrS2), true);
 	m_IniFile.GetKeyInt("Steer3", "EncOffsetIncr",&(m_GearMotSteer3.iEncOffsetIncr),true);
 	m_IniFile.GetKeyBool("Steer3", "IsSteering", &(m_GearMotSteer3.bIsSteer), true);
-    m_IniFile.GetKeyDouble("Steer3", "CurrentToTorque", &(m_GearMotSteer3.dCurrentToTorque), false);
+	m_IniFile.GetKeyDouble("Steer3", "CurrentToTorque", &(m_GearMotSteer3.dCurrentToTorque), false);
 	m_IniFile.GetKeyDouble("Steer3", "CurrMax", &(m_GearMotSteer3.dCurrMax), false);
 
 	// "Steer Motor Type4" drive parameters	
@@ -436,7 +436,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	m_IniFile.GetKeyDouble("Steer4", "DecIncrS", &(m_GearMotSteer4.dDecIncrS2), true);
 	m_IniFile.GetKeyInt("Steer4", "EncOffsetIncr",&(m_GearMotSteer4.iEncOffsetIncr),true);
 	m_IniFile.GetKeyBool("Steer4", "IsSteering", &(m_GearMotSteer4.bIsSteer), true);
-    m_IniFile.GetKeyDouble("Steer4", "CurrentToTorque", &(m_GearMotSteer4.dCurrentToTorque), false);
+	m_IniFile.GetKeyDouble("Steer4", "CurrentToTorque", &(m_GearMotSteer4.dCurrentToTorque), false);
 	m_IniFile.GetKeyDouble("Steer4", "CurrMax", &(m_GearMotSteer4.dCurrMax), false);
 	
 	DriveParamW1DriveMotor.setParam(
@@ -759,6 +759,7 @@ int CanCtrlPltfCOb3::evalCanBuffer()
 
 		if (bRet == false)
 		{
+			std::cout << "evalCanBuffer(): Received CAN_Message with unknown identifier " << m_CanMsgRec.m_iID << std::endl;
 		}		
 	};
 	
@@ -1292,62 +1293,35 @@ void CanCtrlPltfCOb3::setMotorTorque(int iCanIdent, double dTorqueNm)
 	m_Mutex.unlock();
 }
 
-
-
-//-----------------------------------------------
-// Configuration of Elmo-Recorder
-//-----------------------------------------------
-
-//-----------------------------------------------
-void CanCtrlPltfCOb3::configureElmoRecorder(int iRecordingGap)
-{
-
-	m_Mutex.lock();
-
-	// Recorder for each single drive will be configured
-	for(unsigned int i = 0; i < m_vpMotor.size(); i++)
-	{
-		m_vpMotor[i]->IntprtSetInt(8, 'R', 'R', 0, -1);	// Stop Recorder if it's active
-		// Record Main speed (index 0, ID1) 
-		// Active Current (index 9, ID10)
-		// Main Position (index 1, ID2)
-		// Speed Command (index 15, ID16)
-		// RC = 2^(Signal1Index) + 2^(Signal2Index) + ..; e.g.: 2^0 + 2^1 + 2^9 + 2^15 = 33283;
-		m_vpMotor[i]->IntprtSetInt(8, 'R', 'C', 0, 33283);	
-		// Set Recording Length
-		// RL = (4096 / Number of Signals)
-		m_vpMotor[i]->IntprtSetInt(8, 'R', 'L', 0, 1024);
-		// Set Time Quantum, Default: RP=0 -> TS * 4; TS is 90us by default
-		m_vpMotor[i]->IntprtSetInt(8, 'R', 'P', 0, 0);
-		// Set Recording Gap
-		m_vpMotor[i]->IntprtSetInt(8, 'R', 'G', 0, iRecordingGap);	
-		// ----> Total Recording Time = 90us * 4 * RG * RL
-		// Arm Recorder, by Trigger Event of "BG"-Command (Begin Motion)
-		m_vpMotor[i]->IntprtSetInt(8, 'R', 'R', 0, 1);	
-	}
-
-	m_Mutex.unlock();
-
-}
-
 //-----------------------------------------------
 // Read out Elmo-Recorder via CAN (cpc-pk)
 //-----------------------------------------------
 
 //-----------------------------------------------
-bool CanCtrlPltfCOb3::printElmoRecordings(std::string LogDirectory) {
-    m_Mutex.lock();
-    
-    recData *dataOut;
-    m_vpMotor[1]->collectRecordedData(0, &dataOut); //Motor 1 -> steering motor
+int CanCtrlPltfCOb3::ElmoRecordings(int iFlag, int iParam, std::string sString) {
+	int tempRet = 0;
+	int bRet = 0;
+	
+	switch(iFlag) {
+		case 0: //Flag = 0 means reset recorder and configure it
+			for(unsigned int i = 0; i < m_vpMotor.size(); i++) {
+				m_vpMotor[i]->setRecorder(0, iParam); //Configure Elmo Recorder with RecordingGap and start immediately
+			}
+			return 0;
 
-    while(m_vpMotor[1]->collectRecordedData(1, &dataOut) == false) {
-        usleep(1000);
-    }
-
-    return true;
-
-    m_Mutex.unlock();
+		case 1: //Flag = 1 means start readout process, mustn't be called too early (while Rec is in process..)
+			for(unsigned int i = 0; i < m_vpMotor.size(); i++) {
+				if(tempRet = m_vpMotor[i]->setRecorder(1, iParam, sString) > bRet) bRet = tempRet; //Query Readout of Index to Log Directory
+			}
+			return bRet;
+		
+		case 99:
+			for(unsigned int i = 0; i < m_vpMotor.size(); i++) {
+				m_vpMotor[i]->setRecorder(99, 0); //Stop any ongoing SDO transfer and clear corresponding data.
+			}
+			return 0;
+		
+		default:
+			return -1;
+	}
 }
-
-
