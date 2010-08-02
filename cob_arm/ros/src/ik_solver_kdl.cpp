@@ -22,9 +22,7 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	ChainIkSolverVel_pinv iksolver1v(chain);//Inverse velocity solver
 	ChainIkSolverPos_NR iksolverpos(chain,fksolver1,iksolver1v,100,1e-6);//Maximum 100 iterations, stop at accuracy 1e-6
 
-	std::cout << "Created Solver\n";
 	unsigned int nj = chain.getNrOfJoints();
-	std::cout << "Chain has " << nj << " Joints\n";
 
 	JntArray q(nj);
 	JntArray q_init(nj);
@@ -34,22 +32,34 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	Frame F_ist;
 	fksolver1.JntToCart(q_init, F_ist);
 	tf::PoseMsgToKDL(req.ik_request.pose_stamped.pose, F_dest);
-	//std::cout << "Getting Goal\n";
-	//std::cout << F_dest <<"\n";
+	ROS_DEBUG("Getting Goal");
+	//ROS_DEBUG(F_dest);
 	//std::cout << "Calculated Position out of Configuration:\n";
 	//std::cout << F_ist <<"\n";
 
 	int ret = iksolverpos.CartToJnt(q_init,F_dest,q);
+	res.solution.joint_state.name = req.ik_request.ik_seed_state.joint_state.name;
+	res.solution.joint_state.position.resize(nj);
+	if(ret < 0)
+	{
+		res.error_code.val = -1;
+		ROS_INFO("Inverse Kinematic found no solution");
+		//std::cout << "RET: " << ret << std::endl;
+		for(int i = 0; i < nj; i++)	
+			res.solution.joint_state.position[i] = q_init(i);
+	}
+	else
+	{
+		ROS_INFO("Inverse Kinematic found a solution");
+		res.error_code.val = 1;
+		for(int i = 0; i < nj; i++)	
+			res.solution.joint_state.position[i] = q(i);
+	}
 	//std::cout << "q_init\n";
 	//std::cout << q_init(0) << " " << q_init(1) << " " << q_init(2) << " " << q_init(3) << " " << q_init(4) << " " << q_init(5) << " " << q_init(6) << "\n";	
 	//std::cout << "Solved with " << ret << " as return\n";
 	//std::cout << q(0) << " " << q(1) << " " << q(2) << " " << q(3) << " " << q(4) << " " << q(5) << " " << q(6)  << "\n";	
-	res.solution.joint_state.name = req.ik_request.ik_seed_state.joint_state.name;
-	res.solution.joint_state.position.resize(nj);
-	for(int i = 0; i < nj; i++)	
-		res.solution.joint_state.position[i] = q(i);
 
-	ROS_INFO("IK_Solver Called");
 	return true;
 }
 
