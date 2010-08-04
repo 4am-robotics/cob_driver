@@ -1,6 +1,6 @@
 CanDevice: PCAN:15
 CanBaudrate: 500
 ModId: 17
-JointName: joint_head_eyes
+JointName: head_camera_axis_joint
 HomingDir: -1
 OperationMode: position

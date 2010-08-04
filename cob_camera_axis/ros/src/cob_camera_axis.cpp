@@ -147,20 +147,20 @@ class NodeClass
 		//--
 
 		// read parameters from parameter server
-		n_.param<std::string>("CanDevice", CanDevice_,"ESD:1");
-		n_.param<int>("CanBaudrate", CanBaudrate_, 500);
-		n_.param<int>("HomingDir", HomingDir_, -1);
-		n_.param<int>("ModId",ModID_ ,17 );
-		n_.param<std::string>("JointName",JointName_ ,"joint_head_eyes" );
-		n_.param<std::string>("CanIniFile",CanIniFile_ ,"IniFiles/CanCtrlCamAxis.ini" );
-		n_.param<std::string>("OperationMode",operationMode_ ,"position" );
+		n_.getParam("CanDevice", CanDevice_);
+		n_.getParam("CanBaudrate", CanBaudrate_);
+		n_.getParam("HomingDir", HomingDir_);
+		n_.getParam("ModId",ModID_);
+		n_.getParam("JointName",JointName_);
+		n_.getParam("CanIniFile",CanIniFile_);
+		n_.getParam("OperationMode",operationMode_);
 		
 		//n_.param<double>("MaxVel", MaxVel_, 2.0); -> from urdf
 		ROS_INFO("CanDevice=%s, CanBaudrate=%d,ModID=%d",CanDevice_.c_str(),CanBaudrate_,ModID_);
 		
 		
 		// load parameter server string for robot/model
-		std::string param_name = "robot_description";
+		std::string param_name = "/robot_description";
 		std::string full_param_name;
 		std::string xml_string;
 		n_.searchParam(param_name,full_param_name);
@@ -200,6 +200,7 @@ class NodeClass
 		
 		// get velocitiy out of urdf model
 		MaxVel_ = model.getJoint(JointName_.c_str())->limits->velocity;
+		ROS_INFO("Successfully read limits from urdf");
 
 
 		//initializing and homing of camera_axis		
