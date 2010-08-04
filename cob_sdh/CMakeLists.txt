@@ -42,8 +42,8 @@ rosbuild_add_compile_flags(${PROJECT_NAME} -DOSNAME_LINUX)
 #rosbuild_add_compile_flags(${PROJECT_NAME}_demo -DOSNAME_LINUX)
 #rosbuild_add_compile_flags(${PROJECT_NAME}_driver -DOSNAME_LINUX)
 
-#rosbuild_add_compile_flags(${PROJECT_NAME} -DWITH_ESD_CAN)
-rosbuild_add_compile_flags(${PROJECT_NAME} -DWITH_PEAK_CAN)
+rosbuild_add_compile_flags(${PROJECT_NAME} -DWITH_ESD_CAN)
+#rosbuild_add_compile_flags(${PROJECT_NAME} -DWITH_PEAK_CAN)
 #rosbuild_add_compile_flags(${PROJECT_NAME}_driver -DWITH_PEAK_CAN)
 
 #target_link_libraries(${PROJECT_NAME} ${PROJECT_SOURCE_DIR}/common/lib/libSDHLibrary-CPP.a ntcan)
