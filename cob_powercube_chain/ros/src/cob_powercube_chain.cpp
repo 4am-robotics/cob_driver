@@ -165,9 +165,9 @@ class NodeClass
             //--
 
             // read parameters from parameter server
-            n_.param<std::string>("CanModule", CanModule_, "PCAN");
-            n_.param<int>("CanDevice", CanDevice_, 15);
-            n_.param<int>("CanBaudrate", CanBaudrate_, 500);
+            n_.getParam("CanModule", CanModule_);
+            n_.getParam("CanDevice", CanDevice_);
+            n_.getParam("CanBaudrate", CanBaudrate_);
 			ROS_INFO("CanModule=%s, CanDevice=%d, CanBaudrate=%d",CanModule_.c_str(),CanDevice_,CanBaudrate_);
 
 			// get ModIds from parameter server
