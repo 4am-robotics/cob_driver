@@ -124,12 +124,12 @@ class NodeClass
             topicPub_cmd_vel_received = n.advertise<geometry_msgs::TwistStamped>("cmd_vel_received", 50);
 
             // implementation of topics to subscribe
-            topicSub_CmdVel = n.subscribe("base_controller/command", 1, &NodeClass::topicCallback_CmdVel, this);
+            topicSub_CmdVel = n.subscribe("command", 1, &NodeClass::topicCallback_CmdVel, this);
             
             // implementation of service servers
-            srvServer_Init = n.advertiseService("Init", &NodeClass::srvCallback_Init, this);
-            srvServer_Stop = n.advertiseService("Stop", &NodeClass::srvCallback_Stop, this);
-            srvServer_Shutdown = n.advertiseService("Shutdown", &NodeClass::srvCallback_Shutdown, this);
+            srvServer_Init = n.advertiseService("init", &NodeClass::srvCallback_Init, this);
+            srvServer_Stop = n.advertiseService("stop", &NodeClass::srvCallback_Stop, this);
+            srvServer_Shutdown = n.advertiseService("shutdown", &NodeClass::srvCallback_Shutdown, this);
         }
         
         // Destructor
