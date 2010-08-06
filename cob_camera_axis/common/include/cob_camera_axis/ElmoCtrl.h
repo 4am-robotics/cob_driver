@@ -202,8 +202,8 @@ public:
 	} MOTION_CTRL_TYPE;
 
 
-	//CANPeakSysUSB* GetCanCtrl(){return m_CanCtrl;}
-	CanESD* GetCanCtrl(){return m_CanCtrl;}
+	CANPeakSysUSB* GetCanCtrl(){return m_CanCtrl;}
+	//CanESD* GetCanCtrl(){return m_CanCtrl;}
 	//bool m_ElmoCtrlThreadActive;
 	/// @brief joint mutexes
 	//pthread_mutex_t   m_cs_elmoCtrlIO;
@@ -220,8 +220,8 @@ private:
 	int  m_CanBaseAddress;
 	CanOpenAddress  m_CanAddress;
 
-	//CANPeakSysUSB * m_CanCtrl;
-	CanESD * m_CanCtrl;
+	CANPeakSysUSB * m_CanCtrl;
+	//CanESD * m_CanCtrl;
 
 	double m_MaxVel;
 	int m_HomingDir;
