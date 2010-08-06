@@ -27,9 +27,9 @@ class ik_solver:
 		self.listener = tf.TransformListener()
 		time.sleep(0.5)
 		self.service = rospy.Service("move_cart_abs", MoveCart, self.cbIKSolverAbs)
-		self.service = rospy.Service("move_cart_rel", MoveCart, self.cbIKSolverRel)
+		#self.service = rospy.Service("move_cart_rel", MoveCart, self.cbIKSolverRel)
 		self.client = actionlib.SimpleActionClient('joint_trajectory_action', JointTrajectoryAction)
-		#self._as = actionlib.SimpleActionServer("move_cart_rel", MoveCartAction, execute_cb=self.cbIKSolverRel)
+		self._as = actionlib.SimpleActionServer("move_cart_rel", MoveCartAction, execute_cb=self.cbIKSolverRel)
 		if not self.client.wait_for_server(rospy.Duration(15)):
 			rospy.logerr("arm action server not ready within timeout, aborting...")
 			return
@@ -72,6 +72,8 @@ class ik_solver:
 
 	
 	def cbIKSolverRel(self, msg):
+		result = MoveCartResult()
+		feedback = MoveCartFeedback()
 		try:
 			(trans,rot) = self.listener.lookupTransform('base_link', 'arm_7_link', rospy.Time(0))
 		except tf.LookupException as lex:
@@ -102,9 +104,11 @@ class ik_solver:
 		(new_config, error) = self.callIKSolver(relpos)
 		if(error != -1):
 			self.moveArm(new_config)
-			return 0
+			result.return_value = 0
+			self._as.set_succeeded(result)
 		else:
-			return -1
+			result.return_value = -1
+			self.as_.setAborted(result);
 	
 	def moveArm(self, pose):
 		goal = JointTrajectoryGoal()
