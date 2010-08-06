@@ -27,8 +27,9 @@ class ik_solver:
 		self.listener = tf.TransformListener()
 		time.sleep(0.5)
 		self.service = rospy.Service("move_cart_abs", MoveCart, self.cbIKSolverAbs)
-		self.service = rospy.Service("move_cart_rel", MoveCart, self.cbIKSolverRel)
+		#self.service = rospy.Service("move_cart_rel", MoveCart, self.cbIKSolverRel)
 		self.client = actionlib.SimpleActionClient('joint_trajectory_action', JointTrajectoryAction)
+		self._as = actionlib.SimpleActionServer("move_cart_rel", MoveCartAction, execute_cb=self.cbIKSolverRel)
 		if not self.client.wait_for_server(rospy.Duration(15)):
 			rospy.logerr("arm action server not ready within timeout, aborting...")
 			return
@@ -71,27 +72,43 @@ class ik_solver:
 
 	
 	def cbIKSolverRel(self, msg):
-		print "cbIKSolverRel"
+		result = MoveCartResult()
+		feedback = MoveCartFeedback()
 		try:
 			(trans,rot) = self.listener.lookupTransform('base_link', 'arm_7_link', rospy.Time(0))
-			print trans
-			print rot
 		except tf.LookupException as lex:
-	        	print "Error"
+			print "Error Lookup"
 			print lex
 		except tf.ConnectivityException as cex:
 			print "Error Connectivity"
 			print cex
+		
 		relpos = Pose()
 		relpos.position.x = trans[0] + msg.goal_pose.pose.position.x
 		relpos.position.y = trans[1] + msg.goal_pose.pose.position.y
 		relpos.position.z = trans[2] + msg.goal_pose.pose.position.z
-		relpos.orientation.x = rot[0] + msg.goal_pose.pose.orientation.x
-		relpos.orientation.y = rot[1] + msg.goal_pose.pose.orientation.y
-		relpos.orientation.z = rot[2] + msg.goal_pose.pose.orientation.z
-		relpos.orientation.w = rot[3] + msg.goal_pose.pose.orientation.w
-		new_config = self.callIKSolver(relpos)
-		self.moveArm(new_config)
+		#angles_cmd = tf.transformations.euler_from_quaternion([msg.goal_pose.pose.orientation.x, msg.goal_pose.pose.orientation.y, msg.goal_pose.pose.orientation.z, msg.goal_pose.pose.orientation.w])
+		#angles_cur = tf.transformations.euler_from_quaternion([rot[0], rot[1], rot[2], rot[3]])
+		
+		#qrel = tf.transformations.quaternion_from_euler(angles_cmd[0]+angles_cur[0], angles_cmd[1]+angles_cur[1], angles_cmd[2]+angles_cur[2])
+
+		#check for uninitialized msg
+		if(msg.goal_pose.pose.orientation.x == 0.0 and msg.goal_pose.pose.orientation.y == 0.0 and msg.goal_pose.pose.orientation.z == 0.0 and msg.goal_pose.pose.orientation.w == 0.0):
+			msg.goal_pose.pose.orientation.w = 1.0
+		qrel = tf.transformations.quaternion_multiply([msg.goal_pose.pose.orientation.x, msg.goal_pose.pose.orientation.y, msg.goal_pose.pose.orientation.z, msg.goal_pose.pose.orientation.w], [rot[0], rot[1], rot[2], rot[3]])
+		print qrel
+		relpos.orientation.x = qrel[0]
+		relpos.orientation.y = qrel[1]
+		relpos.orientation.z = qrel[2]
+		relpos.orientation.w = qrel[3]
+		(new_config, error) = self.callIKSolver(relpos)
+		if(error != -1):
+			self.moveArm(new_config)
+			result.return_value = 0
+			self._as.set_succeeded(result)
+		else:
+			result.return_value = -1
+			self.as_.setAborted(result);
 	
 	def moveArm(self, pose):
 		goal = JointTrajectoryGoal()
@@ -104,16 +121,16 @@ class ik_solver:
 		goal.trajectory = goalp
 		goal.trajectory.header.stamp = rospy.Time.now()
 		self.client.send_goal(goal)
+		self.client.wait_for_result()
 
 	def callIKSolver(self, goal_pose):
 		while(not self.received_state):
 			time.sleep(0.1)
-		print "waited for service"
 		req = GetPositionIKRequest()
 		req.ik_request.ik_seed_state.joint_state.position = self.configuration
 		req.ik_request.pose_stamped.pose = goal_pose
 		resp = self.iks(req)
-		return resp.solution.joint_state.position
+		return (resp.solution.joint_state.position, resp.error_code.val)
 	
 		
 		

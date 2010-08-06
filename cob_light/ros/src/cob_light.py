@@ -61,11 +61,24 @@ import sys
 
 class LightControl:
 	def __init__(self):
+		self.ns_global_prefix = "/light_controller"
+		
+		# get parameter from parameter server
+		if not rospy.has_param(self.ns_global_prefix + "/devicestring"):
+			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",self.ns_global_prefix + "/devicestring")
+			sys.exit()
+		devicestring_param = rospy.get_param(self.ns_global_prefix + "/devicestring")
+		if not rospy.has_param(self.ns_global_prefix + "/baudrate"):
+			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",self.ns_global_prefix + "/baudrate")
+			sys.exit()
+		baudrate_param = rospy.get_param(self.ns_global_prefix + "/baudrate")
+		
+		# open serial communication
 		rospy.loginfo("trying to initializing serial connection")
 		try:
-			self.ser = serial.Serial('/dev/ttyUSB3', 230400)
+			self.ser = serial.Serial(devicestring_param, baudrate_param)
 		except serial.serialutil.SerialException:
-			rospy.logerr("Could not initialize serial connection")
+			rospy.logerr("Could not initialize serial connection, aborting...")
 			sys.exit()
 		rospy.loginfo("serial connection initialized successfully")
 
@@ -83,6 +96,6 @@ class LightControl:
 if __name__ == '__main__':
 	rospy.init_node('light_controller')
 	lc = LightControl()
-	rospy.Subscriber("light_controller/command", Light, lc.LightCallback)
+	rospy.Subscriber("command", Light, lc.LightCallback)
 	rospy.loginfo(rospy.get_name() + " running")
 	rospy.spin()
