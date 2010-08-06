@@ -156,10 +156,10 @@ class NodeClass
             topicSub_DirectCommand_ = n_.subscribe("command", 1, &NodeClass::topicCallback_DirectCommand, this);
             
             // implementation of service servers
-            srvServer_Init_ = n_.advertiseService("Init", &NodeClass::srvCallback_Init, this);
-            srvServer_Stop_ = n_.advertiseService("Stop", &NodeClass::srvCallback_Stop, this);
-            srvServer_Recover_ = n_.advertiseService("Recover", &NodeClass::srvCallback_Recover, this);
-            srvServer_SetOperationMode_ = n_.advertiseService("SetOperationMode", &NodeClass::srvCallback_SetOperationMode, this);
+            srvServer_Init_ = n_.advertiseService("init", &NodeClass::srvCallback_Init, this);
+            srvServer_Stop_ = n_.advertiseService("stop", &NodeClass::srvCallback_Stop, this);
+            srvServer_Recover_ = n_.advertiseService("recover", &NodeClass::srvCallback_Recover, this);
+            srvServer_SetOperationMode_ = n_.advertiseService("set_operation_mode", &NodeClass::srvCallback_SetOperationMode, this);
             
             // implementation of service clients
             //--
