@@ -40,15 +40,26 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	//std::cout << F_ist <<"\n";
 
 	int ret = iksolverpos.CartToJnt(q_init,F_dest,q);
-	//std::cout << "q_init\n";
-	//std::cout << q_init(0) << " " << q_init(1) << " " << q_init(2) << " " << q_init(3) << " " << q_init(4) << " " << q_init(5) << " " << q_init(6) << "\n";	
-	//std::cout << "Solved with " << ret << " as return\n";
-	//std::cout << q(0) << " " << q(1) << " " << q(2) << " " << q(3) << " " << q(4) << " " << q(5) << " " << q(6)  << "\n";	
-	res.solution.joint_state.name = req.ik_request.ik_seed_state.joint_state.name;
-	res.solution.joint_state.position.resize(nj);
-	for(int i = 0; i < nj; i++)	
-		res.solution.joint_state.position[i] = q(i);
+	if(ret < 0)
+	{
+		//something went wrong return old configuration
+		res.solution.joint_state.name = req.ik_request.ik_seed_state.joint_state.name;
+		res.solution.joint_state.position.resize(nj);
+		for(int i = 0; i < nj; i++)	
+			res.solution.joint_state.position[i] = q_init(i);
+	}
+	else
+	{
+		res.solution.joint_state.name = req.ik_request.ik_seed_state.joint_state.name;
+		res.solution.joint_state.position.resize(nj);
+		for(int i = 0; i < nj; i++)	
+			res.solution.joint_state.position[i] = q(i);
+	}
 
+	std::cout << "q_init\n";
+	std::cout << q_init(0) << " " << q_init(1) << " " << q_init(2) << " " << q_init(3) << " " << q_init(4) << " " << q_init(5) << " " << q_init(6) << "\n";	
+	std::cout << "Solved with " << ret << " as return\n";
+	std::cout << q(0) << " " << q(1) << " " << q(2) << " " << q(3) << " " << q(4) << " " << q(5) << " " << q(6)  << "\n";	
 	ROS_INFO("IK_Solver Called");
 	return true;
 }
