@@ -238,7 +238,7 @@ class NodeClass
 				as_.setPreempted();
 			}
 			
-			usleep(500000); // needed sleep until powercubes starts to change status from idle to moving
+			usleep(2000000); // needed sleep until powercubes starts to change status from idle to moving
 			
 			while(finished_ == false)
 			{

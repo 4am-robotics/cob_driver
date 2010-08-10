@@ -159,7 +159,6 @@ bool ElmoCtrl::RecoverAfterEmergencyStop() {
 
 bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by default
 	bool success = false;
-	
 	string CanIniFile;
 	string CanDevice;
 	int baudrate = 0;
@@ -211,7 +210,7 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 		if (success) {
 			printf("The following parameters were successfully read from the parameter server (given through *params): \n");
 			printf("CanIniFile: 	%s\n",CanIniFile.c_str());
-			printf("CanDEvice: 	%s\n",CanDevice.c_str());
+			printf("CanDieODvice: 	%s\n",CanDevice.c_str());
 			printf("Baudrate: 	%d\n",baudrate);
 			printf("Module ID: %d\n",m_CanBaseAddress);
 			printf("Max Vel: %f\n",m_MaxVel);
@@ -223,8 +222,8 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 	//Setting up CAN interface
 	
 	if (success) {
-		m_CanCtrl = new CanESD(CanIniFile.c_str(), false);
-		//m_CanCtrl = new CANPeakSysUSB(CanIniFile.c_str());
+	  //m_CanCtrl = new CanESD(CanIniFile.c_str(), false);
+		m_CanCtrl = new CANPeakSysUSB(CanIniFile.c_str());
 		if (m_CanCtrl == NULL) {
 			printf("%s,%d:Error: Could not open Can Device!\n",__FILE__,__LINE__);
 			success = false;
@@ -273,7 +272,7 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 							1,//double dVelMeasFrqHz,
 							1,//double dBeltRatio,
 							47.77,//double dGearRatio,
-							-1.0,//int iSign,
+							1.0,//int iSign,
 							740000,//double dVelMaxEncIncrS,
 							1000000,//80000,//double dAccIncrS2,
 							1000000//80000//double dDecIncrS2),

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- send arm urdf to parameter server -->
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_description)/ros/robots/$(env ROBOT).urdf.xacro'" />
+
+  <!-- start cob_platform -->
+  <node pkg="cob_platform" type="cob_platform" name="platform_node" ns="base_controller" cwd="node" respawn="false" output="screen" />
+
+  <!-- start robot_state_publisher -->
+  <node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />
+
+</launch>
