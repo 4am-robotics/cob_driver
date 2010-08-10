@@ -10,8 +10,6 @@
   <url>http://ros.org/wiki/cob_arm</url>
 
   <depend package="cob_powercube_chain"/>
-  <depend package="actionlib"/>
-  <depend package="pr2_controllers_msgs"/>
-  <depend package="trajectory_msgs"/>
+  <depend package="cob_manipulator"/>
 
 </package>

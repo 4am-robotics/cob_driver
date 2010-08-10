@@ -147,7 +147,9 @@ protected:
 	int m_iRelBoardKeyPad;
 	int m_iRelBoardAnalogIn[4];
 	int m_iRelBoardTempSensor;
-		int m_iDigIn;
+	
+	int m_iDigIn;
+
 	SerialIO m_SerIO;
 
 	bool m_bComInit;

@@ -1,0 +1,28 @@
+<package>
+  <description brief="cob_manipulator">
+
+     cob_manipulator
+
+  </description>
+  <author></author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_manipulator</url>
+  <depend package="roscpp"/>
+  <depend package="rospy"/>
+  <depend package="actionlib"/>
+  <depend package="pr2_controllers_msgs"/>
+  <depend package="trajectory_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="kinematics_msgs"/>
+  <depend package="cob_srvs"/>
+  <depend package="cob_actions"/>
+  <depend package="tf_conversions"/>
+  <depend package="tf"/>
+  <depend package="kdl"/>
+  <depend package="kdl_parser"/>
+
+
+</package>
+
+

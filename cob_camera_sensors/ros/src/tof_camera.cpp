@@ -391,7 +391,7 @@ public:
 		/// Parameters are set within the launch file
 		if (node_handle_.getParam("tof_camera/ros_node_mode", tmp_string) == false)
 		{
-			ROS_ERROR("[tof_camera] Mode for sensor fusion node not specified");
+			ROS_ERROR("[tof_camera] Mode for tof camera node not specified");
 			return false;
 		}
 		if (tmp_string == "MODE_SERVICE")

@@ -1,4 +1,5 @@
-JointNames: [arm_1_joint, arm_2_joint, arm_3_joint, arm_4_joint, arm_5_joint, arm_6_joint, arm_7_joint]
+JointNames: [lbr_1_joint, lbr_2_joint, lbr_3_joint, lbr_4_joint, lbr_5_joint, lbr_6_joint, lbr_7_joint]
+#JointNames: [arm_1_joint, arm_2_joint, arm_3_joint, arm_4_joint, arm_5_joint, arm_6_joint, arm_7_joint]
 Trajectories:
   [
     [

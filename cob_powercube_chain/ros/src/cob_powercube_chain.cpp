@@ -156,18 +156,18 @@ class NodeClass
             topicSub_DirectCommand_ = n_.subscribe("command", 1, &NodeClass::topicCallback_DirectCommand, this);
             
             // implementation of service servers
-            srvServer_Init_ = n_.advertiseService("Init", &NodeClass::srvCallback_Init, this);
-            srvServer_Stop_ = n_.advertiseService("Stop", &NodeClass::srvCallback_Stop, this);
-            srvServer_Recover_ = n_.advertiseService("Recover", &NodeClass::srvCallback_Recover, this);
-            srvServer_SetOperationMode_ = n_.advertiseService("SetOperationMode", &NodeClass::srvCallback_SetOperationMode, this);
+            srvServer_Init_ = n_.advertiseService("init", &NodeClass::srvCallback_Init, this);
+            srvServer_Stop_ = n_.advertiseService("stop", &NodeClass::srvCallback_Stop, this);
+            srvServer_Recover_ = n_.advertiseService("recover", &NodeClass::srvCallback_Recover, this);
+            srvServer_SetOperationMode_ = n_.advertiseService("set_operation_mode", &NodeClass::srvCallback_SetOperationMode, this);
             
             // implementation of service clients
             //--
 
             // read parameters from parameter server
-            n_.param<std::string>("CanModule", CanModule_, "PCAN");
-            n_.param<int>("CanDevice", CanDevice_, 15);
-            n_.param<int>("CanBaudrate", CanBaudrate_, 500);
+            n_.getParam("CanModule", CanModule_);
+            n_.getParam("CanDevice", CanDevice_);
+            n_.getParam("CanBaudrate", CanBaudrate_);
 			ROS_INFO("CanModule=%s, CanDevice=%d, CanBaudrate=%d",CanModule_.c_str(),CanDevice_,CanBaudrate_);
 
 			// get ModIds from parameter server
@@ -237,7 +237,7 @@ class NodeClass
 			}
 			ROS_DEBUG("%s content\n%s", full_param_name.c_str(), xml_string.c_str());
 			
-			// extract limits and velocitys from urdf model
+			// extract limits and velocities from urdf model
 			urdf::Model model;
 			if (!model.initString(xml_string))
 			{
@@ -407,7 +407,7 @@ class NodeClass
                               cob_srvs::Trigger::Response &res )
         {
        	    ROS_INFO("Stopping powercubes");
-	    newvel_ = false;
+		    newvel_ = false;
         	
         	// set current trajectory to be finished
 			traj_point_nr_ = traj_.points.size();
@@ -536,7 +536,7 @@ class NodeClass
 				    	if (traj_point_nr_ < traj_.points.size())
 				    	{
 				    		// if powercubes are not moving and not reached last point of trajectory, then send new target point
-				    		ROS_INFO("...moving to trajectory point[%d]",traj_point_nr_);
+				    		ROS_DEBUG("...moving to trajectory point[%d]",traj_point_nr_);
 					    	traj_point_ = traj_.points[traj_point_nr_];
 					    	PCube_->MoveJointSpaceSync(traj_point_.positions);
 				    		traj_point_nr_++;
@@ -558,13 +558,12 @@ class NodeClass
 			    else if (operationMode == "velocity")
 			    {
 			    	ROS_DEBUG("moving powercubes in velocity mode");
-				if(newvel_)
-				{	
-					ROS_INFO("MoveVel Call");
-			        	PCube_->MoveVel(cmd_vel_);
-					newvel_ = false;
-				 }
-			        //ROS_WARN("Moving in velocity mode currently disabled");
+					if(newvel_)
+					{	
+						ROS_INFO("MoveVel Call");
+						PCube_->MoveVel(cmd_vel_);
+						newvel_ = false;
+					}
 			    }
 			    else
 			    {
