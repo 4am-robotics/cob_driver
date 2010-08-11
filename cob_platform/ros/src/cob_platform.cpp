@@ -263,9 +263,10 @@ class NodeClass
 				//first, we'll publish the transform over tf
 				geometry_msgs::TransformStamped odom_trans;
 				odom_trans.header.stamp = current_time;
-				odom_trans.header.frame_id = "/odom";
+				odom_trans.header.frame_id = "/odom_combined";
 				odom_trans.child_frame_id = "/base_footprint";
 
+				//std::cout << x << y << std::endl;
 				odom_trans.transform.translation.x = x;
 				odom_trans.transform.translation.y = y;
 				odom_trans.transform.translation.z = 0.0;

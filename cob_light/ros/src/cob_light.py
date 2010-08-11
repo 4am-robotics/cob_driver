@@ -78,7 +78,7 @@ class LightControl:
 		try:
 			self.ser = serial.Serial(devicestring_param, baudrate_param)
 		except serial.serialutil.SerialException:
-			rospy.logerr("Could not initialize serial connection, aborting...")
+			rospy.logerr("Could not initialize serial connection on %s, aborting...",devicestring_param)
 			sys.exit()
 		rospy.loginfo("serial connection initialized successfully")
 

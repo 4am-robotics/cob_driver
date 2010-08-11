@@ -4,8 +4,8 @@
      cob_manipulator
 
   </description>
-  <author></author>
-  <license>BSD</license>
+  <author>Alexander Bubeck, email:alexander.bubeck@ipa.fhg.de</author>
+  <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_manipulator</url>
   <depend package="roscpp"/>
