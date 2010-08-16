@@ -301,7 +301,7 @@ class NodeClass
         // function will be called when a new message arrives on a topic
         void topicCallback_DirectCommand(const trajectory_msgs::JointTrajectory::ConstPtr& msg)
         {
-			ROS_INFO("Received new direct command");
+			ROS_DEBUG("Received new direct command");
 			newvel_ = true;
 			cmd_vel_ = msg->points[0].velocities;
         }
