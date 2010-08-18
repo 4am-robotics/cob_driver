@@ -1,0 +1,16 @@
+<package>
+  <description brief="cob_hardware_info">
+
+     cob_hardware_info
+
+  </description>
+  <author>Alexander Bubeck</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_hardware_info</url>
+  <depend package="rospy"/>
+  <depend package="diagnostic_msgs"/>
+
+</package>
+
+
