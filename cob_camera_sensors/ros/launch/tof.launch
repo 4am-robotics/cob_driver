@@ -2,8 +2,8 @@
 <launch>
 
   <!-- start left camera -->
-  <node pkg="cob_camera_sensors" type="tof_camera" name="tof_camera" ns="sr4000" cwd="node" respawn="false" output="screen">
-	<param name="configuration_files" value="$(find cob_camera_sensors)/common/files/cob3-1/"/>
+  <node pkg="cob_camera_sensors" type="tof_camera" name="tof_camera" ns="tof" cwd="node" respawn="false" output="screen">
+	<param name="configuration_files" value="$(find cob_camera_sensors)/common/files/$(env ROBOT)/"/>
 	<param name="tof_camera_index" value="0"/>
 	<param name="tof_camera_type" value="CAM_SWISSRANGER"/>
 	<!-- The intrinsics of the color sensors are optimized to the following camera -->
@@ -14,8 +14,7 @@
 	<param name="tearoff_pi_half_fraction" value="8" />
 	<!-- Start node as service or topic -->
 	<!-- MODE_SERVICE or MODE_TOPIC -->
-	<param name="ros_node_mode" value="MODE_SERVICE" />
-  </node>
+	<param name="ros_node_mode" value="MODE_TOPIC" />
   </node>
 
 </launch>
