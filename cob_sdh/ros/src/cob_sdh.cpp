@@ -130,7 +130,6 @@ class SdhNode
 		trajectory_msgs::JointTrajectory traj_;
 		
 		std::vector<std::string> JointNames_;
-		std::vector<std::string> JointNamesAll_;
 		std::vector<int> axes_;
 		std::vector<double> targetAngles_; // in degrees
 		bool hasNewGoal_;
@@ -174,15 +173,11 @@ class SdhNode
             srvServer_SetOperationMode_ = nh_.advertiseService("set_operation_mode", &SdhNode::srvCallback_SetOperationMode, this);
             
             // getting harware parameters from parameter server
-//#ifdef USE_ESD
-//			nh_.param("sdhdevicetype", sdhdevicetype_, std::string("ESD"));
-//			nh_.param("sdhdevicestring", sdhdevicestring_, std::string("/dev/can0"));
-//#else
-			nh_.param("sdhdevicetype", sdhdevicetype_, std::string("PEAK"));
+			nh_.param("sdhdevicetype", sdhdevicetype_, std::string("PCAN"));
 			nh_.param("sdhdevicestring", sdhdevicestring_, std::string("/dev/pcan0"));
-//#endif
 			nh_.param("sdhdevicenum", sdhdevicenum_, 0);
-			nh_.param("dsadevicestring", dsadevicestring_, std::string("/dev/ttyS%d"));
+			
+			nh_.param("dsadevicestring", dsadevicestring_, std::string("/dev/ttyS0"));
 			nh_.param("dsadevicenum", dsadevicenum_, 0);
 			
 			nh_.param("baudrate", baudrate_, 1000000);
@@ -202,33 +197,13 @@ class SdhNode
 				ROS_ERROR("Parameter JointNames not set");
 				return false;
 			}
-			DOF_HW_ = JointNames_param.size(); // DOFs of sdh, NOTE: hardware has 8 DOFs, but two cuppled ones; joints palm_finger11 and palm_finger21 are actuated synchronously
+			DOF_HW_ = JointNames_param.size(); // DOFs of sdh, NOTE: hardware has 8 DOFs, but two cuppled ones; sdh_finger_11_joint and sdh_finger_21_joint are actuated synchronously
 			JointNames_.resize(DOF_HW_);
 			for (int i = 0; i<DOF_HW_; i++ )
 			{
 				JointNames_[i] = (std::string)JointNames_param[i];
 			}
 			std::cout << "JointNames = " << JointNames_param << std::endl;
-
-            // get JointNamesAll from parameter server			
-			ROS_INFO("getting JointNamesAll from parameter server");
-			XmlRpc::XmlRpcValue JointNamesAll_param;
-			if (nh_.hasParam("JointNamesAll"))
-			{
-				nh_.getParam("JointNamesAll", JointNamesAll_param);
-			}
-			else
-			{
-				ROS_ERROR("Parameter JointNamesAll not set");
-				return false;
-			}
-			DOF_ROS_ = JointNamesAll_param.size(); // DOFs of sdh, NOTE: hardware has 8 DOFs, but two cuppled ones; joints palm_finger11 and palm_finger21 are actuated synchronously
-			JointNamesAll_.resize(DOF_ROS_);
-			for (int i = 0; i<DOF_ROS_; i++ )
-			{
-				JointNamesAll_[i] = (std::string)JointNamesAll_param[i];
-			}
-			std::cout << "JointNamesAll = " << JointNamesAll_param << std::endl;
 			
 			// define axes to send to sdh
 			axes_.resize(DOF_HW_);
@@ -243,7 +218,6 @@ class SdhNode
 			return true;
 		}
 
-//		void executeCB(const cob_actions::JointCommandGoalConstPtr &goal)
         void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal)
 		{			
 	        ROS_INFO("sdh: executeCB");
@@ -257,23 +231,14 @@ class SdhNode
 			while (hasNewGoal_ == true ) usleep(10000);
 
 			targetAngles_.resize(DOF_HW_);
-			/*
-			targetAngles_[0] = goal->command.positions[3]*180.0/pi_; // joint_palm_finger11
-			targetAngles_[1] = goal->command.positions[7]*180.0/pi_; // joint_finger21_finger22
-			targetAngles_[2] = goal->command.positions[8]*180.0/pi_; // joint_finger22_finger23
-			targetAngles_[3] = goal->command.positions[1]*180.0/pi_; // joint_thumb1_thumb2
-			targetAngles_[4] = goal->command.positions[2]*180.0/pi_; // joint_thumb2_thumb3
-			targetAngles_[5] = goal->command.positions[4]*180.0/pi_; // joint_finger11_finger12
-			targetAngles_[6] = goal->command.positions[5]*180.0/pi_; // joint_finger12_finger13
-			*/
-			targetAngles_[0] = goal->trajectory.points[0].positions[2]*180.0/pi_; // joint_palm_finger11
-			targetAngles_[1] = goal->trajectory.points[0].positions[6]*180.0/pi_; // joint_finger21_finger22
-			targetAngles_[2] = goal->trajectory.points[0].positions[7]*180.0/pi_; // joint_finger22_finger23
-			targetAngles_[3] = goal->trajectory.points[0].positions[0]*180.0/pi_; // joint_thumb1_thumb2
-			targetAngles_[4] = goal->trajectory.points[0].positions[1]*180.0/pi_; // joint_thumb2_thumb3
-			targetAngles_[5] = goal->trajectory.points[0].positions[3]*180.0/pi_; // joint_finger11_finger12
-			targetAngles_[6] = goal->trajectory.points[0].positions[4]*180.0/pi_; // joint_finger12_finger13
-			std::cout << "received new position goal: " << targetAngles_[0] << " , " << targetAngles_[1] << " , " << targetAngles_[2] << " , " << targetAngles_[3] << " , " << targetAngles_[4] << " , " << targetAngles_[5] << " , " << targetAngles_[6] << std::endl;
+			targetAngles_[0] = goal->trajectory.points[0].positions[2]*180.0/pi_; // sdh_finger_11_joint
+			targetAngles_[1] = goal->trajectory.points[0].positions[6]*180.0/pi_; // sdh_finger22_joint
+			targetAngles_[2] = goal->trajectory.points[0].positions[7]*180.0/pi_; // sdh_finger23_joint
+			targetAngles_[3] = goal->trajectory.points[0].positions[0]*180.0/pi_; // sdh_thumb2_joint
+			targetAngles_[4] = goal->trajectory.points[0].positions[1]*180.0/pi_; // sdh_thumb3_joint
+			targetAngles_[5] = goal->trajectory.points[0].positions[3]*180.0/pi_; // sdh_finger12_joint
+			targetAngles_[6] = goal->trajectory.points[0].positions[4]*180.0/pi_; // sdh_finger13_joint
+			ROS_INFO("received new position goal: [['sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_11_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_21_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']] = [%f,%f,%f,%f,%f,%f,%f,%f]",goal->trajectory.points[0].positions[0],goal->trajectory.points[0].positions[1],goal->trajectory.points[0].positions[2],goal->trajectory.points[0].positions[3],goal->trajectory.points[0].positions[4],goal->trajectory.points[0].positions[5],goal->trajectory.points[0].positions[6],goal->trajectory.points[0].positions[7]);
 		
 			hasNewGoal_ = true;
 			
@@ -331,7 +296,7 @@ class SdhNode
 						ROS_INFO("Initialized RS232 for SDH");
 						isInitialized_ = true;
 					}
-					if(sdhdevicetype_.compare("PEAK")==0)
+					if(sdhdevicetype_.compare("PCAN")==0)
 					{
 						ROS_INFO("Starting initializing PEAKCAN");
 						sdh_->OpenCAN_PEAK(baudrate_, timeout_, id_read_, id_write_, sdhdevicestring_.c_str());
@@ -340,16 +305,21 @@ class SdhNode
 					}
 					if(sdhdevicetype_.compare("ESD")==0)
 					{
-						ROS_INFO("Starting init ESD");
+						ROS_INFO("Starting initializing ESD");
 						if(strcmp(sdhdevicestring_.c_str(), "/dev/can0") == 0)
 						{
-							ROS_INFO("Initializin ESD on /dev/can0");
+							ROS_INFO("Initializing ESD on device %s",sdhdevicestring_.c_str());
 							sdh_->OpenCAN_ESD(0, baudrate_, timeout_, id_read_, id_write_ );
 						}
-						if(strcmp(sdhdevicestring_.c_str(), "/dev/can1") == 0)
+						else if(strcmp(sdhdevicestring_.c_str(), "/dev/can1") == 0)
 						{
-							ROS_INFO("Initializin ESD on /dev/can1");
+							ROS_INFO("Initializin ESD on device %s",sdhdevicestring_.c_str());
 							sdh_->OpenCAN_ESD(1, baudrate_, timeout_, id_read_, id_write_ );
+						}
+						else
+						{
+							ROS_ERROR("Currently only support for /dev/can0 and /dev/can1");
+							return false;
 						}
 						ROS_INFO("Initialized ESDCAN for SDH");	
 						isInitialized_ = true;
@@ -502,17 +472,15 @@ class SdhNode
 				msg.position.resize(DOF_ROS_);
 
 				// set joint names and map them to angles
-				msg.name = JointNamesAll_;
-				//std::cout << actualAngles[0] << " , " << actualAngles[1] << " , " << actualAngles[2] << " , " << actualAngles[3] << " , " << actualAngles[4] << " , " << actualAngles[5] << " , " << actualAngles[6] << std::endl;
-				msg.position[0] = 0.0; // joint_palm_thumb1
-				msg.position[1] = actualAngles[3]*pi_/180.0; // joint_thumb1_thumb2
-				msg.position[2] = actualAngles[4]*pi_/180.0; // joint_thumb2_thumb3
-				msg.position[3] = actualAngles[0]*pi_/180.0; // joint_palm_finger11
-				msg.position[4] = actualAngles[5]*pi_/180.0; // joint_finger11_finger12
-				msg.position[5] = actualAngles[6]*pi_/180.0; // joint_finger12_finger13
-				msg.position[6] = actualAngles[0]*pi_/180.0; // joint_palm_finger21
-				msg.position[7] = actualAngles[1]*pi_/180.0; // joint_finger21_finger22
-				msg.position[8] = actualAngles[2]*pi_/180.0; // joint_finger22_finger23
+				msg.name = JointNames_;
+				msg.position[0] = actualAngles[3]*pi_/180.0; // sdh_thumb_2_joint
+				msg.position[1] = actualAngles[4]*pi_/180.0; // sdh_thumb_3_joint
+				msg.position[2] = actualAngles[0]*pi_/180.0; // sdh_finger_11_joint
+				msg.position[3] = actualAngles[5]*pi_/180.0; // sdh_finger_12_joint
+				msg.position[4] = actualAngles[6]*pi_/180.0; // sdh_finger_13_joint
+				msg.position[5] = actualAngles[0]*pi_/180.0; // sdh_finger_21_joint
+				msg.position[6] = actualAngles[1]*pi_/180.0; // sdh_finger_22_joint
+				msg.position[7] = actualAngles[2]*pi_/180.0; // sdh_finger_23_joint
 		            
 		        // publish message
 		        topicPub_JointState_.publish(msg); 
@@ -597,14 +565,15 @@ int main(int argc, char** argv)
 		{
 			sdh_node.readTactileData();
 		}
+		
 		// publish JointState
 		sdh_node.updateSdh();
+		
 		// publish TactileData
 		sdh_node.updateTactileData();
 		
 		// sleep and waiting for messages, callbacks    
 		ros::spinOnce();
-		//usleep(200000);
 		loop_rate.sleep();
 	}
 
