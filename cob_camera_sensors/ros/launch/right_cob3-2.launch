@@ -13,7 +13,8 @@ http://www.ros.org/wiki/prosilica_camera/Tutorials.
   <node ns="right" name="color_camera" pkg="prosilica_camera" type="prosilica_node" output="screen">
     <param name="ip_address" type="str" value="169.254.47.10"/>
     <param name="trigger_mode" type="str" value="streaming"/>
-		<!--remap from="camera" to=""/-->
+	<remap from="camera/image_raw" to="image_raw"/>
+	<remap from="camera/camera_info" to="camera_info"/>
   </node>
  
   <node ns="right" pkg="image_proc" type="image_proc" respawn="false" name="prosilica_image_proc" />
