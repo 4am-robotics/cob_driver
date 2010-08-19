@@ -3,8 +3,8 @@
 
   <!-- start tof camera viewer -->
   <node pkg="cob_camera_sensors" type="tof_camera_viewer" name="tof_camera_viewer" cwd="node" respawn="false" output="screen">
-	<remap from="image_xyz" to="sr4000/image_xyz"/>
-	<remap from="image_grey" to="sr4000/image_grey"/>
+	<remap from="image_xyz" to="tof/image_xyz"/>
+	<remap from="image_grey" to="tof/image_grey"/>
   </node>
 
 </launch>
