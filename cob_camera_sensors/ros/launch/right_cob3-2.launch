@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+Runs a Prosilica camera in streaming mode.
+
+Change the ip_address to match your camera.
+For help configuring your camera or determining its IP address, see
+http://www.ros.org/wiki/prosilica_camera/Tutorials.
+-->
+
+<launch>
+
+  <!-- The camera node -->
+  <node ns="right" name="color_camera" pkg="prosilica_camera" type="prosilica_node" output="screen">
+    <param name="ip_address" type="str" value="169.254.47.10"/>
+    <param name="trigger_mode" type="str" value="streaming"/>
+		<!--remap from="camera" to=""/-->
+  </node>
+ 
+  <node ns="right" pkg="image_proc" type="image_proc" respawn="false" name="prosilica_image_proc" />
+
+</launch>
