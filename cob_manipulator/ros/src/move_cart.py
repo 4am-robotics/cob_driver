@@ -9,7 +9,7 @@ import time
 import actionlib
 from pr2_controllers_msgs.msg import *
 from cob_srvs.srv import *
-from cob_actions.msg import *
+from cob_msgs.msg import *
 from trajectory_msgs.msg import *
 from geometry_msgs.msg import *
 
