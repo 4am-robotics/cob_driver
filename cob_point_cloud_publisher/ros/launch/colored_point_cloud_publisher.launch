@@ -2,7 +2,7 @@
 <launch>
 
   <!-- start left camera -->
-  <node pkg="cob_point_cloud_publisher" type="colored_point_cloud_publisher" name="colored_point_cloud_publisher" cwd="node" respawn="false" output="screen">
+  <node pkg="cob_point_cloud_publisher" type="cob_colored_point_cloud_publisher" name="colored_point_cloud_publisher" cwd="node" respawn="false" output="screen">
 	<remap from="image_xyz" to="sensor_fusion/shared/image_xyz"/>
 	<remap from="image_color" to="sensor_fusion/shared/image_color"/>
 	<remap from="image_confidence" to="sensor_fusion/shared/image_confidence"/>

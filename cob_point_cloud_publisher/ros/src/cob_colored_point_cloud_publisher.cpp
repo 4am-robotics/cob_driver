@@ -173,7 +173,7 @@ class PcPublisher
 			unsigned char* c_ptr = 0;
 			float* g_ptr = 0;
 			int pc_msg_idx=0;
-			for (int row = 0; row < cpp_xyz_image_32F3.rows; row++, pc_msg_idx++)
+			for (int row = 0; row < cpp_xyz_image_32F3.rows; row++)
 			{
 				f_ptr = cpp_xyz_image_32F3.ptr<float>(row);
 				c_ptr = cpp_color_image_8U3.ptr<unsigned char>(row);
