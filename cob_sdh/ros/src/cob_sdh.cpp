@@ -27,7 +27,6 @@
  *   Implementation of ROS node for sdh.
  *
  *****************************************************************
- * <a href="todo.html">Todo list</a>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -157,8 +156,6 @@ class SdhNode
 
 		/*!
 		* \brief Destructor for SdhNode class
-		*
-		*
 		*/
 		~SdhNode() 
 		{
@@ -171,8 +168,6 @@ class SdhNode
 
 		/*!
 		* \brief Initializes node to get parameters, subscribe and publish to topics.
-		*
-		*
 		*/
 		bool init()
 		{
