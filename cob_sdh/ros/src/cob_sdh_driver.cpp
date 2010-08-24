@@ -87,7 +87,7 @@
 
 //########################
 //#### sdh node class ####
-class SdhNode
+class SdhDriverNode
 {
 	public:
 		// create a handle for this node, initialize node
@@ -111,7 +111,7 @@ class SdhNode
         ros::ServiceServer srvServer_Force_data_;   
         
 
-        // action lib server
+        // actionlib server
 		actionlib::SimpleActionServer<cob_actions::JointCommandAction> as_;
 		std::string action_name_;
 		cob_actions::JointCommandFeedback feedback_;
@@ -153,15 +153,15 @@ class SdhNode
 		
 	public:
 		// Constructor
-		SdhNode(std::string name):
-			as_(nh_, name, boost::bind(&SdhNode::executeCB, this, _1)),
+		SdhDriverNode(std::string name):
+			as_(nh_, name, boost::bind(&SdhDriverNode::executeCB, this, _1)),
 			action_name_(name)
 		{
 			pi_ = 3.1415926;
 		}
 
 		// Destructor
-		~SdhNode() 
+		~SdhDriverNode()
 		{
 			if(isDSAInitialized_)
 				dsa_->Close();
@@ -187,15 +187,15 @@ class SdhNode
 			sdh_ = new SDH::cSDH(false, false, 0); //(_use_radians=false, bool _use_fahrenheit=false, int _debug_level=0)
                          
 			// implementation of service servers
-			srvServer_Force_data_ = nh_.advertiseService("Force", &SdhNode::srvCallback_Force, this);
-			srvServer_Init_ = nh_.advertiseService("Init", &SdhNode::srvCallback_Init, this);
-            srvServer_Stop_ = nh_.advertiseService("Stop", &SdhNode::srvCallback_Stop, this);
-            srvServer_SetOperationMode_ = nh_.advertiseService("SetOperationMode", &SdhNode::srvCallback_SetOperationMode, this);
-            srvSetAxisTargetAcceleration_ = nh_.advertiseService("SetAxisTargetAcceleration", &SdhNode::srvCallback_SetAxisTargetAcceleration, this);
-            srvDemoInfo_ = nh_.advertiseService("DemoInfo", &SdhNode::srvCallback_DemoInfo, this);
-            srvGetFingerYXZ_ = nh_.advertiseService("GetFingerXYZ", &SdhNode::srvCallback_GetFingerXYZ, this);
-            srvUpdater_ = nh_.advertiseService("DSAUpdater", &SdhNode::srvCallback_Updater, this);
-            srvCloseHand_ = nh_.advertiseService("CloseHand", &SdhNode::srvCallback_CloseHand, this);
+			srvServer_Force_data_ = nh_.advertiseService("Force", &SdhDriverNode::srvCallback_Force, this);
+			srvServer_Init_ = nh_.advertiseService("Init", &SdhDriverNode::srvCallback_Init, this);
+            srvServer_Stop_ = nh_.advertiseService("Stop", &SdhDriverNode::srvCallback_Stop, this);
+            srvServer_SetOperationMode_ = nh_.advertiseService("SetOperationMode", &SdhDriverNode::srvCallback_SetOperationMode, this);
+            srvSetAxisTargetAcceleration_ = nh_.advertiseService("SetAxisTargetAcceleration", &SdhDriverNode::srvCallback_SetAxisTargetAcceleration, this);
+            srvDemoInfo_ = nh_.advertiseService("DemoInfo", &SdhDriverNode::srvCallback_DemoInfo, this);
+            srvGetFingerYXZ_ = nh_.advertiseService("GetFingerXYZ", &SdhDriverNode::srvCallback_GetFingerXYZ, this);
+            srvUpdater_ = nh_.advertiseService("DSAUpdater", &SdhDriverNode::srvCallback_Updater, this);
+            srvCloseHand_ = nh_.advertiseService("CloseHand", &SdhDriverNode::srvCallback_CloseHand, this);
               
             // getting harware parameters from parameter server
 #ifdef USE_ESD
@@ -739,7 +739,7 @@ class SdhNode
 		}
 
 		 
-}; //SdhNode
+}; //SdhDriverNode
 
 //#######################
 //#### main programm ####
@@ -749,7 +749,7 @@ int main(int argc, char** argv)
 	// initialize ROS, spezify name of node
 	ros::init(argc, argv, "cob_sdh_driver");
 
-	SdhNode sdh_node("JointCommand");
+	SdhDriverNode sdh_node("JointCommand");
 	if (!sdh_node.init()) return 0;
 	
 	ROS_INFO("...sdh node running...");

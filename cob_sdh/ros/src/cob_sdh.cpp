@@ -1,38 +1,47 @@
-/****************************************************************
+/*!
+ *****************************************************************
+ * \file
  *
- * Copyright (c) 2010
+ * \note
+ *   Copyright (c) 2010 \n
+ *   Fraunhofer Institute for Manufacturing Engineering
+ *   and Automation (IPA) \n\n
  *
- * Fraunhofer Institute for Manufacturing Engineering	
- * and Automation (IPA)
+ *****************************************************************
  *
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * \note
+ *   Project name: care-o-bot
+ * \note
+ *   ROS stack name: cob_driver
+ * \note
+ *   ROS package name: cob_sdh
  *
- * Project name: care-o-bot
- * ROS stack name: cob_driver
- * ROS package name: cob_sdh
- *								
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
- * Author: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
- * Supervised by: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
+ * \author
+ *   Author: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
+ * \author
+ *   Supervised by: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
  *
- * Date of creation: Jan 2010
- * ToDo:
+ * \date Date of creation: Jan 2010
  *
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * \brief
+ *   Implementation of ROS node for sdh.
+ *
+ * \todo nothing
+ *
+ *****************************************************************
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
+ *     - Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer. \n
+ *     - Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *       documentation and/or other materials provided with the distribution. \n
+ *     - Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
+ *       this software without specific prior written permission. \n
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License LGPL as 
@@ -50,13 +59,10 @@
  *
  ****************************************************************/
 
-//#define USE_ESD
-
 //##################
 //#### includes ####
 
 // standard includes
-//--
 #include <unistd.h>
 
 // ROS includes
@@ -81,12 +87,15 @@
 #include <cob_sdh/sdh.h>
 #include <cob_sdh/dsa.h>
 
-//########################
-//#### sdh node class ####
+/*!
+* \brief Implementation of ROS node for sdh.
+*
+* Offers actionlib and direct command interface.
+*/
 class SdhNode
 {
 	public:
-		// create a handle for this node, initialize node
+		/// create a handle for this node, initialize node
 		ros::NodeHandle nh_;
 	private:
 		// declaration of topics to publish
@@ -98,7 +107,7 @@ class SdhNode
 		ros::ServiceServer srvServer_Stop_;
 		ros::ServiceServer srvServer_SetOperationMode_;
 
-		// action lib server
+		// actionlib server
 //		actionlib::SimpleActionServer<cob_actions::JointCommandAction> as_;
 		actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
 		std::string action_name_;
@@ -135,7 +144,11 @@ class SdhNode
 		bool hasNewGoal_;
 		
 	public:
-		// Constructor
+		/*!
+		* \brief Constructor for SdhNode class
+		*
+		* \param name Name for the actionlib server
+		*/
 		SdhNode(std::string name):
 			as_(nh_, name, boost::bind(&SdhNode::executeCB, this, _1)),
 			action_name_(name)
@@ -143,7 +156,11 @@ class SdhNode
 			pi_ = 3.1415926;
 		}
 
-		// Destructor
+		/*!
+		* \brief Destructor for SdhNode class
+		*
+		*
+		*/
 		~SdhNode() 
 		{
 			if(isDSAInitialized_)
@@ -152,10 +169,15 @@ class SdhNode
 				sdh_->Close();
 			delete sdh_;
 		}
-		
+
+		/*!
+		* \brief Initializes node to get parameters, subscribe and publish to topics.
+		*
+		*
+		*/
 		bool init()
 		{
-			// initialize global variables
+			// initialize member variables
 			isInitialized_ = false;
 			isDSAInitialized_ = false;
 			hasNewGoal_ = false;
@@ -172,7 +194,7 @@ class SdhNode
 			srvServer_Stop_ = nh_.advertiseService("stop", &SdhNode::srvCallback_Stop, this);
 			srvServer_SetOperationMode_ = nh_.advertiseService("set_operation_mode", &SdhNode::srvCallback_SetOperationMode, this);
 
-			// getting harware parameters from parameter server
+			// getting hardware parameters from parameter server
 			nh_.param("sdhdevicetype", sdhdevicetype_, std::string("PCAN"));
 			nh_.param("sdhdevicestring", sdhdevicestring_, std::string("/dev/pcan0"));
 			nh_.param("sdhdevicenum", sdhdevicenum_, 0);
@@ -219,6 +241,12 @@ class SdhNode
 			return true;
 		}
 
+		/*!
+		* \brief Executes the callback from the actionlib
+		*
+		* Set the current goal to aborted after receiving a new goal and write new goal to a member variable. Wait for the goal to finish and set actionlib status to succeeded.
+		* \param goal JointTrajectoryGoal
+		*/
 		void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal)
 		{			
 			ROS_INFO("sdh: executeCB");
@@ -279,10 +307,15 @@ class SdhNode
 			as_.setSucceeded();
 		}
 
-		// service callback functions
-		// function will be called when a service is querried
-		bool srvCallback_Init(cob_srvs::Trigger::Request &req,
-				cob_srvs::Trigger::Response &res )
+		/*!
+		* \brief Executes the service callback for init.
+		*
+		* Connects to the hardware and initialized it.
+		* \param req Service request
+		* \param res Service response
+		*/
+		bool srvCallback_Init(	cob_srvs::Trigger::Request &req,
+								cob_srvs::Trigger::Response &res )
 		{
 
 			if (isInitialized_ == false)
@@ -366,6 +399,13 @@ class SdhNode
 			return true;
 		}
 
+		/*!
+		* \brief Executes the service callback for stop.
+		*
+		* Stops all hardware movements.
+		* \param req Service request
+		* \param res Service response
+		*/
 		bool srvCallback_Stop(cob_srvs::Trigger::Request &req,
 				cob_srvs::Trigger::Response &res )
 		{
@@ -387,6 +427,13 @@ class SdhNode
 		return true;
 	}
 
+	/*!
+	* \brief Executes the service callback for set_operation_mode.
+	*
+	* Changes the operation mode.
+	* \param req Service request
+	* \param res Service response
+	*/
 	bool srvCallback_SetOperationMode(cob_srvs::SetOperationMode::Request &req,
 					cob_srvs::SetOperationMode::Response &res )
 	{
@@ -396,6 +443,11 @@ class SdhNode
 		return true;
 	}
 
+	/*!
+	* \brief Main routine to update sdh.
+	*
+	* Sends target to hardware and reads out current configuration.
+	*/
 	void updateSdh()
 	{
 		ROS_DEBUG("updateJointState");
@@ -515,34 +567,35 @@ class SdhNode
 			ROS_DEBUG("sdh not initialized");
 		}
 	}
-		
-	void readTactileData()
-	{
-		ROS_DEBUG("readTactileData");
-		if(isDSAInitialized_)
-		{
-			try
-			{
-				//dsa_->SetFramerate( 0, true, true );
-				dsa_->UpdateFrame();
-			}
-			catch (SDH::cSDHLibraryException* e)
-			{
-				ROS_ERROR("An exception was caught: %s", e->what());
-				delete e;
-			}
-		}
-	}
 
-
-	void updateTactileData()
+	/*!
+	* \brief Main routine to update dsa.
+	*
+	* Reads out current values.
+	*/
+	void updateDsa()
 	{
 		ROS_DEBUG("updateTactileData");
-		cob_msgs::TactileSensor msg;
+
 		if(isDSAInitialized_)
 		{
+			// read tactile data
+			for(int i=0; i<7; i++)
+			{
+				try
+				{
+					//dsa_->SetFramerate( 0, true, true );
+					dsa_->UpdateFrame();
+				}
+				catch (SDH::cSDHLibraryException* e)
+				{
+					ROS_ERROR("An exception was caught: %s", e->what());
+					delete e;
+				}
+			}
+
+			cob_msgs::TactileSensor msg;
 			msg.header.stamp = ros::Time::now();
-			//std::cerr << *dsa_;
 			int m, x, y;
 			msg.tactile_matrix.resize(dsa_->GetSensorInfo().nb_matrices);
 			for ( m = 0; m < dsa_->GetSensorInfo().nb_matrices; m++ )
@@ -564,8 +617,11 @@ class SdhNode
 	}	 
 }; //SdhNode
 
-//#######################
-//#### main programm ####
+/*!
+* \brief Main loop of ROS node.
+*
+* Running with a specific frequency defined by loop_rate.
+*/
 int main(int argc, char** argv)
 {
 	// initialize ROS, spezify name of node
@@ -580,16 +636,11 @@ int main(int argc, char** argv)
 	ros::Rate loop_rate(5); // Hz
 	while(sdh_node.nh_.ok())
 	{
-		for(int i=0; i<7; i++)
-		{
-			sdh_node.readTactileData();
-		}
-		
 		// publish JointState
 		sdh_node.updateSdh();
 		
 		// publish TactileData
-		sdh_node.updateTactileData();
+		sdh_node.updateDsa();
 		
 		// sleep and waiting for messages, callbacks
 		ros::spinOnce();
