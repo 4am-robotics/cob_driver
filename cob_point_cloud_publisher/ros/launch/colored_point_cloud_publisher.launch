@@ -3,9 +3,14 @@
 
   <!-- start left camera -->
   <node pkg="cob_point_cloud_publisher" type="cpc_publisher" name="cpc_publisher" cwd="node" respawn="false" output="screen">
-	<remap from="image_xyz" to="sensor_fusion/shared/image_xyz"/>
-	<remap from="image_color" to="sensor_fusion/shared/image_color"/>
-	<remap from="image_confidence" to="sensor_fusion/shared/image_confidence"/>
+	<remap from="image_xyz" to="cob_env_model/fused_image_xyz"/>
+	<remap from="image_color" to="cob_env_model/fused_image_color"/>
+	<remap from="image_confidence" to="cob_env_model/fused_image_confidence"/>
+	<remap from="image_features" to="cob_env_model/fused_image_features"/>
+	<!--remap from="image_xyz" to="tof/image_xyz"/>
+	<remap from="image_color" to="stereo/right/image_color"/>
+	<remap from="image_confidence" to="tof/image_grey"/>
+	<remap from="image_features" to="cob_env_model/fused_image_features"/-->
 
   </node>
 
