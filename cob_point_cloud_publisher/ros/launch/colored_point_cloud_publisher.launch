@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- start left camera -->
+  <node pkg="cob_point_cloud_publisher" type="cpc_publisher" name="cpc_publisher" cwd="node" respawn="false" output="screen">
+	<remap from="image_xyz" to="sensor_fusion/shared/image_xyz"/>
+	<remap from="image_color" to="sensor_fusion/shared/image_color"/>
+	<remap from="image_confidence" to="sensor_fusion/shared/image_confidence"/>
+
+  </node>
+
+</launch>

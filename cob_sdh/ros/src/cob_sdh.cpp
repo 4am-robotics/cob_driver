@@ -462,6 +462,7 @@ class SdhNode
 					sdh_->Stop();
 				}
 				catch (SDH::cSDHLibraryException* e)
+<<<<<<< HEAD:cob_driver/cob_sdh/ros/src/cob_sdh.cpp
 				{
 					ROS_ERROR("An exception was caught: %s", e->what());
 					delete e;
@@ -471,6 +472,17 @@ class SdhNode
 				nh_.getParam("OperationMode", operationMode);
 				if (operationMode == "position")
 				{
+=======
+				{
+					ROS_ERROR("An exception was caught: %s", e->what());
+					delete e;
+				}
+		
+				std::string operationMode;
+				nh_.getParam("OperationMode", operationMode);
+				if (operationMode == "position")
+				{
+>>>>>>> b4e2da1c3f73e41d4adf906edac3d2317bd9b564:cob_driver/cob_sdh/ros/src/cob_sdh.cpp
 					ROS_DEBUG("moving sdh in position mode");
 
 					try
