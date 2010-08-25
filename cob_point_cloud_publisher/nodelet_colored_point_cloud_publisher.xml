@@ -1,0 +1,7 @@
+<library path="lib/libnodelet_cpc_publisher">
+  <class name="cob_point_cloud_publisher/PcPublisher" type="PcPublisher" base_class_type="nodelet::Nodelet">
+    <description>
+      A node to publish a colored point cloud.
+    </description>
+  </class>
+</library>

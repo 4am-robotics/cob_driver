@@ -29,9 +29,16 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/ros/include)
+
+
 rosbuild_add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp)
-rosbuild_add_executable(cob_colored_point_cloud_publisher ros/src/cob_colored_point_cloud_publisher.cpp)
+rosbuild_add_library(nodelet_cpc_publisher ros/src/cob_colored_point_cloud_publisher.cpp)
+rosbuild_add_executable(cpc_publisher ros/src/cpc_publisher_main.cpp)
+
+target_link_libraries(cpc_publisher nodelet_cpc_publisher)
 
 # add compile flag
 rosbuild_add_compile_flags(${PROJECT_NAME} -D__LINUX__ -D__COB_ROS__)
-rosbuild_add_compile_flags(cob_colored_point_cloud_publisher -D__LINUX__ -D__COB_ROS__)
+rosbuild_add_compile_flags(nodelet_cpc_publisher -D__LINUX__ -D__COB_ROS__)
+rosbuild_add_compile_flags(cpc_publisher -D__LINUX__ -D__COB_ROS__)
