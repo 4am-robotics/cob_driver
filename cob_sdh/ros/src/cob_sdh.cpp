@@ -582,16 +582,13 @@ class SdhNode
 			// read tactile data
 			for(int i=0; i<7; i++)
 			{
-				try
-				{
-					//dsa_->SetFramerate( 0, true, true );
-					dsa_->UpdateFrame();
-				}
-				catch (SDH::cSDHLibraryException* e)
-				{
-					ROS_ERROR("An exception was caught: %s", e->what());
-					delete e;
-				}
+				//dsa_->SetFramerate( 0, true, true );
+				dsa_->UpdateFrame();
+			}
+			catch (SDH::cSDHLibraryException* e)
+			{
+				ROS_ERROR("An exception was caught: %s", e->what());
+				delete e;
 			}
 
 			cob_msgs::TactileSensor msg;
