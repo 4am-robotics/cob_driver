@@ -24,8 +24,12 @@
 	<param name="right_color_camera_intrinsic_type" value="CAM_VIRTUALRANGE" />
 	<param name="right_color_camera_intrinsic_id" value="0" />
 
-	<remap from="pike_145C/right/image_color" to="prosilica/right/image_color"/>
-	<remap from="pike_145C/right/camera_info" to="prosilica/right/camera_info"/>
+	<remap from="pike_145C/right/image_color" to="stereo/right/image_color"/>
+	<remap from="pike_145C/right/camera_info" to="stereo/right/camera_info"/>
+	<remap from="pike_145C/left/image_color" to="stereo/left/image_color"/>
+	<remap from="pike_145C/left/camera_info" to="stereo/left/camera_info"/>
+	<remap from="sr4000/image_xyz" to="tof/image_xyz"/>
+	<remap from="sr4000/image_grey" to="tof/image_grey"/>
   </node>
 
 </launch>
