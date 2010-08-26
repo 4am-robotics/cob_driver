@@ -26,8 +26,6 @@
  * \brief
  *   Implementation of ROS node for powercube_chain.
  *
- * \todo nothing
- *
  *****************************************************************
  *
  * Redistribution and use in source and binary forms, with or without
@@ -310,8 +308,6 @@ class PowercubeChainNode
 
 		/*!
 		* \brief Destructor for PowercubeChainNode class.
-		*
-		*
 		*/
 		~PowercubeChainNode()
 		{

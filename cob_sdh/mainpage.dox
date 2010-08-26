@@ -2,7 +2,7 @@
 \mainpage
 \htmlinclude manifest.html
 
-\b Implementation of ROS node for sdh.
+\n <a href="todo.html">Todo list</a>
 
 <!-- 
 Provide an overview of your package.

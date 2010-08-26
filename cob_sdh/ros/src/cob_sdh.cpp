@@ -26,8 +26,6 @@
  * \brief
  *   Implementation of ROS node for sdh.
  *
- * \todo nothing
- *
  *****************************************************************
  *
  * Redistribution and use in source and binary forms, with or without
@@ -158,8 +156,6 @@ class SdhNode
 
 		/*!
 		* \brief Destructor for SdhNode class
-		*
-		*
 		*/
 		~SdhNode() 
 		{
@@ -172,8 +168,6 @@ class SdhNode
 
 		/*!
 		* \brief Initializes node to get parameters, subscribe and publish to topics.
-		*
-		*
 		*/
 		bool init()
 		{
@@ -649,4 +643,3 @@ int main(int argc, char** argv)
 
 	return 0;
 }
-
