@@ -637,7 +637,7 @@ int main(int argc, char** argv)
 	PowercubeChainNode pc_node("joint_trajectory_action");
 
 	// main loop
-	ros::Rate loop_rate(50); // Hz
+	ros::Rate loop_rate(30); // Hz
 	while(pc_node.n_.ok())
 	{
 		// publish JointState

@@ -174,7 +174,6 @@ class NodeClass
                 isInitialized = true;
                 res.success = 0; // 0 = true, else = false
 		sleep(1);
-		std::cout << "After Init " <<x << y << std::endl;
 		
             }
             else
@@ -248,8 +247,6 @@ class NodeClass
                 // get odometry from platform
                 pltf->getDeltaPosePltf(dxMM, dyMM, dth, dvth,
         					           vxMMS, vyMMS, vth, vvth);
-			std::cout << "dt:" << dt << "\n";
-			std::cout << "Vels: " << vxMMS/1000.0 << " " << vyMMS/1000.0 << " " << vth << "\n";
 			if(vxMMS > 100000)
 			{
 				printf("Not yet initialized\n");
@@ -275,7 +272,6 @@ class NodeClass
 				odom_trans.header.frame_id = "/odom_combined";
 				odom_trans.child_frame_id = "/base_footprint";
 
-				std::cout << x << y << std::endl;
 				odom_trans.transform.translation.x = x;
 				odom_trans.transform.translation.y = y;
 				odom_trans.transform.translation.z = 0.0;
