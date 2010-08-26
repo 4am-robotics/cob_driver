@@ -462,7 +462,6 @@ class SdhNode
 					sdh_->Stop();
 				}
 				catch (SDH::cSDHLibraryException* e)
-<<<<<<< HEAD
 				{
 					ROS_ERROR("An exception was caught: %s", e->what());
 					delete e;
@@ -482,7 +481,6 @@ class SdhNode
 				nh_.getParam("OperationMode", operationMode);
 				if (operationMode == "position")
 				{
->>>>>>> review-320
 					ROS_DEBUG("moving sdh in position mode");
 
 					try
