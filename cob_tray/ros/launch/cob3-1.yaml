@@ -1,5 +1,5 @@
-CanModule: ESD
-CanDevice: 0
+CanModule: PCAN
+CanDevice: 14
 CanBaudrate: 500
 ModIds: [10]
 JointNames: [torso_tray_joint]
