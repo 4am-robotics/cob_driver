@@ -11,11 +11,6 @@
   
   <depend package="sensor_msgs"/>
   <depend package="cob_camera_sensors"/>
-  <depend package="nodelet"/>
-  
-  <export>
-    <nodelet plugin="${prefix}/nodelet_colored_point_cloud_publisher.xml"/>
-  </export>
-  
+
 
 </package>
