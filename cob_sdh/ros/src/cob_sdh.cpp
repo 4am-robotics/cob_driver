@@ -471,16 +471,6 @@ class SdhNode
 				nh_.getParam("OperationMode", operationMode);
 				if (operationMode == "position")
 				{
-=======
-				{
-					ROS_ERROR("An exception was caught: %s", e->what());
-					delete e;
-				}
-		
-				std::string operationMode;
-				nh_.getParam("OperationMode", operationMode);
-				if (operationMode == "position")
-				{
 					ROS_DEBUG("moving sdh in position mode");
 
 					try
@@ -659,3 +649,4 @@ int main(int argc, char** argv)
 
 	return 0;
 }
+
