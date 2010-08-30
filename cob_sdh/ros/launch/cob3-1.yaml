@@ -1,6 +1,6 @@
-sdhdevicetype: ESD
-sdhdevicestring: /dev/can0
-dsadevicestring: /dev/ttyS0
+sdhdevicetype: PCAN
+sdhdevicestring: /dev/pcan1
+dsadevicestring: /dev/ttyUSB0
 baudrate: 1000000
 JointNames: ['sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_11_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_21_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']
 OperationMode: position
