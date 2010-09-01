@@ -8,6 +8,7 @@
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/chainiksolvervel_pinv.hpp>
 #include <kdl/chainiksolverpos_nr.hpp>
+#include <kdl/chainiksolverpos_nr_jl.hpp>
 #include <kdl/frames_io.hpp>
 #include <kdl/jntarray.hpp>
 
@@ -18,11 +19,25 @@ KDL::Chain chain;
 bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
          kinematics_msgs::GetPositionIK::Response &res )
 {
+	unsigned int nj = chain.getNrOfJoints();
+	
+	JntArray q_min(nj);
+	JntArray q_max(nj);
+	for(int i = 0; i < nj; i+=2)
+	{
+		q_min(i) = -6.0;
+		q_max(i) = 6.0;
+	}
+	for(int i = 1; i < nj; i+=2)
+	{
+		q_min(i) = -2.0;
+		q_max(i) = 2.0;
+	}
+
+	
 	ChainFkSolverPos_recursive fksolver1(chain);//Forward position solver
 	ChainIkSolverVel_pinv iksolver1v(chain);//Inverse velocity solver
-	ChainIkSolverPos_NR iksolverpos(chain,fksolver1,iksolver1v,100,1e-6);//Maximum 100 iterations, stop at accuracy 1e-6
-
-	unsigned int nj = chain.getNrOfJoints();
+	ChainIkSolverPos_NR_JL iksolverpos(chain, q_min, q_max, fksolver1,iksolver1v,100,1e-6);//Maximum 100 iterations, stop at accuracy 1e-6
 
 	JntArray q(nj);
 	JntArray q_init(nj);
@@ -32,10 +47,10 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	Frame F_ist;
 	fksolver1.JntToCart(q_init, F_ist);
 	tf::PoseMsgToKDL(req.ik_request.pose_stamped.pose, F_dest);
-	ROS_DEBUG("Getting Goal");
-	//ROS_DEBUG(F_dest);
-	//std::cout << "Calculated Position out of Configuration:\n";
-	//std::cout << F_ist <<"\n";
+	std::cout << "Getting Goal\n";
+	std::cout << F_dest;
+	std::cout << "Calculated Position out of Configuration:\n";
+	std::cout << F_ist <<"\n";
 
 	int ret = iksolverpos.CartToJnt(q_init,F_dest,q);
 	res.solution.joint_state.name = req.ik_request.ik_seed_state.joint_state.name;
@@ -56,7 +71,8 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 			res.solution.joint_state.position[i] = q(i);
 	}
 	//std::cout << "q_init\n";
-	//std::cout << q_init(0) << " " << q_init(1) << " " << q_init(2) << " " << q_init(3) << " " << q_init(4) << " " << q_init(5) << " " << q_init(6) << "\n";	
+	ROS_DEBUG("q_init: %f %f %f %f %f %f %f", q_init(0), q_init(1), q_init(2), q_init(3), q_init(4), q_init(5), q_init(6));
+	ROS_DEBUG("q_out: %f %f %f %f %f %f %f", q(0), q(1), q(2), q(3), q(4), q(5), q(6));		
 	//std::cout << "Solved with " << ret << " as return\n";
 	//std::cout << q(0) << " " << q(1) << " " << q(2) << " " << q(3) << " " << q(4) << " " << q(5) << " " << q(6)  << "\n";	
 
