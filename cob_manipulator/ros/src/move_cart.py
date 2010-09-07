@@ -74,34 +74,35 @@ class ik_solver:
 	def cbIKSolverRel(self, msg):
 		result = MoveCartResult()
 		feedback = MoveCartFeedback()
-		try:
-			(trans,rot) = self.listener.lookupTransform('base_link', 'arm_7_link', rospy.Time(0))
-		except tf.LookupException as lex:
-			print "Error Lookup"
-			print lex
-		except tf.ConnectivityException as cex:
-			print "Error Connectivity"
-			print cex
-		
-		relpos = Pose()
-		relpos.position.x = trans[0] + msg.goal_pose.pose.position.x
-		relpos.position.y = trans[1] + msg.goal_pose.pose.position.y
-		relpos.position.z = trans[2] + msg.goal_pose.pose.position.z
+		#try:
+		#	(trans,rot) = self.listener.lookupTransform('base_link', 'arm_7_link', rospy.Time(0))
+		#except tf.LookupException as lex:
+		#	print "Error Lookup"
+		#	print lex
+		#except tf.ConnectivityException as cex:
+		#	print "Error Connectivity"
+		#	print cex
+		print "Transform to target_frame: ", msg.goal_pose
+		relpos = self.listener.transformPose("/base_link", msg.goal_pose)
+		print "Transform done: ", relpos
+		#relpos.position.x = trans[0] + msg.goal_pose.pose.position.x
+		#relpos.position.y = trans[1] + msg.goal_pose.pose.position.y
+		#relpos.position.z = trans[2] + msg.goal_pose.pose.position.z
 		#angles_cmd = tf.transformations.euler_from_quaternion([msg.goal_pose.pose.orientation.x, msg.goal_pose.pose.orientation.y, msg.goal_pose.pose.orientation.z, msg.goal_pose.pose.orientation.w])
 		#angles_cur = tf.transformations.euler_from_quaternion([rot[0], rot[1], rot[2], rot[3]])
 		
 		#qrel = tf.transformations.quaternion_from_euler(angles_cmd[0]+angles_cur[0], angles_cmd[1]+angles_cur[1], angles_cmd[2]+angles_cur[2])
 
 		#check for uninitialized msg
-		if(msg.goal_pose.pose.orientation.x == 0.0 and msg.goal_pose.pose.orientation.y == 0.0 and msg.goal_pose.pose.orientation.z == 0.0 and msg.goal_pose.pose.orientation.w == 0.0):
-			msg.goal_pose.pose.orientation.w = 1.0
-		qrel = tf.transformations.quaternion_multiply([msg.goal_pose.pose.orientation.x, msg.goal_pose.pose.orientation.y, msg.goal_pose.pose.orientation.z, msg.goal_pose.pose.orientation.w], [rot[0], rot[1], rot[2], rot[3]])
-		print qrel
-		relpos.orientation.x = qrel[0]
-		relpos.orientation.y = qrel[1]
-		relpos.orientation.z = qrel[2]
-		relpos.orientation.w = qrel[3]
-		(new_config, error) = self.callIKSolver(relpos)
+		#if(msg.goal_pose.pose.orientation.x == 0.0 and msg.goal_pose.pose.orientation.y == 0.0 and msg.goal_pose.pose.orientation.z == 0.0 and msg.goal_pose.pose.orientation.w == 0.0):
+		#	msg.goal_pose.pose.orientation.w = 1.0
+		#qrel = tf.transformations.quaternion_multiply([msg.goal_pose.pose.orientation.x, msg.goal_pose.pose.orientation.y, msg.goal_pose.pose.orientation.z, msg.goal_pose.pose.orientation.w], [rot[0], rot[1], rot[2], rot[3]])
+		#print qrel
+		#relpos.orientation.x = qrel[0]
+		#relpos.orientation.y = qrel[1]
+		#relpos.orientation.z = qrel[2]
+		#relpos.orientation.w = qrel[3]
+		(new_config, error) = self.callIKSolver(relpos.pose)
 		if(error != -1):
 			self.moveArm(new_config)
 			result.return_value = 0
