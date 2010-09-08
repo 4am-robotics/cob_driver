@@ -55,8 +55,7 @@
 //#### includes ####
 
 // standard includes
-#include <sstream>
-#include <iostream>
+//--
 
 // ROS includes
 #include <ros/ros.h>
@@ -156,7 +155,8 @@ class NodeClass
 		// generate can-node handle
 		CanCtrlPltfCOb3 m_CanCtrlPltf;
 		bool m_bisInitialized;
-		int m_iNumMotors;
+        int m_iNumMotors;
+        int numberOfMotors, numberOfDrives;
 
 		struct ParamType
 		{ 
@@ -173,7 +173,11 @@ class NodeClass
 		{
 			// initialization of variables
 			m_bisInitialized = false;
-			m_iNumMotors = 8;
+
+//			m_iNumMotors = 8;
+			m_iNumMotors = 2;
+			numberOfMotors = 2;
+			numberOfDrives = 1;
 
 			// implementation of topics
 			// published topics
@@ -529,11 +533,11 @@ bool NodeClass::initDrives()
 {
 	ROS_INFO("Initializing Base Drive Chain");
 
-	// init member vectors
-	m_Param.vdWheelNtrlPosRad.assign(4,0);
-
-	// ToDo: replace the following steps by ROS configuration files
-	// create Inifile class and set target inifile (from which data shall be read)
+    // init member vectors
+	m_Param.vdWheelNtrlPosRad.assign((numberOfDrives),0);
+//	m_Param.vdWheelNtrlPosRad.assign(4,0);
+    // ToDo: replace the following steps by ROS configuration files
+    // create Inifile class and set target inifile (from which data shall be read)
 	IniFile iniFile;
 
 	/// Parameters are set within the launch file
@@ -548,17 +552,27 @@ bool NodeClass::initDrives()
 	iniFile.GetKeyDouble("DrivePrms", "MaxDriveRate", &m_Param.dMaxDriveRateRadpS, true);
 	iniFile.GetKeyDouble("DrivePrms", "MaxSteerRate", &m_Param.dMaxSteerRateRadpS, true);
 	
-	// get Offset from Zero-Position of Steering	
-	iniFile.GetKeyDouble("DrivePrms", "Wheel1NeutralPosition", &m_Param.vdWheelNtrlPosRad[0], true);
-	iniFile.GetKeyDouble("DrivePrms", "Wheel2NeutralPosition", &m_Param.vdWheelNtrlPosRad[1], true);
-	iniFile.GetKeyDouble("DrivePrms", "Wheel3NeutralPosition", &m_Param.vdWheelNtrlPosRad[2], true);
-	iniFile.GetKeyDouble("DrivePrms", "Wheel4NeutralPosition", &m_Param.vdWheelNtrlPosRad[3], true);
+    // get Offset from Zero-Position of Steering
+	for(int i=0; i<numberOfDrives; i++)
+	{
+		std::string s="Wheel";
+		s+=i;
+		s+="NeutralPosition";
+		iniFile.GetKeyDouble("DrivePrms", (const char*)&s, &m_Param.vdWheelNtrlPosRad[i], true);
+	}
+//	iniFile.GetKeyDouble("DrivePrms", "Wheel1NeutralPosition", &m_Param.vdWheelNtrlPosRad[0], true);
+//	iniFile.GetKeyDouble("DrivePrms", "Wheel2NeutralPosition", &m_Param.vdWheelNtrlPosRad[1], true);
+//	iniFile.GetKeyDouble("DrivePrms", "Wheel3NeutralPosition", &m_Param.vdWheelNtrlPosRad[2], true);
+//	iniFile.GetKeyDouble("DrivePrms", "Wheel4NeutralPosition", &m_Param.vdWheelNtrlPosRad[3], true);
 
 	//Convert Degree-Value from ini-File into Radian:
-	m_Param.vdWheelNtrlPosRad[0] = MathSup::convDegToRad(m_Param.vdWheelNtrlPosRad[0]);
-	m_Param.vdWheelNtrlPosRad[1] = MathSup::convDegToRad(m_Param.vdWheelNtrlPosRad[1]);
-	m_Param.vdWheelNtrlPosRad[2] = MathSup::convDegToRad(m_Param.vdWheelNtrlPosRad[2]);
-	m_Param.vdWheelNtrlPosRad[3] = MathSup::convDegToRad(m_Param.vdWheelNtrlPosRad[3]);
+	for(int i=0; i<numberOfDrives; i++)
+	{
+		m_Param.vdWheelNtrlPosRad[i] = MathSup::convDegToRad(m_Param.vdWheelNtrlPosRad[i]);
+	}
+//	m_Param.vdWheelNtrlPosRad[1] = MathSup::convDegToRad(m_Param.vdWheelNtrlPosRad[1]);
+//	m_Param.vdWheelNtrlPosRad[2] = MathSup::convDegToRad(m_Param.vdWheelNtrlPosRad[2]);
+//	m_Param.vdWheelNtrlPosRad[3] = MathSup::convDegToRad(m_Param.vdWheelNtrlPosRad[3]);
 
 	// debug log
 	ROS_INFO("Initializing CanCtrlItf");
@@ -570,3 +584,4 @@ bool NodeClass::initDrives()
 
 	return bTemp1;
 }
+
