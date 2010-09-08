@@ -63,6 +63,7 @@
 #include <cob_generic_can/CanPeakSysUSB.h>
 #include <cob_base_drive_chain/CanCtrlPltfCOb3.h>
 
+//TO DO: Read from Ini-File
 int numberOfMotors = 2;
 int numberOfSteers = 1;
 int numberOfDrives = 1;
