@@ -316,6 +316,7 @@ protected:
 		bool	bIsSteer;
 		double  dCurrentToTorque;
 		double  dCurrMax;
+		int 	iHomingDigIn;
 	};
 
 	/**

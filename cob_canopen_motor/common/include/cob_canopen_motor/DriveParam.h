@@ -79,6 +79,7 @@ private:
 	double m_dPosGearRadToPosMotIncr;
 	int m_iEncOffsetIncr;		// Position in Increments of Steerwheel when Homingposition
 					//  is reached (only needed forCoB3)
+	int m_iHomingDigIn; // specifies which digital input is used for homing signal, standart 11 is good for COB3, 19 for Cob3_5
 	bool m_bIsSteer;		// needed to distinguish motors for initializing
     double m_dCurrToTorque;		// factor to convert motor active current [A] into torque [Nm]
 	double m_dCurrMax;		// max. current allowed
@@ -129,6 +130,8 @@ public:
 		m_dAccIncrS2 = dAccIncrS2;
 		m_dDecIncrS2 = dDecIncrS2;
 		
+		m_iHomingDigIn = 11; //for Cob3
+		
 		double dPI = 3.14159265358979323846;
 
 		m_dPosGearRadToPosMotIncr = m_iEncIncrPerRevMot * m_dGearRatio
@@ -163,6 +166,8 @@ public:
 		m_dDecIncrS2 = dDecIncrS2;
 		m_iEncOffsetIncr = iEncOffsetIncr;
 		m_bIsSteer = bIsSteer;
+		
+		m_iHomingDigIn = 11; //for Cob3
 
 		double dPI = 3.14159265358979323846;
 
@@ -171,6 +176,46 @@ public:
 
         m_dCurrToTorque = dCurrToTorque;
 		m_dCurrMax = dCurrMax;
+	}
+	
+	//Overloaded Method for CoB3 including new feature HomingDigIn, for compatibility reasons overloaded
+	void setParam(
+		int iDriveIdent,
+		int iEncIncrPerRevMot,
+		double dVelMeasFrqHz,
+		double dBeltRatio,
+		double dGearRatio,
+		int iSign,
+		double dVelMaxEncIncrS,
+		double dAccIncrS2,
+		double dDecIncrS2,
+		int iEncOffsetIncr,
+		bool bIsSteer,
+        double dCurrToTorque,
+		double dCurrMax,
+		int iHomingDigIn)
+	{
+
+		m_iDriveIdent = iDriveIdent;
+		m_iEncIncrPerRevMot = iEncIncrPerRevMot;
+		m_dVelMeasFrqHz = dVelMeasFrqHz;
+		m_dBeltRatio = dBeltRatio;
+		m_dGearRatio = dGearRatio;
+		m_iSign = iSign;
+		m_dVelMaxEncIncrS = dVelMaxEncIncrS;
+		m_dAccIncrS2 = dAccIncrS2;
+		m_dDecIncrS2 = dDecIncrS2;
+		m_iEncOffsetIncr = iEncOffsetIncr;
+		m_bIsSteer = bIsSteer;
+
+		double dPI = 3.14159265358979323846;
+
+		m_dPosGearRadToPosMotIncr = m_iEncIncrPerRevMot * m_dGearRatio
+			* m_dBeltRatio / (2. * dPI);
+
+        m_dCurrToTorque = dCurrToTorque;
+		m_dCurrMax = dCurrMax;
+		m_iHomingDigIn = iHomingDigIn;
 	}
 
 	/**
@@ -360,6 +405,20 @@ public:
 	double getCurrMax()
 	{
 		return m_dCurrMax;
+	}
+	/**
+	 * Get digital Input for Homing signal
+	 */
+	int getHomingDigIn()
+	{
+		return m_iHomingDigIn;
+	}
+	/**
+	 * Set digital Input for Homing signal
+	 */
+	void setHomingDigIn(int HomingDigIn)
+	{
+		m_iHomingDigIn = HomingDigIn;
 	}
 };
 //-----------------------------------------------

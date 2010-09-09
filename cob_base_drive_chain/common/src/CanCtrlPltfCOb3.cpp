@@ -416,6 +416,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyBool("Drive1", "IsSteering", &(m_GearMotDrive1.bIsSteer), true);
 		m_IniFile.GetKeyDouble("Drive1", "CurrentToTorque", &(m_GearMotDrive1.dCurrentToTorque), false);
 		m_IniFile.GetKeyDouble("Drive1", "CurrMax", &(m_GearMotDrive1.dCurrMax), false);
+		m_IniFile.GetKeyInt("Drive1", "HomingDigIn", &(m_GearMotDrive1.iHomingDigIn), false);
 	}
 
 	// "Drive Motor Type2" drive parameters	
@@ -433,6 +434,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyBool("Drive2", "IsSteering", &(m_GearMotDrive2.bIsSteer), true);
 		m_IniFile.GetKeyDouble("Drive2", "CurrentToTorque", &(m_GearMotDrive2.dCurrentToTorque), false);
 		m_IniFile.GetKeyDouble("Drive2", "CurrMax", &(m_GearMotDrive2.dCurrMax), false);
+		m_IniFile.GetKeyInt("Drive2", "HomingDigIn", &(m_GearMotDrive2.iHomingDigIn), false);
 	}
 
 	// "Drive Motor Type3" drive parameters	
@@ -450,6 +452,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyBool("Drive3", "IsSteering", &(m_GearMotDrive3.bIsSteer), true);
 		m_IniFile.GetKeyDouble("Drive3", "CurrentToTorque", &(m_GearMotDrive3.dCurrentToTorque), false);
 		m_IniFile.GetKeyDouble("Drive3", "CurrMax", &(m_GearMotDrive3.dCurrMax), false);
+		m_IniFile.GetKeyInt("Drive3", "HomingDigIn", &(m_GearMotDrive3.iHomingDigIn), false);
 	}
 
 	// "Drive Motor Type4" drive parameters	
@@ -467,6 +470,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyBool("Drive4", "IsSteering", &(m_GearMotDrive4.bIsSteer), true);
 		m_IniFile.GetKeyDouble("Drive4", "CurrentToTorque", &(m_GearMotDrive4.dCurrentToTorque), false);
 		m_IniFile.GetKeyDouble("Drive4", "CurrMax", &(m_GearMotDrive4.dCurrMax), false);
+		m_IniFile.GetKeyInt("Drive4", "HomingDigIn", &(m_GearMotDrive4.iHomingDigIn), false);
 	}
 
 	// "Steer Motor Type1" drive parameters	
@@ -484,6 +488,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyBool("Steer1", "IsSteering", &(m_GearMotSteer1.bIsSteer), true);
 		m_IniFile.GetKeyDouble("Steer1", "CurrentToTorque", &(m_GearMotSteer1.dCurrentToTorque), false);
 		m_IniFile.GetKeyDouble("Steer1", "CurrMax", &(m_GearMotSteer1.dCurrMax), false);
+		m_IniFile.GetKeyInt("Steer1", "HomingDigIn", &(m_GearMotSteer1.iHomingDigIn), false);
 	}
 
 	// "Steer Motor Type2" drive parameters	
@@ -501,6 +506,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyBool("Steer2", "IsSteering", &(m_GearMotSteer2.bIsSteer), true);
 		m_IniFile.GetKeyDouble("Steer2", "CurrentToTorque", &(m_GearMotSteer2.dCurrentToTorque), false);
 		m_IniFile.GetKeyDouble("Steer2", "CurrMax", &(m_GearMotSteer2.dCurrMax), false);
+		m_IniFile.GetKeyInt("Steer2", "HomingDigIn", &(m_GearMotSteer2.iHomingDigIn), false);
 	}
 
 	// "Steer Motor Type3" drive parameters	
@@ -518,6 +524,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyBool("Steer3", "IsSteering", &(m_GearMotSteer3.bIsSteer), true);
 		m_IniFile.GetKeyDouble("Steer3", "CurrentToTorque", &(m_GearMotSteer3.dCurrentToTorque), false);
 		m_IniFile.GetKeyDouble("Steer3", "CurrMax", &(m_GearMotSteer3.dCurrMax), false);
+		m_IniFile.GetKeyInt("Steer3", "HomingDigIn", &(m_GearMotSteer3.iHomingDigIn), false);
 	}
 
 	// "Steer Motor Type4" drive parameters	
@@ -535,6 +542,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyBool("Steer4", "IsSteering", &(m_GearMotSteer4.bIsSteer), true);
 		m_IniFile.GetKeyDouble("Steer4", "CurrentToTorque", &(m_GearMotSteer4.dCurrentToTorque), false);
 		m_IniFile.GetKeyDouble("Steer4", "CurrMax", &(m_GearMotSteer4.dCurrMax), false);
+		m_IniFile.GetKeyInt("Steer4", "HomingDigIn", &(m_GearMotSteer4.iHomingDigIn), false);
 	}
 
 	if(m_iNumDrives >= 1)
@@ -552,7 +560,8 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotDrive1.iEncOffsetIncr,
 			m_GearMotDrive1.bIsSteer,
 			m_GearMotDrive1.dCurrentToTorque,
-			m_GearMotDrive1.dCurrMax);
+			m_GearMotDrive1.dCurrMax,
+			m_GearMotDrive1.iHomingDigIn);
 	}
 	
 	if(m_iNumDrives >= 1)
@@ -570,7 +579,8 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotSteer1.iEncOffsetIncr,
 			m_GearMotSteer1.bIsSteer,
 			m_GearMotSteer1.dCurrentToTorque,
-			m_GearMotSteer1.dCurrMax);
+			m_GearMotSteer1.dCurrMax,
+			m_GearMotSteer1.iHomingDigIn);
 	}
 
 	if(m_iNumDrives >= 2)
@@ -588,7 +598,8 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotDrive2.iEncOffsetIncr,
 			m_GearMotDrive2.bIsSteer,
 			m_GearMotDrive2.dCurrentToTorque,
-			m_GearMotDrive2.dCurrMax);
+			m_GearMotDrive2.dCurrMax,
+			m_GearMotDrive2.iHomingDigIn);
 	}
 	
 	if(m_iNumDrives >= 2)
@@ -606,7 +617,8 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotSteer2.iEncOffsetIncr,
 			m_GearMotSteer2.bIsSteer,
 			m_GearMotSteer2.dCurrentToTorque,
-			m_GearMotSteer2.dCurrMax);
+			m_GearMotSteer2.dCurrMax,
+			m_GearMotSteer2.iHomingDigIn);
 	}
 
 	if(m_iNumDrives >= 3)
@@ -624,7 +636,8 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotDrive3.iEncOffsetIncr,
 			m_GearMotDrive3.bIsSteer,
 			m_GearMotDrive3.dCurrentToTorque,
-			m_GearMotDrive3.dCurrMax);
+			m_GearMotDrive3.dCurrMax,
+			m_GearMotDrive3.iHomingDigIn);
 	}
 	
 	if(m_iNumDrives >= 3)
@@ -642,7 +655,8 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotSteer3.iEncOffsetIncr,
 			m_GearMotSteer3.bIsSteer,
 			m_GearMotSteer3.dCurrentToTorque,
-			m_GearMotSteer3.dCurrMax);
+			m_GearMotSteer3.dCurrMax,
+			m_GearMotSteer3.iHomingDigIn);
 	}
 
 	if(m_iNumDrives == 4)
@@ -660,7 +674,8 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotDrive4.iEncOffsetIncr,
 			m_GearMotDrive4.bIsSteer,
 			m_GearMotDrive4.dCurrentToTorque,
-			m_GearMotDrive4.dCurrMax);
+			m_GearMotDrive4.dCurrMax,
+			m_GearMotDrive4.iHomingDigIn);
 	}
 	
 	if(m_iNumDrives == 4)
@@ -678,7 +693,8 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotSteer4.iEncOffsetIncr,
 			m_GearMotSteer4.bIsSteer,
 			m_GearMotSteer4.dCurrentToTorque,
-			m_GearMotSteer4.dCurrMax);
+			m_GearMotSteer4.dCurrMax,
+			m_GearMotSteer4.iHomingDigIn);
 	}
 	
 	m_IniFile.GetKeyDouble("US", "ScaleToMM", &dScaleToMM, true);
