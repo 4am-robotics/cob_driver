@@ -388,10 +388,10 @@ class NodeClass
 			// jointstate.header.frame_id = frame_id; //Where to get this id from?
 
 			// assign right size to JointState
-			jointstate.set_name_size(m_iNumMotors);
-			jointstate.set_position_size(m_iNumMotors);
-			jointstate.set_velocity_size(m_iNumMotors);
-			jointstate.set_effort_size(m_iNumMotors);
+			jointstate.name.resize(m_iNumMotors);
+			jointstate.position.resize(m_iNumMotors);
+			jointstate.velocity.resize(m_iNumMotors);
+			jointstate.effort.resize(m_iNumMotors);
 
 			if(m_bisInitialized == false)
 			{
@@ -566,17 +566,14 @@ bool NodeClass::initDrives()
 	iniFile.GetKeyDouble("DrivePrms", "MaxSteerRate", &m_Param.dMaxSteerRateRadpS, true);
 	
     // get Offset from Zero-Position of Steering
-	for(int i=0; i<m_iNumDrives; i++)
-	{
-		std::string s="Wheel";
-		s+=i;
-		s+="NeutralPosition";
-		iniFile.GetKeyDouble("DrivePrms", (const char*)&s, &m_Param.vdWheelNtrlPosRad[i], true);
-	}
-//	iniFile.GetKeyDouble("DrivePrms", "Wheel1NeutralPosition", &m_Param.vdWheelNtrlPosRad[0], true);
-//	iniFile.GetKeyDouble("DrivePrms", "Wheel2NeutralPosition", &m_Param.vdWheelNtrlPosRad[1], true);
-//	iniFile.GetKeyDouble("DrivePrms", "Wheel3NeutralPosition", &m_Param.vdWheelNtrlPosRad[2], true);
-//	iniFile.GetKeyDouble("DrivePrms", "Wheel4NeutralPosition", &m_Param.vdWheelNtrlPosRad[3], true);
+	if(m_iNumDrives >=1)
+		iniFile.GetKeyDouble("DrivePrms", "Wheel1NeutralPosition", &m_Param.vdWheelNtrlPosRad[0], true);
+	if(m_iNumDrives >=2)
+		iniFile.GetKeyDouble("DrivePrms", "Wheel2NeutralPosition", &m_Param.vdWheelNtrlPosRad[1], true);
+	if(m_iNumDrives >=3)
+		iniFile.GetKeyDouble("DrivePrms", "Wheel3NeutralPosition", &m_Param.vdWheelNtrlPosRad[2], true);
+	if(m_iNumDrives >=4)
+		iniFile.GetKeyDouble("DrivePrms", "Wheel4NeutralPosition", &m_Param.vdWheelNtrlPosRad[3], true);
 
 	//Convert Degree-Value from ini-File into Radian:
 	for(int i=0; i<m_iNumDrives; i++)

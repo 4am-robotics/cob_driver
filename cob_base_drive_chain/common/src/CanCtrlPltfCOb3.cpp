@@ -267,13 +267,13 @@ void CanCtrlPltfCOb3::readConfiguration()
 	m_IniFile.GetKeyInt("Geom", "RadiusWheel", &m_Param.iRadiusWheelMM, true);
 	m_IniFile.GetKeyInt("Geom", "DistSteerAxisToDriveWheelCenter", &m_Param.iDistSteerAxisToDriveWheelMM, true);
 
-	if((m_iNumMotors/2) >= 1)
+	if(m_iNumDrives >= 1)
 		m_IniFile.GetKeyDouble("DrivePrms", "Wheel1SteerDriveCoupling", &m_Param.dWheel1SteerDriveCoupling, true);
-	if((m_iNumMotors/2) >= 2)
+	if(m_iNumDrives >= 2)
 		m_IniFile.GetKeyDouble("DrivePrms", "Wheel2SteerDriveCoupling", &m_Param.dWheel2SteerDriveCoupling, true);
-	if((m_iNumMotors/2) >= 3)
+	if(m_iNumDrives >= 3)
 		m_IniFile.GetKeyDouble("DrivePrms", "Wheel3SteerDriveCoupling", &m_Param.dWheel3SteerDriveCoupling, true);
-	if((m_iNumMotors/2) == 4)
+	if(m_iNumDrives == 4)
 		m_IniFile.GetKeyDouble("DrivePrms", "Wheel4SteerDriveCoupling", &m_Param.dWheel4SteerDriveCoupling, true);
 
 
