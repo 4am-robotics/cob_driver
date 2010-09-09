@@ -153,10 +153,10 @@ class NodeClass
 
 		// global variables
 		// generate can-node handle
-		CanCtrlPltfCOb3 m_CanCtrlPltf;
+		CanCtrlPltfCOb3 *m_CanCtrlPltf;
 		bool m_bisInitialized;
         int m_iNumMotors;
-        int numberOfMotors, numberOfDrives;
+        int m_iNumDrives;
 
 		struct ParamType
 		{ 
@@ -176,8 +176,26 @@ class NodeClass
 
 //			m_iNumMotors = 8;
 			m_iNumMotors = 2;
-			numberOfMotors = 2;
-			numberOfDrives = 1;
+			m_iNumDrives = 1;
+			
+			/// Parameters are set within the launch file
+			// Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
+			n.param<std::string>("IniDirectory", sIniDirectory, "Platform/IniFiles/");
+			ROS_INFO("IniDirectory loaded from Parameter-Server is: %s", sIniDirectory.c_str());
+			
+			IniFile iniFile;
+			iniFile.SetFileName(sIniDirectory + "Platform.ini", "PltfHardwareCoB3.h");
+
+			// get max Joint-Velocities (in rad/s) for Steer- and Drive-Joint
+			iniFile.GetKeyInt("Config", "NumberOfMotors", &m_iNumMotors, true);
+			iniFile.GetKeyInt("Config", "NumberOfWheels", &m_iNumDrives, true);
+			if(m_iNumMotors < 2 || m_iNumMotors > 8) {
+				m_iNumMotors = 8;
+				m_iNumDrives = 4;
+			}
+			
+			m_CanCtrlPltf = new CanCtrlPltfCOb3(sIniDirectory);
+			
 
 			// implementation of topics
 			// published topics
@@ -242,8 +260,8 @@ class NodeClass
 					}
 
 					// and cmd velocities to Can-Nodes
-					//m_CanCtrlPltf.setVelGearRadS(iCanIdent, dVelEncRadS);
-					iRet = m_CanCtrlPltf.setVelGearRadS(i, JointStateCmd.velocity[i]);
+					//m_CanCtrlPltf->setVelGearRadS(iCanIdent, dVelEncRadS);
+					iRet = m_CanCtrlPltf->setVelGearRadS(i, JointStateCmd.velocity[i]);
 	  			}
 			}
 		}
@@ -260,7 +278,7 @@ class NodeClass
 			{
 				m_bisInitialized = initDrives();
 				//ROS_INFO("...initializing can-nodes...");
-				//m_bisInitialized = m_CanCtrlPltf.initPltf();
+				//m_bisInitialized = m_CanCtrlPltf->initPltf();
 				res.success = m_bisInitialized;
 				if(m_bisInitialized)
 				{
@@ -284,8 +302,8 @@ class NodeClass
 		bool srvCallback_ElmoRecorderConfig(cob_srvs::ElmoRecorderConfig::Request &req,
 							  cob_srvs::ElmoRecorderConfig::Response &res ){
 			if(m_bisInitialized) {			
-				m_CanCtrlPltf.evalCanBuffer();
-				res.success = m_CanCtrlPltf.ElmoRecordings(0, req.recordinggap, "");
+				m_CanCtrlPltf->evalCanBuffer();
+				res.success = m_CanCtrlPltf->ElmoRecordings(0, req.recordinggap, "");
 				res.message = "Successfully configured all motors for instant record";
 			}
 
@@ -295,8 +313,8 @@ class NodeClass
 		bool srvCallback_ElmoRecorderReadout(cob_srvs::ElmoRecorderReadout::Request &req,
 							  cob_srvs::ElmoRecorderReadout::Response &res ){
 			if(m_bisInitialized) {
-				m_CanCtrlPltf.evalCanBuffer();
-				res.success = m_CanCtrlPltf.ElmoRecordings(1, req.subindex, req.fileprefix);
+				m_CanCtrlPltf->evalCanBuffer();
+				res.success = m_CanCtrlPltf->ElmoRecordings(1, req.subindex, req.fileprefix);
 				if(res.success == 0) res.message = "Successfully requested reading out of Recorded data";
 				else if(res.success == 1) res.message = "Recorder hasn't been configured well yet";
 				else if(res.success == 2) res.message = "A previous transmission is still in progress";
@@ -312,7 +330,7 @@ class NodeClass
                                      cob_srvs::Trigger::Response &res )
         {
 			ROS_DEBUG("Service Callback Reset");
-			res.success = m_CanCtrlPltf.resetPltf();
+			res.success = m_CanCtrlPltf->resetPltf();
 			if (res.success)
 	   			ROS_INFO("Can-Node resetted");
 			else
@@ -327,7 +345,7 @@ class NodeClass
                                      cob_srvs::Trigger::Response &res )
         {
 			ROS_DEBUG("Service Callback Shutdown");
-			res.success = m_CanCtrlPltf.shutdownPltf();
+			res.success = m_CanCtrlPltf->shutdownPltf();
 			if (res.success)
 	   			ROS_INFO("Drives shut down");
 			else
@@ -415,13 +433,13 @@ class NodeClass
 			{
 				// as soon as drive chain is initialized
 				// read Can-Buffer
-				iCanEvalStatus = m_CanCtrlPltf.evalCanBuffer();
+				iCanEvalStatus = m_CanCtrlPltf->evalCanBuffer();
 				
 				j = 0;
 				k = 0;
 				for(int i = 0; i<m_iNumMotors; i++)
 				{
-					ret = m_CanCtrlPltf.getGearPosVelRadS(i,  &vdAngGearRad[i], &vdVelGearRad[i]);
+					ret = m_CanCtrlPltf->getGearPosVelRadS(i,  &vdAngGearRad[i], &vdVelGearRad[i]);
    					// if a steering motor was read -> correct for offset
    					if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
 					{
@@ -466,7 +484,7 @@ class NodeClass
 			if(m_bisInitialized)
 			{
 				// read Can only after initialization
-				bIsError = m_CanCtrlPltf.isPltfError();
+				bIsError = m_CanCtrlPltf->isPltfError();
 			}
 
 			// set data to diagnostics
@@ -518,7 +536,7 @@ int main(int argc, char** argv)
 	{
 		// Read out the CAN buffer only every n seconds; cycle the loop without any sleep time to make services available at all time.
 		if(ros::Time::now().toSec() - time_evalcan_buffer.toSec() > 0.001) {
-			if(nodeClass.m_bisInitialized) nodeClass.m_CanCtrlPltf.evalCanBuffer();
+			if(nodeClass.m_bisInitialized) nodeClass.m_CanCtrlPltf->evalCanBuffer();
 			//Read-out of CAN buffer is especially necessary during read-out of Elmo Recorder
 			time_evalcan_buffer = ros::Time::now();
 		}
@@ -534,16 +552,11 @@ bool NodeClass::initDrives()
 	ROS_INFO("Initializing Base Drive Chain");
 
     // init member vectors
-	m_Param.vdWheelNtrlPosRad.assign((numberOfDrives),0);
+	m_Param.vdWheelNtrlPosRad.assign((m_iNumDrives),0);
 //	m_Param.vdWheelNtrlPosRad.assign(4,0);
     // ToDo: replace the following steps by ROS configuration files
     // create Inifile class and set target inifile (from which data shall be read)
 	IniFile iniFile;
-
-	/// Parameters are set within the launch file
-	n.param<std::string>("IniDirectory", sIniDirectory, "Platform/IniFiles/");
-	ROS_INFO("IniDirectory loaded from Parameter-Server is: %s", sIniDirectory.c_str());
-	
 
 	//n.param<std::string>("PltfIniLoc", sIniFileName, "Platform/IniFiles/Platform.ini");
 	iniFile.SetFileName(sIniDirectory + "Platform.ini", "PltfHardwareCoB3.h");
@@ -553,7 +566,7 @@ bool NodeClass::initDrives()
 	iniFile.GetKeyDouble("DrivePrms", "MaxSteerRate", &m_Param.dMaxSteerRateRadpS, true);
 	
     // get Offset from Zero-Position of Steering
-	for(int i=0; i<numberOfDrives; i++)
+	for(int i=0; i<m_iNumDrives; i++)
 	{
 		std::string s="Wheel";
 		s+=i;
@@ -566,7 +579,7 @@ bool NodeClass::initDrives()
 //	iniFile.GetKeyDouble("DrivePrms", "Wheel4NeutralPosition", &m_Param.vdWheelNtrlPosRad[3], true);
 
 	//Convert Degree-Value from ini-File into Radian:
-	for(int i=0; i<numberOfDrives; i++)
+	for(int i=0; i<m_iNumDrives; i++)
 	{
 		m_Param.vdWheelNtrlPosRad[i] = MathSup::convDegToRad(m_Param.vdWheelNtrlPosRad[i]);
 	}
@@ -577,7 +590,7 @@ bool NodeClass::initDrives()
 	// debug log
 	ROS_INFO("Initializing CanCtrlItf");
 	bool bTemp1;
-	bTemp1 =  m_CanCtrlPltf.initPltf(sIniDirectory);
+	bTemp1 =  m_CanCtrlPltf->initPltf();
 	// debug log
 	ROS_INFO("Initializing done");
 

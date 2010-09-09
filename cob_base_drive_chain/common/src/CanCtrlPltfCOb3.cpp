@@ -63,64 +63,73 @@
 #include <cob_generic_can/CanPeakSysUSB.h>
 #include <cob_base_drive_chain/CanCtrlPltfCOb3.h>
 
-//TO DO: Read from Ini-File
-int numberOfMotors = 2;
-int numberOfSteers = 1;
-int numberOfDrives = 1;
 
 //-----------------------------------------------
 
-CanCtrlPltfCOb3::CanCtrlPltfCOb3()
-{
+CanCtrlPltfCOb3::CanCtrlPltfCOb3(std::string iniDirectory)
+{	
+	sIniDirectory = iniDirectory;
+	IniFile iniFile;
+	iniFile.SetFileName(sIniDirectory + "Platform.ini", "PltfHardwareCoB3.h");
+
+	// get max Joint-Velocities (in rad/s) for Steer- and Drive-Joint
+	iniFile.GetKeyInt("Config", "NumberOfMotors", &m_iNumMotors, true);
+	iniFile.GetKeyInt("Config", "NumberOfWheels", &m_iNumDrives, true);
+
+	if(m_iNumMotors < 2 || m_iNumMotors > 8) {
+		m_iNumMotors = 8;
+		m_iNumDrives = 4;
+	}
+
 	// ------------- first of all set used CanItf
 	m_pCanCtrl = NULL;
 
 	// ------------- init hardware-specific vectors and set default values
-	m_vpMotor.resize(numberOfMotors);
+	m_vpMotor.resize(m_iNumMotors);
 
-	for(int i=0; i<numberOfMotors; i++)
+	for(int i=0; i<m_iNumMotors; i++)
 	{
 		m_vpMotor[i] = NULL;
 	}
 
-	m_viMotorID.resize(numberOfMotors);
+	m_viMotorID.resize(m_iNumMotors);
 
 //	m_viMotorID.resize(8);
-	if(numberOfMotors >= 1)
+	if(m_iNumMotors >= 1)
 		m_viMotorID[0] = CANNODE_WHEEL1DRIVEMOTOR;
-	if(numberOfMotors >= 2)
+	if(m_iNumMotors >= 2)
 		m_viMotorID[1] = CANNODE_WHEEL1STEERMOTOR;
-	if(numberOfMotors >= 3)
+	if(m_iNumMotors >= 3)
 		m_viMotorID[2] = CANNODE_WHEEL2DRIVEMOTOR;
-	if(numberOfMotors >= 4)
+	if(m_iNumMotors >= 4)
 		m_viMotorID[3] = CANNODE_WHEEL2STEERMOTOR;
-	if(numberOfMotors >= 5)
+	if(m_iNumMotors >= 5)
 		m_viMotorID[4] = CANNODE_WHEEL3DRIVEMOTOR;
-	if(numberOfMotors >= 6)
+	if(m_iNumMotors >= 6)
 		m_viMotorID[5] = CANNODE_WHEEL3STEERMOTOR;
-	if(numberOfMotors >= 7)
+	if(m_iNumMotors >= 7)
 		m_viMotorID[6] = CANNODE_WHEEL4DRIVEMOTOR;
-	if(numberOfMotors == 8)
+	if(m_iNumMotors == 8)
 		m_viMotorID[7] = CANNODE_WHEEL4STEERMOTOR;
 
 	// ------------- parameters
 	m_Param.dCanTimeout = 7;
 
-	if(numberOfMotors >= 1)
+	if(m_iNumMotors >= 1)
 		m_Param.iHasWheel1DriveMotor = 0;
-	if(numberOfMotors >= 2)
+	if(m_iNumMotors >= 2)
 		m_Param.iHasWheel1SteerMotor = 0;
-	if(numberOfMotors >= 3)
+	if(m_iNumMotors >= 3)
 		m_Param.iHasWheel2DriveMotor = 0;
-	if(numberOfMotors >= 4)
+	if(m_iNumMotors >= 4)
 		m_Param.iHasWheel2SteerMotor = 0;
-	if(numberOfMotors >= 5)
+	if(m_iNumMotors >= 5)
 		m_Param.iHasWheel3DriveMotor = 0;
-	if(numberOfMotors >= 6)
+	if(m_iNumMotors >= 6)
 		m_Param.iHasWheel3SteerMotor = 0;
-	if(numberOfMotors >= 7)
+	if(m_iNumMotors >= 7)
 		m_Param.iHasWheel4DriveMotor = 0;
-	if(numberOfMotors == 8)
+	if(m_iNumMotors == 8)
 		m_Param.iHasWheel4SteerMotor = 0;
 
 	m_Param.iHasRelayBoard = 0;
@@ -136,7 +145,7 @@ CanCtrlPltfCOb3::CanCtrlPltfCOb3()
 	// ------------ For CanOpen (Harmonica)
 	// Wheel 1
 	// can adresse motor 1
-	if(numberOfMotors >= 1)
+	if(m_iNumMotors >= 1)
 	{
 		m_CanOpenIDParam.TxPDO1_W1Drive = 0x182;
 		m_CanOpenIDParam.TxPDO2_W1Drive = 0x282;
@@ -145,7 +154,7 @@ CanCtrlPltfCOb3::CanCtrlPltfCOb3()
 		m_CanOpenIDParam.RxSDO_W1Drive = 0x602;
 	}
 	// can adresse motor 2
-	if(numberOfMotors >= 2)
+	if(m_iNumMotors >= 2)
 	{
 		m_CanOpenIDParam.TxPDO1_W1Steer = 0x181;
 		m_CanOpenIDParam.TxPDO2_W1Steer = 0x281;
@@ -155,7 +164,7 @@ CanCtrlPltfCOb3::CanCtrlPltfCOb3()
 	}
 	// Wheel 2
 	// can adresse motor 7
-	if(numberOfMotors >= 3)
+	if(m_iNumMotors >= 3)
 	{
 		m_CanOpenIDParam.TxPDO1_W2Drive = 0x184;
 		m_CanOpenIDParam.TxPDO2_W2Drive = 0x284;
@@ -164,7 +173,7 @@ CanCtrlPltfCOb3::CanCtrlPltfCOb3()
 		m_CanOpenIDParam.RxSDO_W2Drive = 0x604;
 	}
 	// can adresse motor 8
-	if(numberOfMotors >= 4)
+	if(m_iNumMotors >= 4)
 	{
 		m_CanOpenIDParam.TxPDO1_W2Steer = 0x183;
 		m_CanOpenIDParam.TxPDO2_W2Steer = 0x283;
@@ -174,7 +183,7 @@ CanCtrlPltfCOb3::CanCtrlPltfCOb3()
 	}
 	// Wheel 3
 	// can adresse motor 5
-	if(numberOfMotors >= 5)
+	if(m_iNumMotors >= 5)
 	{
 		m_CanOpenIDParam.TxPDO1_W3Drive = 0x188;
 		m_CanOpenIDParam.TxPDO2_W3Drive = 0x288;
@@ -183,7 +192,7 @@ CanCtrlPltfCOb3::CanCtrlPltfCOb3()
 		m_CanOpenIDParam.RxSDO_W3Drive = 0x608;
 	}
 	// can adresse motor 6
-	if(numberOfMotors >= 6)
+	if(m_iNumMotors >= 6)
 	{
 		m_CanOpenIDParam.TxPDO1_W3Steer = 0x187;
 		m_CanOpenIDParam.TxPDO2_W3Steer = 0x287;
@@ -193,7 +202,7 @@ CanCtrlPltfCOb3::CanCtrlPltfCOb3()
 	}
 	// Wheel 4
 	// can adresse motor 3
-	if(numberOfMotors >= 7)
+	if(m_iNumMotors >= 7)
 	{
 		m_CanOpenIDParam.TxPDO1_W4Drive = 0x186;
 		m_CanOpenIDParam.TxPDO2_W4Drive = 0x286;
@@ -202,7 +211,7 @@ CanCtrlPltfCOb3::CanCtrlPltfCOb3()
 		m_CanOpenIDParam.RxSDO_W4Drive = 0x606;
 	}
 	// can adresse motor 4
-	if(numberOfMotors == 8)
+	if(m_iNumMotors == 8)
 	{
 		m_CanOpenIDParam.TxPDO1_W4Steer = 0x185;
 		m_CanOpenIDParam.TxPDO2_W4Steer = 0x285;
@@ -258,13 +267,13 @@ void CanCtrlPltfCOb3::readConfiguration()
 	m_IniFile.GetKeyInt("Geom", "RadiusWheel", &m_Param.iRadiusWheelMM, true);
 	m_IniFile.GetKeyInt("Geom", "DistSteerAxisToDriveWheelCenter", &m_Param.iDistSteerAxisToDriveWheelMM, true);
 
-	if((numberOfMotors/2) >= 1)
+	if((m_iNumMotors/2) >= 1)
 		m_IniFile.GetKeyDouble("DrivePrms", "Wheel1SteerDriveCoupling", &m_Param.dWheel1SteerDriveCoupling, true);
-	if((numberOfMotors/2) >= 2)
+	if((m_iNumMotors/2) >= 2)
 		m_IniFile.GetKeyDouble("DrivePrms", "Wheel2SteerDriveCoupling", &m_Param.dWheel2SteerDriveCoupling, true);
-	if((numberOfMotors/2) >= 3)
+	if((m_iNumMotors/2) >= 3)
 		m_IniFile.GetKeyDouble("DrivePrms", "Wheel3SteerDriveCoupling", &m_Param.dWheel3SteerDriveCoupling, true);
-	if((numberOfMotors/2) == 4)
+	if((m_iNumMotors/2) == 4)
 		m_IniFile.GetKeyDouble("DrivePrms", "Wheel4SteerDriveCoupling", &m_Param.dWheel4SteerDriveCoupling, true);
 
 
@@ -300,7 +309,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	// CanOpenId's ----- Default values (DESIRE)
 	// Wheel 1
 	// DriveMotor
-	if(numberOfDrives >= 1)
+	if(m_iNumDrives >= 1)
 	{
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO1_W1Drive", &m_CanOpenIDParam.TxPDO1_W1Drive, true);
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO2_W1Drive", &m_CanOpenIDParam.TxPDO2_W1Drive, true);
@@ -309,7 +318,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyInt("CanOpenIDs", "RxSDO_W1Drive", &m_CanOpenIDParam.RxSDO_W1Drive, true);
 	}
 	// SteerMotor
-	if(numberOfSteers >= 1)
+	if(m_iNumDrives >= 1)
 	{
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO1_W1Steer", &m_CanOpenIDParam.TxPDO1_W1Steer, true);
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO2_W1Steer", &m_CanOpenIDParam.TxPDO2_W1Steer, true);
@@ -320,7 +329,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	
 	// Wheel 2
 	// DriveMotor
-	if(numberOfDrives >= 2)
+	if(m_iNumDrives >= 2)
 	{
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO1_W2Drive", &m_CanOpenIDParam.TxPDO1_W2Drive, true);
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO2_W2Drive", &m_CanOpenIDParam.TxPDO2_W2Drive, true);
@@ -329,7 +338,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyInt("CanOpenIDs", "RxSDO_W2Drive", &m_CanOpenIDParam.RxSDO_W2Drive, true);
 	}
 	// SteerMotor
-	if(numberOfSteers >= 2)
+	if(m_iNumDrives >= 2)
 	{
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO1_W2Steer", &m_CanOpenIDParam.TxPDO1_W2Steer, true);
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO2_W2Steer", &m_CanOpenIDParam.TxPDO2_W2Steer, true);
@@ -340,7 +349,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	
 	// Wheel 3
 	// DriveMotor
-	if(numberOfDrives >= 3)
+	if(m_iNumDrives >= 3)
 	{
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO1_W3Drive", &m_CanOpenIDParam.TxPDO1_W3Drive, true);
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO2_W3Drive", &m_CanOpenIDParam.TxPDO2_W3Drive, true);
@@ -349,7 +358,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyInt("CanOpenIDs", "RxSDO_W3Drive", &m_CanOpenIDParam.RxSDO_W3Drive, true);
 	}
 	// SteerMotor
-	if(numberOfSteers >= 3)
+	if(m_iNumDrives >= 3)
 	{
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO1_W3Steer", &m_CanOpenIDParam.TxPDO1_W3Steer, true);
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO2_W3Steer", &m_CanOpenIDParam.TxPDO2_W3Steer, true);
@@ -360,7 +369,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	
 	// Wheel 4
 	// DriveMotor
-	if(numberOfDrives >= 4)
+	if(m_iNumDrives >= 4)
 	{
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO1_W4Drive", &m_CanOpenIDParam.TxPDO1_W4Drive, true);
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO2_W4Drive", &m_CanOpenIDParam.TxPDO2_W4Drive, true);
@@ -369,7 +378,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyInt("CanOpenIDs", "RxSDO_W4Drive", &m_CanOpenIDParam.RxSDO_W4Drive, true);
 	}
 	// SteerMotor
-	if(numberOfSteers == 4)
+	if(m_iNumDrives == 4)
 	{
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO1_W4Steer", &m_CanOpenIDParam.TxPDO1_W4Steer, true);
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO2_W4Steer", &m_CanOpenIDParam.TxPDO2_W4Steer, true);
@@ -393,7 +402,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	*/
 
 	// "Drive Motor Type1" drive parameters	
-	if(numberOfDrives >= 1)
+	if(m_iNumDrives >= 1)
 	{
 		m_IniFile.GetKeyInt("Drive1", "EncIncrPerRevMot", &(m_GearMotDrive1.iEncIncrPerRevMot), true);
 		m_IniFile.GetKeyDouble("Drive1", "VelMeasFrqHz", &(m_GearMotDrive1.dVelMeasFrqHz), true);
@@ -410,7 +419,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	}
 
 	// "Drive Motor Type2" drive parameters	
-	if(numberOfDrives >= 2)
+	if(m_iNumDrives >= 2)
 	{
 		m_IniFile.GetKeyInt("Drive2", "EncIncrPerRevMot", &(m_GearMotDrive2.iEncIncrPerRevMot), true);
 		m_IniFile.GetKeyDouble("Drive2", "VelMeasFrqHz", &(m_GearMotDrive2.dVelMeasFrqHz), true);
@@ -427,7 +436,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	}
 
 	// "Drive Motor Type3" drive parameters	
-	if(numberOfDrives >= 3)
+	if(m_iNumDrives >= 3)
 	{
 		m_IniFile.GetKeyInt("Drive3", "EncIncrPerRevMot", &(m_GearMotDrive3.iEncIncrPerRevMot), true);
 		m_IniFile.GetKeyDouble("Drive3", "VelMeasFrqHz", &(m_GearMotDrive3.dVelMeasFrqHz), true);
@@ -444,7 +453,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	}
 
 	// "Drive Motor Type4" drive parameters	
-	if(numberOfDrives == 4)
+	if(m_iNumDrives == 4)
 	{
 		m_IniFile.GetKeyInt("Drive4", "EncIncrPerRevMot", &(m_GearMotDrive4.iEncIncrPerRevMot), true);
 		m_IniFile.GetKeyDouble("Drive4", "VelMeasFrqHz", &(m_GearMotDrive4.dVelMeasFrqHz), true);
@@ -461,7 +470,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	}
 
 	// "Steer Motor Type1" drive parameters	
-	if(numberOfSteers >= 1)
+	if(m_iNumDrives >= 1)
 	{
 		m_IniFile.GetKeyInt("Steer1", "EncIncrPerRevMot", &(m_GearMotSteer1.iEncIncrPerRevMot), true);
 		m_IniFile.GetKeyDouble("Steer1", "VelMeasFrqHz", &(m_GearMotSteer1.dVelMeasFrqHz), true);
@@ -478,7 +487,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	}
 
 	// "Steer Motor Type2" drive parameters	
-	if(numberOfSteers >= 2)
+	if(m_iNumDrives >= 2)
 	{
 		m_IniFile.GetKeyInt("Steer2", "EncIncrPerRevMot", &(m_GearMotSteer2.iEncIncrPerRevMot), true);
 		m_IniFile.GetKeyDouble("Steer2", "VelMeasFrqHz", &(m_GearMotSteer2.dVelMeasFrqHz), true);
@@ -495,7 +504,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	}
 
 	// "Steer Motor Type3" drive parameters	
-	if(numberOfSteers >= 3)
+	if(m_iNumDrives >= 3)
 	{
 		m_IniFile.GetKeyInt("Steer3", "EncIncrPerRevMot", &(m_GearMotSteer3.iEncIncrPerRevMot), true);
 		m_IniFile.GetKeyDouble("Steer3", "VelMeasFrqHz", &(m_GearMotSteer3.dVelMeasFrqHz), true);
@@ -512,7 +521,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	}
 
 	// "Steer Motor Type4" drive parameters	
-	if(numberOfSteers == 4)
+	if(m_iNumDrives == 4)
 	{
 		m_IniFile.GetKeyInt("Steer4", "EncIncrPerRevMot", &(m_GearMotSteer4.iEncIncrPerRevMot), true);
 		m_IniFile.GetKeyDouble("Steer4", "VelMeasFrqHz", &(m_GearMotSteer4.dVelMeasFrqHz), true);
@@ -528,7 +537,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyDouble("Steer4", "CurrMax", &(m_GearMotSteer4.dCurrMax), false);
 	}
 
-	if(numberOfDrives >= 1)
+	if(m_iNumDrives >= 1)
 	{
 		DriveParamW1DriveMotor.setParam(
 			0,
@@ -546,7 +555,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotDrive1.dCurrMax);
 	}
 	
-	if(numberOfSteers >= 1)
+	if(m_iNumDrives >= 1)
 	{
 		DriveParamW1SteerMotor.setParam(
 			1,
@@ -564,7 +573,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotSteer1.dCurrMax);
 	}
 
-	if(numberOfDrives >= 2)
+	if(m_iNumDrives >= 2)
 	{
 		DriveParamW2DriveMotor.setParam(
 			2,
@@ -582,7 +591,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotDrive2.dCurrMax);
 	}
 	
-	if(numberOfSteers >= 2)
+	if(m_iNumDrives >= 2)
 	{
 		DriveParamW2SteerMotor.setParam(
 			3,
@@ -600,7 +609,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotSteer2.dCurrMax);
 	}
 
-	if(numberOfDrives >= 3)
+	if(m_iNumDrives >= 3)
 	{
 		DriveParamW3DriveMotor.setParam(
 			4,
@@ -618,7 +627,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotDrive3.dCurrMax);
 	}
 	
-	if(numberOfSteers >= 3)
+	if(m_iNumDrives >= 3)
 	{
 		DriveParamW3SteerMotor.setParam(
 			5,
@@ -636,7 +645,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotSteer3.dCurrMax);
 	}
 
-	if(numberOfDrives == 4)
+	if(m_iNumDrives == 4)
 	{
 		DriveParamW4DriveMotor.setParam(
 			6,
@@ -654,7 +663,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotDrive4.dCurrMax);
 	}
 	
-	if(numberOfSteers == 4)
+	if(m_iNumDrives == 4)
 	{
 		DriveParamW4SteerMotor.setParam(
 			7,
@@ -681,7 +690,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 
 	// ------ WHEEL 1 ------ //
 	// --- Motor Wheel 1 Drive
-	if(numberOfDrives >= 1)
+	if(m_iNumDrives >= 1)
 	{
 		m_IniFile.GetKeyInt("Config", "Wheel1DriveMotor", &m_Param.iHasWheel1DriveMotor, true);
 		if (m_Param.iHasWheel1DriveMotor == 0)
@@ -703,7 +712,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	}
 
 	// --- Motor Wheel 1 Steer
-	if(numberOfSteers >= 1)
+	if(m_iNumDrives >= 1)
 	{
 		m_IniFile.GetKeyInt("Config", "Wheel1SteerMotor", &m_Param.iHasWheel1SteerMotor, true);
 		if (m_Param.iHasWheel1SteerMotor == 0)
@@ -727,7 +736,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	
 	// ------ WHEEL 2 ------ //
 	// --- Motor Wheel 2 Drive
-	if(numberOfDrives >= 2)
+	if(m_iNumDrives >= 2)
 	{
 		m_IniFile.GetKeyInt("Config", "Wheel2DriveMotor", &m_Param.iHasWheel2DriveMotor, true);
 		if (m_Param.iHasWheel2DriveMotor == 0)
@@ -749,7 +758,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	}
 
 	// --- Motor Wheel 2 Steer
-	if(numberOfSteers >= 2)
+	if(m_iNumDrives >= 2)
 	{
 		m_IniFile.GetKeyInt("Config", "Wheel2SteerMotor", &m_Param.iHasWheel2SteerMotor, true);
 		if (m_Param.iHasWheel2SteerMotor == 0)
@@ -773,7 +782,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	
 	// ------ WHEEL 3 ------ //
 	// --- Motor Wheel 3 Drive
-	if(numberOfDrives >= 3)
+	if(m_iNumDrives >= 3)
 	{
 		m_IniFile.GetKeyInt("Config", "Wheel3DriveMotor", &m_Param.iHasWheel3DriveMotor, true);
 		if (m_Param.iHasWheel3DriveMotor == 0)
@@ -795,7 +804,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	}
 
 	// --- Motor Wheel 3 Steer
-	if(numberOfSteers >= 3)
+	if(m_iNumDrives >= 3)
 	{
 		m_IniFile.GetKeyInt("Config", "Wheel3SteerMotor", &m_Param.iHasWheel3SteerMotor, true);
 		if (m_Param.iHasWheel3SteerMotor == 0)
@@ -819,7 +828,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	
 	// ------ WHEEL 4 ------ //
 	// --- Motor Wheel 4 Drive
-	if(numberOfDrives == 4)
+	if(m_iNumDrives == 4)
 	{
 		m_IniFile.GetKeyInt("Config", "Wheel4DriveMotor", &m_Param.iHasWheel4DriveMotor, true);
 		if (m_Param.iHasWheel4DriveMotor == 0)
@@ -841,7 +850,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	}
 
 	// --- Motor Wheel 4 Steer
-	if(numberOfSteers == 4)
+	if(m_iNumDrives == 4)
 	{
 		m_IniFile.GetKeyInt("Config", "Wheel4SteerMotor", &m_Param.iHasWheel4SteerMotor, true);
 		if (m_Param.iHasWheel4SteerMotor == 0)
@@ -900,10 +909,9 @@ int CanCtrlPltfCOb3::evalCanBuffer()
 }
 
 //-----------------------------------------------
-bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
+bool CanCtrlPltfCOb3::initPltf()
 {	
 	// read Configuration parameters from Inifile
-	sIniDirectory = iniDirectory;
 	readConfiguration();
 		
 	// Vectors for drive objects and return values
@@ -915,17 +923,17 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 
 //	vbRetDriveMotor.assign(4,0);
 //	vbRetSteerMotor.assign(4,0);
-	vbRetDriveMotor.assign(numberOfDrives,0);
-	vbRetSteerMotor.assign(numberOfSteers,0);
+	vbRetDriveMotor.assign(m_iNumDrives,0);
+	vbRetSteerMotor.assign(m_iNumDrives,0);
 
 	// Homing is done on a wheel-module base (steering and driving needs to be synchronized) 
 	// copy Motor-Pointer into Steer/Drive vector for more insight
-	for(int i=0; i<=numberOfDrives; i+=2)
+	for(int i=0; i<=m_iNumDrives; i+=2)
 		vpDriveMotor.push_back(m_vpMotor[i]);
 //	vpDriveMotor.push_back(m_vpMotor[2]);
 //	vpDriveMotor.push_back(m_vpMotor[4]);
 //	vpDriveMotor.push_back(m_vpMotor[6]);
-	for(int i=1; i<=numberOfSteers; i+=2)
+	for(int i=1; i<=m_iNumDrives; i+=2)
 		vpSteerMotor.push_back(m_vpMotor[i]);
 //	vpSteerMotor.push_back(m_vpMotor[3]);
 //	vpSteerMotor.push_back(m_vpMotor[5]);
@@ -933,7 +941,7 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 
 	std::vector<double> vdFactorVel;
 //	vdFactorVel.assign(4,0);
-	vdFactorVel.assign(numberOfDrives,0);
+	vdFactorVel.assign(m_iNumDrives,0);
 	double dhomeVeloRadS = -1.0;
 
 
@@ -946,7 +954,7 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 	
 	// 1st init watchdogs
 	std::cout << "Initialization of Watchdogs" << std::endl;
-	for(int i=0; i<numberOfMotors; i++)
+	for(int i=0; i<m_iNumMotors; i++)
 	{
 		m_vpMotor[i]->startWatchdog(true);
 	}
@@ -962,7 +970,7 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 	usleep(10000);
 	
 	// 2nd send watchdogs to bed while initializing drives
-	for(int i=0; i<numberOfMotors; i++)
+	for(int i=0; i<m_iNumMotors; i++)
 	{
 		m_vpMotor[i]->startWatchdog(false);
 	}
@@ -983,10 +991,10 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 	// ---------------------- start homing procedurs
 	// Perform homing of all wheels simultaneously
 	// o.k. to avoid crashing hardware -> lets check that we have at least the 8 motors, like we have on cob
-	if( m_vpMotor.size() == numberOfMotors )
+	if( m_vpMotor.size() == m_iNumMotors )
 	{
 		// Initialize and start all motors
-		for (int i = 0; i<numberOfDrives; i++)
+		for (int i = 0; i<m_iNumDrives; i++)
 		{
 			// init + start
 			vbRetDriveMotor[i] = vpDriveMotor[i]->init();
@@ -1013,7 +1021,7 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 //		if (vbRetDriveMotor[0] && vbRetDriveMotor[1] && vbRetDriveMotor[2] && vbRetDriveMotor[3] &&
 //			vbRetSteerMotor[0] && vbRetSteerMotor[1] && vbRetSteerMotor[2] && vbRetSteerMotor[3])
 		bHomingOk = true;
-		for(int i=0; i<numberOfDrives; i++)
+		for(int i=0; i<m_iNumDrives; i++)
 		{
 			if((vbRetDriveMotor[i] && vbRetSteerMotor[i]) == false)
 				bHomingOk = false;
@@ -1021,21 +1029,21 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 		if(bHomingOk)
 		{
 			// Calc Compensation factor for Velocity:
-			if(numberOfDrives >= 1)
+			if(m_iNumDrives >= 1)
 				vdFactorVel[0] = - m_Param.dWheel1SteerDriveCoupling + double(m_Param.iDistSteerAxisToDriveWheelMM) / double(m_Param.iRadiusWheelMM);
-			if(numberOfDrives >= 2)
+			if(m_iNumDrives >= 2)
 				vdFactorVel[1] = - m_Param.dWheel2SteerDriveCoupling + double(m_Param.iDistSteerAxisToDriveWheelMM) / double(m_Param.iRadiusWheelMM);
-			if(numberOfDrives >= 3)
+			if(m_iNumDrives >= 3)
 				vdFactorVel[2] = - m_Param.dWheel3SteerDriveCoupling + double(m_Param.iDistSteerAxisToDriveWheelMM) / double(m_Param.iRadiusWheelMM);
-			if(numberOfDrives == 4)
+			if(m_iNumDrives == 4)
 				vdFactorVel[3] = - m_Param.dWheel4SteerDriveCoupling + double(m_Param.iDistSteerAxisToDriveWheelMM) / double(m_Param.iRadiusWheelMM);
 
 			// initialize homing procedure
-			for (int i = 0; i<numberOfDrives; i++)
+			for (int i = 0; i<m_iNumDrives; i++)
 				vpSteerMotor[i]->initHoming();						
 			
 			// make motors move
-			for (int i = 0; i<numberOfDrives; i++)
+			for (int i = 0; i<m_iNumDrives; i++)
 			{
 				vpSteerMotor[i]->setGearVelRadS(dhomeVeloRadS);
 				vpDriveMotor[i]->setGearVelRadS(dhomeVeloRadS * vdFactorVel[i]);
@@ -1051,7 +1059,7 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 			while(bRet == true);
 
 			// arm homing procedure
-			for (int i = 0; i<numberOfDrives; i++)
+			for (int i = 0; i<m_iNumDrives; i++)
 				vpSteerMotor[i]->IntprtSetInt(8, 'H', 'M', 1, 1);
 
 			// wait until all steers are homed			
@@ -1060,7 +1068,7 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 			do
 			{
 				// send request for homing status
-				for (int i = 0; i<numberOfDrives; i++)
+				for (int i = 0; i<m_iNumDrives; i++)
 					vpSteerMotor[i]->IntprtSetInt(4, 'H', 'M', 1, 0);
 				
 				// eval Can Messages
@@ -1068,7 +1076,7 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 
 				// set already homed wheels to zero velocity
 				bAllDone = true;
-				for (int i = 0; i<numberOfDrives; i++)
+				for (int i = 0; i<m_iNumDrives; i++)
 				{
 					if (vpSteerMotor[i]->getStatusLimitSwitch())
 					{
@@ -1090,7 +1098,7 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 			// Output State
 			if (bTimeOut)
 			{
-				for (int i=0;i<numberOfDrives;i++)
+				for (int i=0;i<m_iNumDrives;i++)
 				{
 					vpSteerMotor[i]->setGearVelRadS(0);
 					vpDriveMotor[i]->setGearVelRadS(0);
@@ -1111,7 +1119,7 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 				do
 				{	
 					bAllDone = true;
-					for (int i = 0; i<numberOfDrives; i++)
+					for (int i = 0; i<m_iNumDrives; i++)
 					{
 						// get current position of steer
 						double dCurrentPosRad;
@@ -1139,7 +1147,7 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 
 				// Homing done. Wheels at position zero (+/- 0.5°)
 				std::cout << "Wheels homed" << std::endl;
-				for (int i=0;i<numberOfDrives;i++)
+				for (int i=0;i<m_iNumDrives;i++)
 				{
 					vpSteerMotor[i]->setGearVelRadS(0);
 					vpDriveMotor[i]->setGearVelRadS(0);
@@ -1150,7 +1158,7 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 	// ---------------------- end homing procedure
 
 	// homing done -> wake up watchdogs
-	for(int i=0; i<numberOfMotors; i++)
+	for(int i=0; i<m_iNumMotors; i++)
 	{
 		m_vpMotor[i]->startWatchdog(true);
 	}
@@ -1167,7 +1175,7 @@ bool CanCtrlPltfCOb3::initPltf(std::string iniDirectory)
 //		vbRetDriveMotor[0] && vbRetDriveMotor[1] && vbRetDriveMotor[2] && vbRetDriveMotor[3] &&
 //		vbRetSteerMotor[0] && vbRetSteerMotor[1] && vbRetSteerMotor[2] && vbRetSteerMotor[3]);
 	bHomingOk = true;
-	for(int i=0; i<numberOfDrives; i++)
+	for(int i=0; i<m_iNumDrives; i++)
 	{
 		if((vbRetDriveMotor[i] && vbRetSteerMotor[i]) == false)
 		{
