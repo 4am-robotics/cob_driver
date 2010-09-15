@@ -51,26 +51,34 @@
  *
  ****************************************************************/
 
-#include <cob_undercarriage_ctrl/UndercarriageCtrlGeom3_5.h>
+#include <cob_undercarriage_ctrl/UndercarriageCtrlGeom.h>
 #include <string>
 #include <sstream>
 
+FILE * pFile_WheelRadS;
+FILE * pFile_SteerRad;
+
 // Constructor
-UndercarriageCtrlGeom::UndercarriageCtrlGeom(void)
+UndercarriageCtrlGeom::UndercarriageCtrlGeom(std::string sIniDirectory)
 {
+	m_sIniDirectory = sIniDirectory;
+
 	// init EMStop flag
 	m_bEMStopActive = false;
 	m_iNumberOfDrives = 1;
+	
 	// init vectors
 	m_vdVelGearDriveRadS.assign(m_iNumberOfDrives,0);
 	m_vdVelGearSteerRadS.assign(m_iNumberOfDrives,0);
 	m_vdDltAngGearDriveRad.assign(m_iNumberOfDrives,0);
 	m_vdAngGearSteerRad.assign(m_iNumberOfDrives,0);
 
+	/*
 	m_vdVelGearDriveIntpRadS.assign(m_iNumberOfDrives,0);
 	m_vdVelGearSteerIntpRadS.assign(m_iNumberOfDrives,0);
 	m_vdAngGearSteerIntpRad.assign(m_iNumberOfDrives,0);
-
+	*/
+	
 	m_vdVelGearDriveCmdRadS.assign(m_iNumberOfDrives,0);
 	m_vdVelGearSteerCmdRadS.assign(m_iNumberOfDrives,0);
 	m_vdAngGearSteerCmdRad.assign(m_iNumberOfDrives,0);
@@ -89,6 +97,8 @@ UndercarriageCtrlGeom::UndercarriageCtrlGeom(void)
 	m_vdVelGearDriveTarget1RadS.assign(m_iNumberOfDrives,0);
 	m_vdAngGearSteerTarget2Rad.assign(m_iNumberOfDrives,0);
 	m_vdVelGearDriveTarget2RadS.assign(m_iNumberOfDrives,0);
+	m_vdAngGearSteerTargetRad.assign(m_iNumberOfDrives,0);
+	m_vdVelGearDriveTargetRadS.assign(m_iNumberOfDrives,0);
 
 	m_dCmdVelLongMMS = 0;
 	m_dCmdVelLatMMS = 0;
@@ -101,8 +111,10 @@ UndercarriageCtrlGeom::UndercarriageCtrlGeom(void)
 	
 	m_vdCtrlVal.assign( m_iNumberOfDrives, std::vector<double> (2,0.0) );
 	
+	/*
 	m_vdDeltaAngIntpRad.assign(m_iNumberOfDrives,0);
 	m_vdDeltaDriveIntpRadS.assign(m_iNumberOfDrives,0);
+	*/
 
 	// init Prms of Impedance-Ctrlr
 	m_dSpring = 10.0;
@@ -122,10 +134,9 @@ UndercarriageCtrlGeom::~UndercarriageCtrlGeom(void)
 void UndercarriageCtrlGeom::InitUndercarriageCtrl(void)
 {
 	//LOG_OUT("Initializing Undercarriage-Controller (Geom)");
-
 	IniFile iniFile;
 
-	iniFile.SetFileName("Platform/IniFiles/Platform.ini", "UnderCarriageCtrlGeom.cpp");
+	iniFile.SetFileName(m_sIniDirectory + "Platform.ini", "UnderCarriageCtrlGeom.cpp");
 	iniFile.GetKeyInt("Geom", "DistWheels", &m_UnderCarriagePrms.iDistWheels, true);
 	iniFile.GetKeyInt("Geom", "RadiusWheel", &m_UnderCarriagePrms.iRadiusWheelMM, true);
 	iniFile.GetKeyInt("Geom", "DistSteerAxisToDriveWheelCenter", &m_UnderCarriagePrms.iDistSteerAxisToDriveWheelMM, true);
@@ -135,6 +146,8 @@ void UndercarriageCtrlGeom::InitUndercarriageCtrl(void)
 
 	iniFile.GetKeyDouble("DrivePrms", "MaxDriveRate", &m_UnderCarriagePrms.dMaxDriveRateRadpS, true);
 	iniFile.GetKeyDouble("DrivePrms", "MaxSteerRate", &m_UnderCarriagePrms.dMaxSteerRateRadpS, true);
+	
+	iniFile.GetKeyInt("Config", "NumberOfWheels", &m_iNumberOfDrives, true);
 
 	iniFile.GetKeyDouble("DrivePrms", "Wheel1SteerDriveCoupling", &m_UnderCarriagePrms.vdSteerDriveCoupling[0], true);
 
@@ -143,20 +156,22 @@ void UndercarriageCtrlGeom::InitUndercarriageCtrl(void)
 	for(int i = 0; i<m_iNumberOfDrives; i++)//for(int i = 0; i<4; i++)
 	{	
 		m_UnderCarriagePrms.WheelNeutralPos[i] = MathSup::convDegToRad(m_UnderCarriagePrms.WheelNeutralPos[i]);
-		m_vdAngGearSteerIntpRad[i] = m_UnderCarriagePrms.WheelNeutralPos[i];
+		/*m_vdAngGearSteerIntpRad[i] = m_UnderCarriagePrms.WheelNeutralPos[i];*/
 	}
 	
 	iniFile.GetKeyDouble("Thread", "ThrUCarrCycleTimeS", &m_UnderCarriagePrms.dCmdRateS, true);
 	
+	/*
 	// calc cycle-time factor between Motion- and UCar-Thread for CMD-Interpolation
 	m_dThreadCycleMultiplier = 2.0;	// default value
 	double dThreadMotionPltf = 0.05;	
 	iniFile.GetKeyDouble("Thread", "ThrMotionCycleTimeS", &dThreadMotionPltf, true);
 	m_dThreadCycleMultiplier = dThreadMotionPltf/m_UnderCarriagePrms.dCmdRateS;
 	m_dThreadCycleMultiplier = 1.0; // just for debug of ros node implementation
+	*/
 
 	// Read Values for Steering Position Controller from IniFile
-	iniFile.SetFileName("Platform/IniFiles/MotionCtrl.ini", "PltfHardwareCoB3.h");
+	iniFile.SetFileName(m_sIniDirectory + "MotionCtrl.ini", "PltfHardwareCoB3.h");
 	// Prms of Impedance-Ctrlr
 	iniFile.GetKeyDouble("SteerCtrl", "Spring", &m_dSpring, true);
 	iniFile.GetKeyDouble("SteerCtrl", "Damp", &m_dDamp, true);
@@ -421,7 +436,7 @@ void UndercarriageCtrlGeom::CalcControlStep(void)
 	static double u1k_1, e1k_1; // u(k-1), e(k-1) für Antriebsrad
 	static double u2k_1=0, e2k_1=0; // u(k-1), e(k-1) für Lenkwinkel
 	static double u3k_1=0, e3k_1=0; // u(k-1), e(k-1) für Lenkgeschwindikeit
-	static bool bDebug = true;
+	static bool bDebug = false;
 	static int counter = 0;
 	int temp = 0;
 	double dDeltaPhi1=0, dDeltaPhi2=0;
@@ -458,7 +473,8 @@ void UndercarriageCtrlGeom::CalcControlStep(void)
 	}
 	if((counter > 1000) && (bDebug == true))
 	{
-		CloseDebugFile();
+		fclose (pFile_WheelRadS);
+		fclose (pFile_SteerRad);
 		bDebug = false;
 	}
 
@@ -645,10 +661,4 @@ void UndercarriageCtrlGeom::setEMStopActive(bool bEMStopActive)
 		}
 	}
 
-}
-
-void UndercarriageCtrlGeom::CloseDebugFile(void)
-{
-	fclose (pFile_WheelRadS);
-	fclose (pFile_SteerRad);
 }

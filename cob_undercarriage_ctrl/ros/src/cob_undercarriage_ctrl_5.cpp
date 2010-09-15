@@ -149,7 +149,7 @@ class NodeClass
         // Destructor
         ~NodeClass() 
         {
-        	ucar_ctrl_.CloseDebugFile();
+
         }
 
         // topic callback functions 
@@ -469,9 +469,9 @@ void NodeClass::CalcCtrlStep()
 		// ToDo: configure over Config-File (number of motors) and Msg
 		// assign right size to JointState data containers
 		//joint_state_cmd.set_name_size(m_iNumMotors);
-		joint_state_cmd.set_position_size(num_joints);
-		joint_state_cmd.set_velocity_size(num_joints);            
-		joint_state_cmd.set_effort_size(num_joints);
+		joint_state_cmd.position.resize(num_joints);
+		joint_state_cmd.velocity.resize(num_joints);            
+		joint_state_cmd.effort.resize(num_joints);
 
 		// compose data body
 		j = 0;

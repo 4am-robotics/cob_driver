@@ -66,6 +66,10 @@ private:
 	
 	bool m_bEMStopActive;
 	
+	int m_iNumberOfDrives;
+	
+	std::string m_sIniDirectory;
+	
 	/*// Logging for debugging
 	// create Filepointers
 	FILE * m_pfileDesVel, * m_pfileMeasVel;
@@ -196,7 +200,7 @@ private:
 public:
 
 	// Constructor
-	UndercarriageCtrlGeom(void);
+	UndercarriageCtrlGeom(std::string sIniDirectory);
 
 	// Destructor
 	~UndercarriageCtrlGeom(void);

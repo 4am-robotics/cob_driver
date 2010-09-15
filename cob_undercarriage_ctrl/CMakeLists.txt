@@ -32,13 +32,13 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/lib)
 # add include search paths
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 # add project libs
-#rosbuild_add_library(${PROJECT_NAME} common/src/UndercarriageCtrlGeom.cpp)
+rosbuild_add_library(${PROJECT_NAME} common/src/UndercarriageCtrlGeom.cpp)
 # add executable
-#rosbuild_add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp)
+rosbuild_add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp)
 # link libraries
-#target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME})
 
-
-rosbuild_add_library(${PROJECT_NAME} common/src/UndercarriageCtrlGeom3_5.cpp)
-rosbuild_add_executable(${PROJECT_NAME}_5_node ros/src/${PROJECT_NAME}_5.cpp)
-target_link_libraries(${PROJECT_NAME}_5_node ${PROJECT_NAME})
+#Geom Controller for one-wheel-COB3_5
+rosbuild_add_library(${PROJECT_NAME}_5 common/src/UndercarriageCtrlGeom3_5.cpp)
+rosbuild_add_executable(${PROJECT_NAME}_5_node ros/src/${PROJECT_NAME}.cpp)
+target_link_libraries(${PROJECT_NAME}_5_node ${PROJECT_NAME}_5)

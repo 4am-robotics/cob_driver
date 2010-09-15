@@ -174,13 +174,9 @@ class NodeClass
 			// initialization of variables
 			m_bisInitialized = false;
 
-//			m_iNumMotors = 8;
-			m_iNumMotors = 2;
-			m_iNumDrives = 1;
-			
 			/// Parameters are set within the launch file
 			// Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
-			n.param<std::string>("IniDirectory", sIniDirectory, "Platform/IniFiles/");
+			n.param<std::string>("/IniDirectory", sIniDirectory, "Platform/IniFiles/");
 			ROS_INFO("IniDirectory loaded from Parameter-Server is: %s", sIniDirectory.c_str());
 			
 			IniFile iniFile;
