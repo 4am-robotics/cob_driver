@@ -214,7 +214,7 @@ void UndercarriageCtrlGeom::SetDesiredPltfVelocity(double dCmdVelLongMMS, double
 	m_dCmdRotRobRadS = dCmdRotRobRadS; // Sollwert rotation
 	m_dCmdRotVelRadS = 0;
 
-	std::cout << "Zeile 209 SetDesiredPltfVelocity" << "sollwert m_dCmdVelLongMMS " << m_dCmdVelLongMMS << std::endl;
+	//std::cout << "Zeile 209 SetDesiredPltfVelocity" << "sollwert m_dCmdVelLongMMS " << m_dCmdVelLongMMS << std::endl;
 
 	CalcInverse();
 }
@@ -324,7 +324,7 @@ void UndercarriageCtrlGeom::CalcInverse(void)
 		// Rotational Portion
 		dtempAxVelYRobMMS = m_dCmdRotRobRadS * m_vdWheelXPosMM[0];
 
-		std::cout << "368 CalcInverse " << " dtempAxVelXRobMMS " << dtempAxVelXRobMMS << std::endl;
+		//std::cout << "368 CalcInverse " << " dtempAxVelXRobMMS " << dtempAxVelXRobMMS << std::endl;
 
 		// calculate resulting steering angle 
 		// Wheel has to move in direction of resulting velocity vector of steering axis 
@@ -421,8 +421,6 @@ dtempRotRobRADPS = dtempVelYRobMMS / m_vdWheelXPosMM[0]; //omega = velocity/radi
 // perform one discrete Control Step (controls steering angle)
 void UndercarriageCtrlGeom::CalcControlStep(void)
 {	
-	std::cout << "CalcControlStep" << std::endl;
-
 	// declare auxilliary variables
 	double kP = 0.1;//0.08; //1365; //0.5; // P-Anteil
 	double kI = 0.1; //0.776; // I-Anteil (1 - T/Tn)
@@ -585,7 +583,7 @@ void UndercarriageCtrlGeom::CalcControlStep(void)
 	}*/
 	counter++;	//MathSup::normalizePi(dDeltaPhi);
 	
-	std::cout << "REGLER: DRIVE = " << u1k_1 << " Lenkwinkel: " << m_vdAngGearSteerTarget1Rad[0] << std::endl;
+	//std::cout << "REGLER: DRIVE = " << u1k_1 << " Lenkwinkel: " << m_vdAngGearSteerTarget1Rad[0] << std::endl;
 }
 
 
