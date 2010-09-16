@@ -128,7 +128,7 @@ class NodeClass
 			y_rob_m_ = 0.0;
 			theta_rob_rad_ = 0.0;
 			// set status of drive chain to WARN by default
-			drive_chain_diagnostic_ = diagnostic_status_lookup_.WARN;
+			drive_chain_diagnostic_ = diagnostic_status_lookup_.OK; //WARN; <- THATS FOR DEBUGGING ONLY!
 			
 			// Parameters are set within the launch file
 			// Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
@@ -453,7 +453,8 @@ int main(int argc, char** argv)
 		nodeClass.GetJointState();
 
 		// calculate forward kinematics and update Odometry
-		nodeClass.UpdateOdometry();
+		
+		//nodeClass.UpdateOdometry();
 
 		// perform one control step, calculate inverse kinematics
 		// and publish updated joint cmd's (if no EMStop occurred)
@@ -501,6 +502,8 @@ void NodeClass::CalcCtrlStep()
 	// if controller is initialized and underlying hardware is operating normal
 	if (is_initialized_bool_) //&& (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK))
 	{
+		std::cout << "504: Controller loop" << std::endl;
+	
 		// as soon as (but only as soon as) platform drive chain is initialized start to send velocity commands
 		// Note: topicCallbackDiagnostic checks whether drives are operating nominal.
 		//       -> if warning or errors are issued target velocity is set to zero
@@ -516,6 +519,8 @@ void NodeClass::CalcCtrlStep()
 		{
 			steer_jointang_cmds_rad.assign(m_iNumJoints, 0.0);
 			steer_jointvel_cmds_rads.assign(m_iNumJoints, 0.0);
+			
+			std::cout << "520: here seems to be a diag warning" << std::endl;
 		}
 
 		// convert variables to SI-Units

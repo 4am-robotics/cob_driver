@@ -65,7 +65,9 @@ UndercarriageCtrlGeom::UndercarriageCtrlGeom(std::string sIniDirectory)
 
 	// init EMStop flag
 	m_bEMStopActive = false;
-	m_iNumberOfDrives = 1;
+	IniFile iniFile;
+	iniFile.SetFileName(m_sIniDirectory + "Platform.ini", "UnderCarriageCtrlGeom.cpp");
+	iniFile.GetKeyInt("Config", "NumberOfWheels", &m_iNumberOfDrives, true);
 	
 	// init vectors
 	m_vdVelGearDriveRadS.assign(m_iNumberOfDrives,0);
@@ -146,8 +148,6 @@ void UndercarriageCtrlGeom::InitUndercarriageCtrl(void)
 
 	iniFile.GetKeyDouble("DrivePrms", "MaxDriveRate", &m_UnderCarriagePrms.dMaxDriveRateRadpS, true);
 	iniFile.GetKeyDouble("DrivePrms", "MaxSteerRate", &m_UnderCarriagePrms.dMaxSteerRateRadpS, true);
-	
-	iniFile.GetKeyInt("Config", "NumberOfWheels", &m_iNumberOfDrives, true);
 
 	iniFile.GetKeyDouble("DrivePrms", "Wheel1SteerDriveCoupling", &m_UnderCarriagePrms.vdSteerDriveCoupling[0], true);
 
@@ -214,7 +214,7 @@ void UndercarriageCtrlGeom::SetDesiredPltfVelocity(double dCmdVelLongMMS, double
 	m_dCmdRotRobRadS = dCmdRotRobRadS; // Sollwert rotation
 	m_dCmdRotVelRadS = 0;
 
-	//std::cout << "Zeile 209 SetDesiredPltfVelocity" << "sollwert m_dCmdVelLongMMS " << m_dCmdVelLongMMS << std::endl;
+	std::cout << "Zeile 209 SetDesiredPltfVelocity" << "sollwert m_dCmdVelLongMMS " << m_dCmdVelLongMMS << std::endl;
 
 	CalcInverse();
 }
@@ -263,7 +263,7 @@ void UndercarriageCtrlGeom::GetNewCtrlStateSteerDriveSetValues(std::vector<doubl
 	{
 		//Calculate next step
 		CalcControlStep();
-	}
+	} else std::cout << "EM stop in undercar is active" << std::endl;
 
 	vdVelGearDriveRadS = m_vdVelGearDriveCmdRadS;
 	vdAngGearSteerRad = m_vdAngGearSteerCmdRad;
@@ -307,6 +307,8 @@ void UndercarriageCtrlGeom::CalcInverse(void)
 			m_vdVelGearDriveTarget1RadS[i] = 0;
 			m_vdAngGearSteerTarget2Rad[i] = m_vdAngGearSteerRad[i];
 			m_vdVelGearDriveTarget2RadS[i] = 0;
+			
+			//std::cout << "Returned CalcInverse due to zero command" << std::endl;
 		}
 		return;
 	}
@@ -317,12 +319,12 @@ void UndercarriageCtrlGeom::CalcInverse(void)
 		// calculate velocity and direction of single wheel motion
 		// Translational Portion
 		dtempAxVelXRobMMS = m_dCmdVelLongMMS;
-		dtempAxVelYRobMMS = 0;
+		dtempAxVelYRobMMS = 0;	
 
 		// Rotational Portion
 		dtempAxVelYRobMMS = m_dCmdRotRobRadS * m_vdWheelXPosMM[0];
 
-		//std::cout << "Zeile 368 calcinverse " << " dtempAxVelXRobMMS " << dtempAxVelXRobMMS << std::endl;
+		std::cout << "368 CalcInverse " << " dtempAxVelXRobMMS " << dtempAxVelXRobMMS << std::endl;
 
 		// calculate resulting steering angle 
 		// Wheel has to move in direction of resulting velocity vector of steering axis 
@@ -418,28 +420,37 @@ dtempRotRobRADPS = dtempVelYRobMMS / m_vdWheelXPosMM[0]; //omega = velocity/radi
 
 // perform one discrete Control Step (controls steering angle)
 void UndercarriageCtrlGeom::CalcControlStep(void)
-{
-	// check if zero movement commanded -> keep orientation of wheels, set steer velocity to zero
-	if ((m_dCmdVelLongMMS == 0) && (m_dCmdVelLatMMS == 0) && (m_dCmdRotRobRadS == 0) && (m_dCmdRotVelRadS == 0))
-	{
-		m_vdVelGearDriveCmdRadS.assign(m_iNumberOfDrives,0.0);		// set velocity for drives to zero
-		m_vdVelGearSteerCmdRadS.assign(m_iNumberOfDrives,0.0);		// set velocity for steers to zero
-		return;
-	}
+{	
+	std::cout << "CalcControlStep" << std::endl;
 
 	// declare auxilliary variables
 	double kP = 0.1;//0.08; //1365; //0.5; // P-Anteil
-	double kI = 0.776; // I-Anteil (1 - T/Tn)
+	double kI = 0.1; //0.776; // I-Anteil (1 - T/Tn)
 	double kP1 = 0.1;
 	double kI1 = 0;
 	double u, e; // u(k), e(k)
-	static double u1k_1, e1k_1; // u(k-1), e(k-1) für Antriebsrad
+	static double u1k_1=0, e1k_1=0; // u(k-1), e(k-1) für Antriebsrad
 	static double u2k_1=0, e2k_1=0; // u(k-1), e(k-1) für Lenkwinkel
-	static double u3k_1=0, e3k_1=0; // u(k-1), e(k-1) für Lenkgeschwindikeit
 	static bool bDebug = false;
 	static int counter = 0;
 	int temp = 0;
 	double dDeltaPhi1=0, dDeltaPhi2=0;
+	
+	
+	// check if zero movement commanded -> keep orientation of wheels, set steer velocity to zero
+	if ((m_dCmdVelLongMMS == 0) && (m_dCmdVelLatMMS == 0) && (m_dCmdRotRobRadS == 0) && (m_dCmdRotVelRadS == 0))
+	{
+		//std::cout << "Zero command!" << std::endl;
+		m_vdVelGearDriveCmdRadS.assign(m_iNumberOfDrives,0.0);		// set velocity for drives to zero
+		m_vdVelGearSteerCmdRadS.assign(m_iNumberOfDrives,0.0);		// set velocity for steers to zero
+		
+		u1k_1=0; u2k_1 = 0;
+		e1k_1 = 0; e2k_1 = 0;
+		
+		return;
+	}
+
+
 //---------------------------------------------------------------------------------------------------
 // Berechnung der drehrate Antriebsrad
 //---------------------------------------------------------------------------------------------------
@@ -573,6 +584,8 @@ void UndercarriageCtrlGeom::CalcControlStep(void)
 			m_vdVelGearDriveCmdRadS[0] = -3;//m_UnderCarriagePrms.dMaxSteerRateRadpS;
 	}*/
 	counter++;	//MathSup::normalizePi(dDeltaPhi);
+	
+	std::cout << "REGLER: DRIVE = " << u1k_1 << " Lenkwinkel: " << m_vdAngGearSteerTarget1Rad[0] << std::endl;
 }
 
 

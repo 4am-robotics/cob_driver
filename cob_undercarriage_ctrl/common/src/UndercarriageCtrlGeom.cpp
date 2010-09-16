@@ -60,8 +60,10 @@ UndercarriageCtrlGeom::UndercarriageCtrlGeom(std::string sIniDirectory)
 	
 	// init EMStop flag
 	m_bEMStopActive = false;
-	m_iNumberOfDrives = 4;
 	
+	IniFile iniFile;
+	iniFile.SetFileName(m_sIniDirectory + "Platform.ini", "UnderCarriageCtrlGeom.cpp");
+	iniFile.GetKeyInt("Config", "NumberOfWheels", &m_iNumberOfDrives, true);
 
 	// init vectors
 	m_vdVelGearDriveRadS.assign(4,0);
@@ -173,8 +175,6 @@ void UndercarriageCtrlGeom::InitUndercarriageCtrl(void)
 
 	iniFile.GetKeyDouble("DrivePrms", "MaxDriveRate", &m_UnderCarriagePrms.dMaxDriveRateRadpS, true);
 	iniFile.GetKeyDouble("DrivePrms", "MaxSteerRate", &m_UnderCarriagePrms.dMaxSteerRateRadpS, true);
-	
-	iniFile.GetKeyInt("Config", "NumberOfWheels", &m_iNumberOfDrives, true);
 
 	iniFile.GetKeyDouble("DrivePrms", "Wheel1SteerDriveCoupling", &m_UnderCarriagePrms.vdSteerDriveCoupling[0], true);
 	iniFile.GetKeyDouble("DrivePrms", "Wheel2SteerDriveCoupling", &m_UnderCarriagePrms.vdSteerDriveCoupling[1], true);
