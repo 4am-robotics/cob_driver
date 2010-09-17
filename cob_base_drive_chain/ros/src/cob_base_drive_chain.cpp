@@ -154,6 +154,7 @@ class NodeClass
 		// global variables
 		// generate can-node handle
 		CanCtrlPltfCOb3 *m_CanCtrlPltf;
+		
 		bool m_bisInitialized;
         int m_iNumMotors;
         int m_iNumDrives;
@@ -166,7 +167,9 @@ class NodeClass
 			std::vector<double> vdWheelNtrlPosRad;
 		};
 		ParamType m_Param;
+		
 		std::string sIniDirectory;
+		bool m_bPubEffort;
 
 		// Constructor
 		NodeClass()
@@ -178,6 +181,10 @@ class NodeClass
 			// Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
 			n.param<std::string>("/IniDirectory", sIniDirectory, "Platform/IniFiles/");
 			ROS_INFO("IniDirectory loaded from Parameter-Server is: %s", sIniDirectory.c_str());
+
+			n.param<bool>("PublishEffort", m_bPubEffort, false);
+			if(m_bPubEffort) ROS_INFO("You have choosen to publish effort of motors, that charges capacity of CAN");
+			
 			
 			IniFile iniFile;
 			iniFile.SetFileName(sIniDirectory + "Platform.ini", "PltfHardwareCoB3.h");
@@ -258,6 +265,9 @@ class NodeClass
 					// and cmd velocities to Can-Nodes
 					//m_CanCtrlPltf->setVelGearRadS(iCanIdent, dVelEncRadS);
 					iRet = m_CanCtrlPltf->setVelGearRadS(i, JointStateCmd.velocity[i]);
+					
+					if(m_bPubEffort) 
+						m_CanCtrlPltf->requestMotorTorque();
 	  			}
 			}
 		}
@@ -355,7 +365,7 @@ class NodeClass
         {
 			ROS_DEBUG("Service Callback GetJointState");
             // init local variables
-            int iCanEvalStatus, ret, j, k, ret_sprintf;
+            int j, k, ret_sprintf;
             bool bIsError;
             std::vector<double> vdAngGearRad, vdVelGearRad, vdEffortGearNM;
 			std::string str_steer, str_drive, str_num, str_cat;
@@ -429,13 +439,21 @@ class NodeClass
 			{
 				// as soon as drive chain is initialized
 				// read Can-Buffer
-				iCanEvalStatus = m_CanCtrlPltf->evalCanBuffer();
+				m_CanCtrlPltf->evalCanBuffer();
 				
 				j = 0;
 				k = 0;
 				for(int i = 0; i<m_iNumMotors; i++)
 				{
-					ret = m_CanCtrlPltf->getGearPosVelRadS(i,  &vdAngGearRad[i], &vdVelGearRad[i]);
+					m_CanCtrlPltf->getGearPosVelRadS(i,  &vdAngGearRad[i], &vdVelGearRad[i]);
+					
+					//Get motor torque
+					if(m_bPubEffort) {
+						for(int i=0; i<m_iNumMotors; i++) {
+							m_CanCtrlPltf->getMotorTorque(i, &vdEffortGearNM[i]); //(int iCanIdent, double* pdTorqueNm)
+						}
+					}
+					
    					// if a steering motor was read -> correct for offset
    					if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
 					{

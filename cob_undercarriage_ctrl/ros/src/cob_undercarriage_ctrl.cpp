@@ -453,8 +453,7 @@ int main(int argc, char** argv)
 		nodeClass.GetJointState();
 
 		// calculate forward kinematics and update Odometry
-		
-		//nodeClass.UpdateOdometry();
+		nodeClass.UpdateOdometry();
 
 		// perform one control step, calculate inverse kinematics
 		// and publish updated joint cmd's (if no EMStop occurred)

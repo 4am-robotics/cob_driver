@@ -307,8 +307,6 @@ void UndercarriageCtrlGeom::CalcInverse(void)
 			m_vdVelGearDriveTarget1RadS[i] = 0;
 			m_vdAngGearSteerTarget2Rad[i] = m_vdAngGearSteerRad[i];
 			m_vdVelGearDriveTarget2RadS[i] = 0;
-			
-			//std::cout << "Returned CalcInverse due to zero command" << std::endl;
 		}
 		return;
 	}
@@ -323,8 +321,6 @@ void UndercarriageCtrlGeom::CalcInverse(void)
 
 		// Rotational Portion
 		dtempAxVelYRobMMS = m_dCmdRotRobRadS * m_vdWheelXPosMM[0];
-
-		//std::cout << "368 CalcInverse " << " dtempAxVelXRobMMS " << dtempAxVelXRobMMS << std::endl;
 
 		// calculate resulting steering angle 
 		// Wheel has to move in direction of resulting velocity vector of steering axis 
@@ -345,60 +341,22 @@ void UndercarriageCtrlGeom::CalcInverse(void)
 void UndercarriageCtrlGeom::CalcDirect(void)
 {
 	// declare auxilliary variables
-	double dtempVelXRobMMS;		// Robot-Velocity in x-Direction (longitudinal) in mm/s (in Robot-Coordinateframe)
-	double dtempVelYRobMMS;		// Robot-Velocity in y-Direction (lateral) in mm/s (in Robot-Coordinateframe)
-	double dtempRotRobRADPS;	// Robot-Rotation-Rate in rad/s (in Robot-Coordinateframe)
-	double dtempDiffXMM;		// Difference in X-Coordinate of two wheels in mm
-	double dtempDiffYMM;		// Difference in Y-Coordinate of two wheels in mm
-	//double dtempRelPhiWheelsRAD;	// Angle between axis of two wheels w.r.t the X-Axis of the Robot-Coordinate-System in rad
-	//double dtempRelDistWheelsMM;	// distance of two wheels in mm 
+	double dtempVelXRobMMS = 0;		// Robot-Velocity in x-Direction (longitudinal) in mm/s (in Robot-Coordinateframe)
+	double dtempVelYRobMMS = 0;		// Robot-Velocity in y-Direction (lateral) in mm/s (in Robot-Coordinateframe)
+	double dtempRotRobRADPS = 0;	// Robot-Rotation-Rate in rad/s (in Robot-Coordinateframe)
 	double dtempRelPhiWheel1RAD;	// Steering Angle of (im math. pos. direction) first Wheel w.r.t. the linking axis of the two wheels
-	//double dtempRelPhiWheel2RAD;	// Steering Angle of (im math. pos. direction) second Wheel w.r.t. the linking axis of the two wheels
 	std::vector<double> vdtempVelWheelMMS(m_iNumberOfDrives);//std::vector<double> vdtempVelWheelMMS(4);	// Wheel-Velocities (all Wheels) in mm/s
 
-	// initial values
-	dtempVelXRobMMS = 0;			// Robot-Velocity in x-Direction (longitudinal) in mm/s (in Robot-Coordinateframe)
-	dtempVelYRobMMS = 0;			// Robot-Velocity in y-Direction (lateral) in mm/s (in Robot-Coordinateframe)
-	dtempRotRobRADPS = 0;
-
-
 	// calculate corrected wheel velocities
-	for(int i = 0; i<m_iNumberOfDrives; i++)//for(int i = 0; i<4; i++)
+	for(int i = 0; i<m_iNumberOfDrives; i++)
 	{
 		// calc effective Driving-Velocity
 		//vdtempVelWheelMMS[i] = m_UnderCarriagePrms.iRadiusWheelMM * (m_vdVelGearDriveRadS[i] - m_UnderCarriagePrms.vdFactorVel[i]* m_vdVelGearSteerRadS[i]);
-		vdtempVelWheelMMS[i] = m_UnderCarriagePrms.iRadiusWheelMM * m_vdVelGearDriveRadS[i];//compute wheel velocity
+		vdtempVelWheelMMS[i] = m_UnderCarriagePrms.iRadiusWheelMM * m_vdVelGearDriveRadS[i]; //compute wheel velocity
 	}
-
-/*	// calculate rotational rate of robot and current "virtual" axis between all wheels
-	for(int i = 0; i<3; i++)
-	{
-		// calc Parameters (Dist,Phi) of virtual linking axis of the two considered wheels
-		dtempDiffXMM = m_vdExWheelXPosMM[i+1] - m_vdExWheelXPosMM[i];
-		dtempDiffYMM = m_vdExWheelYPosMM[i+1] - m_vdExWheelYPosMM[i];
-		dtempRelDistWheelsMM = sqrt( dtempDiffXMM*dtempDiffXMM + dtempDiffYMM*dtempDiffYMM );
-		dtempRelPhiWheelsRAD = MathSup::atan4quad( dtempDiffYMM, dtempDiffXMM );
-
-		// transform velocity of wheels into relative coordinate frame of linking axes -> subtract angles
-		dtempRelPhiWheel1RAD = m_vdAngGearSteerRad[i] - dtempRelPhiWheelsRAD;
-		dtempRelPhiWheel2RAD = m_vdAngGearSteerRad[i+1] - dtempRelPhiWheelsRAD;
-
-		dtempRotRobRADPS += (vdtempVelWheelMMS[i+1] * sin(dtempRelPhiWheel2RAD) - vdtempVelWheelMMS[i] * sin(dtempRelPhiWheel1RAD))/dtempRelDistWheelsMM;
-	}
-*/
-	// calculate last missing axis (between wheel 4 and 1)
-	// calc. Parameters (Dist,Phi) of virtual linking axis of the two considered wheels
-	//dtempDiffXMM = m_vdExWheelXPosMM[0] - m_vdExWheelXPosMM[3];
-	//dtempDiffYMM = m_vdExWheelYPosMM[0] - m_vdExWheelYPosMM[3];
-	//dtempRelDistWheelsMM = sqrt( dtempDiffXMM*dtempDiffXMM + dtempDiffYMM*dtempDiffYMM );
-	//dtempRelPhiWheelsRAD = MathSup::atan4quad( dtempDiffYMM, dtempDiffXMM );
-
-	// transform velocity of wheels into relative coordinate frame of linking axes -> subtract angles
-	dtempRelPhiWheel1RAD = m_vdAngGearSteerRad[0];// - dtempRelPhiWheelsRAD;
-	//dtempRelPhiWheel2RAD = m_vdAngGearSteerRad[0] - dtempRelPhiWheelsRAD;
-
-	// close calculation of robots rotational velocity
-	//dtempRotRobRADPS += (vdtempVelWheelMMS[0]*sin(dtempRelPhiWheel2RAD) - vdtempVelWheelMMS[3]*sin(dtempRelPhiWheel1RAD))/dtempRelDistWheelsMM;
+	
+	// transform velocity of wheels into relative coordinate frame of linking axes
+	dtempRelPhiWheel1RAD = m_vdAngGearSteerRad[0];
 	
 	// calculate linear velocity of robot
 	for(int i = 0; i<m_iNumberOfDrives; i++)//for(int i = 0; i<4; i++)
@@ -406,7 +364,8 @@ void UndercarriageCtrlGeom::CalcDirect(void)
 		dtempVelXRobMMS += vdtempVelWheelMMS[i]*cos(m_vdAngGearSteerRad[i]);
 		dtempVelYRobMMS += vdtempVelWheelMMS[i]*sin(m_vdAngGearSteerRad[i]);
 	}
-dtempRotRobRADPS = dtempVelYRobMMS / m_vdWheelXPosMM[0]; //omega = velocity/radius
+	
+	dtempRotRobRADPS = dtempVelYRobMMS / m_vdWheelXPosMM[0]; //omega = velocity/radius
 
 	// assign rotational velocities for output
 	m_dRotRobRadS = dtempRotRobRADPS; //m_dRotRobRadS = dtempRotRobRADPS/4;
@@ -487,14 +446,14 @@ void UndercarriageCtrlGeom::CalcControlStep(void)
 		bDebug = false;
 	}
 
-/*	if(fabs(u) > 3) //m_UnderCarriagePrms.dMaxSteerRateRadpS)
+	if(fabs(u) > m_UnderCarriagePrms.dMaxDriveRateRadpS)
 		{
 			if (u > 0)
-				u = m_vdVelGearDriveTarget1RadS[0];//m_UnderCarriagePrms.dMaxSteerRateRadpS;
+				u = m_UnderCarriagePrms.dMaxDriveRateRadpS;
 			else
-				u = -m_vdVelGearDriveTarget1RadS[0];//m_UnderCarriagePrms.dMaxSteerRateRadpS;
+				u = m_UnderCarriagePrms.dMaxDriveRateRadpS;
 		}
-*/
+
 
 	e1k_1 = e;
 	// Speichern des Reglerschritts für drehrate Antriebsrad
@@ -574,16 +533,15 @@ void UndercarriageCtrlGeom::CalcControlStep(void)
 	}
 
 	// Check if Steeringvelocity overgo maximum allowed rates.
-/*	if(fabs(m_vdVelGearDriveCmdRadS[0]) > 3) //m_UnderCarriagePrms.dMaxSteerRateRadpS)
+	if(fabs(m_vdVelGearDriveCmdRadS[0]) > m_UnderCarriagePrms.dMaxSteerRateRadpS)
 	{
 		if (m_vdVelGearDriveCmdRadS[0] > 0)
-			m_vdVelGearDriveCmdRadS[0] = 3;//m_UnderCarriagePrms.dMaxSteerRateRadpS;
+			m_vdVelGearDriveCmdRadS[0] = m_UnderCarriagePrms.dMaxSteerRateRadpS;
 		else
-			m_vdVelGearDriveCmdRadS[0] = -3;//m_UnderCarriagePrms.dMaxSteerRateRadpS;
-	}*/
-	counter++;	//MathSup::normalizePi(dDeltaPhi);
+			m_vdVelGearDriveCmdRadS[0] = m_UnderCarriagePrms.dMaxSteerRateRadpS;
+	}
+	counter++;
 	
-	//std::cout << "REGLER: DRIVE = " << u1k_1 << " Lenkwinkel: " << m_vdAngGearSteerTarget1Rad[0] << std::endl;
 }
 
 
