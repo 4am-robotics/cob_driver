@@ -297,8 +297,8 @@ class PowercubeChainNode
 			Offsets.resize(ModIds_param_.size());
 			for (int i = 0; i<ModIds_param_.size(); i++ )
 			{
-				Offsets[i] = model.getJoint(JointNames_[i].c_str())->calibration->reference_position;
-				//std::cout << "Offset[" << JointNames_[i].c_str() << "] = " << Offsets[i] << std::endl;
+				Offsets[i] = model.getJoint(JointNames_[i].c_str())->calibration->rising.get()[0];
+				std::cout << "Offset[" << JointNames_[i].c_str() << "] = " << Offsets[i] << std::endl;
 			}
 			PCubeParams_->SetAngleOffsets(Offsets);
 			
