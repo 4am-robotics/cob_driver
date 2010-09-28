@@ -19,6 +19,7 @@
   <depend package="cob_srvs"/>
   <depend package="cob_msgs"/>
   <depend package="cob_utilities"/>
+  <depend package="cob_base_drive_chain"/>
 
   <!-- As we deviate from the standard ROS Repository-Structure we have to tell ROS where to find header and lib -->
   <export>

@@ -2,7 +2,7 @@
 <launch>
 
   <node pkg="cob_relayboard" type="cob_relayboard_node" name="relayboard" respawn="false" output="screen">
-	<param name="ComPort" value="/dev/ttyUSB1"/>
+	<param name="ComPort" value="/dev/ttyUSB0"/>
   </node>
 
 </launch>

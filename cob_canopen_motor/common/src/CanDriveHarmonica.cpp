@@ -548,8 +548,9 @@ bool CanDriveHarmonica::initHoming()
 		// home event
 		// iHomeEvent = 5 : event according to defined FLS switch (for scara arm)
 		// iHomeEvent = 9 : event according to definded DIN1 switch (for full steerable wheels COb3)
+		// iHomeEvent =11 : event according to ?? (for COb3 Head-Axis)
 		// ToDo: this should be defined by a parameterfile and handed to CanDrive... e.g. via the DriveParam.h
-		IntprtSetInt(8, 'H', 'M', 3, 11);
+		IntprtSetInt(8, 'H', 'M', 3, 9);
 		usleep(20000);
 
 
