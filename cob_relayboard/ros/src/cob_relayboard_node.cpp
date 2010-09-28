@@ -150,10 +150,10 @@ int main(int argc, char** argv)
 //#### function implementations ####
 
 int NodeClass::init() {
-	n.param<std::string>("ComPort", sComPort, "/dev/ttyUSB2");
-	ROS_INFO("Opened Relayboard at ComPort = %s", sComPort.c_str());
+	n.param<std::string>("ComPort", sComPort, "/dev/ttyUSB0");
     
 	m_SerRelayBoard = new SerRelayBoard(sComPort);
+	ROS_INFO("Opened Relayboard at ComPort = %s", sComPort.c_str());
 
 	m_SerRelayBoard->init();
 
@@ -170,7 +170,7 @@ int NodeClass::requestBoardStatus() {
 	// Request Status of RelayBoard 
 	ret = m_SerRelayBoard->sendRequest();
 	if(ret != SerRelayBoard::NO_ERROR) {
-		//ROS_ERROR("Error in sending message to Relayboard over SerialIO, lost bytes during writing");
+		ROS_ERROR("Error in sending message to Relayboard over SerialIO, lost bytes during writing");
 	}
 
 	ret = m_SerRelayBoard->evalRxBuffer();
