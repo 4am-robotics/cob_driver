@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!-- send parameters to parameter server -->
+	<rosparam command="load" ns="scanner_front" file="$(find cob_sick_s300)/ros/launch/front_$(env ROBOT).yaml"/>
+
+	<node pkg="cob_sick_s300" type="cob_sick_s300" name="scanner_front" respawn="false" output="screen" >
+		<remap from="scan" to="scan_front"/>
+	</node>
+
+</launch>

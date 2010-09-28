@@ -12,10 +12,10 @@
   <node pkg="cob_powercube_chain" type="cob_powercube_chain_sim" name="cob_arm" ns="arm_controller" cwd="node" respawn="false" output="screen"/>
 
   <!-- start ik_solver for arm -->
-  <node pkg="cob_arm" type="cob_ik_solver_kdl" name="cob_ik_solver" ns="arm_controller" cwd="node" respawn="false" output="screen"/>
+  <node pkg="cob_manipulator" type="cob_ik_solver_kdl" name="cob_ik_solver" ns="arm_controller" cwd="node" respawn="false" output="screen"/>
 
   <!-- start cartesian interface -->
-  <node pkg="cob_arm" type="move_cart.py" name="move_cart" ns="arm_controller" cwd="node" respawn="false" output="screen"/>
+  <node pkg="cob_manipulator" type="move_cart.py" name="move_cart" ns="arm_controller" cwd="node" respawn="false" output="screen"/>
 
   <!-- start robot_state_publisher -->
   <node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />

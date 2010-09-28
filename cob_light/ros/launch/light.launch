@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- send parameters to parameter server -->
+  <rosparam command="load" ns="light_controller" file="$(find cob_light)/ros/launch/$(env ROBOT).yaml"/>
+
+  <!-- start light -->
+  <node pkg="cob_light" type="cob_light.py" name="light_node" ns="light_controller" cwd="node" respawn="false" output="screen" />
+
+</launch>

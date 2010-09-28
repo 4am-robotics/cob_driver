@@ -1,7 +1,7 @@
 <package>
   <description brief="cob_sdh">
 
-     This package provides an interface for operating the Schunk SDH hand, including the tactile sensors.
+     This package provides an interface for operating the schunk dexterous hand (SDH), including the tactile sensors.
 
   </description>
   <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>

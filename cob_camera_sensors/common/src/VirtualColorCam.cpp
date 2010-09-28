@@ -173,10 +173,9 @@ unsigned long VirtualColorCam::Open()
 						// Get image size
 						if (m_ImageWidth == -1 || m_ImageHeight == -1)
 						{
-							IplImage* image = (IplImage*) cvLoadImage(m_ColorImageFileNames.back().c_str(), CV_LOAD_IMAGE_COLOR);
-							m_ImageWidth = image->width;
-							m_ImageHeight = image->height;
-							cvReleaseImage(&image);
+							cv::Mat image = cv::imread(m_ColorImageFileNames.back());
+							m_ImageWidth = image.cols;
+							m_ImageHeight = image.rows;
 						}
 					}
 				}

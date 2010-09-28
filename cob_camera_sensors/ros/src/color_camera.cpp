@@ -237,7 +237,7 @@ public:
 	{
 		std::string tmp_string = "NULL";
 
-		if (node_handle_.getParam("color_camera/configuration_files", config_directory_) == false)
+		if (node_handle_.getParam("configuration_files", config_directory_) == false)
 		{
 			ROS_ERROR("[color_camera] Path to xml configuration for color camera not specified");
 			return false;
@@ -246,20 +246,20 @@ public:
 		ROS_INFO("Configuration directory: %s", config_directory_.c_str());
 
 		/// Parameters are set within the launch file
-		if (node_handle_.getParam("color_camera/camera_index", camera_index_) == false)
+		if (node_handle_.getParam("camera_index", camera_index_) == false)
 		{
 			ROS_ERROR("[color_camera] Color camera index (0 or 1) not specified");
 			return false;
 		}
 	
 		/// Parameters are set within the launch file
-		if (node_handle_.getParam("color_camera/color_camera_type", tmp_string) == false)
+		if (node_handle_.getParam("color_camera_type", tmp_string) == false)
 		{
 			ROS_ERROR("[color_camera] Color camera type not specified");
 			return false;
 		}
 		if (tmp_string == "CAM_AVTPIKE") color_camera_ = ipa_CameraSensors::CreateColorCamera_AVTPikeCam();
-		if (tmp_string == "CAM_VIRTUAL") color_camera_ = ipa_CameraSensors::CreateColorCamera_VirtualCam();
+		else if (tmp_string == "CAM_VIRTUAL") color_camera_ = ipa_CameraSensors::CreateColorCamera_VirtualCam();
 		else if (tmp_string == "CAM_PROSILICA") ROS_ERROR("[color_camera] Color camera type not CAM_PROSILICA not yet implemented");
 		else
 		{
@@ -272,7 +272,7 @@ public:
 		
 		// There are several intrinsic matrices, optimized to different cameras
 		// Here, we specified the desired intrinsic matrix for each camera
-		if (node_handle_.getParam("color_camera/color_camera_intrinsic_type", tmp_string) == false)
+		if (node_handle_.getParam("color_camera_intrinsic_type", tmp_string) == false)
 		{
 			ROS_ERROR("[color_camera] Intrinsic camera type for color camera not specified");
 			return false;
@@ -295,7 +295,7 @@ public:
 			ROS_ERROR("%s", str.c_str());
 			return false;
 		}
-		if (node_handle_.getParam("color_camera/color_camera_intrinsic_id", color_camera_intrinsic_id_) == false)
+		if (node_handle_.getParam("color_camera_intrinsic_id", color_camera_intrinsic_id_) == false)
 		{
 			ROS_ERROR("[color_camera] Intrinsic camera id for color camera not specified");
 			return false;

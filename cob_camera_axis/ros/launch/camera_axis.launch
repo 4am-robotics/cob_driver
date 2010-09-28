@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- send parameters to parameter server -->
+  <param name="head_controller/CanIniFile" value="$(find cob_camera_axis)/ros/bin/IniFiles/CanCtrlCamAxis.ini" />
+  <rosparam command="load" ns="head_controller" file="$(find cob_camera_axis)/ros/launch/$(env ROBOT).yaml"/>
+
+  <!-- start camera axis -->
+  <node pkg="cob_camera_axis" type="cob_camera_axis" name="camera_axis_node" ns="head_controller" cwd="node" respawn="false" output="screen" />
+
+</launch>

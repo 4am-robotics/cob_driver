@@ -103,7 +103,7 @@ class NodeClass
         bool isInitialized;
         double cmdVelX, cmdVelY, cmdVelTh;
         double x, y, th;
-        double dxMM, dyMM, dth, dvth;
+        double dxMM, dyMM, dth, dvth ;
         double vxMMS, vyMMS, vth, vvth;
         ros::Time current_time, last_time;
 
@@ -124,12 +124,12 @@ class NodeClass
             topicPub_cmd_vel_received = n.advertise<geometry_msgs::TwistStamped>("cmd_vel_received", 50);
 
             // implementation of topics to subscribe
-            topicSub_CmdVel = n.subscribe("base_controller/command", 1, &NodeClass::topicCallback_CmdVel, this);
+            topicSub_CmdVel = n.subscribe("command", 1, &NodeClass::topicCallback_CmdVel, this);
             
             // implementation of service servers
-            srvServer_Init = n.advertiseService("Init", &NodeClass::srvCallback_Init, this);
-            srvServer_Stop = n.advertiseService("Stop", &NodeClass::srvCallback_Stop, this);
-            srvServer_Shutdown = n.advertiseService("Shutdown", &NodeClass::srvCallback_Shutdown, this);
+            srvServer_Init = n.advertiseService("init", &NodeClass::srvCallback_Init, this);
+            srvServer_Stop = n.advertiseService("stop", &NodeClass::srvCallback_Stop, this);
+            srvServer_Shutdown = n.advertiseService("shutdown", &NodeClass::srvCallback_Shutdown, this);
         }
         
         // Destructor
@@ -173,6 +173,8 @@ class NodeClass
                 pltf->initPltf();
                 isInitialized = true;
                 res.success = 0; // 0 = true, else = false
+		sleep(1);
+		
             }
             else
             {
@@ -245,7 +247,11 @@ class NodeClass
                 // get odometry from platform
                 pltf->getDeltaPosePltf(dxMM, dyMM, dth, dvth,
         					           vxMMS, vyMMS, vth, vvth);
-
+			if(vxMMS > 100000)
+			{
+				printf("Not yet initialized\n");
+				return;
+			}
 				// calculation from ROS odom publisher tutorial http://www.ros.org/wiki/navigation/Tutorials/RobotSetup/Odom
 			    //compute odometry in a typical way given the velocities of the robot
 				//double dt = (current_time - last_time).toSec();
@@ -263,7 +269,7 @@ class NodeClass
 				//first, we'll publish the transform over tf
 				geometry_msgs::TransformStamped odom_trans;
 				odom_trans.header.stamp = current_time;
-				odom_trans.header.frame_id = "/odom";
+				odom_trans.header.frame_id = "/odom_combined";
 				odom_trans.child_frame_id = "/base_footprint";
 
 				odom_trans.transform.translation.x = x;

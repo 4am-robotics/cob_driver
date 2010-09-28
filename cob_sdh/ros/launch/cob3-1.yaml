@@ -1,5 +1,6 @@
-sdhdevicestring: /dev/pcan32
+sdhdevicetype: PCAN
+sdhdevicestring: /dev/pcan1
 dsadevicestring: /dev/ttyUSB0
-JointNames: [joint_thumb1_thumb2, joint_thumb2_thumb3, joint_palm_finger11, joint_finger11_finger12, joint_finger12_finger13, joint_finger21_finger22, joint_finger22_finger23]
-JointNamesAll: [joint_palm_thumb1, joint_thumb1_thumb2, joint_thumb2_thumb3, joint_palm_finger11, joint_finger11_finger12, joint_finger12_finger13, joint_palm_finger21, joint_finger21_finger22, joint_finger22_finger23]
+baudrate: 1000000
+JointNames: ['sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_11_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_21_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']
 OperationMode: position

@@ -91,7 +91,7 @@ def changeColor():
 	white.g = 999
 	white.b = 300
 	
-	for color in [red,yellow,green,blue,white]:
+	for color in [red,yellow,green,white,blue,green]:
 		rospy.loginfo("Setting rgb to %s [%d, %d, %d]",color.name.data,color.r,color.g,color.b)
 		pub.publish(color)
 		time.sleep(3)
