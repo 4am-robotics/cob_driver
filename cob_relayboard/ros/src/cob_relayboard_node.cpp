@@ -150,7 +150,7 @@ int main(int argc, char** argv)
 //#### function implementations ####
 
 int NodeClass::init() {
-	n.param<std::string>("ComPort", sComPort, "/dev/ttyUSB0");
+	n.param<std::string>("relayboard/ComPort", sComPort, "/dev/ttyUSB0");
     
 	m_SerRelayBoard = new SerRelayBoard(sComPort);
 	ROS_INFO("Opened Relayboard at ComPort = %s", sComPort.c_str());
