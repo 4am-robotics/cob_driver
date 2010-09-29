@@ -132,7 +132,7 @@ class NodeClass
 			
 			// Parameters are set within the launch file
 			// Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
-			n.param<std::string>("/IniDirectory", sIniDirectory, "Platform/IniFiles/");
+			n.param<std::string>("undercarriage_ctrl/IniDirectory", sIniDirectory, "Platform/IniFiles/");
 			ROS_INFO("IniDirectory loaded from Parameter-Server is: %s", sIniDirectory.c_str());
 			
 			IniFile iniFile;

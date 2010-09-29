@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!-- start underlying components - base_drive_chain + relayboard -->
+	<!-- base_drive_chain.launch: establishes the ROS interface to the drives of COB. Has to be initialized via service base_driver/Init -->
+	<include ns="base_driver" file="$(find cob_base_drive_chain)/ros/launch/cob_base_drive_chain.launch" />
+	<!-- cob_relayboard.launch: connects to relayboard and publishes emergency stop states -->
+	<include ns="base_driver" file="$(find cob_relayboard)/ros/launch/cob_relayboard.launch" />
+
+	<!-- start undercarriage ctrlr -->
+    <node pkg="cob_undercarriage_ctrl" type="cob_undercarriage_ctrl_node" name="undercarriage_ctrl" ns="base_controller" respawn="false" output="screen">
+		<param name="IniDirectory" value="$(find cob_platform)/ros/bin/Platform/IniFiles/"/>
+		
+		<!-- remap topics and services -->
+		<remap from="/base_controller/JointStateCmd" to="/base_driver/JointStateCmd"/> 
+		<remap from="/base_controller/GetJointState" to="/base_driver/GetJointState"/> 
+		<remap from="/base_controller/Diagnostic" to="/base_driver/Diagnostic"/>
+		<remap from="/base_controller/EMStopState" to="/base_driver/EMStopState"/> 
+	</node>
+
+</launch>
