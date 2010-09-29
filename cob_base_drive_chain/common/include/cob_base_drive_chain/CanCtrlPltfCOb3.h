@@ -88,7 +88,7 @@ public:
 	/** 
 	 * Default constructor.
 	 */
-	CanCtrlPltfCOb3();
+	CanCtrlPltfCOb3(std::string iniDirectory);
 
 	/**
 	 * Default destructor.
@@ -122,7 +122,7 @@ public:
 	 * !! The homing routine is hardware-dependent (steering and driving is coupled) !!
 	 * !! If you use this code on other hardware -> make sure te remove or adapt homing sequence !! 
 	 */
-	bool initPltf(std::string iniDirectory);
+	bool initPltf();
 
 	/**
 	 * Reinitializes the nodes on the bus.
@@ -316,6 +316,7 @@ protected:
 		bool	bIsSteer;
 		double  dCurrentToTorque;
 		double  dCurrMax;
+		int 	iHomingDigIn;
 	};
 
 	/**
@@ -441,6 +442,9 @@ protected:
 	// Can-Interface
 	CanItf* m_pCanCtrl;
 	IniFile m_IniFile;
+
+	int m_iNumMotors;
+	int m_iNumDrives;
 
 	// Motor-Controllers
 /*	CanDriveItf* m_pW1DriveMotor;

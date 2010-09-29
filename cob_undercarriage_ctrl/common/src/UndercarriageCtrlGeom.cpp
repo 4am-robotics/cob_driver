@@ -54,10 +54,16 @@
 #include <cob_undercarriage_ctrl/UndercarriageCtrlGeom.h>
 
 // Constructor
-UndercarriageCtrlGeom::UndercarriageCtrlGeom(void)
+UndercarriageCtrlGeom::UndercarriageCtrlGeom(std::string sIniDirectory)
 {
+	m_sIniDirectory = sIniDirectory;
+	
 	// init EMStop flag
 	m_bEMStopActive = false;
+	
+	IniFile iniFile;
+	iniFile.SetFileName(m_sIniDirectory + "Platform.ini", "UnderCarriageCtrlGeom.cpp");
+	iniFile.GetKeyInt("Config", "NumberOfWheels", &m_iNumberOfDrives, true);
 
 	// init vectors
 	m_vdVelGearDriveRadS.assign(4,0);
@@ -153,7 +159,7 @@ void UndercarriageCtrlGeom::InitUndercarriageCtrl(void)
 
 	IniFile iniFile;
 
-	iniFile.SetFileName("Platform/IniFiles/Platform.ini", "UnderCarriageCtrlGeom.cpp");
+	iniFile.SetFileName(m_sIniDirectory + "Platform.ini", "UnderCarriageCtrlGeom.cpp");
 	iniFile.GetKeyInt("Geom", "DistWheels", &m_UnderCarriagePrms.iDistWheels, true);
 	iniFile.GetKeyInt("Geom", "RadiusWheel", &m_UnderCarriagePrms.iRadiusWheelMM, true);
 	iniFile.GetKeyInt("Geom", "DistSteerAxisToDriveWheelCenter", &m_UnderCarriagePrms.iDistSteerAxisToDriveWheelMM, true);
@@ -194,7 +200,7 @@ void UndercarriageCtrlGeom::InitUndercarriageCtrl(void)
 	iniFile.GetKeyDouble("Thread", "ThrUCarrCycleTimeS", &m_UnderCarriagePrms.dCmdRateS, true);
 
 	// Read Values for Steering Position Controller from IniFile
-	iniFile.SetFileName("Platform/IniFiles/MotionCtrl.ini", "PltfHardwareCoB3.h");
+	iniFile.SetFileName(m_sIniDirectory + "MotionCtrl.ini", "PltfHardwareCoB3.h");
 	// Prms of Impedance-Ctrlr
 	iniFile.GetKeyDouble("SteerCtrl", "Spring", &m_dSpring, true);
 	iniFile.GetKeyDouble("SteerCtrl", "Damp", &m_dDamp, true);
