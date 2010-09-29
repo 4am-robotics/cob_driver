@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+
+	<node pkg="cob_relayboard" type="cob_relayboard_node" name="relayboard" respawn="false" output="screen">
+		<!-- upload parameters-->
+		<rosparam command="load" file="$(find cob_relayboard)/ros/launch/relayboard_$(env ROBOT).yaml"/>
+	</node>
+
+</launch>
