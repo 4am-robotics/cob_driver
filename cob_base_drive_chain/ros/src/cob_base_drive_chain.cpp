@@ -544,18 +544,8 @@ int main(int argc, char** argv)
 
 	NodeClass nodeClass;
 	
-	ros::Time time_evalcan_buffer = ros::Time::now();
+	ros::spin();
 
-	while(nodeClass.n.ok())
-	{
-		// Read out the CAN buffer only every n seconds; cycle the loop without any sleep time to make services available at all time.
-		if(ros::Time::now().toSec() - time_evalcan_buffer.toSec() > 0.001) {
-			if(nodeClass.m_bisInitialized) nodeClass.m_CanCtrlPltf->evalCanBuffer();
-			//Read-out of CAN buffer is especially necessary during read-out of Elmo Recorder
-			time_evalcan_buffer = ros::Time::now();
-		}
-		ros::spinOnce();
-	}
 	return 0;
 }
 
