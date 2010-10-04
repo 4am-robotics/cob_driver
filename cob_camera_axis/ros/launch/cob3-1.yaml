@@ -1,6 +1,6 @@
 CanDevice: PCAN:14
 CanBaudrate: 500
-ModId: 11
+ModId: 17
 JointName: head_axis_joint
 HomingDir: -1
 OperationMode: position
