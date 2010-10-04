@@ -1,6 +1,11 @@
 libmesasr:
   ubuntu: |
-    wget http://www.mesa-imaging.ch/dlm.php?fname=./customer/driver/libmesasr-dev-1.0.14-653.i386.deb -O ~/libmesasr-dev-1.0.14-653.i386.deb
-    sudo dpkg -i ~/libmesasr-dev-1.0.14-653.i386.deb
+    if [ `uname -m` = "i686" ] ; then
+      FILENAME=libmesasr-dev-1.0.14-653.i386.deb
+    elif [ `uname -m` = "x86_64" ] ; then
+      FILENAME=libmesasr-dev-1.0.14-653.amd64.deb
+    fi
+    wget http://www.mesa-imaging.ch/dlm.php?fname=./customer/driver/$FILENAME -O ~/$FILENAME
+    sudo dpkg -i ~/$FILENAME
 libdc1394:
   ubuntu: libdc1394-22-dev
