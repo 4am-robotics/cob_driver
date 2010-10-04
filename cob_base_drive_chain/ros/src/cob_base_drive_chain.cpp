@@ -209,13 +209,13 @@ class NodeClass
 			topicSub_JointStateCmd = n.subscribe("JointStateCmd", 1, &NodeClass::topicCallback_JointStateCmd, this);
 
 			// implementation of service servers
-			srvServer_Init = n.advertiseService("Init", &NodeClass::srvCallback_Init, this);
+			srvServer_Init = n.advertiseService("init", &NodeClass::srvCallback_Init, this);
 			srvServer_ElmoRecorderConfig = n.advertiseService("ElmoRecorderConfig", &NodeClass::srvCallback_ElmoRecorderConfig, this);
 			srvServer_ElmoRecorderReadout = n.advertiseService("ElmoRecorderReadout", &NodeClass::srvCallback_ElmoRecorderReadout, this);
 			m_bReadoutElmo = false;
 
-			srvServer_Reset = n.advertiseService("Reset", &NodeClass::srvCallback_Reset, this);
-			srvServer_Shutdown = n.advertiseService("Shutdown", &NodeClass::srvCallback_Shutdown, this);
+			srvServer_Reset = n.advertiseService("recover", &NodeClass::srvCallback_Reset, this);
+			srvServer_Shutdown = n.advertiseService("shutdown", &NodeClass::srvCallback_Shutdown, this);
 			//srvServer_isPltfError = n.advertiseService("isPltfError", &NodeClass::srvCallback_isPltfError, this); --> Publish this along with JointStates
 			srvServer_GetJointState = n.advertiseService("GetJointState", &NodeClass::srvCallback_GetJointState, this);
 		}
@@ -342,11 +342,12 @@ class NodeClass
         {
 			ROS_DEBUG("Service Callback Reset");
 			res.success = m_CanCtrlPltf->resetPltf();
-			if (res.success)
+			if (res.success) {
 	   			ROS_INFO("Can-Node resetted");
-			else
+			} else {
 				res.errorMessage.data = "reset of can-nodes failed";
-				ROS_INFO("Reset of Can-Node FAILED");
+				ROS_WARN("Reset of Can-Node FAILED");
+			}
 
 			return true;
 		}

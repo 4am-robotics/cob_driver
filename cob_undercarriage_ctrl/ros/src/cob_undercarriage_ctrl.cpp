@@ -212,6 +212,7 @@ class NodeClass
 				if (is_initialized_bool_) 
 				{
 					ucar_ctrl_->setEMStopActive(false);
+					ROS_DEBUG("Undercarriage Controller EM-Stop released");
 					// reset only done, when system initialized
 					// -> allows to stop ctrlr during init, reset and shutdown
 				}
