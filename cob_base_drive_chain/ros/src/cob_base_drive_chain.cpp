@@ -549,21 +549,22 @@ int main(int argc, char** argv)
 
 	NodeClass nodeClass;
 	
-	ros::Time time_evalcan_buffer = ros::Time::now();
+	// specify looprate of control-cycle
+ 	ros::Rate loop_rate(200); // Hz 
 
 	while(nodeClass.n.ok())
 	{
-		// Read out the CAN buffer only every n seconds; cycle the loop without any sleep time to make services available at all time.
-		if( nodeClass.m_bReadoutElmo && (ros::Time::now().toSec() - time_evalcan_buffer.toSec() > 0.01) ) {
+		//Read-out of CAN buffer is only necessary during read-out of Elmo Recorder		
+		if( nodeClass.m_bReadoutElmo ) {
 			if(nodeClass.m_bisInitialized) nodeClass.m_CanCtrlPltf->evalCanBuffer();
-			//Read-out of CAN buffer is especially necessary during read-out of Elmo Recorder
-			time_evalcan_buffer = ros::Time::now();
 			
 			if(nodeClass.m_CanCtrlPltf->ElmoRecordings(100, 0, "") == 0) {
 				nodeClass.m_bReadoutElmo = false;
 				ROS_INFO("CPU consuming evalCanBuffer used for ElmoReadout deactivated");
 			}
 		}
+		
+		loop_rate.sleep();
 		ros::spinOnce();
 	}
 
