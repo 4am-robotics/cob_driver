@@ -170,6 +170,7 @@ class NodeClass
 		
 		std::string sIniDirectory;
 		bool m_bPubEffort;
+		bool m_bReadoutElmo;
 
 		// Constructor
 		NodeClass()
@@ -211,6 +212,7 @@ class NodeClass
 			srvServer_Init = n.advertiseService("Init", &NodeClass::srvCallback_Init, this);
 			srvServer_ElmoRecorderConfig = n.advertiseService("ElmoRecorderConfig", &NodeClass::srvCallback_ElmoRecorderConfig, this);
 			srvServer_ElmoRecorderReadout = n.advertiseService("ElmoRecorderReadout", &NodeClass::srvCallback_ElmoRecorderReadout, this);
+			m_bReadoutElmo = false;
 
 			srvServer_Reset = n.advertiseService("Reset", &NodeClass::srvCallback_Reset, this);
 			srvServer_Shutdown = n.advertiseService("Shutdown", &NodeClass::srvCallback_Shutdown, this);
@@ -321,8 +323,11 @@ class NodeClass
 			if(m_bisInitialized) {
 				m_CanCtrlPltf->evalCanBuffer();
 				res.success = m_CanCtrlPltf->ElmoRecordings(1, req.subindex, req.fileprefix);
-				if(res.success == 0) res.message = "Successfully requested reading out of Recorded data";
-				else if(res.success == 1) res.message = "Recorder hasn't been configured well yet";
+				if(res.success == 0) {
+					res.message = "Successfully requested reading out of Recorded data";
+					m_bReadoutElmo = true;
+					ROS_WARN("CPU consuming evalCanBuffer used for ElmoReadout activated");
+				} else if(res.success == 1) res.message = "Recorder hasn't been configured well yet";
 				else if(res.success == 2) res.message = "A previous transmission is still in progress";
 			}
 
@@ -544,7 +549,23 @@ int main(int argc, char** argv)
 
 	NodeClass nodeClass;
 	
-	ros::spin();
+	ros::Time time_evalcan_buffer = ros::Time::now();
+
+	while(nodeClass.n.ok())
+	{
+		// Read out the CAN buffer only every n seconds; cycle the loop without any sleep time to make services available at all time.
+		if( nodeClass.m_bReadoutElmo && (ros::Time::now().toSec() - time_evalcan_buffer.toSec() > 0.01) ) {
+			if(nodeClass.m_bisInitialized) nodeClass.m_CanCtrlPltf->evalCanBuffer();
+			//Read-out of CAN buffer is especially necessary during read-out of Elmo Recorder
+			time_evalcan_buffer = ros::Time::now();
+			
+			if(nodeClass.m_CanCtrlPltf->ElmoRecordings(100, 0, "") == 0) {
+				nodeClass.m_bReadoutElmo = false;
+				ROS_INFO("CPU consuming evalCanBuffer used for ElmoReadout deactivated");
+			}
+		}
+		ros::spinOnce();
+	}
 
 	return 0;
 }

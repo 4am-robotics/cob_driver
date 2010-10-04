@@ -188,7 +188,7 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 				| (msg.getAt(5) << 8) | (msg.getAt(4) );
 
 			evalStatusRegister(m_iStatusCtrl);
-			ElmoRec->readoutRecorderTryStatus(m_iStatusCtrl);
+			ElmoRec->readoutRecorderTryStatus(m_iStatusCtrl, seg_Data);
 			
 		}
 
@@ -1056,7 +1056,7 @@ int CanDriveHarmonica::getSDODataInt32(CanMsg& CMsg)
 //-----------------------------------------------
 int CanDriveHarmonica::receivedSDOSegmentedInitiation(CanMsg& msg) {
 
-	if(seg_Data.statusFlag == segData::SDO_SEG_FREE) { //only accept new SDO Segmented Upload if seg_Data is free
+	if(seg_Data.statusFlag == segData::SDO_SEG_FREE || seg_Data.statusFlag == segData::SDO_SEG_WAITING) { //only accept new SDO Segmented Upload if seg_Data is free
 		seg_Data.resetTransferData();
 		seg_Data.statusFlag = segData::SDO_SEG_COLLECTING;
 
@@ -1394,6 +1394,7 @@ int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 					std::cout << "Changed the Readout object to #1 as your selected object hasn't been recorded!" << std::endl;
 				}
 				ElmoRec->setLogFilename(sParam);
+				seg_Data.statusFlag = segData::SDO_SEG_WAITING;
 				ElmoRec->readoutRecorderTry(iParam); //as subindex, give the recorded variable
 				return 0;
 			} else {
@@ -1405,14 +1406,14 @@ int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 			
 		case 2: //request status, still collecting data during ReadOut process?
 			if(seg_Data.statusFlag == segData::SDO_SEG_COLLECTING) {
-				std::cout << "Transmission of data is still in progress" << std::endl;
+				//std::cout << "Transmission of data is still in progress" << std::endl;
 				return 2;
 			} else if(seg_Data.statusFlag == segData::SDO_SEG_PROCESSING) {
-				std::cout << "Transmission of data finished, data not proceeded yet" << std::endl;
+				//std::cout << "Transmission of data finished, data not proceeded yet" << std::endl;
 				return 2;
 			} else if(seg_Data.statusFlag == segData::SDO_SEG_WAITING) {
-				std::cout << "Still waiting for transmission to begin" << std::endl;
-				return 2;			
+				//std::cout << "Still waiting for transmission to begin" << std::endl;
+				return 2;
 			} else { //finished transmission and finished proceeding
 				return 0;
 			}

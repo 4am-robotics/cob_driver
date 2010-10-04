@@ -110,7 +110,7 @@ class ElmoRecorder {
 		* This function is called, when a new SR message is received. If the Recorder is finished and ready to upload data, readoutRecorder() is called to actually start the read-out process.
 		* @param iStatusReg Status register received from the binary interpreter response.
 		*/
-		int readoutRecorderTryStatus(int iStatusReg);
+		int readoutRecorderTryStatus(int iStatusReg, segData& SDOData);
 
 		/**
 		* @param sLogFileprefix Path (to an existing directory!) and file-prefix for the created logfile. It is extended with _MotorNumber_RecordedSource.log

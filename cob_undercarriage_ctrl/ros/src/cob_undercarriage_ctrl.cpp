@@ -678,7 +678,7 @@ void NodeClass::UpdateOdometry()
 	// compose header
 	odom_tf.header.stamp = current_time;
 	odom_tf.header.frame_id = "/odom";
-	odom_tf.child_frame_id = "/base_link";
+	odom_tf.child_frame_id = "/base_footprint";
 	// compose data container
 	odom_tf.transform.translation.x = x_rob_m_;
 	odom_tf.transform.translation.y = y_rob_m_;
@@ -690,7 +690,7 @@ void NodeClass::UpdateOdometry()
 	// compose header
     odom_top.header.stamp = current_time;
     odom_top.header.frame_id = "/odom";
-    odom_top.child_frame_id = "/base_link";
+    odom_top.child_frame_id = "/base_footprint";
     // compose pose of robot
     odom_top.pose.pose.position.x = x_rob_m_;
     odom_top.pose.pose.position.y = y_rob_m_;

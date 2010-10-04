@@ -1515,6 +1515,12 @@ int CanCtrlPltfCOb3::ElmoRecordings(int iFlag, int iParam, std::string sString) 
 				m_vpMotor[i]->setRecorder(99, 0); //Stop any ongoing SDO transfer and clear corresponding data.
 			}
 			return 0;
+			
+		case 100:
+			for(unsigned int i = 0; i < m_vpMotor.size(); i++) {
+				bRet += m_vpMotor[i]->setRecorder(2, 0); //Request state of transmission
+			}
+			return bRet;
 		
 		default:
 			return -1;
