@@ -1206,25 +1206,21 @@ bool CanCtrlPltfCOb3::resetPltf()
 {
 	bool bRetMotor = true;
 	bool bRet = true;
-
-	// Initialize drives
-
+	
 	for(unsigned int i = 0; i < m_vpMotor.size(); i++)
 	{
-		bRetMotor = m_vpMotor[0]->evalReceivedMsg(m_CanMsgRec);
+		bRetMotor = m_vpMotor[i]->start();
 		if (bRetMotor == true)
 		{
-			std::cout << "Initialization of Motor " << i << " ok" << std::endl;
-			m_vpMotor[0]->setGearVelRadS(0);
+			m_vpMotor[i]->setGearVelRadS(0);
 		}
 		else
 		{
-			std::cout << "Initialization of Motor " << i << " failed" << std::endl;
+			std::cout << "Resetting of Motor " << i << " failed" << std::endl;
 		}
 
 		bRet &= bRetMotor;
 	}
-
 	return(bRet);
 }
 
@@ -1515,6 +1511,12 @@ int CanCtrlPltfCOb3::ElmoRecordings(int iFlag, int iParam, std::string sString) 
 				m_vpMotor[i]->setRecorder(99, 0); //Stop any ongoing SDO transfer and clear corresponding data.
 			}
 			return 0;
+			
+		case 100:
+			for(unsigned int i = 0; i < m_vpMotor.size(); i++) {
+				bRet += m_vpMotor[i]->setRecorder(2, 0); //Request state of transmission
+			}
+			return bRet;
 		
 		default:
 			return -1;

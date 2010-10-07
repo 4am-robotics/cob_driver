@@ -106,6 +106,8 @@ int ElmoRecorder::configureElmoRecorder(int iRecordingGap, int driveID, int star
 
 int ElmoRecorder::readoutRecorderTry(int iObjSubIndex) {
 	//Request the SR (status register) and begin all the read-out process with this action.
+	//SDOData.statusFlag is segData::SDO_SEG_WAITING;
+	
 	m_iReadoutRecorderTry = 1;
 	m_iCurrentObject = iObjSubIndex;
 	
@@ -114,7 +116,7 @@ int ElmoRecorder::readoutRecorderTry(int iObjSubIndex) {
 	return 0;
 }
 
-int ElmoRecorder::readoutRecorderTryStatus(int iStatusReg) {
+int ElmoRecorder::readoutRecorderTryStatus(int iStatusReg, segData& SDOData) {
 	if(m_iReadoutRecorderTry == 0) return 0; //only evaluate the SR, if we are really waiting for it (to save time and not to unintionally start a read-out)
 
 	m_iReadoutRecorderTry = 0;
@@ -124,13 +126,17 @@ int ElmoRecorder::readoutRecorderTryStatus(int iStatusReg) {
 
 	if(iRecorderStatus == 0) {
 		std::cout << "Recorder " << m_iDriveID << " inactive with no valid data to upload" << std::endl;
+		SDOData.statusFlag = segData::SDO_SEG_FREE;
 	} else if(iRecorderStatus == 1) {
 		std::cout << "Recorder " << m_iDriveID << " waiting for a trigger event" << std::endl;
+		SDOData.statusFlag = segData::SDO_SEG_FREE;
 	} else if(iRecorderStatus == 2) {
 		std::cout << "Recorder " << m_iDriveID << " finished, valid data ready for use" << std::endl;
 		readoutRecorder(m_iCurrentObject);
+		//already set to SDOData.statusFlag = segData::SDO_SEG_WAITING;
 	} else if(iRecorderStatus == 3) {
 		std::cout << "Recorder " << m_iDriveID << " is still recording" << std::endl;
+		SDOData.statusFlag = segData::SDO_SEG_FREE;
 	}
 	
 	return 0;
