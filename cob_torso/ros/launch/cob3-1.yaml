@@ -1,6 +1,6 @@
 CanModule: PCAN
 CanDevice: 14
-CanBaudrate: 500
+CanBaudrate: 1000
 ModIds: [14,13,16,15]
 JointNames: [torso_lower_neck_pan_joint,torso_lower_neck_tilt_joint,torso_upper_neck_pan_joint, torso_upper_neck_tilt_joint]
 MaxAcc: [0.8,0.8,0.8,0.8]

@@ -278,7 +278,7 @@ class NodeClass
 				odom_trans.transform.rotation = odom_quat;
 
 				//send the transform
-				odom_broadcaster.sendTransform(odom_trans);
+				//odom_broadcaster.sendTransform(odom_trans);
 
 
 
