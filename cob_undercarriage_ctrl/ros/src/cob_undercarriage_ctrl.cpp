@@ -99,9 +99,7 @@ class NodeClass
 		ros::Subscriber topic_sub_drive_diagnostic_;// status of drive chain (initializing, error, normal)
         
         // service servers
-        ros::ServiceServer srv_server_init_;		// init controller (and underlying hardware)
-        ros::ServiceServer srv_server_reset_;		// reset controller (and underlying hardware)
-        ros::ServiceServer srv_server_shutdown_;	// shutdown controller (and underlying hardware)
+        //--
             
         // service clients
         ros::ServiceClient srv_client_get_joint_state_;	// get current configuration of undercarriage
@@ -132,9 +130,17 @@ class NodeClass
 			
 			// Parameters are set within the launch file
 			// Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
-			n.param<std::string>("undercarriage_ctrl/IniDirectory", sIniDirectory, "Platform/IniFiles/");
-			ROS_INFO("IniDirectory loaded from Parameter-Server is: %s", sIniDirectory.c_str());
-			
+			if (n.hasParam("IniDirectory"))
+			{
+				n.getParam("IniDirectory", sIniDirectory);
+				ROS_INFO("IniDirectory loaded from Parameter-Server is: %s", sIniDirectory.c_str());
+			}
+			else
+			{
+				sIniDirectory = "Platform/IniFiles/";
+				ROS_WARN("IniDirectory not found on Parameter-Server, using default value: %s", sIniDirectory.c_str());
+			}
+
 			IniFile iniFile;
 			iniFile.SetFileName(sIniDirectory + "Platform.ini", "PltfHardwareCoB3.h");
 			iniFile.GetKeyInt("Config", "NumberOfMotors", &m_iNumJoints, true);
@@ -144,19 +150,17 @@ class NodeClass
 			
 			// implementation of topics
             // published topics
-			topic_pub_joint_state_cmd_ = n.advertise<sensor_msgs::JointState>("JointStateCmd", 1);
-			topic_pub_odometry_ = n.advertise<nav_msgs::Odometry>("Odometry", 50);
+			topic_pub_joint_state_cmd_ = n.advertise<sensor_msgs::JointState>("joint_command", 1);
+			topic_pub_odometry_ = n.advertise<nav_msgs::Odometry>("odometry", 50);
 
             // subscribed topics
 			topic_sub_CMD_pltf_twist_ = n.subscribe("command", 1, &NodeClass::topicCallbackTwistCmd, this);
-            topic_sub_EM_stop_state_ = n.subscribe("EMStopState", 1, &NodeClass::topicCallbackEMStop, this);
-            topic_sub_drive_diagnostic_ = n.subscribe("Diagnostic", 1, &NodeClass::topicCallbackDiagnostic, this);
+            topic_sub_EM_stop_state_ = n.subscribe("/emergency_stop_state", 1, &NodeClass::topicCallbackEMStop, this);
+            topic_sub_drive_diagnostic_ = n.subscribe("diagnostic", 1, &NodeClass::topicCallbackDiagnostic, this);
 			//<diagnostic_msgs::DiagnosticStatus>("Diagnostic", 1);
 
             // implementation of service servers
-            srv_server_init_ = n.advertiseService("Init", &NodeClass::srvCallbackInit, this);
-            srv_server_reset_ = n.advertiseService("Reset", &NodeClass::srvCallbackReset, this);
-            srv_server_shutdown_ = n.advertiseService("Shutdown", &NodeClass::srvCallbackShutdown, this);
+            //--
 
 			// implementation of service clients
             srv_client_get_joint_state_ = n.serviceClient<cob_srvs::GetJointState>("GetJointState");
@@ -707,7 +711,7 @@ void NodeClass::UpdateOdometry()
 
 	// publish data
 	// publish the transform
-	tf_broadcast_odometry_.sendTransform(odom_tf);
+	//tf_broadcast_odometry_.sendTransform(odom_tf);
 	// publish odometry msg
 	topic_pub_odometry_.publish(odom_top);
 }

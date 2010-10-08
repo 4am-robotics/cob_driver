@@ -180,10 +180,18 @@ class NodeClass
 
 			/// Parameters are set within the launch file
 			// Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
-			n.param<std::string>("base_drive_chain/IniDirectory", sIniDirectory, "Platform/IniFiles/");
-			ROS_INFO("IniDirectory loaded from Parameter-Server is: %s", sIniDirectory.c_str());
+			if (n.hasParam("IniDirectory"))
+			{
+				n.getParam("IniDirectory", sIniDirectory);
+				ROS_INFO("IniDirectory loaded from Parameter-Server is: %s", sIniDirectory.c_str());
+			}
+			else
+			{
+				sIniDirectory = "Platform/IniFiles/";
+				ROS_WARN("IniDirectory not found on Parameter-Server, using default value: %s", sIniDirectory.c_str());
+			}
 
-			n.param<bool>("base_drive_chain/PublishEffort", m_bPubEffort, false);
+			n.param<bool>("PublishEffort", m_bPubEffort, false);
 			if(m_bPubEffort) ROS_INFO("You have choosen to publish effort of motors, that charges capacity of CAN");
 			
 			
@@ -203,10 +211,10 @@ class NodeClass
 
 			// implementation of topics
 			// published topics
-			topicPub_JointState = n.advertise<sensor_msgs::JointState>("JointState", 1);
-			topicPub_Diagnostic = n.advertise<diagnostic_msgs::DiagnosticStatus>("Diagnostic", 1);
+			topicPub_JointState = n.advertise<sensor_msgs::JointState>("/joint_states", 1);
+			topicPub_Diagnostic = n.advertise<diagnostic_msgs::DiagnosticStatus>("diagnostic", 1);
 			// subscribed topics
-			topicSub_JointStateCmd = n.subscribe("JointStateCmd", 1, &NodeClass::topicCallback_JointStateCmd, this);
+			topicSub_JointStateCmd = n.subscribe("joint_command", 1, &NodeClass::topicCallback_JointStateCmd, this);
 
 			// implementation of service servers
 			srvServer_Init = n.advertiseService("init", &NodeClass::srvCallback_Init, this);
@@ -229,11 +237,11 @@ class NodeClass
 		// function will be called when a new message arrives on a topic
 		void topicCallback_JointStateCmd(const sensor_msgs::JointState::ConstPtr& msg)
 		{
-			ROS_DEBUG("Topic Callback JointStateCmd");
+			ROS_DEBUG("Topic Callback joint_command");
 			// only process cmds when system is initialized
 			if(m_bisInitialized == true)
 			{
-				ROS_DEBUG("Topic Callback JointStateCmd - Sending Commands to drives (initialized)");
+				ROS_DEBUG("Topic Callback joint_command - Sending Commands to drives (initialized)");
 		   		int iRet;
 				sensor_msgs::JointState JointStateCmd = *msg;
             	// check if velocities lie inside allowed boundaries
@@ -281,7 +289,7 @@ class NodeClass
 		bool srvCallback_Init(cob_srvs::Trigger::Request &req,
 							  cob_srvs::Trigger::Response &res )
 		{
-			ROS_DEBUG("Service Callback Init");
+			ROS_DEBUG("Service Callback init");
 			if(m_bisInitialized == false)
 			{
 				m_bisInitialized = initDrives();
@@ -340,7 +348,7 @@ class NodeClass
         bool srvCallback_Reset(cob_srvs::Trigger::Request &req,
                                      cob_srvs::Trigger::Response &res )
         {
-			ROS_DEBUG("Service Callback Reset");
+			ROS_DEBUG("Service callback reset");
 			res.success = m_CanCtrlPltf->resetPltf();
 			if (res.success) {
 	   			ROS_INFO("Can-Node resetted");
@@ -356,7 +364,7 @@ class NodeClass
         bool srvCallback_Shutdown(cob_srvs::Trigger::Request &req,
                                      cob_srvs::Trigger::Response &res )
         {
-			ROS_DEBUG("Service Callback Shutdown");
+			ROS_DEBUG("Service callback shutdown");
 			res.success = m_CanCtrlPltf->shutdownPltf();
 			if (res.success)
 	   			ROS_INFO("Drives shut down");

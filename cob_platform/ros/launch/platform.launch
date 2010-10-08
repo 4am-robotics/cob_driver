@@ -1,7 +1,19 @@
 <?xml version="1.0"?>
 <launch>
 
-	<!-- start platform node -->
-	<node pkg="cob_platform" type="cob_platform" name="cob_platform" ns="base_controller" cwd="node" output="screen"/>
+	<group ns="base_controller">
+
+		<!-- upload parameters -->
+		<param name="IniDirectory" value="$(find cob_platform)/ros/bin/Platform/IniFiles/"/>
+		<param name="PublishEffort" value="false"/>
+
+		<!-- start underlying components - base_drive_chain + relayboard -->
+		<!-- base_drive_chain.launch: establishes the ROS interface to the drives of COB. Has to be initialized via service base_driver/Init -->
+		<include file="$(find cob_base_drive_chain)/ros/launch/base_drive_chain.launch" />
+	
+		<!-- start undercarriage ctrlr -->
+		<include file="$(find cob_undercarriage_ctrl)/ros/launch/undercarriage_ctrl.launch" />
+
+	</group>
 
 </launch>

@@ -89,7 +89,7 @@ class NodeClass
 		// Constructor
 		NodeClass()
 		{
-			topicPub_isEmergencyStop = n.advertise<cob_msgs::EmergencyStopState>("EMStopState", 1);
+			topicPub_isEmergencyStop = n.advertise<cob_msgs::EmergencyStopState>("/emergency_stop_state", 1);
 
 			// Make sure member variables have a defined state at the beginning
 			EM_stop_status_ = ST_EM_FREE;
@@ -149,8 +149,18 @@ int main(int argc, char** argv)
 //##################################
 //#### function implementations ####
 
-int NodeClass::init() {
-	n.param<std::string>("relayboard/ComPort", sComPort, "/dev/ttyUSB0");
+int NodeClass::init() 
+{
+	if (n.hasParam("ComPort"))
+	{
+		n.getParam("ComPort", sComPort);
+		ROS_INFO("Loaded ComPort parameter from parameter server: %s",sComPort.c_str());
+	}
+	else
+	{
+		sComPort ="/dev/ttyUSB0";
+		ROS_WARN("ComPort Parameter not available, using default Port: %s",sComPort.c_str());
+	}
     
 	m_SerRelayBoard = new SerRelayBoard(sComPort);
 	ROS_INFO("Opened Relayboard at ComPort = %s", sComPort.c_str());

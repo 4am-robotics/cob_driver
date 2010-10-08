@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+	<group ns="base_controller">
+
+		<!-- start platform node -->
+		<!--node pkg="cob_platform" type="cob_platform" name="cob_platform" cwd="node" output="screen"/-->
+
+	</group>
+
+</launch>		
