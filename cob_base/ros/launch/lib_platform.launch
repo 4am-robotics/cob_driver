@@ -4,7 +4,7 @@
 	<group ns="base_controller">
 
 		<!-- start platform node -->
-		<!--node pkg="cob_platform" type="cob_platform" name="cob_platform" cwd="node" output="screen"/-->
+		<node pkg="cob_base" type="cob_platform" name="cob_platform" cwd="node" output="screen"/-->
 
 	</group>
 
