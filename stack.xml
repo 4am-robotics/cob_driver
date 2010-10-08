@@ -8,8 +8,10 @@
   <license>LGPL</license>  
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_driver</url>
-  <depend stack="cob_common" /> <!-- cob_msgs, cob_utilities, cob_vision_utils, cob_actions, cob_srvs, cob_description -->
-  <depend stack="cob_extern" /> <!-- libpcan, libm5api, libwm4, libntcan -->
+  <depend stack="cob_common" /> <!-- cob_utilities, cob_srvs, cob_description, cob_vision_utils, cob_msgs -->
+  <depend stack="cob_extern" /> <!-- libpcan, libm5api, libntcan -->
+  <depend stack="cob_sandbox" /> <!-- libwm4 -->
+  <depend stack="cob_vision" /> <!-- opencv2 -->
   <depend stack="common" /> <!-- actionlib, tinyxml -->
   <depend stack="common_msgs" /> <!-- nav_msgs, geometry_msgs, sensor_msgs, diagnostic_msgs -->
   <depend stack="geometry" /> <!-- tf, kdl, eigen, tf_conversions -->
@@ -20,7 +22,7 @@
   <depend stack="pr2_controllers" /> <!-- trajectory_msgs, pr2_controllers_msgs -->
   <depend stack="robot_model" /> <!-- urdf, kdl_parser -->
   <depend stack="ros" /> <!-- rospy, std_msgs, roscpp -->
-  <depend stack="vision_opencv" /> <!-- opencv2, cv_bridge -->
+  <depend stack="vision_opencv" /> <!-- cv_bridge -->
   <depend stack="visualization_common" /> <!-- visualization_msgs -->
 
 </stack>
