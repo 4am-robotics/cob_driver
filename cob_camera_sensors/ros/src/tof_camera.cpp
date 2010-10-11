@@ -278,12 +278,15 @@ public:
 		/// Set time stamp
 		ros::Time now = ros::Time::now();
 		xyz_image_msg_ptr->header.stamp = now;
+		xyz_image_msg_ptr->header.frame_id = "head_tof_camera_link";
 		grey_image_msg_ptr->header.stamp = now;
+		grey_image_msg_ptr->header.frame_id = "head_tof_camera_link";
 
 		tof_image_info = camera_info_msg_;
 		tof_image_info.width = grey_image_32F1_.cols;
 		tof_image_info.height = grey_image_32F1_.rows;
 		tof_image_info.header.stamp = now;
+		tof_image_info.header.frame_id = "head_tof_camera_link";
 
 		/// publish message
 		xyz_image_publisher_.publish(*xyz_image_msg_ptr, tof_image_info);
