@@ -509,8 +509,14 @@ public:
 			return false;
 		}
 
-		node_handle_.getParam("tof_camera/publish_point_cloud", publish_point_cloud_);
-		node_handle_.getParam("tof_camera/publish_point_cloud_2", publish_point_cloud_2_);
+		if(node_handle_.getParam("tof_camera/publish_point_cloud", publish_point_cloud_) == false)
+		{
+			ROS_WARN("[tof_camera] Flag for publishing PointCloud not set, falling back to default (false)");
+		}
+		if(node_handle_.getParam("tof_camera/publish_point_cloud_2", publish_point_cloud_2_) == false)
+		{
+			ROS_WARN("[tof_camera] Flag for publishing PointCloud2 not set, falling back to default (false)");
+		}
 
 
 		ROS_INFO("ROS node mode: %s", tmp_string.c_str());
