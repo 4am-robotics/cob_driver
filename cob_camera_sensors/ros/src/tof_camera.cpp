@@ -128,9 +128,11 @@ public:
     CobTofCameraNode(const ros::NodeHandle& node_handle)
     : node_handle_(node_handle),
 	  image_transport_(node_handle),
-          tof_camera_(AbstractRangeImagingSensorPtr()),
-          xyz_image_32F3_(cv::Mat()),
-          grey_image_32F1_(cv::Mat())
+      tof_camera_(AbstractRangeImagingSensorPtr()),
+      xyz_image_32F3_(cv::Mat()),
+      grey_image_32F1_(cv::Mat()),
+      publish_point_cloud_(false),
+      publish_point_cloud_2_(false)
     {
             /// Void
     }
@@ -196,8 +198,8 @@ public:
 		image_service_ = node_handle_.advertiseService("get_images", &CobTofCameraNode::imageSrvCallback, this);
 		xyz_image_publisher_ = image_transport_.advertiseCamera("image_xyz", 1);
 		grey_image_publisher_ = image_transport_.advertiseCamera("image_grey", 1);
-		topicPub_pointCloud2_ = node_handle_.advertise<sensor_msgs::PointCloud2>("point_cloud2", 1);
-		topicPub_pointCloud_ = node_handle_.advertise<sensor_msgs::PointCloud>("point_cloud", 1);
+		if(publish_point_cloud_2_) topicPub_pointCloud2_ = node_handle_.advertise<sensor_msgs::PointCloud2>("point_cloud2", 1);
+		if(publish_point_cloud_) topicPub_pointCloud_ = node_handle_.advertise<sensor_msgs::PointCloud>("point_cloud", 1);
 
 		cv::Mat d = tof_sensor_toolbox->GetDistortionParameters(tof_camera_type_, tof_camera_index_);
 		camera_info_msg_.D[0] = d.at<double>(0, 0);
@@ -219,9 +221,6 @@ public:
 
 		camera_info_msg_.width = range_sensor_width;		
 		camera_info_msg_.height = range_sensor_height;
-
-		publish_point_cloud_ = false;
-		publish_point_cloud_2_ = false;
 
 		return true;
 	}
