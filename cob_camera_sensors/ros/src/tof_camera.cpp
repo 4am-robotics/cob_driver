@@ -344,34 +344,34 @@ public:
 		pc_msg.header.frame_id = "head_tof_camera_link";
 		pc_msg.width = cpp_xyz_image_32F3.cols;
 		pc_msg.height = cpp_xyz_image_32F3.rows;
-		pc_msg.fields.resize(4);
+		pc_msg.fields.resize(6);
 		pc_msg.fields[0].name = "x";
 		pc_msg.fields[0].datatype = sensor_msgs::PointField::FLOAT32;
 		pc_msg.fields[1].name = "y";
 		pc_msg.fields[1].datatype = sensor_msgs::PointField::FLOAT32;
 		pc_msg.fields[2].name = "z";
 		pc_msg.fields[2].datatype = sensor_msgs::PointField::FLOAT32;
-		//pc_msg.fields[3].name = "rgb";
-		//pc_msg.fields[3].datatype = sensor_msgs::PointField::UINT32;
+		pc_msg.fields[3].name = "rgb";
+		pc_msg.fields[3].datatype = sensor_msgs::PointField::UINT32;
 		pc_msg.fields[4].name = "confidence";
 		pc_msg.fields[4].datatype = sensor_msgs::PointField::FLOAT32;
-		//pc_msg.fields[5].name = "features";
-		//pc_msg.fields[5].datatype = sensor_msgs::PointField::UINT8;
+		pc_msg.fields[5].name = "features";
+		pc_msg.fields[5].datatype = sensor_msgs::PointField::UINT8;
 		int offset = 0;
 		for (size_t d = 0; d < pc_msg.fields.size(); ++d, offset += 4)
 		{
 			pc_msg.fields[d].offset = offset;
 		}
-		pc_msg.point_step = offset;
+		pc_msg.point_step = offset-3;
 		pc_msg.row_step = pc_msg.point_step * pc_msg.width;
 		pc_msg.data.resize (pc_msg.width*pc_msg.height*pc_msg.point_step);
 		pc_msg.is_dense = true;
 		pc_msg.is_bigendian = false;
 
 		float* f_ptr = 0;
-		//unsigned char c_dummy[3] = {0,0,0};
+		unsigned char c_dummy[3] = {0,0,0};
 		float* g_ptr = 0;
-		//unsigned char* ft_dummy = 0;
+		unsigned char* ft_dummy = 0;
 		int pc_msg_idx=0;
 		for (int row = 0; row < cpp_xyz_image_32F3.rows; row++)
 		{
@@ -380,9 +380,9 @@ public:
 			for (int col = 0; col < cpp_xyz_image_32F3.cols; col++, pc_msg_idx++)
 			{
 				memcpy(&pc_msg.data[pc_msg_idx * pc_msg.point_step], &f_ptr[3*col], 3*sizeof(float));
-				//memcpy(&pc_msg.data[pc_msg_idx * pc_msg.point_step + pc_msg.fields[3].offset], &c_dummy, 3*sizeof(unsigned char));
-				memcpy(&pc_msg.data[pc_msg_idx * pc_msg.point_step + pc_msg.fields[3].offset], &g_ptr[col], sizeof(float));
-				//memcpy(&pc_msg.data[pc_msg_idx * pc_msg.point_step + pc_msg.fields[5].offset], &ft_dummy, sizeof(unsigned char));
+				memcpy(&pc_msg.data[pc_msg_idx * pc_msg.point_step + pc_msg.fields[3].offset], &c_dummy, 3*sizeof(unsigned char));
+				memcpy(&pc_msg.data[pc_msg_idx * pc_msg.point_step + pc_msg.fields[4].offset], &g_ptr[col], sizeof(float));
+				memcpy(&pc_msg.data[pc_msg_idx * pc_msg.point_step + pc_msg.fields[5].offset], &ft_dummy, sizeof(unsigned char));
 			}
 		}
 		topicPub_pointCloud2_.publish(pc_msg);
