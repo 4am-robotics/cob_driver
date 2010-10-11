@@ -66,6 +66,7 @@
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/fill_image.h>
 #include <sensor_msgs/SetCameraInfo.h>
+#include <sensor_msgs/PointCloud2.h>
 
 #include <cob_srvs/GetTOFImages.h>
 
@@ -93,6 +94,7 @@ private:
 	image_transport::ImageTransport image_transport_;	///< Image transport instance
 	image_transport::CameraPublisher xyz_image_publisher_;	///< Publishes xyz image data
 	image_transport::CameraPublisher grey_image_publisher_;	///< Publishes grey image data
+	ros::Publisher topicPub_pointCloud_;
 
 	sensor_msgs::CameraInfo camera_info_msg_;    ///< ROS camera information message (e.g. holding intrinsic parameters)
 
@@ -189,6 +191,7 @@ public:
 		image_service_ = node_handle_.advertiseService("get_images", &CobTofCameraNode::imageSrvCallback, this);
 		xyz_image_publisher_ = image_transport_.advertiseCamera("image_xyz", 1);
 		grey_image_publisher_ = image_transport_.advertiseCamera("image_grey", 1);
+		topicPub_pointCloud_ = node_handle_.advertise<sensor_msgs::PointCloud2>("point_cloud", 1);
 
 		cv::Mat d = tof_sensor_toolbox->GetDistortionParameters(tof_camera_type_, tof_camera_index_);
 		camera_info_msg_.D[0] = d.at<double>(0, 0);
@@ -286,7 +289,65 @@ public:
 		xyz_image_publisher_.publish(*xyz_image_msg_ptr, tof_image_info);
 		grey_image_publisher_.publish(*grey_image_msg_ptr, tof_image_info);
 
+		publishPointCloud();
+
 		return true;
+	}
+
+	void publishPointCloud()
+	{
+		cv::Mat cpp_xyz_image_32F3 = xyz_image_32F3_;
+		cv::Mat cpp_confidence_mask_32F1 = grey_image_32F1_;
+
+		sensor_msgs::PointCloud2 pc_msg;
+		// create point_cloud message
+		pc_msg.header.stamp = ros::Time::now();
+		pc_msg.header.frame_id = "head_tof_camera_link";
+		pc_msg.width = cpp_xyz_image_32F3.cols;
+		pc_msg.height = cpp_xyz_image_32F3.rows;
+		pc_msg.fields.resize(6);
+		pc_msg.fields[0].name = "x";
+		pc_msg.fields[0].datatype = sensor_msgs::PointField::FLOAT32;
+		pc_msg.fields[1].name = "y";
+		pc_msg.fields[1].datatype = sensor_msgs::PointField::FLOAT32;
+		pc_msg.fields[2].name = "z";
+		pc_msg.fields[2].datatype = sensor_msgs::PointField::FLOAT32;
+		pc_msg.fields[3].name = "rgb";
+		pc_msg.fields[3].datatype = sensor_msgs::PointField::UINT32;
+		pc_msg.fields[4].name = "confidence";
+		pc_msg.fields[4].datatype = sensor_msgs::PointField::FLOAT32;
+		pc_msg.fields[5].name = "features";
+		pc_msg.fields[5].datatype = sensor_msgs::PointField::UINT8;
+		int offset = 0;
+		for (size_t d = 0; d < pc_msg.fields.size(); ++d, offset += 4)
+		{
+			pc_msg.fields[d].offset = offset;
+		}
+		pc_msg.point_step = offset-3;
+		pc_msg.row_step = pc_msg.point_step * pc_msg.width;
+		pc_msg.data.resize (pc_msg.width*pc_msg.height*pc_msg.point_step);
+		pc_msg.is_dense = true;
+		pc_msg.is_bigendian = false;
+
+		float* f_ptr = 0;
+		unsigned char c_dummy[3] = {0,0,0};
+		float* g_ptr = 0;
+		unsigned char* ft_dummy = 0;
+		int pc_msg_idx=0;
+		for (int row = 0; row < cpp_xyz_image_32F3.rows; row++)
+		{
+			f_ptr = cpp_xyz_image_32F3.ptr<float>(row);
+			g_ptr = cpp_confidence_mask_32F1.ptr<float>(row);
+			for (int col = 0; col < cpp_xyz_image_32F3.cols; col++, pc_msg_idx++)
+			{
+				memcpy(&pc_msg.data[pc_msg_idx * pc_msg.point_step], &f_ptr[3*col], 3*sizeof(float));
+				memcpy(&pc_msg.data[pc_msg_idx * pc_msg.point_step + pc_msg.fields[3].offset], &c_dummy, 3*sizeof(unsigned char));
+				memcpy(&pc_msg.data[pc_msg_idx * pc_msg.point_step + pc_msg.fields[4].offset], &g_ptr[col], sizeof(float));
+				memcpy(&pc_msg.data[pc_msg_idx * pc_msg.point_step + pc_msg.fields[5].offset], &ft_dummy, sizeof(unsigned char));
+			}
+		}
+		pc_msg.header.stamp = ros::Time::now();
+		topicPub_pointCloud_.publish(pc_msg);
 	}
 
 	bool imageSrvCallback(cob_srvs::GetTOFImages::Request &req,
