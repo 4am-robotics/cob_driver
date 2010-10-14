@@ -66,6 +66,8 @@
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/fill_image.h>
 #include <sensor_msgs/SetCameraInfo.h>
+#include <sensor_msgs/PointCloud.h>
+#include <sensor_msgs/PointCloud2.h>
 
 #include <cob_srvs/GetTOFImages.h>
 
@@ -93,6 +95,8 @@ private:
 	image_transport::ImageTransport image_transport_;	///< Image transport instance
 	image_transport::CameraPublisher xyz_image_publisher_;	///< Publishes xyz image data
 	image_transport::CameraPublisher grey_image_publisher_;	///< Publishes grey image data
+	ros::Publisher topicPub_pointCloud_;
+	ros::Publisher topicPub_pointCloud2_;
 
 	sensor_msgs::CameraInfo camera_info_msg_;    ///< ROS camera information message (e.g. holding intrinsic parameters)
 
@@ -116,14 +120,19 @@ private:
 	CobTofCameraNode::t_Mode ros_node_mode_;	///< Specifies if node is started as topic or service
 	boost::mutex service_mutex_;
 
+	bool publish_point_cloud_;
+	bool publish_point_cloud_2_;
+
 public:
 	/// Constructor.
     CobTofCameraNode(const ros::NodeHandle& node_handle)
     : node_handle_(node_handle),
 	  image_transport_(node_handle),
-          tof_camera_(AbstractRangeImagingSensorPtr()),
-          xyz_image_32F3_(cv::Mat()),
-          grey_image_32F1_(cv::Mat())
+      tof_camera_(AbstractRangeImagingSensorPtr()),
+      xyz_image_32F3_(cv::Mat()),
+      grey_image_32F1_(cv::Mat()),
+      publish_point_cloud_(false),
+      publish_point_cloud_2_(false)
     {
             /// Void
     }
@@ -189,6 +198,8 @@ public:
 		image_service_ = node_handle_.advertiseService("get_images", &CobTofCameraNode::imageSrvCallback, this);
 		xyz_image_publisher_ = image_transport_.advertiseCamera("image_xyz", 1);
 		grey_image_publisher_ = image_transport_.advertiseCamera("image_grey", 1);
+		if(publish_point_cloud_2_) topicPub_pointCloud2_ = node_handle_.advertise<sensor_msgs::PointCloud2>("point_cloud2", 1);
+		if(publish_point_cloud_) topicPub_pointCloud_ = node_handle_.advertise<sensor_msgs::PointCloud>("point_cloud", 1);
 
 		cv::Mat d = tof_sensor_toolbox->GetDistortionParameters(tof_camera_type_, tof_camera_index_);
 		camera_info_msg_.D[0] = d.at<double>(0, 0);
@@ -275,18 +286,98 @@ public:
 		/// Set time stamp
 		ros::Time now = ros::Time::now();
 		xyz_image_msg_ptr->header.stamp = now;
+		xyz_image_msg_ptr->header.frame_id = "head_tof_camera_link";
 		grey_image_msg_ptr->header.stamp = now;
+		grey_image_msg_ptr->header.frame_id = "head_tof_camera_link";
 
 		tof_image_info = camera_info_msg_;
 		tof_image_info.width = grey_image_32F1_.cols;
 		tof_image_info.height = grey_image_32F1_.rows;
 		tof_image_info.header.stamp = now;
+		tof_image_info.header.frame_id = "head_tof_camera_link";
 
 		/// publish message
 		xyz_image_publisher_.publish(*xyz_image_msg_ptr, tof_image_info);
 		grey_image_publisher_.publish(*grey_image_msg_ptr, tof_image_info);
 
+		if(publish_point_cloud_) publishPointCloud(now);
+		if(publish_point_cloud_2_) publishPointCloud2(now);
+
 		return true;
+	}
+
+    void publishPointCloud(ros::Time now)
+    {
+        ROS_DEBUG("convert xyz_image to point_cloud");
+        sensor_msgs::PointCloud pc_msg;
+		// create point_cloud message
+		pc_msg.header.stamp = now;
+		pc_msg.header.frame_id = "head_tof_camera_link";
+
+		cv::Mat cpp_xyz_image_32F3 = xyz_image_32F3_;
+		cv::Mat cpp_grey_image_32F1 = grey_image_32F1_;
+
+		float* f_ptr = 0;
+		for (int row = 0; row < cpp_xyz_image_32F3.rows; row++)
+		{
+			f_ptr = cpp_xyz_image_32F3.ptr<float>(row);
+			for (int col = 0; col < cpp_xyz_image_32F3.cols; col++)
+			{
+				geometry_msgs::Point32 pt;
+				pt.x = f_ptr[3*col + 0];
+				pt.y = f_ptr[3*col + 1];
+				pt.z = f_ptr[3*col + 2];
+				pc_msg.points.push_back(pt);
+			}
+		}
+        topicPub_pointCloud_.publish(pc_msg);
+    }
+
+	void publishPointCloud2(ros::Time now)
+	{
+		cv::Mat cpp_xyz_image_32F3 = xyz_image_32F3_;
+		cv::Mat cpp_confidence_mask_32F1 = grey_image_32F1_;
+
+		sensor_msgs::PointCloud2 pc_msg;
+		// create point_cloud message
+		pc_msg.header.stamp = now;
+		pc_msg.header.frame_id = "head_tof_camera_link";
+		pc_msg.width = cpp_xyz_image_32F3.cols;
+		pc_msg.height = cpp_xyz_image_32F3.rows;
+		pc_msg.fields.resize(4);
+		pc_msg.fields[0].name = "x";
+		pc_msg.fields[0].datatype = sensor_msgs::PointField::FLOAT32;
+		pc_msg.fields[1].name = "y";
+		pc_msg.fields[1].datatype = sensor_msgs::PointField::FLOAT32;
+		pc_msg.fields[2].name = "z";
+		pc_msg.fields[2].datatype = sensor_msgs::PointField::FLOAT32;
+		pc_msg.fields[3].name = "confidence";
+		pc_msg.fields[3].datatype = sensor_msgs::PointField::FLOAT32;
+		int offset = 0;
+		for (size_t d = 0; d < pc_msg.fields.size(); ++d, offset += 4)
+		{
+			pc_msg.fields[d].offset = offset;
+		}
+		pc_msg.point_step = 16;
+		pc_msg.row_step = pc_msg.point_step * pc_msg.width;
+		pc_msg.data.resize (pc_msg.width*pc_msg.height*pc_msg.point_step);
+		pc_msg.is_dense = true;
+		pc_msg.is_bigendian = false;
+
+		float* f_ptr = 0;
+		float* g_ptr = 0;
+		int pc_msg_idx=0;
+		for (int row = 0; row < cpp_xyz_image_32F3.rows; row++)
+		{
+			f_ptr = cpp_xyz_image_32F3.ptr<float>(row);
+			g_ptr = cpp_confidence_mask_32F1.ptr<float>(row);
+			for (int col = 0; col < cpp_xyz_image_32F3.cols; col++, pc_msg_idx++)
+			{
+				memcpy(&pc_msg.data[pc_msg_idx * pc_msg.point_step], &f_ptr[3*col], 3*sizeof(float));
+				memcpy(&pc_msg.data[pc_msg_idx * pc_msg.point_step + pc_msg.fields[3].offset], &g_ptr[col], sizeof(float));
+			}
+		}
+		topicPub_pointCloud2_.publish(pc_msg);
 	}
 
 	bool imageSrvCallback(cob_srvs::GetTOFImages::Request &req,
@@ -409,6 +500,16 @@ public:
 			return false;
 		}
 
+		if(node_handle_.getParam("tof_camera/publish_point_cloud", publish_point_cloud_) == false)
+		{
+			ROS_WARN("[tof_camera] Flag for publishing PointCloud not set, falling back to default (false)");
+		}
+		if(node_handle_.getParam("tof_camera/publish_point_cloud_2", publish_point_cloud_2_) == false)
+		{
+			ROS_WARN("[tof_camera] Flag for publishing PointCloud2 not set, falling back to default (false)");
+		}
+
+
 		ROS_INFO("ROS node mode: %s", tmp_string.c_str());
 
 		return true;
@@ -433,7 +534,7 @@ int main(int argc, char** argv)
     if (!camera_node.init()) return 0;
 
     //ros::spin();
-	ros::Rate rate(10);
+	ros::Rate rate(100);
 	while(nh.ok())
 	{
 		camera_node.spin();

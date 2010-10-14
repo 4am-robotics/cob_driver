@@ -15,6 +15,8 @@
 	<!-- Start node as service or topic -->
 	<!-- MODE_SERVICE or MODE_TOPIC -->
 	<param name="ros_node_mode" value="MODE_TOPIC" />
+	<param name="publish_point_cloud" value="true" />
+	<param name="publish_point_cloud_2" value="false" />
   </node>
 
 </launch>
