@@ -5,3 +5,4 @@ ModIds: [10]
 JointNames: [torso_tray_joint]
 MaxAcc: [0.8]
 OperationMode: position
+frequency: 1

@@ -62,8 +62,8 @@
 #include <actionlib/client/terminal_state.h>
 
 // ROS message includes
-#include <cob_msgs/JointCommand.h>
-#include <cob_actions/JointCommandAction.h>
+#include <trajectory_msgs/JointTrajectory.h>
+#include <pr2_controllers_msgs/JointTrajectoryAction.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
 	ros::NodeHandle n;
 
     // topics to publish
-	actionlib::SimpleActionClient<cob_actions::JointCommandAction> ac("JointCommand", true);  
+	actionlib::SimpleActionClient<pr2_controllers_msgs::JointTrajectoryAction> ac("command", true);  
         
 	// topics to subscribe, callback is called for new messages arriving
     //--
@@ -106,9 +106,9 @@ int main(int argc, char** argv)
     //--
         
     // service clients
-    ros::ServiceClient srvClient_Init = n.serviceClient<cob_srvs::Trigger>("Init");
-    ros::ServiceClient srvClient_Stop = n.serviceClient<cob_srvs::Trigger>("Stop");
-    ros::ServiceClient srvClient_SetOperationMode = n.serviceClient<cob_srvs::SetOperationMode>("SetOperationMode");
+    ros::ServiceClient srvClient_Init = n.serviceClient<cob_srvs::Trigger>("init");
+    ros::ServiceClient srvClient_Stop = n.serviceClient<cob_srvs::Trigger>("stop");
+    ros::ServiceClient srvClient_SetOperationMode = n.serviceClient<cob_srvs::SetOperationMode>("set_operation_mode");
     
     // external code
 	bool srv_querry = false;
@@ -177,43 +177,44 @@ int main(int argc, char** argv)
 				//ROS_INFO("Waiting for action server to start.");
 				//ac.waitForServer(); //will wait for infinite time
 				
-				cob_actions::JointCommandGoal goal;
+				pr2_controllers_msgs::JointTrajectoryGoal goal;
 				
-				XmlRpc::XmlRpcValue command_param;
-				cob_msgs::JointCommand command;
+				XmlRpc::XmlRpcValue traj_param;
+				trajectory_msgs::JointTrajectory traj;
+				traj.points.resize(1);
 				
-				if (n.hasParam("JointCommand"))
+				if (n.hasParam("JointTraj"))
 				{
-					n.getParam("JointCommand", command_param);
+					n.getParam("JointTraj", traj_param);
 				}
 				else
 				{
-					ROS_ERROR("Parameter JointCommand not set");
+					ROS_ERROR("Parameter JointTraj not set");
 				}
 				
-				for (int i = 0; i < command_param.size(); i++)
+				for (int i = 0; i < traj_param.size(); i++)
 				{
-					std::cout << "command " << i << " = " << command_param[i] <<std::endl;
+					std::cout << "traj " << i << " = " << traj_param[i] <<std::endl;
 				}
 				
-				int command_nr;
-				std::cout << command_param.size() << " commands available. Choose command number [0, 1, 2, ...]: ";
-                std::cin >> command_nr;
+				int traj_nr;
+				std::cout << traj_param.size() << " trajectories available. Choose trajectory number [0, 1, 2, ...]: ";
+                std::cin >> traj_nr;
                 std::cout << std::endl;
                 
-                if (command_nr < 0 || command_nr > command_param.size()-1)
+                if (traj_nr < 0 || traj_nr > traj_param.size()-1)
                 {
-                	ROS_ERROR("command_nr not in range. command_nr requested was %d and should be between 0 and %d",command_nr ,command_param.size()-1);
+                	ROS_ERROR("traj_nr not in range. traj_nr requested was %d and should be between 0 and %d",traj_nr ,traj_param.size()-1);
                 	break;
                 }
 				
-				command.positions.resize(command_param[command_nr].size());
-				for (int i = 0; i<command_param[command_nr].size(); i++ )
+				traj.points[0].positions.resize(traj_param[traj_nr].size());
+				for (int i = 0; i<traj_param[traj_nr].size(); i++ )
 				{
-					command.positions[i] = (double)command_param[command_nr][i];
+					traj.points[0].positions[i] = (double)traj_param[traj_nr][i];
 				}
 				
-				goal.command = command;
+				goal.trajectory = traj;
 				ac.sendGoal(goal);
 				
                 std::cout << std::endl;

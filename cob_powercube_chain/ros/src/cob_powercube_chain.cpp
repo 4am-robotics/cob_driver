@@ -297,8 +297,8 @@ class PowercubeChainNode
 			Offsets.resize(ModIds_param_.size());
 			for (int i = 0; i<ModIds_param_.size(); i++ )
 			{
-				Offsets[i] = model.getJoint(JointNames_[i].c_str())->calibration->reference_position;
-				//std::cout << "Offset[" << JointNames_[i].c_str() << "] = " << Offsets[i] << std::endl;
+				Offsets[i] = model.getJoint(JointNames_[i].c_str())->calibration->rising.get()[0];
+				std::cout << "Offset[" << JointNames_[i].c_str() << "] = " << Offsets[i] << std::endl;
 			}
 			PCubeParams_->SetAngleOffsets(Offsets);
 			
@@ -637,7 +637,18 @@ int main(int argc, char** argv)
 	PowercubeChainNode pc_node("joint_trajectory_action");
 
 	// main loop
-	ros::Rate loop_rate(30); // Hz
+	double frequency;
+	if (pc_node.n_.hasParam("frequency"))
+	{
+		pc_node.n_.getParam("frequency", frequency);
+	}
+	else
+	{
+		frequency = 10; //Hz
+		ROS_WARN("Parameter frequency not available, setting to default value: %f Hz", frequency);
+	}
+	
+	ros::Rate loop_rate(frequency); // Hz
 	while(pc_node.n_.ok())
 	{
 		// publish JointState

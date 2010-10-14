@@ -88,7 +88,7 @@ public:
 	/** 
 	 * Default constructor.
 	 */
-	CanCtrlPltfCOb3();
+	CanCtrlPltfCOb3(std::string iniDirectory);
 
 	/**
 	 * Default destructor.
@@ -122,7 +122,7 @@ public:
 	 * !! The homing routine is hardware-dependent (steering and driving is coupled) !!
 	 * !! If you use this code on other hardware -> make sure te remove or adapt homing sequence !! 
 	 */
-	bool initPltf(std::string iniDirectory);
+	bool initPltf();
 
 	/**
 	 * Reinitializes the nodes on the bus.
@@ -235,6 +235,7 @@ public:
 	 * 0: Configure the Recorder to record the sources Main Speed(1), Main position(2), Active current(10), Speed command(16). With iParam = iRecordingGap you specify every which time quantum (4*90usec) a new data point (of 1024 points in total) is recorded; 
 	 * 1: Query Upload of recorded source (1=Main Speed, 2=Main position, 10=Active Current, 16=Speed command) with iParam and log data to file sParam = file prefix. Filename is extended with _MotorNumber_RecordedSource.log
 	 * 99: Abort and clear current SDO readout process
+	 * 100: Request status of readout. Gives back 0 if all transmissions have finished and no CAN polling is needed anymore.
 	 * @return -1: Unknown flag set; 0: Success; 1: Recorder hasn't been configured yet; 2: data collection still in progress
 	 *
 	*/
@@ -316,6 +317,7 @@ protected:
 		bool	bIsSteer;
 		double  dCurrentToTorque;
 		double  dCurrMax;
+		int 	iHomingDigIn;
 	};
 
 	/**
@@ -441,6 +443,9 @@ protected:
 	// Can-Interface
 	CanItf* m_pCanCtrl;
 	IniFile m_IniFile;
+
+	int m_iNumMotors;
+	int m_iNumDrives;
 
 	// Motor-Controllers
 /*	CanDriveItf* m_pW1DriveMotor;

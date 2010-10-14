@@ -163,8 +163,8 @@ bool ik_solve_analytical(kinematics_msgs::GetPositionIK::Request  &req,
 	JntArray q_max(nj);
 	for(int i = 0; i < nj; i+=2)
 	{
-		q_min(i) = -6.0;
-		q_max(i) = 6.0;
+		q_min(i) = -3.1;
+		q_max(i) = 3.1;
 	}
 	for(int i = 1; i < nj; i+=2)
 	{

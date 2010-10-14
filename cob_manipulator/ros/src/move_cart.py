@@ -82,9 +82,12 @@ class ik_solver:
 		#except tf.ConnectivityException as cex:
 		#	print "Error Connectivity"
 		#	print cex
-		print "Transform to target_frame: ", msg.goal_pose
+		
+		#print "Transform to target_frame: "
+		#print msg.goal_pose
 		relpos = self.listener.transformPose("/base_link", msg.goal_pose)
-		print "Transform done: ", relpos
+		#print "Transform done: ", relpos
+		
 		#relpos.position.x = trans[0] + msg.goal_pose.pose.position.x
 		#relpos.position.y = trans[1] + msg.goal_pose.pose.position.y
 		#relpos.position.z = trans[2] + msg.goal_pose.pose.position.z
