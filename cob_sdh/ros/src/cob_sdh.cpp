@@ -512,7 +512,7 @@ class SdhNode
 			std::vector<double> actualVelocities;
 			try
 			{
-				actualVelocities = sdh_->GetAxisActualAngle( axes_ );
+				actualVelocities = sdh_->GetAxisActualVelocity( axes_ );
 			}
 			catch (SDH::cSDHLibraryException* e)
 			{
