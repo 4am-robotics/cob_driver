@@ -202,6 +202,8 @@ public:
 		if(publish_point_cloud_) topicPub_pointCloud_ = node_handle_.advertise<sensor_msgs::PointCloud>("point_cloud", 1);
 
 		cv::Mat d = tof_sensor_toolbox->GetDistortionParameters(tof_camera_type_, tof_camera_index_);
+		camera_info_msg_.header.stamp = ros::Time::now();
+		camera_info_msg_.header.frame_id = "head_tof_link";
 		camera_info_msg_.D[0] = d.at<double>(0, 0);
 		camera_info_msg_.D[1] = d.at<double>(0, 1);
 		camera_info_msg_.D[2] = d.at<double>(0, 2);
@@ -286,15 +288,15 @@ public:
 		/// Set time stamp
 		ros::Time now = ros::Time::now();
 		xyz_image_msg_ptr->header.stamp = now;
-		xyz_image_msg_ptr->header.frame_id = "head_tof_camera_link";
+		xyz_image_msg_ptr->header.frame_id = "head_tof_link";
 		grey_image_msg_ptr->header.stamp = now;
-		grey_image_msg_ptr->header.frame_id = "head_tof_camera_link";
+		grey_image_msg_ptr->header.frame_id = "head_tof_link";
 
 		tof_image_info = camera_info_msg_;
 		tof_image_info.width = grey_image_32F1_.cols;
 		tof_image_info.height = grey_image_32F1_.rows;
 		tof_image_info.header.stamp = now;
-		tof_image_info.header.frame_id = "head_tof_camera_link";
+		tof_image_info.header.frame_id = "head_tof_link";
 
 		/// publish message
 		xyz_image_publisher_.publish(*xyz_image_msg_ptr, tof_image_info);
@@ -312,7 +314,7 @@ public:
         sensor_msgs::PointCloud pc_msg;
 		// create point_cloud message
 		pc_msg.header.stamp = now;
-		pc_msg.header.frame_id = "head_tof_camera_link";
+		pc_msg.header.frame_id = "head_tof_link";
 
 		cv::Mat cpp_xyz_image_32F3 = xyz_image_32F3_;
 		cv::Mat cpp_grey_image_32F1 = grey_image_32F1_;
@@ -341,7 +343,7 @@ public:
 		sensor_msgs::PointCloud2 pc_msg;
 		// create point_cloud message
 		pc_msg.header.stamp = now;
-		pc_msg.header.frame_id = "head_tof_camera_link";
+		pc_msg.header.frame_id = "head_tof_link";
 		pc_msg.width = cpp_xyz_image_32F3.cols;
 		pc_msg.height = cpp_xyz_image_32F3.rows;
 		pc_msg.fields.resize(4);
@@ -400,7 +402,9 @@ public:
 		// Set time stamp
 		ros::Time now = ros::Time::now();
 		res.greyImage.header.stamp = now;
+		res.greyImage.header.frame_id = "head_tof_link";
 		res.xyzImage.header.stamp = now;
+		res.xyzImage.header.frame_id = "head_tof_link";
 		return true;
 	}
 
