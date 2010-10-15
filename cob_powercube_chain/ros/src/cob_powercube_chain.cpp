@@ -82,6 +82,14 @@
 #include <cob_powercube_chain/PowerCubeCtrl.h>
 #include <cob_powercube_chain/simulatedArm.h>
 
+//semaphores
+#include <fcntl.h>           /* For O_* constants */
+#include <sys/stat.h>        /* For mode constants */
+#include <semaphore.h>
+#include <stdio.h>
+#include<unistd.h>
+#include <stdlib.h>
+
 /*!
 * \brief Implementation of ROS node for powercube_chain.
 *
@@ -141,6 +149,22 @@ class PowercubeChainNode
 		trajectory_msgs::JointTrajectory traj_;
 		trajectory_msgs::JointTrajectoryPoint traj_point_;
 		int traj_point_nr_;
+		sem_t * can_sem ;
+		bool sem_can_available;
+
+		void lock_semaphore(sem_t* sem)
+		{
+			//printf("trying to lock sem ...");
+			//sem_wait(sem);
+			//printf ("done\n");
+		}
+		void unlock_semaphore(sem_t* sem)
+		{
+			//printf ("Unlocking semaphore ...");
+			//sem_post(sem);
+			//printf("done!\n");
+		}
+
 
 		/*!
 		* \brief Constructor for PowercubeChainNode class.
@@ -151,6 +175,9 @@ class PowercubeChainNode
 			as_(n_, name, boost::bind(&PowercubeChainNode::executeCB, this, _1)),
 			action_name_(name)
 		{
+			sem_can_available = false;
+			can_sem = SEM_FAILED;
+
 			isInitialized_ = false;
 			traj_point_nr_ = 0;
 			finished_ = false;
@@ -304,6 +331,9 @@ class PowercubeChainNode
 			
 			cmd_vel_.resize(ModIds_param_.size());
 			newvel_ = false;
+			can_sem = sem_open("/semcan", O_CREAT, S_IRWXU | S_IRWXG,1);
+			if (can_sem != SEM_FAILED)
+				sem_can_available = true;
 		}
 
 		/*!
@@ -311,6 +341,9 @@ class PowercubeChainNode
 		*/
 		~PowercubeChainNode()
 		{
+			bool closed = PCube_->Close();
+			if (closed) ROS_INFO("PowerCube Device closed!");
+			if (sem_can_available) sem_close(can_sem);
 		}
 
 		/*!
@@ -519,8 +552,11 @@ class PowercubeChainNode
 				ActualPos.resize(DOF);
 				ActualVel.resize(DOF);
 
-				PCube_->getConfig(ActualPos);
+				lock_semaphore(can_sem);
+				int success = PCube_->getConfig(ActualPos);
+				if (!success) return;
 				PCube_->getJointVelocities(ActualVel);
+				unlock_semaphore(can_sem);
 
 				sensor_msgs::JointState msg;
 				msg.header.stamp = ros::Time::now();
@@ -584,7 +620,16 @@ class PowercubeChainNode
 							// if powercubes are not moving and not reached last point of trajectory, then send new target point
 							ROS_DEBUG("...moving to trajectory point[%d]",traj_point_nr_);
 							traj_point_ = traj_.points[traj_point_nr_];
+							lock_semaphore(can_sem);
+							printf("cob_powercube_chain: Moving to position: ");
+							for (int i = 0; i < traj_point_.positions.size(); i++)
+							{
+								printf("%f ",traj_point_.positions[i]);
+							}
+							printf("\n");
+				
 							PCube_->MoveJointSpaceSync(traj_point_.positions);
+							unlock_semaphore(can_sem);
 							traj_point_nr_++;
 							//feedback_.isMoving = true;
 							//feedback_.pointNr = traj_point_nr;
@@ -607,8 +652,10 @@ class PowercubeChainNode
 					if(newvel_)
 					{	
 						ROS_INFO("MoveVel Call");
+						lock_semaphore(can_sem);
 						PCube_->MoveVel(cmd_vel_);
 						newvel_ = false;
+						unlock_semaphore(can_sem);
 					}
 				}
 				else
@@ -645,7 +692,6 @@ int main(int argc, char** argv)
 
 		// update commands to powercubes
 		pc_node.updatePCubeCommands();
-
 		// read parameter
 		std::string operationMode;
 		pc_node.n_.getParam("OperationMode", operationMode);
