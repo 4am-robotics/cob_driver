@@ -194,7 +194,10 @@ class NodeClass
 		CamAxisParams_->SetUpperLimit(UpperLimit_);
 
 		// get Offset out of urdf model
-		Offset_ = model.getJoint(JointName_.c_str())->calibration->reference_position;
+		Offset_ = model.getJoint(JointName_.c_str())->calibration->rising.get()[0];
+		
+		Offset_ = -0.126; //-3.2615;
+		
 			//std::cout << "Offset[" << JointNames[i].c_str() << "] = " << Offsets[i] << std::endl;
 		CamAxisParams_->SetAngleOffset(Offset_);
 		
@@ -341,7 +344,7 @@ class NodeClass
 			    if (operationMode_ == "position")
 			    {
 				    ROS_DEBUG("moving head_axis in position mode");
-			    	if (ActualVel_ == 0)
+			    	if (ActualVel_ < 0.002)
 			    	{
 				    	//feedback_.isMoving = false;
 				    	
@@ -352,7 +355,7 @@ class NodeClass
 				    		// if axis is not moving and not reached last point of trajectory, then send new target point
 				    		ROS_INFO("...moving to trajectory point[%d]",traj_point_nr_);
 					    	traj_point_ = traj_.points[traj_point_nr_];
-					    	CamAxis_->setGearPosVelRadS(traj_point_.positions[0],MaxVel_);
+					    	CamAxis_->setGearPosVelRadS( - 3.1415 -(traj_point_.positions[0]) + Offset_, MaxVel_);
 					    	usleep(100000);
 					    	CamAxis_->m_Joint->requestPosVel();
 				    		traj_point_nr_++;
