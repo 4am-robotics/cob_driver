@@ -382,7 +382,7 @@ int ElmoCtrl::getGearPosVelRadS( double* pdAngleGearRad, double* pdVelGearRadS)
 	*pdVelGearRadS = 0;
 
 	m_Joint->getGearPosVelRadS(pdAngleGearRad, pdVelGearRadS);
-	//*pdAngleGearRad += m_JointOffset;
+	*pdAngleGearRad = *pdAngleGearRad - 3.141592654 + m_JointOffset;
 	
 	return 0;
 }
@@ -406,7 +406,7 @@ int ElmoCtrl:: setGearPosVelRadS(double dPosRad, double dVelRadS)
 
 	//m_Joint->setGearPosVelRadS(dPosRad + m_JointOffset, dVelRadS);
 	
-	m_Joint->setGearPosVelRadS(-3.141592654 - dPosRad + Offset_, dVelRadS);
+	m_Joint->setGearPosVelRadS(-3.141592654 - dPosRad + m_JointOffset, dVelRadS);
 
 	return 0;
 }

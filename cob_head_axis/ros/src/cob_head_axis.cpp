@@ -219,6 +219,7 @@ class NodeClass
 	// Destructor
 	~NodeClass() 
 	{
+		delete CamAxis_;
 	}
 
 	void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal) {
