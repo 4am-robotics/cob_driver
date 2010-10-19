@@ -195,9 +195,6 @@ class NodeClass
 
 		// get Offset out of urdf model
 		Offset_ = model.getJoint(JointName_.c_str())->calibration->rising.get()[0];
-		
-		Offset_ = -0.126; //-3.2615;
-		
 			//std::cout << "Offset[" << JointNames[i].c_str() << "] = " << Offsets[i] << std::endl;
 		CamAxisParams_->SetAngleOffset(Offset_);
 		
