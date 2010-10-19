@@ -106,8 +106,8 @@ class NodeClass
 			private_nh_.param<int>("baud", baud, 500000);
 			private_nh_.param<bool>("inverted", inverted, false);
 			private_nh_.param<std::string>("frame_id", frame_id, "/base_laser_link");
-            private_nh_.param<int>("start_scan", start_scan, 115);
-            private_nh_.param<int>("stop_scan", stop_scan, 426);
+            private_nh_.param<int>("start_scan", start_scan, 0);
+            private_nh_.param<int>("stop_scan", stop_scan, 503);
 
         	// implementation of topics to publish
             topicPub_LaserScan = nodeHandle.advertise<sensor_msgs::LaserScan>("scan", 1);
