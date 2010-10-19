@@ -391,14 +391,13 @@ int ElmoCtrl::getGearPosVelRadS( double* pdAngleGearRad, double* pdVelGearRadS)
 
 int ElmoCtrl:: setGearPosVelRadS(double dPosRad, double dVelRadS)
 {
-	/*
 	if(dPosRad< m_LowerLimit) {
 		std::cout << "Position under LowerBound -> set up" << std::endl;
 		dPosRad = m_LowerLimit;
 	} else if(dPosRad > m_UpperLimit) {
 		std::cout << "Position over UpperBound -> set down" << std::endl;
 		dPosRad = m_UpperLimit;
-	} */
+	}
 		
 	if(dVelRadS > m_MaxVel)
 		dVelRadS = m_MaxVel;
@@ -407,7 +406,7 @@ int ElmoCtrl:: setGearPosVelRadS(double dPosRad, double dVelRadS)
 
 	//m_Joint->setGearPosVelRadS(dPosRad + m_JointOffset, dVelRadS);
 	
-	m_Joint->setGearPosVelRadS(dPosRad, dVelRadS);
+	m_Joint->setGearPosVelRadS(-3.141592654 - dPosRad + Offset_, dVelRadS);
 
 	return 0;
 }
