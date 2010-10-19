@@ -86,6 +86,7 @@ ElmoCtrl::ElmoCtrl() {
 
 ElmoCtrl::~ElmoCtrl() {
 	if (m_Joint)
+		m_Joint->shutdown();
 		delete m_Joint;
 	if (m_JointParams)
 		delete m_JointParams;
