@@ -31,9 +31,9 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/lib)
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
-rosbuild_add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp common/src/ElmoCtrl.cpp)
+rosbuild_add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp common/src/ElmoCtrl.cpp)
 
 #rosbuild_add_executable(${PROJECT_NAME}_test ros/src/${PROJECT_NAME}_test.cpp)
 
-#target_link_libraries(${PROJECT_NAME} pcan)
-target_link_libraries(${PROJECT_NAME} ntcan)
+target_link_libraries(${PROJECT_NAME}_node pcan)
+#target_link_libraries(${PROJECT_NAME}_node ntcan)

@@ -139,9 +139,9 @@ class NodeClass
 		// implementation of topics to subscribe
 		
 		// implementation of service servers
-		srvServer_Init_ = n_.advertiseService("Init", &NodeClass::srvCallback_Init, this);
-		srvServer_Stop_ = n_.advertiseService("Stop", &NodeClass::srvCallback_Stop, this);
-		srvServer_Recover_ = n_.advertiseService("Recover", &NodeClass::srvCallback_Recover, this);
+		srvServer_Init_ = n_.advertiseService("init", &NodeClass::srvCallback_Init, this);
+		srvServer_Stop_ = n_.advertiseService("stop", &NodeClass::srvCallback_Stop, this);
+		srvServer_Recover_ = n_.advertiseService("recover", &NodeClass::srvCallback_Recover, this);
 		
 		// implementation of service clients
 		//--
@@ -194,7 +194,7 @@ class NodeClass
 		CamAxisParams_->SetUpperLimit(UpperLimit_);
 
 		// get Offset out of urdf model
-		Offset_ = model.getJoint(JointName_.c_str())->calibration->reference_position;
+		Offset_ = model.getJoint(JointName_.c_str())->calibration->rising.get()[0];
 			//std::cout << "Offset[" << JointNames[i].c_str() << "] = " << Offsets[i] << std::endl;
 		CamAxisParams_->SetAngleOffset(Offset_);
 		
@@ -216,6 +216,7 @@ class NodeClass
 	// Destructor
 	~NodeClass() 
 	{
+		delete CamAxis_;
 	}
 
 	void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal) {
@@ -341,7 +342,7 @@ class NodeClass
 			    if (operationMode_ == "position")
 			    {
 				    ROS_DEBUG("moving head_axis in position mode");
-			    	if (ActualVel_ == 0)
+			    	if (ActualVel_ < 0.002)
 			    	{
 				    	//feedback_.isMoving = false;
 				    	
@@ -352,7 +353,7 @@ class NodeClass
 				    		// if axis is not moving and not reached last point of trajectory, then send new target point
 				    		ROS_INFO("...moving to trajectory point[%d]",traj_point_nr_);
 					    	traj_point_ = traj_.points[traj_point_nr_];
-					    	CamAxis_->setGearPosVelRadS(traj_point_.positions[0],MaxVel_);
+					    	CamAxis_->setGearPosVelRadS(traj_point_.positions[0], MaxVel_);
 					    	usleep(100000);
 					    	CamAxis_->m_Joint->requestPosVel();
 				    		traj_point_nr_++;
