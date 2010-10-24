@@ -1,3 +1,5 @@
+CanDevice: PCAN:15
+CanBaudrate: 500
 ModId: 17
 JointName: head_axis_joint
 HomingDir: -1

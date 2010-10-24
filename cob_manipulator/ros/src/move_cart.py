@@ -20,7 +20,7 @@ class ik_solver:
 		if rospy.has_param('JointNames'):
 			self.JointNames = rospy.get_param('JointNames')
 		else:
-			print " !!!!!!!!!!! JointNames not available !!!!!!!!!!!!!!!!"
+			rospy.logerror("JointNames not available")
 			return
 		self.lock = threading.Lock()
 		self.received_state = False
