@@ -1,5 +1,5 @@
 CanModule: PCAN
-CanDevice: 14
+CanDevice: 15
 CanBaudrate: 500
 ModIds: [10]
 JointNames: [torso_tray_joint]
