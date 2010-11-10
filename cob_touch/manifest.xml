@@ -1,0 +1,16 @@
+<package>
+  <description brief="cob_touch">
+
+     cob_touch
+
+  </description>
+  <author>Ulrich Reiser</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_touch</url>
+
+  <rosdep name="touchscreen"/>
+
+</package>
+
+

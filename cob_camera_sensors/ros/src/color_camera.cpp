@@ -155,6 +155,11 @@ public:
 		color_sensor_toolbox->Init(config_directory_, color_camera_->GetCameraType(), camera_index_, color_image_size);
 
 		cv::Mat d = color_sensor_toolbox->GetDistortionParameters(color_camera_intrinsic_type_, color_camera_intrinsic_id_);
+		camera_info_msg_.header.stamp = ros::Time::now();
+		if (camera_index_ == 0)
+			camera_info_msg_.header.frame_id = "head_color_camera_r_link";
+		else
+			camera_info_msg_.header.frame_id = "head_color_camera_l_link";
 		camera_info_msg_.D[0] = d.at<double>(0, 0);
 		camera_info_msg_.D[1] = d.at<double>(0, 1);
 		camera_info_msg_.D[2] = d.at<double>(0, 2);
@@ -223,12 +228,20 @@ public:
 	
 		/// Set time stamp
 		ros::Time now = ros::Time::now();
-		image_msg.header.stamp = now;    
+		image_msg.header.stamp = now;   
+		if (camera_index_ == 0)
+			image_msg.header.frame_id = "head_color_camera_r_link";
+		else
+			image_msg.header.frame_id = "head_color_camera_l_link";
 
 		info = camera_info_msg_;
 		info.width = color_image_8U3_.cols;
 		info.height = color_image_8U3_.rows;
 		info.header.stamp = now;
+		if (camera_index_ == 0)
+			info.header.frame_id = "head_color_camera_r_link";
+		else
+			info.header.frame_id = "head_color_camera_l_link";
 
     		return true;
 	}

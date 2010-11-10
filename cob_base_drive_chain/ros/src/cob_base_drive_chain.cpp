@@ -231,6 +231,7 @@ class NodeClass
 		// Destructor
 		~NodeClass() 
 		{
+			m_CanCtrlPltf->shutdownPltf();
 		}
 
 		// topic callback functions 
