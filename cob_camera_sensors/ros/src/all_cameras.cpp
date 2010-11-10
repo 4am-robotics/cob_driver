@@ -190,6 +190,8 @@ public:
 			color_sensor_toolbox->Init(config_directory_, left_color_camera_->GetCameraType(), camera_index, color_image_size);
 	
 			cv::Mat d = color_sensor_toolbox->GetDistortionParameters(left_color_camera_intrinsic_type_, left_color_camera_intrinsic_id_);
+			left_color_camera_info_msg_.header.stamp = ros::Time::now();
+			left_color_camera_info_msg_.header.frame_id = "head_color_camera_l_link";
 			left_color_camera_info_msg_.D[0] = d.at<double>(0, 0);
 			left_color_camera_info_msg_.D[1] = d.at<double>(0, 1);
 			left_color_camera_info_msg_.D[2] = d.at<double>(0, 2);
@@ -238,6 +240,8 @@ public:
 			color_sensor_toolbox->Init(config_directory_, left_color_camera_->GetCameraType(), camera_index, color_image_size);
 	
 			cv::Mat d = color_sensor_toolbox->GetDistortionParameters(right_color_camera_intrinsic_type_, right_color_camera_intrinsic_id_);
+			right_color_camera_info_msg_.header.stamp = ros::Time::now();
+			right_color_camera_info_msg_.header.frame_id = "head_color_camera_r_link";
 			right_color_camera_info_msg_.D[0] = d.at<double>(0, 0);
 			right_color_camera_info_msg_.D[1] = d.at<double>(0, 1);
 			right_color_camera_info_msg_.D[2] = d.at<double>(0, 2);
@@ -291,6 +295,8 @@ public:
 			tof_camera_->SetIntrinsics(intrinsic_mat, distortion_map_X, distortion_map_Y);
 
 			cv::Mat d = tof_sensor_toolbox->GetDistortionParameters(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_);
+			tof_camera_info_msg_.header.stamp = ros::Time::now();
+			tof_camera_info_msg_.header.frame_id = "head_tof_link";
 			tof_camera_info_msg_.D[0] = d.at<double>(0, 0);
 			tof_camera_info_msg_.D[1] = d.at<double>(0, 1);
 			tof_camera_info_msg_.D[2] = d.at<double>(0, 2);
@@ -392,12 +398,14 @@ public:
 					ROS_ERROR("[all_cameras] Could not convert right IplImage to ROS message");
 					break;
 				}
-				right_color_image_msg.header.stamp = now;    
+				right_color_image_msg.header.stamp = now; 
+				right_color_image_msg.header.frame_id = "head_color_camera_r_link";   
 		
 				right_color_image_info = right_color_camera_info_msg_;
 				right_color_image_info.width = right_color_image_8U3_.cols;
 				right_color_image_info.height = right_color_image_8U3_.rows;
 				right_color_image_info.header.stamp = now;
+				right_color_image_info.header.frame_id = "head_color_camera_r_link";
 	
 				right_color_image_publisher_.publish(right_color_image_msg, right_color_image_info);
 			}
@@ -425,11 +433,13 @@ public:
 					break;
 				}
 				left_color_image_msg.header.stamp = now;    
+				left_color_image_msg.header.frame_id = "head_color_camera_l_link"; 
 		
 				left_color_image_info = left_color_camera_info_msg_;
 				left_color_image_info.width = left_color_image_8U3_.cols;
 				left_color_image_info.height = left_color_image_8U3_.rows;
 				left_color_image_info.header.stamp = now;
+				left_color_image_info.header.frame_id = "head_color_camera_l_link"; 
 	
 				left_color_image_publisher_.publish(left_color_image_msg, left_color_image_info);
 			}
@@ -459,13 +469,16 @@ public:
 					break;
 		                }
 	
-				xyz_tof_image_msg.header.stamp = now;    
+				xyz_tof_image_msg.header.stamp = now;   
+				xyz_tof_image_msg.header.frame_id = "head_tof_link"; 
 				grey_tof_image_msg.header.stamp = now;    
+				grey_tof_image_msg.header.frame_id = "head_tof_link";
 		
 				tof_image_info = tof_camera_info_msg_;
 				tof_image_info.width = grey_tof_image_32F1_.cols;
 				tof_image_info.height = grey_tof_image_32F1_.rows;
 				tof_image_info.header.stamp = now;
+				tof_image_info.header.frame_id = "head_tof_link";
 				
 				grey_tof_image_publisher_.publish(grey_tof_image_msg, tof_image_info);
 				xyz_tof_image_publisher_.publish(xyz_tof_image_msg, tof_image_info);

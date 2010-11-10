@@ -106,8 +106,8 @@ class NodeClass
 			private_nh_.param<int>("baud", baud, 500000);
 			private_nh_.param<bool>("inverted", inverted, false);
 			private_nh_.param<std::string>("frame_id", frame_id, "/base_laser_link");
-            private_nh_.param<int>("start_scan", start_scan, 115);
-            private_nh_.param<int>("stop_scan", stop_scan, 426);
+            private_nh_.param<int>("start_scan", start_scan, 0);
+            private_nh_.param<int>("stop_scan", stop_scan, 541);
 
         	// implementation of topics to publish
             topicPub_LaserScan = nodeHandle.advertise<sensor_msgs::LaserScan>("scan", 1);
@@ -146,8 +146,8 @@ class NodeClass
 			// fill message
 			laserScan.header.frame_id = frame_id;
 			laserScan.angle_increment = vdAngRAD[start_scan + 1] - vdAngRAD[start_scan];
-			laserScan.range_min = 0.0; //TODO read from ini-file/parameter-file
-			laserScan.range_max = 100.0; //TODO read from ini-file/parameter-file
+			laserScan.range_min = -135.0/180.0*3.14;//0.0; //TODO read from ini-file/parameter-file
+			laserScan.range_max = 135.0/180.0*3.14;//100.0; //TODO read from ini-file/parameter-file
 			laserScan.time_increment = (1 / laser_frequency) / (vdDistM.size()); //TODO read from ini-file/parameter-file
 			
 			// rescale scan

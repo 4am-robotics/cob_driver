@@ -86,6 +86,7 @@ ElmoCtrl::ElmoCtrl() {
 
 ElmoCtrl::~ElmoCtrl() {
 	if (m_Joint)
+		m_Joint->shutdown();
 		delete m_Joint;
 	if (m_JointParams)
 		delete m_JointParams;
@@ -98,13 +99,6 @@ bool ElmoCtrl::Home()
 	bool success = false;
 	if (m_Joint != NULL) {
 		m_Joint->initHoming();
-		
-		// You have to overwrite the trigger channel for Homing-event
-		// iHomeEvent = 5 : event according to defined FLS switch (for scara arm)
-		// iHomeEvent = 9 : event according to definded DIN1 switch (for full steerable wheels COb3)
-		// TO DO: via param or .ini
-		m_Joint->IntprtSetInt(8, 'H', 'M', 3, 5); 
-		usleep(20000);
 	}
 
 	//ToDo: UHR: necessary?
@@ -266,19 +260,39 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 	  
 	  if (success) {
 		//ToDo: Read from File!
+		/*
+		int iDriveIdent,
+		int iEncIncrPerRevMot,
+		double dVelMeasFrqHz,
+		double dBeltRatio,
+		double dGearRatio,
+		int iSign,
+		double dVelMaxEncIncrS,
+		double dAccIncrS2,
+		double dDecIncrS2,
+		int iEncOffsetIncr,
+		bool bIsSteer,
+        double dCurrToTorque,
+		double dCurrMax,
+		int iHomingDigIn
+		*/
 		m_JointParams->setParam( //parameters taken from CanCtrl.ini
 							0, //int iDriveIdent,
 							4096,//int iEncIncrPerRevMot,
 							1,//double dVelMeasFrqHz,
 							1,//double dBeltRatio,
 							47.77,//double dGearRatio,
-							1.0,//int iSign,
+							-1.0,//int iSign,
 							740000,//double dVelMaxEncIncrS,
 							1000000,//80000,//double dAccIncrS2,
-							1000000//80000//double dDecIncrS2),
-					  		//(int)m_JointOffsets[i], //iEncOffsetIncr
-					  		//false
+							1000000,//80000//double dDecIncrS2),
+					  		0, //int iEncOffsetIncr
+					  		true, // bool bIsSteer
+					  		0, // double dCurrToTorque
+					  		0, // double dCurrMax
+					  		5 // int iHomingDigIn
 					  );
+					  
 		m_Joint->setDriveParam(*m_JointParams);
 		}
 
@@ -368,7 +382,7 @@ int ElmoCtrl::getGearPosVelRadS( double* pdAngleGearRad, double* pdVelGearRadS)
 	*pdVelGearRadS = 0;
 
 	m_Joint->getGearPosVelRadS(pdAngleGearRad, pdVelGearRadS);
-	*pdAngleGearRad += m_JointOffset;
+	*pdAngleGearRad = *pdAngleGearRad - 3.141592654 + m_JointOffset;
 	
 	return 0;
 }
@@ -376,9 +390,7 @@ int ElmoCtrl::getGearPosVelRadS( double* pdAngleGearRad, double* pdVelGearRadS)
 //-----------------------------------------------
 
 int ElmoCtrl:: setGearPosVelRadS(double dPosRad, double dVelRadS)
-{		
-	//pthread_mutex_lock(&(m_Mutex));		
-
+{
 	if(dPosRad< m_LowerLimit) {
 		std::cout << "Position under LowerBound -> set up" << std::endl;
 		dPosRad = m_LowerLimit;
@@ -392,10 +404,10 @@ int ElmoCtrl:: setGearPosVelRadS(double dPosRad, double dVelRadS)
 	else if(dVelRadS < -m_MaxVel)
 		dVelRadS = -m_MaxVel;
 
-	m_Joint->setGearPosVelRadS(dPosRad + m_JointOffset, dVelRadS);
+	//m_Joint->setGearPosVelRadS(dPosRad + m_JointOffset, dVelRadS);
 	
-	//pthread_mutex_unlock(&(m_Mutex));
-	
+	m_Joint->setGearPosVelRadS(-3.141592654 - dPosRad + m_JointOffset, dVelRadS);
+
 	return 0;
 }
 

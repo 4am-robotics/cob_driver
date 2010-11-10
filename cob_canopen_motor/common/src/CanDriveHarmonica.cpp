@@ -529,7 +529,7 @@ bool CanDriveHarmonica::getStatusLimitSwitch()
 //-----------------------------------------------
 bool CanDriveHarmonica::initHoming()
 {
-	const int c_iPosRef = m_DriveParam.getEncOffset(); 
+	const int c_iPosRef = m_DriveParam.getEncOffset();
 	
 		// 1. make sure that, if on elmo controller still a pending homing from a previous startup is running (in case of warm-start without switching of the whole robot), this old sequence is disabled
 		// disarm homing process

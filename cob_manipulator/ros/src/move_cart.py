@@ -15,13 +15,13 @@ from geometry_msgs.msg import *
 
 class ik_solver:
 
-
 	def __init__(self):
 		if rospy.has_param('JointNames'):
 			self.JointNames = rospy.get_param('JointNames')
 		else:
-			print " !!!!!!!!!!! JointNames not available !!!!!!!!!!!!!!!!"
+			rospy.logerror("JointNames not available")
 			return
+		self.configuration = [0,0,0,0,0,0,0]
 		self.lock = threading.Lock()
 		self.received_state = False
 		self.listener = tf.TransformListener()
@@ -40,8 +40,7 @@ class ik_solver:
 		#self.thread = threading.Thread(target=self.joint_states_listener)
 		#self.thread.start()
 		rospy.wait_for_service('get_ik')
-		self.iks = rospy.ServiceProxy('get_ik', GetPositionIK)		
-
+		self.iks = rospy.ServiceProxy('get_ik', GetPositionIK)
 
 	#thread function: listen for joint_states messages
 	def joint_states_listener(self):
@@ -53,7 +52,6 @@ class ik_solver:
 	#callback function: when a joint_states message arrives, save the values
 	def joint_states_callback(self, msg):
 		self.lock.acquire()
-		self.configuration = [0,0,0,0,0,0,0]
 		for k in range(7):
 			for i in range(len(msg.name)):
 				joint_name = "arm_" + str(k+1) + "_joint"
@@ -64,6 +62,7 @@ class ik_solver:
 		self.velocity = msg.velocity
 		self.effort = msg.effort
 		self.received_state = True
+		#print "Current Configuration: ", self.configuration
 		self.lock.release()
 
 	def cbIKSolverAbs(self, msg):
@@ -85,6 +84,7 @@ class ik_solver:
 		
 		#print "Transform to target_frame: "
 		#print msg.goal_pose
+		msg.goal_pose.header.stamp = self.listener.getLatestCommonTime("/base_link",msg.goal_pose.header.frame_id)
 		relpos = self.listener.transformPose("/base_link", msg.goal_pose)
 		#print "Transform done: ", relpos
 		
@@ -105,6 +105,7 @@ class ik_solver:
 		#relpos.orientation.y = qrel[1]
 		#relpos.orientation.z = qrel[2]
 		#relpos.orientation.w = qrel[3]
+		print "Calling IK Server"
 		(new_config, error) = self.callIKSolver(relpos.pose)
 		if(error != -1):
 			self.moveArm(new_config)
