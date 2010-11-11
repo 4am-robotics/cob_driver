@@ -122,6 +122,7 @@ private:
 #endif
 
 	int sub_counter_; /// Number of subscribers to topic
+	int tof_image_counter_; /// Number of accumulated tog greyscale images
 
 	sensor_msgs::Image color_image_msg_;
 	sensor_msgs::Image xyz_image_msg_;
@@ -137,6 +138,7 @@ private:
 	cv::Mat xyz_mat_32F3_;	///< Received point cloud form tof sensor
 	cv::Mat grey_mat_32F1_;	///< Received gray values from tof sensor
 	cv::Mat grey_mat_8U3_;	///< Received gray values from tof sensor
+	std::vector<cv::Mat> vec_grey_mat_32F1_; ///< Accumulated tof greyscale images for noise reduction
 
 	int image_counter_; ///< Counts the number of images saved to the hard disk
 
@@ -177,6 +179,7 @@ public:
 		use_left_color_camera_ = true;
 		use_right_color_camera_ = true;
 		image_counter_ = 0;
+		tof_image_counter_ = 0;
 	}
 
 	/// Destructor.
@@ -309,9 +312,11 @@ public:
 		{
 			ROS_ERROR("[all_camera_viewer] Could not convert stereo images with cv_bridge.");
 		}
-		
 
-		ipa_Utils::ConvertToShowImage(grey_mat_32F1_, grey_mat_8U3_, 1);
+		// Modifies <code>grey_mat_8U3_</code> and <code>acc_grey_mat_32F1_</code>
+		// using <code>grey_mat_32F1_</code>
+		updateTofGreyscaleData();
+
 		cv::imshow("TOF grey data", grey_mat_8U3_);
 
 		cv::Mat right_color_8U3;
@@ -349,14 +354,50 @@ public:
 		{
 			ROS_ERROR("[all_camera_viewer] Could not convert images with cv_bridge.");
 		}
-			
-		ipa_Utils::ConvertToShowImage(grey_mat_32F1_, grey_mat_8U3_, 1);
+
+		// Modifies <code>grey_mat_8U3_</code> and <code>acc_grey_mat_32F1_</code>
+		// using <code>grey_mat_32F1_</code>
+		updateTofGreyscaleData();
+
 		cv::imshow("TOF grey data", grey_mat_8U3_);
 
 		cv::Mat right_color_8U3;
 		cv::resize(right_color_mat_8U3_, right_color_8U3, cv::Size(), 0.5, 0.5);
 		cv::imshow("Right color data", right_color_8U3);
 		cv::waitKey(1000);
+	}
+
+	/// Accumulates tof greyscale images, computes the average image out of it
+	/// applies histogram normalization and final performs upscaling to generate
+	/// better images for calibration
+	void updateTofGreyscaleData()
+	{
+		cv::Mat filtered_grey_mat_32F1 = Mat::zeros(grey_mat_32F1_.rows, grey_mat_32F1_.cols, CV_32FC1);
+
+		// Accumulate greyscale images to remove noise
+		if (acc_grey_mat_32F1_.size() <=  tof_image_counter_)
+			acc_grey_mat_32F1_.push_back(grey_mat_32F1_);
+		else
+			acc_grey_mat_32F1_[tof_image_counter_] = grey_mat_32F1_;
+		// Update counter
+		tof_image_counter_ = (++tof_image_counter_)%5;
+
+		// Compute average out of accumulated tof greyscale data
+		for (int i=0; i<acc_grey_mat_32F1_.size(); i++)
+			filtered_grey_mat_32F1 += acc_grey_mat_32F1_[i];
+		filtered_grey_mat_32F1 * (1/acc_grey_mat_32F1_.size());
+
+		// Update 8bit image
+		cv::Mat temp0_grey_mat_8U3;
+		cv::Mat temp1_grey_mat_8U3;
+		ipa_Utils::ConvertToShowImage(grey_mat_32F1_, temp0_grey_mat_8U3, 1);
+
+		// Perform histogram equalization on 8bit image
+		cv::equalizeHist(temp0_grey_mat_8U3, temp1_grey_mat_8U3);
+
+		// Upsample image by a factor of 2 using bilinear interpolation
+		// and save result to member variable
+		resize(temp1_grey_mat_8U3, grey_mat_8U3_, cv::Size(), 2, 2, cv::INTER_LINEAR);
 	}
 
 	/// Callback is executed, when stereo mode is selected
@@ -439,7 +480,7 @@ public:
 		
 		if (use_tof_camera_ && grey_mat_8U3_.empty())
 		{
-			ROS_INFO("[all_camera_viewer] Left color image not available");
+			ROS_INFO("[all_camera_viewer] Tof grayscale image not available");
 			return false;
 		}
 		else
@@ -449,7 +490,7 @@ public:
 			ss << counterBuffer;
 			ss << ".bmp";
 			cv::imwrite(absolute_output_directory_path_ + ss.str(), grey_mat_8U3_);
-			ROS_INFO("[all_camera_viewer] Saved tof grey image %d to %s", image_counter_, ss.str().c_str());
+			ROS_INFO("[all_camera_viewer] Saved tof gray image %d to %s", image_counter_, ss.str().c_str());
 		}
 
 		image_counter_++;
