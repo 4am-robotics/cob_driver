@@ -70,7 +70,6 @@ CanPeakSys::CanPeakSys(const char* cIniFile)
 
 	// read IniFile
 	m_IniFile.SetFileName(cIniFile, "CanPeakSys.cpp");
-
 	init();
 }
 
@@ -86,7 +85,11 @@ CanPeakSys::~CanPeakSys()
 //-----------------------------------------------
 void CanPeakSys::init()
 {
-	m_handle = LINUX_CAN_Open("/dev/pcan24", O_RDWR);
+ std::string sCanDevice; 
+ if( m_IniFile.GetKeyString( "TypeCan", "DevicePath", &sCanDevice, false) != 0) {
+		sCanDevice = "/dev/pcan32";
+	} else std::cout << "CAN-device path read from ini-File: " << sCanDevice << std::endl;
+	m_handle = LINUX_CAN_Open(sCanDevice.c_str(), O_RDWR);
 	
 
 	if (! m_handle)
