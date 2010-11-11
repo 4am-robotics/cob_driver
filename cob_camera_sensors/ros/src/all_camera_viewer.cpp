@@ -397,7 +397,7 @@ public:
 		cv::minMaxLoc(filtered_grey_mat_32F1, &m_scaleMin, &m_scaleMax);
 		cv::Mat minmat(filtered_grey_mat_32F1.size(), CV_32FC1, cv::Scalar(m_scaleMin));
 		filtered_grey_mat_32F1 = cv::Mat(filtered_grey_mat_32F1 - minmat)/ m_scaleMax;
-		filtered_grey_mat_32F1.convertTo(temp0_grey_mat_8U3, CV_8U, 256);
+		filtered_grey_mat_32F1.convertTo(temp0_grey_mat_8U1, CV_8U, 256);
 
 		// Perform histogram equalization on 8bit image
 		cv::equalizeHist(temp0_grey_mat_8U1, temp1_grey_mat_8U1);
