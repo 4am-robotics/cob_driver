@@ -313,7 +313,7 @@ public:
 			ROS_ERROR("[all_camera_viewer] Could not convert stereo images with cv_bridge.");
 		}
 
-		// Modifies <code>grey_mat_8U3_</code> and <code>acc_grey_mat_32F1_</code>
+		// Modifies <code>grey_mat_8U3_</code> and <code>vec_grey_mat_32F1_</code>
 		// using <code>grey_mat_32F1_</code>
 		updateTofGreyscaleData();
 
@@ -355,7 +355,7 @@ public:
 			ROS_ERROR("[all_camera_viewer] Could not convert images with cv_bridge.");
 		}
 
-		// Modifies <code>grey_mat_8U3_</code> and <code>acc_grey_mat_32F1_</code>
+		// Modifies <code>grey_mat_8U3_</code> and <code>vec_grey_mat_32F1_</code>
 		// using <code>grey_mat_32F1_</code>
 		updateTofGreyscaleData();
 
@@ -372,20 +372,20 @@ public:
 	/// better images for calibration
 	void updateTofGreyscaleData()
 	{
-		cv::Mat filtered_grey_mat_32F1 = Mat::zeros(grey_mat_32F1_.rows, grey_mat_32F1_.cols, CV_32FC1);
+		cv::Mat filtered_grey_mat_32F1 = cv::Mat::zeros(grey_mat_32F1_.rows, grey_mat_32F1_.cols, CV_32FC1);
 
 		// Accumulate greyscale images to remove noise
-		if (acc_grey_mat_32F1_.size() <=  tof_image_counter_)
-			acc_grey_mat_32F1_.push_back(grey_mat_32F1_);
+		if (vec_grey_mat_32F1_.size() <=  tof_image_counter_)
+			vec_grey_mat_32F1_.push_back(grey_mat_32F1_);
 		else
-			acc_grey_mat_32F1_[tof_image_counter_] = grey_mat_32F1_;
+			vec_grey_mat_32F1_[tof_image_counter_] = grey_mat_32F1_;
 		// Update counter
 		tof_image_counter_ = (++tof_image_counter_)%5;
 
 		// Compute average out of accumulated tof greyscale data
-		for (int i=0; i<acc_grey_mat_32F1_.size(); i++)
-			filtered_grey_mat_32F1 += acc_grey_mat_32F1_[i];
-		filtered_grey_mat_32F1 * (1/acc_grey_mat_32F1_.size());
+		for (int i=0; i<vec_grey_mat_32F1_.size(); i++)
+			filtered_grey_mat_32F1 += vec_grey_mat_32F1_[i];
+		filtered_grey_mat_32F1 * (1/vec_grey_mat_32F1_.size());
 
 		// Update 8bit image
 		cv::Mat temp0_grey_mat_8U3;
