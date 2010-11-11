@@ -137,6 +137,8 @@ class NodeClass
         {
         	// fill message
         	int num_readings = vdDistM.size(); // initialize with max scan size
+      start_scan = 0;
+      stop_scan = vdDistM.size();
 			double laser_frequency = 10; //TODO: read from Ini-file
 			
 			// create LaserScan message
