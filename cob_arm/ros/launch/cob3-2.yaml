@@ -1,5 +1,5 @@
 CanModule: PCAN
-CanDevice: 17
+CanDevice: 16
 CanBaudrate: 1000
 ModIds: [4,5,6,7,8,9,10]
 JointNames: [arm_1_joint, arm_2_joint, arm_3_joint, arm_4_joint, arm_5_joint, arm_6_joint, arm_7_joint]

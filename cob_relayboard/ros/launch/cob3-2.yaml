@@ -1,4 +1,4 @@
 #Parameters for Relayboard
 
 #Device on which relayboard is attached
-ComPort: /dev/ttyUSB0
+ComPort: /dev/ttyUSB2

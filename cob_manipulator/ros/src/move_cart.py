@@ -15,7 +15,6 @@ from geometry_msgs.msg import *
 
 class ik_solver:
 
-
 	def __init__(self):
 		if rospy.has_param('JointNames'):
 			self.JointNames = rospy.get_param('JointNames')
@@ -41,8 +40,7 @@ class ik_solver:
 		#self.thread = threading.Thread(target=self.joint_states_listener)
 		#self.thread.start()
 		rospy.wait_for_service('get_ik')
-		self.iks = rospy.ServiceProxy('get_ik', GetPositionIK)		
-
+		self.iks = rospy.ServiceProxy('get_ik', GetPositionIK)
 
 	#thread function: listen for joint_states messages
 	def joint_states_listener(self):
