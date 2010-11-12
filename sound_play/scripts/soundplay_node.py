@@ -321,7 +321,7 @@ class soundplay:
 
     def mixer_init(self): 
         try:
-            mixer.init(17025, -16, 1, 4000)
+            mixer.init(16000, -16, 1, 4000)
             self.init_vars()
             return True
         except Exception, e:
