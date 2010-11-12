@@ -351,10 +351,10 @@ class NodeClass
 				    	if (traj_point_nr_ < traj_.points.size())
 				    	{
 				    		// if axis is not moving and not reached last point of trajectory, then send new target point
-				    		ROS_INFO("...moving to trajectory point[%d]",traj_point_nr_);
+				    		ROS_INFO("...moving to trajectory point[%d], %f",traj_point_nr_,traj_.points[traj_point_nr_].positions[0]);
 					    	traj_point_ = traj_.points[traj_point_nr_];
 					    	CamAxis_->setGearPosVelRadS(traj_point_.positions[0], MaxVel_);
-					    	usleep(100000);
+					    	usleep(900000);
 					    	CamAxis_->m_Joint->requestPosVel();
 				    		traj_point_nr_++;
 					    	//feedback_.isMoving = true;
