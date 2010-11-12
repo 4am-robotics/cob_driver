@@ -326,7 +326,7 @@ public:
 		cv::Mat left_color_8U3;
 		cv::resize(left_color_mat_8U3_, left_color_8U3, cv::Size(), 0.5, 0.5);
 		cv::imshow("Left color data", left_color_8U3);
-		cv::waitKey(1000);
+		cv::waitKey(50);
 
 		ROS_INFO("[all_camera_viewer] allModeSrvCallback [OK]");
 	}
@@ -397,14 +397,15 @@ public:
 		cv::minMaxLoc(filtered_grey_mat_32F1, &m_scaleMin, &m_scaleMax);
 		cv::Mat minmat(filtered_grey_mat_32F1.size(), CV_32FC1, cv::Scalar(m_scaleMin));
 		filtered_grey_mat_32F1 = cv::Mat(filtered_grey_mat_32F1 - minmat)/ m_scaleMax;
-		filtered_grey_mat_32F1.convertTo(temp0_grey_mat_8U3, CV_8U, 256);
+		filtered_grey_mat_32F1.convertTo(temp0_grey_mat_8U1, CV_8U, 256);
 
 		// Perform histogram equalization on 8bit image
-		cv::equalizeHist(temp0_grey_mat_8U1, temp1_grey_mat_8U1);
+		//cv::equalizeHist(temp0_grey_mat_8U1, temp1_grey_mat_8U1);
 
 		// Upsample image by a factor of 2 using bilinear interpolation
 		// and save result to member variable
-		resize(temp1_grey_mat_8U1, grey_mat_8U1_, cv::Size(), 2, 2, cv::INTER_LINEAR);
+		grey_mat_8U1_ = temp0_grey_mat_8U1;
+		//resize(temp0_grey_mat_8U1, grey_mat_8U1_, cv::Size(), 2, 2, cv::INTER_LINEAR);
 	}
 
 	/// Callback is executed, when stereo mode is selected
