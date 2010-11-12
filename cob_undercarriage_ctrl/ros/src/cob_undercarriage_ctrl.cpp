@@ -111,6 +111,7 @@ class NodeClass
 		int drive_chain_diagnostic_;		// flag whether base drive chain is operating normal 
 		ros::Time last_time_;				// time Stamp for last odometry measurement
 		double x_rob_m_, y_rob_m_, theta_rob_rad_; // accumulated motion of robot since startup
+    int iwatchdog_;
 		
 		int m_iNumJoints;
 		
@@ -121,6 +122,7 @@ class NodeClass
         {
 			// initialization of variables
 			is_initialized_bool_ = false;
+      iwatchdog_ = 0;
 			last_time_ = ros::Time::now();
 			x_rob_m_ = 0.0;
 			y_rob_m_ = 0.0;
@@ -178,7 +180,9 @@ class NodeClass
 		void topicCallbackTwistCmd(const geometry_msgs::Twist::ConstPtr& msg)
 		{
 			double vx_cmd_mms, vy_cmd_mms, w_cmd_rads;
-			
+
+      iwatchdog_ = 0;			
+
 			// controller expects velocities in mm/s, ROS works with SI-Units -> convert
 			// ToDo: rework Controller Class to work with SI-Units
 			vx_cmd_mms = msg->linear.x*1000.0;
@@ -509,7 +513,8 @@ void NodeClass::CalcCtrlStep()
 	std::vector<double> drive_jointvel_cmds_rads, steer_jointvel_cmds_rads, steer_jointang_cmds_rad;
 	sensor_msgs::JointState joint_state_cmd;
 	int j, k;
-	
+  iwatchdog_ += 1;	
+
 	// if controller is initialized and underlying hardware is operating normal
 	if (is_initialized_bool_) //&& (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK))
 	{
@@ -551,21 +556,30 @@ void NodeClass::CalcCtrlStep()
 		k = 0;
 		for(int i = 0; i<m_iNumJoints; i++)
 		{
-			// for steering motors
-			if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the Msg
-			{
-				joint_state_cmd.position[i] = steer_jointang_cmds_rad[j];
-				joint_state_cmd.velocity[i] = steer_jointvel_cmds_rads[j];
-				joint_state_cmd.effort[i] = 0.0;
-				j = j + 1;
-			}
-			else
-			{
-				joint_state_cmd.position[i] = 0.0;
-				joint_state_cmd.velocity[i] = drive_jointvel_cmds_rads[k];
-				joint_state_cmd.effort[i] = 0.0;
-				k = k + 1;
-			}
+      if(iwatchdog_ < 50)
+      {
+			  // for steering motors
+			  if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the Msg
+			  {
+				  joint_state_cmd.position[i] = steer_jointang_cmds_rad[j];
+				  joint_state_cmd.velocity[i] = steer_jointvel_cmds_rads[j];
+				  joint_state_cmd.effort[i] = 0.0;
+				  j = j + 1;
+			  }
+			  else
+			  {
+				  joint_state_cmd.position[i] = 0.0;
+				  joint_state_cmd.velocity[i] = drive_jointvel_cmds_rads[k];
+				  joint_state_cmd.effort[i] = 0.0;
+				  k = k + 1;
+			  }
+      }
+      else
+      {
+          joint_state_cmd.position[i] = 0.0;
+				  joint_state_cmd.velocity[i] = 0.0;
+				  joint_state_cmd.effort[i] = 0.0;
+      }
 		}
 
 		// publish jointcmds
