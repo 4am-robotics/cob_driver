@@ -5,13 +5,23 @@
 	<rosparam command="load" ns="scanner_front" file="$(find cob_sick_s300)/ros/launch/front_$(env ROBOT).yaml"/>
 
 	<node pkg="cob_sick_s300" type="cob_sick_s300" name="scanner_front" respawn="false" output="screen" >
-		<remap from="scan" to="scan_front"/>
+		<remap from="scan" to="scan_front_raw"/>
+	</node>
+	<node pkg="cob_sick_s300" type="cob_scan_filter" name="scanner_front_filter" respawn="false" output="screen" >
+		<remap from="scan_front_raw" to="scan_raw"/>
+		<remap from="scan_filtered" to="scan_front"/>
 	</node>
 
-	<param name="hztest1/topic" value="topicPub_LaserScan" />
+	<param name="hztest1/topic" value="scan_front" />
 	<param name="hztest1/hz" value="5.0" />
 	<param name="hztest1/hzerror" value="0.1" />
 	<param name="hztest1/test_duration" value="5.0" />
 	<test test-name="hztest_front" pkg="rostest" type="hztest" name="hztest1" />
+
+	<param name="hztest2/topic" value="scan_front_raw" />
+	<param name="hztest2/hz" value="5.0" />
+	<param name="hztest2/hzerror" value="0.1" />
+	<param name="hztest2/test_duration" value="5.0" />
+	<test test-name="hztest_front_raw" pkg="rostest" type="hztest" name="hztest2" />
 
 </launch>
