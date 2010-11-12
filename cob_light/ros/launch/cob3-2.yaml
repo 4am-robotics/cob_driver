@@ -1,2 +1,2 @@
-devicestring: /dev/ttyUSB2
+devicestring: /dev/ttyUSB3
 baudrate: 230400
