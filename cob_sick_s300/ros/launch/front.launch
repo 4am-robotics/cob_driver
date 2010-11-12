@@ -13,4 +13,6 @@
 		<remap from="scan_filtered" to="scan_front"/>
 	</node>
 
+	<include file="$(find cob_sick_s300)/ros/launch/front_test.launch" />
+
 </launch>
