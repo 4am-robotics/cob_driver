@@ -147,6 +147,9 @@ class NodeClass
 		//--
 
 		// read parameters from parameter server
+		CanDevice_ = "PCAN";
+		CanBaudrate_ = 500;
+
 		n_.getParam("CanDevice", CanDevice_);
 		n_.getParam("CanBaudrate", CanBaudrate_);
 		n_.getParam("HomingDir", HomingDir_);
