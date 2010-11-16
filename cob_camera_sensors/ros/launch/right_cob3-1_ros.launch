@@ -1,0 +1,11 @@
+<launch>
+  <node pkg="camera1394" type="camera1394_node" name="camera1394_node" ns="stereo/right">
+    <!--param name="auto_brightness" value="2" /-->
+    <param name="auto_white_balance" value="2" />
+    <param name="_guid" value="000a470110073080" />
+    <param name="video_mode" value="640x480_rgb8" />
+    <param name="_iso_speed" value="200" />
+    <param name="_frame_rate" value="10" />
+  </node>
+</launch>
+

@@ -16,7 +16,7 @@
   <Role value="MASTER" />
 
   <!-- Valid values: appropriate framerte or AUTO and DEFAULT -->
-  <FrameRate fps="3" />
+  <FrameRate fps="1" />
 
     <!-- Valid values: FORMAT_0, FORMAT_1, FORMAT_2 ,FORMAT_7, DEFAULT-->
   <VideoFormat type="FORMAT_7" />
@@ -120,10 +120,10 @@
   <!-- respnsible for emitting the trigger signal to other cameras -->
   <!-- The slave is synchronizing its image acquisition with the trigger signal -->
   <!-- Valid roles: MASTER oR SLAVE -->
-  <Role value="SLAVE" />
+  <Role value="MASTER" />
 
   <!-- Valid values: appropriate framerte or AUTO and DEFAULT -->
-  <FrameRate fps="3" />
+  <FrameRate fps="1" />
 
     <!-- Valid values: FORMAT_0, FORMAT_1, FORMAT_2 ,FORMAT_7, DEFAULT-->
   <VideoFormat type="FORMAT_7" />
