@@ -537,7 +537,11 @@ bool CanDriveHarmonica::initHoming()
 
 		// always give can and controller some time to understand the command
 		usleep(20000);
-	
+
+		//set input logic to 'general purpose'
+		IntprtSetInt(8, 'I', 'L', 2, 7);                       
+		usleep(20000);  
+
 		// 2. configure the homing sequence
 		// 2.a set the value to which the increment counter shall be reseted as soon as the homing event occurs
 		// value to load at homing event
@@ -550,6 +554,7 @@ bool CanDriveHarmonica::initHoming()
 		// iHomeEvent = 9 : event according to definded DIN1 switch (for full steerable wheels COb3)
 		// iHomeEvent =11 : event according to ?? (for COb3 Head-Axis)
 		IntprtSetInt(8, 'H', 'M', 3, m_DriveParam.getHomingDigIn());
+		//IntprtSetInt(8, 'H', 'M', 3, 11); //cob3-2
 		usleep(20000);
 
 
@@ -573,6 +578,7 @@ bool CanDriveHarmonica::initHoming()
 //-----------------------------------------------
 bool CanDriveHarmonica::execHoming() //not used by CanCtrlPltf, that has its own homing implementation
 {
+
 	int iCnt;
 	CanMsg Msg;
 	bool bRet = true;
@@ -612,6 +618,7 @@ bool CanDriveHarmonica::execHoming() //not used by CanCtrlPltf, that has its own
 			if(Msg.getAt(4) == 0)
 			{
 				// if 0 received: elmo disarmed homing after receiving the defined event
+				std::cout << "Got Homing-Signal "  << std::endl;
 				m_bLimSwRight = true;
 				break;
 			}
@@ -622,10 +629,10 @@ bool CanDriveHarmonica::execHoming() //not used by CanCtrlPltf, that has its own
 		iCnt++;
 
 	}
-	while((m_bLimSwRight == false) && (iCnt<1000)); // wait some time
+	while((m_bLimSwRight == false) && (iCnt<2000)); // wait some time
 	
 	// 7. see why finished (homed or timeout) and log out
-	if(iCnt>=1000)
+	if(iCnt>=2000)
 	{
 		std::cout << "Homing failed - limit switch " << iNrDrive << " not reached" << std::endl;
 		bRet = false;
@@ -635,6 +642,8 @@ bool CanDriveHarmonica::execHoming() //not used by CanCtrlPltf, that has its own
 		std::cout << "Homing successful - limit switch " << iNrDrive << " ok" << std::endl;
 		bRet = true;
 	}
+	//IntprtSetInt(8, 'I', 'L', 2, 9); //cob3-2                  |  -----------------------------------------------------------------------------------
+        //usleep(20000);   
 
 	return bRet;
 }
