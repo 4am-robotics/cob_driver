@@ -696,7 +696,7 @@ void NodeClass::UpdateOdometry()
 	geometry_msgs::TransformStamped odom_tf;
 	// compose header
 	odom_tf.header.stamp = current_time;
-	odom_tf.header.frame_id = "/odom";
+	odom_tf.header.frame_id = "/wheelodom";
 	odom_tf.child_frame_id = "/base_footprint";
 	// compose data container
 	odom_tf.transform.translation.x = x_rob_m_;
@@ -708,13 +708,16 @@ void NodeClass::UpdateOdometry()
     nav_msgs::Odometry odom_top;
 	// compose header
     odom_top.header.stamp = current_time;
-    odom_top.header.frame_id = "/odom";
+    odom_top.header.frame_id = "/wheelodom";
     odom_top.child_frame_id = "/base_footprint";
     // compose pose of robot
     odom_top.pose.pose.position.x = x_rob_m_;
     odom_top.pose.pose.position.y = y_rob_m_;
     odom_top.pose.pose.position.z = 0.0;
     odom_top.pose.pose.orientation = odom_quat;
+    for(int i = 0; i < 6; i++)
+      odom_top.pose.covariance[i*6+i] = 0.1;
+
     // compose twist of robot
     odom_top.twist.twist.linear.x = vel_x_rob_ms;
     odom_top.twist.twist.linear.y = vel_y_rob_ms;
@@ -722,7 +725,8 @@ void NodeClass::UpdateOdometry()
     odom_top.twist.twist.angular.x = 0.0;
     odom_top.twist.twist.angular.y = 0.0;
     odom_top.twist.twist.angular.z = rot_rob_rads;
-
+    for(int i = 0; i < 6; i++)
+      odom_top.twist.covariance[6*i+i] = 0.1;
 	// publish data
 	// publish the transform
 	//tf_broadcast_odometry_.sendTransform(odom_tf);
