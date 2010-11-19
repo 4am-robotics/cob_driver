@@ -13,4 +13,7 @@
 		<remap from="scan_filtered" to="scan_rear"/>
 	</node>
 
+	<!-- include rostest -->
+	<include file="$(find cob_sick_s300)/ros/launch/rear_test.launch" />
+
 </launch>
