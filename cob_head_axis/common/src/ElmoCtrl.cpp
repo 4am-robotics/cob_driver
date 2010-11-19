@@ -290,7 +290,7 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 					  		true, // bool bIsSteer
 					  		0, // double dCurrToTorque
 					  		0, // double dCurrMax
-					  		5 // int iHomingDigIn
+					  		11 // int iHomingDigIn //cob3-2->11, cob3-1->9
 					  );
 					  
 		m_Joint->setDriveParam(*m_JointParams);
@@ -382,7 +382,7 @@ int ElmoCtrl::getGearPosVelRadS( double* pdAngleGearRad, double* pdVelGearRadS)
 	*pdVelGearRadS = 0;
 
 	m_Joint->getGearPosVelRadS(pdAngleGearRad, pdVelGearRadS);
-	*pdAngleGearRad = *pdAngleGearRad - 3.141592654 + m_JointOffset;
+	*pdAngleGearRad = *pdAngleGearRad  + m_JointOffset;
 	
 	return 0;
 }
@@ -391,6 +391,7 @@ int ElmoCtrl::getGearPosVelRadS( double* pdAngleGearRad, double* pdVelGearRadS)
 
 int ElmoCtrl:: setGearPosVelRadS(double dPosRad, double dVelRadS)
 {
+	printf("ElmoCtrl:setGearPosVelRadS: dPosRad %f\n",dPosRad);
 	if(dPosRad< m_LowerLimit) {
 		std::cout << "Position under LowerBound -> set up" << std::endl;
 		dPosRad = m_LowerLimit;
@@ -404,9 +405,9 @@ int ElmoCtrl:: setGearPosVelRadS(double dPosRad, double dVelRadS)
 	else if(dVelRadS < -m_MaxVel)
 		dVelRadS = -m_MaxVel;
 
-	//m_Joint->setGearPosVelRadS(dPosRad + m_JointOffset, dVelRadS);
+	m_Joint->setGearPosVelRadS(dPosRad + m_JointOffset, dVelRadS);
 	
-	m_Joint->setGearPosVelRadS(-3.141592654 - dPosRad + m_JointOffset, dVelRadS);
+	//m_Joint->setGearPosVelRadS(-3.141592654 - dPosRad + m_JointOffset, dVelRadS);
 
 	return 0;
 }

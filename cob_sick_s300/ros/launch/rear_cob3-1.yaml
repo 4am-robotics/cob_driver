@@ -2,3 +2,5 @@ port: /dev/ttyScan1
 baud: 500000
 inverted: true
 frame_id: /base_laser_rear_link
+start_scan: 115
+stop_scan: 426

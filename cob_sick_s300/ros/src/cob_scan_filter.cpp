@@ -102,8 +102,8 @@ class NodeClass
 			
 			// rescale scan
 			int num_readings = stop_scan - start_scan;
-			laserScan.angle_min = -135 + laserScan.angle_increment * start_scan; // first ScanAngle
-			laserScan.angle_max = -135 + laserScan.angle_increment * start_scan; // last ScanAngle
+			laserScan.angle_min = (-135.0/180.0*3.14) + laserScan.angle_increment * start_scan; //     first ScanAngle
+			laserScan.angle_max = (-135.0/180.0*3.14) + laserScan.angle_increment * stop_scan; // l    ast ScanAngle
    		laserScan.set_ranges_size(num_readings);
     	laserScan.set_intensities_size(num_readings);
 

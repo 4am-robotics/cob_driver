@@ -7,9 +7,10 @@
 	<node pkg="cob_sick_s300" type="cob_sick_s300" name="scanner_front" respawn="false" output="screen" >
 		<remap from="scan" to="scan_front_raw"/>
 	</node>
-  <node pkg="cob_sick_s300" type="cob_scan_filter" name="scanner_front_filter" respawn="false" output="screen" >
-		<remap from="scan_front_raw" to="scan_raw"/>
-    <remap from="scan_filtered" to="scan_front"/>
+
+	<node pkg="cob_sick_s300" type="cob_scan_filter" name="scanner_front_filter" respawn="false" output="screen" >
+		<remap from="scan" to="scan_front_raw"/>
+		<remap from="scan_filtered" to="scan_front"/>
 	</node>
 
 </launch>
