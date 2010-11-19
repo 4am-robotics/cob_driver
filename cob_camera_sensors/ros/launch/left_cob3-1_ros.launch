@@ -1,8 +1,8 @@
 <launch>
-  <node pkg="camera1394" type="camera1394_node" name="right_node" ns="stereo/right">
+  <node pkg="camera1394" type="camera1394_node" name="left_node" ns="stereo/left">
     <!--param name="auto_brightness" value="2" /-->
     <param name="auto_white_balance" value="2" />
-    <param name="guid" value="000a470110073080" />
+    <param name="guid" value="000a470110077026" />
     <param name="video_mode" value="640x480_rgb8" />
     <param name="iso_speed" value="200" />
     <param name="frame_rate" value="10" />
