@@ -1,5 +1,5 @@
 <launch>
-  <node pkg="camera1394" type="camera1394_node" name="right_node" ns="stereo/right">
+  <node pkg="camera1394" type="camera1394_node" name="right_node" ns="right">
     <!--param name="auto_brightness" value="2" /-->
     <param name="auto_white_balance" value="2" />
     <param name="guid" value="000a470110073080" />
