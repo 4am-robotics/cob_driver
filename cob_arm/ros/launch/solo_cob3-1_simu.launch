@@ -20,4 +20,7 @@
   <!-- start robot_state_publisher -->
   <node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />
 
+  <!-- rostest integration -->
+  <test test-name="test_init" pkg="cob_powercube_chain" type="initialization_test.py" ns="arm_controller" />
+
 </launch>

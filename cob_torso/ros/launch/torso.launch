@@ -7,4 +7,7 @@
   <!-- start powercube_chain -->
   <node pkg="cob_powercube_chain" type="cob_powercube_chain" name="torso_node" ns="torso_controller" cwd="node" respawn="false" output="screen" />
 
+  <!-- rostest integration -->
+  <test test-name="test_init" pkg="cob_powercube_chain" type="initialization_test.py" ns="torso_controller" />
+
 </launch>

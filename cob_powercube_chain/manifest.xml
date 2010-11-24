@@ -25,5 +25,7 @@
   <depend package="libwm4"/>
   <depend package="libm5api"/>
   <depend package="libntcan"/>
+  <depend package="diagnostic_updater"/>
+  <depend package="rostest"/>
 
 </package>
