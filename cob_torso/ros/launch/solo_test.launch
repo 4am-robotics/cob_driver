@@ -2,11 +2,22 @@
 
 <launch>
 
+	<!-- Initialize tray for testing -->
+	<!-- <test test-name="test_init" name="init_tray1" pkg="cob_tray" type="init_tray.py" /> -->
+	<node name="init_torso1" pkg="cob_torso" type="init_torso.py" />
+
 	<!-- hztest /torso_controller/joint_trajectory_action/status -->
 	<param name="hztest1/topic" value="/torso_controller/joint_trajectory_action/status" />
 	<param name="hztest1/hz" value="1.0" />
 	<param name="hztest1/hzerror" value="0.2" />
 	<param name="hztest1/test_duration" value="5.0" />
 	<test test-name="hztest_status" pkg="rostest" type="hztest" name="hztest1" />
+
+	<!-- hztest /joint_states -->
+	<param name="hztest1/topic" value="/joint_states" />
+	<param name="hztest1/hz" value="1.0" />
+	<param name="hztest1/hzerror" value="0.1" />
+	<param name="hztest1/test_duration" value="5.0" />
+	<test test-name="hz_joint_states" pkg="rostest" type="hztest" name="hztest1" />
 
 </launch>
