@@ -1,5 +1,6 @@
 image_width: 176
 image_height: 144
+camera_name: tof
 camera_matrix:
   rows: 3
   cols: 3
@@ -8,3 +9,11 @@ distortion_coefficients:
   rows: 1
   cols: 5
   data: [-0.97324, 2.53447, 0.00571, 0.00419, 0]
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1, 0, 0, 0, 1, 0, 0, 0, 1]
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0]

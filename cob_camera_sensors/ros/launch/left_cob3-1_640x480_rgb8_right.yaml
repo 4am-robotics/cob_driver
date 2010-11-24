@@ -1,6 +1,6 @@
 image_width: 640
 image_height: 480
-camera_name: 08144361026320a0
+camera_name: left
 camera_matrix:
   rows: 3
   cols: 3
