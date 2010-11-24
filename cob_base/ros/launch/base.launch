@@ -4,7 +4,7 @@
 	<group ns="base_controller">
 
 		<!-- upload parameters -->
-		<param name="IniDirectory" value="$(find cob_base)/ros/bin/Platform/IniFiles/"/>
+		<param name="IniDirectory" value="$(find cob_base)/ros/bin/Platform/IniFiles/$(env ROBOT)/"/>
 		<param name="PublishEffort" value="false"/>
 
 		<!-- start underlying components - base_drive_chain + relayboard -->

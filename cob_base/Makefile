@@ -5,6 +5,6 @@ cob_base:
 	cd common/lib && ln -sf `uname -m`/* .
 	
 	# create link to ini-files
-	cd ros/bin/Platform/IniFiles && ln -sf $(ROBOT)/* .
+	#cd ros/bin/Platform/IniFiles && ln -sf $(ROBOT)/* .
 
 include $(shell rospack find mk)/cmake.mk
