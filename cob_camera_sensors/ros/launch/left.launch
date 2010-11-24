@@ -2,7 +2,7 @@
 <launch>
 
 	<group ns="stereo">	
-		<include file="$(find cob_camera_sensors)/ros/launch/left_$(env ROBOT)_ros.launch" />
+		<include file="$(find cob_camera_sensors)/ros/launch/left_$(env ROBOT).launch" />
 	</group>
 
 </launch>

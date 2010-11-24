@@ -1,11 +1,19 @@
+<?xml version="1.0"?>
 <launch>
+<group ns="stereo">	
   <node pkg="camera1394" type="camera1394_node" name="left_node" ns="left">
     <!--param name="auto_brightness" value="2" /-->
+    <param name="camera_info_url" value="file:///$(find cob_camera_sensors)/ros/launch/left_cob3-1_640x480_rgb8_right.yaml" />
+    <param name="frame_id" value="head_color_camera_l_link" />
     <param name="auto_white_balance" value="2" />
-    <param name="guid" value="000a470110077026" />
+    <param name="guid" value="000a470110073080" />
     <param name="video_mode" value="640x480_rgb8" />
     <param name="iso_speed" value="200" />
     <param name="frame_rate" value="10" />
+    <remap from="camera/image_raw" to="image_raw"/>
+    <remap from="camera/camera_info" to="camera_info"/>
   </node>
+  <node ns="left" pkg="image_proc" type="image_proc" respawn="false" name="left_image_proc" />
+</group>
 </launch>
 
