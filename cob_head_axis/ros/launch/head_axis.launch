@@ -2,7 +2,7 @@
 <launch>
 
   <!-- send parameters to parameter server -->
-  <param name="head_controller/CanIniFile" value="$(find cob_head_axis)/ros/bin/IniFiles/CanCtrlCamAxis.ini" />
+  <param name="head_controller/CanIniFile" value="$(find cob_head_axis)/ros/bin/IniFiles/$(env ROBOT)_CanCtrlCamAxis.ini" />
   <rosparam command="load" ns="head_controller" file="$(find cob_head_axis)/ros/launch/$(env ROBOT).yaml"/>
 
   <!-- start camera axis -->
