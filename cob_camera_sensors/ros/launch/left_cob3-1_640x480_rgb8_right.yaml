@@ -1,0 +1,20 @@
+image_width: 640
+image_height: 480
+camera_name: 08144361026320a0
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [1261.56689, 0, 301.99007, 0, 1257.15536, 232.40367, 0, 0, 1]
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [-0.21662, 0.12327, 0, 0, 0]
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1, 0, 0, 0, 1, 0, 0, 0, 1]
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0]
+
