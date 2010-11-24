@@ -15,7 +15,7 @@
 		<include file="$(find cob_undercarriage_ctrl)/ros/launch/undercarriage_ctrl.launch" />
 
    	  	<!-- rostest integration -->
-		<test test-name="test_init" pkg="cob_undercarriage_ctrl" type="initialization_test.py"/>
+		<test test-name="base_init" pkg="cob_undercarriage_ctrl" type="initialization_test.py"/>
 
 	</group>
 
