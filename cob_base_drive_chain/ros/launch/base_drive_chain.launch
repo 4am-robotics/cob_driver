@@ -2,6 +2,6 @@
 <launch>
 
   	<!-- start base_drive_chain and locate IniFiles -->
-	<node pkg="cob_base_drive_chain" type="cob_base_drive_chain_node" name="base_drive_chain_node" respawn="false" output="screen"/>
+	<node pkg="cob_base_drive_chain" type="cob_base_drive_chain_node" name="base_drive_chain_node" respawn="false" output="screen"  launch-prefix="xterm -e gdb --args"/>
 
 </launch>
