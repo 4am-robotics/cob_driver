@@ -103,9 +103,8 @@ bool ElmoCtrl::Home()
 
 	//ToDo: UHR: necessary?
 	Sleep(10);
-	int HomingDir = m_Params->GetHomingDir();
-	printf("ElmoCtrl: Home(): Homing Vel = %f\n",HomingDir*0.3);
-	m_Joint->setGearVelRadS(HomingDir*0.3);
+	printf("ElmoCtrl: Home(): Homing Vel = %f\n",m_HomingDir*0.3);
+	m_Joint->setGearVelRadS(m_HomingDir*0.3);
 	//ToDo: UHR: necessary?
 	Sleep(750);
 	success = m_Joint->execHoming();
@@ -176,6 +175,7 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 		CanIniFile = params->GetCanIniFile();	
 		m_MaxVel = params->GetMaxVel();
 		m_HomingDir = params->GetHomingDir();
+		m_HomingDigIn = params->GetHomingDigIn();
 		
 		if (CanIniFile.length() == 0) {	
 			printf("%s,%d:Error: Parameter 'CanIniFile' not given!\n",__FILE__,__LINE__);
@@ -290,7 +290,7 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 					  		true, // bool bIsSteer
 					  		0, // double dCurrToTorque
 					  		0, // double dCurrMax
-					  		11 // int iHomingDigIn //cob3-2->11, cob3-1->9
+					  		m_HomingDigIn // int iHomingDigIn //cob3-2->11, cob3-1->9
 					  );
 					  
 		m_Joint->setDriveParam(*m_JointParams);
@@ -382,7 +382,7 @@ int ElmoCtrl::getGearPosVelRadS( double* pdAngleGearRad, double* pdVelGearRadS)
 	*pdVelGearRadS = 0;
 
 	m_Joint->getGearPosVelRadS(pdAngleGearRad, pdVelGearRadS);
-	*pdAngleGearRad = *pdAngleGearRad  + m_JointOffset;
+	*pdAngleGearRad = *pdAngleGearRad + m_JointOffset;
 	
 	return 0;
 }
@@ -405,9 +405,10 @@ int ElmoCtrl:: setGearPosVelRadS(double dPosRad, double dVelRadS)
 	else if(dVelRadS < -m_MaxVel)
 		dVelRadS = -m_MaxVel;
 
-	m_Joint->setGearPosVelRadS(dPosRad + m_JointOffset, dVelRadS);
+	//COB3-2: m_Joint->setGearPosVelRadS(dPosRad + m_JointOffset, dVelRadS);
 	
-	//m_Joint->setGearPosVelRadS(-3.141592654 - dPosRad + m_JointOffset, dVelRadS);
+	//COB3-1: m_Joint->setGearPosVelRadS(-3.141592654 - dPosRad + m_JointOffset, dVelRadS);
+	m_Joint->setGearPosVelRadS(m_HomingDir * dPosRad + m_JointOffset, dVelRadS);
 
 	return 0;
 }
