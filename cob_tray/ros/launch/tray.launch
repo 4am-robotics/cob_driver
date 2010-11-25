@@ -8,6 +8,6 @@
   <node pkg="cob_powercube_chain" type="cob_powercube_chain" ns="tray_controller" name="tray_node" cwd="node" respawn="false" output="screen" />
 
   <!-- rostest integration -->
-  <test test-name="test_init" pkg="cob_powercube_chain" type="initialization_test.py" ns="tray_controller" />
+  <test test-name="tray_init" pkg="cob_powercube_chain" type="initialization_test.py" ns="tray_controller" />
 
 </launch>
