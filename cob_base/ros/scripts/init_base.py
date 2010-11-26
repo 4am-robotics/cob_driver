@@ -11,7 +11,7 @@ import rospy
 from simple_script_server import script
  
 
-class InitTray(script):
+class InitBase(script):
 
         def Initialize(self):
 
