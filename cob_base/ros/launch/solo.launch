@@ -10,4 +10,7 @@
   <!-- start robot_state_publisher -->
   <node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />
 
+  <!-- include rostest file -->
+  <include file="$(find cob_base)/ros/launch/solo_test.launch" />
+
 </launch>
