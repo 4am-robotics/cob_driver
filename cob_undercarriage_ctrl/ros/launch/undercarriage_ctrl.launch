@@ -2,6 +2,6 @@
 <launch>
 
 	<!-- start undercarriage ctrlr -->
-	<node pkg="cob_undercarriage_ctrl" type="cob_undercarriage_ctrl_node" name="undercarriage_ctrl_node" respawn="false" output="screen"/>
+<node pkg="cob_undercarriage_ctrl" type="cob_undercarriage_ctrl_node" name="undercarriage_ctrl_node" respawn="false" output="screen"/>
 
 </launch>

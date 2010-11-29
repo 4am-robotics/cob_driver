@@ -98,6 +98,12 @@ bool ElmoCtrl::Home()
 {
 	bool success = false;
 	if (m_Joint != NULL) {
+		//THIS is needed for head_axis on cob3-2!
+		
+		//set input logic to 'general purpose'
+		m_Joint->IntprtSetInt(8, 'I', 'L', 2, 7);                       
+		usleep(20000);  
+		
 		m_Joint->initHoming();
 	}
 
