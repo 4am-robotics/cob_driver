@@ -7,6 +7,6 @@
 	<node pkg="cob_relayboard" type="cob_relayboard_node" ns="relayboard" name="relayboard_node" respawn="false" output="screen"/>
 
 	<!-- include rostest -->
-	<include file="$(find cob_relayboard)/ros/launch/relayboard_test.launch" />
+	<include file="$(find cob_relayboard)/ros/launch/relayboard.test" />
 
 </launch>
