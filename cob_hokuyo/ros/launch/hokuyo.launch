@@ -11,6 +11,6 @@
   </node>
 
   <!-- include rostest -->
-  <include file="$(find cob_hokuyo)/ros/launch/hokuyo_test.launch" />
+  <include file="$(find cob_hokuyo)/ros/launch/hokuyo.test" />
   
 </launch>
