@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<launch>
+
+	<!-- hztest /joy-->
+	<param name="hztest1/topic" value="/joy" />
+	<param name="hztest1/hz" value="0.1" />
+	<param name="hztest1/hzerror" value="0.01" />
+	<param name="hztest1/test_duration" value="5.0" />
+	<test test-name="hz_joy" pkg="rostest" type="hztest" name="hztest1" />
+
+	<!-- hztest /diagnostics-->
+	<param name="hztest2/topic" value="/diagnostics" />
+	<param name="hztest2/hz" value="1.0" />
+	<param name="hztest2/hzerror" value="0.01" />
+	<param name="hztest2/test_duration" value="5.0" />
+	<test test-name="hz_diagnostics" pkg="rostest" type="hztest" name="hztest2" />
+
+</launch>

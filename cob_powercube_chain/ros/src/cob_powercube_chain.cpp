@@ -125,8 +125,8 @@ class PowercubeChainNode
 		pr2_controllers_msgs::JointTrajectoryFeedback feedback_;
 		pr2_controllers_msgs::JointTrajectoryResult result_;
 
-  // diagnostic stuff
-  diagnostic_updater::Updater updater_;
+		// diagnostic stuff
+		diagnostic_updater::Updater updater_;
 
 		// declaration of service clients
 		//--
@@ -170,7 +170,6 @@ class PowercubeChainNode
 			//sem_post(sem);
 			//printf("done!\n");
 		}
-
 
 		/*!
 		* \brief Constructor for PowercubeChainNode class.

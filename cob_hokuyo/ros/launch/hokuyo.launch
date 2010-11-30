@@ -11,10 +11,8 @@
   	<remap from="scan" to="scan_top"/>
 
   </node>
-	<param name="hztest_top/topic" value="scan_top" />
-        <param name="hztest_top/hz" value="10.0" />
-        <param name="hztest_top/hzerror" value="0.5" />
-        <param name="hztest_top/test_duration" value="5.0" />
-        <test test-name="hztest_topscan" pkg="rostest" type="hztest" name="hztest_top" />
+
+  <!-- include rostest -->
+  <include file="$(find cob_hokuyo)/ros/launch/hokuyo.test" />
   
 </launch>

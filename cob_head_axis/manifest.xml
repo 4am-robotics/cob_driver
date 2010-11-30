@@ -1,13 +1,13 @@
 <package>
-  <description brief="cob_camera_axis">
+  <description brief="cob_head_axis">
 
-     cob_camera_axis
+     cob_head_axis
 
   </description>
-  <author>Ulrich Reiser, email:ulrich.reiser@ipa.fraunhofer.de</author>
+  <author>Ulrich Reiser</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/cob_camera_axis</url>
+  <url>http://ros.org/wiki/cob_head_axis</url>
 
   <depend package="roscpp"/>
   <depend package="sensor_msgs"/>

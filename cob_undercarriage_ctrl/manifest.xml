@@ -4,7 +4,7 @@
      cob_undercarriage_ctrl implements a controller for the omnidirectional base of Care-O-bot 3 on joint level. For a given Pltf-Twist the according wheel steering angles and linear wheel velocities are calculated based on the principle of rigid body motion. Each joint is than controlled individually to achieve the computed position and velocity
 
   </description>
-  <author>Christian Connette, email:christian.connette@ipa.fhg.de</author>
+  <author>Christian Connette</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_undercarriage_ctrl</url>
@@ -19,11 +19,12 @@
   <depend package="cob_srvs"/>
   <depend package="cob_msgs"/>
   <depend package="cob_utilities"/>
-  <!-- Underlying packeges - not needed for build but for execution-->
-  <depend package="cob_base_drive_chain"/>
-  <depend package="cob_relayboard"/>
   <depend package="diagnostic_updater"/>
   <depend package="rostest"/>
+  <depend package="pr2_controllers_msgs"/>
+  
+  <!-- Underlying packeges - not needed for build but for execution-->
+  <depend package="cob_base_drive_chain"/>
 
   <!-- As we deviate from the standard ROS Repository-Structure we have to tell ROS where to find header and lib -->
   <export>

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!-- Initialize tray for testing -->
+	<!--node name="init_base1" pkg="cob_base" type="init_base.py" /-->
+	<test test-name="base_init" pkg="cob_undercarriage_ctrl" type="initialization_test.py"/>
+
+	<!-- hztest ___ -->
+
+</launch>

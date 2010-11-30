@@ -7,15 +7,14 @@
 		<param name="IniDirectory" value="$(find cob_base)/ros/bin/Platform/IniFiles/$(env ROBOT)/"/>
 		<param name="PublishEffort" value="false"/>
 
-		<!-- start underlying components - base_drive_chain + relayboard -->
-		<!-- base_drive_chain.launch: establishes the ROS interface to the drives of COB. Has to be initialized via service base_driver/Init -->
+		<!-- start underlying components - base_drive_chain -->
 		<include file="$(find cob_base_drive_chain)/ros/launch/base_drive_chain.launch" />
 	
-		<!-- start undercarriage ctrlr -->
+		<!-- start undercarriage ctrl -->
 		<include file="$(find cob_undercarriage_ctrl)/ros/launch/undercarriage_ctrl.launch" />
 
    	  	<!-- rostest integration -->
-		<test test-name="base_init" pkg="cob_undercarriage_ctrl" type="initialization_test.py"/>
+		<include file="$(find cob_base)/ros/launch/base.test" />
 
 	</group>
 

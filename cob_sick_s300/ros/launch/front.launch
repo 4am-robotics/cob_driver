@@ -13,10 +13,7 @@
 		<remap from="scan_filtered" to="scan_front"/>
 	</node>
 
-	 <param name="hztest_front/topic" value="scan_front" />  
-  	 <param name="hztest_front/hz" value="5.0" />
-  	 <param name="hztest_front/hzerror" value="0.5" />
-  	 <param name="hztest_front/test_duration" value="5.0" />    
-  	 <test test-name="hztest_frontscan" pkg="rostest" type="hztest" name="hztest_front" />
+	<!-- include rostest -->
+	<include file="$(find cob_sick_s300)/ros/launch/front.test" />
 
 </launch>
