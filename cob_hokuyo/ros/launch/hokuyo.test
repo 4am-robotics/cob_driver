@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+	
+	<!-- hztest scan_top -->
+	<param name="hztest1/topic" value="scan_top" />
+	<param name="hztest1/hz" value="0.05" />
+	<param name="hztest1/hzerror" value="0.001" />
+	<param name="hztest1/test_duration" value="1" />
+	<test test-name="hztest_scan_top" pkg="rostest" type="hztest" name="hztest1" />
+</launch>

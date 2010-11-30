@@ -11,5 +11,8 @@
   	<remap from="scan" to="scan_top"/>
 
   </node>
+
+  <!-- include rostest -->
+  <include file="$(find cob_hokuyo)/ros/launch/hokuyo.test" />
   
 </launch>
