@@ -5,7 +5,7 @@
 	<rosparam command="load" ns="arm_controller" file="$(find cob_arm)/ros/launch/$(env ROBOT).yaml"/>
 
 	<!-- start powercube_chain -->
-	<node pkg="cob_powercube_chain" type="cob_powercube_chain" name="arm_node" ns="arm_controller" cwd="node" respawn="false" output="screen" />
+	<node pkg="cob_powercube_chain" type="cob_powercube_chain_sim" name="arm_node" ns="arm_controller" cwd="node" respawn="false" output="screen"/>
 
 	<!-- start cartesian interface -->
 	<node pkg="cob_manipulator" type="move_cart.py" name="move_cart" ns="arm_controller" cwd="node" respawn="false" output="screen"/>
