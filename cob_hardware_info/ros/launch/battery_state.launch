@@ -1,6 +1,0 @@
-<launch>
-   <param ns="battery_state" name="devicestring" value="/dev/ttyUSB2" />
-	 <param ns="battery_state" name="minimum_battery_voltage" value="44" />
-	 <param ns="battery_state" name="maximum_battery_voltage" value="58" />
-   <node name="battery_state" pkg="cob_hardware_info" type="bat_state.py" ns="battery_state" output="screen"/>
-</launch>

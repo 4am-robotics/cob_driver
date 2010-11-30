@@ -414,7 +414,7 @@ class NodeClass
 			msg.velocity[0] = ActualVel_;
 
 
-			std::cout << "Joint " << msg.name[0] <<": pos="<<  msg.position[0] << " vel=" << msg.velocity[0] << std::endl;
+			//std::cout << "Joint " << msg.name[0] <<": pos="<<  msg.position[0] << " vel=" << msg.velocity[0] << std::endl;
 				
 			// publish message
 			topicPub_JointState_.publish(msg);
