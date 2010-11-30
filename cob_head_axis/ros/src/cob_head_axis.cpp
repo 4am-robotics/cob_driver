@@ -106,6 +106,7 @@ class NodeClass
 	std::string CanIniFile_;
 	int CanBaudrate_;
 	int HomingDir_;
+	int HomingDigIn_;
 	double MaxVel_;
 	int ModID_;
 	std::string operationMode_;
@@ -153,13 +154,14 @@ class NodeClass
 		n_.getParam("CanDevice", CanDevice_);
 		n_.getParam("CanBaudrate", CanBaudrate_);
 		n_.getParam("HomingDir", HomingDir_);
+		n_.getParam("HomingDigIn", HomingDigIn_);
 		n_.getParam("ModId",ModID_);
 		n_.getParam("JointName",JointName_);
 		n_.getParam("CanIniFile",CanIniFile_);
 		n_.getParam("OperationMode",operationMode_);
 		
 		//n_.param<double>("MaxVel", MaxVel_, 2.0); -> from urdf
-		ROS_INFO("CanDevice=%s, CanBaudrate=%d,ModID=%d",CanDevice_.c_str(),CanBaudrate_,ModID_);
+		ROS_INFO("CanDevice=%s, CanBaudrate=%d, ModID=%d, HomingDigIn=%d",CanDevice_.c_str(),CanBaudrate_,ModID_,HomingDigIn_);
 		
 		
 		// load parameter server string for robot/model
@@ -209,6 +211,7 @@ class NodeClass
 		//initializing and homing of camera_axis		
 		CamAxisParams_->SetCanIniFile(CanIniFile_);
 		CamAxisParams_->SetHomingDir(HomingDir_);
+		CamAxisParams_->SetHomingDigIn(HomingDigIn_);
 		CamAxisParams_->SetMaxVel(MaxVel_);
 
 		CamAxisParams_->Init(CanDevice_, CanBaudrate_, ModID_);
