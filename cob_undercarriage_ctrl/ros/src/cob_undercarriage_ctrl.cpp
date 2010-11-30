@@ -65,10 +65,12 @@
 // ROS message includes
 #include <sensor_msgs/JointState.h>
 #include <diagnostic_msgs/DiagnosticStatus.h>
+#include <diagnostic_updater/diagnostic_updater.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
 #include <cob_msgs/EmergencyStopState.h>
+
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -101,6 +103,9 @@ class NodeClass
         // service servers
         //--
             
+	// diagnostic stuff
+  	diagnostic_updater::Updater updater_;
+
         // service clients
         ros::ServiceClient srv_client_get_joint_state_;	// get current configuration of undercarriage
 
@@ -161,6 +166,10 @@ class NodeClass
             topic_sub_drive_diagnostic_ = n.subscribe("diagnostic", 1, &NodeClass::topicCallbackDiagnostic, this);
 			//<diagnostic_msgs::DiagnosticStatus>("Diagnostic", 1);
 
+			// diagnostics
+			updater_.setHardwareID(ros::this_node::getName());
+			updater_.add("initialization", this, &NodeClass::diag_init);
+
             // implementation of service servers
             //--
 
@@ -172,6 +181,16 @@ class NodeClass
         ~NodeClass() 
         {
         }
+
+	void diag_init(diagnostic_updater::DiagnosticStatusWrapper &stat)
+	  {
+	    if(is_initialized_bool_)
+	      stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "");
+	    else
+	      stat.summary(diagnostic_msgs::DiagnosticStatus::WARN, "");
+	    stat.add("Initialized", is_initialized_bool_);
+	  }
+
 
         // topic callback functions 
         // function will be called when a new message arrives on a topic

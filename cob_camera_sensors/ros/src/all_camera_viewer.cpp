@@ -295,8 +295,8 @@ public:
 		// Convert ROS image messages to openCV IplImages
 		try
 		{
-			right_color_image_8U3_ = cv_bridge_0_.imgMsgToCv(right_camera_data, "passthrough");
-			left_color_image_8U3_ = cv_bridge_1_.imgMsgToCv(left_camera_data, "passthrough");
+			right_color_image_8U3_ = cv_bridge_0_.imgMsgToCv(right_camera_data, "bgr8");
+			left_color_image_8U3_ = cv_bridge_1_.imgMsgToCv(left_camera_data, "bgr8");
 			grey_image_32F1_ = cv_bridge_2_.imgMsgToCv(tof_camera_grey_data, "passthrough");
 
 			cv::Mat tmp = right_color_image_8U3_;
@@ -372,7 +372,7 @@ public:
 	/// better images for calibration
 	void updateTofGreyscaleData()
 	{
-		cv::Mat filtered_grey_mat_32F1 = cv::Mat::zeros(grey_mat_32F1_.rows, grey_mat_32F1_.cols, CV_32FC1);
+		cv::Mat filtered_grey_mat_32F1 = cv::Mat::zeros(grey_mat_32F1_.rows, grey_mat_32F1_.cols, CV_8UC1/*32FC1*/);
 
 		// Accumulate greyscale images to remove noise
 		if (vec_grey_mat_32F1_.size() <=  tof_image_counter_)
@@ -392,19 +392,19 @@ public:
 		cv::Mat temp1_grey_mat_8U1;
 
 		// Convert CV_32FC1 image to CV_8UC1
-		double m_scaleMin;
+		/*double m_scaleMin;
 		double m_scaleMax;
 		cv::minMaxLoc(filtered_grey_mat_32F1, &m_scaleMin, &m_scaleMax);
-		cv::Mat minmat(filtered_grey_mat_32F1.size(), CV_32FC1, cv::Scalar(m_scaleMin));
+		cv::Mat minmat(filtered_grey_mat_32F1.size(), 32FC1, cv::Scalar(m_scaleMin));
 		filtered_grey_mat_32F1 = cv::Mat(filtered_grey_mat_32F1 - minmat)/ m_scaleMax;
-		filtered_grey_mat_32F1.convertTo(temp0_grey_mat_8U1, CV_8U, 256);
+		filtered_grey_mat_32F1.convertTo(temp0_grey_mat_8U1, CV_8U, 256);*/
 
 		// Perform histogram equalization on 8bit image
 		//cv::equalizeHist(temp0_grey_mat_8U1, temp1_grey_mat_8U1);
 
 		// Upsample image by a factor of 2 using bilinear interpolation
 		// and save result to member variable
-		grey_mat_8U1_ = temp0_grey_mat_8U1;
+		grey_mat_8U1_ = filtered_grey_mat_32F1;//temp0_grey_mat_8U1;
 		//resize(temp0_grey_mat_8U1, grey_mat_8U1_, cv::Size(), 2, 2, cv::INTER_LINEAR);
 	}
 

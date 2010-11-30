@@ -4,6 +4,9 @@
 
 	<!-- Initialize tray for testing -->
 	<!-- <node name="init_torso1" pkg="cob_torso" type="init_torso.py" /> -->
+	
+	<!-- rostest integration -->
+	<test test-name="torso_init" pkg="cob_powercube_chain" type="initialization_test.py" ns="torso_controller" />
 
 	<!-- hztest /torso_controller/joint_trajectory_action/status -->
 	<param name="hztest1/topic" value="/torso_controller/joint_trajectory_action/status" />

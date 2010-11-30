@@ -78,6 +78,9 @@
 #include <cob_srvs/Trigger.h>
 #include <cob_srvs/SetOperationMode.h>
 
+// ROS diagnostic msgs
+#include <diagnostic_updater/diagnostic_updater.h>
+
 // external includes
 #include <cob_powercube_chain/PowerCubeCtrl.h>
 #include <cob_powercube_chain/simulatedArm.h>
@@ -121,6 +124,9 @@ class PowercubeChainNode
 		// create messages that are used to published feedback/result
 		pr2_controllers_msgs::JointTrajectoryFeedback feedback_;
 		pr2_controllers_msgs::JointTrajectoryResult result_;
+
+  // diagnostic stuff
+  diagnostic_updater::Updater updater_;
 
 		// declaration of service clients
 		//--
@@ -204,6 +210,11 @@ class PowercubeChainNode
 
 			// implementation of service clients
 			//--
+
+			// diagnostics
+			updater_.setHardwareID(ros::this_node::getName());
+			updater_.add("initialization", this, &PowercubeChainNode::diag_init);
+
 
 			// read parameters from parameter server
 			n_.getParam("CanModule", CanModule_);
@@ -358,6 +369,15 @@ class PowercubeChainNode
 			newvel_ = true;
 			cmd_vel_ = msg->points[0].velocities;
 		}
+
+  void diag_init(diagnostic_updater::DiagnosticStatusWrapper &stat)
+  {
+    if(isInitialized_)
+      stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "");
+    else
+      stat.summary(diagnostic_msgs::DiagnosticStatus::WARN, "");
+    stat.add("Initialized", isInitialized_);
+  }
 
 		/*!
 		* \brief Executes the callback from the actionlib.
@@ -543,6 +563,7 @@ class PowercubeChainNode
 		*/
 		void publishJointState()
 		{
+		  updater_.update();
 			if (isInitialized_ == true)
 			{
 				// create joint_state message
@@ -682,6 +703,9 @@ int main(int argc, char** argv)
 
 	// create class
 	PowercubeChainNode pc_node("joint_trajectory_action");
+
+
+	
 
 	// main loop
 	double frequency;

@@ -22,6 +22,8 @@
   <!-- Underlying packeges - not needed for build but for execution-->
   <depend package="cob_base_drive_chain"/>
   <depend package="cob_relayboard"/>
+  <depend package="diagnostic_updater"/>
+  <depend package="rostest"/>
 
   <!-- As we deviate from the standard ROS Repository-Structure we have to tell ROS where to find header and lib -->
   <export>

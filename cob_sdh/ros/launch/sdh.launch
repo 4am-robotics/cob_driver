@@ -7,4 +7,8 @@
   <!-- start powercube_chain -->
   <node pkg="cob_sdh" type="cob_sdh" name="sdh_node" ns="sdh_controller" cwd="node" respawn="false" output="screen" />
 
+  <!-- rostest integration -->
+  <test test-name="sdh_init" pkg="cob_sdh" type="initialization_test.py" ns="sdh_controller" />
+
+
 </launch>
