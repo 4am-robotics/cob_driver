@@ -4,14 +4,15 @@
      The cob_driver stack includes packages that provide access to the Care-O-bot hardware over ROS messages and services. E.g. for mobile base, arm, camera_sensors, scanners, etc...
 
   </description>
-  <author>Maintained by Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>
-  <license>LGPL</license>  
+  <author>Maintained by Florian Weisshardt</author>
+  <license>BSD,LGPL</license>  
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_driver</url>
-  <depend stack="cob_common" /> <!-- cob_utilities, cob_srvs, cob_description, cob_vision_utils, cob_msgs -->
+  <depend stack="cob_common" /> <!-- cob_utilities, cob_msgs, cob_description, cob_vision_utils, cob_srvs -->
   <depend stack="cob_extern" /> <!-- libpcan, libm5api, libwm4, libntcan -->
   <depend stack="common" /> <!-- actionlib, tinyxml -->
   <depend stack="common_msgs" /> <!-- nav_msgs, geometry_msgs, sensor_msgs, diagnostic_msgs -->
+  <depend stack="diagnostics" /> <!-- diagnostic_updater -->
   <depend stack="geometry" /> <!-- tf, kdl, eigen, tf_conversions -->
   <depend stack="image_common" /> <!-- polled_camera, image_transport -->
   <depend stack="joystick_drivers" /> <!-- joy -->
@@ -19,7 +20,7 @@
   <depend stack="laser_drivers" /> <!-- hokuyo_node -->
   <depend stack="pr2_controllers" /> <!-- trajectory_msgs, pr2_controllers_msgs -->
   <depend stack="robot_model" /> <!-- urdf, kdl_parser -->
-  <depend stack="ros" /> <!-- rospy, std_msgs, roscpp -->
+  <depend stack="ros" /> <!-- std_msgs, roslib, rostest, rospy, roscpp -->
   <depend stack="vision_opencv" /> <!-- opencv2, cv_bridge -->
   <depend stack="visualization_common" /> <!-- visualization_msgs -->
 

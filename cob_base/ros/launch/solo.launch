@@ -4,10 +4,10 @@
 	<!-- send robot urdf to parameter server -->
 	<param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_description)/ros/robots/$(env ROBOT).urdf.xacro'" />
 
-	<!-- start cob_base -->
-	<include file="$(find cob_base)/ros/launch/base.launch" />
-
 	<!-- start robot_state_publisher -->
 	<node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />
+	
+	<!-- start base -->
+	<include file="$(find cob_base)/ros/launch/base.launch" />
 
 </launch>

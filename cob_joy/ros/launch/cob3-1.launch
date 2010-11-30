@@ -8,6 +8,6 @@
 	</node>
 
 	<!-- include rostest -->
-	<include file="$(find cob_joy)/ros/launch/joy_test.launch" />
+	<include file="$(find cob_joy)/ros/launch/joy.test" />
 
 </launch>

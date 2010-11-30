@@ -4,7 +4,7 @@
 	For more information read the readme.htm file located in <i>cob_driver/cob_camera_sensors</i>.
 	
   </description>
-  <author>Jan Fischer, email:jan.fischer@ipa.fhg.de</author>
+  <author>Jan Fischer</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_camera_sensors</url>

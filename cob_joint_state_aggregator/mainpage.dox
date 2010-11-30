@@ -2,7 +2,7 @@
 \mainpage
 \htmlinclude manifest.html
 
-\n <a href="todo.html">Todo list</a>
+\b cob_joint_state_aggregator is ... 
 
 <!-- 
 Provide an overview of your package.

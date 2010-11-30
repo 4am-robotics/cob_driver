@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 import serial
 import roslib; 
-roslib.load_manifest('cob_hardware_info')
+roslib.load_manifest('cob_battery')
 import rospy
 from diagnotic_msgs.msg import * 
 
-ns_global_prefix = "/battery_state"
-rospy.init_node('battery_state')
+ns_global_prefix = "/battery_controller"
+rospy.init_node('battery_node')
 #read in paramterers
 if not rospy.has_param(ns_global_prefix + "/devicestring"):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",ns_global_prefix + "/devicestring")

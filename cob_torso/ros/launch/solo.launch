@@ -1,15 +1,13 @@
 <?xml version="1.0"?>
 <launch>
 
-  <!-- send arm urdf to parameter server -->
+  <!-- send robot urdf to parameter server -->
   <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_description)/ros/robots/$(env ROBOT).urdf.xacro'" />
-
-  <include file="$(find cob_torso)/ros/launch/torso.launch" />
 
   <!-- start robot_state_publisher -->
   <node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />
 
-  <!-- include rostest -->
-  <include file="$(find cob_torso)/ros/launch/torso.test" /> 
+  <!-- start torso -->
+  <include file="$(find cob_torso)/ros/launch/torso.launch" /> 
 
 </launch>

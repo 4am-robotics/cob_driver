@@ -1,16 +1,14 @@
 <package>
-  <description brief="cob_hardware_info">
+  <description brief="cob_battery">
 
-     cob_hardware_info
+     This package provides information about the battery state.
 
   </description>
   <author>Alexander Bubeck</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/cob_hardware_info</url>
+  <url>http://ros.org/wiki/cob_battery</url>
   <depend package="rospy"/>
   <depend package="diagnostic_msgs"/>
 
 </package>
-
-

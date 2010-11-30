@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 	XmlRpc::XmlRpcValue JointName_param_;
 	 
 
-  ros::init(argc, argv, "cob_jointstate_combined");
+  ros::init(argc, argv, "cob_joint_state_aggregator");
   ros::NodeHandle n;
 
 	if (n.hasParam("Joints"))
