@@ -1,7 +1,24 @@
 <?xml version="1.0"?>
 <launch>
 
+	<!-- initialize sdh -->
+	<!-- <node name="init_sdh1" pkg="cob_sdh" type="init_sdh.py" /> -->
+
 	<!-- rostest integration -->
 	<test test-name="sdh_init" pkg="cob_sdh" type="initialization_test.py" ns="sdh_controller" />
+
+	<!-- hztest /joint_states -->
+	<param name="hztest1/topic" value="/joint_states" />
+	<param name="hztest1/hz" value="5.0" />
+	<param name="hztest1/hzerror" value="0.05" />
+	<param name="hztest1/test_duration" value="1.0" />
+	<test test-name="hz_joint_states" pkg="rostest" type="hztest" name="hztest1" />
+
+	<!-- hztest /sdh_controller/tactile_data -->
+	<param name="hztest2/topic" value="/sdh_controller/tactile_data" />
+	<param name="hztest2/hz" value="5.0" />
+	<param name="hztest2/hzerror" value="0.05" />
+	<param name="hztest2/test_duration" value="1.0" />
+	<test test-name="hz_tactile_data" pkg="rostest" type="hztest" name="hztest2" />
 
 </launch>
