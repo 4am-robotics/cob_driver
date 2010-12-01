@@ -1,10 +1,36 @@
 <?xml version="1.0"?>
 <launch>
 
-	<!-- Initialize tray for testing -->
+	<!-- Initialize base for testing -->
 	<!--node name="init_base1" pkg="cob_base" type="init_base.py" /-->
 	<test test-name="base_init" pkg="cob_undercarriage_ctrl" type="initialization_test.py"/>
 
-	<!-- hztest ___ -->
+	<!-- hztest /joint_states -->
+	<param name="hztest1/topic" value="/joint_states" />
+	<param name="hztest1/hz" value="1.0" />
+	<param name="hztest1/hzerror" value="0.1" />
+	<param name="hztest1/test_duratio" value="5.0" />
+	<test test-name="hz_joint_states" pkg="rostest" type="hztest" name="hztest1" />
+
+	<!-- hztest /diagnostic -->
+	<param name="hztest2/topic" value="/base_controller/diagnostic" />
+	<param name="hztest2/hz" value="1.0" />
+	<param name="hztest2/hzerror" value="0.1" />
+	<param name="hztest2/test_duratio" value="5.0" />
+	<test test-name="hz_diagnostic" pkg="rostest" type="hztest" name="hztest2" />
+
+	<!-- hztest /odometry -->
+	<param name="hztest3/topic" value="/base_controller/odometry" />
+	<param name="hztest3/hz" value="50.0" />
+	<param name="hztest3/hzerror" value="0.005" />
+	<param name="hztest3/test_duratio" value="0.25" />
+	<test test-name="hz_odometry" pkg="rostest" type="hztest" name="hztest3" />
+
+	<!-- hztest /joint_command -->
+	<param name="hztest4/topic" value="/base_controller/joint_command" />
+	<param name="hztest4/hz" value="1.0" />
+	<param name="hztest4/hzerror" value="0.1" />
+	<param name="hztest4/test_duratio" value="5.0" />
+	<test test-name="hz_joint_command" pkg="rostest" type="hztest" name="hztest4" />
 
 </launch>
