@@ -99,6 +99,9 @@ class NodeClass
         ros::Subscriber topic_sub_CMD_pltf_twist_;	// issued command to be achieved by the platform
         ros::Subscriber topic_sub_EM_stop_state_;	// current emergency stop state (free, active, confirmed)
 		ros::Subscriber topic_sub_drive_diagnostic_;// status of drive chain (initializing, error, normal)
+
+		//EXPERIMENTAL: subscribe to JointStates TOPIC
+		ros::Subscriber topic_sub_joint_states_;
         
         // service servers
         //--
@@ -116,7 +119,7 @@ class NodeClass
 		int drive_chain_diagnostic_;		// flag whether base drive chain is operating normal 
 		ros::Time last_time_;				// time Stamp for last odometry measurement
 		double x_rob_m_, y_rob_m_, theta_rob_rad_; // accumulated motion of robot since startup
-    int iwatchdog_;
+    	int iwatchdog_;
 		
 		int m_iNumJoints;
 		
@@ -164,6 +167,8 @@ class NodeClass
 			topic_sub_CMD_pltf_twist_ = n.subscribe("command", 1, &NodeClass::topicCallbackTwistCmd, this);
             topic_sub_EM_stop_state_ = n.subscribe("/emergency_stop_state", 1, &NodeClass::topicCallbackEMStop, this);
             topic_sub_drive_diagnostic_ = n.subscribe("diagnostic", 1, &NodeClass::topicCallbackDiagnostic, this);
+
+			topic_sub_joint_states_ = n.subscribe("joint_states", 1, &NodeClass::topicCallbackJointStates, this);
 			//<diagnostic_msgs::DiagnosticStatus>("Diagnostic", 1);
 
 			// diagnostics
@@ -182,7 +187,7 @@ class NodeClass
         {
         }
 
-	void diag_init(diagnostic_updater::DiagnosticStatusWrapper &stat)
+		void diag_init(diagnostic_updater::DiagnosticStatusWrapper &stat)
 	  {
 	    if(is_initialized_bool_)
 	      stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "");
@@ -200,7 +205,7 @@ class NodeClass
 		{
 			double vx_cmd_mms, vy_cmd_mms, w_cmd_rads;
 
-      iwatchdog_ = 0;			
+			iwatchdog_ = 0;			
 
 			// controller expects velocities in mm/s, ROS works with SI-Units -> convert
 			// ToDo: rework Controller Class to work with SI-Units
@@ -447,6 +452,54 @@ class NodeClass
 	    	return true;
         }
 
+		void topicCallbackJointStates(const sensor_msgs::JointState::ConstPtr& msg) {
+			int num_joints;
+			int iter_k, iter_j;
+			std::vector<double> drive_joint_ang_rad, drive_joint_vel_rads, drive_joint_effort_NM;
+			std::vector<double> steer_joint_ang_rad, steer_joint_vel_rads, steer_joint_effort_NM;
+			cob_srvs::GetJointState srv_get_joint;
+	
+			// copy configuration into vector classes
+			num_joints = msg->position.size();
+			// drive joints
+			drive_joint_ang_rad.assign(num_joints, 0.0);
+			drive_joint_vel_rads.assign(num_joints, 0.0);
+			drive_joint_effort_NM.assign(num_joints, 0.0);
+			// steer joints
+			steer_joint_ang_rad.assign(num_joints, 0.0);
+			steer_joint_vel_rads.assign(num_joints, 0.0);
+			steer_joint_effort_NM.assign(num_joints, 0.0);
+
+			// init iterators
+			iter_k = 0;
+			iter_j = 0;
+
+			for(int i = 0; i < num_joints; i++)
+			{
+				// associate inputs to according steer and drive joints
+				// ToDo: specify this globally (Prms-File or config-File or via msg-def.)
+				// ToDo: use joint names instead of magic integers
+				if( i == 1 || i == 3 || i == 5 || i == 7)
+				{
+					steer_joint_ang_rad[iter_k] = msg->position[i];
+					steer_joint_vel_rads[iter_k] = msg->velocity[i];
+					steer_joint_effort_NM[iter_k] = msg->effort[i];
+					iter_k = iter_k + 1;
+				}
+				else
+				{
+					drive_joint_ang_rad[iter_j] = msg->position[i];
+					drive_joint_vel_rads[iter_j] = msg->velocity[i];
+					drive_joint_effort_NM[iter_j] = msg->effort[i];
+					iter_j = iter_j + 1;
+				}
+			}
+
+			// Set measured Wheel Velocities and Angles to Controler Class (implements inverse kinematic)
+			ucar_ctrl_->SetActualWheelValues(drive_joint_vel_rads, steer_joint_vel_rads,
+									drive_joint_ang_rad, steer_joint_ang_rad);
+		}
+
        
         // other function declarations
 		// Initializes controller
@@ -485,7 +538,9 @@ int main(int argc, char** argv)
         ros::spinOnce();
 
 		// request Update of Undercarriage Configuration
-		nodeClass.GetJointState();
+		// EXPERIMENTAL: listen to JointStates via topic
+		// nodeClass.GetJointState();
+		
 
 		// calculate forward kinematics and update Odometry
 		nodeClass.UpdateOdometry();
