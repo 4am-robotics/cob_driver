@@ -125,6 +125,10 @@ class ElmoCtrlParams
 		void SetHomingDir(int dir){m_HomingDir = dir;}
 		int GetHomingDir(){return m_HomingDir;}
 
+		//HomingDigIn
+		void SetHomingDigIn(int dig_in){m_HomingDigIn = dig_in;}
+		int GetHomingDigIn(){return m_HomingDigIn;}
+
 		//CanIniFile
 		void SetCanIniFile(std::string iniFile){m_CanIniFile=iniFile;}
 		std::string GetCanIniFile(){return m_CanIniFile;}
@@ -135,6 +139,7 @@ class ElmoCtrlParams
 		std::string  m_CanDevice;
 		int m_BaudRate;
 		int m_HomingDir;
+		int m_HomingDigIn;
 		double m_Offset;
 		double m_UpperLimit;
 		double m_LowerLimit;
@@ -225,6 +230,7 @@ private:
 
 	double m_MaxVel;
 	int m_HomingDir;
+	int m_HomingDigIn;
 
 	double  m_UpperLimit;
 	double  m_LowerLimit;

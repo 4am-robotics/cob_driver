@@ -4,7 +4,7 @@
      cob_relayboard
 
   </description>
-  <author>Christian Connette, email:christian.connette@ipa.fhg.de</author>
+  <author>Christian Connette</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_relayboard</url>

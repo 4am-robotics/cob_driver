@@ -8,7 +8,7 @@
   in other packages, e.g. cob_tray, cob_torso, ... 
 
   </description>
-  <author>Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de</author>
+  <author>Florian Weisshardt</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_powercube_chain</url>
@@ -25,5 +25,7 @@
   <depend package="libwm4"/>
   <depend package="libm5api"/>
   <depend package="libntcan"/>
+  <depend package="diagnostic_updater"/>
+  <depend package="rostest"/>
 
 </package>

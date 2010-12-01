@@ -538,9 +538,12 @@ bool CanDriveHarmonica::initHoming()
 		// always give can and controller some time to understand the command
 		usleep(20000);
 
+		/* THIS is needed for head_axis on cob3-2!
+		
 		//set input logic to 'general purpose'
 		IntprtSetInt(8, 'I', 'L', 2, 7);                       
 		usleep(20000);  
+		*/
 
 		// 2. configure the homing sequence
 		// 2.a set the value to which the increment counter shall be reseted as soon as the homing event occurs

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- send parameters to parameter server -->
+  <rosparam command="load" ns="joint_state_aggregator" file="$(find cob_joint_state_aggregator)/ros/launch/cob3.yaml"/>
+
+  <!-- start jointstate_combined node -->
+  <node pkg="cob_joint_state_aggregator" type="cob_joint_state_aggregator" name="joint_state_aggregator_node" ns="joint_state_aggregator" cwd="node" respawn="false" output="screen" />
+
+</launch>

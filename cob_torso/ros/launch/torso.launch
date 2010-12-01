@@ -7,4 +7,7 @@
   <!-- start powercube_chain -->
   <node pkg="cob_powercube_chain" type="cob_powercube_chain" name="torso_node" ns="torso_controller" cwd="node" respawn="false" output="screen" />
 
+  <!-- include rostest -->
+  <include file="$(find cob_torso)/ros/launch/torso.test" />
+
 </launch>

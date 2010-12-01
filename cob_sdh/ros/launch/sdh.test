@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!-- rostest integration -->
+	<test test-name="sdh_init" pkg="cob_sdh" type="initialization_test.py" ns="sdh_controller" />
+
+</launch>
