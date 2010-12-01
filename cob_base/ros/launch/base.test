@@ -12,21 +12,21 @@
 	<param name="hztest1/test_duratio" value="5.0" />
 	<test test-name="hz_joint_states" pkg="rostest" type="hztest" name="hztest1" />
 
-	<!-- hztest /diagnostic -->
+	<!-- hztest /base_controller/diagnostic -->
 	<param name="hztest2/topic" value="/base_controller/diagnostic" />
 	<param name="hztest2/hz" value="1.0" />
 	<param name="hztest2/hzerror" value="0.1" />
 	<param name="hztest2/test_duratio" value="5.0" />
 	<test test-name="hz_diagnostic" pkg="rostest" type="hztest" name="hztest2" />
 
-	<!-- hztest /odometry -->
+	<!-- hztest /base_controller/odometry -->
 	<param name="hztest3/topic" value="/base_controller/odometry" />
 	<param name="hztest3/hz" value="50.0" />
 	<param name="hztest3/hzerror" value="0.005" />
 	<param name="hztest3/test_duratio" value="0.25" />
 	<test test-name="hz_odometry" pkg="rostest" type="hztest" name="hztest3" />
 
-	<!-- hztest /joint_command -->
+	<!-- hztest /base_controller/joint_command -->
 	<param name="hztest4/topic" value="/base_controller/joint_command" />
 	<param name="hztest4/hz" value="1.0" />
 	<param name="hztest4/hzerror" value="0.1" />
