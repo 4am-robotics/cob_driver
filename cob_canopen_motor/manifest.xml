@@ -1,10 +1,10 @@
 <package>
-  <description brief="canopen_motor">
+  <description brief="cob_canopen_motor">
 
-     "canopen_motor" implements a controller-drive component which is connected to a can-bus and works with a canopen-interface. "CanDriveItf" provides a - more or less - generic interface to the controller-drive components. "CanDrvie..." then implements a specific setup, e.g. an ELMO Harmonica Controller in case of the "CanDriveHarmonica".
+     The package cob_canopen_motor implements a controller-drive component which is connected to a can-bus and works with a canopen-interface. "CanDriveItf" provides a - more or less - generic interface to the controller-drive components. "CanDrvie..." then implements a specific setup, e.g. an ELMO Harmonica Controller in case of the "CanDriveHarmonica".
 
   </description>
-  <author>Christian Connette, email:christian.connette@ipa.fhg.de</author>
+  <author>Christian Connette</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_canopen_motor</url>

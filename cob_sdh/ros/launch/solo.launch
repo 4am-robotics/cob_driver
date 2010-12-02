@@ -1,16 +1,13 @@
 <?xml version="1.0"?>
 <launch>
 
-  <!-- send arm urdf to parameter server -->
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_description)/ros/robots/$(env ROBOT).urdf.xacro'" />
+	<!-- send robot urdf to parameter server -->
+	<param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_description)/ros/robots/$(env ROBOT).urdf.xacro'" />
 
-  <!-- send parameters to parameter server -->
-  <rosparam command="load" ns="sdh_controller" file="$(find cob_sdh)/ros/launch/$(env ROBOT).yaml"/>
-
-  <!-- start powercube_chain -->
-  <node pkg="cob_sdh" type="cob_sdh" name="sdh_node" ns="sdh_controller" cwd="node" respawn="false" output="screen" />
-
-  <!-- start robot_state_publisher -->
-  <node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />
+	<!-- start robot_state_publisher -->
+	<node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />
+		
+	<!-- start sdh -->
+	<include file="$(find cob_sdh)/ros/launch/sdh.launch" />
 
 </launch>

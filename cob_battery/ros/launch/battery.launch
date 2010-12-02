@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!-- upload parameters -->
+	<param ns="battery_controller" name="devicestring" value="/dev/ttyUSB2" />
+	<param ns="battery_controller" name="minimum_battery_voltage" value="44" />
+	<param ns="battery_controller" name="maximum_battery_voltage" value="58" />
+
+	<!-- start battery node -->
+	<node name="battery_node" pkg="cob_battery" type="bat_state.py" ns="battery_controller" output="screen"/>
+
+</launch>

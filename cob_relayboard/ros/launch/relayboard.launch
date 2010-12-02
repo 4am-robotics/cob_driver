@@ -1,9 +1,13 @@
 <?xml version="1.0"?>
 <launch>
 
-	<!-- upload parameters-->
+	<!-- upload parameters -->
 	<rosparam command="load" ns="relayboard" file="$(find cob_relayboard)/ros/launch/$(env ROBOT).yaml"/>
 
+	<!-- start relayboard node -->
 	<node pkg="cob_relayboard" type="cob_relayboard_node" ns="relayboard" name="relayboard_node" respawn="false" output="screen"/>
+
+	<!-- include rostest -->
+	<include file="$(find cob_relayboard)/ros/launch/relayboard.test" />
 
 </launch>

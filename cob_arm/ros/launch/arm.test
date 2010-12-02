@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!-- rostest integration -->
+	<test test-name="test_arm" pkg="cob_powercube_chain" type="initialization_test.py" ns="arm_controller" />
+
+</launch>

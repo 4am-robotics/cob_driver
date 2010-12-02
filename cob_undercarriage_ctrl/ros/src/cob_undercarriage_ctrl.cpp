@@ -65,10 +65,12 @@
 // ROS message includes
 #include <sensor_msgs/JointState.h>
 #include <diagnostic_msgs/DiagnosticStatus.h>
+#include <diagnostic_updater/diagnostic_updater.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
 #include <cob_msgs/EmergencyStopState.h>
+
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -97,10 +99,16 @@ class NodeClass
         ros::Subscriber topic_sub_CMD_pltf_twist_;	// issued command to be achieved by the platform
         ros::Subscriber topic_sub_EM_stop_state_;	// current emergency stop state (free, active, confirmed)
 		ros::Subscriber topic_sub_drive_diagnostic_;// status of drive chain (initializing, error, normal)
+
+		//EXPERIMENTAL: subscribe to JointStates TOPIC
+		ros::Subscriber topic_sub_joint_states_;
         
         // service servers
         //--
             
+	// diagnostic stuff
+  	diagnostic_updater::Updater updater_;
+
         // service clients
         ros::ServiceClient srv_client_get_joint_state_;	// get current configuration of undercarriage
 
@@ -111,6 +119,7 @@ class NodeClass
 		int drive_chain_diagnostic_;		// flag whether base drive chain is operating normal 
 		ros::Time last_time_;				// time Stamp for last odometry measurement
 		double x_rob_m_, y_rob_m_, theta_rob_rad_; // accumulated motion of robot since startup
+    	int iwatchdog_;
 		
 		int m_iNumJoints;
 		
@@ -121,6 +130,7 @@ class NodeClass
         {
 			// initialization of variables
 			is_initialized_bool_ = false;
+      iwatchdog_ = 0;
 			last_time_ = ros::Time::now();
 			x_rob_m_ = 0.0;
 			y_rob_m_ = 0.0;
@@ -157,7 +167,13 @@ class NodeClass
 			topic_sub_CMD_pltf_twist_ = n.subscribe("command", 1, &NodeClass::topicCallbackTwistCmd, this);
             topic_sub_EM_stop_state_ = n.subscribe("/emergency_stop_state", 1, &NodeClass::topicCallbackEMStop, this);
             topic_sub_drive_diagnostic_ = n.subscribe("diagnostic", 1, &NodeClass::topicCallbackDiagnostic, this);
+
+			topic_sub_joint_states_ = n.subscribe("joint_states", 1, &NodeClass::topicCallbackJointStates, this);
 			//<diagnostic_msgs::DiagnosticStatus>("Diagnostic", 1);
+
+			// diagnostics
+			updater_.setHardwareID(ros::this_node::getName());
+			updater_.add("initialization", this, &NodeClass::diag_init);
 
             // implementation of service servers
             //--
@@ -171,6 +187,16 @@ class NodeClass
         {
         }
 
+		void diag_init(diagnostic_updater::DiagnosticStatusWrapper &stat)
+	  {
+	    if(is_initialized_bool_)
+	      stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "");
+	    else
+	      stat.summary(diagnostic_msgs::DiagnosticStatus::WARN, "");
+	    stat.add("Initialized", is_initialized_bool_);
+	  }
+
+
         // topic callback functions 
         // function will be called when a new message arrives on a topic
 
@@ -178,7 +204,9 @@ class NodeClass
 		void topicCallbackTwistCmd(const geometry_msgs::Twist::ConstPtr& msg)
 		{
 			double vx_cmd_mms, vy_cmd_mms, w_cmd_rads;
-			
+
+			iwatchdog_ = 0;			
+
 			// controller expects velocities in mm/s, ROS works with SI-Units -> convert
 			// ToDo: rework Controller Class to work with SI-Units
 			vx_cmd_mms = msg->linear.x*1000.0;
@@ -424,6 +452,54 @@ class NodeClass
 	    	return true;
         }
 
+		void topicCallbackJointStates(const sensor_msgs::JointState::ConstPtr& msg) {
+			int num_joints;
+			int iter_k, iter_j;
+			std::vector<double> drive_joint_ang_rad, drive_joint_vel_rads, drive_joint_effort_NM;
+			std::vector<double> steer_joint_ang_rad, steer_joint_vel_rads, steer_joint_effort_NM;
+			cob_srvs::GetJointState srv_get_joint;
+	
+			// copy configuration into vector classes
+			num_joints = msg->position.size();
+			// drive joints
+			drive_joint_ang_rad.assign(num_joints, 0.0);
+			drive_joint_vel_rads.assign(num_joints, 0.0);
+			drive_joint_effort_NM.assign(num_joints, 0.0);
+			// steer joints
+			steer_joint_ang_rad.assign(num_joints, 0.0);
+			steer_joint_vel_rads.assign(num_joints, 0.0);
+			steer_joint_effort_NM.assign(num_joints, 0.0);
+
+			// init iterators
+			iter_k = 0;
+			iter_j = 0;
+
+			for(int i = 0; i < num_joints; i++)
+			{
+				// associate inputs to according steer and drive joints
+				// ToDo: specify this globally (Prms-File or config-File or via msg-def.)
+				// ToDo: use joint names instead of magic integers
+				if( i == 1 || i == 3 || i == 5 || i == 7)
+				{
+					steer_joint_ang_rad[iter_k] = msg->position[i];
+					steer_joint_vel_rads[iter_k] = msg->velocity[i];
+					steer_joint_effort_NM[iter_k] = msg->effort[i];
+					iter_k = iter_k + 1;
+				}
+				else
+				{
+					drive_joint_ang_rad[iter_j] = msg->position[i];
+					drive_joint_vel_rads[iter_j] = msg->velocity[i];
+					drive_joint_effort_NM[iter_j] = msg->effort[i];
+					iter_j = iter_j + 1;
+				}
+			}
+
+			// Set measured Wheel Velocities and Angles to Controler Class (implements inverse kinematic)
+			ucar_ctrl_->SetActualWheelValues(drive_joint_vel_rads, steer_joint_vel_rads,
+									drive_joint_ang_rad, steer_joint_ang_rad);
+		}
+
        
         // other function declarations
 		// Initializes controller
@@ -462,7 +538,9 @@ int main(int argc, char** argv)
         ros::spinOnce();
 
 		// request Update of Undercarriage Configuration
-		nodeClass.GetJointState();
+		// EXPERIMENTAL: listen to JointStates via topic
+		// nodeClass.GetJointState();
+		
 
 		// calculate forward kinematics and update Odometry
 		nodeClass.UpdateOdometry();
@@ -509,7 +587,8 @@ void NodeClass::CalcCtrlStep()
 	std::vector<double> drive_jointvel_cmds_rads, steer_jointvel_cmds_rads, steer_jointang_cmds_rad;
 	sensor_msgs::JointState joint_state_cmd;
 	int j, k;
-	
+  iwatchdog_ += 1;	
+
 	// if controller is initialized and underlying hardware is operating normal
 	if (is_initialized_bool_) //&& (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK))
 	{
@@ -551,21 +630,30 @@ void NodeClass::CalcCtrlStep()
 		k = 0;
 		for(int i = 0; i<m_iNumJoints; i++)
 		{
-			// for steering motors
-			if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the Msg
-			{
-				joint_state_cmd.position[i] = steer_jointang_cmds_rad[j];
-				joint_state_cmd.velocity[i] = steer_jointvel_cmds_rads[j];
-				joint_state_cmd.effort[i] = 0.0;
-				j = j + 1;
-			}
-			else
-			{
-				joint_state_cmd.position[i] = 0.0;
-				joint_state_cmd.velocity[i] = drive_jointvel_cmds_rads[k];
-				joint_state_cmd.effort[i] = 0.0;
-				k = k + 1;
-			}
+      if(iwatchdog_ < 50)
+      {
+			  // for steering motors
+			  if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the Msg
+			  {
+				  joint_state_cmd.position[i] = steer_jointang_cmds_rad[j];
+				  joint_state_cmd.velocity[i] = steer_jointvel_cmds_rads[j];
+				  joint_state_cmd.effort[i] = 0.0;
+				  j = j + 1;
+			  }
+			  else
+			  {
+				  joint_state_cmd.position[i] = 0.0;
+				  joint_state_cmd.velocity[i] = drive_jointvel_cmds_rads[k];
+				  joint_state_cmd.effort[i] = 0.0;
+				  k = k + 1;
+			  }
+      }
+      else
+      {
+          joint_state_cmd.position[i] = 0.0;
+				  joint_state_cmd.velocity[i] = 0.0;
+				  joint_state_cmd.effort[i] = 0.0;
+      }
 		}
 
 		// publish jointcmds
@@ -682,7 +770,7 @@ void NodeClass::UpdateOdometry()
 	geometry_msgs::TransformStamped odom_tf;
 	// compose header
 	odom_tf.header.stamp = current_time;
-	odom_tf.header.frame_id = "/odom";
+	odom_tf.header.frame_id = "/wheelodom";
 	odom_tf.child_frame_id = "/base_footprint";
 	// compose data container
 	odom_tf.transform.translation.x = x_rob_m_;
@@ -694,13 +782,16 @@ void NodeClass::UpdateOdometry()
     nav_msgs::Odometry odom_top;
 	// compose header
     odom_top.header.stamp = current_time;
-    odom_top.header.frame_id = "/odom";
+    odom_top.header.frame_id = "/wheelodom";
     odom_top.child_frame_id = "/base_footprint";
     // compose pose of robot
     odom_top.pose.pose.position.x = x_rob_m_;
     odom_top.pose.pose.position.y = y_rob_m_;
     odom_top.pose.pose.position.z = 0.0;
     odom_top.pose.pose.orientation = odom_quat;
+    for(int i = 0; i < 6; i++)
+      odom_top.pose.covariance[i*6+i] = 0.1;
+
     // compose twist of robot
     odom_top.twist.twist.linear.x = vel_x_rob_ms;
     odom_top.twist.twist.linear.y = vel_y_rob_ms;
@@ -708,7 +799,8 @@ void NodeClass::UpdateOdometry()
     odom_top.twist.twist.angular.x = 0.0;
     odom_top.twist.twist.angular.y = 0.0;
     odom_top.twist.twist.angular.z = rot_rob_rads;
-
+    for(int i = 0; i < 6; i++)
+      odom_top.twist.covariance[6*i+i] = 0.1;
 	// publish data
 	// publish the transform
 	//tf_broadcast_odometry_.sendTransform(odom_tf);

@@ -106,6 +106,7 @@ class NodeClass
 	std::string CanIniFile_;
 	int CanBaudrate_;
 	int HomingDir_;
+	int HomingDigIn_;
 	double MaxVel_;
 	int ModID_;
 	std::string operationMode_;
@@ -147,16 +148,20 @@ class NodeClass
 		//--
 
 		// read parameters from parameter server
+		CanDevice_ = "PCAN";
+		CanBaudrate_ = 500;
+
 		n_.getParam("CanDevice", CanDevice_);
 		n_.getParam("CanBaudrate", CanBaudrate_);
 		n_.getParam("HomingDir", HomingDir_);
+		n_.getParam("HomingDigIn", HomingDigIn_);
 		n_.getParam("ModId",ModID_);
 		n_.getParam("JointName",JointName_);
 		n_.getParam("CanIniFile",CanIniFile_);
 		n_.getParam("OperationMode",operationMode_);
 		
 		//n_.param<double>("MaxVel", MaxVel_, 2.0); -> from urdf
-		ROS_INFO("CanDevice=%s, CanBaudrate=%d,ModID=%d",CanDevice_.c_str(),CanBaudrate_,ModID_);
+		ROS_INFO("CanDevice=%s, CanBaudrate=%d, ModID=%d, HomingDigIn=%d",CanDevice_.c_str(),CanBaudrate_,ModID_,HomingDigIn_);
 		
 		
 		// load parameter server string for robot/model
@@ -206,6 +211,7 @@ class NodeClass
 		//initializing and homing of camera_axis		
 		CamAxisParams_->SetCanIniFile(CanIniFile_);
 		CamAxisParams_->SetHomingDir(HomingDir_);
+		CamAxisParams_->SetHomingDigIn(HomingDigIn_);
 		CamAxisParams_->SetMaxVel(MaxVel_);
 
 		CamAxisParams_->Init(CanDevice_, CanBaudrate_, ModID_);
@@ -351,10 +357,10 @@ class NodeClass
 				    	if (traj_point_nr_ < traj_.points.size())
 				    	{
 				    		// if axis is not moving and not reached last point of trajectory, then send new target point
-				    		ROS_INFO("...moving to trajectory point[%d]",traj_point_nr_);
+				    		ROS_INFO("...moving to trajectory point[%d], %f",traj_point_nr_,traj_.points[traj_point_nr_].positions[0]);
 					    	traj_point_ = traj_.points[traj_point_nr_];
 					    	CamAxis_->setGearPosVelRadS(traj_point_.positions[0], MaxVel_);
-					    	usleep(100000);
+					    	usleep(900000);
 					    	CamAxis_->m_Joint->requestPosVel();
 				    		traj_point_nr_++;
 					    	//feedback_.isMoving = true;
@@ -408,7 +414,7 @@ class NodeClass
 			msg.velocity[0] = ActualVel_;
 
 
-			std::cout << "Joint " << msg.name[0] <<": pos="<<  msg.position[0] << " vel=" << msg.velocity[0] << std::endl;
+			//std::cout << "Joint " << msg.name[0] <<": pos="<<  msg.position[0] << " vel=" << msg.velocity[0] << std::endl;
 				
 			// publish message
 			topicPub_JointState_.publish(msg);

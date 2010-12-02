@@ -517,7 +517,7 @@ public:
 			left_color_camera_ns_ = "pike_145C";
 			right_color_camera_ns_ = "pike_145C";
 		}
-		if (tmp_string == "CAM_VIRTUAL") 
+		else if (tmp_string == "CAM_VIRTUAL") 
 		{
 			right_color_camera_ = ipa_CameraSensors::CreateColorCamera_VirtualCam();
 			left_color_camera_ = ipa_CameraSensors::CreateColorCamera_VirtualCam();
@@ -587,7 +587,7 @@ public:
 		} 
 		else
 		{
-			std::string str = "[all_cameras] Camera type '" + tmp_string + "' for intrinsics  unknown, try 'CAM_AVTPIKE','CAM_PROSILICA' or 'CAM_SWISSRANGER'";
+			std::string str = "[all_cameras] Camera type '" + tmp_string + "' for intrinsics  of left camera unknown, try 'CAM_AVTPIKE','CAM_PROSILICA' or 'CAM_SWISSRANGER'";
 			ROS_ERROR("%s", str.c_str());
 			return false;
 		}
@@ -629,7 +629,7 @@ public:
 		} 
 		else
 		{
-			std::string str = "[all_cameras] Camera type '" + tmp_string + "' for intrinsics  unknown, try 'CAM_AVTPIKE','CAM_PROSILICA' or 'CAM_SWISSRANGER'";
+			std::string str = "[all_cameras] Camera type '" + tmp_string + "' for intrinsics  of right camera unknown, try 'CAM_AVTPIKE','CAM_PROSILICA' or 'CAM_SWISSRANGER'";
 			ROS_ERROR("%s", str.c_str());
 			return false;
 		}

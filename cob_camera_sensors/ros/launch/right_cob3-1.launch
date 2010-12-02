@@ -18,5 +18,6 @@
 
 	<!-- start poller for left camera -->
 	<node pkg="polled_camera" type="poller" name="poller" ns="right" respawn="false" output="log" args="3 camera:= output:="/>
+  	<node ns="right" pkg="image_proc" type="image_proc" respawn="false" name="right_image_proc" />
 
 </launch>

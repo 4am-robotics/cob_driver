@@ -81,6 +81,9 @@
 #include <cob_srvs/Trigger.h>
 #include <cob_srvs/SetOperationMode.h>
 
+// ROS diagnostic msgs
+#include <diagnostic_updater/diagnostic_updater.h>
+
 // external includes
 #include <cob_sdh/sdh.h>
 #include <cob_sdh/dsa.h>
@@ -114,6 +117,9 @@ class SdhNode
 
 		// service clients
 		//--
+
+		//diagnostics
+		diagnostic_updater::Updater updater_;
 
 		// other variables
 		SDH::cSDH *sdh_;
@@ -152,6 +158,10 @@ class SdhNode
 			action_name_(name)
 		{
 			pi_ = 3.1415926;
+			// diagnostics
+			updater_.setHardwareID(ros::this_node::getName());
+			updater_.add("initialization", this, &SdhNode::diag_init);
+
 		}
 
 		/*!
@@ -165,6 +175,16 @@ class SdhNode
 				sdh_->Close();
 			delete sdh_;
 		}
+
+		void diag_init(diagnostic_updater::DiagnosticStatusWrapper &stat)
+		  {
+		    if(isInitialized_ && isDSAInitialized_)
+		      stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "");
+		    else
+		      stat.summary(diagnostic_msgs::DiagnosticStatus::WARN, "");
+		    stat.add("Hand initialized", isInitialized_);
+		    stat.add("Tactile iInitialized", isDSAInitialized_);
+		  }
 
 		/*!
 		* \brief Initializes node to get parameters, subscribe and publish to topics.
@@ -445,7 +465,7 @@ class SdhNode
 	void updateSdh()
 	{
 		ROS_DEBUG("updateJointState");
-
+		updater_.update();
 		if (isInitialized_ == true)
 		{
 			if (hasNewGoal_ == true)

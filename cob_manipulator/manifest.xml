@@ -4,10 +4,11 @@
      cob_manipulator
 
   </description>
-  <author>Alexander Bubeck, email:alexander.bubeck@ipa.fhg.de</author>
+  <author>Alexander Bubeck</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_manipulator</url>
+  
   <depend package="roscpp"/>
   <depend package="rospy"/>
   <depend package="actionlib"/>
@@ -22,7 +23,4 @@
   <depend package="kdl"/>
   <depend package="kdl_parser"/>
 
-
 </package>
-
-
