@@ -12,6 +12,12 @@
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_powercube_chain</url>
+
+  <export>
+    <cpp cflags="-I${prefix}/common/include"/>
+  </export>
+
+
   
   <depend package="roscpp"/>
   <depend package="sensor_msgs"/>
