@@ -1,36 +1,36 @@
 <?xml version="1.0"?>
 <launch>
 
-	<!-- Initialize tray for testing -->
+	<!-- Initialize base for testing -->
 	<!--node name="init_base1" pkg="cob_base" type="init_base.py" /-->
 	<test test-name="base_init" pkg="cob_undercarriage_ctrl" type="initialization_test.py"/>
 
 	<!-- hztest /joint_states -->
-	<param name="hztest1/topic" value="/joint_states" />
-	<param name="hztest1/hz" value="1.0" />
-	<param name="hztest1/hzerror" value="0.1" />
-	<param name="hztest1/test_duratio" value="5.0" />
-	<test test-name="hz_joint_states" pkg="rostest" type="hztest" name="hztest1" />
+	<param name="hztest_base_joint_states/topic" value="/joint_states" />
+	<param name="hztest_base_joint_states/hz" value="1.0" />
+	<param name="hztest_base_joint_states/hzerror" value="0.1" />
+	<param name="hztest_base_joint_states/test_duratio" value="5.0" />
+	<test test-name="hz_joint_states" pkg="rostest" type="hztest" name="hztest_base_joint_states" />
 
-	<!-- hztest /diagnostic -->
-	<param name="hztest2/topic" value="/diagnostic" />
-	<param name="hztest2/hz" value="1.0" />
-	<param name="hztest2/hzerror" value="0.1" />
-	<param name="hztest2/test_duratio" value="5.0" />
-	<test test-name="hz_diagnostic" pkg="rostest" type="hztest" name="hztest2" />
+	<!-- hztest /base_controller/diagnostic -->
+	<param name="hztest_base_diagnostic/topic" value="/base_controller/diagnostic" />
+	<param name="hztest_base_diagnostic/hz" value="1.0" />
+	<param name="hztest_base_diagnostic/hzerror" value="0.1" />
+	<param name="hztest_base_diagnostic/test_duratio" value="5.0" />
+	<test test-name="hz_diagnostic" pkg="rostest" type="hztest" name="hztest_base_diagnostic" />
 
-	<!-- hztest /odometry -->
-	<param name="hztest3/topic" value="/odometry" />
-	<param name="hztest3/hz" value="50.0" />
-	<param name="hztest3/hzerror" value="0.005" />
-	<param name="hztest3/test_duratio" value="0.25" />
-	<test test-name="hz_odometry" pkg="rostest" type="hztest" name="hztest3" />
+	<!-- hztest /base_controller/odometry -->
+	<param name="hztest_base_odometry/topic" value="/base_controller/odometry" />
+	<param name="hztest_base_odometry/hz" value="50.0" />
+	<param name="hztest_base_odometry/hzerror" value="0.005" />
+	<param name="hztest_base_odometry/test_duratio" value="0.25" />
+	<test test-name="hz_odometry" pkg="rostest" type="hztest" name="hztest_base_odometry" />
 
-	<!-- hztest /joint_command -->
-	<param name="hztest4/topic" value="/joint_command" />
-	<param name="hztest4/hz" value="1.0" />
-	<param name="hztest4/hzerror" value="0.1" />
-	<param name="hztest4/test_duratio" value="5.0" />
-	<test test-name="hz_joint_command" pkg="rostest" type="hztest" name="hztest4" />
+	<!-- hztest /base_controller/joint_command -->
+	<param name="hztest_base_joint_command/topic" value="/base_controller/joint_command" />
+	<param name="hztest_base_joint_command/hz" value="1.0" />
+	<param name="hztest_base_joint_command/hzerror" value="0.1" />
+	<param name="hztest_base_joint_command/test_duratio" value="5.0" />
+	<test test-name="hz_joint_command" pkg="rostest" type="hztest" name="hztest_base_joint_command" />
 
 </launch>

@@ -3,17 +3,17 @@
 <launch>
 
 	<!-- hztest /joy-->
-	<param name="hztest1/topic" value="/joy" />
-	<param name="hztest1/hz" value="0.1" />
-	<param name="hztest1/hzerror" value="0.01" />
-	<param name="hztest1/test_duration" value="5.0" />
-	<test test-name="hz_joy" pkg="rostest" type="hztest" name="hztest1" />
+	<param name="hztest_joy_joy/topic" value="/joy" />
+	<param name="hztest_joy_joy/hz" value="0.1" />
+	<param name="hztest_joy_joy/hzerror" value="0.01" />
+	<param name="hztest_joy_joy/test_duration" value="5.0" />
+	<test test-name="hz_joy" pkg="rostest" type="hztest" name="hztest_joy_joy" />
 
 	<!-- hztest /diagnostics-->
-	<param name="hztest2/topic" value="/diagnostics" />
-	<param name="hztest2/hz" value="1.0" />
-	<param name="hztest2/hzerror" value="0.01" />
-	<param name="hztest2/test_duration" value="5.0" />
-	<test test-name="hz_diagnostics" pkg="rostest" type="hztest" name="hztest2" />
+	<param name="hztest_joy_diagnostic/topic" value="/diagnostics" />
+	<param name="hztest_joy_diagnostic/hz" value="1.0" />
+	<param name="hztest_joy_diagnostic/hzerror" value="0.01" />
+	<param name="hztest_joy_diagnostic/test_duration" value="5.0" />
+	<test test-name="hz_diagnostics" pkg="rostest" type="hztest" name="hztest_joy_diagnostic" />
 
 </launch>
