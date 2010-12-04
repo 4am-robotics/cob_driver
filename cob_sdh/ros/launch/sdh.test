@@ -7,4 +7,18 @@
 	<!-- init test -->
 	<test test-name="init_test" pkg="cob_powercube_chain" type="init_test.py" ns="sdh_controller" />
 
+	<!-- hztest /joint_states 
+	<param name="hztest_sdh_joint_states/topic" value="/joint_states" />
+	<param name="hztest_sdh_joint_states/hz" value="5.0" />
+	<param name="hztest_sdh_joint_states/hzerror" value="0.05" />
+	<param name="hztest_sdh_joint_states/test_duration" value="1.0" />
+	<test test-name="hz_joint_states" pkg="rostest" type="hztest" name="hztest_sdh_joint_states" /> -->
+
+	<!-- hztest /sdh_controller/tactile_data
+	<param name="hztest_sdh_tacticle_data/topic" value="/sdh_controller/tactile_data" />
+	<param name="hztest_sdh_tacticle_data/hz" value="5.0" />
+	<param name="hztest_sdh_tacticle_data/hzerror" value="0.05" />
+	<param name="hztest_sdh_tacticle_data/test_duration" value="1.0" />
+	<test test-name="hz_tactile_data" pkg="rostest" type="hztest" name="hztest_sdh_tacticle_data" /> -->
+
 </launch>
