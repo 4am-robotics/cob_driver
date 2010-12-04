@@ -18,4 +18,6 @@
 
 	</group>
 
+	<include file="$(find cob_base)/ros/launch/base.test" />
+
 </launch>
