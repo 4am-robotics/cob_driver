@@ -101,11 +101,13 @@ class SdhNode
 	private:
 		// declaration of topics to publish
 		ros::Publisher topicPub_JointState_;
+		ros::Publisher topicPub_ControllerState_;
 		ros::Publisher topicPub_TactileSensor_;
 
 		// service servers
 		ros::ServiceServer srvServer_Init_;
 		ros::ServiceServer srvServer_Stop_;
+		ros::ServiceServer srvServer_Recover_;
 		ros::ServiceServer srvServer_SetOperationMode_;
 
 		// actionlib server
@@ -198,6 +200,7 @@ class SdhNode
 
 			// implementation of topics to publish
 			topicPub_JointState_ = nh_.advertise<sensor_msgs::JointState>("/joint_states", 1);
+			topicPub_ControllerState_ = n_.advertise<pr2_controllers_msgs::JointTrajectoryControllerState>("state", 1);
 			topicPub_TactileSensor_ = nh_.advertise<cob_msgs::TactileSensor>("tactile_data", 1);
 
 			// pointer to sdh
@@ -206,6 +209,7 @@ class SdhNode
 			// implementation of service servers
 			srvServer_Init_ = nh_.advertiseService("init", &SdhNode::srvCallback_Init, this);
 			srvServer_Stop_ = nh_.advertiseService("stop", &SdhNode::srvCallback_Stop, this);
+			srvServer_Recover_ = nh_.advertiseService("recover", &SdhNode::srvCallback_Recover, this);
 			srvServer_SetOperationMode_ = nh_.advertiseService("set_operation_mode", &SdhNode::srvCallback_SetOperationMode, this);
 
 			// getting hardware parameters from parameter server
@@ -376,8 +380,8 @@ class SdhNode
 				catch (SDH::cSDHLibraryException* e)
 				{
 					ROS_ERROR("An exception was caught: %s", e->what());
-					res.success = 1;
-					res.errorMessage.data = e->what();
+					res.success.data = false;
+					res.error_message.data = e->what();
 					delete e;
 					return false;
 				}
@@ -405,11 +409,11 @@ class SdhNode
 			else
 			{
 				ROS_ERROR("...sdh already initialized...");
-				res.success = 1;
-				res.errorMessage.data = "sdh already initialized";
+				res.success.data = false;
+				res.error_message.data = "sdh already initialized";
 			}
 			
-			res.success = 0;
+			res.success.data = true;
 			return true;
 		}
 
@@ -437,10 +441,25 @@ class SdhNode
 			}
 
 		ROS_INFO("Stopping sdh succesfull");
-		res.success = 0; // 0 = true, else = false
+		res.success.data = true;
 		return true;
 	}
 
+	/*!
+	* \brief Executes the service callback for recover.
+	*
+	* Recovers the hardware after an emergency stop.
+	* \param req Service request
+	* \param res Service response
+	*/
+	bool srvCallback_Recover(cob_srvs::SetOperationMode::Request &req,
+					cob_srvs::SetOperationMode::Response &res )
+	{
+		ROS_WARN("Service recover not implemented yet");
+		res.success.data = false;
+		return true;
+	}
+	
 	/*!
 	* \brief Executes the service callback for set_operation_mode.
 	*
@@ -451,9 +470,9 @@ class SdhNode
 	bool srvCallback_SetOperationMode(cob_srvs::SetOperationMode::Request &req,
 					cob_srvs::SetOperationMode::Response &res )
 	{
-		ROS_INFO("Set operation mode to [%s]", req.operationMode.data.c_str());
-		nh_.setParam("OperationMode", req.operationMode.data.c_str());
-		res.success = 0; // 0 = true, else = false
+		ROS_INFO("Set operation mode to [%s]", req.operation_mode.data.c_str());
+		nh_.setParam("OperationMode", req.operation_mode.data.c_str());
+		res.success.data = true;
 		return true;
 	}
 

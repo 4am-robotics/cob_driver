@@ -117,7 +117,7 @@ int main(int argc, char** argv)
     
     // external code
 	bool srv_querry = false;
-	int srv_execute = 1;
+	bool srv_execute = false;
 	std::string srv_errorMessage = "no error";
 
 /*    
@@ -170,8 +170,8 @@ int main(int argc, char** argv)
             {
                 cob_srvs::Trigger srv;
                 srv_querry = srvClient_Stop.call(srv);
-                srv_execute = srv.response.success;
-                srv_errorMessage = srv.response.errorMessage.data.c_str();
+                srv_execute = srv.response.success.data;
+                srv_errorMessage = srv.response.error_message.data.c_str();
               	break;
             }
             
@@ -179,8 +179,8 @@ int main(int argc, char** argv)
             {
                 cob_srvs::Trigger srv;
                 srv_querry = srvClient_Init.call(srv);
-                srv_execute = srv.response.success;
-                srv_errorMessage = srv.response.errorMessage.data.c_str();
+                srv_execute = srv.response.success.data;
+                srv_errorMessage = srv.response.error_message.data.c_str();
               	break;
             }
             
@@ -188,8 +188,8 @@ int main(int argc, char** argv)
             {
                 cob_srvs::Trigger srv;
                 srv_querry = srvClient_Recover.call(srv);
-                srv_execute = srv.response.success;
-                srv_errorMessage = srv.response.errorMessage.data.c_str();
+                srv_execute = srv.response.success.data;
+                srv_errorMessage = srv.response.error_message.data.c_str();
               	break;
             }
             
@@ -201,22 +201,22 @@ int main(int argc, char** argv)
                 std::cin >> c;
                 if (c == 'v')
                 {
-                    srv.request.operationMode.data = "velocity";
+                    srv.request.operation_mode.data = "velocity";
                 }
                 else if (c == 'p')
                 {
-                    srv.request.operationMode.data = "position";
+                    srv.request.operation_mode.data = "position";
                 }
                 else
                 {
-                    srv.request.operationMode.data = "none";
+                    srv.request.operation_mode.data = "none";
                 }
-                ROS_INFO("changing operation mode to: %s controll", srv.request.operationMode.data.c_str());
+                ROS_INFO("changing operation mode to: %s controll", srv.request.operation_mode.data.c_str());
                 
                 //ROS_INFO("querry service [cob3/arm/SetOperationMode]");
                 srv_querry = srvClient_SetOperationMode.call(srv);
-                srv_execute = srv.response.success;
-                srv_errorMessage = srv.response.errorMessage.data.c_str();
+                srv_execute = srv.response.success.data;
+                srv_errorMessage = srv.response.error_message.data.c_str();
                 break;
             }
             
@@ -297,7 +297,7 @@ int main(int argc, char** argv)
 				
                 std::cout << std::endl;
                 srv_querry = true;
-                srv_execute = 0;
+                srv_execute = true;
                 break;
             }
             
@@ -323,7 +323,7 @@ int main(int argc, char** argv)
 		{
 			ROS_INFO("Service call succesfull");
 			
-			if (srv_execute != 0)
+			if (srv_execute == false)
 			{
 				ROS_ERROR("Service execution failed. Error message: %s", srv_errorMessage.c_str());
 			}
