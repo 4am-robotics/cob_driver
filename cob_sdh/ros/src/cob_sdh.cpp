@@ -74,6 +74,7 @@
 #include <sensor_msgs/JointState.h>
 //#include <cob_actions/JointCommandAction.h>
 #include <pr2_controllers_msgs/JointTrajectoryAction.h>
+#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 #include <cob_msgs/TactileSensor.h>
 #include <cob_msgs/TactileMatrix.h>
 
@@ -200,7 +201,7 @@ class SdhNode
 
 			// implementation of topics to publish
 			topicPub_JointState_ = nh_.advertise<sensor_msgs::JointState>("/joint_states", 1);
-			topicPub_ControllerState_ = n_.advertise<pr2_controllers_msgs::JointTrajectoryControllerState>("state", 1);
+			topicPub_ControllerState_ = nh_.advertise<pr2_controllers_msgs::JointTrajectoryControllerState>("state", 1);
 			topicPub_TactileSensor_ = nh_.advertise<cob_msgs::TactileSensor>("tactile_data", 1);
 
 			// pointer to sdh

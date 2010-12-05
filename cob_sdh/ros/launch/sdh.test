@@ -7,18 +7,18 @@
 	<!-- init test -->
 	<test test-name="init_test" pkg="cob_powercube_chain" type="init_test.py" ns="sdh_controller" />
 
-	<!-- hztest /joint_states 
-	<param name="hztest_sdh_joint_states/topic" value="/joint_states" />
-	<param name="hztest_sdh_joint_states/hz" value="5.0" />
-	<param name="hztest_sdh_joint_states/hzerror" value="0.05" />
-	<param name="hztest_sdh_joint_states/test_duration" value="1.0" />
-	<test test-name="hz_joint_states" pkg="rostest" type="hztest" name="hztest_sdh_joint_states" /> -->
+	<!-- hztest state -->
+	<param name="hztest_sdh_state/topic" value="state" />
+	<param name="hztest_sdh_state/hz" value="5.0" />
+	<param name="hztest_sdh_state/hzerror" value="0.05" />
+	<param name="hztest_sdh_state/test_duration" value="10.0" />
+	<test test-name="hz_state" pkg="rostest" type="hztest" name="hztest_sdh_state" ns="sdh_controller" />
 
-	<!-- hztest /sdh_controller/tactile_data
-	<param name="hztest_sdh_tacticle_data/topic" value="/sdh_controller/tactile_data" />
+	<!-- hztest tactile_data -->
+	<param name="hztest_sdh_tacticle_data/topic" value="tactile_data" />
 	<param name="hztest_sdh_tacticle_data/hz" value="5.0" />
 	<param name="hztest_sdh_tacticle_data/hzerror" value="0.05" />
-	<param name="hztest_sdh_tacticle_data/test_duration" value="1.0" />
-	<test test-name="hz_tactile_data" pkg="rostest" type="hztest" name="hztest_sdh_tacticle_data" /> -->
+	<param name="hztest_sdh_tacticle_data/test_duration" value="10.0" />
+	<test test-name="hz_tactile_data" pkg="rostest" type="hztest" name="hztest_sdh_tacticle_data" ns="sdh_controller" />
 
 </launch>

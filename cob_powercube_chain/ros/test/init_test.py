@@ -2,11 +2,12 @@
 
 PKG='cob_powercube_chain'
 import roslib; roslib.load_manifest(PKG)
+
 import sys
-import rospy
 import unittest
-import time
-from cob_msgs.msg import *
+
+import rospy
+
 from cob_srvs.srv import *
 from pr2_controllers_msgs.msg import *
 

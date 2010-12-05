@@ -337,7 +337,7 @@ class NodeClass
             {
 				is_initialized_bool_ = InitCtrl();
 				// intializes some configuration variabes
-				res.success = is_initialized_bool_;
+				res.success.data = is_initialized_bool_;
            	    
 				if (is_initialized_bool_)
 				{
@@ -348,14 +348,14 @@ class NodeClass
 				else
 				{
 					ROS_INFO("Undercarriage-Ctrl initialization failed");
-                	res.errorMessage.data = "initialization of undercarriage controller failed";
+                	res.error_message.data = "initialization of undercarriage controller failed";
 				}
             }
             else
             {
                 ROS_ERROR("... undercarriage controller already initialized...");
-                res.success = false;
-                res.errorMessage.data = "undercarriage controller already initialized";
+                res.success.data = false;
+                res.error_message.data = "undercarriage controller already initialized";
             }            
             return true;
         }
@@ -404,14 +404,14 @@ class NodeClass
 
 					// set answer for service request
 	       	    	ROS_INFO("Undercarriage Controller resetted");
-					res.success = true;
+					res.success.data = true;
 				}
 				else
 				{
 					// set answer for service request
 	       	    	ROS_INFO("Re-Init after Reset of Undercarriage Controller failed");
-					res.success = false;
-                	res.errorMessage.data = "reinit after reset of undercarriage controller failed";
+					res.success.data = false;
+                	res.error_message.data = "reinit after reset of undercarriage controller failed";
 				}
 			}
 			else
@@ -419,8 +419,8 @@ class NodeClass
 				// Reset not possible, because Controller not yet set up
                 ROS_ERROR("... undercarriage controller not yet initialized, reset not possible ...");
 				// set answer for service request
-                res.success = false;
-                res.errorMessage.data = "undercarriage controller not yet initialized";
+                res.success.data = false;
+                res.error_message.data = "undercarriage controller not yet initialized";
 			}
 
 		    return true;
@@ -440,14 +440,14 @@ class NodeClass
 				// flag that controller is not running anymore
 				is_initialized_bool_ = false;
 	
-				res.success = true;
+				res.success.data = true;
 			}
 			else
 			{
 				// shutdown not possible, because pltf not running
                 ROS_ERROR("...platform not initialized...");
-                res.success = false;
-                res.errorMessage.data = "platform already or still down";
+                res.success.data = false;
+                res.error_message.data = "platform already or still down";
 			}
 	    	return true;
         }

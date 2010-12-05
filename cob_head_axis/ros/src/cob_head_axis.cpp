@@ -284,20 +284,20 @@ class NodeClass
 			{
 				ROS_INFO("Initializing of camera axis succesful");
 					isInitialized_ = true;
-				res.success = 0; // 0 = true, else = false
+				res.success.data = true;
 			}
 			else
 			{
 				ROS_ERROR("Initializing camera axis not succesful \n");
 				//res.success = 1; // 0 = true, else = false
-				//res.errorMessage.data = PCube->getErrorMessage();
+				//res.error_message.data = PCube->getErrorMessage();
 			}
 			}
 			else
 			{
 				ROS_ERROR("...camera axis already initialized...");			
-				res.success = 1;
-				res.errorMessage.data = "camera axis already initialized";
+				res.success.data = false;
+				res.error_message.data = "camera axis already initialized";
 		}
 		
 		return true;
@@ -311,7 +311,7 @@ class NodeClass
 	// stopping all arm movements
 	if (CamAxis_->Stop()) {
 		ROS_INFO("Stopping camera axis succesful");
-		res.success = 0; // 0 = true, else = false
+		res.success.data = true;
 	}
 	else {
 		ROS_ERROR("Stopping camera axis not succesful. error");
@@ -329,7 +329,7 @@ class NodeClass
 			// stopping all arm movements
 			if (CamAxis_->RecoverAfterEmergencyStop()) {
 				ROS_INFO("Recovering camera axis succesful");
-				res.success = 0; // 0 = true, else = false
+				res.success.data = true;
 			} else {
 				ROS_ERROR("Recovering camera axis not succesful. error");
 			}
