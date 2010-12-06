@@ -196,7 +196,7 @@ class PowercubeChainNode
 
 			// implementation of topics to publish
 			topicPub_JointState_ = n_.advertise<sensor_msgs::JointState>("/joint_states", 1);
-			topicPub_ControllerState_ = n_.advertise<pr2_controllers_msgs::JointTrajectoryControllerState>("controller_state", 1);
+			topicPub_ControllerState_ = n_.advertise<pr2_controllers_msgs::JointTrajectoryControllerState>("state", 1);
 
 			// implementation of topics to subscribe
 			topicSub_DirectCommand_ = n_.subscribe("command", 1, &PowercubeChainNode::topicCallback_DirectCommand, this);
@@ -599,16 +599,30 @@ class PowercubeChainNode
 				pr2_controllers_msgs::JointTrajectoryControllerState controllermsg;
 				controllermsg.header.stamp = ros::Time::now();
 				controllermsg.joint_names.resize(DOF);
+				controllermsg.desired.positions.resize(DOF);
+				controllermsg.desired.velocities.resize(DOF);
 				controllermsg.actual.positions.resize(DOF);
 				controllermsg.actual.velocities.resize(DOF);
+				controllermsg.error.positions.resize(DOF);
+				controllermsg.error.velocities.resize(DOF);
 
 				controllermsg.joint_names = JointNames_;
 
 				for (int i = 0; i<DOF; i++ )
 				{
+					//std::cout << "Joint " << msg.name[i] <<": pos="<<  msg.position[i] << "vel=" << msg.velocity[i] << std::endl;
+					
+					if (traj_point_.positions.size() != 0)
+						controllermsg.desired.positions[i] = traj_point_.positions[i];
+					else
+						controllermsg.desired.positions[i] = 0.0;
+					controllermsg.desired.velocities[i] = 0.0;
+					
 					controllermsg.actual.positions[i] = ActualPos[i];
 					controllermsg.actual.velocities[i] = ActualVel[i];
-					//std::cout << "Joint " << msg.name[i] <<": pos="<<  msg.position[i] << "vel=" << msg.velocity[i] << std::endl;
+					
+					controllermsg.error.positions[i] = controllermsg.desired.positions[i] - controllermsg.actual.positions[i];
+					controllermsg.error.velocities[i] = controllermsg.desired.velocities[i] - controllermsg.actual.velocities[i];
 				}
 				topicPub_ControllerState_.publish(controllermsg);
 
