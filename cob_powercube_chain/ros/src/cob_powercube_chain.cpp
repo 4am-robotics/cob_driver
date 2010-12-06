@@ -447,25 +447,26 @@ class PowercubeChainNode
 			if (isInitialized_ == false)
 			{
 				ROS_INFO("...initializing powercubes...");
-			// init powercubes 
-			if (PCube_->Init(PCubeParams_))
-			{
-				ROS_INFO("Initializing succesfull");
-				isInitialized_ = true;
-				res.success = 0; // 0 = true, else = false
-			}
-			else
-			{
-				ROS_ERROR("Initializing powercubes not succesfull. error: %s", PCube_->getErrorMessage().c_str());
-				res.success = 1; // 0 = true, else = false
-				res.errorMessage.data = PCube_->getErrorMessage();
-			}
+				// init powercubes 
+				if (PCube_->Init(PCubeParams_))
+				{
+					ROS_INFO("Initializing succesfull");
+					isInitialized_ = true;
+					res.success.data = true;
+					res.error_message.data = "success";
+				}
+				else
+				{
+					ROS_ERROR("Initializing powercubes not succesfull. error: %s", PCube_->getErrorMessage().c_str());
+					res.success.data = false;
+					res.error_message.data = PCube_->getErrorMessage();
+				}
 			}
 			else
 			{
 				ROS_ERROR("...powercubes already initialized...");		        
-				res.success = 1;
-				res.errorMessage.data = "powercubes already initialized";
+				res.success.data = false;
+				res.error_message.data = "powercubes already initialized";
 			}
 
 			return true;
@@ -491,13 +492,13 @@ class PowercubeChainNode
 			if (PCube_->Stop())
 			{
 				ROS_INFO("Stopping powercubes succesfull");
-				res.success = 0; // 0 = true, else = false
+				res.success.data = true;
 			}
 			else
 			{
 				ROS_ERROR("Stopping powercubes not succesfull. error: %s", PCube_->getErrorMessage().c_str());
-				res.success = 1; // 0 = true, else = false
-				res.errorMessage.data = PCube_->getErrorMessage();
+				res.success.data = false;
+				res.error_message.data = PCube_->getErrorMessage();
 			}
 			return true;
 		}
@@ -520,20 +521,20 @@ class PowercubeChainNode
 				if (PCube_->Stop())
 				{
 					ROS_INFO("Recovering powercubes succesfull");
-					res.success = 0; // 0 = true, else = false
+					res.success.data = true;
 				}
 				else
 				{
 					ROS_ERROR("Recovering powercubes not succesfull. error: %s", PCube_->getErrorMessage().c_str());
-					res.success = 1; // 0 = true, else = false
-					res.errorMessage.data = PCube_->getErrorMessage();
+					res.success.data = false;
+					res.error_message.data = PCube_->getErrorMessage();
 				}
 			}
 			else
 			{
 				ROS_ERROR("...powercubes already recovered...");
-				res.success = 1;
-				res.errorMessage.data = "powercubes already recovered";
+				res.success.data = false;
+				res.error_message.data = "powercubes already recovered";
 			}
 
 			return true;
@@ -549,9 +550,9 @@ class PowercubeChainNode
 		bool srvCallback_SetOperationMode(	cob_srvs::SetOperationMode::Request &req,
 											cob_srvs::SetOperationMode::Response &res )
 		{
-			ROS_INFO("Set operation mode to [%s]", req.operationMode.data.c_str());
-			n_.setParam("OperationMode", req.operationMode.data.c_str());
-			res.success = 0; // 0 = true, else = false
+			ROS_INFO("Set operation mode to [%s]", req.operation_mode.data.c_str());
+			n_.setParam("OperationMode", req.operation_mode.data.c_str());
+			res.success.data = true; // 0 = true, else = false
 			return true;
 		}
 
@@ -565,7 +566,7 @@ class PowercubeChainNode
 		  updater_.update();
 			if (isInitialized_ == true)
 			{
-				// create joint_state message
+				// publish joint state message
 				int DOF = ModIds_param_.size();
 				std::vector<double> ActualPos;
 				std::vector<double> ActualVel;
@@ -592,10 +593,10 @@ class PowercubeChainNode
 					msg.velocity[i] = ActualVel[i];
 					//std::cout << "Joint " << msg.name[i] <<": pos="<<  msg.position[i] << "vel=" << msg.velocity[i] << std::endl;
 				}
-		
-				// publish message
+
 				topicPub_JointState_.publish(msg);
 
+				// publish controller state message
 				pr2_controllers_msgs::JointTrajectoryControllerState controllermsg;
 				controllermsg.header.stamp = ros::Time::now();
 				controllermsg.joint_names.resize(DOF);

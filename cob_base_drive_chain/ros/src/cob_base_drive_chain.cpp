@@ -25,15 +25,15 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
- *       Engineering and Automation (IPA) nor the names of its
- *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
+ *	 * Redistributions of source code must retain the above copyright
+ *	   notice, this list of conditions and the following disclaimer.
+ *	 * Redistributions in binary form must reproduce the above copyright
+ *	   notice, this list of conditions and the following disclaimer in the
+ *	   documentation and/or other materials provided with the distribution.
+ *	 * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *	   Engineering and Automation (IPA) nor the names of its
+ *	   contributors may be used to endorse or promote products derived from
+ *	   this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License LGPL as 
@@ -114,7 +114,7 @@ class NodeClass
 		/**
 		* Service requests cob_srvs::Trigger and resets platform and motors
 		*/
-		ros::ServiceServer srvServer_Reset;
+		ros::ServiceServer srvServer_Recover;
 
 		/**
 		* Service requests cob_srvs::Trigger and shuts down platform and motors
@@ -156,8 +156,8 @@ class NodeClass
 		CanCtrlPltfCOb3 *m_CanCtrlPltf;
 		
 		bool m_bisInitialized;
-        int m_iNumMotors;
-        int m_iNumDrives;
+		int m_iNumMotors;
+		int m_iNumDrives;
 
 		struct ParamType
 		{ 
@@ -208,10 +208,9 @@ class NodeClass
 			
 			m_CanCtrlPltf = new CanCtrlPltfCOb3(sIniDirectory);
 			
-
 			// implementation of topics
 			// published topics
-			topicPub_JointState = n.advertise<sensor_msgs::JointState>("/joint_states", 1);
+			topicPub_JointState = n.advertise<sensor_msgs::JointState>("joint_states", 1); //EXP: not anymore /joint_states but local ns
 			topicPub_Diagnostic = n.advertise<diagnostic_msgs::DiagnosticStatus>("diagnostic", 1);
 			// subscribed topics
 			topicSub_JointStateCmd = n.subscribe("joint_command", 1, &NodeClass::topicCallback_JointStateCmd, this);
@@ -222,7 +221,7 @@ class NodeClass
 			srvServer_ElmoRecorderReadout = n.advertiseService("ElmoRecorderReadout", &NodeClass::srvCallback_ElmoRecorderReadout, this);
 			m_bReadoutElmo = false;
 
-			srvServer_Reset = n.advertiseService("recover", &NodeClass::srvCallback_Reset, this);
+			srvServer_Recover = n.advertiseService("recover", &NodeClass::srvCallback_Recover, this);
 			srvServer_Shutdown = n.advertiseService("shutdown", &NodeClass::srvCallback_Shutdown, this);
 			//srvServer_isPltfError = n.advertiseService("isPltfError", &NodeClass::srvCallback_isPltfError, this); --> Publish this along with JointStates
 			srvServer_GetJointState = n.advertiseService("GetJointState", &NodeClass::srvCallback_GetJointState, this);
@@ -245,37 +244,39 @@ class NodeClass
 				ROS_DEBUG("Topic Callback joint_command - Sending Commands to drives (initialized)");
 		   		int iRet;
 				sensor_msgs::JointState JointStateCmd = *msg;
-            	// check if velocities lie inside allowed boundaries
-		    	for(int i = 0; i < m_iNumMotors; i++)
-		    	{
-				    // for steering motors
-            	    if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
-            	    {
-				        if (JointStateCmd.velocity[i] > m_Param.dMaxSteerRateRadpS)
-				        {
-				        	JointStateCmd.velocity[i] = m_Param.dMaxSteerRateRadpS;
-				        }
-				        if (JointStateCmd.velocity[i] < -m_Param.dMaxSteerRateRadpS)
-				        {
-				    	    JointStateCmd.velocity[i] = -m_Param.dMaxSteerRateRadpS;
-				        }
-            	    }
-					// for driving motors
-            	    else
+				// check if velocities lie inside allowed boundaries
+				for(int i = 0; i < m_iNumMotors; i++)
+				{
+					// for steering motors
+					if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
 					{
-				    	if (JointStateCmd.velocity[i] > m_Param.dMaxDriveRateRadpS)
-				    	{
-				    		JointStateCmd.velocity[i] = m_Param.dMaxDriveRateRadpS;
-				    	}
-				    	if (JointStateCmd.velocity[i] < -m_Param.dMaxDriveRateRadpS)
+						if (JointStateCmd.velocity[i] > m_Param.dMaxSteerRateRadpS)
 						{
-				    		JointStateCmd.velocity[i] = -m_Param.dMaxDriveRateRadpS;
-			    		}
+							JointStateCmd.velocity[i] = m_Param.dMaxSteerRateRadpS;
+						}
+						if (JointStateCmd.velocity[i] < -m_Param.dMaxSteerRateRadpS)
+						{
+							JointStateCmd.velocity[i] = -m_Param.dMaxSteerRateRadpS;
+						}
+					}
+					// for driving motors
+					else
+					{
+						if (JointStateCmd.velocity[i] > m_Param.dMaxDriveRateRadpS)
+						{
+							JointStateCmd.velocity[i] = m_Param.dMaxDriveRateRadpS;
+						}
+						if (JointStateCmd.velocity[i] < -m_Param.dMaxDriveRateRadpS)
+						{
+							JointStateCmd.velocity[i] = -m_Param.dMaxDriveRateRadpS;
+						}
 					}
 
 					// and cmd velocities to Can-Nodes
 					//m_CanCtrlPltf->setVelGearRadS(iCanIdent, dVelEncRadS);
+					ROS_DEBUG("Send data to drives");
 					iRet = m_CanCtrlPltf->setVelGearRadS(i, JointStateCmd.velocity[i]);
+					ROS_DEBUG("Successfully sent data to drives");
 					
 					if(m_bPubEffort) 
 						m_CanCtrlPltf->requestMotorTorque();
@@ -296,22 +297,22 @@ class NodeClass
 				m_bisInitialized = initDrives();
 				//ROS_INFO("...initializing can-nodes...");
 				//m_bisInitialized = m_CanCtrlPltf->initPltf();
-				res.success = m_bisInitialized;
+				res.success.data = m_bisInitialized;
 				if(m_bisInitialized)
 				{
 		   			ROS_INFO("Can-Node initialized");
 				}
 				else
 				{
-					res.errorMessage.data = "initialization of can-nodes failed";
+					res.error_message.data = "initialization of can-nodes failed";
 				  	ROS_INFO("Initialization FAILED");
 				}
 			}
 			else
 			{
 				ROS_ERROR("...platform already initialized...");
-				res.success = false;
-				res.errorMessage.data = "platform already initialized";
+				res.success.data = false;
+				res.error_message.data = "platform already initialized";
 			}
 			return true;
 		}
@@ -346,15 +347,15 @@ class NodeClass
 		
 		
 		// reset Can-Configuration
-        bool srvCallback_Reset(cob_srvs::Trigger::Request &req,
-                                     cob_srvs::Trigger::Response &res )
-        {
+		bool srvCallback_Recover(cob_srvs::Trigger::Request &req,
+									 cob_srvs::Trigger::Response &res )
+		{
 			ROS_DEBUG("Service callback reset");
-			res.success = m_CanCtrlPltf->resetPltf();
-			if (res.success) {
+			res.success.data = m_CanCtrlPltf->resetPltf();
+			if (res.success.data) {
 	   			ROS_INFO("Can-Node resetted");
 			} else {
-				res.errorMessage.data = "reset of can-nodes failed";
+				res.error_message.data = "reset of can-nodes failed";
 				ROS_WARN("Reset of Can-Node FAILED");
 			}
 
@@ -362,12 +363,12 @@ class NodeClass
 		}
 		
 		// shutdown Drivers and Can-Node
-        bool srvCallback_Shutdown(cob_srvs::Trigger::Request &req,
-                                     cob_srvs::Trigger::Response &res )
-        {
+		bool srvCallback_Shutdown(cob_srvs::Trigger::Request &req,
+									 cob_srvs::Trigger::Response &res )
+		{
 			ROS_DEBUG("Service callback shutdown");
-			res.success = m_CanCtrlPltf->shutdownPltf();
-			if (res.success)
+			res.success.data = m_CanCtrlPltf->shutdownPltf();
+			if (res.success.data)
 	   			ROS_INFO("Drives shut down");
 			else
 	   			ROS_INFO("Shutdown of Drives FAILED");
@@ -375,14 +376,14 @@ class NodeClass
 			return true;
 		}
 
-        bool srvCallback_GetJointState(cob_srvs::GetJointState::Request &req,
-                                     cob_srvs::GetJointState::Response &res )
-        {
+		bool srvCallback_GetJointState(cob_srvs::GetJointState::Request &req,
+									 cob_srvs::GetJointState::Response &res )
+		{
 			ROS_DEBUG("Service Callback GetJointState");
-            // init local variables
-            int j, k, ret_sprintf;
-            bool bIsError;
-            std::vector<double> vdAngGearRad, vdVelGearRad, vdEffortGearNM;
+			// init local variables
+			int j, k, ret_sprintf;
+			bool bIsError;
+			std::vector<double> vdAngGearRad, vdVelGearRad, vdEffortGearNM;
 			std::string str_steer, str_drive, str_num, str_cat;
 			// ToDo: search for a more elegant way to compose JointNames
 			char c_num [1];
@@ -419,25 +420,25 @@ class NodeClass
 				// as long as system is not initialized
 				bIsError = false;
 
-    	        j = 0;
+				j = 0;
 				k = 0;
 
-	            // set data to jointstate            
-	            for(int i = 0; i<m_iNumMotors; i++)
-	            {
-	                jointstate.position[i] = 0.0;
-	                jointstate.velocity[i] = 0.0;
-	                jointstate.effort[i] = 0.0;
+				// set data to jointstate			
+				for(int i = 0; i<m_iNumMotors; i++)
+				{
+					jointstate.position[i] = 0.0;
+					jointstate.velocity[i] = 0.0;
+					jointstate.effort[i] = 0.0;
 
 					// set joint names
-   	            	if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
-                	{
+   					if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
+					{
 						// create name for identification in JointState msg
-                    	j = j+1;
+						j = j+1;
 						ret_sprintf = sprintf(c_num, "%i", j);
 						str_num.assign(1, c_num[0]);
 						str_cat = str_steer + str_num;
-                	}
+					}
 					else
 					{
 						// create name for identification in JointState msg
@@ -448,7 +449,7 @@ class NodeClass
 					}
 					// set joint names
 					jointstate.name[i] = str_cat;
-	            }
+				}
 			}
 			else
 			{
@@ -480,7 +481,7 @@ class NodeClass
 						ret_sprintf = sprintf(c_num, "%i", j);
 						str_num.assign(1, c_num[0]);
 						str_cat = str_steer + str_num;
-                	}
+					}
 					else
 					{
 						// create name for identification in JointState msg
@@ -537,17 +538,197 @@ class NodeClass
 					diagnostics.name = "drive-chain can node";
 					diagnostics.message = "drives are initializing";
 				}
-            }
+			}
 
-            // publish diagnostic message
-            topicPub_Diagnostic.publish(diagnostics);
-        	ROS_DEBUG("published new drive-chain configuration (JointState message)");
+			// publish diagnostic message
+			topicPub_Diagnostic.publish(diagnostics);
+			ROS_DEBUG("published new drive-chain configuration (JointState message)");
 
-            return true;
-        }
-        
-        // other function declarations
-        bool initDrives();
+			return true;
+		}
+
+		//EXPERIMENTAL: publish JointStates cyclical instead of service callback
+		bool publish_JointStates()
+		{
+			ROS_DEBUG("Service Callback GetJointState");
+			// init local variables
+			int j, k, ret_sprintf;
+			bool bIsError;
+			std::vector<double> vdAngGearRad, vdVelGearRad, vdEffortGearNM;
+			std::string str_steer, str_drive, str_num, str_cat;
+			// ToDo: search for a more elegant way to compose JointNames
+			char c_num [1];
+
+			// init strings
+			str_steer = "Steer";
+			str_drive = "Drive";
+
+			// set default values
+			vdAngGearRad.resize(m_iNumMotors, 0);
+			vdVelGearRad.resize(m_iNumMotors, 0);
+			vdEffortGearNM.resize(m_iNumMotors, 0);
+
+			// create temporary (local) JointState/Diagnostics Data-Container
+			sensor_msgs::JointState jointstate;
+			diagnostic_msgs::DiagnosticStatus diagnostics;
+			
+
+			//Do you have to set frame_id manually??
+
+			// get time stamp for header
+			jointstate.header.stamp = ros::Time::now();
+			// set frame_id for header
+			// jointstate.header.frame_id = frame_id; //Where to get this id from?
+
+			// assign right size to JointState
+			jointstate.name.resize(m_iNumMotors);
+			jointstate.position.resize(m_iNumMotors);
+			jointstate.velocity.resize(m_iNumMotors);
+			jointstate.effort.resize(m_iNumMotors);
+
+			if(m_bisInitialized == false)
+			{
+				// as long as system is not initialized
+				bIsError = false;
+
+				j = 0;
+				k = 0;
+
+				// set data to jointstate			
+				for(int i = 0; i<m_iNumMotors; i++)
+				{
+					jointstate.position[i] = 0.0;
+					jointstate.velocity[i] = 0.0;
+					jointstate.effort[i] = 0.0;
+
+/*
+					// set joint names
+   					if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
+					{
+						// create name for identification in JointState msg
+						j = j+1;
+						ret_sprintf = sprintf(c_num, "%i", j);
+						str_num.assign(1, c_num[0]);
+						str_cat = str_steer + str_num;
+					}
+					else
+					{
+						// create name for identification in JointState msg
+						k = k+1;
+						ret_sprintf = sprintf(c_num, "%i", k);
+						str_num.assign(1, c_num[0]);
+						str_cat = str_drive + str_num;
+					}
+					// set joint names
+					jointstate.name[i] = str_cat;
+*/
+				}
+			}
+			else
+			{
+				// as soon as drive chain is initialized
+				// read Can-Buffer
+				ROS_DEBUG("Read CAN-Buffer");
+				m_CanCtrlPltf->evalCanBuffer();
+				ROS_DEBUG("Successfully read CAN-Buffer");
+				
+				j = 0;
+				k = 0;
+				for(int i = 0; i<m_iNumMotors; i++)
+				{
+					m_CanCtrlPltf->getGearPosVelRadS(i,  &vdAngGearRad[i], &vdVelGearRad[i]);
+					
+					//Get motor torque
+					if(m_bPubEffort) {
+						for(int i=0; i<m_iNumMotors; i++) {
+							m_CanCtrlPltf->getMotorTorque(i, &vdEffortGearNM[i]); //(int iCanIdent, double* pdTorqueNm)
+						}
+					}
+					
+   					// if a steering motor was read -> correct for offset
+   					if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
+					{
+						// correct for initial offset of steering angle (arbitrary homing position)
+						vdAngGearRad[i] += m_Param.vdWheelNtrlPosRad[j];
+						MathSup::normalizePi(vdAngGearRad[i]);
+						j = j+1;
+						// create name for identification in JointState msg
+/*
+						ret_sprintf = sprintf(c_num, "%i", j);
+						str_num.assign(1, c_num[0]);
+						str_cat = str_steer + str_num;
+
+					}
+					else
+					{
+						// create name for identification in JointState msg
+						k = k+1;
+
+						ret_sprintf = sprintf(c_num, "%i", k);
+						str_num.assign(1, c_num[0]);
+						str_cat = str_drive + str_num;
+*/
+					}
+					// set joint names
+//					jointstate.name[i] = str_cat;
+
+				}
+
+				// set data to jointstate
+				for(int i = 0; i<m_iNumMotors; i++)
+				{
+					jointstate.position[i] = vdAngGearRad[i];
+					jointstate.velocity[i] = vdVelGearRad[i];
+					jointstate.effort[i] = vdEffortGearNM[i];
+				}
+			}
+
+			// set answer to srv request
+			// res.jointstate = jointstate;
+
+			// publish jointstate message
+			topicPub_JointState.publish(jointstate);
+			ROS_DEBUG("published new drive-chain configuration (JointState message)");
+			
+
+			if(m_bisInitialized)
+			{
+				// read Can only after initialization
+				bIsError = m_CanCtrlPltf->isPltfError();
+			}
+
+			// set data to diagnostics
+			if(bIsError)
+			{
+				diagnostics.level = 2;
+				diagnostics.name = "drive-chain can node";
+				diagnostics.message = "one or more drives are in Error mode";
+			}
+			else
+			{
+				if (m_bisInitialized)
+				{
+					diagnostics.level = 0;
+					diagnostics.name = "drive-chain can node";
+					diagnostics.message = "drives operating normal";
+				}
+				else
+				{
+					diagnostics.level = 1;
+					diagnostics.name = "drive-chain can node";
+					diagnostics.message = "drives are initializing";
+				}
+			}
+
+			// publish diagnostic message
+			topicPub_Diagnostic.publish(diagnostics);
+			ROS_DEBUG("published new drive-chain configuration (JointState message)");
+
+			return true;
+		}
+		
+		// other function declarations
+		bool initDrives();
 };
 
 //#######################
@@ -560,7 +741,7 @@ int main(int argc, char** argv)
 	NodeClass nodeClass;
 	
 	// specify looprate of control-cycle
- 	ros::Rate loop_rate(200); // Hz 
+ 	ros::Rate loop_rate(100); // Hz 
 
 	while(nodeClass.n.ok())
 	{
@@ -573,6 +754,8 @@ int main(int argc, char** argv)
 				ROS_INFO("CPU consuming evalCanBuffer used for ElmoReadout deactivated");
 			}
 		}
+
+		nodeClass.publish_JointStates();
 		
 		loop_rate.sleep();
 		ros::spinOnce();
@@ -587,11 +770,11 @@ bool NodeClass::initDrives()
 {
 	ROS_INFO("Initializing Base Drive Chain");
 
-    // init member vectors
+	// init member vectors
 	m_Param.vdWheelNtrlPosRad.assign((m_iNumDrives),0);
 //	m_Param.vdWheelNtrlPosRad.assign(4,0);
-    // ToDo: replace the following steps by ROS configuration files
-    // create Inifile class and set target inifile (from which data shall be read)
+	// ToDo: replace the following steps by ROS configuration files
+	// create Inifile class and set target inifile (from which data shall be read)
 	IniFile iniFile;
 
 	//n.param<std::string>("PltfIniLoc", sIniFileName, "Platform/IniFiles/Platform.ini");
@@ -601,7 +784,7 @@ bool NodeClass::initDrives()
 	iniFile.GetKeyDouble("DrivePrms", "MaxDriveRate", &m_Param.dMaxDriveRateRadpS, true);
 	iniFile.GetKeyDouble("DrivePrms", "MaxSteerRate", &m_Param.dMaxSteerRateRadpS, true);
 	
-    // get Offset from Zero-Position of Steering
+	// get Offset from Zero-Position of Steering
 	if(m_iNumDrives >=1)
 		iniFile.GetKeyDouble("DrivePrms", "Wheel1NeutralPosition", &m_Param.vdWheelNtrlPosRad[0], true);
 	if(m_iNumDrives >=2)
