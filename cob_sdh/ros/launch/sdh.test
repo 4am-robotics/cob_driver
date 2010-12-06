@@ -2,7 +2,7 @@
 <launch>
 	
 	<!-- api test -->
-	<test test-name="api_test" pkg="cob_powercube_chain" type="api_test.py" ns="sdh_controller" />
+	<!--test test-name="api_test" pkg="cob_powercube_chain" type="api_test.py" ns="sdh_controller" /-->
 
 	<!-- init test -->
 	<test test-name="init_test" pkg="cob_powercube_chain" type="init_test.py" ns="sdh_controller" />
