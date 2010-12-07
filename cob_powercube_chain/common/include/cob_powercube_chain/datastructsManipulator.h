@@ -54,8 +54,6 @@
 #ifndef __DATASTRUCTS_MANIPULATOR_H_
 #define __DATASTRUCTS_MANIPULATOR_H_
 
-#include <libwm4/Wm4Matrix4.h>
-#include <libwm4/Wm4Matrix3.h>
 #include <cob_powercube_chain/Joint.h>
 #include <iostream>
 
@@ -122,8 +120,6 @@ struct AbsPos {
 
 std::ostream& operator<< (std::ostream& os, const AbsPos& a);
 
-std::ostream& operator<< (std::ostream& os, const Wm4::Matrix4 <double> & m);
-std::ostream& operator<< (std::ostream& os, const Wm4::Matrix3 <double> & m);
 
 inline AbsPos operator* (double s, const AbsPos& abs) { return abs * s; }
 
