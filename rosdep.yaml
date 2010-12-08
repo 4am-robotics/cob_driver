@@ -1,3 +1,28 @@
+#  ubuntu: |
+#    if [ `uname -m` = "i686" ] ; then
+#      FILENAME=libmesasr-dev-1.0.14-653.i386.deb
+#    elif [ `uname -m` = "x86_64" ] ; then
+#      FILENAME=libmesasr-dev-1.0.14-653.amd64.deb
+#    fi
+#    wget http://www.mesa-imaging.ch/dlm.php?fname=./customer/driver/$FILENAME -O ~/$FILENAME
+#    sudo dpkg -i ~/$FILENAME
+
+libdc1394:
+  ubuntu: libdc1394-22-dev
+
+touchscreen: 
+  ubuntu: xserver-xorg-input-evtouch
+#    sudo cp  `rospack find cob_touch`/common/files/50-tsc.fdi /usr/share/hal/fdi/policy/20thirdparty
+
+festival:
+  ubuntu: festival festvox-kallpc16k
+  arch: festival festival-kallpc16k
+python-pygame:
+  ubuntu: python-pygame
+  debian: python-pygame
+  centos: python-game
+  arch: python-pygame
+  
 libmesasr:
   ubuntu: |
     BITSIZE=`uname -m`
@@ -23,28 +48,3 @@ libmesasr:
             rm -rf tmp
         fi
     fi
-
-#  ubuntu: |
-#    if [ `uname -m` = "i686" ] ; then
-#      FILENAME=libmesasr-dev-1.0.14-653.i386.deb
-#    elif [ `uname -m` = "x86_64" ] ; then
-#      FILENAME=libmesasr-dev-1.0.14-653.amd64.deb
-#    fi
-#    wget http://www.mesa-imaging.ch/dlm.php?fname=./customer/driver/$FILENAME -O ~/$FILENAME
-#    sudo dpkg -i ~/$FILENAME
-
-libdc1394:
-  ubuntu: libdc1394-22-dev
-
-touchscreen: 
-  ubuntu: xserver-xorg-input-evtouch
-#    sudo cp  `rospack find cob_touch`/common/files/50-tsc.fdi /usr/share/hal/fdi/policy/20thirdparty
-
-festival:
-  ubuntu: festival festvox-kallpc16k
-  arch: festival festival-kallpc16k
-python-pygame:
-  ubuntu: python-pygame
-  debian: python-pygame
-  centos: python-game
-  arch: python-pygame
