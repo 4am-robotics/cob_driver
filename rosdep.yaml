@@ -26,11 +26,11 @@ python-pygame:
 libmesasr:
   ubuntu: 
     10.10: libusb-dev
-    10.4: libusb-dev
+    10.04: libusb-dev
     9.10: libusb-dev
-    9.4: libusb-dev
+    9.04: libusb-dev
     8.10: libusb-dev
-    8.4: |
+    8.04: |
       BITSIZE=`uname -m`
       if [ ! -f /usr/lib/libmesasr.so ]; then
           mkdir -p ~/ros/ros-deps
