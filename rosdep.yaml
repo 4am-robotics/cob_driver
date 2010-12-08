@@ -1,12 +1,3 @@
-#  ubuntu: |
-#    if [ `uname -m` = "i686" ] ; then
-#      FILENAME=libmesasr-dev-1.0.14-653.i386.deb
-#    elif [ `uname -m` = "x86_64" ] ; then
-#      FILENAME=libmesasr-dev-1.0.14-653.amd64.deb
-#    fi
-#    wget http://www.mesa-imaging.ch/dlm.php?fname=./customer/driver/$FILENAME -O ~/$FILENAME
-#    sudo dpkg -i ~/$FILENAME
-
 libdc1394:
   ubuntu: libdc1394-22-dev
 
@@ -22,35 +13,3 @@ python-pygame:
   debian: python-pygame
   centos: python-game
   arch: python-pygame
-  
-libmesasr:
-  ubuntu: 
-    10.10: libusb-dev
-    10.04: libusb-dev
-    9.10: libusb-dev
-    9.04: libusb-dev
-    8.10: libusb-dev
-    8.04: |
-      BITSIZE=`uname -m`
-      if [ ! -f /usr/lib/libmesasr.so ]; then
-          mkdir -p ~/ros/ros-deps
-          cd ~/ros/ros-deps
-          if [ $BITSIZE = "x86_64" ]; then
-              wget --tries=10 http://www.mesa-imaging.ch/customer/driver/libmesasr-dev-1.0.14-620.amd64.deb
-              dpkg-deb -x libmesasr-dev-1.0.14-620.amd64.deb tmp
-              dpkg-deb -e libmesasr-dev-1.0.14-620.amd64.deb tmp/DEBIAN
-              sed -i 's/libusb-0.1-4 (= .*)/libusb-0.1-4/g' tmp/DEBIAN/control
-              dpkg -b tmp libmesasr-dev-1.0.14-620-generic.amd64.deb
-              sudo dpkg -i libmesasr-dev-1.0.14-620-generic.amd64.deb
-              rm -rf tmp
-          fi
-          if [ $BITSIZE = "i686" ]; then
-              wget --tries=10 http://www.mesa-imaging.ch/customer/driver/libmesasr-dev-1.0.14-620.i386.deb
-              dpkg-deb -x libmesasr-dev-1.0.14-620.i386.deb tmp
-              dpkg-deb -e libmesasr-dev-1.0.14-620.i386.deb tmp/DEBIAN
-              sed -i 's/libusb-0.1-4 (= .*)/libusb-0.1-4/g' tmp/DEBIAN/control
-              dpkg -b tmp libmesasr-dev-1.0.14-620-generic.i386.deb
-              sudo dpkg -i libmesasr-dev-1.0.14-620-generic.i386.deb
-              rm -rf tmp
-          fi
-      fi
