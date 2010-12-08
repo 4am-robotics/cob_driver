@@ -37,9 +37,8 @@ libdc1394:
   ubuntu: libdc1394-22-dev
 
 touchscreen: 
-  ubuntu: |
-    sudo apt-get install xserver-xorg-input-evtouch
-    sudo cp  `rospack find cob_touch`/common/files/50-tsc.fdi /usr/share/hal/fdi/policy/20thirdparty
+  ubuntu: xserver-xorg-input-evtouch
+#    sudo cp  `rospack find cob_touch`/common/files/50-tsc.fdi /usr/share/hal/fdi/policy/20thirdparty
 
 festival:
   ubuntu: festival festvox-kallpc16k
