@@ -24,7 +24,7 @@
  * \date Date of creation: Dec 2010
  *
  * \brief
- *   Implementation of powercube_chain node.
+ *   Implementation of powercube control.
  *
  *****************************************************************
  *
@@ -64,6 +64,8 @@
 #include <sstream>
 #include <string>
 
+#include <pthread.h>
+
 #include <libm5api/m5apiw32.h>
 #include <cob_powercube_chain/moveCommand.h>
 #include <cob_powercube_chain/PowerCubeCtrlParams.h>
@@ -79,7 +81,7 @@ class PowerCubeCtrl
 {
 public:
 
-  PowerCubeCtrl();
+  PowerCubeCtrl(PowerCubeCtrlParams * params);
   ~PowerCubeCtrl();
 
   typedef enum
@@ -134,6 +136,14 @@ public:
   bool setMaxAcceleration(double acceleration);
   bool setMaxAcceleration(const std::vector<double>& accelerations);
 
+  /// @brief Configure powercubes to start all movements synchronously
+  /// Tells the Modules not to start moving until PCube_startMotionAll is called
+  bool setSyncMotion();
+
+  /// @brief Configure powercubes to start all movements asynchronously
+  /// Tells the Modules to start immediately
+  bool setASyncMotion();
+
   /////////////////////////////////////////////////
   // Functions for getting state and monitoring: //
   /////////////////////////////////////////////////
@@ -152,18 +162,22 @@ public:
   bool doHoming();
 
 protected:
-  int m_DOF;
+  pthread_mutex_t m_mutex;
+
+  //unsigned int m_DOF;
   int m_DeviceHandle;
-  std::vector<int> m_ModulIDs;
+  //std::vector<int> m_ModulIDs;
   bool m_Initialized;
   bool m_CANDeviceOpened;
+
+  PowerCubeCtrlParams* m_params;
 
   std::vector<unsigned long> m_status;
   std::vector<unsigned char> m_dios;
   std::vector<float> m_positions;
   std::vector<float> m_velocities;
-  std::vector<double> m_MaxVelocities;
-  std::vector<double> m_MaxAccelerations;
+  //std::vector<double> m_MaxVelocities;
+  //std::vector<double> m_MaxAccelerations;
 
   std::string m_ErrorMessage;
 

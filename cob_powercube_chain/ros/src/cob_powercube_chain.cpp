@@ -21,7 +21,7 @@
  * \author
  *   Supervised by: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
  *
- * \date Date of creation: Jan 2010
+ * \date Date of creation: Dec 2010
  *
  * \brief
  *   Implementation of ROS node for powercube_chain.
@@ -61,10 +61,11 @@
 //#### includes ####
 
 // standard includes
-//
+//--
 
 // ROS includes
 #include <ros/ros.h>
+#include <urdf/model.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 
 // ROS message includes
@@ -86,7 +87,6 @@
  *
  * Offers velocity and position interface.
  */
-
 class PowerCubeChainNode
 {
 
@@ -114,15 +114,13 @@ public:
   PowerCubeCtrlParams* pc_params_;
 
   // member variables
-  bool init_request_;
   bool initialized_;
-  bool stop_request_;
   bool stopped_;
 
   PowerCubeChainNode()
   {
-    pc_ctrl_ = new PowerCubeCtrl();
     pc_params_ = new PowerCubeCtrlParams();
+    pc_ctrl_ = new PowerCubeCtrl(pc_params_);
 
     // implementation of topics to publish
     topicPub_JointState_ = n_.advertise<sensor_msgs::JointState> ("/joint_states", 1);
@@ -147,18 +145,191 @@ public:
       ROS_INFO("PowerCube Device closed!");
   }
 
-  void initParameters()
+  /*!
+   * \brief Gets parameters from the ROS parameter server and configures the powercube_chain.
+   */
+  void getROSParameters()
   {
+    // get CanModule
     std::string CanModule;
-    int CanDevice;
+    if (n_.hasParam("can_module"))
+    {
+      n_.getParam("can_module", CanModule);
+    }
+    else
+    {
+      ROS_ERROR("Parameter can_module not set, shutting down node...");
+      n_.shutdown();
+    }
+
+    // get CanDevice
+    std::string CanDevice;
+    if (n_.hasParam("can_device"))
+    {
+      n_.getParam("can_device", CanDevice);
+    }
+    else
+    {
+      ROS_ERROR("Parameter can_device not set, shutting down node...");
+      n_.shutdown();
+    }
+
+    // get CanBaudrate
     int CanBaudrate;
-    XmlRpc::XmlRpcValue ModIdsXmlRpc;
-    std::vector<int> ModIds;
+    if (n_.hasParam("can_baudrate"))
+    {
+      n_.getParam("can_baudrate", CanBaudrate);
+    }
+    else
+    {
+      ROS_ERROR("Parameter can_baudrate not set, shutting down node...");
+      n_.shutdown();
+    }
+
+    // get modul ids
+    XmlRpc::XmlRpcValue ModulIDsXmlRpc;
+    std::vector<int> ModulIDs;
+    if (n_.hasParam("modul_ids"))
+    {
+      n_.getParam("modul_ids", ModulIDsXmlRpc);
+    }
+    else
+    {
+      ROS_ERROR("Parameter modul_ids not set, shutting down node...");
+      n_.shutdown();
+    }
+    ModulIDs.resize(ModulIDsXmlRpc.size());
+    for (int i = 0; i < ModulIDsXmlRpc.size(); i++)
+    {
+      ModulIDs[i] = (int)ModulIDsXmlRpc[i];
+    }
+
+    // init parameters
+    pc_params_->Init(CanModule, CanDevice, CanBaudrate, ModulIDs);
+
+    // get joint names
     XmlRpc::XmlRpcValue JointNamesXmlRpc;
     std::vector<std::string> JointNames;
+    if (n_.hasParam("joint_names"))
+    {
+      n_.getParam("joint_names", JointNamesXmlRpc);
+    }
+    else
+    {
+      ROS_ERROR("Parameter joint_names not set, shutting down node...");
+      n_.shutdown();
+    }
+    JointNames.resize(JointNamesXmlRpc.size());
+    for (int i = 0; i < JointNamesXmlRpc.size(); i++)
+    {
+      JointNames[i] = (std::string)JointNamesXmlRpc[i];
+    }
+    // check dimension with with DOF
+    if (JointNames.size() != pc_params_->GetDOF())
+    {
+      ROS_ERROR("Wrong dimensions of parameter joint_names, shutting down node...");
+      n_.shutdown();
+    }
+    pc_params_->SetJointNames(JointNames);
 
-    // initialize parameters
-    pc_params_->Init(CanModule, CanDevice, CanBaudrate, ModIds);
+    // get max accelerations
+    XmlRpc::XmlRpcValue MaxAccelerationsXmlRpc;
+    std::vector<double> MaxAccelerations;
+    if (n_.hasParam("max_accelerations"))
+    {
+      n_.getParam("max_accelerations", MaxAccelerationsXmlRpc);
+    }
+    else
+    {
+      ROS_ERROR("Parameter max_accelerations not set, shutting down node...");
+      n_.shutdown();
+    }
+    MaxAccelerations.resize(MaxAccelerationsXmlRpc.size());
+    for (int i = 0; i < MaxAccelerationsXmlRpc.size(); i++)
+    {
+      MaxAccelerations[i] = (double)MaxAccelerationsXmlRpc[i];
+    }
+    // check dimension with with DOF
+    if (MaxAccelerations.size() != pc_params_->GetDOF())
+    {
+      ROS_ERROR("Wrong dimensions of parameter max_accelerations, shutting down node...");
+      n_.shutdown();
+    }
+    pc_params_->SetMaxAcc(MaxAccelerations);
+  }
+
+  /*!
+   * \brief Gets parameters from the robot_description and configures the powercube_chain.
+   */
+  void getRobotDescriptionParameters()
+  {
+    unsigned int DOF = pc_params_->GetDOF();
+    std::vector<std::string> JointNames = pc_params_->GetJointNames();
+
+    // get robot_description from ROS parameter server
+    std::string param_name = "robot_description";
+    std::string full_param_name;
+    std::string xml_string;
+    n_.searchParam(param_name, full_param_name);
+    if (n_.hasParam(full_param_name))
+    {
+      n_.getParam(full_param_name.c_str(), xml_string);
+    }
+    else
+    {
+      ROS_ERROR("Parameter %s not set, shutting down node...", full_param_name.c_str());
+      n_.shutdown();
+    }
+
+    if (xml_string.size() == 0)
+    {
+      ROS_ERROR("Unable to load robot model from parameter %s",full_param_name.c_str());
+      n_.shutdown();
+    }
+    ROS_DEBUG("%s content\n%s", full_param_name.c_str(), xml_string.c_str());
+
+    // get urdf model out of robot_description
+    urdf::Model model;
+    if (!model.initString(xml_string))
+    {
+      ROS_ERROR("Failed to parse urdf file");
+      n_.shutdown();
+    }
+    ROS_DEBUG("Successfully parsed urdf file");
+
+    // get max velocities out of urdf model
+    std::vector<double> MaxVelocities(DOF);
+    for (unsigned int i = 0; i < DOF; i++)
+    {
+      MaxVelocities[i] = model.getJoint(JointNames[i].c_str())->limits->velocity;
+    }
+
+    // get lower limits out of urdf model
+    std::vector<double> LowerLimits(DOF);
+    for (unsigned int i = 0; i < DOF; i++)
+    {
+      LowerLimits[i] = model.getJoint(JointNames[i].c_str())->limits->lower;
+    }
+
+    // get upper limits out of urdf model
+    std::vector<double> UpperLimits(DOF);
+    for (unsigned int i = 0; i < DOF; i++)
+    {
+      UpperLimits[i] = model.getJoint(JointNames[i].c_str())->limits->upper;
+    }
+
+    // get offsets out of urdf model
+    std::vector<double> Offsets(DOF);
+    for (unsigned int i = 0; i < DOF; i++)
+    {
+      Offsets[i] = model.getJoint(JointNames[i].c_str())->calibration->rising.get()[0];
+    }
+
+    // set parameters
+    pc_params_->SetMaxVel(MaxVelocities);
+    pc_params_->SetLowerLimits(LowerLimits);
+    pc_params_->SetUpperLimits(UpperLimits);
+    pc_params_->SetOffsets(Offsets);
   }
 
   /*!
@@ -169,7 +340,7 @@ public:
    */
   void topicCallback_CommandPos(const brics_actuator::JointPositions::ConstPtr& msg)
   {
-    ROS_INFO("Received new position command");
+    ROS_WARN("Received new position command. Skipping command: Position commands currently not implemented");
   }
 
   /*!
@@ -180,7 +351,52 @@ public:
    */
   void topicCallback_CommandVel(const brics_actuator::JointVelocities::ConstPtr& msg)
   {
-    ROS_INFO("Received new velocity command");
+    ROS_DEBUG("Received new velocity command");
+
+    // @todo don't rely on position of joint names, but merge them (check between msg.joint_uri and member variable JointStates)
+
+    unsigned int DOF = pc_params_->GetDOF();
+    std::vector<std::string> jointNames = pc_params_->GetJointNames();
+    std::vector<double> cmd_vel(DOF);
+    std::string unit = "rad";
+
+    // check dimensions
+    if (msg->velocities.size() != DOF)
+    {
+      ROS_ERROR("Skipping command: Commanded velocities and DOF are not same dimension.");
+      return;
+    }
+
+    // parse velocities
+    for (unsigned int i = 0; i < DOF; i++)
+    {
+      // check joint name
+      if (msg->velocities[i].joint_uri != jointNames[i])
+      {
+        ROS_ERROR("Skipping command: Received joint name %s doesn't match expected joint name %s for joint %d.",msg->velocities[i].joint_uri.c_str(),jointNames[i].c_str(),i);
+        return;
+      }
+
+      // check unit
+      if (msg->velocities[i].unit != unit)
+      {
+        ROS_ERROR("Skipping command: Received unit %s doesn't match expected unit %s.",msg->velocities[i].unit.c_str(),unit.c_str());
+        return;
+      }
+
+      // if all checks are successful, parse the velocity value for this joint
+      ROS_DEBUG("Parsing velocity %f for joint %s",msg->velocities[i].value,jointNames[i].c_str());
+      cmd_vel[i] = msg->velocities[i].value;
+    }
+
+    // command velocities to powercubes
+    if (!pc_ctrl_->MoveVel(cmd_vel))
+    {
+      ROS_ERROR("Skipping command: %s",pc_ctrl_->getErrorMessage().c_str());
+      return;
+    }
+
+    ROS_DEBUG("Executed velocity command");
   }
 
   /*!
@@ -194,29 +410,27 @@ public:
   {
     if (initialized_ == false)
     {
-      ROS_INFO("...initializing powercubes...");
+      ROS_INFO("Initializing powercubes...");
 
       // initialize powercubes
       if (pc_ctrl_->Init(pc_params_))
       {
-        ROS_INFO("Initializing successful");
         initialized_ = true;
         res.success.data = true;
-        res.error_message.data = "Initializing successful";
-        ROS_INFO("...%s",res.error_message.data);
+        ROS_INFO("...initializing powercubes successful");
       }
       else
       {
         res.success.data = false;
         res.error_message.data = pc_ctrl_->getErrorMessage();
-        ROS_ERROR("Initializing powercubes not successful. error: %s", res.error_message.data);
+        ROS_ERROR("...initializing powercubes not successful. error: %s", res.error_message.data.c_str());
       }
     }
     else
     {
       res.success.data = false;
       res.error_message.data = "powercubes already initialized";
-      ROS_ERROR("...%s", res.error_message.data);
+      ROS_ERROR("...initializing powercubes not successful. error: %s",res.error_message.data.c_str());
     }
 
     return true;
@@ -237,14 +451,13 @@ public:
     if (pc_ctrl_->Stop())
     {
       res.success.data = true;
-      res.error_message.data = "stopping powercubes succesfull";
-      ROS_INFO("...%s",res.error_message.data);
+      ROS_INFO("...stopping powercubes successful.");
     }
     else
     {
       res.success.data = false;
       res.error_message.data = pc_ctrl_->getErrorMessage();
-      ROS_ERROR("Stopping powercubes not succesfull. error: %s", res.error_message.data);
+      ROS_ERROR("...stopping powercubes not successful. error: %s", res.error_message.data.c_str());
     }
     return true;
   }
@@ -258,28 +471,27 @@ public:
    */
   bool srvCallback_Recover(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res)
   {
+    ROS_INFO("Recovering powercubes...");
     if (initialized_ == true)
     {
-      ROS_INFO("Recovering powercubes");
-
       // stopping all arm movements
       if (pc_ctrl_->Recover())
       {
-        ROS_INFO("Recovering powercubes succesfull");
         res.success.data = true;
+        ROS_INFO("...recovering powercubes successful.");
       }
       else
       {
         res.success.data = false;
         res.error_message.data = pc_ctrl_->getErrorMessage();
-        ROS_ERROR("Recovering powercubes not succesfull. error: %s", res.error_message.data);
+        ROS_ERROR("...recovering powercubes not successful. error: %s", res.error_message.data.c_str());
       }
     }
     else
     {
       res.success.data = false;
       res.error_message.data = "powercubes not initialized";
-      ROS_ERROR("...%s...",res.error_message.data);
+      ROS_ERROR("...recovering powercubes not successful. error: %s",res.error_message.data.c_str());
     }
 
     return true;
@@ -299,7 +511,8 @@ int main(int argc, char** argv)
 
   // create PowerCubeChainNode
   PowerCubeChainNode pc_node;
-  pc_node.initParameters();
+  pc_node.getROSParameters();
+  pc_node.getRobotDescriptionParameters();
 
   // main loop
   double frequency;
