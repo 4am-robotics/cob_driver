@@ -26,6 +26,8 @@
   <depend package="diagnostic_updater"/>
   <depend package="rostest"/>
   <depend package="libm5api"/>
+  <depend package="libntcan"/>
+  <depend package="libpcan"/>
   <depend package="cob_srvs"/>
   <depend package="cob_description"/>
   <depend package="brics_actuator"/>

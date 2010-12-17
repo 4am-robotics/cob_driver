@@ -164,9 +164,7 @@ public:
 protected:
   pthread_mutex_t m_mutex;
 
-  //unsigned int m_DOF;
   int m_DeviceHandle;
-  //std::vector<int> m_ModulIDs;
   bool m_Initialized;
   bool m_CANDeviceOpened;
 
@@ -176,8 +174,6 @@ protected:
   std::vector<unsigned char> m_dios;
   std::vector<float> m_positions;
   std::vector<float> m_velocities;
-  //std::vector<double> m_MaxVelocities;
-  //std::vector<double> m_MaxAccelerations;
 
   std::string m_ErrorMessage;
 

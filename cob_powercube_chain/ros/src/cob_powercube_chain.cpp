@@ -353,6 +353,11 @@ public:
   {
     ROS_DEBUG("Received new velocity command");
 
+    PowerCubeCtrl::PC_CTRL_STATE status;
+    std::vector<std::string> errorMessages;
+    pc_ctrl_->getStatus(status, errorMessages);
+    std::cout << status << std::endl;
+
     // @todo don't rely on position of joint names, but merge them (check between msg.joint_uri and member variable JointStates)
 
     unsigned int DOF = pc_params_->GetDOF();

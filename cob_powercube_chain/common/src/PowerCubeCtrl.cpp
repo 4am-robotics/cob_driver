@@ -446,6 +446,16 @@ bool PowerCubeCtrl::Stop()
 /// @brief Recovers the manipulator after an emergency stop
 bool PowerCubeCtrl::Recover()
 {
+  pthread_mutex_lock(&m_mutex);
+  PCube_haltAll(m_DeviceHandle);
+  pthread_mutex_unlock(&m_mutex);
+
+  usleep(500000);
+
+  pthread_mutex_lock(&m_mutex);
+  PCube_resetAll(m_DeviceHandle);
+  pthread_mutex_unlock(&m_mutex);
+
   std::vector<std::string> errorMessages;
   PC_CTRL_STATE status;
   getStatus(status, errorMessages);
@@ -459,10 +469,6 @@ bool PowerCubeCtrl::Recover()
       std::cout << "PowerCubeCtrl:Init: homing not successful, aborting ...\n";
     }
   }
-
-  pthread_mutex_lock(&m_mutex);
-  PCube_resetAll(m_DeviceHandle);
-  pthread_mutex_unlock(&m_mutex);
 
   getStatus(status, errorMessages);
   if ((status != PC_CTRL_OK))
@@ -655,13 +661,13 @@ bool PowerCubeCtrl::getStatus(PC_CTRL_STATE& error, std::vector<std::string>& er
       errorMessages[i] = errorMsg.str();
       error = PC_CTRL_POW_VOLT_ERR;
     }
-    else if (!(m_status[i] & STATEID_MOD_HOME))
-    {
-      errorMsg << "Warning: Module " << ModuleIDs[i];
-      errorMsg << " is not referenced!";
-      errorMessages[i] = errorMsg.str();
-      error = PC_CTRL_NOT_REFERENCED;
-    }
+    /*else if (!(m_status[i] & STATEID_MOD_HOME))
+     {
+     errorMsg << "Warning: Module " << ModuleIDs[i];
+     errorMsg << " is not referenced!";
+     errorMessages[i] = errorMsg.str();
+     error = PC_CTRL_NOT_REFERENCED;
+     }*/
     else if (m_status[i] & STATEID_MOD_ERROR)
     {
       errorMsg << "Error in  Module " << ModuleIDs[i];
@@ -707,14 +713,16 @@ bool PowerCubeCtrl::doHoming()
   }
 
   // wait until all modules are homed
-  for (unsigned int i = 0; i < DOF; i++)
-  {
-    do
-    {
-      usleep(100000);
-    } while ((m_status[i] & STATEID_MOD_HOME) == 0);
-    std::cout << "Module " << ModuleIDs[i] << " homed" << std::endl;
-  }
+  /*
+   for (unsigned int i = 0; i < DOF; i++)
+   {
+   do
+   {
+   usleep(100000);
+   } while ((m_status[i] & STATEID_MOD_HOME) == 0);
+   std::cout << "Module " << ModuleIDs[i] << " homed" << std::endl;
+   }
+   */
 
   return true;
 }
