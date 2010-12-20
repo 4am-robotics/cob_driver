@@ -116,6 +116,7 @@ public:
   // member variables
   bool initialized_;
   bool stopped_;
+  ros::Time last_publish_time_;
 
   PowerCubeChainNode()
   {
@@ -136,6 +137,8 @@ public:
     srvServer_Recover_ = n_.advertiseService("recover", &PowerCubeChainNode::srvCallback_Recover, this);
 
     initialized_ = false;
+    stopped_ = true;
+    last_publish_time_ = ros::Time::now();
   }
 
   ~PowerCubeChainNode()
@@ -353,7 +356,7 @@ public:
   {
     ROS_DEBUG("Received new velocity command");
 
-    PowerCubeCtrl::PC_CTRL_STATE status;
+    PowerCubeCtrl::PC_CTRL_STATUS status;
     std::vector<std::string> errorMessages;
     pc_ctrl_->getStatus(status, errorMessages);
     std::cout << status << std::endl;
@@ -413,7 +416,7 @@ public:
    */
   bool srvCallback_Init(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res)
   {
-    if (initialized_ == false)
+    if (!initialized_)
     {
       ROS_INFO("Initializing powercubes...");
 
@@ -477,7 +480,7 @@ public:
   bool srvCallback_Recover(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res)
   {
     ROS_INFO("Recovering powercubes...");
-    if (initialized_ == true)
+    if (initialized_)
     {
       // stopping all arm movements
       if (pc_ctrl_->Recover())
@@ -500,6 +503,40 @@ public:
     }
 
     return true;
+  }
+
+  /*!
+   * \brief Publishes the state of the powercube_chain as ros messages.
+   *
+   * Published to "/joint_states" as "sensor_msgs/JointState"
+   * Published to "state" as "pr2_controllers_msgs/JointTrajectoryState"
+   */
+  void publishState()
+  {
+    if (initialized_)
+    {
+      ROS_INFO("publish state");
+
+      pc_ctrl_->updateStates();
+
+      sensor_msgs::JointState joint_state_msg;
+      joint_state_msg.header.stamp = ros::Time::now();
+      joint_state_msg.name = pc_params_->GetJointNames();
+      joint_state_msg.position = pc_ctrl_->getPositions();
+      joint_state_msg.velocity = pc_ctrl_->getVelocities();
+
+      pr2_controllers_msgs::JointTrajectoryControllerState controller_state_msg;
+      controller_state_msg.header.stamp = joint_state_msg.header.stamp;
+      controller_state_msg.joint_names = pc_params_->GetJointNames();
+      controller_state_msg.actual.positions = pc_ctrl_->getPositions();
+      controller_state_msg.actual.velocities = pc_ctrl_->getVelocities();
+      controller_state_msg.actual.accelerations = pc_ctrl_->getAccelerations();
+
+      topicPub_JointState_.publish(joint_state_msg);
+      topicPub_ControllerState_.publish(controller_state_msg);
+
+      last_publish_time_ = ros::Time::now();
+    }
   }
 
 }; //PowerCubeChainNode
@@ -531,10 +568,28 @@ int main(int argc, char** argv)
     ROS_WARN("Parameter frequency not available, setting to default value: %f Hz", frequency);
   }
 
+  ros::Duration min_publish_duration;
+  if (pc_node.n_.hasParam("min_publish_duration"))
+  {
+    double sec;
+    pc_node.n_.getParam("min_publish_duration", sec);
+    min_publish_duration.fromSec(sec);
+  }
+  else
+  {
+    min_publish_duration.fromSec(1 / frequency);
+    ROS_WARN("Parameter min_publish_time not available, setting to default value: %f sec", min_publish_duration.toSec());
+  }
+
   ros::Rate loop_rate(frequency); // Hz
   while (pc_node.n_.ok())
   {
     ROS_INFO("main");
+    if ((ros::Time::now() - pc_node.last_publish_time_) >= min_publish_duration)
+    {
+      pc_node.publishState();
+    }
+
     // sleep and waiting for messages, callbacks
     ros::spinOnce();
     loop_rate.sleep();

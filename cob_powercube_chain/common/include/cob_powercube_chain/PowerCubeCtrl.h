@@ -70,13 +70,6 @@
 #include <cob_powercube_chain/moveCommand.h>
 #include <cob_powercube_chain/PowerCubeCtrlParams.h>
 
-//-------------------------------------------------------------------------
-//                              Defines
-// -------------------------------------------------------------------------
-
-/* uncomment the following line to switch on debugging output: */
-// #define _POWER_CUBE_CTRL_DEBUG
-
 class PowerCubeCtrl
 {
 public:
@@ -86,8 +79,8 @@ public:
 
   typedef enum
   {
-    PC_CTRL_OK = 0, PC_CTRL_NOT_REFERENCED = -1, PC_CTRL_ERR = -2, PC_CTRL_POW_VOLT_ERR = -3
-  } PC_CTRL_STATE;
+    PC_CTRL_OK = 0, PC_CTRL_NOT_HOMED = -1, PC_CTRL_ERR = -2, PC_CTRL_POW_VOLT_ERR = -3
+  } PC_CTRL_STATUS;
 
   /////////////////////////////////////////////
   // Functions for initialization and close: //
@@ -136,6 +129,16 @@ public:
   bool setMaxAcceleration(double acceleration);
   bool setMaxAcceleration(const std::vector<double>& accelerations);
 
+  /// @brief Sets the horizon (sec).
+  /// The horizon is the maximum step size which will be commanded to the powercube chain. In case
+  /// of a failure this is the time the powercube chain will continue to move until it is stopped.
+  bool setHorizon(double horizon);
+
+  /// @brief Gets the horizon (sec).
+  /// The horizon is the maximum step size which will be commanded to the powercube chain. In case
+  /// of a failure this is the time the powercube chain will continue to move until it is stopped.
+  double getHorizon();
+
   /// @brief Configure powercubes to start all movements synchronously
   /// Tells the Modules not to start moving until PCube_startMotionAll is called
   bool setSyncMotion();
@@ -149,14 +152,23 @@ public:
   /////////////////////////////////////////////////
 
   /// @brief Returns the state of all modules
-  bool getStates(std::vector<unsigned long>& states, std::vector<unsigned char>& dios, std::vector<double>& positions);
+  bool updateStates();
 
   /// @brief Gets the status of the modules
-  bool getStatus(PC_CTRL_STATE& error, std::vector<std::string>& errorMessages);
+  bool getStatus(PC_CTRL_STATUS& status, std::vector<std::string>& errorMessages);
 
   /// @brief Returns true if any of the Joints are still moving
   /// Should also return true if Joints are accelerating or decelerating
   bool statusMoving();
+
+  /// @brief gets the current positions
+  std::vector<double> getPositions();
+
+  /// @brief gets the current velcities
+  std::vector<double> getVelocities();
+
+  /// @brief gets the current accelerations
+  std::vector<double> getAccelerations();
 
   /// @brief Waits until all Modules are homed.
   bool doHoming();
@@ -169,11 +181,15 @@ protected:
   bool m_CANDeviceOpened;
 
   PowerCubeCtrlParams* m_params;
+  PC_CTRL_STATUS m_pc_status;
 
   std::vector<unsigned long> m_status;
   std::vector<unsigned char> m_dios;
-  std::vector<float> m_positions;
-  std::vector<float> m_velocities;
+  std::vector<double> m_positions;
+  std::vector<double> m_velocities;
+  std::vector<double> m_accelerations;
+
+  double m_horizon;
 
   std::string m_ErrorMessage;
 

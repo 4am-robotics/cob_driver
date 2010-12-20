@@ -74,7 +74,10 @@ PowerCubeCtrl::PowerCubeCtrl(PowerCubeCtrlParams * params)
   m_Initialized = false;
 
   m_params = params;
-}
+
+  m_horizon = 0.025; // sec
+
+    }
 
   /** The Destructor
    */
@@ -90,10 +93,7 @@ PowerCubeCtrl::~PowerCubeCtrl()
 
 bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 {
-  //m_params = params;
-
   unsigned int DOF = m_params->GetDOF();
-  std::cout << "init" << std::endl;
   std::string CanModule = m_params->GetCanModule();
   std::string CanDevice = m_params->GetCanDevice();
   std::vector<int> ModulIDs = m_params->GetModuleIDs();
@@ -158,7 +158,7 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
   if (ret != 0)
   {
     std::ostringstream errorMsg;
-    errorMsg << "Could not open device" << CanDevice << ", m5api error code: " << ret;
+    errorMsg << "Could not open device " << CanDevice << ", m5api error code: " << ret;
     m_ErrorMessage = errorMsg.str();
     return false;
   }
@@ -196,9 +196,9 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
   }
 
   std::vector<std::string> errorMessages;
-  PC_CTRL_STATE status;
+  PC_CTRL_STATUS status;
   getStatus(status, errorMessages);
-  if ((status != PC_CTRL_OK) && (status != PC_CTRL_NOT_REFERENCED))
+  if ((status != PC_CTRL_OK) && (status != PC_CTRL_NOT_HOMED))
   {
     m_ErrorMessage.assign("");
     for (unsigned int i = 0; i < DOF; i++)
@@ -208,7 +208,7 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
     }
     return false;
   }
-  else if (status == PC_CTRL_NOT_REFERENCED)
+  else if (status == PC_CTRL_NOT_HOMED)
   {
     std::cout << "PowerCubeCtrl:Init: Homing is executed ...\n";
     bool successful = false;
@@ -280,7 +280,7 @@ bool PowerCubeCtrl::MoveJointSpaceSync(const std::vector<double>& target)
   unsigned int DOF = m_params->GetDOF();
 
   std::vector<std::string> errorMessages;
-  PC_CTRL_STATE status;
+  PC_CTRL_STATUS status;
   getStatus(status, errorMessages);
   if ((status != PC_CTRL_OK))
   {
@@ -398,7 +398,7 @@ bool PowerCubeCtrl::MoveVel(const std::vector<double>& velocities)
   }
 
   std::vector<std::string> errorMessages;
-  PC_CTRL_STATE status;
+  PC_CTRL_STATUS status;
   getStatus(status, errorMessages);
   if ((status != PC_CTRL_OK))
   {
@@ -413,9 +413,18 @@ bool PowerCubeCtrl::MoveVel(const std::vector<double>& velocities)
 
   for (unsigned int i = 0; i < DOF; i++)
   {
+    float pos;
+    float cmd_pos;
+    unsigned short cmd_time; // time in milliseconds
+
+    // calculate horizon
+    cmd_time = getHorizon() * 1000; // time in milliseconds
+    cmd_pos = cmd_time * velocities[i];
+
     pthread_mutex_lock(&m_mutex);
-    PCube_moveVelExtended(m_DeviceHandle, m_params->GetModuleID(i), velocities[i], &m_status[i], &m_dios[i],
-                          &m_positions[i]);
+    //PCube_moveVelExtended(m_DeviceHandle, m_params->GetModuleID(i), velocities[i], &m_status[i], &m_dios[i], &pos);
+    PCube_moveStepExtended(m_DeviceHandle, m_params->GetModuleID(i), cmd_pos, cmd_time, &m_status[i], &m_dios[i], &pos);
+    m_positions[i] = (double)pos;
     pthread_mutex_unlock(&m_mutex);
   }
 
@@ -446,6 +455,9 @@ bool PowerCubeCtrl::Stop()
 /// @brief Recovers the manipulator after an emergency stop
 bool PowerCubeCtrl::Recover()
 {
+  std::vector<std::string> errorMessages;
+  PC_CTRL_STATUS status;
+
   pthread_mutex_lock(&m_mutex);
   PCube_haltAll(m_DeviceHandle);
   pthread_mutex_unlock(&m_mutex);
@@ -456,20 +468,16 @@ bool PowerCubeCtrl::Recover()
   PCube_resetAll(m_DeviceHandle);
   pthread_mutex_unlock(&m_mutex);
 
-  std::vector<std::string> errorMessages;
-  PC_CTRL_STATE status;
   getStatus(status, errorMessages);
-  if (status == PC_CTRL_NOT_REFERENCED)
+  if (status == PC_CTRL_NOT_HOMED)
   {
-    std::cout << "PowerCubeCtrl:Init: Homing is executed ...\n";
-    bool successful = false;
-    successful = doHoming();
-    if (!successful)
+    if (!doHoming())
     {
-      std::cout << "PowerCubeCtrl:Init: homing not successful, aborting ...\n";
+      return false;
     }
   }
 
+  // check if modules are back to normal state
   getStatus(status, errorMessages);
   if ((status != PC_CTRL_OK))
   {
@@ -481,10 +489,9 @@ bool PowerCubeCtrl::Recover()
     }
     return false;
   }
-  else
-  {
-    return true;
-  }
+
+  // modules successfully recovered
+  return true;
 
 }
 
@@ -554,6 +561,24 @@ bool PowerCubeCtrl::setMaxAcceleration(const std::vector<double>& maxAcceleratio
   return true;
 }
 
+/// @brief Sets the horizon (sec).
+/// The horizon is the maximum step size which will be commanded to the powercube chain. In case
+/// of a failure this is the time the powercube chain will continue to move until it is stopped.
+bool PowerCubeCtrl::setHorizon(double horizon)
+{
+  m_horizon = horizon;
+
+  return true;
+}
+
+/// @brief Gets the horizon (sec).
+/// The horizon is the maximum step size which will be commanded to the powercube chain. In case
+/// of a failure this is the time the powercube chain will continue to move until it is stopped.
+double PowerCubeCtrl::getHorizon()
+{
+  return m_horizon;
+}
+
 /// @brief Configure powercubes to start all movements synchronously
 /// Tells the Modules not to start moving until PCube_startMotionAll is called
 bool PowerCubeCtrl::setSyncMotion()
@@ -611,16 +636,11 @@ bool PowerCubeCtrl::setASyncMotion()
 }
 
 /// @brief Returns the current states
-bool PowerCubeCtrl::getStates(std::vector<unsigned long>& states, std::vector<unsigned char>& dios,
-                              std::vector<double>& positions)
+bool PowerCubeCtrl::updateStates()
 {
   PCTRL_CHECK_INITIALIZED();
 
   unsigned int DOF = m_params->GetDOF();
-
-  states.resize(DOF);
-  dios.resize(DOF);
-  positions.resize(DOF);
 
   unsigned long state;
   unsigned char dio;
@@ -631,16 +651,19 @@ bool PowerCubeCtrl::getStates(std::vector<unsigned long>& states, std::vector<un
     PCube_getStateDioPos(m_DeviceHandle, m_params->GetModuleID(i), &state, &dio, &position);
     pthread_mutex_unlock(&m_mutex);
 
-    states[i] = state;
-    dios[i] = dio;
-    positions[i] = position;
+    m_status[i] = state;
+    m_dios[i] = dio;
+    m_positions[i] = position;
+    // @todo calculate vel and acc
+    //m_velocities = ???;
+    //m_accelerations = ???
   }
 
   return true;
 }
 
 /// @brief Gets the status of the modules
-bool PowerCubeCtrl::getStatus(PC_CTRL_STATE& error, std::vector<std::string>& errorMessages)
+bool PowerCubeCtrl::getStatus(PC_CTRL_STATUS& status, std::vector<std::string>& errorMessages)
 {
   unsigned int DOF = m_params->GetDOF();
   std::vector<int> ModuleIDs = m_params->GetModuleIDs();
@@ -648,7 +671,7 @@ bool PowerCubeCtrl::getStatus(PC_CTRL_STATE& error, std::vector<std::string>& er
   errorMessages.clear();
   errorMessages.resize(DOF);
 
-  error = PC_CTRL_OK;
+  status = PC_CTRL_ERR;
 
   for (unsigned int i = 0; i < DOF; i++)
   {
@@ -659,27 +682,28 @@ bool PowerCubeCtrl::getStatus(PC_CTRL_STATE& error, std::vector<std::string>& er
       errorMsg << "Error in Module " << ModuleIDs[i] << ": ";
       errorMsg << "Motor voltage below minimum value!";
       errorMessages[i] = errorMsg.str();
-      error = PC_CTRL_POW_VOLT_ERR;
+      status = PC_CTRL_POW_VOLT_ERR;
     }
-    /*else if (!(m_status[i] & STATEID_MOD_HOME))
-     {
-     errorMsg << "Warning: Module " << ModuleIDs[i];
-     errorMsg << " is not referenced!";
-     errorMessages[i] = errorMsg.str();
-     error = PC_CTRL_NOT_REFERENCED;
-     }*/
+    else if (!(m_status[i] & STATEID_MOD_HOME))
+    {
+      errorMsg << "Warning: Module " << ModuleIDs[i];
+      errorMsg << " is not referenced!";
+      errorMessages[i] = errorMsg.str();
+      status = PC_CTRL_NOT_HOMED;
+    }
     else if (m_status[i] & STATEID_MOD_ERROR)
     {
       errorMsg << "Error in  Module " << ModuleIDs[i];
       errorMsg << " : Status code: " << std::hex << m_status[i];
       errorMessages[i] = errorMsg.str();
-      error = PC_CTRL_ERR;
+      status = PC_CTRL_ERR;
     }
     else
     {
       errorMsg << "Module with Id " << ModuleIDs[i];
       errorMsg << ": Status OK.";
       errorMessages[i] = errorMsg.str();
+      status = PC_CTRL_OK;
     }
   }
   return true;
@@ -698,6 +722,26 @@ bool PowerCubeCtrl::statusMoving()
   return false;
 }
 
+/// @brief gets the current positions
+std::vector<double> PowerCubeCtrl::getPositions()
+{
+  return m_positions;
+}
+
+/// @brief gets the current velocities
+std::vector<double> PowerCubeCtrl::getVelocities()
+{
+  // @todo calculate new velocities before returning
+  return m_velocities;
+}
+
+/// @brief gets the current positions
+std::vector<double> PowerCubeCtrl::getAccelerations()
+{
+  // @todo calculate new accelerations before returning
+  return m_accelerations;
+}
+
 /// @brief does homing for all Modules
 bool PowerCubeCtrl::doHoming()
 {
@@ -713,16 +757,34 @@ bool PowerCubeCtrl::doHoming()
   }
 
   // wait until all modules are homed
-  /*
-   for (unsigned int i = 0; i < DOF; i++)
-   {
-   do
-   {
-   usleep(100000);
-   } while ((m_status[i] & STATEID_MOD_HOME) == 0);
-   std::cout << "Module " << ModuleIDs[i] << " homed" << std::endl;
-   }
-   */
+  double max_homing_time = 10.0; // seconds
+  double homing_time = 0.0;
+  double intervall = 0.1;
+  for (unsigned int i = 0; i < DOF; i++)
+  {
+    homing_time = 0.0;
+    while ((homing_time < max_homing_time))
+    {
+      if (!(m_status[i] & STATEID_MOD_HOME))
+      {
+        std::cout << "Module " << ModuleIDs[i] << "homed in " << homing_time << "sec." << std::endl;
+      }
 
+      usleep(intervall * 1000000); // convert sec to usec
+      homing_time = homing_time + intervall;
+    }
+
+    // check result
+    if (!(m_status[i] & STATEID_MOD_HOME))
+    {
+      std::cout << "Homing failed: Error in  Module " << ModuleIDs[i] << std::endl;
+      m_pc_status = PC_CTRL_NOT_HOMED;
+      return false;
+    }
+  }
+
+  // homing all modules successfully
+  m_pc_status = PC_CTRL_OK;
   return true;
+
 }
