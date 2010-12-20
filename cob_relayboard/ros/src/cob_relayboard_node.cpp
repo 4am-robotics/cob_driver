@@ -92,7 +92,7 @@ class NodeClass
 			topicPub_isEmergencyStop = n.advertise<cob_msgs::EmergencyStopState>("/emergency_stop_state", 1);
 
 			// Make sure member variables have a defined state at the beginning
-			EM_stop_status_ = ST_EM_ACTIVE;
+			EM_stop_status_ = ST_EM_FREE;
 			relayboard_available = false;
 			relayboard_online = false;
 			relayboard_timeout = 2.0;
@@ -216,6 +216,10 @@ int NodeClass::requestBoardStatus() {
 void NodeClass::sendEmergencyStopStates()
 {
 	requestBoardStatus();
+
+	if(!relayboard_available) return;
+	
+	
 	bool EM_signal;
 	ros::Duration duration_since_EM_confirmed;
 	cob_msgs::EmergencyStopState EM_msg;
@@ -268,13 +272,12 @@ void NodeClass::sendEmergencyStopStates()
 		}
 	};
 
+	
+	EM_msg.emergency_state = EM_stop_status_;
 
+	//publish EM-Stop-Active-messages, when connection to relayboard got cut
 	if(relayboard_online == false) {
-		EM_stop_status_ = EM_msg.EMSTOP;
+		EM_msg.emergency_state = EM_msg.EMSTOP;
 	}
-
-	if(relayboard_available) {		
-		EM_msg.emergency_state = EM_stop_status_;
-		topicPub_isEmergencyStop.publish(EM_msg);
-	}
+	topicPub_isEmergencyStop.publish(EM_msg);
 }
