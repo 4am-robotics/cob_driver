@@ -259,6 +259,19 @@ public:
       n_.shutdown();
     }
     pc_params_->SetMaxAcc(MaxAccelerations);
+
+    // get horizon
+    double Horizon;
+    if (n_.hasParam("horizon"))
+    {
+      n_.getParam("horizon", Horizon);
+    }
+    else
+    {
+      Horizon = 0.025; //Hz
+      ROS_WARN("Parameter horizon not available, setting to default value: %f sec", Horizon);
+    }
+    pc_ctrl_->setHorizon(Horizon);
   }
 
   /*!
