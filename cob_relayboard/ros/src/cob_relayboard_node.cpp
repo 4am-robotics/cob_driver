@@ -95,7 +95,8 @@ class NodeClass
 			EM_stop_status_ = ST_EM_FREE;
 			relayboard_available = false;
 			relayboard_online = false;
-			relayboard_timeout = 2.0;
+			relayboard_timeout_ = 2.0;
+			protocol_version_ = 1;
 			duration_for_EM_free_ = ros::Duration(1);
 		}
         
@@ -115,7 +116,8 @@ class NodeClass
 		int EM_stop_status_;
 		ros::Duration duration_for_EM_free_;
 		ros::Time time_of_EM_confirmed_;
-		double relayboard_timeout;
+		double relayboard_timeout_;
+		int protocol_version_;
 
 		ros::Time time_last_message_received_;
 		bool relayboard_online; //the relayboard is sending messages at regular time
@@ -170,9 +172,11 @@ int NodeClass::init()
 		ROS_WARN("ComPort Parameter not available, using default Port: %s",sComPort.c_str());
 	}
 
-	n.param("message_timeout", relayboard_timeout, 2.0);
+	n.param("message_timeout", relayboard_timeout_, 2.0);
+
+	n.param("protocol_version", protocol_version_, 1);
     
-	m_SerRelayBoard = new SerRelayBoard(sComPort);
+	m_SerRelayBoard = new SerRelayBoard(sComPort, protocol_version_);
 	ROS_INFO("Opened Relayboard at ComPort = %s", sComPort.c_str());
 
 	m_SerRelayBoard->init();
@@ -199,7 +203,7 @@ int NodeClass::requestBoardStatus() {
 		relayboard_online = false;
 	} else if(ret==SerRelayBoard::NO_MESSAGES) {
 		ROS_ERROR("For a long time, no messages from RelayBoard have been received, check com port!");
-		if(time_last_message_received_.toSec() - ros::Time::now().toSec() > relayboard_timeout) {relayboard_online = false;}
+		if(time_last_message_received_.toSec() - ros::Time::now().toSec() > relayboard_timeout_) {relayboard_online = false;}
 	} else if(ret==SerRelayBoard::TOO_LESS_BYTES_IN_QUEUE) {
 		//ROS_ERROR("Relayboard: Too less bytes in queue");
 	} else if(ret==SerRelayBoard::CHECKSUM_ERROR) {
