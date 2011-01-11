@@ -86,14 +86,14 @@ PowerCubeCtrl::~PowerCubeCtrl()
   if (m_CANDeviceOpened)
   {
     pthread_mutex_lock(&m_mutex);
-    PCube_closeDevice(m_DeviceHandle);
+    PCube_closeDevice( m_DeviceHandle);
     pthread_mutex_unlock(&m_mutex);
   }
 }
 
 bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 {
-  unsigned int DOF = m_params->GetDOF();
+  int DOF = m_params->GetDOF();
   std::string CanModule = m_params->GetCanModule();
   std::string CanDevice = m_params->GetCanDevice();
   std::vector<int> ModulIDs = m_params->GetModuleIDs();
@@ -115,32 +115,32 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
   std::cout << "CanDevice: " << CanDevice << std::endl;
   std::cout << "CanBaudrate: " << CanBaudrate << std::endl;
   std::cout << "ModulIDs: ";
-  for (unsigned int i = 0; i < DOF; i++)
+  for (int i = 0; i < DOF; i++)
   {
     std::cout << ModulIDs[i] << " ";
   }
   std::cout << std::endl << "maxVel: ";
-  for (unsigned int i = 0; i < DOF; i++)
+  for (int i = 0; i < DOF; i++)
   {
     std::cout << MaxVel[i] << " ";
   }
   std::cout << std::endl << "maxAcc: ";
-  for (unsigned int i = 0; i < DOF; i++)
+  for (int i = 0; i < DOF; i++)
   {
     std::cout << MaxAcc[i] << " ";
   }
   std::cout << std::endl << "upperLimits: ";
-  for (unsigned int i = 0; i < DOF; i++)
+  for (int i = 0; i < DOF; i++)
   {
     std::cout << UpperLimits[i] << " ";
   }
   std::cout << std::endl << "lowerLimits: ";
-  for (unsigned int i = 0; i < DOF; i++)
+  for (int i = 0; i < DOF; i++)
   {
     std::cout << LowerLimits[i] << " ";
   }
   std::cout << std::endl << "offsets: ";
-  for (unsigned int i = 0; i < DOF; i++)
+  for (int i = 0; i < DOF; i++)
   {
     std::cout << Offsets[i] << " ";
   }
@@ -166,13 +166,13 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 
   // reset all modules
   pthread_mutex_lock(&m_mutex);
-  PCube_resetAll(m_DeviceHandle);
+  PCube_resetAll( m_DeviceHandle);
   pthread_mutex_unlock(&m_mutex);
 
   // Make sure m_IdModules is clear of Elements:
   ModulIDs.clear();
 
-  for (unsigned int i = 0; i < DOF; i++)
+  for (int i = 0; i < DOF; i++)
   {
 
     // Check if the Module is connected:
@@ -201,7 +201,7 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
   if ((status != PC_CTRL_OK) && (status != PC_CTRL_NOT_HOMED))
   {
     m_ErrorMessage.assign("");
-    for (unsigned int i = 0; i < DOF; i++)
+    for (int i = 0; i < DOF; i++)
     {
       m_ErrorMessage.append(errorMessages[i]);
       m_ErrorMessage.append("\n");
@@ -221,7 +221,7 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
   }
 
   // Set angle offsets to hardware
-  for (unsigned int i = 0; i < DOF; i++)
+  for (int i = 0; i < DOF; i++)
   {
     pthread_mutex_lock(&m_mutex);
     PCube_setHomeOffset(m_DeviceHandle, ModulIDs[i], Offsets[i]);
@@ -229,7 +229,7 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
   }
 
   // Set limits to hardware
-  for (unsigned int i = 0; i < DOF; i++)
+  for (int i = 0; i < DOF; i++)
   {
     pthread_mutex_lock(&m_mutex);
     PCube_setMinPos(m_DeviceHandle, ModulIDs[i], LowerLimits[i]);
@@ -263,7 +263,7 @@ bool PowerCubeCtrl::Close()
     m_CANDeviceOpened = false;
 
     pthread_mutex_lock(&m_mutex);
-    PCube_closeDevice(m_DeviceHandle);
+    PCube_closeDevice( m_DeviceHandle);
     pthread_mutex_unlock(&m_mutex);
 
     return true;
@@ -366,7 +366,7 @@ bool PowerCubeCtrl::MoveJointSpaceSync(const std::vector<double>& target)
   }
 
   pthread_mutex_lock(&m_mutex);
-  PCube_startMotionAll(m_DeviceHandle);
+  PCube_startMotionAll( m_DeviceHandle);
   pthread_mutex_unlock(&m_mutex);
 
   return true;
@@ -429,7 +429,7 @@ bool PowerCubeCtrl::MoveVel(const std::vector<double>& velocities)
   }
 
   pthread_mutex_lock(&m_mutex);
-  PCube_startMotionAll(m_DeviceHandle);
+  PCube_startMotionAll( m_DeviceHandle);
   pthread_mutex_unlock(&m_mutex);
 
   return true;
@@ -440,7 +440,7 @@ bool PowerCubeCtrl::Stop()
 {
   // stop should be executes without checking any conditions
   pthread_mutex_lock(&m_mutex);
-  PCube_haltAll(m_DeviceHandle);
+  PCube_haltAll( m_DeviceHandle);
   pthread_mutex_unlock(&m_mutex);
 
   // after halt the modules don't accept move commands any more, they first have to be reseted
@@ -459,7 +459,7 @@ bool PowerCubeCtrl::Recover()
   PC_CTRL_STATUS status;
 
   pthread_mutex_lock(&m_mutex);
-  PCube_haltAll(m_DeviceHandle);
+  PCube_haltAll( m_DeviceHandle);
   pthread_mutex_unlock(&m_mutex);
 
   usleep(500000);
@@ -482,7 +482,7 @@ bool PowerCubeCtrl::Recover()
   if ((status != PC_CTRL_OK))
   {
     m_ErrorMessage.assign("");
-    for (unsigned int i = 0; i < m_params->GetDOF(); i++)
+    for (int i = 0; i < m_params->GetDOF(); i++)
     {
       m_ErrorMessage.append(errorMessages[i]);
       m_ErrorMessage.append("\n");
@@ -500,7 +500,7 @@ bool PowerCubeCtrl::Recover()
 bool PowerCubeCtrl::setMaxVelocity(double maxVelocity)
 {
   PCTRL_CHECK_INITIALIZED();
-  for (unsigned int i = 0; i < m_params->GetDOF(); i++)
+  for (int i = 0; i < m_params->GetDOF(); i++)
   {
     pthread_mutex_lock(&m_mutex);
     PCube_setMaxVel(m_DeviceHandle, m_params->GetModuleID(i), maxVelocity);
@@ -517,7 +517,7 @@ bool PowerCubeCtrl::setMaxVelocity(const std::vector<double>& maxVelocities)
 {
   PCTRL_CHECK_INITIALIZED();
 
-  for (unsigned int i = 0; i < m_params->GetDOF(); i++)
+  for (int i = 0; i < m_params->GetDOF(); i++)
   {
     pthread_mutex_lock(&m_mutex);
     PCube_setMaxVel(m_DeviceHandle, m_params->GetModuleID(i), maxVelocities[i]);
@@ -534,7 +534,7 @@ bool PowerCubeCtrl::setMaxAcceleration(double maxAcceleration)
 {
   PCTRL_CHECK_INITIALIZED();
 
-  for (unsigned int i = 0; i < m_params->GetDOF(); i++)
+  for (int i = 0; i < m_params->GetDOF(); i++)
   {
     pthread_mutex_lock(&m_mutex);
     PCube_setMaxAcc(m_DeviceHandle, m_params->GetModuleID(i), maxAcceleration);
@@ -550,7 +550,7 @@ bool PowerCubeCtrl::setMaxAcceleration(const std::vector<double>& maxAcceleratio
 {
   PCTRL_CHECK_INITIALIZED();
 
-  for (unsigned int i = 0; i < m_params->GetDOF(); i++)
+  for (int i = 0; i < m_params->GetDOF(); i++)
   {
     pthread_mutex_lock(&m_mutex);
     PCube_setMaxAcc(m_DeviceHandle, m_params->GetModuleID(i), maxAccelerations[i]);
@@ -585,7 +585,7 @@ bool PowerCubeCtrl::setSyncMotion()
 {
   if (m_CANDeviceOpened)
   {
-    for (unsigned int i = 0; i < m_params->GetDOF(); i++)
+    for (int i = 0; i < m_params->GetDOF(); i++)
     {
       unsigned long confword;
 
@@ -613,7 +613,7 @@ bool PowerCubeCtrl::setASyncMotion()
 {
   if (m_CANDeviceOpened)
   {
-    for (unsigned int i = 0; i < m_params->GetDOF(); i++)
+    for (int i = 0; i < m_params->GetDOF(); i++)
     {
       unsigned long confword;
 
@@ -714,7 +714,7 @@ bool PowerCubeCtrl::statusMoving()
 {
   PCTRL_CHECK_INITIALIZED();
 
-  for (unsigned int i = 0; i < m_params->GetDOF(); i++)
+  for (int i = 0; i < m_params->GetDOF(); i++)
   {
     if (m_status[i] & STATEID_MOD_MOTION)
       return true;
