@@ -58,7 +58,7 @@
 //-----------------------------------------------
 
 
-#define NUM_BYTE_SEND 50 //Total amount of data sent to relayboard in one message
+#define NUM_BYTE_SEND 79 //Total amount of data sent to relayboard in one message
 
 #define RS422_BAUDRATE 420000
 #define RS422_RX_BUFFERSIZE 1024
