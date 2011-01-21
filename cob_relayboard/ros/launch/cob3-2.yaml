@@ -2,3 +2,7 @@
 
 #Device on which relayboard is attached
 ComPort: /dev/ttyUSB2
+relayboard_timeout: 2.0
+
+#Define the version of the protocol used by the Relayboard
+protocol_version: 1
