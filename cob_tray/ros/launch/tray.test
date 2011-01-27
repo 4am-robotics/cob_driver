@@ -10,14 +10,14 @@
 	<!-- hztest /tray_controller/joint_trajectory_action/status -->
 	<param name="hztest_tray_status/topic" value="tray_controller/joint_trajectory_action/status" />
 	<param name="hztest_tray_status/hz" value="5.0" /> <!-- real cob 1.0 -->
-	<param name="hztest_tray_status/hzerror" value="0.1" />
+	<param name="hztest_tray_status/hzerror" value="1.0" />
 	<param name="hztest_tray_status/test_duration" value="5.0" />
 	<test test-name="hz_tray_status" pkg="rostest" type="hztest" name="hztest_tray_status" /> 
 
 	<!-- hztest /tray_controller/state -->
 	<param name="hztest_tray_state/topic" value="/tray_controller/state" />
 	<param name="hztest_tray_state/hz" value="100.0" />
-	<param name="hztest_tray_state/hzerror" value="0.5" />
+	<param name="hztest_tray_state/hzerror" value="1.0" />
 	<param name="hztest_tray_state/test_duration" value="1.0" />
 	<test test-name="hz_tray_state" pkg="rostest" type="hztest" name="hztest_tray_state" />
 

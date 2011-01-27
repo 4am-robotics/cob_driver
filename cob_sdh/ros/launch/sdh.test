@@ -10,14 +10,14 @@
 	<!-- hztest /sdh_controller/joint_trajectory_action/status -->
 	<param name="hztest_sdh_status/topic" value="arm_controller/joint_trajectory_action/status" />
 	<param name="hztest_sdh_status/hz" value="5.0" /> 
-	<param name="hztest_sdh_status/hzerror" value="0.1" />
+	<param name="hztest_sdh_status/hzerror" value="1.0" />
 	<param name="hztest_sdh_status/test_duration" value="5.0" />
 	<test test-name="hz_sdh_status" pkg="rostest" type="hztest" name="hztest_sdh_status" />
 
 	<!-- hztest /sdh_controller/state -->
 	<param name="hztest_sdh_state/topic" value="/sdh_controller/state" />
 	<param name="hztest_sdh_state/hz" value="100.0" /> <!-- real cob 5.0 -->
-	<param name="hztest_sdh_state/hzerror" value="0.1" />
+	<param name="hztest_sdh_state/hzerror" value="1.0" />
 	<param name="hztest_sdh_state/test_duration" value="1.0" />
 	<test test-name="hz_sdh_state" pkg="rostest" type="hztest" name="hztest_sdh_state" />
 

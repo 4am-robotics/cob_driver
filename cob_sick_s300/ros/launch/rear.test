@@ -5,14 +5,14 @@
 	<!-- hztest scan_rear_raw -->
 	<param name="hztest_scan_rear_raw/topic" value="scan_rear_raw" />
 	<param name="hztest_scan_rear_raw/hz" value="5.0" />
-	<param name="hztest_scan_rear_raw/hzerror" value="0.1" />
+	<param name="hztest_scan_rear_raw/hzerror" value="1.0" />
 	<param name="hztest_scan_rear_raw/test_duration" value="5.0" />
 	<test test-name="hztest_rear_raw" pkg="rostest" type="hztest" name="hztest_scan_rear_raw" />
 
 	<!-- hztest scan_rear --> 
 	<param name="hztest_scan_rear/topic" value="scan_rear" />
 	<param name="hztest_scan_rear/hz" value="5.0" />
-	<param name="hztest_scan_rear/hzerror" value="0.1" />
+	<param name="hztest_scan_rear/hzerror" value="1.0" />
 	<param name="hztest_scan_rear/test_duration" value="5.0" />
 	<test test-name="hztest_rear" pkg="rostest" type="hztest" name="hztest_scan_rear" />
 
