@@ -91,7 +91,7 @@ class NodeClass
         
         // global variables
         std::string port;
-        int baud, start_scan, stop_scan;
+        int baud, start_scan, stop_scan, scan_id;
         bool inverted;
         std::string frame_id;
 
@@ -104,6 +104,7 @@ class NodeClass
             // initialize global variables
 			private_nh_.param<std::string>("port", port, "/dev/ttyUSB0");
 			private_nh_.param<int>("baud", baud, 500000);
+			private_nh_.param<int>("scan_id", scan_id, 7);
 			private_nh_.param<bool>("inverted", inverted, false);
 			private_nh_.param<std::string>("frame_id", frame_id, "/base_laser_link");
             private_nh_.param<int>("start_scan", start_scan, 0);
@@ -133,11 +134,11 @@ class NodeClass
         //--
         
         // other function declarations
-		void publishLaserScan(std::vector<double> vdDistM, std::vector<double> vdAngRAD, std::vector<double> vdIntensAU)
+	void publishLaserScan(std::vector<double> vdDistM, std::vector<double> vdAngRAD, std::vector<double> vdIntensAU)
         {
         	// fill message
         	int num_readings = vdDistM.size(); // initialize with max scan size
-      start_scan = 0;
+      		start_scan = 0;
       stop_scan = vdDistM.size();
 			double laser_frequency = 10; //TODO: read from Ini-file
 			
@@ -195,26 +196,23 @@ int main(int argc, char** argv)
 //	const char pcPort[] = nodeClass.port;
 //	int iBaudRate = 500000;
 	int iBaudRate = nodeClass.baud;
+	int iScanId = nodeClass.scan_id;
 	bool bOpenScan = false, bRecScan = false;
 	bool firstTry = true;
 	std::vector<double> vdDistM, vdAngRAD, vdIntensAU;
  
  	while (!bOpenScan)
  	{
- 		ROS_INFO("Opening scanner...");
-		bOpenScan = SickS300.open(nodeClass.port.c_str(), iBaudRate);
+ 		ROS_INFO("Opening scanner... (port:%s)",nodeClass.port.c_str());
+		bOpenScan = SickS300.open(nodeClass.port.c_str(), iBaudRate, iScanId);
 		
 		// check, if it is the first try to open scanner
-	 	if(firstTry)
+	 	if(!bOpenScan)
 		{
 			ROS_ERROR("...scanner not available on port %s. Will retry every second.",nodeClass.port.c_str());
 			firstTry = false;
-			sleep(1);
 		}
-		else
-		{
-			sleep(1);
-		}
+		sleep(1); // wait for scann to get ready if successfull, or wait befor retrying
 	}
 	ROS_INFO("...scanner opened successfully on port %s",nodeClass.port.c_str());
 
@@ -225,7 +223,7 @@ int main(int argc, char** argv)
 		// read scan
 		ROS_DEBUG("Reading scanner...");
 		bRecScan = SickS300.getScan(vdDistM, vdAngRAD, vdIntensAU);
-		ROS_DEBUG("...scanner read successfully");
+		ROS_DEBUG("...read %d points from scanner successfully",vdDistM.size());
     	// publish LaserScan
         if(bRecScan)
         {
