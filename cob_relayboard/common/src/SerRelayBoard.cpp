@@ -58,7 +58,7 @@
 //-----------------------------------------------
 
 
-#define NUM_BYTE_SEND 50 //Total amount of data sent to relayboard in one message
+// #define NUM_BYTE_SEND 79 //Total amount of data sent to relayboard in one message, is now passed and set as protocol-version argument in constructor
 
 #define RS422_BAUDRATE 420000
 #define RS422_RX_BUFFERSIZE 1024
@@ -73,8 +73,16 @@
 
 
 //-----------------------------------------------
-SerRelayBoard::SerRelayBoard(std::string ComPort)
+SerRelayBoard::SerRelayBoard(std::string ComPort, int ProtocolVersion)
 {
+	m_iProtocolVersion = ProtocolVersion;
+	if(m_iProtocolVersion == 1)
+		m_NUM_BYTE_SEND = 50;
+	else if(m_iProtocolVersion == 2)
+		m_NUM_BYTE_SEND = 79;
+	else
+		m_NUM_BYTE_SEND = 50;
+
 	m_bComInit = false;
 	m_sNumComPort = ComPort;
 
@@ -223,7 +231,7 @@ int SerRelayBoard::sendRequest() {
 	int errorFlag = NO_ERROR;
 	int iNrBytesWritten;
 
-	unsigned char cMsg[NUM_BYTE_SEND];
+	unsigned char cMsg[m_NUM_BYTE_SEND];
 	
 	m_Mutex.lock();
 	
@@ -231,9 +239,9 @@ int SerRelayBoard::sendRequest() {
 
 		m_SerIO.purgeTx();
 
-		iNrBytesWritten = m_SerIO.write((char*)cMsg, NUM_BYTE_SEND);
+		iNrBytesWritten = m_SerIO.write((char*)cMsg, m_NUM_BYTE_SEND);
 	
-		if(iNrBytesWritten < NUM_BYTE_SEND) {
+		if(iNrBytesWritten < m_NUM_BYTE_SEND) {
 			//std::cerr << "Error in sending message to Relayboard over SerialIO, lost bytes during writing" << std::endl;
 			errorFlag = GENERAL_SENDING_ERROR;
 		}
@@ -344,16 +352,16 @@ void SerRelayBoard::convDataToSendMsg(unsigned char cMsg[])
 	{
 		cMsg[iCnt++] = 0;
 	}
-	while(iCnt < (NUM_BYTE_SEND - 2));
+	while(iCnt < (m_NUM_BYTE_SEND - 2));
 
 	// calc checksum: summation of all bytes in the message
-	for(i = 0; i < (NUM_BYTE_SEND - 2); i++)
+	for(i = 0; i < (m_NUM_BYTE_SEND - 2); i++)
 	{
 		iChkSum += cMsg[i];
 	}
 
-	cMsg[NUM_BYTE_SEND - 2] = iChkSum >> 8;
-	cMsg[NUM_BYTE_SEND - 1] = iChkSum;
+	cMsg[m_NUM_BYTE_SEND - 2] = iChkSum >> 8;
+	cMsg[m_NUM_BYTE_SEND - 1] = iChkSum;
 
 	// reset flags
 	m_iCmdRelayBoard &= ~CMD_RESET_POS_CNT;
