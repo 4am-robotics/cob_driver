@@ -9,14 +9,14 @@
 	<param name="hztest_base_controller_state/topic" value="/base_controller/state" />
 	<param name="hztest_base_controller_state/hz" value="55.0" />
 	<param name="hztest_base_controller_state/hzerror" value="55.0" />
-	<param name="hztest_base_controller_state/test_duratio" value="8.0" />
+	<param name="hztest_base_controller_state/test_duration" value="8.0" />
 	<test test-name="hz_base_controller_state" pkg="rostest" type="hztest" name="hztest_base_controller_state" />
 
 	<!-- hztest /base_odometry/state -->
 	<param name="hztest_base_odometry_state/topic" value="/base_odometry/state" />
 	<param name="hztest_base_odometry_state/hz" value="55.0" />
 	<param name="hztest_base_odometry_state/hzerror" value="55.0" />
-	<param name="hztest_base_odometry_state/test_duratio" value="2.0" />
+	<param name="hztest_base_odometry_state/test_duration" value="2.0" />
 	<test test-name="hz_base_odometry_state" pkg="rostest" type="hztest" name="hztest_base_odometry_state" />
 
 
