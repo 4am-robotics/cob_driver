@@ -6,6 +6,6 @@
 	<param name="hztest1/hz" value="55.25" />
 	<param name="hztest1/hzerror" value="54.75" />
 	<param name="hztest1/test_duration" value="1.0" />
-	<test test-name="hztest_scan_top" pkg="rostest" type="hztest" name="hztest1" />
+	<test test-name="hz_scan_top" pkg="rostest" type="hztest" name="hztest1" />
 
 </launch>
