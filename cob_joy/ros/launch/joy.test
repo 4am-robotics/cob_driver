@@ -4,9 +4,9 @@
 
 	<!-- hztest /joy-->
 	<param name="hztest_joy_joy/topic" value="/joy" />
-	<param name="hztest_joy_joy/hz" value="0.1" />
-	<param name="hztest_joy_joy/hzerror" value="0.01" />
-	<param name="hztest_joy_joy/test_duration" value="5.0" />
+	<param name="hztest_joy_joy/hz" value="55" />
+	<param name="hztest_joy_joy/hzerror" value="55" />
+	<param name="hztest_joy_joy/test_duration" value="2.0" />
 	<test test-name="hz_joy" pkg="rostest" type="hztest" name="hztest_joy_joy" />
 
 	<!-- hztest /diagnostics-->
