@@ -68,7 +68,7 @@ class SerRelayBoard
 {
 public:
 	
-	SerRelayBoard(std::string ComPort);
+	SerRelayBoard(std::string ComPort, int ProtocolVersion = 1);
 
 	~SerRelayBoard();
 
@@ -148,6 +148,8 @@ protected:
 	int m_iRelBoardTempSensor;
 	
 	int m_iDigIn;
+	int m_iProtocolVersion;
+	int m_NUM_BYTE_SEND;
 
 	SerialIO m_SerIO;
 
