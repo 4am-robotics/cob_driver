@@ -3,7 +3,7 @@
 
 	<!-- Initialize base for testing -->
 	<!--node name="init_base1" pkg="cob_base" type="init_base.py" /-->
-	<test test-name="base_init" pkg="cob_undercarriage_ctrl" type="initialization_test.py"/>
+	<test test-name="base_init" pkg="cob_undercarriage_ctrl" type="initialization_test.py" ns="base_controller"/>
 
 	<!-- hztest /base_controller/state -->
 	<param name="hztest_base_controller_state/topic" value="/base_controller/state" />
