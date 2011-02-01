@@ -16,10 +16,10 @@ from geometry_msgs.msg import *
 class ik_solver:
 
 	def __init__(self):
-		if rospy.has_param('JointNames'):
-			self.JointNames = rospy.get_param('JointNames')
+		if rospy.has_param('joint_names'):
+			self.JointNames = rospy.get_param('joint_names')
 		else:
-			rospy.logerror("JointNames not available")
+			rospy.logerr("joint_names not available")
 			return
 		self.configuration = [0,0,0,0,0,0,0]
 		self.lock = threading.Lock()
