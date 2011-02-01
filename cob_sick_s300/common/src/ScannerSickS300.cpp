@@ -61,6 +61,8 @@ const double ScannerSickS300::c_dPi = 3.14159265358979323846;
 
 const unsigned char ScannerSickS300::c_StartBytes[10] = {0,0,0,0,0,0,0,0,255,7};
 
+unsigned char ScannerSickS300::m_iScanId = 7;
+
 const unsigned short ScannerSickS300::crc_LookUpTable[256]
 	   = { 
 	   0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7, 
@@ -126,7 +128,7 @@ ScannerSickS300::~ScannerSickS300()
 
 
 // ---------------------------------------------------------------------------
-bool ScannerSickS300::open(const char* pcPort, int iBaudRate)
+bool ScannerSickS300::open(const char* pcPort, int iBaudRate, int iScanId=7)
 {
     int bRetSerial;
  
@@ -134,6 +136,9 @@ bool ScannerSickS300::open(const char* pcPort, int iBaudRate)
 	if (iBaudRate != 500000)
 		return false;
 
+	// update scan id (id=8 for slave scanner, else 7)
+	m_iScanId = iScanId;
+	
 	// initialize Serial Interface
 	m_SerialIO.setBaudRate(iBaudRate);
 	m_SerialIO.setDeviceName(pcPort);
@@ -199,17 +204,18 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 	vecScanPolar.resize(m_Param.iNumScanPoints);
 
 	iNumRead = m_SerialIO.readNonBlocking((char*)m_ReadBuf, SCANNER_S300_READ_BUF_SIZE-2);
-
+	
 	if( iNumRead < m_Param.iDataLength )
 	{
 		// not enough data in queue --> abort reading
+	  	printf("not enough data in queue \n");
 		return false;
 	}
 
 	// Try to find scan.
 	for(i=0; i<iNumRead; i++)
 	{
-		// parse through the telegram until header is found
+		// parse through the telegram until header with correct scan id is found
 		if (
 				( m_ReadBuf[i+0] == c_StartBytes[0] ) &&
 				( m_ReadBuf[i+1] == c_StartBytes[1] ) &&
@@ -217,9 +223,9 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 				( m_ReadBuf[i+3] == c_StartBytes[3] ) &&
 				( m_ReadBuf[i+4] == c_StartBytes[4] ) &&
 				( m_ReadBuf[i+5] == c_StartBytes[5] ) &&
-				( m_ReadBuf[i+8] == c_StartBytes[8] ) &&
-				( m_ReadBuf[i+9] == c_StartBytes[9] )
-			)
+		  		( m_ReadBuf[i+8] == c_StartBytes[8] ) &&
+		  		( m_ReadBuf[i+9] == m_iScanId )
+		 )
 
 		{
 			// ---- Start bytes found
@@ -231,7 +237,9 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 			iNumData = 2 * getUnsignedWord(m_ReadBuf[iFirstByteOfHeader + 6],
 										 m_ReadBuf[iFirstByteOfHeader + 7]);
 			// if the Data does not correspond to the expected amount --> abort the reading process
-			if ( iNumData != m_Param.iDataLength ) continue;
+			if ( iNumData != m_Param.iDataLength ) {
+			  continue;
+			}
 
 			// check CRC
 			// Telgramm includes "24 bytes Header" (4 byte Reply-Header + 20 Bytes Tel.-Header) + 
