@@ -9,7 +9,6 @@ import unittest
 import rospy
 
 from cob_srvs.srv import *
-from pr2_controllers_msgs.msg import *
 
 class InitTest(unittest.TestCase):
     def __init__(self, *args):
