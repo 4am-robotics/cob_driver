@@ -2,12 +2,12 @@
 <launch>
 	
 	<!-- api test -->
-	<!--test test-name="api_test" pkg="cob_powercube_chain" type="api_test.py" ns="sdh_controller" /-->
+	<!--test test-name="api_test" pkg="cob_powercube_chain" type="api_test.py" ns="head_controller" /-->
 
 	<!-- init test -->
-	<test test-name="init_test_head" pkg="cob_powercube_chain" type="init_test.py" ns="sdh_controller" />
+	<test test-name="init_test_head" pkg="cob_powercube_chain" type="init_test.py" ns="head_controller" />
 
-	<!-- hztest /sdh_controller/state -->
+	<!-- hztest /head_controller/state -->
 	<param name="hztest_head_state/topic" value="/head_controller/state" />
 	<param name="hztest_head_state/hz" value="55.25" /> 
 	<param name="hztest_head_state/hzerror" value="54.75" />
