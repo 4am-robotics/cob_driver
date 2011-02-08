@@ -206,14 +206,16 @@ public:
   	}
 
 	/// Callback function for image requests on topic 'request_image'
-	bool pollCallback(polled_camera::GetPolledImage::Request& req, 
+	void pollCallback(polled_camera::GetPolledImage::Request& req,
+			polled_camera::GetPolledImage::Response& res, 
 			sensor_msgs::Image& image_msg, sensor_msgs::CameraInfo& info)
 	{
 		/// Acquire new image
 		if (color_camera_->GetColorImage(&color_image_8U3_) & ipa_Utils::RET_FAILED)
 		{
 			ROS_ERROR("[color_camera] Color image acquisition failed");
-			return false;
+			res.success = false;
+			return;
 		}
 
 		try
@@ -243,7 +245,8 @@ public:
 		else
 			info.header.frame_id = "head_color_camera_l_link";
 
-    		return true;
+		res.success = true;
+    return;
 	}
 
 	bool loadParameters()
