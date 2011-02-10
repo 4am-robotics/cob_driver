@@ -15,6 +15,7 @@
   <depend package="opencv2"/>
   <depend package="image_transport"/>
   <depend package="polled_camera"/>
+  <depend package="prosilica_camera"/>
   <depend package="cv_bridge"/>
   <depend package="cob_vision_utils"/>
   <depend package="cob_srvs"/>
