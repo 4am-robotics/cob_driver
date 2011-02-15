@@ -17,9 +17,9 @@ class ik_solver:
 
 	def __init__(self):
 		if rospy.has_param('joint_names'):
-			self.JointNames = rospy.get_param('joint_names')
+			self.joint_names = rospy.get_param('joint_names')
 		else:
-			rospy.logerr("joint_names not available")
+			rospy.logerror("joint_names not available")
 			return
 		self.configuration = [0,0,0,0,0,0,0]
 		self.lock = threading.Lock()
