@@ -186,7 +186,7 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
     if (ret != 0)
     {
       std::ostringstream errorMsg;
-      errorMsg << "Could not find Module with ID " << ModulIDs[i];
+      errorMsg << "Could not find Module with ID " << ModulIDs[i] << ", m5api error code: " << ret;
       m_ErrorMessage = errorMsg.str();
       return false;
     }
