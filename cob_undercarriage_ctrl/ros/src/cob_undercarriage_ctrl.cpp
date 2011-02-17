@@ -74,7 +74,7 @@
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
-#include <cob_srvs/GetJointState.h>
+#include <cob_base_drive_chain/GetJointState.h>
 
 // external includes
 #include <cob_undercarriage_ctrl/UndercarriageCtrlGeom.h>
@@ -179,7 +179,7 @@ class NodeClass
             //--
 
 			// implementation of service clients
-            srv_client_get_joint_state_ = n.serviceClient<cob_srvs::GetJointState>("GetJointState");
+            srv_client_get_joint_state_ = n.serviceClient<cob_base_drive_chain::GetJointState>("GetJointState");
         }
         
         // Destructor
@@ -457,7 +457,7 @@ class NodeClass
 			int iter_k, iter_j;
 			std::vector<double> drive_joint_ang_rad, drive_joint_vel_rads, drive_joint_effort_NM;
 			std::vector<double> steer_joint_ang_rad, steer_joint_vel_rads, steer_joint_effort_NM;
-			cob_srvs::GetJointState srv_get_joint;
+			cob_base_drive_chain::GetJointState srv_get_joint;
 	
 			// copy configuration into vector classes
 			num_joints = msg->position.size();
@@ -670,7 +670,7 @@ void NodeClass::GetJointState()
 	int iter_k, iter_j;
 	std::vector<double> drive_joint_ang_rad, drive_joint_vel_rads, drive_joint_effort_NM;
 	std::vector<double> steer_joint_ang_rad, steer_joint_vel_rads, steer_joint_effort_NM;
-	cob_srvs::GetJointState srv_get_joint;
+	cob_base_drive_chain::GetJointState srv_get_joint;
 	
 	// request update for pltf config --> call GetJointstate service
 	srv_client_get_joint_state_.call(srv_get_joint);
