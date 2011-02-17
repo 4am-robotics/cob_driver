@@ -69,7 +69,7 @@
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
-#include <cob_msgs/EmergencyStopState.h>
+#include <cob_relayboard/EmergencyStopState.h>
 
 
 // ROS service includes
@@ -233,7 +233,7 @@ class NodeClass
 		}
 
 		// Listen for Emergency Stop
-		void topicCallbackEMStop(const cob_msgs::EmergencyStopState::ConstPtr& msg)
+		void topicCallbackEMStop(const cob_relayboard::EmergencyStopState::ConstPtr& msg)
 		{
 			int EM_state;
 			EM_state = msg->emergency_state;
