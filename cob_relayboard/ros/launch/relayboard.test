@@ -1,12 +1,11 @@
 <?xml version="1.0"?>
-
 <launch>
 
 	<!-- hztest emergency_stop_state -->
-	<param name="hztest1/topic" value="emergency_stop_state" />
-	<param name="hztest1/hz" value="20.0" />
-	<param name="hztest1/hzerror" value="0.01" />
-	<param name="hztest1/test_duration" value="1.0" />
-	<test test-name="hztest_esstate" pkg="rostest" type="hztest" name="hztest1" />
+	<param name="hztest_relayboard/topic" value="emergency_stop_state" />
+	<param name="hztest_relayboard/hz" value="20.0" />
+	<param name="hztest_relayboard/hzerror" value="0.01" />
+	<param name="hztest_relayboard/test_duration" value="1.0" />
+	<test test-name="hz_relayboard" pkg="rostest" type="hztest" name="hztest1" />
 
 </launch>

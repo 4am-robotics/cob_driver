@@ -107,12 +107,12 @@ class ik_solver:
 		#relpos.orientation.w = qrel[3]
 		print "Calling IK Server"
 		(new_config, error) = self.callIKSolver(relpos.pose)
-		if(error != -1):
+		if(error == 0):
 			self.moveArm(new_config)
 			result.return_value = 0
 			self.as_.set_succeeded(result)
 		else:
-			result.return_value = -1
+			result.return_value = 1
 			self.as_.set_aborted(result);
 	
 	def moveArm(self, pose):
