@@ -158,6 +158,7 @@ bool getIKSolverInfo(kinematics_msgs::GetKinematicSolverInfo::Request  &req,
 {
 	ROS_INFO("[TESTING]: get_ik_solver_info_service has been called!");
 	
+	///ToDo: this call returns joint_names "arm_i_joint", where i=0...6. should be: i=1...7!!!!
 	getKDLChainInfo(res.kinematic_solver_info);
 
 	return true;
