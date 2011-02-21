@@ -367,12 +367,11 @@ public:
    */
   void topicCallback_CommandVel(const brics_actuator::JointVelocities::ConstPtr& msg)
   {
-    ROS_INFO("Received new velocity command");
+    ROS_DEBUG("Received new velocity command");
     if (initialized_)
     {
       PowerCubeCtrl::PC_CTRL_STATUS status;
       std::vector<std::string> errorMessages;
-      ROS_WARN("here");
       pc_ctrl_->getStatus(status, errorMessages);
 
       // @todo don't rely on position of joint names, but merge them (check between msg.joint_uri and member variable JointStates)
@@ -534,7 +533,7 @@ public:
   {
     if (initialized_)
     {
-      ROS_INFO("publish state");
+      ROS_DEBUG("publish state");
 
       pc_ctrl_->updateStates();
 
@@ -604,7 +603,6 @@ int main(int argc, char** argv)
   ros::Rate loop_rate(frequency); // Hz
   while (pc_node.n_.ok())
   {
-    ROS_INFO("main");
     if ((ros::Time::now() - pc_node.last_publish_time_) >= min_publish_duration)
     {
       pc_node.publishState();
