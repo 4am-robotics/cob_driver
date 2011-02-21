@@ -3,7 +3,7 @@
 
 	<include file="$(find cob_camera_sensors)/ros/launch/right_cob3-1_ros.launch" />
 	<include file="$(find cob_camera_sensors)/ros/launch/left_cob3-1_ros.launch" />
-<!--	<include file="$(find cob_camera_sensors)/ros/launch/tof_ros.launch" /> 
-	<include file="$(find brsu_kinect)/ros/launch/openni_kinect_node.launch" /> -->
+<!--	<include file="$(find cob_camera_sensors)/ros/launch/tof_ros.launch" /> -->
+	<include file="$(find brsu_kinect)/ros/launch/openni_kinect_node.launch" />
 
 </launch>
