@@ -36,5 +36,6 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 rosbuild_add_library(${PROJECT_NAME} common/src/CanCtrlPltfCOb3.cpp)
 # add executable
 rosbuild_add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp)
+rosbuild_add_executable(cob_base_drive_chain_sim ros/src/base_drive_chain_sim.cpp)
 
 target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME} cob_canopen_motor_harmonica)

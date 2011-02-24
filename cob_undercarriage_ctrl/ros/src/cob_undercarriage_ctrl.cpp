@@ -168,7 +168,7 @@ class NodeClass
             topic_sub_EM_stop_state_ = n.subscribe("/emergency_stop_state", 1, &NodeClass::topicCallbackEMStop, this);
             topic_sub_drive_diagnostic_ = n.subscribe("diagnostic", 1, &NodeClass::topicCallbackDiagnostic, this);
 
-			topic_sub_joint_states_ = n.subscribe("joint_states", 1, &NodeClass::topicCallbackJointStates, this);
+			topic_sub_joint_states_ = n.subscribe("/joint_states", 1, &NodeClass::topicCallbackJointStates, this);
 			//<diagnostic_msgs::DiagnosticStatus>("Diagnostic", 1);
 
 			// diagnostics
@@ -277,6 +277,14 @@ class NodeClass
 			joint_state_cmd.position.resize(m_iNumJoints);
 			joint_state_cmd.velocity.resize(m_iNumJoints);            
 			joint_state_cmd.effort.resize(m_iNumJoints);
+			joint_state_cmd.name.push_back("fl_caster_r_wheel_joint");
+			joint_state_cmd.name.push_back("fl_caster_rotation_joint");
+			joint_state_cmd.name.push_back("bl_caster_r_wheel_joint");
+			joint_state_cmd.name.push_back("bl_caster_rotation_joint");
+			joint_state_cmd.name.push_back("br_caster_r_wheel_joint");
+			joint_state_cmd.name.push_back("br_caster_rotation_joint");
+			joint_state_cmd.name.push_back("fr_caster_r_wheel_joint");
+			joint_state_cmd.name.push_back("fr_caster_rotation_joint");
 			// compose jointcmds
 			for(int i=0; i<m_iNumJoints; i++)
 			{					
@@ -477,22 +485,56 @@ class NodeClass
 			for(int i = 0; i < num_joints; i++)
 			{
 				// associate inputs to according steer and drive joints
-				// ToDo: specify this globally (Prms-File or config-File or via msg-def.)
-				// ToDo: use joint names instead of magic integers
-				if( i == 1 || i == 3 || i == 5 || i == 7)
+				// ToDo: specify this globally (Prms-File or config-File or via msg-def.)	
+				if(msg->name[i] ==  "fl_caster_r_wheel_joint")
 				{
-					steer_joint_ang_rad[iter_k] = msg->position[i];
-					steer_joint_vel_rads[iter_k] = msg->velocity[i];
-					steer_joint_effort_NM[iter_k] = msg->effort[i];
-					iter_k = iter_k + 1;
+						drive_joint_ang_rad[0] = msg->position[i]; 
+						drive_joint_vel_rads[0] = msg->velocity[i];
+						drive_joint_effort_NM[0] = msg->effort[i];
 				}
-				else
+				if(msg->name[i] ==  "bl_caster_r_wheel_joint")
 				{
-					drive_joint_ang_rad[iter_j] = msg->position[i];
-					drive_joint_vel_rads[iter_j] = msg->velocity[i];
-					drive_joint_effort_NM[iter_j] = msg->effort[i];
-					iter_j = iter_j + 1;
+						drive_joint_ang_rad[1] = msg->position[i]; 
+						drive_joint_vel_rads[1] = msg->velocity[i];
+						drive_joint_effort_NM[1] = msg->effort[i];
 				}
+				if(msg->name[i] ==  "br_caster_r_wheel_joint")
+				{
+						drive_joint_ang_rad[2] = msg->position[i]; 
+						drive_joint_vel_rads[2] = msg->velocity[i];
+						drive_joint_effort_NM[2] = msg->effort[i];
+				}
+				if(msg->name[i] ==  "fr_caster_r_wheel_joint")
+				{
+						drive_joint_ang_rad[3] = msg->position[i]; 
+						drive_joint_vel_rads[3] = msg->velocity[i];
+						drive_joint_effort_NM[3] = msg->effort[i];
+				}
+				if(msg->name[i] ==  "fl_caster_rotation_joint")
+				{
+						steer_joint_ang_rad[0] = msg->position[i]; 
+						steer_joint_vel_rads[0] = msg->velocity[i];
+						steer_joint_effort_NM[0] = msg->effort[i];
+				}
+				if(msg->name[i] ==  "bl_caster_rotation_joint")
+				{ 
+						steer_joint_ang_rad[1] = msg->position[i]; 
+						steer_joint_vel_rads[1] = msg->velocity[i];
+						steer_joint_effort_NM[1] = msg->effort[i];
+				}
+				if(msg->name[i] ==  "br_caster_rotation_joint")
+				{
+						steer_joint_ang_rad[2] = msg->position[i]; 
+						steer_joint_vel_rads[2] = msg->velocity[i];
+						steer_joint_effort_NM[2] = msg->effort[i];
+				}
+				if(msg->name[i] ==  "fr_caster_rotation_joint")
+				{
+						steer_joint_ang_rad[3] = msg->position[i]; 
+						steer_joint_vel_rads[3] = msg->velocity[i];
+						steer_joint_effort_NM[3] = msg->effort[i];
+				}
+				
 			}
 
 			// Set measured Wheel Velocities and Angles to Controler Class (implements inverse kinematic)
@@ -624,6 +666,14 @@ void NodeClass::CalcCtrlStep()
 		joint_state_cmd.position.resize(m_iNumJoints);
 		joint_state_cmd.velocity.resize(m_iNumJoints);            
 		joint_state_cmd.effort.resize(m_iNumJoints);
+		joint_state_cmd.name.push_back("fl_caster_r_wheel_joint");
+		joint_state_cmd.name.push_back("fl_caster_rotation_joint");
+		joint_state_cmd.name.push_back("bl_caster_r_wheel_joint");
+		joint_state_cmd.name.push_back("bl_caster_rotation_joint");
+		joint_state_cmd.name.push_back("br_caster_r_wheel_joint");
+		joint_state_cmd.name.push_back("br_caster_rotation_joint");
+		joint_state_cmd.name.push_back("fr_caster_r_wheel_joint");
+		joint_state_cmd.name.push_back("fr_caster_rotation_joint");
 
 		// compose data body
 		j = 0;
