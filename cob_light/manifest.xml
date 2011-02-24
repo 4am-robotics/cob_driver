@@ -10,6 +10,6 @@
   <url>http://ros.org/wiki/cob_light</url>
   
   <depend package="rospy"/>
-  <depend package="cob_msgs"/>
+  <depend package="std_msgs"/>
 
 </package>

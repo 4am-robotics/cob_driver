@@ -69,14 +69,12 @@
 #include <actionlib/server/simple_action_server.h>
 
 // ROS message includes
-//#include <cob_msgs/JointCommand.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <sensor_msgs/JointState.h>
-//#include <cob_actions/JointCommandAction.h>
 #include <pr2_controllers_msgs/JointTrajectoryAction.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
-#include <cob_msgs/TactileSensor.h>
-#include <cob_msgs/TactileMatrix.h>
+#include <cob_sdh/TactileSensor.h>
+#include <cob_sdh/TactileMatrix.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -112,7 +110,6 @@ class SdhNode
 		ros::ServiceServer srvServer_SetOperationMode_;
 
 		// actionlib server
-//		actionlib::SimpleActionServer<cob_actions::JointCommandAction> as_;
 		actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
 		std::string action_name_;
 		//cob_actions::JointCommandFeedback feedback_;
@@ -142,7 +139,6 @@ class SdhNode
 		int DOF_HW_,DOF_ROS_;
 		double pi_;
 		
-		//cob_msgs::JointCommand command_;
 		trajectory_msgs::JointTrajectory traj_;
 		
 		std::vector<std::string> JointNames_;
@@ -157,7 +153,7 @@ class SdhNode
 		* \param name Name for the actionlib server
 		*/
 		SdhNode(std::string name):
-			as_(nh_, name, boost::bind(&SdhNode::executeCB, this, _1)),
+			as_(nh_, name, boost::bind(&SdhNode::executeCB, this, _1),false),
 			action_name_(name)
 		{
 			pi_ = 3.1415926;
@@ -202,7 +198,7 @@ class SdhNode
 			// implementation of topics to publish
 			topicPub_JointState_ = nh_.advertise<sensor_msgs::JointState>("/joint_states", 1);
 			topicPub_ControllerState_ = nh_.advertise<pr2_controllers_msgs::JointTrajectoryControllerState>("state", 1);
-			topicPub_TactileSensor_ = nh_.advertise<cob_msgs::TactileSensor>("tactile_data", 1);
+			topicPub_TactileSensor_ = nh_.advertise<cob_sdh::TactileSensor>("tactile_data", 1);
 
 			// pointer to sdh
 			sdh_ = new SDH::cSDH(false, false, 0); //(_use_radians=false, bool _use_fahrenheit=false, int _debug_level=0)
@@ -634,13 +630,13 @@ class SdhNode
 				}
 			}
 
-			cob_msgs::TactileSensor msg;
+			cob_sdh::TactileSensor msg;
 			msg.header.stamp = ros::Time::now();
 			int m, x, y;
 			msg.tactile_matrix.resize(dsa_->GetSensorInfo().nb_matrices);
 			for ( m = 0; m < dsa_->GetSensorInfo().nb_matrices; m++ )
 			{
-				cob_msgs::TactileMatrix &tm = msg.tactile_matrix[m];
+				cob_sdh::TactileMatrix &tm = msg.tactile_matrix[m];
 				tm.matrix_id = m;
 				tm.cells_x = dsa_->GetMatrixInfo( m ).cells_x;
 				tm.cells_y = dsa_->GetMatrixInfo( m ).cells_y;
