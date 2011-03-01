@@ -370,13 +370,9 @@ public:
     ROS_DEBUG("Received new velocity command");
     if (initialized_)
     {
-
       PowerCubeCtrl::PC_CTRL_STATUS status;
       std::vector<std::string> errorMessages;
-      ROS_WARN("here");
       pc_ctrl_->getStatus(status, errorMessages);
-      ROS_WARN("here2");
-      std::cout << status << std::endl;
 
       // @todo don't rely on position of joint names, but merge them (check between msg.joint_uri and member variable JointStates)
 
@@ -537,7 +533,7 @@ public:
   {
     if (initialized_)
     {
-      ROS_INFO("publish state");
+      ROS_DEBUG("publish state");
 
       pc_ctrl_->updateStates();
 
@@ -578,7 +574,7 @@ int main(int argc, char** argv)
   pc_node.getROSParameters();
   pc_node.getRobotDescriptionParameters();
 
-  // main loop
+  // get main loop parameters
   double frequency;
   if (pc_node.n_.hasParam("frequency"))
   {
@@ -603,10 +599,10 @@ int main(int argc, char** argv)
     ROS_WARN("Parameter min_publish_time not available, setting to default value: %f sec", min_publish_duration.toSec());
   }
 
+  // main loop
   ros::Rate loop_rate(frequency); // Hz
   while (pc_node.n_.ok())
   {
-    ROS_INFO("main");
     if ((ros::Time::now() - pc_node.last_publish_time_) >= min_publish_duration)
     {
       pc_node.publishState();
