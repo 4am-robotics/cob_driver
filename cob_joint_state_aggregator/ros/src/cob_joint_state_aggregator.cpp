@@ -17,10 +17,10 @@ void jsCallback(const sensor_msgs::JointState::ConstPtr& msg)
 		if (iter != jointpositions.end() )
 			iter->second = msg->position[i];
 		
-		iter = jointvelocities.find(msg->name[i]);
+		/*iter = jointvelocities.find(msg->name[i]);
 		
 		if (iter != jointvelocities.end() )
-			iter->second = msg->velocity[i];
+			iter->second = msg->velocity[i];*/
 	}
 	//ROS_INFO("updated joint_states");
 }
@@ -32,6 +32,7 @@ sensor_msgs::JointState getJointStatesMessage()
 	msg.name.resize(jointpositions.size());
 	msg.position.resize(jointpositions.size());
 	msg.velocity.resize(jointvelocities.size());
+	msg.effort.resize(jointvelocities.size());
 
 
 	MapType::const_iterator end = jointpositions.end();
@@ -45,7 +46,9 @@ sensor_msgs::JointState getJointStatesMessage()
 		
 		if (iter != jointvelocities.end() )
 			msg.velocity[count] = iter->second;
-			
+		
+		msg.effort[count] = 0;
+		
 		count++;
 	}
 	return msg;
@@ -60,18 +63,21 @@ int main(int argc, char **argv)
 	ros::Publisher topicPub_JointState_ = n.advertise<sensor_msgs::JointState>("/joint_states_combined", 1);
 
 	XmlRpc::XmlRpcValue JointName_param_;
-	if (n.hasParam("Joints"))
+	std::string JointName;
+	if (n.hasParam("joint_names"))
 	{
-		n.getParam("Joints", JointName_param_);
+		n.getParam("joint_names", JointName_param_);
 	}
 	else
 	{
-		ROS_ERROR("Parameter Jointnames not set");
+		ROS_ERROR("Parameter joint_names not set");
 	}
 	for (int i = 0; i<JointName_param_.size(); i++ )
 	{
-		jointpositions.insert(std::pair<std::string,double>((std::string)JointName_param_[i],0.0));
-		jointvelocities.insert(std::pair<std::string,double>((std::string)JointName_param_[i],0.0));
+		JointName = (std::string)JointName_param_[i];
+		ROS_DEBUG("Inserting joint %s",JointName.c_str());
+		jointpositions.insert(std::pair<std::string,double>(JointName,0.0));
+		jointvelocities.insert(std::pair<std::string,double>(JointName,0.0));
 	}
 
 	ros::Rate loop_rate(100);

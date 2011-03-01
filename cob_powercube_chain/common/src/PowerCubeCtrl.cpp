@@ -86,13 +86,15 @@ PowerCubeCtrl::~PowerCubeCtrl()
   if (m_CANDeviceOpened)
   {
     pthread_mutex_lock(&m_mutex);
-    PCube_closeDevice( m_DeviceHandle);
+    //std::cout << "------------------------------> PCube_closeDevice()" << std::endl;
+    PCube_closeDevice(m_DeviceHandle);
     pthread_mutex_unlock(&m_mutex);
   }
 }
 
 bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 {
+  int ret = 0;
   int DOF = m_params->GetDOF();
   std::string CanModule = m_params->GetCanModule();
   std::string CanDevice = m_params->GetCanDevice();
@@ -148,13 +150,12 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
   std::ostringstream InitStr;
   InitStr << CanModule << ":" << CanDevice << "," << CanBaudrate;
   std::cout << "initstring = " << InitStr.str().c_str() << std::endl;
-  int ret = 0;
 
   // open device
   pthread_mutex_lock(&m_mutex);
+  //std::cout << "------------------------------> PCube_openDevice()" << std::endl;
   ret = PCube_openDevice(&m_DeviceHandle, InitStr.str().c_str());
   pthread_mutex_unlock(&m_mutex);
-
   if (ret != 0)
   {
     std::ostringstream errorMsg;
@@ -166,33 +167,44 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 
   // reset all modules
   pthread_mutex_lock(&m_mutex);
-  PCube_resetAll( m_DeviceHandle);
+  //std::cout << "------------------------------> PCube_resetAll()" << std::endl;
+  ret = PCube_resetAll(m_DeviceHandle);
   pthread_mutex_unlock(&m_mutex);
-
+  if (ret != 0)
+  {
+    std::ostringstream errorMsg;
+    errorMsg << "Could not reset all modules, m5api error code: " << ret;
+    m_ErrorMessage = errorMsg.str();
+    return false;
+  }
   // Make sure m_IdModules is clear of Elements:
   ModulIDs.clear();
 
+  // check number of modules connected to the bus
+  pthread_mutex_lock(&m_mutex);
+  //std::cout << "------------------------------> PCube_getModuleCount()" << std::endl;
+  int number_of_modules = PCube_getModuleCount(m_DeviceHandle);
+  pthread_mutex_unlock(&m_mutex);
+  std::cout << "found " << number_of_modules << " modules." << std::endl;
+
+  // Check if the modules are connected
   for (int i = 0; i < DOF; i++)
   {
-
-    // Check if the Module is connected:
     unsigned long serNo;
 
     pthread_mutex_lock(&m_mutex);
-    int ret = PCube_getModuleSerialNo(m_DeviceHandle, ModulIDs[i], &serNo);
+    //std::cout << "------------------------------> PCube_getModuleSerialNo()" << std::endl;
+    ret = PCube_getModuleSerialNo(m_DeviceHandle, ModulIDs[i], &serNo);
     pthread_mutex_unlock(&m_mutex);
-
-    // if not return false ( ret == 0 means success)
     if (ret != 0)
     {
       std::ostringstream errorMsg;
-      errorMsg << "Could not find Module with ID " << ModulIDs[i];
+      errorMsg << "Could not find Module with ID " << ModulIDs[i] << ", m5api error code: " << ret;
       m_ErrorMessage = errorMsg.str();
       return false;
     }
-
-    // otherwise success, save Id in m_IdModules
-    std::cout << "found module " << ModulIDs[i] << std::endl;
+    // otherwise success
+    std::cout << "Found module " << ModulIDs[i] << std::endl;
   }
 
   std::vector<std::string> errorMessages;
@@ -224,6 +236,7 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
   for (int i = 0; i < DOF; i++)
   {
     pthread_mutex_lock(&m_mutex);
+    //std::cout << "------------------------------> PCube_setHomeOffset()" << std::endl;
     PCube_setHomeOffset(m_DeviceHandle, ModulIDs[i], Offsets[i]);
     pthread_mutex_unlock(&m_mutex);
   }
@@ -232,10 +245,12 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
   for (int i = 0; i < DOF; i++)
   {
     pthread_mutex_lock(&m_mutex);
+    //std::cout << "------------------------------> PCube_setMinPos()" << std::endl;
     PCube_setMinPos(m_DeviceHandle, ModulIDs[i], LowerLimits[i]);
     pthread_mutex_unlock(&m_mutex);
 
     pthread_mutex_lock(&m_mutex);
+    //std::cout << "------------------------------> PCube_setMaxPos()" << std::endl;
     PCube_setMaxPos(m_DeviceHandle, ModulIDs[i], UpperLimits[i]);
     pthread_mutex_unlock(&m_mutex);
   }
@@ -250,6 +265,7 @@ bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
   setSyncMotion();
   //setASyncMotion();
 
+  // @todo check status again
   m_Initialized = true;
 
   return true;
@@ -263,7 +279,8 @@ bool PowerCubeCtrl::Close()
     m_CANDeviceOpened = false;
 
     pthread_mutex_lock(&m_mutex);
-    PCube_closeDevice( m_DeviceHandle);
+    //std::cout << "------------------------------> PCube_closeDevice()" << std::endl;
+    PCube_closeDevice(m_DeviceHandle);
     pthread_mutex_unlock(&m_mutex);
 
     return true;
@@ -361,12 +378,14 @@ bool PowerCubeCtrl::MoveJointSpaceSync(const std::vector<double>& target)
   for (unsigned int i = 0; i < DOF; i++)
   {
     pthread_mutex_lock(&m_mutex);
+    //std::cout << "------------------------------> PCube_moveRamp()" << std::endl;
     PCube_moveRamp(m_DeviceHandle, m_params->GetModuleIDs()[i], target[i], fabs(vel[i]), fabs(acc[i]));
     pthread_mutex_unlock(&m_mutex);
   }
 
   pthread_mutex_lock(&m_mutex);
-  PCube_startMotionAll( m_DeviceHandle);
+  //std::cout << "------------------------------> PCube_startMotionAll()" << std::endl;
+  PCube_startMotionAll(m_DeviceHandle);
   pthread_mutex_unlock(&m_mutex);
 
   return true;
@@ -392,7 +411,9 @@ bool PowerCubeCtrl::MoveVel(const std::vector<double>& velocities)
     // check limits
     if (velocities[i] < lowerLimits[i] || velocities[i] > upperLimits[i])
     {
-      m_ErrorMessage = "Skipping command: Velocity exceeds limits.";
+      std::ostringstream errorMsg;
+      errorMsg << "Skipping command: Velocity " << velocities[i] << " exceeds limit " << lowerLimits[i] << " - " << upperLimits[i] << "for axis " << i;
+      m_ErrorMessage = errorMsg.str();
       return false;
     }
   }
@@ -411,6 +432,7 @@ bool PowerCubeCtrl::MoveVel(const std::vector<double>& velocities)
     return false;
   }
 
+  std::cout <<"vels = ";
   for (unsigned int i = 0; i < DOF; i++)
   {
     float pos;
@@ -419,17 +441,22 @@ bool PowerCubeCtrl::MoveVel(const std::vector<double>& velocities)
 
     // calculate horizon
     cmd_time = getHorizon() * 1000; // time in milliseconds
-    cmd_pos = cmd_time * velocities[i];
-
+    cmd_pos = cmd_time/1000 * velocities[i];
+	//std::cout << "horizon = " << getHorizon() << " pos = " << cmd_pos << " time = " << cmd_time << " vel = " << cmd_pos/cmd_time << std::endl;
+    std::cout << velocities[i] << " ";
     pthread_mutex_lock(&m_mutex);
-    //PCube_moveVelExtended(m_DeviceHandle, m_params->GetModuleID(i), velocities[i], &m_status[i], &m_dios[i], &pos);
-    PCube_moveStepExtended(m_DeviceHandle, m_params->GetModuleID(i), cmd_pos, cmd_time, &m_status[i], &m_dios[i], &pos);
-    m_positions[i] = (double)pos;
+    //std::cout << "------------------------------> PCube_moveVelExtended()" << std::endl;
+    PCube_moveVelExtended(m_DeviceHandle, m_params->GetModuleID(i), velocities[i], &m_status[i], &m_dios[i], &pos);
+    //PCube_moveStepExtended(m_DeviceHandle, m_params->GetModuleID(i), 0.1, 1000, &m_status[i], &m_dios[i], &pos);
+    //PCube_moveStep(m_DeviceHandle, m_params->GetModuleID(i), 1000, 0.001);
     pthread_mutex_unlock(&m_mutex);
+    m_positions[i] = (double)pos;
   }
+  std::cout << std::endl;
 
   pthread_mutex_lock(&m_mutex);
-  PCube_startMotionAll( m_DeviceHandle);
+  //std::cout << "------------------------------> PCube_startMotionAll()" << std::endl;
+  PCube_startMotionAll(m_DeviceHandle);
   pthread_mutex_unlock(&m_mutex);
 
   return true;
@@ -440,12 +467,14 @@ bool PowerCubeCtrl::Stop()
 {
   // stop should be executes without checking any conditions
   pthread_mutex_lock(&m_mutex);
-  PCube_haltAll( m_DeviceHandle);
+  //std::cout << "------------------------------> PCube_haltAll()" << std::endl;
+  PCube_haltAll(m_DeviceHandle);
   pthread_mutex_unlock(&m_mutex);
 
   // after halt the modules don't accept move commands any more, they first have to be reseted
   usleep(500000);
   pthread_mutex_lock(&m_mutex);
+  //std::cout << "------------------------------> PCube_resetAll()" << std::endl;
   PCube_resetAll(m_DeviceHandle);
   pthread_mutex_unlock(&m_mutex);
 
@@ -459,12 +488,14 @@ bool PowerCubeCtrl::Recover()
   PC_CTRL_STATUS status;
 
   pthread_mutex_lock(&m_mutex);
-  PCube_haltAll( m_DeviceHandle);
+  //std::cout << "------------------------------> PCube_haltAll()" << std::endl;
+  PCube_haltAll(m_DeviceHandle);
   pthread_mutex_unlock(&m_mutex);
 
   usleep(500000);
 
   pthread_mutex_lock(&m_mutex);
+  //std::cout << "------------------------------> PCube_resetAll()" << std::endl;
   PCube_resetAll(m_DeviceHandle);
   pthread_mutex_unlock(&m_mutex);
 
@@ -503,6 +534,7 @@ bool PowerCubeCtrl::setMaxVelocity(double maxVelocity)
   for (int i = 0; i < m_params->GetDOF(); i++)
   {
     pthread_mutex_lock(&m_mutex);
+    //std::cout << "------------------------------> PCube_setMaxVel()" << std::endl;
     PCube_setMaxVel(m_DeviceHandle, m_params->GetModuleID(i), maxVelocity);
     pthread_mutex_unlock(&m_mutex);
 
@@ -520,6 +552,7 @@ bool PowerCubeCtrl::setMaxVelocity(const std::vector<double>& maxVelocities)
   for (int i = 0; i < m_params->GetDOF(); i++)
   {
     pthread_mutex_lock(&m_mutex);
+    //std::cout << "------------------------------> PCube_setMaxVel()" << std::endl;
     PCube_setMaxVel(m_DeviceHandle, m_params->GetModuleID(i), maxVelocities[i]);
     pthread_mutex_unlock(&m_mutex);
     m_params->SetMaxVel(maxVelocities);
@@ -537,6 +570,7 @@ bool PowerCubeCtrl::setMaxAcceleration(double maxAcceleration)
   for (int i = 0; i < m_params->GetDOF(); i++)
   {
     pthread_mutex_lock(&m_mutex);
+    //std::cout << "------------------------------> PCube_setMaxAcc()" << std::endl;
     PCube_setMaxAcc(m_DeviceHandle, m_params->GetModuleID(i), maxAcceleration);
     pthread_mutex_unlock(&m_mutex);
     std::vector<double> maxAccelerations(maxAcceleration);
@@ -553,6 +587,7 @@ bool PowerCubeCtrl::setMaxAcceleration(const std::vector<double>& maxAcceleratio
   for (int i = 0; i < m_params->GetDOF(); i++)
   {
     pthread_mutex_lock(&m_mutex);
+    //std::cout << "------------------------------> PCube_setMaxAcc()" << std::endl;
     PCube_setMaxAcc(m_DeviceHandle, m_params->GetModuleID(i), maxAccelerations[i]);
     pthread_mutex_unlock(&m_mutex);
     m_params->SetMaxAcc(maxAccelerations);
@@ -591,11 +626,13 @@ bool PowerCubeCtrl::setSyncMotion()
 
       // get config
       pthread_mutex_lock(&m_mutex);
+      //std::cout << "------------------------------> PCube_getConfig()" << std::endl;
       PCube_getConfig(m_DeviceHandle, m_params->GetModuleID(i), &confword);
       pthread_mutex_unlock(&m_mutex);
 
       // set config to synchronous
       pthread_mutex_lock(&m_mutex);
+      //std::cout << "------------------------------> PCube_setConfig()" << std::endl;
       PCube_setConfig(m_DeviceHandle, m_params->GetModuleID(i), confword | CONFIGID_MOD_SYNC_MOTION);
       pthread_mutex_unlock(&m_mutex);
     }
@@ -619,11 +656,13 @@ bool PowerCubeCtrl::setASyncMotion()
 
       // get config
       pthread_mutex_lock(&m_mutex);
+      //std::cout << "------------------------------> PCube_getConfig()" << std::endl;
       PCube_getConfig(m_DeviceHandle, m_params->GetModuleID(i), &confword);
       pthread_mutex_unlock(&m_mutex);
 
       // set config to asynchronous
       pthread_mutex_lock(&m_mutex);
+      //std::cout << "------------------------------> PCube_setConfig()" << std::endl;
       PCube_setConfig(m_DeviceHandle, m_params->GetModuleID(i), confword & (~CONFIGID_MOD_SYNC_MOTION));
       pthread_mutex_unlock(&m_mutex);
     }
@@ -648,6 +687,7 @@ bool PowerCubeCtrl::updateStates()
   for (unsigned int i = 0; i < DOF; i++)
   {
     pthread_mutex_lock(&m_mutex);
+    //std::cout << "------------------------------> PCube_getStateDioPos()" << std::endl;
     PCube_getStateDioPos(m_DeviceHandle, m_params->GetModuleID(i), &state, &dio, &position);
     pthread_mutex_unlock(&m_mutex);
 
@@ -684,13 +724,13 @@ bool PowerCubeCtrl::getStatus(PC_CTRL_STATUS& status, std::vector<std::string>& 
       errorMessages[i] = errorMsg.str();
       status = PC_CTRL_POW_VOLT_ERR;
     }
-    else if (!(m_status[i] & STATEID_MOD_HOME))
+/*    else if (!(m_status[i] & STATEID_MOD_HOME))
     {
       errorMsg << "Warning: Module " << ModuleIDs[i];
       errorMsg << " is not referenced!";
       errorMessages[i] = errorMsg.str();
       status = PC_CTRL_NOT_HOMED;
-    }
+    }*/
     else if (m_status[i] & STATEID_MOD_ERROR)
     {
       errorMsg << "Error in  Module " << ModuleIDs[i];
@@ -749,31 +789,57 @@ bool PowerCubeCtrl::doHoming()
   std::vector<int> ModuleIDs = m_params->GetModuleIDs();
 
   // start homing
+  int ret = 0;
   for (unsigned int i = 0; i < DOF; i++)
   {
     pthread_mutex_lock(&m_mutex);
-    PCube_homeModule(m_DeviceHandle, ModuleIDs[i]);
+    //std::cout << "------------------------------> PCube_homeModule()" << std::endl;
+    ret = PCube_homeModule(m_DeviceHandle, ModuleIDs[i]);
     pthread_mutex_unlock(&m_mutex);
+    if (ret != 0)
+    {
+      std::ostringstream errorMsg;
+      errorMsg << "Can't start homing for module " << ModuleIDs[i] << ", m5api error code: " << ret;
+      m_ErrorMessage = errorMsg.str();
+      return false;
+    }
   }
 
   // wait until all modules are homed
   double max_homing_time = 10.0; // seconds
   double homing_time = 0.0;
   double intervall = 0.1;
+
+  for (unsigned int i = 0; i < DOF; i++)
+  {
+    unsigned long int help;
+    do
+    {
+      pthread_mutex_lock(&m_mutex);
+      //std::cout << "------------------------------> PCube_getModuleState()" << std::endl;
+      PCube_getModuleState(m_DeviceHandle, ModuleIDs[i], &help);
+      pthread_mutex_unlock(&m_mutex);
+
+      usleep(intervall * 1000000); // convert sec to usec
+    } while ((help & STATEID_MOD_HOME) == 0);
+    m_status[i] = help;
+  }
+
   for (unsigned int i = 0; i < DOF; i++)
   {
     homing_time = 0.0;
-    while ((homing_time < max_homing_time))
-    {
-      if (!(m_status[i] & STATEID_MOD_HOME))
-      {
-        std::cout << "Module " << ModuleIDs[i] << "homed in " << homing_time << "sec." << std::endl;
-      }
+    /*while ((homing_time < max_homing_time))
+     {
+     updateStates();
+     if ((m_status[i] & STATEID_MOD_HOME))
+     {
+     std::cout << "Module " << ModuleIDs[i] << " homed in " << homing_time << "sec." << std::endl;
+     }
 
-      usleep(intervall * 1000000); // convert sec to usec
-      homing_time = homing_time + intervall;
-    }
-
+     usleep(intervall * 1000000); // convert sec to usec
+     homing_time = homing_time + intervall;
+     }
+     */
     // check result
     if (!(m_status[i] & STATEID_MOD_HOME))
     {

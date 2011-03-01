@@ -54,7 +54,7 @@
 import roslib; 
 roslib.load_manifest('cob_light')
 import rospy
-from cob_msgs.msg import Light
+from cob_light.msg import Light
 
 import serial
 import sys

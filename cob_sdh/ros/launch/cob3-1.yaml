@@ -1,10 +1,6 @@
 sdhdevicetype: PCAN
 sdhdevicestring: /dev/pcan2
-<<<<<<< HEAD
 dsadevicestring: /dev/ttyTact
-=======
-dsadevicestring: /dev/ttyUSB1
->>>>>>> a875879f5905da27ef8965279438331d22febef9
 baudrate: 1000000
 JointNames: ['sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_11_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_21_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']
 OperationMode: position
