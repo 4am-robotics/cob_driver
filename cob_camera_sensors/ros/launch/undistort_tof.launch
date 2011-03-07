@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node pkg="cob_camera_sensors" type="undistort_tof" name="undistort_tof" output="screen" respawn="false">
+    <remap from="tof/point_cloud2" to="swissranger/pointcloud2_raw"/>
+    <remap from="tof/camera_info" to="swissranger/camera_info"/>
+  </node>
+	
+
+</launch>

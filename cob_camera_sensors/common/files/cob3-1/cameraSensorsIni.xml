@@ -16,7 +16,7 @@
   <Role value="MASTER" />
 
   <!-- Valid values: appropriate framerte or AUTO and DEFAULT -->
-  <FrameRate fps="1" />
+  <FrameRate fps="3" />
 
     <!-- Valid values: FORMAT_0, FORMAT_1, FORMAT_2 ,FORMAT_7, DEFAULT-->
   <VideoFormat type="FORMAT_7" />
@@ -80,16 +80,16 @@
   <!-- p2 Second order tangential distortion coefficient -->
   <IntrinsicParameters>
     <AVTPikeCam_0> 
-      <IntrinsicMatrix fx="1244.05005" fy="1240.11251" cx="703.94548" cy="518.63335" />
-      <DistortionCoeffs k1="-0.21075" k2="0.11616" p1="0" p2="0" />
+      <IntrinsicMatrix fx="1248.36" fy="1244.208" cx="325.385" cy="237.858" />
+      <DistortionCoeffs k1="-0.21373" k2="0.17435" p1="0" p2="0" />
     </AVTPikeCam_0> 
     <Swissranger_0> 
-      <IntrinsicMatrix fx="1244.05005" fy="1240.11251" cx="703.94548" cy="518.63335" />
-      <DistortionCoeffs k1="-0.21075" k2="0.11616" p1="0" p2="0" />
+      <IntrinsicMatrix fx="1248.512" fy="1244.260" cx="326.711" cy="238.482" />
+      <DistortionCoeffs k1="-0.20988" k2="0.14901" p1="0" p2="0" />
     </Swissranger_0>
     <AVTPikeCam_1> 
-      <IntrinsicMatrix fx="1241.52125" fy="1237.20292" cx="701.87108" cy="519.73486" />
-      <DistortionCoeffs k1="-0.21114" k2=" 0.11737" p1="0" p2="0" />
+      <IntrinsicMatrix fx="1243.28628" fy="1238.92171" cx="323.92175" cy="241.11241" />
+      <DistortionCoeffs k1="-0.20630" k2="0.13003" p1="0" p2="0" />
     </AVTPikeCam_1>
   </IntrinsicParameters>
 
@@ -99,12 +99,12 @@
   <!-- X_This = R * X_Other + T -->
   <ExtrinsicParameters>
     <AVTPikeCam_1>
-      <Translation x="-121.03702" y="1.27260" z="-2.51774" />
-      <Rotation x11="1.0000" x12="0.0086" x13="-0.0042" x21="-0.0086" x22="1.0000" x23="0.0017" x31="0.0042" x32="-0.0016" x33="1.0000" />
+      <Translation x="-120.74683" y="0.81605" z="-2.13660" />
+      <Rotation x11="0.9999" x12="0.0069" x13="-0.0073" x21="-0.0069" x22="1.0000" x23="-0.0003" x31="0.0073" x32="0.0004" x33="1.0000" />
     </AVTPikeCam_1> 
     <Swissranger_0>
-      <Translation x="-66.10490" y="-0.46490" z="-33.58596" />
-      <Rotation x11="0.9992" x12="0.0059" x13="0.0397" x21="-0.0047" x22="0.9996" x23="-0.0291" x31="-0.0398" x32="0.0288" x33="0.9988" />
+      <Translation x="-61.16028" y="1.51462" z="-7.77187" />
+      <Rotation x11="1.0" x12="0.0058" x13="-0.0029" x21="-0.0058" x22="1.0" x23="0.0058" x31="0.0029" x32="-0.0058" x33="1.0" />
     </Swissranger_0>
   </ExtrinsicParameters>
 </AVTPikeCam_0>
@@ -120,10 +120,10 @@
   <!-- respnsible for emitting the trigger signal to other cameras -->
   <!-- The slave is synchronizing its image acquisition with the trigger signal -->
   <!-- Valid roles: MASTER oR SLAVE -->
-  <Role value="MASTER" />
+  <Role value="SLAVE" />
 
   <!-- Valid values: appropriate framerte or AUTO and DEFAULT -->
-  <FrameRate fps="1" />
+  <FrameRate fps="3" />
 
     <!-- Valid values: FORMAT_0, FORMAT_1, FORMAT_2 ,FORMAT_7, DEFAULT-->
   <VideoFormat type="FORMAT_7" />
@@ -187,12 +187,12 @@
   <!-- p2 Second order tangential distortion coefficient -->
   <IntrinsicParameters>
     <AVTPikeCam_1>
-      <IntrinsicMatrix fx="1262.17932" fy="1257.51805" cx="681.83211" cy="510.84321" />
-      <DistortionCoeffs k1="-0.21316" k2="0.12593" p1="0" p2="0" />
+      <IntrinsicMatrix fx="1263.47838" fy="1259.22897" cx="298.75145" cy="230.20038" />
+      <DistortionCoeffs k1="-0.22125" k2="0.10208" p1="0" p2="0" />
     </AVTPikeCam_1>
     <AVTPikeCam_0>
-      <IntrinsicMatrix fx="1261.10960" fy="1257.00486" cx="685.72967" cy="515.20171" />
-      <DistortionCoeffs k1="-0.21586" k2="0.13486" p1="0" p2="0" />
+      <IntrinsicMatrix fx="1261.56689" fy="1257.15536" cx="301.99007" cy="232.40367" />
+      <DistortionCoeffs k1="-0.21662" k2="0.12327" p1="0" p2="0" />
     </AVTPikeCam_0>
   </IntrinsicParameters>
 
@@ -257,7 +257,7 @@
      AM_SHORT_RANGE="OFF"
      AM_CONF_MAP="OFF"
      AM_HW_TRIGGER="OFF"
-     AM_SW_TRIGGER="OFF"
+     AM_SW_TRIGGER="ON"
      AM_DENOISE_ANF="ON"
      AM_MEDIANCROSS="OFF"
   />
@@ -281,12 +281,12 @@
   <!-- p2 Second order tangential distortion coefficient -->
   <IntrinsicParameters>
     <Swissranger_0>
-      <IntrinsicMatrix fx="258.52047" fy="257.64993" cx="98.37125" cy="60.22503" />
-      <DistortionCoeffs k1="-0.74904" k2="-0.06910" p1="0.02603" p2="-0.01596" />
+      <IntrinsicMatrix fx="252.10523" fy="251.26584" cx="91.75736" cy="68.24770" />
+      <DistortionCoeffs k1="-0.86723" k2="0.61202" p1="0.00363" p2="-0.00161" />
     </Swissranger_0>
     <AVTPikeCam_0>
-      <IntrinsicMatrix fx="258.52047" fy="257.64993" cx="98.37125" cy="60.22503" />
-      <DistortionCoeffs k1="-0.74904" k2="-0.06910" p1="0.02603" p2="-0.01596" />
+      <IntrinsicMatrix fx="252.05882" fy="251.85708" cx="88.74137" cy="69.33685" />
+      <DistortionCoeffs k1="-0.97324" k2="2.53447" p1="0.00571" p2="0.00419" />
     </AVTPikeCam_0>
   </IntrinsicParameters>
 

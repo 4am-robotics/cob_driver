@@ -1,37 +1,32 @@
 #!/usr/bin/env python
-PACKAGE='cob_undercarriage_ctrl'
-import roslib; roslib.load_manifest(PACKAGE)
+
+PKG='cob_undercarriage_ctrl'
+import roslib; roslib.load_manifest(PKG)
+
 import sys
-import rospy
 import unittest
-import time
-from nav_msgs.msg import *
+
+import rospy
+
 from cob_srvs.srv import *
-from pr2_controllers_msgs.msg import *
 
-class TestInititialization(unittest.TestCase):
+class InitTest(unittest.TestCase):
     def __init__(self, *args):
-		super(TestInititialization, self).__init__(*args)
-		rospy.init_node("test_init")
-
-    def callback(self, msg):
-		self.received = True
+		super(InitTest, self).__init__(*args)
+		rospy.init_node("test_init_node")
 
     def test_init(self):
-		self.received = False
-		rospy.wait_for_service('init')
+		# call init service
+		rospy.wait_for_service('init',10)
 		call_init = rospy.ServiceProxy('init', Trigger)
 		try:
-			resp1 = call_init(0)
+			resp1 = call_init()
 		except rospy.ServiceException, e:
-			self.assertEquals(0, 1, "Init failed: " +str(e))
-		sub = rospy.Subscriber("odometry", Odometry, self.callback)
-		time.sleep(1.0)
-		if(self.received):
-			self.assertEquals(1, 1, "Init successful")
-		else:
-			self.assertEquals(0, 1, "No controller state messages received")
+			self.assertTrue(False, "calling init service failed: " +str(e))
+
+		# evaluate response
+		self.assertTrue(resp1.success.data, "init not succesfull: "+ resp1.error_message.data)
 
 if __name__ == '__main__':
     import rostest
-    rostest.rosrun(PACKAGE, 'test_init', TestInititialization)
+    rostest.rosrun(PKG, 'test_init', InitTest)

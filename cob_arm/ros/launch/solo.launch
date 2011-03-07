@@ -2,12 +2,17 @@
 <launch>
 
 	<!-- send robot urdf to parameter server -->
-	<param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_description)/ros/robots/$(env ROBOT).urdf.xacro'" />
+	<param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_description)/ros/robots/arm_sdh.urdf.xacro'" />
 
 	<!-- start robot_state_publisher -->
-	<node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />
-	
+	<node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub">
+		<remap from="/joint_states" to="/joint_states_combined"/>
+	</node>
+
 	<!-- start arm -->
 	<include file="$(find cob_arm)/ros/launch/arm.launch" />
+
+	<!-- start additional packages -->
+	<include file="$(find cob_joint_state_aggregator)/ros/launch/joint_state_aggregator.launch" />
 
 </launch>

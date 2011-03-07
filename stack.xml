@@ -1,5 +1,5 @@
 <stack>
-  <description brief="cob_driver">
+  <description brief="Care-O-bot stack with driver packages">
 
      The cob_driver stack includes packages that provide access to the Care-O-bot hardware over ROS messages and services. E.g. for mobile base, arm, camera_sensors, scanners, etc...
 
@@ -8,20 +8,21 @@
   <license>BSD,LGPL</license>  
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_driver</url>
-  <depend stack="cob_common" /> <!-- cob_utilities, cob_msgs, cob_description, cob_vision_utils, cob_srvs -->
+  <depend stack="camera_drivers" /> <!-- prosilica_camera -->
+  <depend stack="cob_common" /> <!-- cob_msgs, brics_actuator, cob_utilities, cob_vision_utils, cob_srvs, cob_description -->
   <depend stack="cob_extern" /> <!-- libpcan, libmesasr, libm5api, libntcan -->
   <depend stack="common" /> <!-- actionlib, tinyxml -->
-  <depend stack="common_msgs" /> <!-- nav_msgs, geometry_msgs, sensor_msgs, diagnostic_msgs -->
+  <depend stack="common_msgs" /> <!-- nav_msgs, trajectory_msgs, sensor_msgs, geometry_msgs, visualization_msgs, diagnostic_msgs -->
   <depend stack="diagnostics" /> <!-- diagnostic_updater -->
   <depend stack="geometry" /> <!-- tf, kdl, eigen, tf_conversions -->
   <depend stack="image_common" /> <!-- polled_camera, image_transport -->
   <depend stack="joystick_drivers" /> <!-- joy -->
   <depend stack="kinematics" /> <!-- kinematics_msgs -->
   <depend stack="laser_drivers" /> <!-- hokuyo_node -->
-  <depend stack="pr2_controllers" /> <!-- trajectory_msgs, pr2_controllers_msgs -->
+  <depend stack="pr2_controllers" /> <!-- pr2_controllers_msgs -->
   <depend stack="robot_model" /> <!-- urdf, kdl_parser -->
-  <depend stack="ros" /> <!-- std_msgs, roslib, rostest, rospy, roscpp -->
+  <depend stack="ros" /> <!-- roslib -->
+  <depend stack="ros_comm" /> <!-- nav_msgs, cob_msgs, polled_camera, roscpp, brics_actuator, sensor_msgs, actionlib, trajectory_msgs, std_msgs, cob_srvs, rostest, rospy, visualization_msgs, tf, geometry_msgs, joy, diagnostic_msgs, kinematics_msgs, pr2_controllers_msgs -->
   <depend stack="vision_opencv" /> <!-- opencv2, cv_bridge -->
-  <depend stack="visualization_common" /> <!-- visualization_msgs -->
 
 </stack>
