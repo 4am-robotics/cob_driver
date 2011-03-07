@@ -21,7 +21,7 @@
  * \author
  *   Supervised by: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
  *
- * \date Date of creation: Dec 2010
+ * \date Date of creation: Jan 2010
  *
  * \brief
  *   Implementation of ROS node for powercube_chain.
@@ -66,552 +66,690 @@
 // ROS includes
 #include <ros/ros.h>
 #include <urdf/model.h>
+#include <actionlib/server/simple_action_server.h>
+#include <pr2_controllers_msgs/JointTrajectoryAction.h>
+#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 
 // ROS message includes
 #include <sensor_msgs/JointState.h>
 #include <trajectory_msgs/JointTrajectory.h>
-#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
-#include <diagnostic_updater/diagnostic_updater.h>
-#include <brics_actuator/JointPositions.h>
-#include <brics_actuator/JointVelocities.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
+#include <cob_srvs/SetOperationMode.h>
 
-// own includes
+// ROS diagnostic msgs
+#include <diagnostic_updater/diagnostic_updater.h>
+
+// external includes
 #include <cob_powercube_chain/PowerCubeCtrl.h>
-#include <cob_powercube_chain/PowerCubeCtrlParams.h>
+#include <cob_powercube_chain/simulatedArm.h>
+
+//semaphores
+#include <fcntl.h>           /* For O_* constants */
+#include <sys/stat.h>        /* For mode constants */
+#include <semaphore.h>
+#include <stdio.h>
+#include<unistd.h>
+#include <stdlib.h>
 
 /*!
- * \brief Implementation of ROS node for powercube_chain.
- *
- * Offers velocity and position interface.
- */
-class PowerCubeChainNode
+* \brief Implementation of ROS node for powercube_chain.
+*
+* Offers actionlib and direct command interface.
+*/
+class PowercubeChainNode
 {
+	//
+	public:
+		/// create a handle for this node, initialize node
+		ros::NodeHandle n_;
 
-public:
-  /// create a handle for this node, initialize node
-  ros::NodeHandle n_;
+		// declaration of topics to publish
+		ros::Publisher topicPub_JointState_;
+		ros::Publisher topicPub_ControllerState_;
 
-  // declaration of topics to publish
-  ros::Publisher topicPub_JointState_;
-  ros::Publisher topicPub_ControllerState_;
+		// declaration of topics to subscribe, callback is called for new messages arriving
+		ros::Subscriber topicSub_DirectCommand_;
 
-  // declaration of topics to subscribe, callback is called for new messages arriving
-  ros::Subscriber topicSub_CommandPos_;
-  ros::Subscriber topicSub_CommandVel_;
+		// declaration of service servers
+		ros::ServiceServer srvServer_Init_;
+		ros::ServiceServer srvServer_Stop_;
+		ros::ServiceServer srvServer_Recover_;
+		ros::ServiceServer srvServer_SetOperationMode_;
 
-  // declaration of service servers
-  ros::ServiceServer srvServer_Init_;
-  ros::ServiceServer srvServer_Stop_;
-  ros::ServiceServer srvServer_Recover_;
+		// actionlib server
+		actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
+		std::string action_name_;
+		// create messages that are used to published feedback/result
+		pr2_controllers_msgs::JointTrajectoryFeedback feedback_;
+		pr2_controllers_msgs::JointTrajectoryResult result_;
 
-  /// Handle for powercube_chain
-  PowerCubeCtrl* pc_ctrl_;
+		// diagnostic stuff
+		diagnostic_updater::Updater updater_;
 
-  /// Handle for powercube_chain parameters
-  PowerCubeCtrlParams* pc_params_;
+		// declaration of service clients
+		//--
 
-  // member variables
-  bool initialized_;
-  bool stopped_;
-  ros::Time last_publish_time_;
+		// member variables
+#ifndef SIMU
+		PowerCubeCtrl* PCube_;
+#else
+		simulatedArm* PCube_;
+#endif
+		PowerCubeCtrlParams* PCubeParams_;
+		std::string CanModule_;
+		std::string CanDevice_;
+		int CanBaudrate_;
+		XmlRpc::XmlRpcValue ModIds_param_;
+		std::vector<int> ModIds_;
+		XmlRpc::XmlRpcValue JointNames_param_;
+		std::vector<std::string> JointNames_;
+		XmlRpc::XmlRpcValue MaxAcc_param_;
+		std::vector<double> MaxAcc_;
+		bool isInitialized_;
+		bool finished_;
+		std::vector<double>cmd_vel_;
+		bool newvel_;
+		
+		trajectory_msgs::JointTrajectory traj_;
+		trajectory_msgs::JointTrajectoryPoint traj_point_;
+		int traj_point_nr_;
+		sem_t * can_sem ;
+		bool sem_can_available;
 
-  PowerCubeChainNode()
+		void lock_semaphore(sem_t* sem)
+		{
+			//printf("trying to lock sem ...");
+			//sem_wait(sem);
+			//printf ("done\n");
+		}
+		void unlock_semaphore(sem_t* sem)
+		{
+			//printf ("Unlocking semaphore ...");
+			//sem_post(sem);
+			//printf("done!\n");
+		}
+
+		/*!
+		* \brief Constructor for PowercubeChainNode class.
+		*
+		* \param name Name for the actionlib server.
+		*/
+		PowercubeChainNode(std::string name):
+			as_(n_, name, boost::bind(&PowercubeChainNode::executeCB, this, _1)),
+			action_name_(name)
+		{
+			sem_can_available = false;
+			can_sem = SEM_FAILED;
+
+			isInitialized_ = false;
+			traj_point_nr_ = 0;
+			finished_ = false;
+
+#ifndef SIMU
+			PCube_ = new PowerCubeCtrl();
+#else
+			PCube_ = new simulatedArm();
+#endif
+			PCubeParams_ = new PowerCubeCtrlParams();
+
+			// implementation of topics to publish
+			topicPub_JointState_ = n_.advertise<sensor_msgs::JointState>("/joint_states", 1);
+			topicPub_ControllerState_ = n_.advertise<pr2_controllers_msgs::JointTrajectoryControllerState>("state", 1);
+
+			// implementation of topics to subscribe
+			topicSub_DirectCommand_ = n_.subscribe("command", 1, &PowercubeChainNode::topicCallback_DirectCommand, this);
+
+			// implementation of service servers
+			srvServer_Init_ = n_.advertiseService("init", &PowercubeChainNode::srvCallback_Init, this);
+			srvServer_Stop_ = n_.advertiseService("stop", &PowercubeChainNode::srvCallback_Stop, this);
+			srvServer_Recover_ = n_.advertiseService("recover", &PowercubeChainNode::srvCallback_Recover, this);
+			srvServer_SetOperationMode_ = n_.advertiseService("set_operation_mode", &PowercubeChainNode::srvCallback_SetOperationMode, this);
+
+			// implementation of service clients
+			//--
+
+			// diagnostics
+			updater_.setHardwareID(ros::this_node::getName());
+			updater_.add("initialization", this, &PowercubeChainNode::diag_init);
+
+
+			// read parameters from parameter server
+			n_.getParam("can_module", CanModule_);
+			n_.getParam("can_device", CanDevice_);
+			n_.getParam("can_baudrate", CanBaudrate_);
+			ROS_INFO("CanModule=%s, CanDevice=%s, CanBaudrate=%d",CanModule_.c_str(),CanDevice_.c_str(),CanBaudrate_);
+
+			// get ModIds from parameter server
+			if (n_.hasParam("modul_ids"))
+			{
+				n_.getParam("modul_ids", ModIds_param_);
+			}
+			else
+			{
+				ROS_ERROR("Parameter modul_ids not set");
+			}
+			ModIds_.resize(ModIds_param_.size());
+			for (int i = 0; i<ModIds_param_.size(); i++ )
+			{
+				ModIds_[i] = (int)ModIds_param_[i];
+			}
+			std::cout << "modul_ids = " << ModIds_param_ << std::endl;
+			
+			// get JointNames from parameter server
+			ROS_INFO("getting JointNames from parameter server");
+			if (n_.hasParam("joint_names"))
+			{
+				n_.getParam("joint_names", JointNames_param_);
+			}
+			else
+			{
+				ROS_ERROR("Parameter joint_names not set");
+			}
+			JointNames_.resize(JointNames_param_.size());
+			for (int i = 0; i<JointNames_param_.size(); i++ )
+			{
+				JointNames_[i] = (std::string)JointNames_param_[i];
+			}
+			std::cout << "joint_names = " << JointNames_param_ << std::endl;
+
+			PCubeParams_->Init(CanModule_, CanDevice_, CanBaudrate_, ModIds_);
+			
+			// get MaxAcc from parameter server
+			ROS_INFO("getting max_accelertion from parameter server");
+			if (n_.hasParam("max_accelerations"))
+			{
+				n_.getParam("max_accelerations", MaxAcc_param_);
+			}
+			else
+			{
+				ROS_ERROR("Parameter max_accelerations not set");
+			}
+			MaxAcc_.resize(MaxAcc_param_.size());
+			for (int i = 0; i<MaxAcc_param_.size(); i++ )
+			{
+				MaxAcc_[i] = (double)MaxAcc_param_[i];
+			}
+			PCubeParams_->SetMaxAcc(MaxAcc_);
+			std::cout << "max_accelerations = " << MaxAcc_param_ << std::endl;
+			
+			// load parameter server string for robot/model
+			std::string param_name = "robot_description";
+			std::string full_param_name;
+			std::string xml_string;
+			n_.searchParam(param_name,full_param_name);
+			n_.getParam(full_param_name.c_str(),xml_string);
+			ROS_INFO("full_param_name=%s",full_param_name.c_str());
+			if (xml_string.size()==0)
+			{
+				ROS_ERROR("Unable to load robot model from param server robot_description\n");
+				exit(2);
+			}
+			ROS_DEBUG("%s content\n%s", full_param_name.c_str(), xml_string.c_str());
+			
+			// extract limits and velocities from urdf model
+			urdf::Model model;
+			if (!model.initString(xml_string))
+			{
+				ROS_ERROR("Failed to parse urdf file");
+				exit(2);
+			}
+			ROS_INFO("Successfully parsed urdf file");
+
+			/** @todo: check if yaml parameter file fits to urdf model */
+
+			// get MaxVel out of urdf model
+			std::vector<double> MaxVel;
+			MaxVel.resize(ModIds_param_.size());
+			for (int i = 0; i<ModIds_param_.size(); i++ )
+			{
+				MaxVel[i] = model.getJoint(JointNames_[i].c_str())->limits->velocity;
+				//std::cout << "MaxVel[" << JointNames_[i].c_str() << "] = " << MaxVel[i] << std::endl;
+			}
+			PCubeParams_->SetMaxVel(MaxVel);
+			
+			// get LowerLimits out of urdf model
+			std::vector<double> LowerLimits;
+			LowerLimits.resize(ModIds_param_.size());
+			for (int i = 0; i<ModIds_param_.size(); i++ )
+			{
+				LowerLimits[i] = model.getJoint(JointNames_[i].c_str())->limits->lower;
+				std::cout << "LowerLimits[" << JointNames_[i].c_str() << "] = " << LowerLimits[i] << std::endl;
+			}
+			PCubeParams_->SetLowerLimits(LowerLimits);
+
+			// get UpperLimits out of urdf model
+			std::vector<double> UpperLimits;
+			UpperLimits.resize(ModIds_param_.size());
+			for (int i = 0; i<ModIds_param_.size(); i++ )
+			{
+				UpperLimits[i] = model.getJoint(JointNames_[i].c_str())->limits->upper;
+				std::cout << "UpperLimits[" << JointNames_[i].c_str() << "] = " << UpperLimits[i] << std::endl;
+			}
+			PCubeParams_->SetUpperLimits(UpperLimits);
+
+			// get UpperLimits out of urdf model
+			std::vector<double> Offsets;
+			Offsets.resize(ModIds_param_.size());
+			for (int i = 0; i<ModIds_param_.size(); i++ )
+			{
+				Offsets[i] = model.getJoint(JointNames_[i].c_str())->calibration->rising.get()[0];
+				std::cout << "Offset[" << JointNames_[i].c_str() << "] = " << Offsets[i] << std::endl;
+			}
+			PCubeParams_->SetAngleOffsets(Offsets);
+			
+			cmd_vel_.resize(ModIds_param_.size());
+			newvel_ = false;
+			can_sem = sem_open("/semcan", O_CREAT, S_IRWXU | S_IRWXG,1);
+			if (can_sem != SEM_FAILED)
+				sem_can_available = true;
+		}
+
+		/*!
+		* \brief Destructor for PowercubeChainNode class.
+		*/
+		~PowercubeChainNode()
+		{
+			bool closed = PCube_->Close();
+			if (closed) ROS_INFO("PowerCube Device closed!");
+			if (sem_can_available) sem_close(can_sem);
+		}
+
+		/*!
+		* \brief Executes the callback from the actionlib.
+		*
+		* Set the current velocity target.
+		* \param msg JointTrajectory
+		*/
+		void topicCallback_DirectCommand(const trajectory_msgs::JointTrajectory::ConstPtr& msg)
+		{
+			ROS_DEBUG("Received new direct command");
+			newvel_ = true;
+			cmd_vel_ = msg->points[0].velocities;
+		}
+
+  void diag_init(diagnostic_updater::DiagnosticStatusWrapper &stat)
   {
-    pc_params_ = new PowerCubeCtrlParams();
-    pc_ctrl_ = new PowerCubeCtrl(pc_params_);
-
-    // implementation of topics to publish
-    topicPub_JointState_ = n_.advertise<sensor_msgs::JointState> ("/joint_states", 1);
-    topicPub_ControllerState_ = n_.advertise<pr2_controllers_msgs::JointTrajectoryControllerState> ("state", 1);
-
-    // implementation of topics to subscribe
-    topicSub_CommandPos_ = n_.subscribe("command_pos", 1, &PowerCubeChainNode::topicCallback_CommandPos, this);
-    topicSub_CommandVel_ = n_.subscribe("command_vel", 1, &PowerCubeChainNode::topicCallback_CommandVel, this);
-
-    // implementation of service servers
-    srvServer_Init_ = n_.advertiseService("init", &PowerCubeChainNode::srvCallback_Init, this);
-    srvServer_Stop_ = n_.advertiseService("stop", &PowerCubeChainNode::srvCallback_Stop, this);
-    srvServer_Recover_ = n_.advertiseService("recover", &PowerCubeChainNode::srvCallback_Recover, this);
-
-    initialized_ = false;
-    stopped_ = true;
-    last_publish_time_ = ros::Time::now();
+    if(isInitialized_)
+      stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "");
+    else
+      stat.summary(diagnostic_msgs::DiagnosticStatus::WARN, "");
+    stat.add("Initialized", isInitialized_);
   }
 
-  ~PowerCubeChainNode()
-  {
-    bool closed = pc_ctrl_->Close();
-    if (closed)
-      ROS_INFO("PowerCube Device closed!");
-  }
+		/*!
+		* \brief Executes the callback from the actionlib.
+		*
+		* Set the current goal to aborted after receiving a new goal and write new goal to a member variable. Wait for the goal to finish and set actionlib status to succeeded.
+		* \param goal JointTrajectoryGoal
+		*/
+		void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal)
+		{
+			ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
+			if (!isInitialized_)
+			{
+				ROS_ERROR("%s: Rejected, powercubes not initialized", action_name_.c_str());
+				as_.setAborted();
+				return;
+			}
+			// saving goal into local variables
+			traj_ = goal->trajectory;
+			traj_point_nr_ = 0;
+			traj_point_ = traj_.points[traj_point_nr_];
+			finished_ = false;
+			
+			// stoping arm to prepare for new trajectory
+			std::vector<double> VelZero;
+			VelZero.resize(ModIds_param_.size());
+			PCube_->MoveVel(VelZero);
 
-  /*!
-   * \brief Gets parameters from the ROS parameter server and configures the powercube_chain.
-   */
-  void getROSParameters()
-  {
-    // get CanModule
-    std::string CanModule;
-    if (n_.hasParam("can_module"))
-    {
-      n_.getParam("can_module", CanModule);
-    }
-    else
-    {
-      ROS_ERROR("Parameter can_module not set, shutting down node...");
-      n_.shutdown();
-    }
+			// check that preempt has not been requested by the client
+			if (as_.isPreemptRequested())
+			{
+				ROS_INFO("%s: Preempted", action_name_.c_str());
+				// set the action state to preempted
+				as_.setPreempted();
+			}
+			
+			usleep(500000); // needed sleep until powercubes starts to change status from idle to moving
+			
+			while(finished_ == false)
+			{
+				if (as_.isNewGoalAvailable())
+				{
+					ROS_WARN("%s: Aborted", action_name_.c_str());
+					as_.setAborted();
+					return;
+				}
+		   		usleep(10000);
+				//feedback_ = 
+				//as_.send feedback_
+			}
 
-    // get CanDevice
-    std::string CanDevice;
-    if (n_.hasParam("can_device"))
-    {
-      n_.getParam("can_device", CanDevice);
-    }
-    else
-    {
-      ROS_ERROR("Parameter can_device not set, shutting down node...");
-      n_.shutdown();
-    }
+			// set the action state to succeed			
+			//result_.result.data = "executing trajectory";
+			ROS_INFO("%s: Succeeded", action_name_.c_str());
+			// set the action state to succeeded
+			as_.setSucceeded(result_);
+		}
 
-    // get CanBaudrate
-    int CanBaudrate;
-    if (n_.hasParam("can_baudrate"))
-    {
-      n_.getParam("can_baudrate", CanBaudrate);
-    }
-    else
-    {
-      ROS_ERROR("Parameter can_baudrate not set, shutting down node...");
-      n_.shutdown();
-    }
+		/*!
+		* \brief Executes the service callback for init.
+		*
+		* Connects to the hardware and initialized it.
+		* \param req Service request
+		* \param res Service response
+		*/
+		bool srvCallback_Init(	cob_srvs::Trigger::Request &req,
+								cob_srvs::Trigger::Response &res )
+		{
+			if (isInitialized_ == false)
+			{
+				ROS_INFO("...initializing powercubes...");
+				// init powercubes 
+				if (PCube_->Init(PCubeParams_))
+				{
+					ROS_INFO("Initializing succesfull");
+					isInitialized_ = true;
+					res.success.data = true;
+					res.error_message.data = "success";
+				}
+				else
+				{
+					ROS_ERROR("Initializing powercubes not succesfull. error: %s", PCube_->getErrorMessage().c_str());
+					res.success.data = false;
+					res.error_message.data = PCube_->getErrorMessage();
+				}
+			}
+			else
+			{
+				ROS_ERROR("...powercubes already initialized...");		        
+				res.success.data = false;
+				res.error_message.data = "powercubes already initialized";
+			}
 
-    // get modul ids
-    XmlRpc::XmlRpcValue ModulIDsXmlRpc;
-    std::vector<int> ModulIDs;
-    if (n_.hasParam("modul_ids"))
-    {
-      n_.getParam("modul_ids", ModulIDsXmlRpc);
-    }
-    else
-    {
-      ROS_ERROR("Parameter modul_ids not set, shutting down node...");
-      n_.shutdown();
-    }
-    ModulIDs.resize(ModulIDsXmlRpc.size());
-    for (int i = 0; i < ModulIDsXmlRpc.size(); i++)
-    {
-      ModulIDs[i] = (int)ModulIDsXmlRpc[i];
-    }
+			return true;
+		}
 
-    // init parameters
-    pc_params_->Init(CanModule, CanDevice, CanBaudrate, ModulIDs);
+		/*!
+		* \brief Executes the service callback for stop.
+		*
+		* Stops all hardware movements.
+		* \param req Service request
+		* \param res Service response
+		*/
+		bool srvCallback_Stop(	cob_srvs::Trigger::Request &req,
+								cob_srvs::Trigger::Response &res )
+		{
+			ROS_INFO("Stopping powercubes");
+			newvel_ = false;
+	
+			// set current trajectory to be finished
+			traj_point_nr_ = traj_.points.size();
+	
+			// stopping all arm movements
+			if (PCube_->Stop())
+			{
+				ROS_INFO("Stopping powercubes succesfull");
+				res.success.data = true;
+			}
+			else
+			{
+				ROS_ERROR("Stopping powercubes not succesfull. error: %s", PCube_->getErrorMessage().c_str());
+				res.success.data = false;
+				res.error_message.data = PCube_->getErrorMessage();
+			}
+			return true;
+		}
 
-    // get joint names
-    XmlRpc::XmlRpcValue JointNamesXmlRpc;
-    std::vector<std::string> JointNames;
-    if (n_.hasParam("joint_names"))
-    {
-      n_.getParam("joint_names", JointNamesXmlRpc);
-    }
-    else
-    {
-      ROS_ERROR("Parameter joint_names not set, shutting down node...");
-      n_.shutdown();
-    }
-    JointNames.resize(JointNamesXmlRpc.size());
-    for (int i = 0; i < JointNamesXmlRpc.size(); i++)
-    {
-      JointNames[i] = (std::string)JointNamesXmlRpc[i];
-    }
-    // check dimension with with DOF
-    if ((int)JointNames.size() != pc_params_->GetDOF())
-    {
-      ROS_ERROR("Wrong dimensions of parameter joint_names, shutting down node...");
-      n_.shutdown();
-    }
-    pc_params_->SetJointNames(JointNames);
+		/*!
+		* \brief Executes the service callback for recover.
+		*
+		* Recovers the driver after an emergency stop.
+		* \param req Service request
+		* \param res Service response
+		*/
+		bool srvCallback_Recover(	cob_srvs::Trigger::Request &req,
+									cob_srvs::Trigger::Response &res )
+		{
+			if (isInitialized_ == true)
+			{
+		   		ROS_INFO("Recovering powercubes");
+		
+				// stopping all arm movements
+				if (PCube_->Stop())
+				{
+					ROS_INFO("Recovering powercubes succesfull");
+					res.success.data = true;
+				}
+				else
+				{
+					ROS_ERROR("Recovering powercubes not succesfull. error: %s", PCube_->getErrorMessage().c_str());
+					res.success.data = false;
+					res.error_message.data = PCube_->getErrorMessage();
+				}
+			}
+			else
+			{
+				ROS_ERROR("...powercubes already recovered...");
+				res.success.data = false;
+				res.error_message.data = "powercubes already recovered";
+			}
 
-    // get max accelerations
-    XmlRpc::XmlRpcValue MaxAccelerationsXmlRpc;
-    std::vector<double> MaxAccelerations;
-    if (n_.hasParam("max_accelerations"))
-    {
-      n_.getParam("max_accelerations", MaxAccelerationsXmlRpc);
-    }
-    else
-    {
-      ROS_ERROR("Parameter max_accelerations not set, shutting down node...");
-      n_.shutdown();
-    }
-    MaxAccelerations.resize(MaxAccelerationsXmlRpc.size());
-    for (int i = 0; i < MaxAccelerationsXmlRpc.size(); i++)
-    {
-      MaxAccelerations[i] = (double)MaxAccelerationsXmlRpc[i];
-    }
-    // check dimension with with DOF
-    if ((int)MaxAccelerations.size() != pc_params_->GetDOF())
-    {
-      ROS_ERROR("Wrong dimensions of parameter max_accelerations, shutting down node...");
-      n_.shutdown();
-    }
-    pc_params_->SetMaxAcc(MaxAccelerations);
+			return true;
+		}
 
-    // get horizon
-    double Horizon;
-    if (n_.hasParam("horizon"))
-    {
-      n_.getParam("horizon", Horizon);
-    }
-    else
-    {
-      Horizon = 0.025; //Hz
-      ROS_WARN("Parameter horizon not available, setting to default value: %f sec", Horizon);
-    }
-    pc_ctrl_->setHorizon(Horizon);
-  }
+		/*!
+		* \brief Executes the service callback for set_operation_mode.
+		*
+		* Changes the operation mode.
+		* \param req Service request
+		* \param res Service response
+		*/
+		bool srvCallback_SetOperationMode(	cob_srvs::SetOperationMode::Request &req,
+											cob_srvs::SetOperationMode::Response &res )
+		{
+			ROS_INFO("Set operation mode to [%s]", req.operation_mode.data.c_str());
+			n_.setParam("OperationMode", req.operation_mode.data.c_str());
+			res.success.data = true; // 0 = true, else = false
+			return true;
+		}
 
-  /*!
-   * \brief Gets parameters from the robot_description and configures the powercube_chain.
-   */
-  void getRobotDescriptionParameters()
-  {
-    unsigned int DOF = pc_params_->GetDOF();
-    std::vector<std::string> JointNames = pc_params_->GetJointNames();
+		/*!
+		* \brief Routine for publishing joint_states.
+		*
+		* Gets current positions and velocities from the hardware and publishes them as joint_states.
+		*/
+		void publishJointState()
+		{
+		  updater_.update();
+			if (isInitialized_ == true)
+			{
+				// publish joint state message
+				int DOF = ModIds_param_.size();
+				std::vector<double> ActualPos;
+				std::vector<double> ActualVel;
+				ActualPos.resize(DOF);
+				ActualVel.resize(DOF);
 
-    // get robot_description from ROS parameter server
-    std::string param_name = "robot_description";
-    std::string full_param_name;
-    std::string xml_string;
-    n_.searchParam(param_name, full_param_name);
-    if (n_.hasParam(full_param_name))
-    {
-      n_.getParam(full_param_name.c_str(), xml_string);
-    }
-    else
-    {
-      ROS_ERROR("Parameter %s not set, shutting down node...", full_param_name.c_str());
-      n_.shutdown();
-    }
+				lock_semaphore(can_sem);
+				int success = PCube_->getConfig(ActualPos);
+				if (!success) return;
+				PCube_->getJointVelocities(ActualVel);
+				unlock_semaphore(can_sem);
 
-    if (xml_string.size() == 0)
-    {
-      ROS_ERROR("Unable to load robot model from parameter %s",full_param_name.c_str());
-      n_.shutdown();
-    }
-    ROS_DEBUG("%s content\n%s", full_param_name.c_str(), xml_string.c_str());
+				sensor_msgs::JointState msg;
+				msg.header.stamp = ros::Time::now();
+				msg.name.resize(DOF);
+				msg.position.resize(DOF);
+				msg.velocity.resize(DOF);
 
-    // get urdf model out of robot_description
-    urdf::Model model;
-    if (!model.initString(xml_string))
-    {
-      ROS_ERROR("Failed to parse urdf file");
-      n_.shutdown();
-    }
-    ROS_DEBUG("Successfully parsed urdf file");
+				msg.name = JointNames_;
 
-    // get max velocities out of urdf model
-    std::vector<double> MaxVelocities(DOF);
-    for (unsigned int i = 0; i < DOF; i++)
-    {
-      MaxVelocities[i] = model.getJoint(JointNames[i].c_str())->limits->velocity;
-    }
+				for (int i = 0; i<DOF; i++ )
+				{
+					msg.position[i] = ActualPos[i];
+					msg.velocity[i] = ActualVel[i];
+					//std::cout << "Joint " << msg.name[i] <<": pos="<<  msg.position[i] << "vel=" << msg.velocity[i] << std::endl;
+				}
 
-    // get lower limits out of urdf model
-    std::vector<double> LowerLimits(DOF);
-    for (unsigned int i = 0; i < DOF; i++)
-    {
-      LowerLimits[i] = model.getJoint(JointNames[i].c_str())->limits->lower;
-    }
+				topicPub_JointState_.publish(msg);
 
-    // get upper limits out of urdf model
-    std::vector<double> UpperLimits(DOF);
-    for (unsigned int i = 0; i < DOF; i++)
-    {
-      UpperLimits[i] = model.getJoint(JointNames[i].c_str())->limits->upper;
-    }
+				// publish controller state message
+				pr2_controllers_msgs::JointTrajectoryControllerState controllermsg;
+				controllermsg.header.stamp = ros::Time::now();
+				controllermsg.joint_names.resize(DOF);
+				controllermsg.desired.positions.resize(DOF);
+				controllermsg.desired.velocities.resize(DOF);
+				controllermsg.actual.positions.resize(DOF);
+				controllermsg.actual.velocities.resize(DOF);
+				controllermsg.error.positions.resize(DOF);
+				controllermsg.error.velocities.resize(DOF);
 
-    // get offsets out of urdf model
-    std::vector<double> Offsets(DOF);
-    for (unsigned int i = 0; i < DOF; i++)
-    {
-      Offsets[i] = model.getJoint(JointNames[i].c_str())->calibration->rising.get()[0];
-    }
+				controllermsg.joint_names = JointNames_;
 
-    // set parameters
-    pc_params_->SetMaxVel(MaxVelocities);
-    pc_params_->SetLowerLimits(LowerLimits);
-    pc_params_->SetUpperLimits(UpperLimits);
-    pc_params_->SetOffsets(Offsets);
-  }
+				for (int i = 0; i<DOF; i++ )
+				{
+					//std::cout << "Joint " << msg.name[i] <<": pos="<<  msg.position[i] << "vel=" << msg.velocity[i] << std::endl;
+					
+					if (traj_point_.positions.size() != 0)
+						controllermsg.desired.positions[i] = traj_point_.positions[i];
+					else
+						controllermsg.desired.positions[i] = 0.0;
+					controllermsg.desired.velocities[i] = 0.0;
+					
+					controllermsg.actual.positions[i] = ActualPos[i];
+					controllermsg.actual.velocities[i] = ActualVel[i];
+					
+					controllermsg.error.positions[i] = controllermsg.desired.positions[i] - controllermsg.actual.positions[i];
+					controllermsg.error.velocities[i] = controllermsg.desired.velocities[i] - controllermsg.actual.velocities[i];
+				}
+				topicPub_ControllerState_.publish(controllermsg);
 
-  /*!
-   * \brief Executes the callback from the command_pos topic.
-   *
-   * Set the current position target.
-   * \param msg JointPositions
-   */
-  void topicCallback_CommandPos(const brics_actuator::JointPositions::ConstPtr& msg)
-  {
-    ROS_WARN("Received new position command. Skipping command: Position commands currently not implemented");
-  }
+			}
+		}
 
-  /*!
-   * \brief Executes the callback from the command_vel topic.
-   *
-   * Set the current velocity target.
-   * \param msg JointVelocities
-   */
-  void topicCallback_CommandVel(const brics_actuator::JointVelocities::ConstPtr& msg)
-  {
-    ROS_DEBUG("Received new velocity command");
-    if (initialized_)
-    {
-      PowerCubeCtrl::PC_CTRL_STATUS status;
-      std::vector<std::string> errorMessages;
-      pc_ctrl_->getStatus(status, errorMessages);
-
-      // @todo don't rely on position of joint names, but merge them (check between msg.joint_uri and member variable JointStates)
-
-      unsigned int DOF = pc_params_->GetDOF();
-      std::vector<std::string> jointNames = pc_params_->GetJointNames();
-      std::vector<double> cmd_vel(DOF);
-      std::string unit = "rad";
-
-      // check dimensions
-      if (msg->velocities.size() != DOF)
-      {
-        ROS_ERROR("Skipping command: Commanded velocities and DOF are not same dimension.");
-        return;
-      }
-
-      // parse velocities
-      for (unsigned int i = 0; i < DOF; i++)
-      {
-        // check joint name
-        if (msg->velocities[i].joint_uri != jointNames[i])
-        {
-          ROS_ERROR("Skipping command: Received joint name %s doesn't match expected joint name %s for joint %d.",msg->velocities[i].joint_uri.c_str(),jointNames[i].c_str(),i);
-          return;
-        }
-
-        // check unit
-        if (msg->velocities[i].unit != unit)
-        {
-          ROS_ERROR("Skipping command: Received unit %s doesn't match expected unit %s.",msg->velocities[i].unit.c_str(),unit.c_str());
-          return;
-        }
-
-        // if all checks are successful, parse the velocity value for this joint
-        ROS_DEBUG("Parsing velocity %f for joint %s",msg->velocities[i].value,jointNames[i].c_str());
-        cmd_vel[i] = msg->velocities[i].value;
-      }
-
-      // command velocities to powercubes
-      if (!pc_ctrl_->MoveVel(cmd_vel))
-      {
-        ROS_ERROR("Skipping command: %s",pc_ctrl_->getErrorMessage().c_str());
-        return;
-      }
-
-      ROS_DEBUG("Executed velocity command");
-    }
-    else
-    {
-      ROS_ERROR("Skipping command: powercubes not initialized");
-    }
-  }
-
-  /*!
-   * \brief Executes the service callback for init.
-   *
-   * Connects to the hardware and initialized it.
-   * \param req Service request
-   * \param res Service response
-   */
-  bool srvCallback_Init(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res)
-  {
-    if (!initialized_)
-    {
-      ROS_INFO("Initializing powercubes...");
-
-      // initialize powercubes
-      if (pc_ctrl_->Init(pc_params_))
-      {
-        initialized_ = true;
-        res.success.data = true;
-        ROS_INFO("...initializing powercubes successful");
-      }
-      else
-      {
-        res.success.data = false;
-        res.error_message.data = pc_ctrl_->getErrorMessage();
-        ROS_ERROR("...initializing powercubes not successful. error: %s", res.error_message.data.c_str());
-      }
-    }
-    else
-    {
-      res.success.data = false;
-      res.error_message.data = "powercubes already initialized";
-      ROS_ERROR("...initializing powercubes not successful. error: %s",res.error_message.data.c_str());
-    }
-
-    return true;
-  }
-
-  /*!
-   * \brief Executes the service callback for stop.
-   *
-   * Stops all hardware movements.
-   * \param req Service request
-   * \param res Service response
-   */
-  bool srvCallback_Stop(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res)
-  {
-    ROS_INFO("Stopping powercubes...");
-
-    // stop powercubes
-    if (pc_ctrl_->Stop())
-    {
-      res.success.data = true;
-      ROS_INFO("...stopping powercubes successful.");
-    }
-    else
-    {
-      res.success.data = false;
-      res.error_message.data = pc_ctrl_->getErrorMessage();
-      ROS_ERROR("...stopping powercubes not successful. error: %s", res.error_message.data.c_str());
-    }
-    return true;
-  }
-
-  /*!
-   * \brief Executes the service callback for recover.
-   *
-   * Recovers the driver after an emergency stop.
-   * \param req Service request
-   * \param res Service response
-   */
-  bool srvCallback_Recover(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res)
-  {
-    ROS_INFO("Recovering powercubes...");
-    if (initialized_)
-    {
-      // stopping all arm movements
-      if (pc_ctrl_->Recover())
-      {
-        res.success.data = true;
-        ROS_INFO("...recovering powercubes successful.");
-      }
-      else
-      {
-        res.success.data = false;
-        res.error_message.data = pc_ctrl_->getErrorMessage();
-        ROS_ERROR("...recovering powercubes not successful. error: %s", res.error_message.data.c_str());
-      }
-    }
-    else
-    {
-      res.success.data = false;
-      res.error_message.data = "powercubes not initialized";
-      ROS_ERROR("...recovering powercubes not successful. error: %s",res.error_message.data.c_str());
-    }
-
-    return true;
-  }
-
-  /*!
-   * \brief Publishes the state of the powercube_chain as ros messages.
-   *
-   * Published to "/joint_states" as "sensor_msgs/JointState"
-   * Published to "state" as "pr2_controllers_msgs/JointTrajectoryState"
-   */
-  void publishState()
-  {
-    if (initialized_)
-    {
-      ROS_DEBUG("publish state");
-
-      pc_ctrl_->updateStates();
-
-      sensor_msgs::JointState joint_state_msg;
-      joint_state_msg.header.stamp = ros::Time::now();
-      joint_state_msg.name = pc_params_->GetJointNames();
-      joint_state_msg.position = pc_ctrl_->getPositions();
-      joint_state_msg.velocity = pc_ctrl_->getVelocities();
-
-      pr2_controllers_msgs::JointTrajectoryControllerState controller_state_msg;
-      controller_state_msg.header.stamp = joint_state_msg.header.stamp;
-      controller_state_msg.joint_names = pc_params_->GetJointNames();
-      controller_state_msg.actual.positions = pc_ctrl_->getPositions();
-      controller_state_msg.actual.velocities = pc_ctrl_->getVelocities();
-      controller_state_msg.actual.accelerations = pc_ctrl_->getAccelerations();
-
-      topicPub_JointState_.publish(joint_state_msg);
-      topicPub_ControllerState_.publish(controller_state_msg);
-
-      last_publish_time_ = ros::Time::now();
-    }
-  }
-
-}; //PowerCubeChainNode
+		/*!
+		* \brief Routine for updating command to the powercubes.
+		*
+		* Depending on the operation mode (position/velocity) either position or velocity goals are sent to the hardware.
+		*/
+		void updatePCubeCommands()
+		{
+			if (isInitialized_ == true)
+			{
+				std::string operationMode;
+				n_.getParam("OperationMode", operationMode);
+				if (operationMode == "position")
+				{
+					ROS_DEBUG("moving powercubes in position mode");
+					if (PCube_->statusMoving() == false)
+					{
+						//feedback_.isMoving = false;
+			
+						ROS_DEBUG("next point is %d from %d",traj_point_nr_,traj_.points.size());
+			
+						if (traj_point_nr_ < traj_.points.size())
+						{
+							// if powercubes are not moving and not reached last point of trajectory, then send new target point
+							ROS_DEBUG("...moving to trajectory point[%d]",traj_point_nr_);
+							traj_point_ = traj_.points[traj_point_nr_];
+							lock_semaphore(can_sem);
+							printf("cob_powercube_chain: Moving to position: ");
+							for (int i = 0; i < traj_point_.positions.size(); i++)
+							{
+								printf("%f ",traj_point_.positions[i]);
+							}
+							printf("\n");
+				
+							PCube_->MoveJointSpaceSync(traj_point_.positions);
+							unlock_semaphore(can_sem);
+							traj_point_nr_++;
+							//feedback_.isMoving = true;
+							//feedback_.pointNr = traj_point_nr;
+							//as_.publishFeedback(feedback_);
+						}
+						else
+						{
+							ROS_DEBUG("...reached end of trajectory");
+							finished_ = true;
+						}
+					}
+					else
+					{
+						ROS_DEBUG("...powercubes still moving to point[%d]",traj_point_nr_);
+					}
+				}
+				else if (operationMode == "velocity")
+				{
+					ROS_DEBUG("moving powercubes in velocity mode");
+					if(newvel_)
+					{	
+						ROS_INFO("MoveVel Call");
+						lock_semaphore(can_sem);
+						PCube_->MoveVel(cmd_vel_);
+						newvel_ = false;
+						unlock_semaphore(can_sem);
+					}
+				}
+				else
+				{
+					ROS_ERROR("powercubes neither in position nor in velocity mode. OperationMode = [%s]", operationMode.c_str());
+				}
+			}
+			else
+			{
+				ROS_DEBUG("powercubes not initialized");
+			}
+		}
+}; //PowercubeChainNode
 
 /*!
- * \brief Main loop of ROS node.
- *
- * Running with a specific frequency defined by loop_rate.
- */
+* \brief Main loop of ROS node.
+*
+* Running with a specific frequency defined by loop_rate.
+*/
 int main(int argc, char** argv)
 {
-  // initialize ROS, specify name of node
-  ros::init(argc, argv, "powercube_chain");
+	// initialize ROS, specify name of node
+	ros::init(argc, argv, "powercube_chain");
 
-  // create PowerCubeChainNode
-  PowerCubeChainNode pc_node;
-  pc_node.getROSParameters();
-  pc_node.getRobotDescriptionParameters();
+	// create class
+	PowercubeChainNode pc_node("joint_trajectory_action");
 
-  // get main loop parameters
-  double frequency;
-  if (pc_node.n_.hasParam("frequency"))
-  {
-    pc_node.n_.getParam("frequency", frequency);
-  }
-  else
-  {
-    frequency = 10; //Hz
-    ROS_WARN("Parameter frequency not available, setting to default value: %f Hz", frequency);
-  }
 
-  ros::Duration min_publish_duration;
-  if (pc_node.n_.hasParam("min_publish_duration"))
-  {
-    double sec;
-    pc_node.n_.getParam("min_publish_duration", sec);
-    min_publish_duration.fromSec(sec);
-  }
-  else
-  {
-    min_publish_duration.fromSec(1 / frequency);
-    ROS_WARN("Parameter min_publish_time not available, setting to default value: %f sec", min_publish_duration.toSec());
-  }
+	
 
-  // main loop
-  ros::Rate loop_rate(frequency); // Hz
-  while (pc_node.n_.ok())
-  {
-    if ((ros::Time::now() - pc_node.last_publish_time_) >= min_publish_duration)
-    {
-      pc_node.publishState();
-    }
+	// main loop
+	double frequency;
+	if (pc_node.n_.hasParam("frequency"))
+	{
+		pc_node.n_.getParam("frequency", frequency);
+	}
+	else
+	{
+		frequency = 10; //Hz
+		ROS_WARN("Parameter frequency not available, setting to default value: %f Hz", frequency);
+	}
+	
+	ros::Rate loop_rate(frequency); // Hz
+	while(pc_node.n_.ok())
+	{
+		// publish JointState
+		pc_node.publishJointState();
 
-    // sleep and waiting for messages, callbacks
-    ros::spinOnce();
-    loop_rate.sleep();
-  }
+		// update commands to powercubes
+		pc_node.updatePCubeCommands();
+		// read parameter
+		std::string operationMode;
+		pc_node.n_.getParam("OperationMode", operationMode);
+		ROS_DEBUG("running with OperationMode [%s]", operationMode.c_str());
 
-  return 0;
+		// sleep and waiting for messages, callbacks 
+		ros::spinOnce();
+		loop_rate.sleep();
+	}
+
+	return 0;
 }
