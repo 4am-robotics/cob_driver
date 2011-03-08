@@ -9,7 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_driver</url>
   <depend stack="camera_drivers" /> <!-- prosilica_camera -->
-  <depend stack="cob_common" /> <!-- cob_msgs, cob_srvs, cob_utilities, cob_vision_utils, brics_actuator, cob_description -->
+  <depend stack="cob_common" /> <!-- cob_msgs, brics_actuator, cob_utilities, cob_vision_utils, cob_srvs, cob_description -->
   <depend stack="cob_extern" /> <!-- libpcan, libmesasr, libm5api, brics_oodl_scanner_libs, libntcan -->
   <depend stack="common" /> <!-- actionlib, tinyxml -->
   <depend stack="common_msgs" /> <!-- nav_msgs, trajectory_msgs, sensor_msgs, geometry_msgs, visualization_msgs, diagnostic_msgs -->
