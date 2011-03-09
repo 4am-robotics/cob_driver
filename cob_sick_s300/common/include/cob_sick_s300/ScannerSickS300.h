@@ -60,6 +60,7 @@
 #include <vector>
 #include <iostream>
 #include <math.h>
+#include <stdio.h>
 
 #include <cob_sick_s300/SerialIO.h>
 
@@ -75,7 +76,7 @@
  *
  *      | 00 00 |         data block number (fixed)
  *      | xx xx |         size of data telegram (should be dec 1104)
- *      | FF 07 |         fixed
+ *      | FF xx |         last byte decides scanner id, 07 in most cases, but 08 for slave configured scanners
  *      | xx xx |         protocol version
  *      | 0x 00 |         status: 00 00 = normal, 01 00 = lockout
  *      | xx xx xx xx |   scan number
@@ -138,8 +139,9 @@ public:
 	 * Opens serial port.
 	 * @param pcPort used "COMx" or "/dev/tty1"
 	 * @param iBaudRate baud rate
+	 * @param iScanId the scanner id in the data header (7 by default)
 	 */
-	bool open(const char* pcPort, int iBaudRate);
+	bool open(const char* pcPort, int iBaudRate, int iScanId);
 	//bool open(char* pcPort, int iBaudRate);
 
 	// not implemented
@@ -179,6 +181,7 @@ private:
 	unsigned int m_uiSumReadBytes;
 	std::vector<int> m_viScanRaw;
 	int m_iPosReadBuf2;
+	static unsigned char m_iScanId;
 
 	// Components
 	SerialIO m_SerialIO;

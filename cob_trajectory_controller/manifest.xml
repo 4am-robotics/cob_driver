@@ -1,0 +1,18 @@
+<package>
+  <description brief="cob_trajectory_controller">
+
+     cob_trajectory_controller
+
+  </description>
+  <author>Alexander Bubeck</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_trajectory_controller</url>
+  
+  <depend package="roscpp"/>
+  <depend package="brics_actuator"/>
+  <depend package="sensor_msgs"/>
+  <depend package="pr2_controllers_msgs"/>
+  <depend package="actionlib"/>
+
+</package>

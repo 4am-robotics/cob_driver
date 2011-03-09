@@ -89,7 +89,7 @@ PowerCubeCtrl::PowerCubeCtrl()
 bool PowerCubeCtrl::Init(PowerCubeCtrlParams * params)
 {
 	std::string CanModule = "";
-	int CanDevice = 0;
+	std::string CanDevice = "";
 	int CanBaudRate = 0;
 	std::vector<double> offsets;
 	std::vector<double> upperLimits;

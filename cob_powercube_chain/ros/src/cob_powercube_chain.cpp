@@ -139,7 +139,7 @@ class PowercubeChainNode
 #endif
 		PowerCubeCtrlParams* PCubeParams_;
 		std::string CanModule_;
-		int CanDevice_;
+		std::string CanDevice_;
 		int CanBaudrate_;
 		XmlRpc::XmlRpcValue ModIds_param_;
 		std::vector<int> ModIds_;
@@ -216,55 +216,55 @@ class PowercubeChainNode
 
 
 			// read parameters from parameter server
-			n_.getParam("CanModule", CanModule_);
-			n_.getParam("CanDevice", CanDevice_);
-			n_.getParam("CanBaudrate", CanBaudrate_);
-			ROS_INFO("CanModule=%s, CanDevice=%d, CanBaudrate=%d",CanModule_.c_str(),CanDevice_,CanBaudrate_);
+			n_.getParam("can_module", CanModule_);
+			n_.getParam("can_device", CanDevice_);
+			n_.getParam("can_baudrate", CanBaudrate_);
+			ROS_INFO("CanModule=%s, CanDevice=%s, CanBaudrate=%d",CanModule_.c_str(),CanDevice_.c_str(),CanBaudrate_);
 
 			// get ModIds from parameter server
-			if (n_.hasParam("ModIds"))
+			if (n_.hasParam("modul_ids"))
 			{
-				n_.getParam("ModIds", ModIds_param_);
+				n_.getParam("modul_ids", ModIds_param_);
 			}
 			else
 			{
-				ROS_ERROR("Parameter ModIds not set");
+				ROS_ERROR("Parameter modul_ids not set");
 			}
 			ModIds_.resize(ModIds_param_.size());
 			for (int i = 0; i<ModIds_param_.size(); i++ )
 			{
 				ModIds_[i] = (int)ModIds_param_[i];
 			}
-			std::cout << "ModIds = " << ModIds_param_ << std::endl;
+			std::cout << "modul_ids = " << ModIds_param_ << std::endl;
 			
 			// get JointNames from parameter server
 			ROS_INFO("getting JointNames from parameter server");
-			if (n_.hasParam("JointNames"))
+			if (n_.hasParam("joint_names"))
 			{
-				n_.getParam("JointNames", JointNames_param_);
+				n_.getParam("joint_names", JointNames_param_);
 			}
 			else
 			{
-				ROS_ERROR("Parameter JointNames not set");
+				ROS_ERROR("Parameter joint_names not set");
 			}
 			JointNames_.resize(JointNames_param_.size());
 			for (int i = 0; i<JointNames_param_.size(); i++ )
 			{
 				JointNames_[i] = (std::string)JointNames_param_[i];
 			}
-			std::cout << "JointNames = " << JointNames_param_ << std::endl;
+			std::cout << "joint_names = " << JointNames_param_ << std::endl;
 
 			PCubeParams_->Init(CanModule_, CanDevice_, CanBaudrate_, ModIds_);
 			
 			// get MaxAcc from parameter server
-			ROS_INFO("getting MaxAcc from parameter server");
-			if (n_.hasParam("MaxAcc"))
+			ROS_INFO("getting max_accelertion from parameter server");
+			if (n_.hasParam("max_accelerations"))
 			{
-				n_.getParam("MaxAcc", MaxAcc_param_);
+				n_.getParam("max_accelerations", MaxAcc_param_);
 			}
 			else
 			{
-				ROS_ERROR("Parameter MaxAcc not set");
+				ROS_ERROR("Parameter max_accelerations not set");
 			}
 			MaxAcc_.resize(MaxAcc_param_.size());
 			for (int i = 0; i<MaxAcc_param_.size(); i++ )
@@ -272,7 +272,7 @@ class PowercubeChainNode
 				MaxAcc_[i] = (double)MaxAcc_param_[i];
 			}
 			PCubeParams_->SetMaxAcc(MaxAcc_);
-			std::cout << "MaxAcc = " << MaxAcc_param_ << std::endl;
+			std::cout << "max_accelerations = " << MaxAcc_param_ << std::endl;
 			
 			// load parameter server string for robot/model
 			std::string param_name = "robot_description";

@@ -109,7 +109,7 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	res.solution.joint_state.position.resize(nj);
 	if(ret < 0)
 	{
-		res.error_code.val = -1;
+		res.error_code.val = 1;
 		ROS_INFO("Inverse Kinematic found no solution");
 		std::cout << "RET: " << ret << std::endl;
 		for(int i = 0; i < nj; i++)	
@@ -118,7 +118,7 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	else
 	{
 		ROS_INFO("Inverse Kinematic found a solution");
-		res.error_code.val = 1;
+		res.error_code.val = 0;
 		for(int i = 0; i < nj; i++)	
 			res.solution.joint_state.position[i] = q(i);
 	}

@@ -86,7 +86,7 @@ class PowerCubeCtrlParams
 	public:
 		PowerCubeCtrlParams():m_DOF(0){;}
 		
-		int Init(std::string CanModule, int CanDevice, int BaudRate, std::vector<int> ModuleIDs)
+		int Init(std::string CanModule, std::string CanDevice, int BaudRate, std::vector<int> ModuleIDs)
 		{
 			SetCanModule(CanModule);
 			SetCanDevice(CanDevice);
@@ -108,8 +108,8 @@ class PowerCubeCtrlParams
 		std::string GetCanModule(){return m_CanModule;}
 
 		//Can Device
-		void SetCanDevice(int CanDevice){m_CanDevice = CanDevice;}
-		int GetCanDevice(){return m_CanDevice;}
+		void SetCanDevice(std::string CanDevice){m_CanDevice = CanDevice;}
+		std::string GetCanDevice(){return m_CanDevice;}
 			
 		//BaudRate
 		void SetBaudRate(int BaudRate){m_BaudRate=BaudRate;}
@@ -188,7 +188,7 @@ class PowerCubeCtrlParams
 		std::vector<int> m_IDModulesNumber;
 		unsigned int m_DOF;
 		std::string m_CanModule;
-		int m_CanDevice;
+		std::string m_CanDevice;
 		int m_BaudRate;
 		std::vector<double> m_Offsets;
 		std::vector<double> m_UpperLimits;

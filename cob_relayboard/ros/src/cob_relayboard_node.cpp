@@ -63,7 +63,7 @@
 
 // ROS message includes
 #include <std_msgs/Bool.h>
-#include <cob_msgs/EmergencyStopState.h>
+#include <cob_relayboard/EmergencyStopState.h>
 
 // ROS service includes
 //--
@@ -89,7 +89,7 @@ class NodeClass
 		// Constructor
 		NodeClass()
 		{
-			topicPub_isEmergencyStop = n.advertise<cob_msgs::EmergencyStopState>("/emergency_stop_state", 1);
+			topicPub_isEmergencyStop = n.advertise<cob_relayboard::EmergencyStopState>("/emergency_stop_state", 1);
 
 			// Make sure member variables have a defined state at the beginning
 			EM_stop_status_ = ST_EM_FREE;
@@ -226,7 +226,7 @@ void NodeClass::sendEmergencyStopStates()
 	
 	bool EM_signal;
 	ros::Duration duration_since_EM_confirmed;
-	cob_msgs::EmergencyStopState EM_msg;
+	cob_relayboard::EmergencyStopState EM_msg;
 
 	// assign input (laser, button) specific EM state
 	EM_msg.emergency_button_stop = m_SerRelayBoard->isEMStop();
