@@ -66,7 +66,7 @@
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
-#include <cob_srvs/GetJointState.h>
+#include <cob_base_drive_chain/GetJointState.h>
 #include <cob_srvs/ElmoRecorderReadout.h>
 #include <cob_srvs/ElmoRecorderConfig.h>
 
@@ -376,8 +376,8 @@ class NodeClass
 			return true;
 		}
 
-		bool srvCallback_GetJointState(cob_srvs::GetJointState::Request &req,
-									 cob_srvs::GetJointState::Response &res )
+		bool srvCallback_GetJointState(cob_base_drive_chain::GetJointState::Request &req,
+									 cob_base_drive_chain::GetJointState::Response &res )
 		{
 			ROS_DEBUG("Service Callback GetJointState");
 			// init local variables
