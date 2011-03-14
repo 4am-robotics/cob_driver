@@ -59,7 +59,7 @@
 #ifndef __IPA_VIRTUALRANGECAM_H__
 #define __IPA_VIRTUALRANGECAM_H__
 
-#ifdef __COB_ROS__
+#ifdef __LINUX__
 	#include <cob_camera_sensors/AbstractRangeImagingSensor.h>
 #else
 	#include <cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/AbstractRangeImagingSensor.h>
