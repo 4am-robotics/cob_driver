@@ -12,6 +12,7 @@ from cob_srvs.srv import *
 from cob_msgs.msg import *
 from trajectory_msgs.msg import *
 from geometry_msgs.msg import *
+from motion_planning_msgs.msg import *
 
 class ik_solver:
 
@@ -66,7 +67,7 @@ class ik_solver:
 		self.lock.release()
 
 	def cbIKSolverAbs(self, msg):
-		new_config = self.callIKSolver(msg.goal_pose.pose)
+		(new_config, error) = self.callIKSolver(msg.goal_pose.pose)
 		self.moveArm(new_config)
 
 	
@@ -107,7 +108,7 @@ class ik_solver:
 		#relpos.orientation.w = qrel[3]
 		print "Calling IK Server"
 		(new_config, error) = self.callIKSolver(relpos.pose)
-		if(error == 0):
+		if(error == ArmNavigationErrorCodes.SUCCESS):
 			self.moveArm(new_config)
 			result.return_value = 0
 			self.as_.set_succeeded(result)
