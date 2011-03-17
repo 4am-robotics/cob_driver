@@ -1,0 +1,26 @@
+<launch>
+	<!-- Based on pr2_arm_navigation_kinematics/launch/right_arm_collision_free_ik.launch -->
+	
+	<include file="$(find cob_arm_navigation)/launch/cob3_planning_environment.launch" />
+	
+	<node pkg="cob_manipulator" type="cob_arm_kinematics_constraint_aware" name="cob_arm_kinematics_constraint_aware" output="screen">
+		<!-- IK parameters -->
+		<param name="tip_name" value="arm_7_link" />
+		<param name="root_name" value="arm_0_link" />
+		<param name="group" type="string" value="arm" />
+
+		<!-- Collision environment parameters -->
+		<!--
+		<remap from="robot_description" to="/robot_description" />
+		<remap from="collision_map" to="collision_map_occ" />
+		<remap from="collision_map_update" to="collision_map_occ_update" />
+		<param name="pointcloud_padd" type="double" value="0.00" />
+		<param name="allow_valid_collisions" type="bool" value="false" />
+		<param name="collision_map_safety_timeout" type="double" value="100000.0" />
+		<param name="joint_states_safety_timeout" type="double" value="1.0" />
+		<param name="bounding_planes" type="string" value="0 0 1 -0.01" />
+
+		<rosparam command="load" file="$(find cob_arm_navigation)/config/cob3_robot_padding.yaml" />
+		-->
+	</node>
+</launch>

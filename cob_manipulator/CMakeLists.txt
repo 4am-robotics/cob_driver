@@ -16,6 +16,8 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
+include_directories(ros/include)
+
 #uncomment if you have defined messages
 #rosbuild_genmsg()
 #uncomment if you have defined services
@@ -26,5 +28,22 @@ rosbuild_gensrv()
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
-rosbuild_add_executable(cob_ik_solver_kdl ros/src/ik_solver_kdl.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
+
+rosbuild_add_executable(cob_ik_solver_kdl
+	ros/src/ik_solver_kdl.cpp
+	)
+
+
+rosbuild_add_library(cob_arm_kinematics_constraint_aware_lib
+	ros/src/cob_arm_kinematics_constraint_aware.cpp
+	ros/src/cob_arm_ik_solver.cpp
+	)
+
+rosbuild_add_executable(cob_arm_kinematics_constraint_aware
+	ros/src/cob_arm_kinematics_constraint_aware_main.cpp
+	)
+
+target_link_libraries(cob_arm_kinematics_constraint_aware
+	cob_arm_kinematics_constraint_aware_lib
+	)
