@@ -14,7 +14,6 @@
 	<include file="$(find cob_manipulator)/ros/launch/cob_arm_kinematics_constraint_aware.launch" />
 
 	<!-- start constraint aware cartesian interface -->
-	<rosparam command="load" ns="arm_controller" file="$(find cob_arm)/ros/launch/$(env ROBOT).yaml"/>
 	<node pkg="cob_manipulator" type="move_cart_constraint_aware.py" name="move_cart" ns="arm_controller" cwd="node" respawn="false" output="screen"/>
 
 	<!-- start cartesian interface -->
