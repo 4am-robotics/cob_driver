@@ -69,7 +69,7 @@
 #else
 	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/CameraSensorDefines.h"
 
-	#include "Vision/Extern/TinyXml/tinyxml.h"
+	#include "cob_vision/windows/src/extern/TinyXml/tinyxml.h"
 
 	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/VisionUtils.h"
 	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/CameraSensorTypes.h"
@@ -251,6 +251,7 @@ private:
 __DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_VirtualCam();
 __DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_Swissranger();
 __DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_PMDCamCube();
+__DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_Kinect();
 
 } // end namespace ipa_CameraSensors
 #endif // __IPA_ABSTRACTRANGEIMAGINGSENSOR_H__
