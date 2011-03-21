@@ -34,7 +34,10 @@ int main(int argc, char **argv)
 	for (int i = 0; i<JointName_param_.size(); i++ )
 	{
 		msg.name.push_back(JointName_param_[i]);
-		msg.position.push_back(0.0);
+		if((std::string)JointName_param_[i]=="floating_rot_w")
+			msg.position.push_back(1.0);
+		else
+			msg.position.push_back(0.0);
 		msg.velocity.push_back(0.0);
 		
 	}
