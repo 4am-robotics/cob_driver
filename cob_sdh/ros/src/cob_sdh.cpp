@@ -153,7 +153,7 @@ class SdhNode
 		* \param name Name for the actionlib server
 		*/
 		SdhNode(std::string name):
-			as_(nh_, name, boost::bind(&SdhNode::executeCB, this, _1),false),
+			as_(nh_, name, boost::bind(&SdhNode::executeCB, this, _1),true),
 			action_name_(name)
 		{
 			pi_ = 3.1415926;
