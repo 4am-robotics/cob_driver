@@ -545,7 +545,25 @@ class NodeClass
 			ucar_ctrl_->SetActualWheelValues(drive_joint_vel_rads, steer_joint_vel_rads,
 									drive_joint_ang_rad, steer_joint_ang_rad);
 
-			
+			pr2_controllers_msgs::JointTrajectoryControllerState controller_state_msg;
+
+			controller_state_msg.header.stamp = msg->header.stamp;
+			controller_state_msg.actual.positions.resize(m_iNumJoints);
+			controller_state_msg.actual.velocities.resize(m_iNumJoints);            
+			controller_state_msg.actual.accelerations.resize(m_iNumJoints);
+			controller_state_msg.joint_names.push_back("fl_caster_r_wheel_joint");
+			controller_state_msg.joint_names.push_back("fl_caster_rotation_joint");
+			controller_state_msg.joint_names.push_back("bl_caster_r_wheel_joint");
+			controller_state_msg.joint_names.push_back("bl_caster_rotation_joint");
+			controller_state_msg.joint_names.push_back("br_caster_r_wheel_joint");
+			controller_state_msg.joint_names.push_back("br_caster_rotation_joint");
+			controller_state_msg.joint_names.push_back("fr_caster_r_wheel_joint");
+			controller_state_msg.joint_names.push_back("fr_caster_rotation_joint");
+			controller_state_msg.actual.positions = msg->position;
+			controller_state_msg.actual.velocities = msg->velocity;
+			controller_state_msg.actual.accelerations = msg->effort;
+	
+			topic_pub_controller_state_.publish(controller_state_msg);
 
 		}
 
@@ -771,26 +789,6 @@ void NodeClass::GetJointState()
 	// Set measured Wheel Velocities and Angles to Controler Class (implements inverse kinematic)
 	ucar_ctrl_->SetActualWheelValues(drive_joint_vel_rads, steer_joint_vel_rads,
 							drive_joint_ang_rad, steer_joint_ang_rad);
-
-	pr2_controllers_msgs::JointTrajectoryControllerState controller_state_msg;
-
-	controller_state_msg.header.stamp = srv_get_joint.response.jointstate.header.stamp;
-	controller_state_msg.actual.positions.resize(m_iNumJoints);
-	controller_state_msg.actual.velocities.resize(m_iNumJoints);            
-	controller_state_msg.actual.accelerations.resize(m_iNumJoints);
-	controller_state_msg.joint_names.push_back("fl_caster_r_wheel_joint");
-	controller_state_msg.joint_names.push_back("fl_caster_rotation_joint");
-	controller_state_msg.joint_names.push_back("bl_caster_r_wheel_joint");
-	controller_state_msg.joint_names.push_back("bl_caster_rotation_joint");
-	controller_state_msg.joint_names.push_back("br_caster_r_wheel_joint");
-	controller_state_msg.joint_names.push_back("br_caster_rotation_joint");
-	controller_state_msg.joint_names.push_back("fr_caster_r_wheel_joint");
-	controller_state_msg.joint_names.push_back("fr_caster_rotation_joint");
-	controller_state_msg.actual.positions = srv_get_joint.response.jointstate.position;
-	controller_state_msg.actual.velocities = srv_get_joint.response.jointstate.velocity;
-	controller_state_msg.actual.accelerations = srv_get_joint.response.jointstate.effort;
-	
-	topic_pub_controller_state_.publish(controller_state_msg);
 
 }
 
