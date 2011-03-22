@@ -70,6 +70,7 @@
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
 #include <cob_relayboard/EmergencyStopState.h>
+#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 
 
 // ROS service includes
@@ -92,6 +93,7 @@ class NodeClass
                 
         // topics to publish
         ros::Publisher topic_pub_joint_state_cmd_;	// cmd issued for single joints of undercarriage
+		ros::Publisher topic_pub_controller_state_;
         ros::Publisher topic_pub_odometry_;			// calculated (measured) velocity, rotation and pose (odometry-based) for the robot
         tf::TransformBroadcaster tf_broadcast_odometry_;	// according transformation for the tf broadcaster
         
@@ -161,6 +163,8 @@ class NodeClass
 			// implementation of topics
             // published topics
 			topic_pub_joint_state_cmd_ = n.advertise<sensor_msgs::JointState>("joint_command", 1);
+			topic_pub_controller_state_ = n.advertise<pr2_controllers_msgs::JointTrajectoryControllerState> ("state", 1);
+
 			topic_pub_odometry_ = n.advertise<nav_msgs::Odometry>("odometry", 50);
 
             // subscribed topics
@@ -540,6 +544,9 @@ class NodeClass
 			// Set measured Wheel Velocities and Angles to Controler Class (implements inverse kinematic)
 			ucar_ctrl_->SetActualWheelValues(drive_joint_vel_rads, steer_joint_vel_rads,
 									drive_joint_ang_rad, steer_joint_ang_rad);
+
+			
+
 		}
 
        
@@ -764,6 +771,27 @@ void NodeClass::GetJointState()
 	// Set measured Wheel Velocities and Angles to Controler Class (implements inverse kinematic)
 	ucar_ctrl_->SetActualWheelValues(drive_joint_vel_rads, steer_joint_vel_rads,
 							drive_joint_ang_rad, steer_joint_ang_rad);
+
+	pr2_controllers_msgs::JointTrajectoryControllerState controller_state_msg;
+
+	controller_state_msg.header.stamp = srv_get_joint.response.jointstate.header.stamp;
+	controller_state_msg.actual.positions.resize(m_iNumJoints);
+	controller_state_msg.actual.velocities.resize(m_iNumJoints);            
+	controller_state_msg.actual.accelerations.resize(m_iNumJoints);
+	controller_state_msg.joint_names.push_back("fl_caster_r_wheel_joint");
+	controller_state_msg.joint_names.push_back("fl_caster_rotation_joint");
+	controller_state_msg.joint_names.push_back("bl_caster_r_wheel_joint");
+	controller_state_msg.joint_names.push_back("bl_caster_rotation_joint");
+	controller_state_msg.joint_names.push_back("br_caster_r_wheel_joint");
+	controller_state_msg.joint_names.push_back("br_caster_rotation_joint");
+	controller_state_msg.joint_names.push_back("fr_caster_r_wheel_joint");
+	controller_state_msg.joint_names.push_back("fr_caster_rotation_joint");
+	controller_state_msg.actual.positions = srv_get_joint.response.jointstate.position;
+	controller_state_msg.actual.velocities = srv_get_joint.response.jointstate.velocity;
+	controller_state_msg.actual.accelerations = srv_get_joint.response.jointstate.effort;
+	
+	topic_pub_controller_state_.publish(controller_state_msg);
+
 }
 
 
