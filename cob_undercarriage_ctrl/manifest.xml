@@ -18,6 +18,7 @@
   <depend package="tf"/>
   <depend package="cob_srvs"/>
   <depend package="cob_msgs"/>
+  <depend package="cob_relayboard"/>
   <depend package="cob_utilities"/>
   <depend package="diagnostic_updater"/>
   <depend package="rostest"/>

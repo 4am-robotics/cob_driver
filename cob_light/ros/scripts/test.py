@@ -55,7 +55,7 @@ import time
 import roslib
 roslib.load_manifest('cob_light')
 import rospy
-from cob_msgs.msg import Light
+from cob_light.msg import Light
 
 def changeColor():
 	pub = rospy.Publisher('light_controller/command', Light)
