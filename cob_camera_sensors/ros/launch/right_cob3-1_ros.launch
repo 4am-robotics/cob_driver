@@ -17,5 +17,9 @@
   </node>
   <node ns="right" pkg="image_proc" type="image_proc" respawn="false" name="right_image_proc" />
 </group>
+
+<!-- include rostest file -->
+<include file="$(find cob_camera_sensors)/ros/launch/right.test" />
+
 </launch>
 
