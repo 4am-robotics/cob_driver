@@ -3,8 +3,9 @@
 	<!-- Based on pr2_arm_navigation_kinematics/launch/right_arm_collision_free_ik.launch -->
 	
 	<include file="$(find cob_arm_navigation)/launch/setup/planning_environment.launch" />
-	
+
 	<node pkg="cob_manipulator" type="cob_arm_kinematics_constraint_aware" name="cob_arm_kinematics_constraint_aware" output="screen">
+
 		<!-- IK parameters -->
 		<param name="tip_name" value="arm_7_link" />
 		<param name="root_name" value="arm_0_link" />

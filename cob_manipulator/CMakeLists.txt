@@ -34,6 +34,9 @@ rosbuild_add_executable(cob_ik_solver_kdl
 	ros/src/ik_solver_kdl.cpp
 	)
 
+rosbuild_add_executable(cob_constraint_aware_ik_solver_kdl
+	ros/src/constraint_aware_ik_solver_kdl.cpp
+	)
 
 rosbuild_add_library(cob_arm_kinematics_constraint_aware_lib
 	ros/src/cob_arm_kinematics_constraint_aware.cpp
