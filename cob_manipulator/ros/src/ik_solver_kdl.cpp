@@ -19,26 +19,28 @@ using namespace std;
 using namespace KDL;
 KDL::Chain chain;
 
+#define DEG_TO_RAD(x) ((x) / 180.0 * M_PI)
+
 // upper joint limits of the LWR
 float upperJointLimits[] = {
-	2.9,
-	2.0,
-	2.9,
-	2.0,
-	2.9,
-	1.3,
-	1.0
+	DEG_TO_RAD(169.0),
+	DEG_TO_RAD(119.0),
+	DEG_TO_RAD(169.0),
+	DEG_TO_RAD(119.0),
+	DEG_TO_RAD(169.0),
+	DEG_TO_RAD(119.0),
+	DEG_TO_RAD(169.0)
 };
 
 // lower joint limits of the LWR
 float lowerJointLimits[] = {
-	-2.9,
-	-2.0,
-	-2.9,
-	-2.0,
-	-2.9,
-	-0.7,
-	-0.5
+	DEG_TO_RAD(-169.0),
+	DEG_TO_RAD(-119.0),
+	DEG_TO_RAD(-169.0),
+	DEG_TO_RAD(-119.0),
+	DEG_TO_RAD(-169.0),
+	DEG_TO_RAD(-119.0),
+	DEG_TO_RAD(-169.0)
 };
 
 
