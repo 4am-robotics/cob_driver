@@ -5,4 +5,6 @@
 	<include file="$(find cob_camera_sensors)/ros/launch/left_$(env ROBOT)_ros.launch" />
 	<include file="$(find cob_camera_sensors)/ros/launch/tof_ros.launch" />
 
+	<include file="$(find cob_camera_sensors)/ros/launch/right.test" />
+
 </launch>
