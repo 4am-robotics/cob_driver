@@ -322,13 +322,13 @@ public:
 		if (left_color_camera_) 
 		{
 			// Adapt name according to camera type
-			left_color_image_publisher_ = image_transport_.advertiseCamera(left_color_camera_ns_ + "/image_color", 1);
+			left_color_image_publisher_ = image_transport_.advertiseCamera(left_color_camera_ns_ + "/image_raw", 1);
 			left_color_camera_info_service_ = node_handle_.advertiseService(left_color_camera_ns_ + "/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
 		}
 		if (right_color_camera_)
 		{
 			// Adapt name according to camera type
-			right_color_image_publisher_ = image_transport_.advertiseCamera(right_color_camera_ns_ + "/image_color", 1);
+			right_color_image_publisher_ = image_transport_.advertiseCamera(right_color_camera_ns_ + "/image_raw", 1);
 			right_color_camera_info_service_ = node_handle_.advertiseService(right_color_camera_ns_ + "/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
 		}
 		if (tof_camera_)
