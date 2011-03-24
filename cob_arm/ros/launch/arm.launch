@@ -10,6 +10,9 @@
 	<!-- start ik_solver for arm -->
 	<node pkg="cob_manipulator" type="cob_ik_solver_kdl" name="cob_ik_solver" ns="arm_controller" cwd="node" respawn="false" output="screen"/>
 
+	<!-- start ik_solver with constraint aware ik for arm -->
+	<!-- <node pkg="cob_manipulator" type="cob_constraint_aware_ik_solver_kdl" name="cob_ik_solver" ns="arm_controller" cwd="node" respawn="false" output="screen"/> -->
+
 	<!-- start constraint aware ik_solver for arm -->
 	<include file="$(find cob_manipulator)/ros/launch/cob_arm_kinematics_constraint_aware.launch" />
 
