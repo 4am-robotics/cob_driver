@@ -394,7 +394,7 @@ int main(int argc, char **argv)
 
 
 	ros::ServiceServer get_ik_service = n.advertiseService("get_ik", ik_solve);
-	// ros::ServiceServer get_constraint_aware_ik_service = n.advertiseService("get_constraint_aware_ik", constraint_aware_ik_solve);
+	ros::ServiceServer get_constraint_aware_ik_service = n.advertiseService("get_constraint_aware_ik", constraint_aware_ik_solve);
 	ros::ServiceServer get_ik_solver_info_service = n.advertiseService("get_ik_solver_info", getIKSolverInfo);
 	ros::ServiceServer get_fk_service = n.advertiseService("get_fk", fk_solve);
 	ros::ServiceServer get_fk_tcp_service = n.advertiseService("get_fk_tcp", fk_solve_TCP);
