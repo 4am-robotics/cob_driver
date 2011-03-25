@@ -19,6 +19,9 @@
 	<!-- start cartesian interface -->
 	<!-- <node pkg="cob_manipulator" type="move_cart.py" name="move_cart" ns="arm_controller" cwd="node" respawn="false" output="screen"/> -->
 
+	<!-- start the arm navigation for known objects -->
+	<include file="$(find cob_arm_navigation)/launch/arm_navigation_static_collision.launch" />
+
 	<!-- start the grasp service -->
 	<include file="$(find brsu_grasp)/launch/brsu_grasp.launch"/>
 
