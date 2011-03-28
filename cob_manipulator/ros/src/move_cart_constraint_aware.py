@@ -135,7 +135,7 @@ class ik_solver:
 			time.sleep(0.1)
 		# req = GetPositionIKRequest()
 		req = GetConstraintAwarePositionIKRequest()
-		req.timeout = rospy.Duration(2)
+		req.timeout = rospy.Duration(0.5)
 		req.ik_request.pose_stamped.header.frame_id = "base_link"
 		req.ik_request.ik_link_name = "arm_7_link"
 		req.ik_request.ik_seed_state.joint_state.position = self.configuration
