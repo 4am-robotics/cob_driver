@@ -76,31 +76,31 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	JntArray q_max(nj);
 	for(int i = 0; i < nj; i+=2)
 	{
-		q_min(i) = -6.0;
-		q_max(i) = 6.0;
+		q_min(i) =-2.0943951;	//adjusted due to cob_description/lbr.urdf.xacro
+		q_max(i) = 2.0943951;
 	}
 	for(int i = 1; i < nj; i+=2)
 	{
-		q_min(i) = -2.0;
-		q_max(i) = 2.0;
+		q_min(i) =-2.9670;		//adjusted due to cob_description/lbr.urdf.xacro
+		q_max(i) = 2.9670;
 	}
-
 	
 	ChainFkSolverPos_recursive fksolver1(chain);//Forward position solver
 	ChainIkSolverVel_pinv iksolver1v(chain);//Inverse velocity solver
-	ChainIkSolverPos_NR_JL iksolverpos(chain, q_min, q_max, fksolver1,iksolver1v,1000,1e-6);//Maximum 100 iterations, stop at accuracy 1e-6
+	ChainIkSolverPos_NR_JL iksolverpos(chain, q_min, q_max, fksolver1,iksolver1v,1000000,1e-3);//Maximum 100 iterations, stop at accuracy 1e-6
+	//ChainIkSolverPos_NR_JL iksolverpos(chain, q_min, q_max, fksolver1,iksolver1v,1000,1e-6);//Maximum 100 iterations, stop at accuracy 1e-6
 
 	JntArray q(nj);
 	JntArray q_init(nj);
 	for(int i = 0; i < nj; i++)
-		q_init(i) = req.ik_request.ik_seed_state.joint_state.position[i];
+		q_init(i) = 0.0; //req.ik_request.ik_seed_state.joint_state.position[i];
 	Frame F_dest;
 	Frame F_ist;
 	fksolver1.JntToCart(q_init, F_ist);
 	tf::PoseMsgToKDL(req.ik_request.pose_stamped.pose, F_dest);
 	std::cout << "Getting Goal\n";
 	std::cout << F_dest <<"\n";
-	std::cout << "Calculated Position out of Configuration:\n";
+	std::cout << "Calculated Position out of Seed-Configuration:\n";
 	std::cout << F_ist <<"\n";
 
 	//uhr-fm: here comes the actual IK-solver-call -> could be replaced by analytical-IK-solver (cob)
@@ -109,7 +109,7 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	res.solution.joint_state.position.resize(nj);
 	if(ret < 0)
 	{
-		res.error_code.val = 1;
+		res.error_code.val = res.error_code.NO_IK_SOLUTION;
 		ROS_INFO("Inverse Kinematic found no solution");
 		std::cout << "RET: " << ret << std::endl;
 		for(int i = 0; i < nj; i++)	
@@ -118,13 +118,13 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	else
 	{
 		ROS_INFO("Inverse Kinematic found a solution");
-		res.error_code.val = 0;
+		res.error_code.val = res.error_code.SUCCESS;
 		for(int i = 0; i < nj; i++)	
 			res.solution.joint_state.position[i] = q(i);
 	}
 	//std::cout << "q_init\n";
-	ROS_DEBUG("q_init: %f %f %f %f %f %f %f", q_init(0), q_init(1), q_init(2), q_init(3), q_init(4), q_init(5), q_init(6));
-	ROS_DEBUG("q_out: %f %f %f %f %f %f %f", q(0), q(1), q(2), q(3), q(4), q(5), q(6));		
+	ROS_INFO("q_init: %f %f %f %f %f %f %f", q_init(0), q_init(1), q_init(2), q_init(3), q_init(4), q_init(5), q_init(6));
+	ROS_INFO("q_out: %f %f %f %f %f %f %f", q(0), q(1), q(2), q(3), q(4), q(5), q(6));		
 	//std::cout << "Solved with " << ret << " as return\n";
 	//std::cout << q(0) << " " << q(1) << " " << q(2) << " " << q(3) << " " << q(4) << " " << q(5) << " " << q(6)  << "\n";	
 
