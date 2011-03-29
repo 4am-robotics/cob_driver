@@ -119,7 +119,7 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	tf::PoseMsgToKDL(req.ik_request.pose_stamped.pose, F_dest);
 	std::cout << "Getting Goal\n";
 	std::cout << F_dest <<"\n";
-	std::cout << "Calculated Position out of Seed-Configuration:\n";
+	std::cout << "Calculated Position out of Configuration:\n";
 	std::cout << F_ist <<"\n";
 
 	//uhr-fm: here comes the actual IK-solver-call -> could be replaced by analytical-IK-solver (cob)
@@ -128,7 +128,7 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	res.solution.joint_state.position.resize(nj);
 	if(ret < 0)
 	{
-		res.error_code.val = res.error_code.NO_IK_SOLUTION;
+		res.error_code.val = motion_planning_msgs::ArmNavigationErrorCodes::PLANNING_FAILED;
 		ROS_INFO("Inverse Kinematic found no solution");
 		std::cout << "RET: " << ret << std::endl;
 		for(int i = 0; i < nj; i++)	
@@ -137,13 +137,13 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	else
 	{
 		ROS_INFO("Inverse Kinematic found a solution");
-		res.error_code.val = res.error_code.SUCCESS;
+		res.error_code.val = motion_planning_msgs::ArmNavigationErrorCodes::SUCCESS;
 		for(int i = 0; i < nj; i++)	
 			res.solution.joint_state.position[i] = q(i);
 	}
 	//std::cout << "q_init\n";
-	ROS_INFO("q_init: %f %f %f %f %f %f %f", q_init(0), q_init(1), q_init(2), q_init(3), q_init(4), q_init(5), q_init(6));
-	ROS_INFO("q_out: %f %f %f %f %f %f %f", q(0), q(1), q(2), q(3), q(4), q(5), q(6));		
+	ROS_DEBUG("q_init: %f %f %f %f %f %f %f", q_init(0), q_init(1), q_init(2), q_init(3), q_init(4), q_init(5), q_init(6));
+	ROS_DEBUG("q_out: %f %f %f %f %f %f %f", q(0), q(1), q(2), q(3), q(4), q(5), q(6));		
 	//std::cout << "Solved with " << ret << " as return\n";
 	//std::cout << q(0) << " " << q(1) << " " << q(2) << " " << q(3) << " " << q(4) << " " << q(5) << " " << q(6)  << "\n";	
 
@@ -177,7 +177,6 @@ bool getIKSolverInfo(kinematics_msgs::GetKinematicSolverInfo::Request  &req,
 {
 	ROS_INFO("[TESTING]: get_ik_solver_info_service has been called!");
 	
-	///ToDo: this call returns joint_names "arm_i_joint", where i=0...6. should be: i=1...7!!!!
 	getKDLChainInfo(res.kinematic_solver_info);
 
 	return true;
@@ -395,7 +394,7 @@ int main(int argc, char **argv)
 
 
 	ros::ServiceServer get_ik_service = n.advertiseService("get_ik", ik_solve);
-	// ros::ServiceServer get_constraint_aware_ik_service = n.advertiseService("get_constraint_aware_ik", constraint_aware_ik_solve);
+	ros::ServiceServer get_constraint_aware_ik_service = n.advertiseService("get_constraint_aware_ik", constraint_aware_ik_solve);
 	ros::ServiceServer get_ik_solver_info_service = n.advertiseService("get_ik_solver_info", getIKSolverInfo);
 	ros::ServiceServer get_fk_service = n.advertiseService("get_fk", fk_solve);
 	ros::ServiceServer get_fk_tcp_service = n.advertiseService("get_fk_tcp", fk_solve_TCP);

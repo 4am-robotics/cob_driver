@@ -3,6 +3,7 @@
 
 	<include file="$(find cob_camera_sensors)/ros/launch/right.launch" />
 	<include file="$(find cob_camera_sensors)/ros/launch/left.launch" />
-	<include file="$(find cob_camera_sensors)/ros/launch/tof.launch" />
+
+<!--	<include file="$(find cob_camera_sensors)/ros/launch/tof.launch" /> -->
 
 </launch>
