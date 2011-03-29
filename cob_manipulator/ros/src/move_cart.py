@@ -12,7 +12,6 @@ from cob_srvs.srv import *
 from cob_msgs.msg import *
 from trajectory_msgs.msg import *
 from geometry_msgs.msg import *
-from motion_planning_msgs.msg import *
 
 class ik_solver:
 
@@ -20,7 +19,7 @@ class ik_solver:
 		if rospy.has_param('joint_names'):
 			self.joint_names = rospy.get_param('joint_names')
 		else:
-			rospy.logerr("joint_names not available")
+			rospy.logerror("joint_names not available")
 			return
 		self.configuration = [0,0,0,0,0,0,0]
 		self.lock = threading.Lock()
@@ -67,7 +66,7 @@ class ik_solver:
 		self.lock.release()
 
 	def cbIKSolverAbs(self, msg):
-		(new_config, error) = self.callIKSolver(msg.goal_pose.pose)
+		new_config = self.callIKSolver(msg.goal_pose.pose)
 		self.moveArm(new_config)
 
 	
@@ -108,7 +107,7 @@ class ik_solver:
 		#relpos.orientation.w = qrel[3]
 		print "Calling IK Server"
 		(new_config, error) = self.callIKSolver(relpos.pose)
-		if(error == ArmNavigationErrorCodes.SUCCESS):
+		if(error == 0):
 			self.moveArm(new_config)
 			result.return_value = 0
 			self.as_.set_succeeded(result)

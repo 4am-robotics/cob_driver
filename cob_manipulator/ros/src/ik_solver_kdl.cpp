@@ -19,58 +19,36 @@ using namespace std;
 using namespace KDL;
 KDL::Chain chain;
 
-#define DEG_TO_RAD(x) ((x) / 180.0 * M_PI)
-
-// upper joint limits of the LWR
-float upperJointLimits[] = {
-	DEG_TO_RAD(169.0),
-	DEG_TO_RAD(119.0),
-	DEG_TO_RAD(169.0),
-	DEG_TO_RAD(119.0),
-	DEG_TO_RAD(169.0),
-	DEG_TO_RAD(119.0),
-	DEG_TO_RAD(169.0)
-};
-
-// lower joint limits of the LWR
-float lowerJointLimits[] = {
-	DEG_TO_RAD(-169.0),
-	DEG_TO_RAD(-119.0),
-	DEG_TO_RAD(-169.0),
-	DEG_TO_RAD(-119.0),
-	DEG_TO_RAD(-169.0),
-	DEG_TO_RAD(-119.0),
-	DEG_TO_RAD(-169.0)
-};
-
-
 void getKDLChainInfo(kinematics_msgs::KinematicSolverInfo &chain_info)
 {
 	unsigned int nj = chain.getNrOfJoints();
 	unsigned int nl = chain.getNrOfSegments();
 
-	// only 7 joints allowed
-	if (nj != 7) ROS_ASSERT(false);
+	//---setting up response
 
-	//joint_names and limits
-	chain_info.limits.resize(nj);
-	for (unsigned int i = 0; i < nj; i++) {
+	//joint_names
+	for(unsigned int i=0; i<nj; i++)
+  {
 		chain_info.joint_names.push_back(chain.getSegment(i).getJoint().getName());
-
+  }
+	//limits
+		//joint limits are only saved in KDL::ChainIkSolverPos_NR_JL iksolverpos -> ik_solve().....but this is not visible here!
+/*for(unsigned int i=0; i<nj; i++)
+  {
 		chain_info.limits[i].joint_name=chain.getSegment(i).getJoint().getName();
-		chain_info.limits[i].has_position_limits = true;
-		chain_info.limits[i].min_position = lowerJointLimits[i];
-		chain_info.limits[i].max_position = upperJointLimits[i];
-		chain_info.limits[i].has_velocity_limits = false;
-		chain_info.limits[i].max_velocity = 0.0;
-		chain_info.limits[i].has_acceleration_limits = false;
-		chain_info.limits[i].max_acceleration = 0.0;
-	}
-
+		chain_info.limits[i].has_position_limits=
+		chain_info.limits[i].min_position=
+		chain_info.limits[i].max_position=	
+		chain_info.limits[i].has_velocity_limits=
+		chain_info.limits[i].max_velocity=
+		chain_info.limits[i].has_acceleration_limits=
+		chain_info.limits[i].max_acceleration=
+	}*/
 	//link_names	
-	for(unsigned int i = 0; i < nl; i++) {
+	for(unsigned int i=0; i<nl; i++)
+  {
 		chain_info.link_names.push_back(chain.getSegment(i).getName());
-	}
+  }
 }
 
 int getJointIndex(const std::string &name,
@@ -93,26 +71,29 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	ROS_INFO("get_ik_service has been called!");
 	
 	unsigned int nj = chain.getNrOfJoints();
-
-	// only 7 joints allowed
-	if (nj != 7) ROS_ASSERT(false);
 	
 	JntArray q_min(nj);
 	JntArray q_max(nj);
-	for (int i = 0; i < nj; i++) {
-		q_min(i) = lowerJointLimits[i];
-		q_max(i) = upperJointLimits[i];
+	for(int i = 0; i < nj; i+=2)
+	{
+		q_min(i) =-2.0943951;	//adjusted due to cob_description/lbr.urdf.xacro
+		q_max(i) = 2.0943951;
 	}
-
+	for(int i = 1; i < nj; i+=2)
+	{
+		q_min(i) =-2.9670;		//adjusted due to cob_description/lbr.urdf.xacro
+		q_max(i) = 2.9670;
+	}
 	
 	ChainFkSolverPos_recursive fksolver1(chain);//Forward position solver
 	ChainIkSolverVel_pinv iksolver1v(chain);//Inverse velocity solver
-	ChainIkSolverPos_NR_JL iksolverpos(chain, q_min, q_max, fksolver1,iksolver1v,1000,1e-6);//Maximum 100 iterations, stop at accuracy 1e-6
+	ChainIkSolverPos_NR_JL iksolverpos(chain, q_min, q_max, fksolver1,iksolver1v,1000000,1e-3);//Maximum 100 iterations, stop at accuracy 1e-6
+	//ChainIkSolverPos_NR_JL iksolverpos(chain, q_min, q_max, fksolver1,iksolver1v,1000,1e-6);//Maximum 100 iterations, stop at accuracy 1e-6
 
 	JntArray q(nj);
 	JntArray q_init(nj);
 	for(int i = 0; i < nj; i++)
-		q_init(i) = req.ik_request.ik_seed_state.joint_state.position[i];
+		q_init(i) = 0.0; //req.ik_request.ik_seed_state.joint_state.position[i];
 	Frame F_dest;
 	Frame F_ist;
 	fksolver1.JntToCart(q_init, F_ist);
@@ -390,12 +371,11 @@ int main(int argc, char **argv)
 	      ROS_ERROR("Failed to construct kdl tree");
       	      return false;
 	}
-	// my_tree.getChain("base_link","arm_7_link", chain);
-	my_tree.getChain("arm_0_link", "arm_7_link", chain);
-
+	my_tree.getChain("base_link","arm_7_link", chain);
+	
 
 	ros::ServiceServer get_ik_service = n.advertiseService("get_ik", ik_solve);
-	// ros::ServiceServer get_constraint_aware_ik_service = n.advertiseService("get_constraint_aware_ik", constraint_aware_ik_solve);
+	ros::ServiceServer get_constraint_aware_ik_service = n.advertiseService("get_constraint_aware_ik", constraint_aware_ik_solve);
 	ros::ServiceServer get_ik_solver_info_service = n.advertiseService("get_ik_solver_info", getIKSolverInfo);
 	ros::ServiceServer get_fk_service = n.advertiseService("get_fk", fk_solve);
 	ros::ServiceServer get_fk_tcp_service = n.advertiseService("get_fk_tcp", fk_solve_TCP);
