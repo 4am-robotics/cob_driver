@@ -322,14 +322,14 @@ public:
 		if (left_color_camera_) 
 		{
 			// Adapt name according to camera type
-			left_color_image_publisher_ = image_transport_.advertiseCamera(left_color_camera_ns_ + "/left/image_color", 1);
-			left_color_camera_info_service_ = node_handle_.advertiseService(left_color_camera_ns_ + "/left/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
+			left_color_image_publisher_ = image_transport_.advertiseCamera(left_color_camera_ns_ + "/image_raw", 1);
+			left_color_camera_info_service_ = node_handle_.advertiseService(left_color_camera_ns_ + "/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
 		}
 		if (right_color_camera_)
 		{
 			// Adapt name according to camera type
-			right_color_image_publisher_ = image_transport_.advertiseCamera(right_color_camera_ns_ + "/right/image_color", 1);
-			right_color_camera_info_service_ = node_handle_.advertiseService(right_color_camera_ns_ + "/right/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
+			right_color_image_publisher_ = image_transport_.advertiseCamera(right_color_camera_ns_ + "/image_raw", 1);
+			right_color_camera_info_service_ = node_handle_.advertiseService(right_color_camera_ns_ + "/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
 		}
 		if (tof_camera_)
 		{
@@ -514,15 +514,15 @@ public:
 			right_color_camera_ = ipa_CameraSensors::CreateColorCamera_AVTPikeCam();
 			left_color_camera_ = ipa_CameraSensors::CreateColorCamera_AVTPikeCam();
 
-			left_color_camera_ns_ = "pike_145C";
-			right_color_camera_ns_ = "pike_145C";
+			left_color_camera_ns_ = "/stereo/left";
+			right_color_camera_ns_ = "/stereo/right";
 		}
 		else if (tmp_string == "CAM_VIRTUAL") 
 		{
 			right_color_camera_ = ipa_CameraSensors::CreateColorCamera_VirtualCam();
 			left_color_camera_ = ipa_CameraSensors::CreateColorCamera_VirtualCam();
-			left_color_camera_ns_ = "pike_145C";
-			right_color_camera_ns_ = "pike_145C";
+			left_color_camera_ns_ = "/stereo/left";
+			right_color_camera_ns_ = "/stereo/right";
 		}
 		else if (tmp_string == "CAM_PROSILICA") ROS_ERROR("[all_cameras] Color camera type not CAM_PROSILICA not yet implemented");
 		else

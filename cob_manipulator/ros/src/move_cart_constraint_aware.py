@@ -40,8 +40,9 @@ class ik_solver:
 		rospy.Subscriber('/joint_states', JointState, self.joint_states_callback)
 		#self.thread = threading.Thread(target=self.joint_states_listener)
 		#self.thread.start()
-		rospy.wait_for_service('get_ik')
-		self.iks = rospy.ServiceProxy('get_ik', GetPositionIK)
+		rospy.wait_for_service('get_constraint_aware_ik')
+		# self.iks = rospy.ServiceProxy('get_constraint_aware_ik', GetPositionIK)
+		self.iks = rospy.ServiceProxy('get_constraint_aware_ik', GetConstraintAwarePositionIK)
 
 	#thread function: listen for joint_states messages
 	def joint_states_listener(self):
@@ -132,8 +133,13 @@ class ik_solver:
 	def callIKSolver(self, goal_pose):
 		while(not self.received_state):
 			time.sleep(0.1)
-		req = GetPositionIKRequest()
+		# req = GetPositionIKRequest()
+		req = GetConstraintAwarePositionIKRequest()
+		req.timeout = rospy.Duration(0.5)
+		req.ik_request.pose_stamped.header.frame_id = "base_link"
+		req.ik_request.ik_link_name = "arm_7_link"
 		req.ik_request.ik_seed_state.joint_state.position = self.configuration
+		req.ik_request.ik_seed_state.joint_state.name = ["arm_1_joint","arm_2_joint","arm_3_joint","arm_4_joint","arm_5_joint","arm_6_joint","arm_7_joint"]
 		req.ik_request.pose_stamped.pose = goal_pose
 		resp = self.iks(req)
 		return (resp.solution.joint_state.position, resp.error_code.val)
