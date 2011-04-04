@@ -59,7 +59,7 @@
 #ifndef __IPA_ABSTRACTRANGEIMAGINGSENSOR_H__
 #define __IPA_ABSTRACTRANGEIMAGINGSENSOR_H__
 
-#ifdef __COB_ROS__
+#ifdef __LINUX__
 	#include "cob_vision_utils/CameraSensorDefines.h"
 
 	#include "tinyxml/tinyxml.h"
