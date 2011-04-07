@@ -15,14 +15,16 @@ from cob_sound.srv import *
 class SoundAction(object):
 
 	def __init__(self):
-		self._as = actionlib.SimpleActionServer("say", SayAction, execute_cb=self.as_cb,auto_start=False)
+		self._as = actionlib.SimpleActionServer("say", SayAction, execute_cb=self.as_cb)
 		rospy.Subscriber("/say", String, self.topic_cb)
 		rospy.Service('/say', SayText, self.service_cb)
 		self._as.start()
 
 	def as_cb(self, goal):
+		print "begin"
 		self.say(goal.text.data)
 		self._as.set_succeeded()
+		print "end"
 		
 	def topic_cb(self,msg):
 		self.say(msg.data)
@@ -34,7 +36,7 @@ class SoundAction(object):
 
 	def say(self,text):
 		rospy.loginfo('Saying: %s' % (text))
-		os.system("echo " + text + " | text2wave | aplay -q")		
+		os.system("echo " + text + " | text2wave | aplay -q &")		
 
 if __name__ == '__main__':
 	rospy.init_node('cob_sound')
