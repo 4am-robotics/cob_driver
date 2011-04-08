@@ -141,6 +141,16 @@ private:
 	// Camera specific members
 	//*******************************************************************************
 
+	/// Reads out the image width and height from the first image found in the filesystem.
+	/// @param filename The name of that image.
+	inline void UpdateImageDimensionsOnFirstImage(std::string filename);
+
+	/// Compares the value of the iterator with ext in order to find the extension which has instances in the directory.
+	/// Throws an error if different file formats are present at the same time.
+	/// @param itCounter Iterator containing a file extension and a number of instances.
+	/// @param ext Is empty if no extension was found before, otherwise it contains the found extension.
+	inline void FindSourceImageFormat(std::map<std::string, int>::iterator& itCounter, std::string& ext);
+
 	unsigned long GetCalibratedZMatlab(int u, int v, float zRaw, float& zCalibrated);
 	unsigned long GetCalibratedXYMatlab(int u, int v, float z, float& x, float& y);
 	
