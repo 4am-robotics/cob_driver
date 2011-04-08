@@ -69,7 +69,7 @@
 #else
 	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/CameraSensorDefines.h"
 
-	#include "Vision/Extern/TinyXml/tinyxml.h"
+	#include "cob_vision/windows/src/extern/TinyXml/tinyxml.h"
 
 	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/CameraSensorTypes.h"
 	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/VisionUtils.h"
