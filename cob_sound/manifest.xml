@@ -1,0 +1,16 @@
+<package>
+  <description brief="cob_sound">
+
+     This package implements a sound play module using text2wave and aplay through python.
+
+  </description>
+  <author>Florian Weisshardt</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_sound</url>
+  
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+  <depend package="actionlib"/>
+
+</package>
