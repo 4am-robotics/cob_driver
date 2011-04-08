@@ -259,6 +259,7 @@ unsigned long VirtualRangeCam::Open()
 		return (ipa_CameraSensors::RET_FAILED | ipa_CameraSensors::RET_FAILED_OPEN_FILE);
 	}
 
+	std::map<
 	int amplitudeImageCounter = 0;
 	int intensityImageCounter = 0;
 	int coordinateImageCounter = 0;
@@ -278,8 +279,7 @@ unsigned long VirtualRangeCam::Open()
 				{
 					std::string filename = dir_itr->path().string();
 
-					if ((dir_itr->path().extension() == ".xml") &&
-						filename.find( "RangeCamIntensity_any_" + sCameraIndex, 0 ) != std::string::npos)
+					if ((dir_itr->path().extension() == ".xml") && filename.find( "RangeCamIntensity_any_" + sCameraIndex, 0 ) != std::string::npos)
 					{
 						++intensityImageCounter;
 						//std::cout << "VirtualRangeCam::Open(): Reading '" << dir_itr->path().string() << "\n";
