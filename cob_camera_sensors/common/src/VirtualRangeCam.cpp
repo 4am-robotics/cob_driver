@@ -262,6 +262,7 @@ unsigned long VirtualRangeCam::Open()
 	int amplitudeImageCounter = 0;
 	int intensityImageCounter = 0;
 	int coordinateImageCounter = 0;
+	int rangeImageCounter = 0;
 	// Extract all image filenames from the directory
 	if ( fs::exists( absoluteDirectoryName ) )
 	{
@@ -278,7 +279,7 @@ unsigned long VirtualRangeCam::Open()
 					std::string filename = dir_itr->path().string();
 
 					if ((dir_itr->path().extension() == ".xml") &&
-						filename.find( "RangeCamIntensity_32F1_" + sCameraIndex, 0 ) != std::string::npos)
+						filename.find( "RangeCamIntensity_any_" + sCameraIndex, 0 ) != std::string::npos)
 					{
 						++intensityImageCounter;
 						//std::cout << "VirtualRangeCam::Open(): Reading '" << dir_itr->path().string() << "\n";
@@ -321,6 +322,21 @@ unsigned long VirtualRangeCam::Open()
 						}
 						//std::cout << "VirtualRangeCam::Open(): Reading '" << dir_itr->path().string() << "\n";
 					}
+
+					if ((dir_itr->path().extension() == ".xml") &&
+						filename.find( "RangeCamRange_32F1_" + sCameraIndex, 0 ) != std::string::npos)
+					{
+						++rangeImageCounter;
+						//std::cout << "VirtualRangeCam::Open(): Reading '" << dir_itr->path().string() << "\n";
+						m_RangeImageFileNames.push_back(dir_itr->path().string());
+						if (m_ImageWidth == -1 || m_ImageHeight == -1)
+						{
+							image = (IplImage*) cvLoad(m_RangeImageFileNames.back().c_str(), 0);
+							m_ImageWidth = image->width;
+							m_ImageHeight = image->height;
+							cvReleaseImage(&image);
+						}
+					}
 				}
 			}
 			catch ( const std::exception &ex )
@@ -332,10 +348,12 @@ unsigned long VirtualRangeCam::Open()
 		std::sort(m_IntensityImageFileNames.begin(),m_IntensityImageFileNames.end());
 		std::sort(m_AmplitudeImageFileNames.begin(),m_AmplitudeImageFileNames.end());
 		std::sort(m_CoordinateImageFileNames.begin(),m_CoordinateImageFileNames.end());
+		std::sort(m_RangeImageFileNames.begin(),m_RangeImageFileNames.end());
 		std::cout << "INFO - VirtualRangeCam::Open:" << std::endl;
-		std::cout << "\t ... Extracted '" << intensityImageCounter << "' intensity images (16 bit/value)\n";
+		std::cout << "\t ... Extracted '" << intensityImageCounter << "' intensity images (3*8 or 16 bit/value)\n";
 		std::cout << "\t ... Extracted '" << amplitudeImageCounter << "' amplitude images (16 bit/value)\n";
 		std::cout << "\t ... Extracted '" << coordinateImageCounter << "' coordinate images (3*16 bit/value)\n";
+		std::cout << "\t ... Extracted '" << rangeImageCounter << "' range images (16 bit/value)\n";
 
 		if (intensityImageCounter == 0 && amplitudeImageCounter == 0)
 		{
@@ -346,8 +364,9 @@ unsigned long VirtualRangeCam::Open()
 		}
 
 		if (coordinateImageCounter != 0 &&
-			intensityImageCounter != coordinateImageCounter &&
-			amplitudeImageCounter != coordinateImageCounter)
+			((intensityImageCounter != coordinateImageCounter &&
+			amplitudeImageCounter != coordinateImageCounter) ||
+			(coordinateImageCounter != rangeImageCounter)))
 		{
 			std::cerr << "ERROR - VirtualRangeCam::Open:" << std::endl;
 			std::cerr << "\t ... Number of intensity, range and coordinate images must agree." << std::endl;
@@ -451,39 +470,42 @@ unsigned long VirtualRangeCam::AcquireImages(cv::Mat* rangeImage, cv::Mat* grayI
 	char* rangeImageData = 0;
 	char* grayImageData = 0;
 	char* cartesianImageData = 0;
-	int widthStepOneChannel = -1;
+	int widthStepRange = -1;
+	int widthStepGray = -1;
+	int widthStepCartesian = -1;
 
 	if(rangeImage)
 	{
 		rangeImage->create(m_ImageHeight, m_ImageWidth, CV_32FC1);
 		rangeImageData = (char*) rangeImage->data;
-		widthStepOneChannel = rangeImage->step;
+		widthStepRange = rangeImage->step;
 	}
 
 	if(grayImage)
 	{
-		grayImage->create(m_ImageHeight, m_ImageWidth, CV_32FC1);
+		if (grayImageType == ipa_CameraSensors::INTENSITY_8U3) grayImage->create(m_ImageHeight, m_ImageWidth, CV_8UC3);
+		else grayImage->create(m_ImageHeight, m_ImageWidth, CV_32FC1);
 		grayImageData = (char*) grayImage->data;
-		widthStepOneChannel = grayImage->step;
+		widthStepGray = grayImage->step;
 	}
 
 	if(cartesianImage)
 	{
 		cartesianImage->create(m_ImageHeight, m_ImageWidth, CV_32FC3);
 		cartesianImageData = (char*) cartesianImage->data;
-		widthStepOneChannel = cartesianImage->step/3;
+		widthStepCartesian = cartesianImage->step;
 	}
 
-	if (widthStepOneChannel == 0)
+	if (widthStepRange+widthStepGray+widthStepCartesian == -3)
 	{
 		return RET_OK;
 	}
 
-	return AcquireImages(widthStepOneChannel, rangeImageData, grayImageData, cartesianImageData, getLatestFrame, undistort, grayImageType);
+	return AcquireImages(widthStepRange, widthStepGray, widthStepCartesian, rangeImageData, grayImageData, cartesianImageData, getLatestFrame, undistort, grayImageType);
 
 }
 
-unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rangeImageData, char* grayImageData, char* cartesianImageData,
+unsigned long VirtualRangeCam::AcquireImages(int widthStepRange, int widthStepGray, int widthStepCartesian, char* rangeImageData, char* grayImageData, char* cartesianImageData,
 											 bool getLatestFrame, bool undistort, ipa_CameraSensors::t_ToFGrayImageType grayImageType)
 {
 	if (!m_open)
@@ -500,7 +522,6 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 	{
 		float* f_ptr = 0;
 		float* f_ptr_dst = 0;
-		int widthStepRangeImage = widthStepOneChannel;
 
 		IplImage* rangeImage = (IplImage*) cvLoad(m_RangeImageFileNames[m_ImageCounter].c_str(), 0);
 		
@@ -510,7 +531,7 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 			for(unsigned int row=0; row<(unsigned int)m_ImageHeight; row++)
 			{
 				f_ptr = (float*) (rangeImage->imageData + row*rangeImage->widthStep);
-				f_ptr_dst = (float*) (rangeImageData + row*widthStepRangeImage);
+				f_ptr_dst = (float*) (rangeImageData + row*widthStepRange);
 
 				for (unsigned int col=0; col<(unsigned int)m_ImageWidth; col++)
 				{
@@ -536,9 +557,11 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 	{
 		float* f_ptr = 0;
 		float* f_ptr_dst = 0;
+		unsigned char* uc_ptr = 0;
+		unsigned char* uc_ptr_dst = 0;
 		IplImage* grayImage = 0;
 
-		if (grayImageType == ipa_CameraSensors::INTENSITY)
+		if ((grayImageType == ipa_CameraSensors::INTENSITY_32F1) || (grayImageType == ipa_CameraSensors::INTENSITY_8U3))
 		{
 			grayImage = (IplImage*) cvLoad(m_IntensityImageFileNames[m_ImageCounter].c_str());
 		}
@@ -546,25 +569,47 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 		{
 			grayImage = (IplImage*) cvLoad(m_AmplitudeImageFileNames[m_ImageCounter].c_str());
 		}
-
-		int widthStepIntensityImage = widthStepOneChannel;
-
+		
 		if (!undistort)
 		{
-			for(unsigned int row=0; row<(unsigned int)m_ImageHeight; row++)
+			if (grayImageType == ipa_CameraSensors::INTENSITY_8U3)
 			{
-				f_ptr = (float*) (grayImage->imageData + row*grayImage->widthStep);
-				f_ptr_dst = (float*) (grayImageData + row*widthStepIntensityImage);
-
-				for (unsigned int col=0; col<(unsigned int)m_ImageWidth; col++)
+				for(unsigned int row=0; row<(unsigned int)m_ImageHeight; row++)
 				{
-					f_ptr_dst[col] = f_ptr[col];
+					f_ptr = (float*) (grayImage->imageData + row*grayImage->widthStep);
+					f_ptr_dst = (float*) (grayImageData + row*widthStepGray);
+
+					for (unsigned int col=0; col<(unsigned int)m_ImageWidth; col++)
+					{
+						f_ptr_dst[col] = f_ptr[col];
+					}
+				}
+			}
+			else
+			{
+				for(unsigned int row=0; row<(unsigned int)m_ImageHeight; row++)
+				{
+					uc_ptr = (unsigned char*) (grayImage->imageData + row*grayImage->widthStep);
+					uc_ptr_dst = (unsigned char*) (grayImageData + row*widthStepGray);
+
+					for (unsigned int col=0; col<(unsigned int)m_ImageWidth; col++)
+					{
+						uc_ptr_dst[col] = uc_ptr[col];
+					}
 				}
 			}
 		}
 		else
 		{
-			cv::Mat undistortedData(m_ImageHeight, m_ImageWidth, CV_32FC1, (float*) grayImageData);
+			cv::Mat undistortedData;
+			if (grayImageType == ipa_CameraSensors::INTENSITY_8U3)
+			{
+				undistortedData = cv::Mat(m_ImageHeight, m_ImageWidth, CV_8UC3, (unsigned char*) grayImageData);
+			}
+			else
+			{
+				undistortedData = cv::Mat(m_ImageHeight, m_ImageWidth, CV_32FC1, (float*) grayImageData);
+			}
 			cv::Mat cpp_grayImage = grayImage;
 
 			assert (!m_undistortMapX.empty() && !m_undistortMapY.empty());
@@ -578,7 +623,6 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 ///***********************************************************************
 	if(cartesianImageData)
 	{
-		int widthStepCartesianImage = widthStepOneChannel*3;
 		float x = -1;
 		float y = -1;
 		float zCalibrated = -1;
@@ -597,7 +641,7 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 			for(unsigned int row=0; row<(unsigned int)m_ImageHeight; row++)
 			{
 				f_ptr = (float*) (coordinateImage->imageData + row*coordinateImage->widthStep);
-				f_ptr_dst = (float*) (cartesianImageData + row*widthStepCartesianImage);
+				f_ptr_dst = (float*) (cartesianImageData + row*widthStepCartesian);
 
 				for (unsigned int col=0; col<(unsigned int)m_ImageWidth; col++)
 				{
@@ -619,7 +663,7 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepOneChannel, char* rang
 			for(unsigned int row=0; row<(unsigned int)m_ImageHeight; row++)
 			{
 				f_ptr = (float*) (coordinateImage->imageData + row*coordinateImage->widthStep);
-				f_ptr_dst = (float*) (cartesianImageData + row*widthStepCartesianImage);
+				f_ptr_dst = (float*) (cartesianImageData + row*widthStepCartesian);
 
 				for (unsigned int col=0; col<(unsigned int)m_ImageWidth; col++)
 				{
