@@ -448,7 +448,7 @@ public:
 			if (tof_camera_)
 			{
 				//ROS_INFO("[all_cameras] TOF");
-				if(tof_camera_->AcquireImages(0, &grey_tof_image_32F1_, &xyz_tof_image_32F3_, false, false, ipa_CameraSensors::INTENSITY) & ipa_Utils::RET_FAILED)
+				if(tof_camera_->AcquireImages(0, &grey_tof_image_32F1_, &xyz_tof_image_32F3_, false, false, ipa_CameraSensors::INTENSITY_32F1) & ipa_Utils::RET_FAILED)
 				{
 					ROS_ERROR("[all_cameras] Tof image acquisition failed");
 					tof_camera_->Close();
