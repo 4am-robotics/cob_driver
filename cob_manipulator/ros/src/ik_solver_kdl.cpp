@@ -98,7 +98,7 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	JntArray q(nj);
 	JntArray q_init(nj);
 	for(int i = 0; i < nj; i++)
-		q_init(i) = 0.0; //req.ik_request.ik_seed_state.joint_state.position[i];
+		q_init(i) = req.ik_request.ik_seed_state.joint_state.position[i];
 	Frame F_dest;
 	Frame F_ist;
 	fksolver1.JntToCart(q_init, F_ist);
@@ -175,8 +175,7 @@ bool constraint_aware_ik_solve(kinematics_msgs::GetConstraintAwarePositionIK::Re
 	//all other fields of GetConstraintAwarePositionIK::Request (allowed_contacts, ordered_collision_operations, link_padding, constraints) are dropped
 	
 	bool success = ik_solve(request, response);
-
-
+	
 	if(response.error_code.val == 1) res.error_code.val = res.error_code.SUCCESS;
 	else res.error_code.val = res.error_code.NO_IK_SOLUTION;
 	
