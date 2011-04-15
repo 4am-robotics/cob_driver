@@ -143,7 +143,7 @@ private:
 
 	/// Reads out the image width and height from the first image found in the filesystem.
 	/// @param filename The name of that image.
-	inline void UpdateImageDimensionsOnFirstImage(std::string filename);
+	inline void UpdateImageDimensionsOnFirstImage(std::string filename, std::string ext=".xml");
 
 	/// Compares the value of the iterator with ext in order to find the extension which has instances in the directory.
 	/// Throws an error if different file formats are present at the same time.

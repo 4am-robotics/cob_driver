@@ -399,6 +399,7 @@ public:
 					break;
 				}
 				right_color_image_msg.header.stamp = now; 
+				right_color_image_msg.encoding = "bgr8"; 
 				right_color_image_msg.header.frame_id = "head_color_camera_r_link";   
 		
 				right_color_image_info = right_color_camera_info_msg_;
@@ -433,6 +434,7 @@ public:
 					break;
 				}
 				left_color_image_msg.header.stamp = now;    
+				left_color_image_msg.encoding = "bgr8";
 				left_color_image_msg.header.frame_id = "head_color_camera_l_link"; 
 		
 				left_color_image_info = left_color_camera_info_msg_;
