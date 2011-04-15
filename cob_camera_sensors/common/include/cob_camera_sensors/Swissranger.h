@@ -136,12 +136,12 @@ public:
 	unsigned long SetPropertyDefaults();
 	unsigned long GetProperty(t_cameraProperty* cameraProperty);
 
-	unsigned long AcquireImages(int widthStepOneChannel, char* RangeImage=NULL, char* IntensityImage=NULL,
+	unsigned long AcquireImages(int widthStepRange, int widthStepGray, int widthStepCartesian, char* RangeImage=NULL, char* IntensityImage=NULL,
 		char* cartesianImage=NULL, bool getLatestFrame=true, bool undistort=true,
-		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY);
+		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY_32F1);
 	unsigned long AcquireImages(cv::Mat* rangeImage = 0, cv::Mat* grayImage = 0,
 		cv::Mat* cartesianImage = 0, bool getLatestFrame = true, bool undistort = true,
-		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY);
+		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY_32F1);
 
 	unsigned long SaveParameters(const char* filename);
 
