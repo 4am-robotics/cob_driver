@@ -17,5 +17,6 @@
   </node>
   <node ns="right" pkg="image_proc" type="image_proc" respawn="false" name="right_image_proc" />
 </group>
+
 </launch>
 
