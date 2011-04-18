@@ -86,7 +86,7 @@ class ik_solver:
 		#print msg.goal_pose
 		msg.goal_pose.header.stamp = self.listener.getLatestCommonTime("/base_link",msg.goal_pose.header.frame_id)
 		relpos = self.listener.transformPose("/base_link", msg.goal_pose)
-		#print "Transform done: ", relpos
+		print "Transform done: ", relpos
 		
 		#relpos.position.x = trans[0] + msg.goal_pose.pose.position.x
 		#relpos.position.y = trans[1] + msg.goal_pose.pose.position.y
