@@ -229,15 +229,24 @@ unsigned long VirtualRangeCam::Init(std::string directory, int cameraIndex)
 }
 
 
-inline void VirtualRangeCam::UpdateImageDimensionsOnFirstImage(std::string filename)
+inline void VirtualRangeCam::UpdateImageDimensionsOnFirstImage(std::string filename, std::string ext)
 {
-	IplImage* image = 0;
 	if (m_ImageWidth == -1 || m_ImageHeight == -1)
 	{
-		image = (IplImage*) cvLoad(filename.c_str(), 0);
-		m_ImageWidth = image->width;
-		m_ImageHeight = image->height;
-		cvReleaseImage(&image);
+		if (ext != ".bin")
+		{
+			IplImage* image = (IplImage*) cvLoad(filename.c_str(), 0);
+			m_ImageWidth = image->width;
+			m_ImageHeight = image->height;
+			cvReleaseImage(&image);
+		}
+		else
+		{
+			cv::Mat mat;
+			ipa_Utils::LoadMat(mat, filename);
+			m_ImageHeight = mat.rows;
+			m_ImageWidth = mat.cols;
+		}
 	}
 }
 
@@ -320,10 +329,10 @@ unsigned long VirtualRangeCam::Open()
 						if (extIndex>=2) format = "8U3_";
 						if ((dir_itr->path().extension() == ext) && filename.find( "RangeCamIntensity_" + format + sCameraIndex, 0 ) != std::string::npos)
 						{
-							(intensityImageCounter.find(ext) == intensityImageCounter.end()) ? intensityImageCounter[ext] = 0 : intensityImageCounter[ext]++;
+							(intensityImageCounter.find(ext) == intensityImageCounter.end()) ? intensityImageCounter[ext] = 1 : intensityImageCounter[ext]++;
 							//std::cout << "VirtualRangeCam::Open(): Reading '" << filename << "\n";
 							intensityImageFileNames[ext].push_back(filename);
-							UpdateImageDimensionsOnFirstImage(filename);
+							UpdateImageDimensionsOnFirstImage(filename, ext);
 						}
 					}
 
@@ -333,10 +342,10 @@ unsigned long VirtualRangeCam::Open()
 						std::string ext = extensionList[extIndex];
 						if ((dir_itr->path().extension() == ext) && filename.find( "RangeCamAmplitude_32F1_" + sCameraIndex, 0 ) != std::string::npos)
 						{
-							(amplitudeImageCounter.find(ext) == amplitudeImageCounter.end()) ? amplitudeImageCounter[ext] = 0 : amplitudeImageCounter[ext]++;
+							(amplitudeImageCounter.find(ext) == amplitudeImageCounter.end()) ? amplitudeImageCounter[ext] = 1 : amplitudeImageCounter[ext]++;
 							//std::cout << "VirtualRangeCam::Open(): Reading '" << filename << "\n";
 							amplitudeImageFileNames[ext].push_back(filename);
-							UpdateImageDimensionsOnFirstImage(filename);
+							UpdateImageDimensionsOnFirstImage(filename, ext);
 						}
 					}
 
@@ -346,9 +355,9 @@ unsigned long VirtualRangeCam::Open()
 						std::string ext = extensionList[extIndex];
 						if ((dir_itr->path().extension() == ext) && filename.find( "RangeCamCoordinate_32F3_" + sCameraIndex, 0 ) != std::string::npos)
 						{
-							(coordinateImageCounter.find(ext) == coordinateImageCounter.end()) ? coordinateImageCounter[ext] = 0 : coordinateImageCounter[ext]++;
+							(coordinateImageCounter.find(ext) == coordinateImageCounter.end()) ? coordinateImageCounter[ext] = 1 : coordinateImageCounter[ext]++;
 							coordinateImageFileNames[ext].push_back(filename);
-							UpdateImageDimensionsOnFirstImage(filename);
+							UpdateImageDimensionsOnFirstImage(filename, ext);
 							//std::cout << "VirtualRangeCam::Open(): Reading '" << filename << "\n";
 						}
 					}
@@ -359,10 +368,10 @@ unsigned long VirtualRangeCam::Open()
 						std::string ext = extensionList[extIndex];
 						if ((dir_itr->path().extension() == ext) && filename.find( "RangeCamRange_32F1_" + sCameraIndex, 0 ) != std::string::npos)
 						{
-							(rangeImageCounter.find(ext) == rangeImageCounter.end()) ? rangeImageCounter[ext] = 0 : rangeImageCounter[ext]++;
+							(rangeImageCounter.find(ext) == rangeImageCounter.end()) ? rangeImageCounter[ext] = 1 : rangeImageCounter[ext]++;
 							//std::cout << "VirtualRangeCam::Open(): Reading '" << filename << "\n";
 							rangeImageFileNames[ext].push_back(filename);
-							UpdateImageDimensionsOnFirstImage(filename);
+							UpdateImageDimensionsOnFirstImage(filename, ext);
 						}
 					}
 				}
@@ -785,6 +794,11 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepRange, int widthStepGr
 					f_ptr_dst[colTimes3] = x;
 					f_ptr_dst[colTimes3 + 1] = y;
 					f_ptr_dst[colTimes3 + 2] = zCalibrated;
+
+					if (f_ptr_dst[colTimes3 + 2] < 0)
+					{
+						std::cout << "<0: " << row << " " << col << "\n";
+					}
 				}
 			}
 			if (releaseNecessary) cvReleaseImage(&coordinateImage);
