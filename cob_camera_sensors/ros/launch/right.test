@@ -3,16 +3,16 @@
 
 	<!-- hztest image_raw -->
 	<param name="hztest_camera_right/topic" value="/stereo/right/image_raw" />
-	<param name="hztest_camera_right/hz" value="55.25" />
-	<param name="hztest_camera_right/hzerror" value="54.75" />
-	<param name="hztest_camera_right/test_duration" value="1.0" />
+	<param name="hztest_camera_right/hz" value="55.0" />
+	<param name="hztest_camera_right/hzerror" value="55.0" />
+	<param name="hztest_camera_right/test_duration" value="10.0" />
 	<test test-name="hz_camera_right" pkg="rostest" type="hztest" name="hztest_camera_right" />
 
 	<!-- hztest camera_info -->
 	<param name="hztest_camera_info_right/topic" value="/stereo/right/camera_info" />
-	<param name="hztest_camera_info_right/hz" value="55.25" />
-	<param name="hztest_camera_info_right/hzerror" value="54.75" />
-	<param name="hztest_camera_info_right/test_duration" value="1.0" />
+	<param name="hztest_camera_info_right/hz" value="55.0" />
+	<param name="hztest_camera_info_right/hzerror" value="55.0" />
+	<param name="hztest_camera_info_right/test_duration" value="10.0" />
 	<test test-name="hz_camera_info_right" pkg="rostest" type="hztest" name="hztest_camera_info_right" />
 
 </launch>
