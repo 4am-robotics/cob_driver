@@ -8,8 +8,7 @@
 		<param name="PublishEffort" value="false"/>
 
 		<!-- start underlying components - base_drive_chain -->
-		<!--<include file="$(find cob_base_drive_chain)/ros/launch/base_drive_chain.launch" />
-	-->
+		<node pkg="cob_base_drive_chain" type="cob_base_drive_chain_sim" name="cob_base_drive_chain_sim" cwd="node" respawn="false" output="screen"/>
 		<!-- start undercarriage ctrl -->
 		<include file="$(find cob_undercarriage_ctrl)/ros/launch/undercarriage_ctrl.launch" />
 
