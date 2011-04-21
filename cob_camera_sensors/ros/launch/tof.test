@@ -5,7 +5,8 @@
 	<param name="hztest_tof/topic" value="/full_cloud" />
 	<param name="hztest_tof/hz" value="55.0" />
 	<param name="hztest_tof/hzerror" value="55.0" />
-	<param name="hztest_tof/test_duration" value="10.0" />
+	<param name="hztest_tof/test_duration" value="100.0" />
+	<param neme="hztest_tof/wait_time" value="100.0" />
 	<test test-name="hz_tof" pkg="rostest" type="hztest" name="hztest_tof" />
 
 </launch>
