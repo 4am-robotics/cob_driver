@@ -4,4 +4,4 @@ ModId: 17
 JointName: head_axis_joint
 HomingDir: 1
 HomingDigIn: 11
-OperationMode: position
+operation_mode: position

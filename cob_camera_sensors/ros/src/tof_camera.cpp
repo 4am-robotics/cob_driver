@@ -251,7 +251,7 @@ public:
 		sensor_msgs::Image::Ptr grey_image_msg_ptr;
 		sensor_msgs::CameraInfo tof_image_info;
 	
-		if(tof_camera_->AcquireImages(0, &grey_image_32F1_, &xyz_image_32F3_, false, false, ipa_CameraSensors::INTENSITY) & ipa_Utils::RET_FAILED)
+		if(tof_camera_->AcquireImages(0, &grey_image_32F1_, &xyz_image_32F3_, false, false, ipa_CameraSensors::INTENSITY_32F1) & ipa_Utils::RET_FAILED)
 		{
 			ROS_ERROR("[tof_camera] Tof image acquisition failed");
 			return false;
