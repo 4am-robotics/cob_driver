@@ -172,7 +172,7 @@ class NodeClass
             topic_sub_EM_stop_state_ = n.subscribe("/emergency_stop_state", 1, &NodeClass::topicCallbackEMStop, this);
             topic_sub_drive_diagnostic_ = n.subscribe("diagnostic", 1, &NodeClass::topicCallbackDiagnostic, this);
 
-			topic_sub_joint_states_ = n.subscribe("/joint_states", 1, &NodeClass::topicCallbackJointStates, this);
+			topic_sub_joint_states_ = n.subscribe("joint_states", 1, &NodeClass::topicCallbackJointStates, this);
 			//<diagnostic_msgs::DiagnosticStatus>("Diagnostic", 1);
 
 			// diagnostics
