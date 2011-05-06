@@ -172,7 +172,7 @@ class NodeClass
             topic_sub_EM_stop_state_ = n.subscribe("/emergency_stop_state", 1, &NodeClass::topicCallbackEMStop, this);
             topic_sub_drive_diagnostic_ = n.subscribe("diagnostic", 1, &NodeClass::topicCallbackDiagnostic, this);
 
-			topic_sub_joint_states_ = n.subscribe("joint_states", 1, &NodeClass::topicCallbackJointStates, this);
+			topic_sub_joint_states_ = n.subscribe("/joint_states", 1, &NodeClass::topicCallbackJointStates, this);
 			//<diagnostic_msgs::DiagnosticStatus>("Diagnostic", 1);
 
 			// diagnostics
@@ -474,13 +474,13 @@ class NodeClass
 			// copy configuration into vector classes
 			num_joints = msg->position.size();
 			// drive joints
-			drive_joint_ang_rad.assign(num_joints, 0.0);
-			drive_joint_vel_rads.assign(num_joints, 0.0);
-			drive_joint_effort_NM.assign(num_joints, 0.0);
+			drive_joint_ang_rad.assign(m_iNumJoints, 0.0);
+			drive_joint_vel_rads.assign(m_iNumJoints, 0.0);
+			drive_joint_effort_NM.assign(m_iNumJoints, 0.0);
 			// steer joints
-			steer_joint_ang_rad.assign(num_joints, 0.0);
-			steer_joint_vel_rads.assign(num_joints, 0.0);
-			steer_joint_effort_NM.assign(num_joints, 0.0);
+			steer_joint_ang_rad.assign(m_iNumJoints, 0.0);
+			steer_joint_vel_rads.assign(m_iNumJoints, 0.0);
+			steer_joint_effort_NM.assign(m_iNumJoints, 0.0);
 
 			// init iterators
 			iter_k = 0;

@@ -210,7 +210,7 @@ class NodeClass
 			
 			// implementation of topics
 			// published topics
-			topicPub_JointState = n.advertise<sensor_msgs::JointState>("joint_states", 1);
+			topicPub_JointState = n.advertise<sensor_msgs::JointState>("/joint_states", 1);
 			topicPub_Diagnostic = n.advertise<diagnostic_msgs::DiagnosticStatus>("diagnostic", 1);
 			// subscribed topics
 			topicSub_JointStateCmd = n.subscribe("joint_command", 1, &NodeClass::topicCallback_JointStateCmd, this);
@@ -248,7 +248,7 @@ class NodeClass
 				JointStateCmd.velocity.resize(m_iNumMotors);
 				JointStateCmd.effort.resize(m_iNumMotors);
 				
-				for(int i = 0; i < m_iNumMotors; i++)
+				for(int i = 0; i < msg->name.size(); i++)
 				{
 					// associate inputs to according steer and drive joints
 					// ToDo: specify this globally (Prms-File or config-File or via msg-def.)
@@ -640,9 +640,9 @@ class NodeClass
 			// assign right size to JointState
 			
 			//jointstate.name.resize(m_iNumMotors);
-			jointstate.position.resize(m_iNumMotors);
-			jointstate.velocity.resize(m_iNumMotors);
-			jointstate.effort.resize(m_iNumMotors);
+			jointstate.position.assign(m_iNumMotors, 0.0);
+			jointstate.velocity.assign(m_iNumMotors, 0.0);
+			jointstate.effort.assign(m_iNumMotors, 0.0);
 
 			if(m_bisInitialized == false)
 			{
