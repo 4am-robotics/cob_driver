@@ -5,3 +5,4 @@ modul_ids: [10]
 joint_names: [torso_tray_joint]
 max_accelerations: [0.8]
 frequency: 1
+OperationMode: position
