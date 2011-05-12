@@ -2,10 +2,18 @@
 <launch>
 
 	<!-- hztest full_cloud -->
-	<param name="hztest_tof/topic" value="/full_cloud" />
-	<param name="hztest_tof/hz" value="55.0" />
-	<param name="hztest_tof/hzerror" value="55.0" />
-	<param name="hztest_tof/test_duration" value="10.0" />
-	<test test-name="hz_tof" pkg="rostest" type="hztest" name="hztest_tof" />
+	<param name="hztest_tof_full_cloud/topic" value="/full_cloud" />
+	<param name="hztest_tof_full_cloud/hz" value="55.0" />
+	<param name="hztest_tof_full_cloud/hzerror" value="55.0" />
+	<param name="hztest_tof_full_cloud/test_duration" value="100.0" />
+	<test test-name="hz_tof_full_cloud" pkg="rostest" type="hztest" name="hztest_tof_full_cloud" />
+
+	<!-- hztest full_cloud2 -->
+        <param name="hztest_tof_full_cloud2/topic" value="/full_cloud2" />
+        <param name="hztest_tof_full_cloud2/hz" value="55.0" />
+        <param name="hztest_tof_full_cloud2/hzerror" value="55.0" />
+        <param name="hztest_tof_full_cloud2/test_duration" value="100.0" />
+        <test test-name="hz_tof_full_cloud2" pkg="rostest" type="hztest" name="hztest_tof_full_cloud2" />
+
 
 </launch>
