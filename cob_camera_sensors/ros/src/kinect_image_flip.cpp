@@ -60,6 +60,7 @@
 // ROS message includes
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <tf/transform_listener.h>
 
 // topics
 #include <message_filters/subscriber.h>
@@ -100,6 +101,8 @@ namespace ipa_CameraSensors
     message_filters::Synchronizer<message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, sensor_msgs::Image> >* sync_pointcloud_;	///< synchronizer for input data
     message_filters::Connection sync_pointcloud_callback_connection_;
     
+    tf::TransformListener* transform_listener_;
+    
     ros::NodeHandle node_handle_;	///< ROS node handle
 
   public:
@@ -108,12 +111,14 @@ namespace ipa_CameraSensors
     {
       it_ = 0;
       sync_pointcloud_ = 0;
+      transform_listener_ = 0;
     }
     
     ~CobKinectImageFlipNodelet()
     {
       if (it_ != 0) delete it_;
       if (sync_pointcloud_ != 0) delete sync_pointcloud_;
+      if (transform_listener_ != 0) delete transform_listener_;
     }
     
     void onInit()
@@ -123,6 +128,8 @@ namespace ipa_CameraSensors
       sync_pointcloud_ = new message_filters::Synchronizer<message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, sensor_msgs::Image> >(2);
       color_camera_image_pub_ = it_->advertise("image_color", 1);
       point_cloud_pub_ = node_handle_.advertise<sensor_msgs::PointCloud2>("points", 1);
+      
+      transform_listener_ = new tf::TransformListener(node_handle_);
       
       // initializations
       init();
@@ -160,74 +167,99 @@ namespace ipa_CameraSensors
     void inputCallback(const sensor_msgs::PointCloud2::ConstPtr& point_cloud_msg, const sensor_msgs::Image::ConstPtr& color_image_msg)
     {
       // check camera link orientation and decide whether image must be turned around
-      // todo ...............
+      bool turnAround = false;
+      tf::StampedTransform transform;
+      try
+      {
+        transform_listener_->lookupTransform("/base_link", "/head_tof_link", ros::Time(0), transform);
+        btScalar roll, pitch, yaw;
+        transform.getBasis().getRPY(roll, pitch, yaw, 1);
+        if (roll > 0.0) turnAround = true;
+  //      std::cout << "xyz: " << transform.getOrigin().getX() << " " << transform.getOrigin().getY() << " " << transform.getOrigin().getZ() << "\n";
+  //      std::cout << "abcw: " << transform.getRotation().getX() << " " << transform.getRotation().getY() << " " << transform.getRotation().getZ() << " " << transform.getRotation().getW() << "\n";
+  //      std::cout << "rpy: " << roll << " " << pitch << " " << yaw << "\n";
+      }
+      catch (tf::TransformException ex)
+      {
+        ROS_WARN("%s",ex.what());
+      }
       
-      // read input
-      // color
-      cv_bridge::CvImageConstPtr color_image_ptr;
-      cv::Mat color_image;
-      convertColorImageMessageToMat(color_image_msg, color_image_ptr, color_image);
-      
-      // point cloud
-      pcl::PointCloud<pcl::PointXYZ> point_cloud_src;
-      pcl::fromROSMsg(*point_cloud_msg, point_cloud_src);
+      if (turnAround==false)
+      {
+        // image upright, robot is watching backwards
+        color_camera_image_pub_.publish(color_image_msg);
+        point_cloud_pub_.publish(point_cloud_msg);
+      }
+      else
+      {
+        // image upside down, robot is watching forwards
+        // read input
+        // color
+        cv_bridge::CvImageConstPtr color_image_ptr;
+        cv::Mat color_image;
+        convertColorImageMessageToMat(color_image_msg, color_image_ptr, color_image);
+        
+        // point cloud
+        pcl::PointCloud<pcl::PointXYZ> point_cloud_src;
+        pcl::fromROSMsg(*point_cloud_msg, point_cloud_src);
 
-      // rotate images by 180 degrees
-      // color
-      cv::Mat color_image_turned(color_image.rows, color_image.cols, color_image.type());
-      if (color_image.type() != CV_8UC3)
-      {
-        std::cout << "CobKinectImageFlipNodelet::inputCallback: Error: The image format of the color image is not CV_8UC3.\n";
-        return;
-      }
-      for (int v=0; v<color_image.rows; v++)
-      {
-        uchar* src = color_image.ptr(v);
-        uchar* dst = color_image_turned.ptr(color_image.rows-v-1);
-        dst += 3*(color_image.cols-1);
-        for (int u=0; u<color_image.cols; u++)
+        // rotate images by 180 degrees
+        // color
+        cv::Mat color_image_turned(color_image.rows, color_image.cols, color_image.type());
+        if (color_image.type() != CV_8UC3)
         {
-          for (int k=0; k<3; k++)
+          std::cout << "CobKinectImageFlipNodelet::inputCallback: Error: The image format of the color image is not CV_8UC3.\n";
+          return;
+        }
+        for (int v=0; v<color_image.rows; v++)
+        {
+          uchar* src = color_image.ptr(v);
+          uchar* dst = color_image_turned.ptr(color_image.rows-v-1);
+          dst += 3*(color_image.cols-1);
+          for (int u=0; u<color_image.cols; u++)
           {
-            *dst = *src;
-            src++; dst++;
+            for (int k=0; k<3; k++)
+            {
+              *dst = *src;
+              src++; dst++;
+            }
+            dst -= 6;
           }
-          dst -= 6;
         }
-      }
-      
-      // point cloud
-      pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud_turned(new pcl::PointCloud<pcl::PointXYZ>);
-      for (int v=(int)point_cloud_src.height-1; v>=0; v--)
-      {
-        for (int u=(int)point_cloud_src.width-1; u>=0; u--)
+        
+        // point cloud
+        pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud_turned(new pcl::PointCloud<pcl::PointXYZ>);
+        for (int v=(int)point_cloud_src.height-1; v>=0; v--)
         {
-          point_cloud_turned->push_back(point_cloud_src(u,v));
+          for (int u=(int)point_cloud_src.width-1; u>=0; u--)
+          {
+            point_cloud_turned->push_back(point_cloud_src(u,v));
+          }
         }
+        
+        // publish turned data
+        // color
+        cv_bridge::CvImage cv_ptr;
+        cv_ptr.image = color_image_turned;
+        cv_ptr.encoding = "bgr8";
+        sensor_msgs::Image::Ptr color_image_turned_msg = cv_ptr.toImageMsg();
+        color_image_turned_msg->header.stamp = color_image_msg->header.stamp;
+        color_camera_image_pub_.publish(color_image_turned_msg);
+        
+        
+        // point cloud
+        point_cloud_turned->header = point_cloud_msg->header;
+        point_cloud_turned->height = point_cloud_msg->height;
+        point_cloud_turned->width = point_cloud_msg->width;
+        //point_cloud_turned->sensor_orientation_ = point_cloud_msg->sensor_orientation_;
+        //point_cloud_turned->sensor_origin_ = point_cloud_msg->sensor_origin_;
+        point_cloud_turned->is_dense = point_cloud_msg->is_dense;
+        point_cloud_pub_.publish(point_cloud_turned);
+        
+  //      cv::namedWindow("test");
+  //      cv::imshow("test", color_image_turned);
+  //      cv::waitKey(10);
       }
-      
-      // publish turned data
-      // color
-      cv_bridge::CvImage cv_ptr;
-      cv_ptr.image = color_image_turned;
-      cv_ptr.encoding = "bgr8";
-      sensor_msgs::Image::Ptr color_image_turned_msg = cv_ptr.toImageMsg();
-      color_image_turned_msg->header.stamp = color_image_msg->header.stamp;
-      color_camera_image_pub_.publish(color_image_turned_msg);
-      
-      
-      // point cloud
-      point_cloud_turned->header = point_cloud_msg->header;
-      point_cloud_turned->height = point_cloud_msg->height;
-      point_cloud_turned->width = point_cloud_msg->width;
-      //point_cloud_turned->sensor_orientation_ = point_cloud_msg->sensor_orientation_;
-      //point_cloud_turned->sensor_origin_ = point_cloud_msg->sensor_origin_;
-      point_cloud_turned->is_dense = point_cloud_msg->is_dense;
-      point_cloud_pub_.publish(point_cloud_turned);
-      
-//      cv::namedWindow("test");
-//      cv::imshow("test", color_image_turned);
-//      cv::waitKey(10);
     }
   };
   
