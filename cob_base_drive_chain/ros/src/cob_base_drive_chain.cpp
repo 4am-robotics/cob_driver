@@ -275,9 +275,9 @@ class NodeClass
 					}
 					if(msg->name[i] ==  "fr_caster_r_wheel_joint")
 					{
-							JointStateCmd.position[4] = msg->position[i];
-							JointStateCmd.velocity[4] = msg->velocity[i];
-							JointStateCmd.effort[4] = msg->effort[i];
+							JointStateCmd.position[6] = msg->position[i];
+							JointStateCmd.velocity[6] = msg->velocity[i];
+							JointStateCmd.effort[6] = msg->effort[i];
 					}
 					//STEERS
 					if(msg->name[i] ==  "fl_caster_rotation_joint")
