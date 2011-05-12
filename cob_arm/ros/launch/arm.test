@@ -11,7 +11,7 @@
 	<param name="hztest_arm_state/topic" value="/arm_controller/state" />
 	<param name="hztest_arm_state/hz" value="55.25" />
 	<param name="hztest_arm_state/hzerror" value="54.75" />
-	<param name="hztest_arm_state/test_duration" value="1.0" />
+	<param name="hztest_arm_state/test_duration" value="10.0" />
 	<test test-name="hz_arm_state" pkg="rostest" type="hztest" name="hztest_arm_state" />
 
 	<!-- hztest /arm_controller/joint_trajectory_action/status -->
