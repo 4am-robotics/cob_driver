@@ -118,7 +118,7 @@ public:
 	/// Initializes Swissranger.
 	/// @param directory Path to the directory of the range imaging sensor parameter file.
 	/// @param cameraIndex It is possible to have several cameras of the same type on the system.
-	///	       One may us the camera index to apply different configuration files to each of them.
+	///	       One may use the camera index to apply different configuration files to each of them.
 	/// @return Return code.
 	virtual unsigned long Init(std::string directory, int cameraIndex = 0) = 0;
 	
@@ -160,10 +160,13 @@ public:
 	/// @throw IPA_Exception Throws an exception, if camera access failed
 	virtual unsigned long AcquireImages(cv::Mat* rangeImage = 0, cv::Mat* intensityImage = 0,
 		cv::Mat* cartesianImage = 0, bool getLatestFrame=true, bool undistort=true,
-		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY) = 0;
+		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY_32F1) = 0;
 
 	/// Acquires an image from SwissRanger.
 	/// This implementation is designated for people that do not use openCV image type.
+	/// @param widthStepRange The stride of a row from the range image.
+	/// @param widthStepGray The stride of a row from the grayscale intensity image.
+	/// @param widthStepCartesian The stride of a row from the cartesian image.
 	/// @param rangeImage character array with depth information.
 	/// @param grayImage character array  with intensity (grayscale) information.
 	/// @param cartesianImage character array  with cartesian (x,y,z) information in meters.
@@ -171,9 +174,9 @@ public:
 	/// @param useCalibratedZ Calibrate z values 
 	/// @param grayImageType Either gray image data is filled with amplitude image or intensity image
 	/// @return Return code.
-	virtual unsigned long AcquireImages(int widthStepOneChannel, char* rangeImage=NULL, char* grayImage=NULL,
+	virtual unsigned long AcquireImages(int widthStepRange, int widthStepGray, int widthStepCartesian, char* rangeImage=NULL, char* grayImage=NULL,
 		char* cartesianImage=NULL, bool getLatestFrame=true, bool undistort=true, 
-		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY) = 0;
+		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY_32F1) = 0;
 
 	/// Save camera parameters.
 	/// Saves the on-line set parameters for the range imaging camera to a file.
@@ -250,7 +253,7 @@ private:
 /// @return Smart pointer, refering to the generated object
 __DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_VirtualCam();
 __DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_Swissranger();
-__DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_PMDCamCube();
+__DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_PMDCam();
 __DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_Kinect();
 
 } // end namespace ipa_CameraSensors

@@ -1,6 +1,9 @@
 libdc1394:
   ubuntu: libdc1394-22-dev
 
+libusb-0.1:
+  ubuntu: libusb-0.1-4
+
 touchscreen: 
   ubuntu: xserver-xorg-input-evtouch
 #    sudo cp  `rospack find cob_touch`/common/files/50-tsc.fdi /usr/share/hal/fdi/policy/20thirdparty
