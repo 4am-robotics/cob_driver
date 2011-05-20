@@ -7,6 +7,9 @@
 	<!-- start powercube_chain -->
 	<node pkg="cob_powercube_chain" type="cob_powercube_chain" name="arm_node" ns="arm_controller" cwd="node" respawn="false" output="screen" />
 
+	<!-- trajectory controller -->
+	<include file="$(find cob_trajectory_controller)/ros/launch/trajectory_controller.launch" />
+
 	<!-- start cartesian interface -->
 	<!--node pkg="cob_manipulator" type="move_cart.py" name="move_cart" ns="arm_controller" cwd="node" respawn="false" output="screen"/-->
 
