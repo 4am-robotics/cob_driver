@@ -2,7 +2,7 @@
 <launch>
 
   <!-- start left camera -->
-  <node pkg="cob_camera_sensors" type="tof_camera" name="tof_camera" ns="tof" cwd="node" respawn="false" output="screen">
+  <node pkg="cob_camera_sensors" type="tof_camera" name="tof_camera" ns="tof" cwd="node" respawn="false" output="screen" launch-prefix="/usr/bin/gdb --args">
 	<param name="configuration_files" value="$(find cob_camera_sensors)/common/files/$(env ROBOT)/"/>
 	<param name="tof_camera_index" value="0"/>
 	<param name="tof_camera_type" value="CAM_SWISSRANGER"/>
