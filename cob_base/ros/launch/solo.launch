@@ -10,4 +10,7 @@
 	<!-- start base -->
 	<include file="$(find cob_base)/ros/launch/base.launch" />
 
+	<!-- teleop -->
+	<include file="$(find cob_teleop)/ros/launch/teleop.launch" />
+
 </launch>
