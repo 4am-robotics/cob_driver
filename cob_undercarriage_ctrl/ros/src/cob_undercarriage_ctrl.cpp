@@ -57,7 +57,7 @@
 //#### includes ####
 
 // standard includes
-//--
+#include <math.h>
 
 // ROS includes
 #include <ros/ros.h>
@@ -106,7 +106,7 @@ class NodeClass
 		ros::Subscriber topic_sub_joint_states_;
         
         // service servers
-        //--
+        ros::ServiceServer srvServer_IsMoving;
             
 	// diagnostic stuff
   	diagnostic_updater::Updater updater_;
@@ -118,6 +118,7 @@ class NodeClass
 		UndercarriageCtrlGeom * ucar_ctrl_;	// instantiate undercarriage controller
 		std::string sIniDirectory;
 		bool is_initialized_bool_;			// flag wether node is already up and running
+		bool is_moving_;					// flag wether base is moving or not
 		int drive_chain_diagnostic_;		// flag whether base drive chain is operating normal 
 		ros::Time last_time_;				// time Stamp for last odometry measurement
 		double x_rob_m_, y_rob_m_, theta_rob_rad_; // accumulated motion of robot since startup
@@ -132,6 +133,7 @@ class NodeClass
         {
 			// initialization of variables
 			is_initialized_bool_ = false;
+			is_moving_ = false;
       iwatchdog_ = 0;
 			last_time_ = ros::Time::now();
 			x_rob_m_ = 0.0;
@@ -180,7 +182,7 @@ class NodeClass
 			updater_.add("initialization", this, &NodeClass::diag_init);
 
             // implementation of service servers
-            //--
+            srvServer_IsMoving = n.advertiseService("is_moving", &NodeClass::srvCallback_IsMoving, this);
 
 			// implementation of service clients
             srv_client_get_joint_state_ = n.serviceClient<cob_base_drive_chain::GetJointState>("GetJointState");
@@ -341,6 +343,13 @@ class NodeClass
 
         // service callback functions
         // function will be called when a service is querried
+        bool srvCallback_IsMoving(cob_srvs::Trigger::Request &req,
+							  	cob_srvs::Trigger::Response &res )
+		{
+			ROS_DEBUG("Service Callback is_moving");
+			res.success.data = is_moving_;
+			return true;
+		}
 
 		// Init Controller Configuration
         bool srvCallbackInit(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res )
@@ -880,6 +889,16 @@ void NodeClass::UpdateOdometry()
 	// publish data
 	// publish the transform
 	//tf_broadcast_odometry_.sendTransform(odom_tf);
+	
+	if (fabs(vel_x_rob_ms) > 0.005 or fabs(vel_y_rob_ms) > 0.005 or fabs(rot_rob_rads) > 0.005)
+	{
+		is_moving_ = true;
+	}
+	else
+	{
+		is_moving_ = false;
+	}
+	
 	// publish odometry msg
 	topic_pub_odometry_.publish(odom_top);
 }
