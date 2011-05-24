@@ -274,15 +274,16 @@ class SdhNode
 
 			while (hasNewGoal_ == true ) usleep(10000);
 
+			// \todo TODO: use joint_names for assigning values
 			targetAngles_.resize(DOF_HW_);
-			targetAngles_[0] = goal->trajectory.points[0].positions[2]*180.0/pi_; // sdh_finger_11_joint
-			targetAngles_[1] = goal->trajectory.points[0].positions[6]*180.0/pi_; // sdh_finger22_joint
-			targetAngles_[2] = goal->trajectory.points[0].positions[7]*180.0/pi_; // sdh_finger23_joint
+			targetAngles_[0] = goal->trajectory.points[0].positions[2]*180.0/pi_; // sdh_knuckle_joint
+			targetAngles_[1] = goal->trajectory.points[0].positions[5]*180.0/pi_; // sdh_finger22_joint
+			targetAngles_[2] = goal->trajectory.points[0].positions[6]*180.0/pi_; // sdh_finger23_joint
 			targetAngles_[3] = goal->trajectory.points[0].positions[0]*180.0/pi_; // sdh_thumb2_joint
 			targetAngles_[4] = goal->trajectory.points[0].positions[1]*180.0/pi_; // sdh_thumb3_joint
 			targetAngles_[5] = goal->trajectory.points[0].positions[3]*180.0/pi_; // sdh_finger12_joint
 			targetAngles_[6] = goal->trajectory.points[0].positions[4]*180.0/pi_; // sdh_finger13_joint
-			ROS_INFO("received new position goal: [['sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_11_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_21_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']] = [%f,%f,%f,%f,%f,%f,%f,%f]",goal->trajectory.points[0].positions[0],goal->trajectory.points[0].positions[1],goal->trajectory.points[0].positions[2],goal->trajectory.points[0].positions[3],goal->trajectory.points[0].positions[4],goal->trajectory.points[0].positions[5],goal->trajectory.points[0].positions[6],goal->trajectory.points[0].positions[7]);
+			ROS_INFO("received new position goal: [['sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']] = [%f,%f,%f,%f,%f,%f,%f,%f]",goal->trajectory.points[0].positions[0],goal->trajectory.points[0].positions[1],goal->trajectory.points[0].positions[2],goal->trajectory.points[0].positions[3],goal->trajectory.points[0].positions[4],goal->trajectory.points[0].positions[5],goal->trajectory.points[0].positions[6]);
 		
 			hasNewGoal_ = true;
 			
