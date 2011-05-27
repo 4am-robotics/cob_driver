@@ -2,7 +2,10 @@ libdc1394:
   ubuntu: libdc1394-22-dev
 
 touchscreen: 
-  ubuntu: xserver-xorg-input-evtouch
+  ubuntu:
+    10.4: xserver-xorg-input-evtouch
+    10.10: xserver-xorg-input-evtouch
+    11.4: xserver-xorg-input-evdev
 #    sudo cp  `rospack find cob_touch`/common/files/50-tsc.fdi /usr/share/hal/fdi/policy/20thirdparty
 
 festival:
