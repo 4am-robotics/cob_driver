@@ -17,6 +17,10 @@ http://www.ros.org/wiki/prosilica_camera/Tutorials.
 	<remap from="camera/image_raw" to="image_raw"/>
 	<remap from="camera/camera_info" to="camera_info"/>
   </node>
+
+  <node ns="right" name="set_camera_info" pkg="cob_camera_sensors" type="set_camera_info.py" output="screen">
+    <rosparam command="load" file="$(find cob_camera_sensors)/ros/launch/$(env ROBOT)/right.yaml"/>
+  </node>
  
   <node ns="right" pkg="image_proc" type="image_proc" respawn="false" name="prosilica_image_proc" />
 
