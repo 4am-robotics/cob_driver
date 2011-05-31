@@ -11,5 +11,6 @@
 
   <depend package="cob_powercube_chain"/>
   <depend package="cob_manipulator"/>
+  <depend package="cob_trajectory_controller"/>
 
 </package>

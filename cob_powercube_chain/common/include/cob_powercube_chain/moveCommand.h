@@ -151,47 +151,4 @@ class RampCommand : public moveCommand
 		RampCommand * m_nachumkehr;
 };
 
-//std::ofstream RampCommand::debug("debugRampCommand.txt");
-
-/*
-class CartesianRamp
-{
-	public:
-		// unit amax: mm/s^2, unit vmax: mm/s
-		CartesianRamp(AbsPos start, AbsPos ziel, double amax, double vmax);
-		virtual ~CartesianRamp() {;}
-
-
-		/// @brief returns the planned position for TimeElapsed (seconds)
-		virtual AbsPos getPos(double TimeElapsed) const;
-
-		/// @brief returns the planned velocity for TimeElapsed (seconds)
-		virtual AbsPos getVel(double TimeElapsed) const;
-
-		/// @brief returns the planned total time for the movement (in seconds)
-		virtual double getTotalTime() const { return m_T1 + m_T2 + m_T3; }
-
-		/// @brief Return the times of the different phases of the ramp move
-		virtual double T1() const { return m_T1; }
-		virtual double T2() const { return m_T2; }
-		virtual double T3() const { return m_T3; }
-
-		/// @brief Calculate the necessary a and v of a rampmove, so that the move will take the desired time
-		//static void calculateAV(double x0, double v0, double xtarget, double time, double T3, double amax, double& a, double& v);
-
-	private:
-
-		inline double sqr(double a) const { return a*a; }
-
-
-		AbsPos m_x0;
-		AbsPos m_xtarget;
-		AbsPos m_richtung;
-		double m_amax, m_vmax;
-
-		double m_T1, m_T2, m_T3;
-		// Folgende Werte beziehen sich nun auf den Wegparameter s:
-		double m_a1, m_v2, m_a3;
-};
-		*/
 #endif
