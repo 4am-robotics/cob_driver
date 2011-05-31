@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-	<node pkg="cob_trajectory_controller" type="cob_trajectory_controller" name="cob_trajectory_controller" ns="arm_controller" cwd="node" respawn="false" output="screen"/>
- <!--launch-prefix="/usr/bin/gdb "-->
-</launch>

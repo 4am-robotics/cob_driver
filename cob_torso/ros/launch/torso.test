@@ -12,7 +12,7 @@
 	<param name="hztest_torso_state/topic" value="/torso_controller/state" />
 	<param name="hztest_torso_state/hz" value="55.25" />
 	<param name="hztest_torso_state/hzerror" value="54.75" />
-	<param name="hztest_torso_state/test_duration" value="1.0" />
+	<param name="hztest_torso_state/test_duration" value="10.0" />
 	<test test-name="hz_torso_state" pkg="rostest" type="hztest" name="hztest_torso_state" /> 
 
 	<!-- hztest /torso_controller/joint_trajectory_action/status -->

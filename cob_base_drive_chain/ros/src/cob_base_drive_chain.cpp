@@ -210,7 +210,7 @@ class NodeClass
 			
 			// implementation of topics
 			// published topics
-			topicPub_JointState = n.advertise<sensor_msgs::JointState>("joint_states", 1); //EXP: not anymore /joint_states but local ns
+			topicPub_JointState = n.advertise<sensor_msgs::JointState>("/joint_states", 1);
 			topicPub_Diagnostic = n.advertise<diagnostic_msgs::DiagnosticStatus>("diagnostic", 1);
 			// subscribed topics
 			topicSub_JointStateCmd = n.subscribe("joint_command", 1, &NodeClass::topicCallback_JointStateCmd, this);
@@ -243,7 +243,71 @@ class NodeClass
 			{
 				ROS_DEBUG("Topic Callback joint_command - Sending Commands to drives (initialized)");
 		   		int iRet;
-				sensor_msgs::JointState JointStateCmd = *msg;
+				sensor_msgs::JointState JointStateCmd;
+				JointStateCmd.position.resize(m_iNumMotors);
+				JointStateCmd.velocity.resize(m_iNumMotors);
+				JointStateCmd.effort.resize(m_iNumMotors);
+				
+				for(int i = 0; i < msg->name.size(); i++)
+				{
+					// associate inputs to according steer and drive joints
+					// ToDo: specify this globally (Prms-File or config-File or via msg-def.)
+					// check if velocities lie inside allowed boundaries
+					
+					//DRIVES
+					if(msg->name[i] ==  "fl_caster_r_wheel_joint")
+					{
+							JointStateCmd.position[0] = msg->position[i];
+							JointStateCmd.velocity[0] = msg->velocity[i];
+							JointStateCmd.effort[0] = msg->effort[i];
+					}
+					if(msg->name[i] ==  "bl_caster_r_wheel_joint")
+					{
+							JointStateCmd.position[2] = msg->position[i];
+							JointStateCmd.velocity[2] = msg->velocity[i];
+							JointStateCmd.effort[2] = msg->effort[i];
+					}
+					if(msg->name[i] ==  "br_caster_r_wheel_joint")
+					{
+							JointStateCmd.position[4] = msg->position[i];
+							JointStateCmd.velocity[4] = msg->velocity[i];
+							JointStateCmd.effort[4] = msg->effort[i];
+					}
+					if(msg->name[i] ==  "fr_caster_r_wheel_joint")
+					{
+							JointStateCmd.position[6] = msg->position[i];
+							JointStateCmd.velocity[6] = msg->velocity[i];
+							JointStateCmd.effort[6] = msg->effort[i];
+					}
+					//STEERS
+					if(msg->name[i] ==  "fl_caster_rotation_joint")
+					{
+							JointStateCmd.position[1] = msg->position[i];
+							JointStateCmd.velocity[1] = msg->velocity[i];
+							JointStateCmd.effort[1] = msg->effort[i];
+					}
+					if(msg->name[i] ==  "bl_caster_rotation_joint")
+					{ 
+							JointStateCmd.position[3] = msg->position[i];
+							JointStateCmd.velocity[3] = msg->velocity[i];
+							JointStateCmd.effort[3] = msg->effort[i];
+					}
+					if(msg->name[i] ==  "br_caster_rotation_joint")
+					{
+							JointStateCmd.position[5] = msg->position[i];
+							JointStateCmd.velocity[5] = msg->velocity[i];
+							JointStateCmd.effort[5] = msg->effort[i];
+					}
+					if(msg->name[i] ==  "fr_caster_rotation_joint")
+					{
+							JointStateCmd.position[7] = msg->position[i];
+							JointStateCmd.velocity[7] = msg->velocity[i];
+							JointStateCmd.effort[7] = msg->effort[i];
+					}
+			
+				}
+				
+				
 				// check if velocities lie inside allowed boundaries
 				for(int i = 0; i < m_iNumMotors; i++)
 				{
@@ -547,21 +611,14 @@ class NodeClass
 			return true;
 		}
 
-		//EXPERIMENTAL: publish JointStates cyclical instead of service callback
+		//publish JointStates cyclical instead of service callback
 		bool publish_JointStates()
 		{
 			ROS_DEBUG("Service Callback GetJointState");
 			// init local variables
-			int j, k, ret_sprintf;
+			int j, k;
 			bool bIsError;
 			std::vector<double> vdAngGearRad, vdVelGearRad, vdEffortGearNM;
-			std::string str_steer, str_drive, str_num, str_cat;
-			// ToDo: search for a more elegant way to compose JointNames
-			char c_num [1];
-
-			// init strings
-			str_steer = "Steer";
-			str_drive = "Drive";
 
 			// set default values
 			vdAngGearRad.resize(m_iNumMotors, 0);
@@ -581,10 +638,11 @@ class NodeClass
 			// jointstate.header.frame_id = frame_id; //Where to get this id from?
 
 			// assign right size to JointState
-			jointstate.name.resize(m_iNumMotors);
-			jointstate.position.resize(m_iNumMotors);
-			jointstate.velocity.resize(m_iNumMotors);
-			jointstate.effort.resize(m_iNumMotors);
+			
+			//jointstate.name.resize(m_iNumMotors);
+			jointstate.position.assign(m_iNumMotors, 0.0);
+			jointstate.velocity.assign(m_iNumMotors, 0.0);
+			jointstate.effort.assign(m_iNumMotors, 0.0);
 
 			if(m_bisInitialized == false)
 			{
@@ -600,29 +658,16 @@ class NodeClass
 					jointstate.position[i] = 0.0;
 					jointstate.velocity[i] = 0.0;
 					jointstate.effort[i] = 0.0;
-
-/*
-					// set joint names
-   					if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
-					{
-						// create name for identification in JointState msg
-						j = j+1;
-						ret_sprintf = sprintf(c_num, "%i", j);
-						str_num.assign(1, c_num[0]);
-						str_cat = str_steer + str_num;
-					}
-					else
-					{
-						// create name for identification in JointState msg
-						k = k+1;
-						ret_sprintf = sprintf(c_num, "%i", k);
-						str_num.assign(1, c_num[0]);
-						str_cat = str_drive + str_num;
-					}
-					// set joint names
-					jointstate.name[i] = str_cat;
-*/
 				}
+				jointstate.name.push_back("fl_caster_r_wheel_joint");
+				jointstate.name.push_back("fl_caster_rotation_joint");
+				jointstate.name.push_back("bl_caster_r_wheel_joint");
+				jointstate.name.push_back("bl_caster_rotation_joint");
+				jointstate.name.push_back("br_caster_r_wheel_joint");
+				jointstate.name.push_back("br_caster_rotation_joint");
+				jointstate.name.push_back("fr_caster_r_wheel_joint");
+				jointstate.name.push_back("fr_caster_rotation_joint");
+			
 			}
 			else
 			{
@@ -652,25 +697,7 @@ class NodeClass
 						vdAngGearRad[i] += m_Param.vdWheelNtrlPosRad[j];
 						MathSup::normalizePi(vdAngGearRad[i]);
 						j = j+1;
-						// create name for identification in JointState msg
-/*
-						ret_sprintf = sprintf(c_num, "%i", j);
-						str_num.assign(1, c_num[0]);
-						str_cat = str_steer + str_num;
-
 					}
-					else
-					{
-						// create name for identification in JointState msg
-						k = k+1;
-
-						ret_sprintf = sprintf(c_num, "%i", k);
-						str_num.assign(1, c_num[0]);
-						str_cat = str_drive + str_num;
-*/
-					}
-					// set joint names
-//					jointstate.name[i] = str_cat;
 
 				}
 
@@ -681,10 +708,17 @@ class NodeClass
 					jointstate.velocity[i] = vdVelGearRad[i];
 					jointstate.effort[i] = vdEffortGearNM[i];
 				}
+				
+				jointstate.name.push_back("fl_caster_r_wheel_joint");
+				jointstate.name.push_back("fl_caster_rotation_joint");
+				jointstate.name.push_back("bl_caster_r_wheel_joint");
+				jointstate.name.push_back("bl_caster_rotation_joint");
+				jointstate.name.push_back("br_caster_r_wheel_joint");
+				jointstate.name.push_back("br_caster_rotation_joint");
+				jointstate.name.push_back("fr_caster_r_wheel_joint");
+				jointstate.name.push_back("fr_caster_rotation_joint");
+				
 			}
-
-			// set answer to srv request
-			// res.jointstate = jointstate;
 
 			// publish jointstate message
 			topicPub_JointState.publish(jointstate);

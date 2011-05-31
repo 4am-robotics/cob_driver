@@ -22,5 +22,7 @@
   <depend package="tf"/>
   <depend package="kdl"/>
   <depend package="kdl_parser"/>
+  <depend package="pr2_arm_kinematics"/>
+  <depend package="cob_description"/>
 
 </package>

@@ -1,0 +1,8 @@
+can_module: PCAN
+can_device: /dev/pcan1
+can_baudrate: 1000
+modul_ids: [1,2,3]
+joint_names: [torso_lower_neck_tilt_joint, torso_pan_joint, torso_upper_neck_tilt_joint]
+max_accelerations: [0.8,0.8,0.8]
+frequency: 5
+OperationMode: position
