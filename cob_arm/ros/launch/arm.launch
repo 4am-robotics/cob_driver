@@ -11,7 +11,8 @@
 	<include file="$(find cob_trajectory_controller)/ros/launch/trajectory_controller.launch" />
 
 	<!-- start cartesian interface -->
-	<!--node pkg="cob_manipulator" type="move_cart.py" name="move_cart" ns="arm_controller" cwd="node" respawn="false" output="screen"/-->
+	<node pkg="cob_manipulator" type="move_cart.py" name="move_cart" ns="arm_controller" cwd="node" respawn="false" output="screen"/>
+	<node pkg="cob_manipulator" type="cob_ik_solver_kdl" name="cob_ik_solver_kdl" ns="arm_controller" cwd="node" respawn="false" output="screen"/>
 
 	<!-- rostest integration -->
 	<include file="$(find cob_arm)/ros/launch/arm.test" />
