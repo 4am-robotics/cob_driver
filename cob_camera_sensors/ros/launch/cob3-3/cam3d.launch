@@ -25,6 +25,17 @@
     <param name="debayering" value="2" />
     <param name="depth_time_offset" value="0" />
     <param name="image_time_offset" value="0" />
+
+    <remap from="camera/depth/camera_info" to="depth/camera_info"/>
+    <remap from="camera/depth/disparity" to="depth/disparity"/>
+    <remap from="camera/depth/image" to="depth/image"/>
+    <remap from="camera/depth/points" to="depth/points"/>
+    <remap from="camera/depth/image_raw" to="depth/image_raw"/>
+    <remap from="camera/rgb/camera_info" to="rgb/camera_info"/>
+    <remap from="camera/rgb/image_color" to="rgb/image_color"/>
+    <remap from="camera/rgb/image_mono" to="rgb/image_mono"/>
+    <remap from="camera/rgb/image_raw" to="rgb/image_raw"/>
+    <remap from="camera/rgb/points" to="rgb/points"/>
   </node>
   <include file="$(find openni_camera)/launch/kinect_frames.launch"/>
 
