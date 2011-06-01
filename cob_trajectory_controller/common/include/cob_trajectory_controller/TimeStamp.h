@@ -50,6 +50,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
+<<<<<<< HEAD
 
 #ifndef _TimeStamp_H
 #define _TimeStamp_H
@@ -123,3 +124,78 @@ private:
 
 #endif
 
+=======
+
+#ifndef _TimeStamp_H
+#define _TimeStamp_H
+
+#include <time.h>
+
+//-------------------------------------------------------------------
+
+ 
+/** Measure system time with very high accuracy.
+ * Use this class for measure system time accurately. Under Windows, it uses 
+ * QueryPerformanceCounter(), which has a resolution of approx. one micro-second.
+ * The difference between two time stamps can be calculated.
+ */
+class TimeStamp
+{
+public:
+	/// Constructor.
+	TimeStamp();
+
+	/// Destructor.
+	virtual ~TimeStamp() {};
+
+	/// Makes time measurement.
+	void SetNow();
+
+	/// Retrieves time difference in seconds.
+	double operator-(const TimeStamp& EarlierTime) const;
+
+	/// Increase the timestamp by TimeS seconds.
+	/** @param TimeS must be >0!.
+	 */
+	void operator+=(double TimeS);
+
+	/// Reduces the timestamp by TimeS seconds.
+	/** @param TimeS must be >0!.
+	 */
+	void operator-=(double TimeS);
+
+	/// Checks if this time is after time "Time".
+	bool operator>(const TimeStamp& Time);
+
+	/// Checks if this time is before time "Time".
+	bool operator<(const TimeStamp& Time);
+	
+	/**
+	 * Gets seconds and nanoseconds of the timestamp.
+	 */
+	void getTimeStamp(long& lSeconds, long& lNanoSeconds);
+
+	/**
+	 * Sets timestamp from seconds and nanoseconds.
+	 */
+	void setTimeStamp(const long& lSeconds, const long& lNanoSeconds);
+	
+
+protected:
+
+	/// Internal time stamp data.
+	timespec m_TimeStamp;
+	
+private:
+
+	/// Conversion timespec -> double
+	static double TimespecToDouble(const ::timespec& LargeInt);
+
+	/// Conversion double -> timespec
+	static ::timespec DoubleToTimespec(double TimeS);
+
+};
+
+#endif
+
+>>>>>>> cae33bb942ffc9dec86aa279e07100a3c6fec3fd
