@@ -31,5 +31,6 @@
 
   <rosdep name="libdc1394"/>
   <rosdep name="glut"/>
+  <rosdep name="libusb-0.1"/>
 
 </package>

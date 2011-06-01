@@ -57,7 +57,7 @@
 //#### includes ####
 
 // standard includes
-//--
+#include <math.h>
 
 // ROS includes
 #include <ros/ros.h>
@@ -70,6 +70,7 @@
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
 #include <cob_relayboard/EmergencyStopState.h>
+#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 
 
 // ROS service includes
@@ -92,6 +93,7 @@ class NodeClass
                 
         // topics to publish
         ros::Publisher topic_pub_joint_state_cmd_;	// cmd issued for single joints of undercarriage
+		ros::Publisher topic_pub_controller_state_;
         ros::Publisher topic_pub_odometry_;			// calculated (measured) velocity, rotation and pose (odometry-based) for the robot
         tf::TransformBroadcaster tf_broadcast_odometry_;	// according transformation for the tf broadcaster
         
@@ -104,7 +106,7 @@ class NodeClass
 		ros::Subscriber topic_sub_joint_states_;
         
         // service servers
-        //--
+        ros::ServiceServer srvServer_IsMoving;
             
 	// diagnostic stuff
   	diagnostic_updater::Updater updater_;
@@ -116,6 +118,7 @@ class NodeClass
 		UndercarriageCtrlGeom * ucar_ctrl_;	// instantiate undercarriage controller
 		std::string sIniDirectory;
 		bool is_initialized_bool_;			// flag wether node is already up and running
+		bool is_moving_;					// flag wether base is moving or not
 		int drive_chain_diagnostic_;		// flag whether base drive chain is operating normal 
 		ros::Time last_time_;				// time Stamp for last odometry measurement
 		double x_rob_m_, y_rob_m_, theta_rob_rad_; // accumulated motion of robot since startup
@@ -130,6 +133,7 @@ class NodeClass
         {
 			// initialization of variables
 			is_initialized_bool_ = false;
+			is_moving_ = false;
       iwatchdog_ = 0;
 			last_time_ = ros::Time::now();
 			x_rob_m_ = 0.0;
@@ -161,6 +165,8 @@ class NodeClass
 			// implementation of topics
             // published topics
 			topic_pub_joint_state_cmd_ = n.advertise<sensor_msgs::JointState>("joint_command", 1);
+			topic_pub_controller_state_ = n.advertise<pr2_controllers_msgs::JointTrajectoryControllerState> ("state", 1);
+
 			topic_pub_odometry_ = n.advertise<nav_msgs::Odometry>("odometry", 50);
 
             // subscribed topics
@@ -168,7 +174,7 @@ class NodeClass
             topic_sub_EM_stop_state_ = n.subscribe("/emergency_stop_state", 1, &NodeClass::topicCallbackEMStop, this);
             topic_sub_drive_diagnostic_ = n.subscribe("diagnostic", 1, &NodeClass::topicCallbackDiagnostic, this);
 
-			topic_sub_joint_states_ = n.subscribe("joint_states", 1, &NodeClass::topicCallbackJointStates, this);
+			topic_sub_joint_states_ = n.subscribe("/joint_states", 1, &NodeClass::topicCallbackJointStates, this);
 			//<diagnostic_msgs::DiagnosticStatus>("Diagnostic", 1);
 
 			// diagnostics
@@ -176,7 +182,7 @@ class NodeClass
 			updater_.add("initialization", this, &NodeClass::diag_init);
 
             // implementation of service servers
-            //--
+            srvServer_IsMoving = n.advertiseService("is_moving", &NodeClass::srvCallback_IsMoving, this);
 
 			// implementation of service clients
             srv_client_get_joint_state_ = n.serviceClient<cob_base_drive_chain::GetJointState>("GetJointState");
@@ -277,6 +283,14 @@ class NodeClass
 			joint_state_cmd.position.resize(m_iNumJoints);
 			joint_state_cmd.velocity.resize(m_iNumJoints);            
 			joint_state_cmd.effort.resize(m_iNumJoints);
+			joint_state_cmd.name.push_back("fl_caster_r_wheel_joint");
+			joint_state_cmd.name.push_back("fl_caster_rotation_joint");
+			joint_state_cmd.name.push_back("bl_caster_r_wheel_joint");
+			joint_state_cmd.name.push_back("bl_caster_rotation_joint");
+			joint_state_cmd.name.push_back("br_caster_r_wheel_joint");
+			joint_state_cmd.name.push_back("br_caster_rotation_joint");
+			joint_state_cmd.name.push_back("fr_caster_r_wheel_joint");
+			joint_state_cmd.name.push_back("fr_caster_rotation_joint");
 			// compose jointcmds
 			for(int i=0; i<m_iNumJoints; i++)
 			{					
@@ -329,6 +343,13 @@ class NodeClass
 
         // service callback functions
         // function will be called when a service is querried
+        bool srvCallback_IsMoving(cob_srvs::Trigger::Request &req,
+							  	cob_srvs::Trigger::Response &res )
+		{
+			ROS_DEBUG("Service Callback is_moving");
+			res.success.data = is_moving_;
+			return true;
+		}
 
 		// Init Controller Configuration
         bool srvCallbackInit(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res )
@@ -462,13 +483,13 @@ class NodeClass
 			// copy configuration into vector classes
 			num_joints = msg->position.size();
 			// drive joints
-			drive_joint_ang_rad.assign(num_joints, 0.0);
-			drive_joint_vel_rads.assign(num_joints, 0.0);
-			drive_joint_effort_NM.assign(num_joints, 0.0);
+			drive_joint_ang_rad.assign(m_iNumJoints, 0.0);
+			drive_joint_vel_rads.assign(m_iNumJoints, 0.0);
+			drive_joint_effort_NM.assign(m_iNumJoints, 0.0);
 			// steer joints
-			steer_joint_ang_rad.assign(num_joints, 0.0);
-			steer_joint_vel_rads.assign(num_joints, 0.0);
-			steer_joint_effort_NM.assign(num_joints, 0.0);
+			steer_joint_ang_rad.assign(m_iNumJoints, 0.0);
+			steer_joint_vel_rads.assign(m_iNumJoints, 0.0);
+			steer_joint_effort_NM.assign(m_iNumJoints, 0.0);
 
 			// init iterators
 			iter_k = 0;
@@ -477,27 +498,82 @@ class NodeClass
 			for(int i = 0; i < num_joints; i++)
 			{
 				// associate inputs to according steer and drive joints
-				// ToDo: specify this globally (Prms-File or config-File or via msg-def.)
-				// ToDo: use joint names instead of magic integers
-				if( i == 1 || i == 3 || i == 5 || i == 7)
+				// ToDo: specify this globally (Prms-File or config-File or via msg-def.)	
+				if(msg->name[i] ==  "fl_caster_r_wheel_joint")
 				{
-					steer_joint_ang_rad[iter_k] = msg->position[i];
-					steer_joint_vel_rads[iter_k] = msg->velocity[i];
-					steer_joint_effort_NM[iter_k] = msg->effort[i];
-					iter_k = iter_k + 1;
+						drive_joint_ang_rad[0] = msg->position[i]; 
+						drive_joint_vel_rads[0] = msg->velocity[i];
+						drive_joint_effort_NM[0] = msg->effort[i];
 				}
-				else
+				if(msg->name[i] ==  "bl_caster_r_wheel_joint")
 				{
-					drive_joint_ang_rad[iter_j] = msg->position[i];
-					drive_joint_vel_rads[iter_j] = msg->velocity[i];
-					drive_joint_effort_NM[iter_j] = msg->effort[i];
-					iter_j = iter_j + 1;
+						drive_joint_ang_rad[1] = msg->position[i]; 
+						drive_joint_vel_rads[1] = msg->velocity[i];
+						drive_joint_effort_NM[1] = msg->effort[i];
 				}
+				if(msg->name[i] ==  "br_caster_r_wheel_joint")
+				{
+						drive_joint_ang_rad[2] = msg->position[i]; 
+						drive_joint_vel_rads[2] = msg->velocity[i];
+						drive_joint_effort_NM[2] = msg->effort[i];
+				}
+				if(msg->name[i] ==  "fr_caster_r_wheel_joint")
+				{
+						drive_joint_ang_rad[3] = msg->position[i]; 
+						drive_joint_vel_rads[3] = msg->velocity[i];
+						drive_joint_effort_NM[3] = msg->effort[i];
+				}
+				if(msg->name[i] ==  "fl_caster_rotation_joint")
+				{
+						steer_joint_ang_rad[0] = msg->position[i]; 
+						steer_joint_vel_rads[0] = msg->velocity[i];
+						steer_joint_effort_NM[0] = msg->effort[i];
+				}
+				if(msg->name[i] ==  "bl_caster_rotation_joint")
+				{ 
+						steer_joint_ang_rad[1] = msg->position[i]; 
+						steer_joint_vel_rads[1] = msg->velocity[i];
+						steer_joint_effort_NM[1] = msg->effort[i];
+				}
+				if(msg->name[i] ==  "br_caster_rotation_joint")
+				{
+						steer_joint_ang_rad[2] = msg->position[i]; 
+						steer_joint_vel_rads[2] = msg->velocity[i];
+						steer_joint_effort_NM[2] = msg->effort[i];
+				}
+				if(msg->name[i] ==  "fr_caster_rotation_joint")
+				{
+						steer_joint_ang_rad[3] = msg->position[i]; 
+						steer_joint_vel_rads[3] = msg->velocity[i];
+						steer_joint_effort_NM[3] = msg->effort[i];
+				}
+				
 			}
 
 			// Set measured Wheel Velocities and Angles to Controler Class (implements inverse kinematic)
 			ucar_ctrl_->SetActualWheelValues(drive_joint_vel_rads, steer_joint_vel_rads,
 									drive_joint_ang_rad, steer_joint_ang_rad);
+
+			pr2_controllers_msgs::JointTrajectoryControllerState controller_state_msg;
+
+			controller_state_msg.header.stamp = msg->header.stamp;
+			controller_state_msg.actual.positions.resize(m_iNumJoints);
+			controller_state_msg.actual.velocities.resize(m_iNumJoints);            
+			controller_state_msg.actual.accelerations.resize(m_iNumJoints);
+			controller_state_msg.joint_names.push_back("fl_caster_r_wheel_joint");
+			controller_state_msg.joint_names.push_back("fl_caster_rotation_joint");
+			controller_state_msg.joint_names.push_back("bl_caster_r_wheel_joint");
+			controller_state_msg.joint_names.push_back("bl_caster_rotation_joint");
+			controller_state_msg.joint_names.push_back("br_caster_r_wheel_joint");
+			controller_state_msg.joint_names.push_back("br_caster_rotation_joint");
+			controller_state_msg.joint_names.push_back("fr_caster_r_wheel_joint");
+			controller_state_msg.joint_names.push_back("fr_caster_rotation_joint");
+			controller_state_msg.actual.positions = msg->position;
+			controller_state_msg.actual.velocities = msg->velocity;
+			controller_state_msg.actual.accelerations = msg->effort;
+	
+			topic_pub_controller_state_.publish(controller_state_msg);
+
 		}
 
        
@@ -624,6 +700,14 @@ void NodeClass::CalcCtrlStep()
 		joint_state_cmd.position.resize(m_iNumJoints);
 		joint_state_cmd.velocity.resize(m_iNumJoints);            
 		joint_state_cmd.effort.resize(m_iNumJoints);
+		joint_state_cmd.name.push_back("fl_caster_r_wheel_joint");
+		joint_state_cmd.name.push_back("fl_caster_rotation_joint");
+		joint_state_cmd.name.push_back("bl_caster_r_wheel_joint");
+		joint_state_cmd.name.push_back("bl_caster_rotation_joint");
+		joint_state_cmd.name.push_back("br_caster_r_wheel_joint");
+		joint_state_cmd.name.push_back("br_caster_rotation_joint");
+		joint_state_cmd.name.push_back("fr_caster_r_wheel_joint");
+		joint_state_cmd.name.push_back("fr_caster_rotation_joint");
 
 		// compose data body
 		j = 0;
@@ -714,6 +798,7 @@ void NodeClass::GetJointState()
 	// Set measured Wheel Velocities and Angles to Controler Class (implements inverse kinematic)
 	ucar_ctrl_->SetActualWheelValues(drive_joint_vel_rads, steer_joint_vel_rads,
 							drive_joint_ang_rad, steer_joint_ang_rad);
+
 }
 
 
@@ -804,6 +889,16 @@ void NodeClass::UpdateOdometry()
 	// publish data
 	// publish the transform
 	//tf_broadcast_odometry_.sendTransform(odom_tf);
+	
+	if (fabs(vel_x_rob_ms) > 0.005 or fabs(vel_y_rob_ms) > 0.005 or fabs(rot_rob_rads) > 0.005)
+	{
+		is_moving_ = true;
+	}
+	else
+	{
+		is_moving_ = false;
+	}
+	
 	// publish odometry msg
 	topic_pub_odometry_.publish(odom_top);
 }

@@ -118,7 +118,7 @@ public:
 	/// Initializes Swissranger.
 	/// @param directory Path to the directory of the range imaging sensor parameter file.
 	/// @param cameraIndex It is possible to have several cameras of the same type on the system.
-	///	       One may us the camera index to apply different configuration files to each of them.
+	///	       One may use the camera index to apply different configuration files to each of them.
 	/// @return Return code.
 	virtual unsigned long Init(std::string directory, int cameraIndex = 0) = 0;
 	
@@ -253,7 +253,7 @@ private:
 /// @return Smart pointer, refering to the generated object
 __DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_VirtualCam();
 __DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_Swissranger();
-__DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_PMDCamCube();
+__DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_PMDCam();
 __DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr CreateRangeImagingSensor_Kinect();
 
 } // end namespace ipa_CameraSensors
