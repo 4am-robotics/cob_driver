@@ -12,6 +12,7 @@
     <param name="iso_speed" value="400" />
     <param name="frame_rate" value="15" />
     <!--param name="frame_rate" value="5" /-->
+
     <remap from="camera/image_raw" to="image_raw"/>
     <remap from="camera/camera_info" to="camera_info"/>
   </node>

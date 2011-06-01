@@ -8,7 +8,8 @@
     <param name="auto_exposure" value="1" />
     <!--param name="amp_threshold" value="2000" /-->
     <!--param name="integration_time" value="50" />
-    <remap from="swissranger/intensity/image_raw" to="tof/image_grey"/>
-    <remap from="swissranger/camera_info" to="tof/camera_info"/-->
+
+    <remap from="swissranger/intensity/image_raw" to="image_grey"/>
+    <remap from="swissranger/camera_info" to="camera_info"/-->
   </node>
 </launch>
