@@ -171,7 +171,7 @@ namespace ipa_CameraSensors
       tf::StampedTransform transform;
       try
       {
-        transform_listener_->lookupTransform("/base_link", "/head_tof_link", ros::Time(0), transform);
+        transform_listener_->lookupTransform("/base_link", "/head_cam3d_link", ros::Time(0), transform);
         btScalar roll, pitch, yaw;
         transform.getBasis().getRPY(roll, pitch, yaw, 1);
         if (roll > 0.0) turnAround = true;
