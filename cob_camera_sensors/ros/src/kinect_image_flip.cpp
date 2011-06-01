@@ -174,7 +174,7 @@ namespace ipa_CameraSensors
         transform_listener_->lookupTransform("/base_link", "/head_cam3d_link", ros::Time(0), transform);
         btScalar roll, pitch, yaw;
         transform.getBasis().getRPY(roll, pitch, yaw, 1);
-        if (roll <= 0.0) turnAround = true;
+        if (roll > 0.0) turnAround = true;
   //      std::cout << "xyz: " << transform.getOrigin().getX() << " " << transform.getOrigin().getY() << " " << transform.getOrigin().getZ() << "\n";
   //      std::cout << "abcw: " << transform.getRotation().getX() << " " << transform.getRotation().getY() << " " << transform.getRotation().getZ() << " " << transform.getRotation().getW() << "\n";
   //      std::cout << "rpy: " << roll << " " << pitch << " " << yaw << "\n";
