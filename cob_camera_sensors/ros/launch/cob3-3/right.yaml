@@ -23,6 +23,6 @@ auto_gain:         True
 gain:              1
 auto_whitebalance: True
 frame_id: high_def_optical_frame_master
-stream_bytes_per_second: 45000000
+stream_bytes_per_second: 54000000
 auto_adjust_stream_bytes_per_second: False
 trigger_mode: streaming
