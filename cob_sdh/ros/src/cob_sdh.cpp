@@ -574,24 +574,23 @@ class SdhNode
 
 			// set joint names and map them to angles
 			msg.name = JointNames_;
+			//['sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']
 			// pos
 			msg.position[0] = actualAngles[3]*pi_/180.0; // sdh_thumb_2_joint
 			msg.position[1] = actualAngles[4]*pi_/180.0; // sdh_thumb_3_joint
-			msg.position[2] = actualAngles[0]*pi_/180.0; // sdh_finger_11_joint
+			msg.position[2] = actualAngles[0]*pi_/180.0; // sdh_knuckle_joint
 			msg.position[3] = actualAngles[5]*pi_/180.0; // sdh_finger_12_joint
 			msg.position[4] = actualAngles[6]*pi_/180.0; // sdh_finger_13_joint
-			msg.position[5] = actualAngles[0]*pi_/180.0; // sdh_finger_21_joint
-			msg.position[6] = actualAngles[1]*pi_/180.0; // sdh_finger_22_joint
-			msg.position[7] = actualAngles[2]*pi_/180.0; // sdh_finger_23_joint
+			msg.position[5] = actualAngles[1]*pi_/180.0; // sdh_finger_22_joint
+			msg.position[6] = actualAngles[2]*pi_/180.0; // sdh_finger_23_joint
 			// vel			
 			msg.velocity[0] = actualVelocities[3]*pi_/180.0; // sdh_thumb_2_joint
 			msg.velocity[1] = actualVelocities[4]*pi_/180.0; // sdh_thumb_3_joint
-			msg.velocity[2] = actualVelocities[0]*pi_/180.0; // sdh_finger_11_joint
+			msg.velocity[2] = actualVelocities[0]*pi_/180.0; // sdh_knuckle_joint
 			msg.velocity[3] = actualVelocities[5]*pi_/180.0; // sdh_finger_12_joint
 			msg.velocity[4] = actualVelocities[6]*pi_/180.0; // sdh_finger_13_joint
-			msg.velocity[5] = actualVelocities[0]*pi_/180.0; // sdh_finger_21_joint
-			msg.velocity[6] = actualVelocities[1]*pi_/180.0; // sdh_finger_22_joint
-			msg.velocity[7] = actualVelocities[2]*pi_/180.0; // sdh_finger_23_joint
+			msg.velocity[5] = actualVelocities[1]*pi_/180.0; // sdh_finger_22_joint
+			msg.velocity[6] = actualVelocities[2]*pi_/180.0; // sdh_finger_23_joint
 
 			// publish message
 			topicPub_JointState_.publish(msg); 
