@@ -25,3 +25,4 @@ auto_whitebalance: True
 frame_id: high_def_optical_frame_slave
 stream_bytes_per_second: 55000000
 auto_adjust_stream_bytes_per_second: False
+trigger_mode: syncin1
