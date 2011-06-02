@@ -136,7 +136,7 @@ class SdhNode
 
 		bool isInitialized_;
 		bool isDSAInitialized_;
-		int DOF_HW_,DOF_ROS_;
+		int DOF_;
 		double pi_;
 		
 		trajectory_msgs::JointTrajectory traj_;
@@ -234,22 +234,21 @@ class SdhNode
 				ROS_ERROR("Parameter JointNames not set");
 				return false;
 			}
-			DOF_ROS_ = JointNames_param.size(); // DOFs of sdh, NOTE: hardware has 8 DOFs, but two cuppled ones; sdh_finger_11_joint and sdh_finger_21_joint are actuated synchronously
-			DOF_HW_ = DOF_ROS_ - 1;
-			JointNames_.resize(DOF_ROS_);
-			for (int i = 0; i<DOF_ROS_; i++ )
+			DOF_ = JointNames_param.size();
+			JointNames_.resize(DOF_);
+			for (int i = 0; i<DOF_; i++ )
 			{
 				JointNames_[i] = (std::string)JointNames_param[i];
 			}
 			std::cout << "JointNames = " << JointNames_param << std::endl;
 			
 			// define axes to send to sdh
-			axes_.resize(DOF_HW_);
-			for(int i=0; i<DOF_HW_; i++)
+			axes_.resize(DOF_);
+			for(int i=0; i<DOF_; i++)
 			{
 				axes_[i] = i;
 			}
-			ROS_INFO("DOF_HW = %d, DOF_ROS = %d",DOF_HW_,DOF_ROS_);
+			ROS_INFO("DOF = %d",DOF_);
 			
 			state_.resize(axes_.size());
 			
@@ -275,7 +274,7 @@ class SdhNode
 			while (hasNewGoal_ == true ) usleep(10000);
 
 			// \todo TODO: use joint_names for assigning values
-			targetAngles_.resize(DOF_HW_);
+			targetAngles_.resize(DOF_);
 			targetAngles_[0] = goal->trajectory.points[0].positions[2]*180.0/pi_; // sdh_knuckle_joint
 			targetAngles_[1] = goal->trajectory.points[0].positions[5]*180.0/pi_; // sdh_finger22_joint
 			targetAngles_[2] = goal->trajectory.points[0].positions[6]*180.0/pi_; // sdh_finger23_joint
@@ -568,9 +567,9 @@ class SdhNode
 			// create joint_state message
 			sensor_msgs::JointState msg;
 			msg.header.stamp = ros::Time::now();
-			msg.name.resize(DOF_ROS_);
-			msg.position.resize(DOF_ROS_);
-			msg.velocity.resize(DOF_ROS_);
+			msg.name.resize(DOF_);
+			msg.position.resize(DOF_);
+			msg.velocity.resize(DOF_);
 
 			// set joint names and map them to angles
 			msg.name = JointNames_;
