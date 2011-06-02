@@ -26,3 +26,4 @@ frame_id: high_def_optical_frame_master
 stream_bytes_per_second: 45000000
 auto_adjust_stream_bytes_per_second: False
 trigger_mode: streaming
+packet_size: 9000
