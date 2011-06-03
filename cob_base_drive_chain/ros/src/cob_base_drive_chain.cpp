@@ -399,7 +399,6 @@ class NodeClass
 					ROS_DEBUG("Send velocity data to gazebo");
 					std_msgs::Float64 fl;
 					fl.data = JointStateCmd.velocity[i];
-					std::cout << fl.data << std::endl;
 					if(msg->joint_names[i] == "fl_caster_r_wheel_joint")
 						fl_caster_pub.publish(fl);
 					if(msg->joint_names[i] == "fr_caster_r_wheel_joint")
