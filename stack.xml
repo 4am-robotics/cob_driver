@@ -11,7 +11,7 @@
   <depend stack="camera_drivers" /> <!-- prosilica_camera -->
   <depend stack="cob_common" /> <!-- cob_msgs, brics_actuator, cob_utilities, cob_vision_utils, cob_srvs, cob_description -->
   <depend stack="cob_extern" /> <!-- libpcan, libmesasr, libm5api, brics_oodl_scanner_libs, libntcan -->
-  <depend stack="common" /> <!-- actionlib, tinyxml -->
+  <depend stack="common" /> <!-- actionlib, nodelet, tinyxml -->
   <depend stack="common_msgs" /> <!-- nav_msgs, trajectory_msgs, sensor_msgs, geometry_msgs, visualization_msgs, diagnostic_msgs -->
   <depend stack="diagnostics" /> <!-- diagnostic_updater -->
   <depend stack="geometry" /> <!-- tf, kdl, eigen, tf_conversions -->
@@ -19,10 +19,13 @@
   <depend stack="joystick_drivers" /> <!-- joy -->
   <depend stack="kinematics" /> <!-- kinematics_msgs -->
   <depend stack="laser_drivers" /> <!-- hokuyo_node -->
+  <depend stack="openni_kinect" /> <!-- openni_camera -->
+  <depend stack="perception_pcl" /> <!-- pcl, pcl_ros -->
   <depend stack="pr2_controllers" /> <!-- pr2_controllers_msgs -->
+  <depend stack="pr2_kinematics" /> <!-- pr2_arm_kinematics -->
   <depend stack="robot_model" /> <!-- urdf, kdl_parser -->
   <depend stack="ros" /> <!-- roslib -->
-  <depend stack="ros_comm" /> <!-- std_msgs, rostest, rospy, roscpp -->
+  <depend stack="ros_comm" /> <!-- rospy, rostest, std_msgs, roscpp -->
   <depend stack="vision_opencv" /> <!-- opencv2, cv_bridge -->
 
 </stack>
