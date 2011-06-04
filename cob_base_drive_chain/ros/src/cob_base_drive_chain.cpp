@@ -204,7 +204,11 @@ class NodeClass
 		NodeClass()
 		{
 			// initialization of variables
+#ifdef __SIM__
+			m_bisInitialized = initDrives();
+#else
 			m_bisInitialized = false;
+#endif
 
 			/// Parameters are set within the launch file
 			// Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
