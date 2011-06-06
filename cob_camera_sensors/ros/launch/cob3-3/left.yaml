@@ -22,7 +22,7 @@ exposure:          0.009
 auto_gain:         True
 gain:              1
 auto_whitebalance: True
-frame_id: high_def_optical_frame_slave
+frame_id: head_color_camera_l_link
 stream_bytes_per_second: 55000000
 auto_adjust_stream_bytes_per_second: False
 trigger_mode: syncin1
