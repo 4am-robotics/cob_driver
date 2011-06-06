@@ -16,8 +16,8 @@
     <param name="rgb_camera_info_url" value="file:///$(find cob_camera_sensors)/ros/launch/cob3-3/kinect_rgb.yaml" />
     <!-- <param name="depth_camera_info_url" value="file:///(find cob_camera_sensors)/ros/launch/cob3-3/kinect_depth.yaml" /> -->
     
-    <param name="rgb_frame_id" value="/openni_rgb_optical_frame" />
-    <param name="depth_frame_id" value="/openni_depth_optical_frame" />
+    <!--<param name="rgb_frame_id" value="/openni_rgb_optical_frame" />
+    <param name="depth_frame_id" value="/openni_depth_optical_frame" /-->
     <param name="use_indices" value="false" />
     <param name="depth_registration" value="true" />
     <param name="image_mode" value="2" />
