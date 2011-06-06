@@ -1,7 +1,12 @@
 <?xml version="1.0"?>
 <launch>
 
+	<arg name="sim" default="false" />
+
   	<!-- start base_drive_chain and locate IniFiles -->
-	<node pkg="cob_base_drive_chain" type="cob_base_drive_chain_node" name="base_drive_chain_node" respawn="false" output="screen"/>
+	<node if="$(arg sim)" pkg="cob_base_drive_chain" type="cob_base_drive_chain_sim_node" name="base_drive_chain_node" respawn="false" output="screen"/>
+
+  	<!-- start base_drive_chain and locate IniFiles -->
+	<node unless="$(arg sim)" pkg="cob_base_drive_chain" type="cob_base_drive_chain_node" name="base_drive_chain_node" respawn="false" output="screen"/>
 
 </launch>

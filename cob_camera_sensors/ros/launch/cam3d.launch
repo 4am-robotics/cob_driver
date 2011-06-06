@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+
+	<group ns="cam3d">	
+		<include file="$(find cob_camera_sensors)/ros/launch/$(env ROBOT)/cam3d_$(env ROBOT).launch" />
+	</group>
+
+</launch>
