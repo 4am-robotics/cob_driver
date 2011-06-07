@@ -18,6 +18,8 @@ projection_matrix:
   cols: 4
   data: [1437.652184, 0, 694.859264, 0, 0, 1432.558759, 532.643802, 0, 0, 0, 1, 0]
 auto_exposure:     True
+exposure_auto_max: 25000
+exposure_auto_target: 50
 exposure:          0.009
 auto_gain:         True
 gain:              1
