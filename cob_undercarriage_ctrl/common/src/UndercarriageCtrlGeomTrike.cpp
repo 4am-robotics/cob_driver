@@ -263,7 +263,7 @@ void UndercarriageCtrlGeom::GetNewCtrlStateSteerDriveSetValues(std::vector<doubl
 	{
 		//Calculate next step
 		CalcControlStep();
-	} else std::cout << "EM stop in undercar is active" << std::endl;
+	} //else std::cout << "EM stop in undercar is active" << std::endl;
 
 	vdVelGearDriveRadS = m_vdVelGearDriveCmdRadS;
 	vdAngGearSteerRad = m_vdAngGearSteerCmdRad;
