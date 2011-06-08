@@ -24,10 +24,9 @@
 
 
 % generates the parameter file(s) for a single camera or a stereo pair
-% stereo = set 0 if a single camera is saved, otherwise it's stereo
-% filenamePrefix = additional filename information (e.g. cob3-3)
-% cameraName = the camera name in the config file, only necessary in single
-%              camera mode
+% stereo = set 0 if a single camera is saved, otherwise it's stereo and you will receive two output files
+% filenamePrefix = additional filename prefix (e.g. cob3-3)
+% cameraName = the camera name in the config file, only necessary in single camera mode
 function generateYAMLparameterFile(stereo, filenamePrefix, cameraName)
 if (stereo ~= 0)
     saveCameraParametersYAMLStereo(filenamePrefix);
