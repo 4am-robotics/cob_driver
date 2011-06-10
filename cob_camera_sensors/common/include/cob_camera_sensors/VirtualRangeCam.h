@@ -72,21 +72,10 @@
 
 #include <boost/filesystem.hpp>
 
-#ifdef SWIG
-%module Sensors3D
-
-%{
-	#include "Swissranger.h"
-%}
-#endif
-
 namespace fs = boost::filesystem;
 using namespace ipa_Utils;
 
 namespace ipa_CameraSensors {
-
-static const int SWISSRANGER_COLUMNS = 176;
-static const int SWISSRANGER_ROWS = 144;
 
 /// @ingroup VirtualCameraDriver
 /// Interface class to virtual range camera like Swissranger 3000/4000.

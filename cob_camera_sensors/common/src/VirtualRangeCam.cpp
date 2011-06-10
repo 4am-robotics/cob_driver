@@ -297,7 +297,12 @@ unsigned long VirtualRangeCam::Open()
 	}
 
 	std::vector<std::string> extensionList;
-	extensionList.push_back(".xml"); extensionList.push_back(".bin"); extensionList.push_back(".png"); extensionList.push_back(".jpg"); extensionList.push_back(".bmp");
+	extensionList.push_back(".xml"); 
+	extensionList.push_back(".bin"); 
+	extensionList.push_back(".png"); 
+	extensionList.push_back(".jpg"); 
+	extensionList.push_back(".bmp");
+
 	std::map<std::string, int> amplitudeImageCounter;	// first index is the extension (.xml, .bin), second is the number of such images found
 	std::map<std::string, int> intensityImageCounter;	// first index is the extension (.xml, .bin, .png, .jpg, .bmp), second is the number of such images found
 	std::map<std::string, int> coordinateImageCounter;	// first index is the extension (.xml, .bin), second is the number of such images found
@@ -378,8 +383,8 @@ unsigned long VirtualRangeCam::Open()
 			}
 			catch ( const std::exception &ex )
 			{
-				std::cout << "WARNING - VirtualRangeCam::Open:" << std::endl;
-				std::cout << "\t ... Exception catch of '" << ex.what() << "'" << std::endl;
+				std::cerr << "ERROR - VirtualRangeCam::Open:" << std::endl;
+				std::cerr << "\t ... Exception catch of '" << ex.what() << "'" << std::endl;
 			}
 		}
 		// intensity
