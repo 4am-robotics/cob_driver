@@ -11,13 +11,15 @@
     
     <param name="device_id" value="#1"/> <!-- this line uses first enumerated device -->
     <rosparam command="load" file="$(find openni_camera)/info/openni_params.yaml" />
-    
-    <!-- use these lines to load your own calibration for the rgb and depth camera of teh kinect-->
+
+    <!-- use these lines to load your own calibration for the rgb and depth camera of the kinect-->
     <param name="rgb_camera_info_url" value="file:///$(find cob_camera_sensors)/ros/launch/cob3-3/kinect_rgb.yaml" />
     <!-- <param name="depth_camera_info_url" value="file:///(find cob_camera_sensors)/ros/launch/cob3-3/kinect_depth.yaml" /> -->
     
-    <param name="rgb_frame_id" value="/openni_rgb_optical_frame" />
-    <param name="depth_frame_id" value="/openni_depth_optical_frame" />
+    <!--<param name="rgb_frame_id" value="/openni_rgb_optical_frame" />
+    <param name="depth_frame_id" value="/openni_depth_optical_frame" />-->
+    <param name="rgb_frame_id" value="/head_cam3d_link" />
+    <param name="depth_frame_id" value="/head_cam3d_link" />
     <param name="use_indices" value="false" />
     <param name="depth_registration" value="true" />
     <param name="image_mode" value="2" />

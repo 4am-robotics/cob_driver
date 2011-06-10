@@ -17,3 +17,15 @@ projection_matrix:
   rows: 3
   cols: 4
   data: [1438.392469, 0, 702.861595, 0, 0, 1433.553143, 535.878630, 0, 0, 0, 1, 0]
+auto_exposure:     True
+exposure_auto_max: 25000
+exposure_auto_target: 50
+exposure:          0.009
+auto_gain:         True
+gain:              1
+auto_whitebalance: True
+frame_id: head_color_camera_r_link
+stream_bytes_per_second: 54000000
+auto_adjust_stream_bytes_per_second: False
+trigger_mode: streaming
+packet_size: 9000
