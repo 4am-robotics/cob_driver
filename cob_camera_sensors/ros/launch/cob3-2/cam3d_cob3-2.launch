@@ -9,9 +9,13 @@
     <!--param name="amp_threshold" value="2000" /-->
     <!--param name="integration_time" value="50" />-->
 
-	<!-- todo: remap point cloud output of swissranger to depth/points -->
-
-    <remap from="swissranger/intensity/image_raw" to="rgb/image_mono"/>
-    <remap from="swissranger/camera_info" to="camera_info"/>
+    <remap from="distance/image_raw" to="depth/image"/>
+    <remap from="intensity/image_raw" to="rgb/image_mono"/>
+    <remap from="camera_info" to="depth/camera_info"/>
+    <remap from="pointcloud/cloud_raw" to="depth/points1"/>
   </node>
+  
+  <!-- convert from PointCloud1 to PointCloud2 -->
+  <node name="point_cloud_converter_full_cloud" pkg="point_cloud_converter" type="point_cloud_converter"
+        args="points_in:=depth/points1 points2_out:=depth/points" respawn="false" output="screen" />
 </launch>

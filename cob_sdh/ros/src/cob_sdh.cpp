@@ -410,8 +410,8 @@ class SdhNode
 			}
 			else
 			{
-				ROS_ERROR("...sdh already initialized...");
-				res.success.data = false;
+				ROS_WARN("...sdh already initialized...");
+				res.success.data = true;
 				res.error_message.data = "sdh already initialized";
 			}
 			
@@ -458,7 +458,7 @@ class SdhNode
 					cob_srvs::Trigger::Response &res )
 	{
 		ROS_WARN("Service recover not implemented yet");
-		res.success.data = false;
+		res.success.data = true;
 		res.error_message.data = "Service recover not implemented yet";
 		return true;
 	}

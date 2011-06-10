@@ -371,18 +371,18 @@ class NodeClass
 				res.success.data = m_bisInitialized;
 				if(m_bisInitialized)
 				{
-		   			ROS_INFO("Can-Node initialized");
+		   			ROS_INFO("base initialized");
 				}
 				else
 				{
-					res.error_message.data = "initialization of can-nodes failed";
-				  	ROS_INFO("Initialization FAILED");
+					res.error_message.data = "initialization of base failed";
+				  	ROS_ERROR("Initializing base failed");
 				}
 			}
 			else
 			{
-				ROS_ERROR("...platform already initialized...");
-				res.success.data = false;
+				ROS_WARN("...base already initialized...");
+				res.success.data = true;
 				res.error_message.data = "platform already initialized";
 			}
 			return true;
@@ -421,13 +421,22 @@ class NodeClass
 		bool srvCallback_Recover(cob_srvs::Trigger::Request &req,
 									 cob_srvs::Trigger::Response &res )
 		{
-			ROS_DEBUG("Service callback reset");
-			res.success.data = m_CanCtrlPltf->resetPltf();
-			if (res.success.data) {
-	   			ROS_INFO("Can-Node resetted");
-			} else {
-				res.error_message.data = "reset of can-nodes failed";
-				ROS_WARN("Reset of Can-Node FAILED");
+			if(m_bisInitialized)
+			{
+				ROS_DEBUG("Service callback reset");
+				res.success.data = m_CanCtrlPltf->resetPltf();
+				if (res.success.data) {
+		   			ROS_INFO("base resetted");
+				} else {
+					res.error_message.data = "reset of base failed";
+					ROS_WARN("Resetting base failed");
+				}
+			}
+			else
+			{
+				ROS_WARN("...base already recovered...");
+				res.success.data = true;
+				res.error_message.data = "base already recovered";
 			}
 
 			return true;
