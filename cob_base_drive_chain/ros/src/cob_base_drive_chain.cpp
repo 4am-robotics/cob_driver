@@ -63,6 +63,7 @@
 // ROS message includes
 #include <sensor_msgs/JointState.h>
 #include <diagnostic_msgs/DiagnosticStatus.h>
+#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -92,6 +93,9 @@ class NodeClass
 		* On this topic "JointState" of type sensor_msgs::JointState the node publishes joint states when they are requested over the appropriate service srvServer_GetJointState.
 		*/
 		ros::Publisher topicPub_JointState;
+
+		ros::Publisher topicPub_ControllerState;
+
 
 		/**
 		* On this topic "Diagnostic" of type diagnostic_msgs::DiagnosticStatus the node publishes states and error information about the platform.
@@ -126,7 +130,7 @@ class NodeClass
 		/**
 		* Service requests cob_srvs::GetJointState. It reads out the latest joint information from the CAN buffer and gives it back. It also publishes the informaion on the topic "JointState"
 		*/
-		ros::ServiceServer srvServer_GetJointState;
+		//ros::ServiceServer srvServer_GetJointState;
 
 		/**
 		* Service requests cob_srvs::ElmoRecorderSetup. It is used to configure the Elmo Recorder to record predefined sources. 
@@ -211,6 +215,9 @@ class NodeClass
 			// implementation of topics
 			// published topics
 			topicPub_JointState = n.advertise<sensor_msgs::JointState>("/joint_states", 1);
+			topicPub_ControllerState = n.advertise<pr2_controllers_msgs::JointTrajectoryControllerState>("state", 1);
+			
+			
 			topicPub_Diagnostic = n.advertise<diagnostic_msgs::DiagnosticStatus>("diagnostic", 1);
 			// subscribed topics
 			topicSub_JointStateCmd = n.subscribe("joint_command", 1, &NodeClass::topicCallback_JointStateCmd, this);
@@ -224,7 +231,7 @@ class NodeClass
 			srvServer_Recover = n.advertiseService("recover", &NodeClass::srvCallback_Recover, this);
 			srvServer_Shutdown = n.advertiseService("shutdown", &NodeClass::srvCallback_Shutdown, this);
 			//srvServer_isPltfError = n.advertiseService("isPltfError", &NodeClass::srvCallback_isPltfError, this); --> Publish this along with JointStates
-			srvServer_GetJointState = n.advertiseService("GetJointState", &NodeClass::srvCallback_GetJointState, this);
+			//srvServer_GetJointState = n.advertiseService("GetJointState", &NodeClass::srvCallback_GetJointState, this);
 		}
 
 		// Destructor
@@ -235,7 +242,7 @@ class NodeClass
 
 		// topic callback functions 
 		// function will be called when a new message arrives on a topic
-		void topicCallback_JointStateCmd(const sensor_msgs::JointState::ConstPtr& msg)
+		void topicCallback_JointStateCmd(const pr2_controllers_msgs::JointTrajectoryControllerState::ConstPtr& msg)
 		{
 			ROS_DEBUG("Topic Callback joint_command");
 			// only process cmds when system is initialized
@@ -248,61 +255,61 @@ class NodeClass
 				JointStateCmd.velocity.resize(m_iNumMotors);
 				JointStateCmd.effort.resize(m_iNumMotors);
 				
-				for(int i = 0; i < msg->name.size(); i++)
+				for(unsigned int i = 0; i < msg->joint_names.size(); i++)
 				{
 					// associate inputs to according steer and drive joints
 					// ToDo: specify this globally (Prms-File or config-File or via msg-def.)
 					// check if velocities lie inside allowed boundaries
 					
 					//DRIVES
-					if(msg->name[i] ==  "fl_caster_r_wheel_joint")
+					if(msg->joint_names[i] ==  "fl_caster_r_wheel_joint")
 					{
-							JointStateCmd.position[0] = msg->position[i];
-							JointStateCmd.velocity[0] = msg->velocity[i];
-							JointStateCmd.effort[0] = msg->effort[i];
+							JointStateCmd.position[0] = msg->desired.positions[i];
+							JointStateCmd.velocity[0] = msg->desired.velocities[i];
+							//JointStateCmd.effort[0] = msg->effort[i];
 					}
-					if(msg->name[i] ==  "bl_caster_r_wheel_joint")
+					if(msg->joint_names[i] ==  "bl_caster_r_wheel_joint")
 					{
-							JointStateCmd.position[2] = msg->position[i];
-							JointStateCmd.velocity[2] = msg->velocity[i];
-							JointStateCmd.effort[2] = msg->effort[i];
+							JointStateCmd.position[2] = msg->desired.positions[i];
+							JointStateCmd.velocity[2] = msg->desired.velocities[i];
+							//JointStateCmd.effort[2] = msg->effort[i];
 					}
-					if(msg->name[i] ==  "br_caster_r_wheel_joint")
+					if(msg->joint_names[i] ==  "br_caster_r_wheel_joint")
 					{
-							JointStateCmd.position[4] = msg->position[i];
-							JointStateCmd.velocity[4] = msg->velocity[i];
-							JointStateCmd.effort[4] = msg->effort[i];
+							JointStateCmd.position[4] = msg->desired.positions[i];
+							JointStateCmd.velocity[4] = msg->desired.velocities[i];
+							//JointStateCmd.effort[4] = msg->effort[i];
 					}
-					if(msg->name[i] ==  "fr_caster_r_wheel_joint")
+					if(msg->joint_names[i] ==  "fr_caster_r_wheel_joint")
 					{
-							JointStateCmd.position[6] = msg->position[i];
-							JointStateCmd.velocity[6] = msg->velocity[i];
-							JointStateCmd.effort[6] = msg->effort[i];
+							JointStateCmd.position[6] = msg->desired.positions[i];
+							JointStateCmd.velocity[6] = msg->desired.velocities[i];
+							//JointStateCmd.effort[6] = msg->effort[i];
 					}
 					//STEERS
-					if(msg->name[i] ==  "fl_caster_rotation_joint")
+					if(msg->joint_names[i] ==  "fl_caster_rotation_joint")
 					{
-							JointStateCmd.position[1] = msg->position[i];
-							JointStateCmd.velocity[1] = msg->velocity[i];
-							JointStateCmd.effort[1] = msg->effort[i];
+							JointStateCmd.position[1] = msg->desired.positions[i];
+							JointStateCmd.velocity[1] = msg->desired.velocities[i];
+							//JointStateCmd.effort[1] = msg->effort[i];
 					}
-					if(msg->name[i] ==  "bl_caster_rotation_joint")
+					if(msg->joint_names[i] ==  "bl_caster_rotation_joint")
 					{ 
-							JointStateCmd.position[3] = msg->position[i];
-							JointStateCmd.velocity[3] = msg->velocity[i];
-							JointStateCmd.effort[3] = msg->effort[i];
+							JointStateCmd.position[3] = msg->desired.positions[i];
+							JointStateCmd.velocity[3] = msg->desired.velocities[i];
+							//JointStateCmd.effort[3] = msg->effort[i];
 					}
-					if(msg->name[i] ==  "br_caster_rotation_joint")
+					if(msg->joint_names[i] ==  "br_caster_rotation_joint")
 					{
-							JointStateCmd.position[5] = msg->position[i];
-							JointStateCmd.velocity[5] = msg->velocity[i];
-							JointStateCmd.effort[5] = msg->effort[i];
+							JointStateCmd.position[5] = msg->desired.positions[i];
+							JointStateCmd.velocity[5] = msg->desired.velocities[i];
+							//JointStateCmd.effort[5] = msg->effort[i];
 					}
-					if(msg->name[i] ==  "fr_caster_rotation_joint")
+					if(msg->joint_names[i] ==  "fr_caster_rotation_joint")
 					{
-							JointStateCmd.position[7] = msg->position[i];
-							JointStateCmd.velocity[7] = msg->velocity[i];
-							JointStateCmd.effort[7] = msg->effort[i];
+							JointStateCmd.position[7] = msg->desired.positions[i];
+							JointStateCmd.velocity[7] = msg->desired.velocities[i];
+							//JointStateCmd.effort[7] = msg->effort[i];
 					}
 			
 				}
@@ -364,18 +371,18 @@ class NodeClass
 				res.success.data = m_bisInitialized;
 				if(m_bisInitialized)
 				{
-		   			ROS_INFO("Can-Node initialized");
+		   			ROS_INFO("base initialized");
 				}
 				else
 				{
-					res.error_message.data = "initialization of can-nodes failed";
-				  	ROS_INFO("Initialization FAILED");
+					res.error_message.data = "initialization of base failed";
+				  	ROS_ERROR("Initializing base failed");
 				}
 			}
 			else
 			{
-				ROS_ERROR("...platform already initialized...");
-				res.success.data = false;
+				ROS_WARN("...base already initialized...");
+				res.success.data = true;
 				res.error_message.data = "platform already initialized";
 			}
 			return true;
@@ -414,13 +421,22 @@ class NodeClass
 		bool srvCallback_Recover(cob_srvs::Trigger::Request &req,
 									 cob_srvs::Trigger::Response &res )
 		{
-			ROS_DEBUG("Service callback reset");
-			res.success.data = m_CanCtrlPltf->resetPltf();
-			if (res.success.data) {
-	   			ROS_INFO("Can-Node resetted");
-			} else {
-				res.error_message.data = "reset of can-nodes failed";
-				ROS_WARN("Reset of Can-Node FAILED");
+			if(m_bisInitialized)
+			{
+				ROS_DEBUG("Service callback reset");
+				res.success.data = m_CanCtrlPltf->resetPltf();
+				if (res.success.data) {
+		   			ROS_INFO("base resetted");
+				} else {
+					res.error_message.data = "reset of base failed";
+					ROS_WARN("Resetting base failed");
+				}
+			}
+			else
+			{
+				ROS_WARN("...base already recovered...");
+				res.success.data = true;
+				res.error_message.data = "base already recovered";
 			}
 
 			return true;
@@ -440,6 +456,8 @@ class NodeClass
 			return true;
 		}
 
+
+		/*
 		bool srvCallback_GetJointState(cob_base_drive_chain::GetJointState::Request &req,
 									 cob_base_drive_chain::GetJointState::Response &res )
 		{
@@ -610,6 +628,7 @@ class NodeClass
 
 			return true;
 		}
+		*/
 
 		//publish JointStates cyclical instead of service callback
 		bool publish_JointStates()
@@ -628,6 +647,8 @@ class NodeClass
 			// create temporary (local) JointState/Diagnostics Data-Container
 			sensor_msgs::JointState jointstate;
 			diagnostic_msgs::DiagnosticStatus diagnostics;
+			
+			pr2_controllers_msgs::JointTrajectoryControllerState controller_state;
 			
 
 			//Do you have to set frame_id manually??
@@ -720,8 +741,14 @@ class NodeClass
 				
 			}
 
+			controller_state.joint_names = jointstate.name;
+			controller_state.actual.positions = jointstate.position;
+			controller_state.actual.velocities = jointstate.velocity;
+
 			// publish jointstate message
 			topicPub_JointState.publish(jointstate);
+			topicPub_ControllerState.publish(controller_state);
+			
 			ROS_DEBUG("published new drive-chain configuration (JointState message)");
 			
 

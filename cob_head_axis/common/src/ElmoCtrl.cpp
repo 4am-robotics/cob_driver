@@ -282,6 +282,8 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 		double dCurrMax,
 		int iHomingDigIn
 		*/
+
+/*
 		m_JointParams->setParam( //parameters taken from CanCtrl.ini
 							0, //int iDriveIdent,
 							4096,//int iEncIncrPerRevMot,
@@ -298,7 +300,27 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 					  		0, // double dCurrMax
 					  		m_HomingDigIn // int iHomingDigIn //cob3-2->11, cob3-1->9
 					  );
-					  
+*/
+
+//COB3-3		
+		m_JointParams->setParam( //parameters taken from CanCtrl.ini
+							0, //int iDriveIdent,
+							4096,//int iEncIncrPerRevMot,
+							1,//double dVelMeasFrqHz,
+							1,//double dBeltRatio,
+							62.5,//double dGearRatio,
+							-1.0,//int iSign,
+							740000,//double dVelMaxEncIncrS,
+							1000000,//80000,//double dAccIncrS2,
+							1000000,//80000//double dDecIncrS2),
+					  		0, //int iEncOffsetIncr
+					  		true, // bool bIsSteer
+					  		0, // double dCurrToTorque
+					  		0, // double dCurrMax
+					  		m_HomingDigIn // int iHomingDigIn //cob3-2->11, cob3-1->9
+					  );
+		
+			  
 		m_Joint->setDriveParam(*m_JointParams);
 		}
 

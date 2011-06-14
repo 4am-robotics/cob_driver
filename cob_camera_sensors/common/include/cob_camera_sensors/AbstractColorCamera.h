@@ -116,7 +116,7 @@ class __DLL_LIBCAMERASENSORS__ AbstractColorCamera
 
 		/// Initializes the color camera.
 		/// Camera specific constants may be set within the configuration file <I>cameraSensorsIni.xml</I>.
-		/// The function has to set the member variable <code>m_initilized</code>.
+		/// The function has to set the member variable <code>m_initialized</code>.
 		/// @param directory Path to the configuration file directory.
 		/// @param cameraIndex It is possible to have several cameras of the same type on the system.
 		///	       One may us the camera index to apply different configuration files to each of them
@@ -237,6 +237,7 @@ __DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr CreateColorCamera_VirtualCam();
 __DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr CreateColorCamera_ICCam();
 __DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr CreateColorCamera_AxisCam();
 __DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr CreateColorCamera_AVTPikeCam();
+__DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr CreateColorCamera_OpenCVCamera();
 
 
 } // end namespace
