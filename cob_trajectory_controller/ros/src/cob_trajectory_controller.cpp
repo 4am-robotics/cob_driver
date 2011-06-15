@@ -109,7 +109,8 @@ public:
 		executing_ = false;
 		res.success.data = true;
 		ROS_INFO("...stopping cob_trajectory_controller.");
-		as_.setAborted();
+		traj_generator_->isMoving = false;
+		as_.setPreemted();
 		return true;
   	}
 
