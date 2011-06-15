@@ -1,3 +1,64 @@
+/*!
+ *****************************************************************
+ * \file
+ *
+ * \note
+ *   Copyright (c) 2011 \n
+ *   Fraunhofer Institute for Manufacturing Engineering
+ *   and Automation (IPA) \n\n
+ *
+ *****************************************************************
+ *
+ * \note
+ *   Project name: care-o-bot
+ * \note
+ *   ROS stack name: cob_driver
+ * \note
+ *   ROS package name: cob_trajectory_controller
+ *
+ * \author
+ *   Author: Alexander Bubeck, email:alexander.bubeck@ipa.fhg.de
+ * \author
+ *   Supervised by: Alexander Bubeck, email:alexander.bubeck@ipa.fhg.de
+ *
+ * \date Date of creation: March 2011
+ *
+ * \brief
+ *   Implementation of ROS node for powercube_chain.
+ *
+ *****************************************************************
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     - Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer. \n
+ *     - Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution. \n
+ *     - Neither the name of the Fraunhofer Institute for Manufacturing
+ *       Engineering and Automation (IPA) nor the names of its
+ *       contributors may be used to endorse or promote products derived from
+ *       this software without specific prior written permission. \n
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License LGPL for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
+ * If not, see <http://www.gnu.org/licenses/>.
+ *
+ ****************************************************************/
+
+
+
 #include "ros/ros.h"
 #include <sensor_msgs/JointState.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
@@ -5,6 +66,9 @@
 #include <pr2_controllers_msgs/JointTrajectoryAction.h>
 #include <brics_actuator/JointVelocities.h>
 #include <cob_trajectory_controller/genericArmCtrl.h>
+// ROS service includes
+#include <cob_srvs/Trigger.h>
+
 
 
 #define HZ 100
@@ -16,6 +80,7 @@ private:
     ros::Publisher joint_pos_pub_;
     ros::Publisher joint_vel_pub_;
     ros::Subscriber controller_state_;
+	ros::ServiceServer srvServer_Stop_;
     actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
     std::string action_name_;
     bool executing_;
@@ -30,10 +95,23 @@ public:
         joint_pos_pub_ = n_.advertise<sensor_msgs::JointState>("target_joint_pos", 1);
 		joint_vel_pub_ = n_.advertise<brics_actuator::JointVelocities>("command_vel", 1);
         controller_state_ = n_.subscribe("state", 1, &cob_trajectory_controller::state_callback, this);
+		srvServer_Stop_ = n_.advertiseService("stop", &cob_trajectory_controller::srvCallback_Stop, this);
         executing_ = false;
 		q_current.resize(7);
 		traj_generator_ = new genericArmCtrl(7);
 	}
+
+	bool srvCallback_Stop(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res)
+  	{
+		ROS_INFO("Stopping powercubes...");
+
+		// stop trajectory controller
+		executing_ = false;
+		res.success.data = true;
+		ROS_INFO("...stopping cob_trajectory_controller.");
+		as_.setAborted();
+		return true;
+  	}
 
   void state_callback(const pr2_controllers_msgs::JointTrajectoryControllerStatePtr& message)
   {
