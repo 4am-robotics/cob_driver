@@ -169,6 +169,14 @@ public:
     {
         if(executing_)
         {
+			if (as_.isPreemptRequested() || !ros::ok())
+			{
+				ROS_INFO("%s: Preempted trajectory action");
+				// set the action state to preempted
+				executing_ = false;
+				as_.setPreempted();
+				return;
+			}
         	std::vector<double> des_vel;
         	if(traj_generator_->step(q_current, des_vel))
         	{
