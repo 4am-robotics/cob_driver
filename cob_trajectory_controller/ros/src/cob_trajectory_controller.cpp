@@ -68,6 +68,7 @@
 #include <cob_trajectory_controller/genericArmCtrl.h>
 // ROS service includes
 #include <cob_srvs/Trigger.h>
+#include <cob_srvs/SetOperationMode.h>
 
 
 
@@ -80,10 +81,14 @@ private:
     ros::Publisher joint_pos_pub_;
     ros::Publisher joint_vel_pub_;
     ros::Subscriber controller_state_;
-	ros::ServiceServer srvServer_Stop_;
+  ros::Subscriber operation_mode_;
+  ros::ServiceServer srvServer_Stop_;
+  ros::ServiceClient srvClient_SetOperationMode;
     actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
     std::string action_name_;
+  std::string current_operation_mode_;
     bool executing_;
+  int watchdog_counter;
     genericArmCtrl* traj_generator_;
     trajectory_msgs::JointTrajectory traj_;
     std::vector<double> q_current, startposition_, joint_distance_;
@@ -95,8 +100,17 @@ public:
         joint_pos_pub_ = n_.advertise<sensor_msgs::JointState>("target_joint_pos", 1);
 		joint_vel_pub_ = n_.advertise<brics_actuator::JointVelocities>("command_vel", 1);
         controller_state_ = n_.subscribe("state", 1, &cob_trajectory_controller::state_callback, this);
+	operation_mode_ = n_.subscribe("current_operationmode", 1, &cob_trajectory_controller::operationmode_callback, this);
 		srvServer_Stop_ = n_.advertiseService("stop", &cob_trajectory_controller::srvCallback_Stop, this);
+		srvClient_SetOperationMode = n_.serviceClient<cob_srvs::SetOperationMode>("set_operation_mode");
+		while(!srvClient_SetOperationMode.exists())
+		  {
+		    ROS_INFO("Waiting for operationmode service to become available");
+		      sleep(1);
+		  }
         executing_ = false;
+	watchdog_counter = 0;
+	current_operation_mode_ = "undefined";
 		q_current.resize(7);
 		traj_generator_ = new genericArmCtrl(7);
 	}
@@ -114,6 +128,10 @@ public:
 		return true;
   	}
 
+  void operationmode_callback(const std_msgs::StringPtr& message)
+  {
+    current_operation_mode_ = message->data;
+  }
   void state_callback(const pr2_controllers_msgs::JointTrajectoryControllerStatePtr& message)
   {
     std::vector<double> positions = message->actual.positions;
@@ -127,6 +145,15 @@ public:
         ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
         if(!executing_)
         {
+	  //set arm to velocity mode
+	  cob_srvs::SetOperationMode opmode;
+	  opmode.request.operation_mode.data = "velocity";
+	  srvClient_SetOperationMode.call(opmode);
+	  while(current_operation_mode_ != "velocity")
+	    {
+	      ROS_INFO("waiting for arm to go to velocity mode");
+	      usleep(100000);
+	    }
             traj_ = goal->trajectory;
             if(traj_.points.size() == 1)
             {
@@ -170,12 +197,15 @@ public:
     {
         if(executing_)
         {
-			if (as_.isPreemptRequested() || !ros::ok())
+	  watchdog_counter = 0;
+			if (as_.isPreemptRequested() || !ros::ok() || current_operation_mode_ != "velocity")
 			{
-				ROS_INFO("%s: Preempted trajectory action");
+				
 				// set the action state to preempted
 				executing_ = false;
-				as_.setPreempted();
+				traj_generator_->isMoving = false;
+				//as_.setPreempted();
+				ROS_INFO("Preempted trajectory action");
 				return;
 			}
         	std::vector<double> des_vel;
@@ -208,6 +238,8 @@ public:
         }
 		else
 		{	//WATCHDOG TODO: don't always send
+		  if(watchdog_counter < 10)
+		    {
 			sensor_msgs::JointState target_joint_position;
 			target_joint_position.position.resize(7);
 			brics_actuator::JointVelocities target_joint_vel;
@@ -224,7 +256,8 @@ public:
 				joint_vel_pub_.publish(target_joint_vel);
 				joint_pos_pub_.publish(target_joint_position);
 			}
-        
+		  watchdog_counter++;
+		}
     }
     
 };
