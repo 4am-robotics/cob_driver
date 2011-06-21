@@ -126,8 +126,8 @@ namespace ipa_CameraSensors
       node_handle_ = getNodeHandle();
       it_ = new image_transport::ImageTransport(node_handle_);
       sync_pointcloud_ = new message_filters::Synchronizer<message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, sensor_msgs::Image> >(2);
-      color_camera_image_pub_ = it_->advertise("/cam3d/rgb/image_color_flipped", 1);
-      point_cloud_pub_ = node_handle_.advertise<sensor_msgs::PointCloud2>("/cam3d/rgb/points_flipped", 1);
+      color_camera_image_pub_ = it_->advertise("rgb/upright/image_color", 1);
+      point_cloud_pub_ = node_handle_.advertise<sensor_msgs::PointCloud2>("depth/upright/points", 1);
       
       transform_listener_ = new tf::TransformListener(node_handle_);
       
@@ -139,8 +139,8 @@ namespace ipa_CameraSensors
     
     unsigned long init()
     {
-      color_camera_image_sub_.subscribe(*it_, "/cam3d/rgb/image_color", 1);
-      point_cloud_sub_.subscribe(node_handle_, "/cam3d/rgb/points", 1);
+      color_camera_image_sub_.subscribe(*it_, "colorimage", 1);
+      point_cloud_sub_.subscribe(node_handle_, "pointcloud", 1);
       
       sync_pointcloud_->connectInput(point_cloud_sub_, color_camera_image_sub_);
       sync_pointcloud_callback_connection_ = sync_pointcloud_->registerCallback(boost::bind(&CobKinectImageFlipNodelet::inputCallback, this, _1, _2));
