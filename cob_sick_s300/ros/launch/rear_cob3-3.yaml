@@ -1,4 +1,4 @@
-port: /dev/ttyUSB0
+port: /dev/ttyScan0
 baud: 500000
 inverted: true
 scan_id: 8
