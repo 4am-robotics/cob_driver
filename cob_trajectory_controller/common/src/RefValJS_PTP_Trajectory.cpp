@@ -17,7 +17,7 @@ RefValJS_PTP_Trajectory::RefValJS_PTP_Trajectory(const trajectory_msgs::JointTra
 {	
 	m_trajectory = trajectory;
 	m_length = 0;
-	m_stepSize = 0.05;
+	m_stepSize = 0.4;
 	//m_stepSize = 0.0175; // 0.0175 rad = 1°
 	m_length_parts.clear();
 	m_s_parts.clear();
@@ -80,6 +80,7 @@ RefValJS_PTP_Trajectory::RefValJS_PTP_Trajectory(const trajectory_msgs::JointTra
 		//uhr-messmerf: dies tritt auf, wenn die Punkte der Trajectory pfad zu nah beieinander liegen (dist < between_stepsize=2.5)
 		throw std::runtime_error("Error in BSplineND::ipoWithConstSampleDist!");
 	}
+	m_SplinePoints = zwischenPunkte;
 	ROS_INFO("Calculated %d splinepoints", m_SplinePoints.size());
 	
 	m_length_cumulated.clear();
