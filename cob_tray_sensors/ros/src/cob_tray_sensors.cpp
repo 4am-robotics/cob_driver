@@ -20,16 +20,16 @@ void display_generic_properties(CPhidgetHandle phid)
 	CPhidget_getDeviceVersion(phid, &version);
 	CPhidget_getDeviceLabel(phid, &label);
 
-	printf("%s\n", deviceptr);
-	printf("Version: %8d SerialNumber: %10d\n", version, sernum);
-	printf("Label: %s\n", label);
+	ROS_INFO("%s", deviceptr);
+	ROS_INFO("Version: %8d SerialNumber: %10d", version, sernum);
+	ROS_INFO("Label: %s", label);
 	return;
 }
 
 int IFK_AttachHandler(CPhidgetHandle IFK, void *userptr)
 {
 	//CPhidgetInterfaceKit_setSensorChangeTrigger((CPhidgetInterfaceKitHandle)IFK, 0, 0);
-	printf("Attach handler ran!\n");
+	//printf("Attach handler ran!\n");
 	return 0;
 }
 
@@ -66,14 +66,14 @@ int IFK_SensorChangeHandler(CPhidgetInterfaceKitHandle IFK, void *userptr, int I
 
 		if ((wert[94] < 120) && (wert[95] <300) && (wert[96] < 110) && (wert[97] < 120))  
 		{
-			printf("Sensor0123 manually are %d %d %d %d ; \n", wert[94],wert[95],wert[96],wert[97]);
-			printf("tablet empty\n");
+			ROS_DEBUG("Sensor0123 manually are %d %d %d %d ; ", wert[94],wert[95],wert[96],wert[97]);
+			ROS_DEBUG("tablet empty");
 			bOccupied_ = false;
 		}
 		else 	
 		{
-			printf("Sensor0123 manually are %d %d %d %d ; \n", wert[94],wert[95],wert[96],wert[97]);
-			printf("tablet NOT empty!\n");
+			ROS_DEBUG("Sensor0123 manually are %d %d %d %d ;", wert[94],wert[95],wert[96],wert[97]);
+			ROS_DEBUG("tablet NOT empty!");
 			bOccupied_ = true;
 		}
 
@@ -82,7 +82,7 @@ int IFK_SensorChangeHandler(CPhidgetInterfaceKitHandle IFK, void *userptr, int I
 		i =0;
 	}
 	i++;
-	printf("i is %d \n",i);
+	//printf("i is %d \n",i);
 	return 0;
 }
 
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 	{
 		const char *errStr;
 		CPhidget_getErrorDescription(err, &errStr);
-		printf("Error waiting for attachment: (%d): %s\n",err,errStr);
+		ROS_ERROR("Error waiting for attachment: (%d): %s",err,errStr);
 		goto exit;
 	}
 
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 	CPhidgetInterfaceKit_getSensorCount((CPhidgetInterfaceKitHandle)IFK, &numSensors);
 	CPhidgetInterfaceKit_setOutputState((CPhidgetInterfaceKitHandle)IFK, 0, 1);
 
-	printf("Sensors:%d Inputs:%d Outputs:%d\n", numSensors, numInputs, numOutputs);
+	ROS_INFO("Sensors:%d Inputs:%d Outputs:%d", numSensors, numInputs, numOutputs);
 
 	while (ros::ok())
 	{
