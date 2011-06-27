@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+
+<node pkg="cob_tray_sensors" type="cob_tray_sensors" name="tray_sensor_node" ns="tray_sensors" cwd="node" respawn="true" output="screen" />
+
+</launch>
+
