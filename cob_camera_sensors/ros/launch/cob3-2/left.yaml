@@ -1,0 +1,31 @@
+image_width: 1360
+image_height: 1024
+camera_name: left
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [1437.652184, 0.000000, 694.859264, 0, 1432.558759, 532.643802, 0, 0, 1]
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [-0.257749, 0.198651, -0.000209, -0.000467, 0.000000]
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1, 0, 0, 0, 1, 0, 0, 0, 1]
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [1437.652184, 0, 694.859264, 0, 0, 1432.558759, 532.643802, 0, 0, 0, 1, 0]
+auto_exposure:     True
+exposure_auto_max: 25000
+exposure_auto_target: 50
+exposure:          0.009
+auto_gain:         True
+gain:              1
+auto_whitebalance: True
+frame_id: head_color_camera_l_link
+stream_bytes_per_second: 55000000
+auto_adjust_stream_bytes_per_second: False
+trigger_mode: syncin1
+packet_size: 9000

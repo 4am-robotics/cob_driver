@@ -464,8 +464,8 @@ class PowercubeChainNode
 			}
 			else
 			{
-				ROS_ERROR("...powercubes already initialized...");		        
-				res.success.data = false;
+				ROS_WARN("...powercubes already initialized...");		        
+				res.success.data = true;
 				res.error_message.data = "powercubes already initialized";
 			}
 
@@ -532,8 +532,8 @@ class PowercubeChainNode
 			}
 			else
 			{
-				ROS_ERROR("...powercubes already recovered...");
-				res.success.data = false;
+				ROS_WARN("...powercubes already recovered...");
+				res.success.data = true;
 				res.error_message.data = "powercubes already recovered";
 			}
 

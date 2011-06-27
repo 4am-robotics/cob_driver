@@ -2,5 +2,6 @@ sdhdevicetype: PCAN
 sdhdevicestring: /dev/pcan2
 dsadevicestring: /dev/ttyTact
 baudrate: 1000000
-JointNames: ['sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_11_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_21_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']
+JointNames: ['sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']
 OperationMode: position
+timeout: 0.05
