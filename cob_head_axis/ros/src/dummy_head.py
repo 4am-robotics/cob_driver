@@ -10,7 +10,8 @@ def talker():
         msg.name = []
         msg.name.append('head_axis_joint')
         msg.position = []
-        msg.position.append(-3.14)
+        msg.position.append(0)
+#        msg.position.append(-3.14)
         pub.publish(msg)
         rospy.sleep(0.1)
 if __name__ == '__main__':

@@ -1,0 +1,19 @@
+image_width: 1280
+image_height: 960
+camera_name: left
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [1250.395368, 0.000000, 636.233390, 0, 1246.299039, 481.873400, 0, 0, 1]
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [-0.214348, 0.130598, -0.000177, -0.000367, 0.000000]
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1, 0, 0, 0, 1, 0, 0, 0, 1]
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [1250.395368, 0.000000, 636.233390, 0, 0, 1246.299039, 481.873400, 0, 0, 0, 1, 0]
