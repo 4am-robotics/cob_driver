@@ -4,11 +4,11 @@ camera_name: right
 camera_matrix:
   rows: 3
   cols: 3
-  data: [1438.392469, 0.000000, 702.861595, 0, 1433.553143, 535.878630, 0, 0, 1]
+  data: [1438.392178, 0.000000, 702.862337, 0, 1433.552976, 535.878866, 0, 0, 1]
 distortion_coefficients:
   rows: 1
   cols: 5
-  data: [-0.251374, 0.174700, 0.000257, -0.000201, 0.000000]
+  data: [-0.251374, 0.174699, 0.000257, -0.000201, 0.000000]
 rectification_matrix:
   rows: 3
   cols: 3
@@ -16,12 +16,13 @@ rectification_matrix:
 projection_matrix:
   rows: 3
   cols: 4
-  data: [1438.392469, 0, 702.861595, 0, 0, 1433.553143, 535.878630, 0, 0, 0, 1, 0]
+  data: [1438.392178, 0.000000, 702.862337, 0, 0, 1433.552976, 535.878866, 0, 0, 0, 1, 0]
 auto_exposure:     True
 exposure_auto_max: 25000
-exposure_auto_target: 50
+exposure_auto_target: 40
 exposure:          0.009
 auto_gain:         True
+gain_auto_target: 40
 gain:              1
 auto_whitebalance: True
 frame_id: head_color_camera_r_link

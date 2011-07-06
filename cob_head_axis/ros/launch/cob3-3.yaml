@@ -1,0 +1,10 @@
+CanDevice: PCAN:0
+CanBaudrate: 500
+ModId: 17
+JointName: head_axis_joint
+HomingDir: 1
+MotorDirection: 1
+HomingDigIn: 9
+GearRatio: 62.5
+EnoderIncrementsPerRevMot: 2000
+operation_mode: position

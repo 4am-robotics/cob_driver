@@ -61,9 +61,11 @@
 #include <ros/ros.h>
 
 // ROS message includes
+#include <std_msgs/Float64.h>
 #include <sensor_msgs/JointState.h>
 #include <diagnostic_msgs/DiagnosticStatus.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
+#include <pr2_controllers_msgs/JointControllerState.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -157,8 +159,30 @@ class NodeClass
 
 		// global variables
 		// generate can-node handle
-		CanCtrlPltfCOb3 *m_CanCtrlPltf;
+#ifdef __SIM__
+		ros::Publisher br_steer_pub;
+		ros::Publisher bl_steer_pub;
+		ros::Publisher fr_steer_pub;
+		ros::Publisher fl_steer_pub;
+		ros::Publisher br_caster_pub;
+		ros::Publisher bl_caster_pub;
+		ros::Publisher fr_caster_pub;
+		ros::Publisher fl_caster_pub;
 		
+		ros::Subscriber br_steer_sub;
+		ros::Subscriber bl_steer_sub;
+		ros::Subscriber fr_steer_sub;
+		ros::Subscriber fl_steer_sub;
+		ros::Subscriber br_caster_sub;
+		ros::Subscriber bl_caster_sub;
+		ros::Subscriber fr_caster_sub;
+		ros::Subscriber fl_caster_sub;
+		
+		std::vector<double> m_gazeboPos;
+		std::vector<double> m_gazeboVel;
+#else
+		CanCtrlPltfCOb3 *m_CanCtrlPltf;
+#endif
 		bool m_bisInitialized;
 		int m_iNumMotors;
 		int m_iNumDrives;
@@ -180,7 +204,11 @@ class NodeClass
 		NodeClass()
 		{
 			// initialization of variables
+#ifdef __SIM__
+			m_bisInitialized = initDrives();
+#else
 			m_bisInitialized = false;
+#endif
 
 			/// Parameters are set within the launch file
 			// Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
@@ -210,7 +238,30 @@ class NodeClass
 				m_iNumDrives = 4;
 			}
 			
+#ifdef __SIM__
+			bl_caster_pub = n.advertise<std_msgs::Float64>("/base_bl_caster_r_wheel_controller/command", 1);
+			br_caster_pub = n.advertise<std_msgs::Float64>("/base_br_caster_r_wheel_controller/command", 1);
+			fl_caster_pub = n.advertise<std_msgs::Float64>("/base_fl_caster_r_wheel_controller/command", 1);
+			fr_caster_pub = n.advertise<std_msgs::Float64>("/base_fr_caster_r_wheel_controller/command", 1);
+			bl_steer_pub = n.advertise<std_msgs::Float64>("/base_bl_caster_rotation_controller/command", 1);
+			br_steer_pub = n.advertise<std_msgs::Float64>("/base_br_caster_rotation_controller/command", 1);
+			fl_steer_pub = n.advertise<std_msgs::Float64>("/base_fl_caster_rotation_controller/command", 1);
+			fr_steer_pub = n.advertise<std_msgs::Float64>("/base_fr_caster_rotation_controller/command", 1);
+
+			bl_caster_sub = n.subscribe("/base_bl_caster_r_wheel_controller/state", 1, &NodeClass::gazebo_bl_caster_Callback, this);
+			br_caster_sub = n.subscribe("/base_br_caster_r_wheel_controller/state", 1, &NodeClass::gazebo_br_caster_Callback, this);
+			fl_caster_sub = n.subscribe("/base_fl_caster_r_wheel_controller/state", 1, &NodeClass::gazebo_fl_caster_Callback, this);
+			fr_caster_sub = n.subscribe("/base_fr_caster_r_wheel_controller/state", 1, &NodeClass::gazebo_fr_caster_Callback, this);
+			bl_steer_sub = n.subscribe("/base_bl_caster_rotation_controller/state", 1, &NodeClass::gazebo_bl_steer_Callback, this);
+			br_steer_sub = n.subscribe("/base_br_caster_rotation_controller/state", 1, &NodeClass::gazebo_br_steer_Callback, this);
+			fl_steer_sub = n.subscribe("/base_fl_caster_rotation_controller/state", 1, &NodeClass::gazebo_fl_steer_Callback, this);
+			fr_steer_sub = n.subscribe("/base_fr_caster_rotation_controller/state", 1, &NodeClass::gazebo_fr_steer_Callback, this);
+			
+			m_gazeboPos.resize(m_iNumMotors);
+			m_gazeboVel.resize(m_iNumMotors);
+#else
 			m_CanCtrlPltf = new CanCtrlPltfCOb3(sIniDirectory);
+#endif
 			
 			// implementation of topics
 			// published topics
@@ -237,7 +288,11 @@ class NodeClass
 		// Destructor
 		~NodeClass() 
 		{
+#ifdef __SIM__
+
+#else
 			m_CanCtrlPltf->shutdownPltf();
+#endif
 		}
 
 		// topic callback functions 
@@ -249,7 +304,6 @@ class NodeClass
 			if(m_bisInitialized == true)
 			{
 				ROS_DEBUG("Topic Callback joint_command - Sending Commands to drives (initialized)");
-		   		int iRet;
 				sensor_msgs::JointState JointStateCmd;
 				JointStateCmd.position.resize(m_iNumMotors);
 				JointStateCmd.velocity.resize(m_iNumMotors);
@@ -345,12 +399,42 @@ class NodeClass
 
 					// and cmd velocities to Can-Nodes
 					//m_CanCtrlPltf->setVelGearRadS(iCanIdent, dVelEncRadS);
-					ROS_DEBUG("Send data to drives");
-					iRet = m_CanCtrlPltf->setVelGearRadS(i, JointStateCmd.velocity[i]);
-					ROS_DEBUG("Successfully sent data to drives");
+#ifdef __SIM__
+					ROS_DEBUG("Send velocity data to gazebo");
+					std_msgs::Float64 fl;
+					fl.data = JointStateCmd.velocity[i];
+					if(msg->joint_names[i] == "fl_caster_r_wheel_joint")
+						fl_caster_pub.publish(fl);
+					if(msg->joint_names[i] == "fr_caster_r_wheel_joint")
+						fr_caster_pub.publish(fl);
+					if(msg->joint_names[i] == "bl_caster_r_wheel_joint")
+						bl_caster_pub.publish(fl);
+					if(msg->joint_names[i] == "br_caster_r_wheel_joint")
+						br_caster_pub.publish(fl);
+
+					if(msg->joint_names[i] == "fl_caster_rotation_joint")
+						fl_steer_pub.publish(fl);
+					if(msg->joint_names[i] == "fr_caster_rotation_joint")
+						fr_steer_pub.publish(fl);
+					if(msg->joint_names[i] == "bl_caster_rotation_joint")
+						bl_steer_pub.publish(fl);
+					if(msg->joint_names[i] == "br_caster_rotation_joint")
+						br_steer_pub.publish(fl);
+					ROS_DEBUG("Successfully sent velicities to gazebo");
+#else
+					ROS_DEBUG("Send velocity data to drives");
+					m_CanCtrlPltf->setVelGearRadS(i, JointStateCmd.velocity[i]);
+					ROS_DEBUG("Successfully sent velicities to drives");
+#endif
 					
-					if(m_bPubEffort) 
+					if(m_bPubEffort)
+					{
+#ifdef __SIM__
+
+#else
 						m_CanCtrlPltf->requestMotorTorque();
+#endif
+					}
 	  			}
 			}
 		}
@@ -390,9 +474,14 @@ class NodeClass
 		
 		bool srvCallback_ElmoRecorderConfig(cob_srvs::ElmoRecorderConfig::Request &req,
 							  cob_srvs::ElmoRecorderConfig::Response &res ){
-			if(m_bisInitialized) {			
+			if(m_bisInitialized) 
+			{
+#ifdef __SIM__
+				res.success = true;
+#else
 				m_CanCtrlPltf->evalCanBuffer();
 				res.success = m_CanCtrlPltf->ElmoRecordings(0, req.recordinggap, "");
+#endif
 				res.message = "Successfully configured all motors for instant record";
 			}
 
@@ -402,8 +491,12 @@ class NodeClass
 		bool srvCallback_ElmoRecorderReadout(cob_srvs::ElmoRecorderReadout::Request &req,
 							  cob_srvs::ElmoRecorderReadout::Response &res ){
 			if(m_bisInitialized) {
+#ifdef __SIM__
+				res.success = true;
+#else
 				m_CanCtrlPltf->evalCanBuffer();
 				res.success = m_CanCtrlPltf->ElmoRecordings(1, req.subindex, req.fileprefix);
+#endif
 				if(res.success == 0) {
 					res.message = "Successfully requested reading out of Recorded data";
 					m_bReadoutElmo = true;
@@ -424,7 +517,11 @@ class NodeClass
 			if(m_bisInitialized)
 			{
 				ROS_DEBUG("Service callback reset");
+#ifdef __SIM__
+				res.success.data = true;
+#else
 				res.success.data = m_CanCtrlPltf->resetPltf();
+#endif
 				if (res.success.data) {
 		   			ROS_INFO("base resetted");
 				} else {
@@ -447,7 +544,11 @@ class NodeClass
 									 cob_srvs::Trigger::Response &res )
 		{
 			ROS_DEBUG("Service callback shutdown");
+#ifdef __SIM__
+			res.success.data = true;
+#else
 			res.success.data = m_CanCtrlPltf->shutdownPltf();
+#endif
 			if (res.success.data)
 	   			ROS_INFO("Drives shut down");
 			else
@@ -695,19 +796,33 @@ class NodeClass
 				// as soon as drive chain is initialized
 				// read Can-Buffer
 				ROS_DEBUG("Read CAN-Buffer");
+#ifdef __SIM__
+
+#else
 				m_CanCtrlPltf->evalCanBuffer();
+#endif
 				ROS_DEBUG("Successfully read CAN-Buffer");
 				
 				j = 0;
 				k = 0;
 				for(int i = 0; i<m_iNumMotors; i++)
 				{
+#ifdef __SIM__
+					vdAngGearRad[i] = m_gazeboPos[i];
+					vdVelGearRad[i] = m_gazeboVel[i];
+#else
 					m_CanCtrlPltf->getGearPosVelRadS(i,  &vdAngGearRad[i], &vdVelGearRad[i]);
+#endif
 					
 					//Get motor torque
 					if(m_bPubEffort) {
-						for(int i=0; i<m_iNumMotors; i++) {
+						for(int i=0; i<m_iNumMotors; i++) 
+						{
+#ifdef __SIM__
+							//vdEffortGearNM[i] = m_gazeboEff[i];
+#else
 							m_CanCtrlPltf->getMotorTorque(i, &vdEffortGearNM[i]); //(int iCanIdent, double* pdTorqueNm)
+#endif
 						}
 					}
 					
@@ -755,7 +870,11 @@ class NodeClass
 			if(m_bisInitialized)
 			{
 				// read Can only after initialization
+#ifdef __SIM__
+				bIsError = false;
+#else
 				bIsError = m_CanCtrlPltf->isPltfError();
+#endif
 			}
 
 			// set data to diagnostics
@@ -790,6 +909,64 @@ class NodeClass
 		
 		// other function declarations
 		bool initDrives();
+
+#ifdef __SIM__
+		// get pos and vel values for drives and steers from gazebo
+
+		// DRIVES
+		// fl_caster_r_wheel_joint is JointStateCmd[0]
+		void gazebo_fl_caster_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
+		{
+			m_gazeboPos[0] = msg->process_value;
+			m_gazeboVel[0] = msg->process_value_dot;
+		}
+		// bl_caster_r_wheel_joint is JointStateCmd[2]
+		void gazebo_bl_caster_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
+		{
+			m_gazeboPos[2] = msg->process_value;
+			m_gazeboVel[2] = msg->process_value_dot;
+		}
+		// br_caster_r_wheel_joint is JointStateCmd[4]
+		void gazebo_br_caster_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
+		{
+			m_gazeboPos[4] = msg->process_value;
+			m_gazeboVel[4] = msg->process_value_dot;
+		}
+		// fr_caster_r_wheel_joint is JointStateCmd[6]
+		void gazebo_fr_caster_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
+		{
+			m_gazeboPos[6] = msg->process_value;
+			m_gazeboVel[6] = msg->process_value_dot;
+		}
+
+		// STEERS		
+		// fl_caster_rotation_joint is JointStateCmd[1]
+		void gazebo_fl_steer_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
+		{
+			m_gazeboPos[1] = msg->process_value;
+			m_gazeboVel[1] = msg->process_value_dot;
+		}
+		// bl_caster_rotation_joint is JointStateCmd[3]
+		void gazebo_bl_steer_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
+		{
+			m_gazeboPos[3] = msg->process_value;
+			m_gazeboVel[3] = msg->process_value_dot;
+		}
+		// br_caster_rotation_joint is JointStateCmd[5]
+		void gazebo_br_steer_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
+		{
+			m_gazeboPos[5] = msg->process_value;
+			m_gazeboVel[5] = msg->process_value_dot;
+		}
+		// fr_caster_rotation_joint is JointStateCmd[7]
+		void gazebo_fr_steer_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
+		{
+			m_gazeboPos[7] = msg->process_value;
+			m_gazeboVel[7] = msg->process_value_dot;
+		}
+#else
+
+#endif
 };
 
 //#######################
@@ -800,21 +977,26 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "base_drive_chain");
 
 	NodeClass nodeClass;
-	
+
 	// specify looprate of control-cycle
  	ros::Rate loop_rate(100); // Hz 
 
 	while(nodeClass.n.ok())
 	{
+#ifdef __SIM__
+
+#else
 		//Read-out of CAN buffer is only necessary during read-out of Elmo Recorder		
-		if( nodeClass.m_bReadoutElmo ) {
+		if( nodeClass.m_bReadoutElmo ) 
+		{
 			if(nodeClass.m_bisInitialized) nodeClass.m_CanCtrlPltf->evalCanBuffer();
-			
-			if(nodeClass.m_CanCtrlPltf->ElmoRecordings(100, 0, "") == 0) {
+			if(nodeClass.m_CanCtrlPltf->ElmoRecordings(100, 0, "") == 0)
+			{
 				nodeClass.m_bReadoutElmo = false;
 				ROS_INFO("CPU consuming evalCanBuffer used for ElmoReadout deactivated");
 			}
 		}
+#endif
 
 		nodeClass.publish_JointStates();
 		
@@ -867,11 +1049,14 @@ bool NodeClass::initDrives()
 	// debug log
 	ROS_INFO("Initializing CanCtrlItf");
 	bool bTemp1;
+#ifdef __SIM__
+	bTemp1 = true;
+#else
 	bTemp1 =  m_CanCtrlPltf->initPltf();
+#endif
 	// debug log
 	ROS_INFO("Initializing done");
 
 
 	return bTemp1;
 }
-
