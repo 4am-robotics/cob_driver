@@ -99,9 +99,13 @@ bool ElmoCtrl::Home()
 	bool success = false;
 	if (m_Joint != NULL) {
 		//THIS is needed for head_axis on cob3-2!
-		
 		//set input logic to 'general purpose'
-		m_Joint->IntprtSetInt(8, 'I', 'L', 2, 7);                       
+		m_Joint->IntprtSetInt(8, 'I', 'L', 2, 7);                      
+		usleep(20000);  
+		
+		//THIS is needed for cob3-3 (it's using DIN1):
+		//set input logic to 'general purpose'
+		m_Joint->IntprtSetInt(8, 'I', 'L', 1, 6);                       
 		usleep(20000);  
 		
 		m_Joint->initHoming();
@@ -183,6 +187,10 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 		m_HomingDir = params->GetHomingDir();
 		m_HomingDigIn = params->GetHomingDigIn();
 		
+		m_EncIncrPerRevMot = params->GetEncoderIncrements();
+		m_MotorDirection = params->GetMotorDirection();
+		m_GearRatio = params->GetGearRatio();
+		
 		if (CanIniFile.length() == 0) {	
 			printf("%s,%d:Error: Parameter 'CanIniFile' not given!\n",__FILE__,__LINE__);
 			success = false;
@@ -215,6 +223,7 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 			printf("Module ID: %d\n",m_CanBaseAddress);
 			printf("Max Vel: %f\n",m_MaxVel);
 			printf("Homing Dir: %d\n",m_HomingDir);
+			printf("HomingDigIn: %d\n",m_HomingDigIn);
 			printf("Offset/Limit(min/max)  %f/(%f,%f)\n",m_JointOffset,m_LowerLimit,m_UpperLimit);
 		}
 	}
@@ -282,6 +291,8 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 		double dCurrMax,
 		int iHomingDigIn
 		*/
+
+/*
 		m_JointParams->setParam( //parameters taken from CanCtrl.ini
 							0, //int iDriveIdent,
 							4096,//int iEncIncrPerRevMot,
@@ -298,7 +309,26 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 					  		0, // double dCurrMax
 					  		m_HomingDigIn // int iHomingDigIn //cob3-2->11, cob3-1->9
 					  );
-					  
+*/
+
+		m_JointParams->setParam( //parameters taken from CanCtrl.ini
+							0, //int iDriveIdent,
+							m_EncIncrPerRevMot,//int iEncIncrPerRevMot,
+							1,//double dVelMeasFrqHz,
+							1,//double dBeltRatio,
+							m_GearRatio,//double dGearRatio,
+							m_MotorDirection,//int iSign,
+							74000000,//double dVelMaxEncIncrS,
+							1000000,//80000,//double dAccIncrS2,
+							1000000,//80000//double dDecIncrS2),
+					  		0, //int iEncOffsetIncr
+					  		true, // bool bIsSteer
+					  		0, // double dCurrToTorque
+					  		0, // double dm_HomingDigInCurrMax
+					  		m_HomingDigIn // int iHomingDigIn //cob3-2->11, cob3-1->9
+					  );
+		
+			  
 		m_Joint->setDriveParam(*m_JointParams);
 		}
 
@@ -315,6 +345,7 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 					  printf("successful\n");
 			  }
 	  }
+	  
 	  if (success)
 			  success = SetMotionCtrlType(m_MotionCtrlType);
 			  if(!success) std::cout << "Failed to SetMotionCtrlType to " << m_MotionCtrlType << std::endl;
@@ -360,10 +391,11 @@ bool ElmoCtrl::SetMotionCtrlType(int type)
 			success = m_Joint->shutdown();
 			if (success)
 					success = m_Joint->setTypeMotion(CanDriveHarmonica::MOTIONTYPE_POSCTRL);
+						
 			//ToDo: necessary?
 			Sleep(100);
 			success = m_Joint->start();
-
+	
 	}
 	else if (type == VEL_CTRL)
 	{
@@ -388,7 +420,7 @@ int ElmoCtrl::getGearPosVelRadS( double* pdAngleGearRad, double* pdVelGearRadS)
 	*pdVelGearRadS = 0;
 
 	m_Joint->getGearPosVelRadS(pdAngleGearRad, pdVelGearRadS);
-	*pdAngleGearRad = *pdAngleGearRad + m_JointOffset;
+	*pdAngleGearRad = *pdAngleGearRad - m_JointOffset;
 	
 	return 0;
 }
@@ -397,7 +429,7 @@ int ElmoCtrl::getGearPosVelRadS( double* pdAngleGearRad, double* pdVelGearRadS)
 
 int ElmoCtrl:: setGearPosVelRadS(double dPosRad, double dVelRadS)
 {
-	printf("ElmoCtrl:setGearPosVelRadS: dPosRad %f\n",dPosRad);
+
 	if(dPosRad< m_LowerLimit) {
 		std::cout << "Position under LowerBound -> set up" << std::endl;
 		dPosRad = m_LowerLimit;
@@ -414,8 +446,8 @@ int ElmoCtrl:: setGearPosVelRadS(double dPosRad, double dVelRadS)
 	//COB3-2: m_Joint->setGearPosVelRadS(dPosRad + m_JointOffset, dVelRadS);
 	
 	//COB3-1: m_Joint->setGearPosVelRadS(-3.141592654 - dPosRad + m_JointOffset, dVelRadS);
+	printf("ElmoCtrl:setGearPosVelRadS: dPosRad %f with vel %f\n",dPosRad, dVelRadS);
 	m_Joint->setGearPosVelRadS(m_HomingDir * dPosRad + m_JointOffset, dVelRadS);
-
 	return 0;
 }
 

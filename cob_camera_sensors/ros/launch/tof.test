@@ -1,19 +1,11 @@
 <?xml version="1.0"?>
 <launch>
 
-	<!-- hztest full_cloud -->
-	<param name="hztest_tof_full_cloud/topic" value="/full_cloud" />
-	<param name="hztest_tof_full_cloud/hz" value="55.0" />
-	<param name="hztest_tof_full_cloud/hzerror" value="55.0" />
-	<param name="hztest_tof_full_cloud/test_duration" value="100.0" />
-	<test test-name="hz_tof_full_cloud" pkg="rostest" type="hztest" name="hztest_tof_full_cloud" />
-
-	<!-- hztest full_cloud2 -->
-        <param name="hztest_tof_full_cloud2/topic" value="/full_cloud2" />
-        <param name="hztest_tof_full_cloud2/hz" value="55.0" />
-        <param name="hztest_tof_full_cloud2/hzerror" value="55.0" />
-        <param name="hztest_tof_full_cloud2/test_duration" value="100.0" />
-        <test test-name="hz_tof_full_cloud2" pkg="rostest" type="hztest" name="hztest_tof_full_cloud2" />
-
+	<!-- hztest cam3d_depth -->
+	<param name="hztest_tof_cam3d_depth/topic" value="/cam3d/depth" />
+	<param name="hztest_tof_cam3d_depth/hz" value="55.0" />
+	<param name="hztest_tof_cam3d_depth/hzerror" value="55.0" />
+	<param name="hztest_tof_cam3d_depth/test_duration" value="10.0" />
+	<test test-name="hz_tof_cam3d_depth" pkg="rostest" type="hztest" name="hztest_tof_cam3d_depth" />
 
 </launch>

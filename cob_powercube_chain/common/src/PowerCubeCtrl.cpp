@@ -458,7 +458,7 @@ bool PowerCubeCtrl::setMaxVelocity(double radpersec)
     PCTRL_CHECK_INITIALIZED();
 	for (int i=0; i<m_DOF; i++)
 	{
-		m_maxVel[i] = radpersec;
+		//m_maxVel[i] = radpersec;
 		PCube_setMaxVel(m_Dev, m_IdModules[i], radpersec);
 	}
 	
@@ -471,7 +471,7 @@ bool PowerCubeCtrl::setMaxVelocity(const std::vector<double>& radpersec)
     
 	for (int i=0; i<m_DOF; i++)
 	{
-		m_maxVel[i] = radpersec[i];
+		//m_maxVel[i] = radpersec[i];
 		PCube_setMaxVel(m_Dev, m_IdModules[i], radpersec[i]);
 	}
 	

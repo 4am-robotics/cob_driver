@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="debug" default="false"/>
+  <arg if="$(arg debug)" name="launch_prefix" value="xterm -rv -e gdb -ex run -args"/>
+  <arg unless="$(arg debug)" name="launch_prefix" value=""/>
+  <node pkg="openni_camera" type="openni_node" name="openni_node1" output="screen" launch-prefix="$(arg launch_prefix)">
+    <!--param name="topic" value="first" /-->
+    <!--param name="device_id" value="2@3" --> <!-- this line uses device on usb bus 2 and addres 3 -->
+    <!--param name="device_id" value="B00367707227042B"/--> <!-- this line uses device with given serial number -->
+    
+    <param name="device_id" value="#1"/> <!-- this line uses first enumerated device -->
+    <rosparam command="load" file="$(find cob_camera_sensors)/ros/launch/kinect_rgb.yaml" />
+    
+    <!-- use these lines to load your own calibration for the rgb and depth camera of teh kinect-->
+    <param name="rgb_camera_info_url" value="file:///$(find cob_camera_sensors)/ros/launch/cob3-1/kinect_rgb.yaml" />
+    <!-- <param name="depth_camera_info_url" value="file:///(find cob_camera_sensors)/ros/launch/cob3-1/kinect_depth.yaml" /> -->
+    
+    <param name="rgb_frame_id" value="/head_cam3d_link" />
+    <param name="depth_frame_id" value="/head_cam3d_link" />
+    <param name="use_indices" value="false" />
+    <param name="depth_registration" value="true" />
+    <param name="image_mode" value="2" />
+    <param name="depth_mode" value="2" />
+    <param name="debayering" value="2" />
+    <param name="depth_time_offset" value="0" />
+    <param name="image_time_offset" value="0" />
+
+    <remap from="camera/depth/camera_info" to="depth/camera_info"/>
+    <remap from="camera/depth/disparity" to="depth/disparity"/>
+    <remap from="camera/depth/image" to="depth/image"/>
+    <remap from="camera/depth/points" to="depth/points"/>
+    <remap from="camera/depth/image_raw" to="depth/image_raw"/>
+    <remap from="camera/rgb/camera_info" to="rgb/camera_info"/>
+    <remap from="camera/rgb/image_color" to="rgb/image_color"/>
+    <remap from="camera/rgb/image_mono" to="rgb/image_mono"/>
+    <remap from="camera/rgb/image_raw" to="rgb/image_raw"/>
+    <remap from="camera/rgb/points" to="rgb/points"/>
+  </node>
+  <include file="$(find openni_camera)/launch/kinect_frames.launch"/>
+
+</launch>
+

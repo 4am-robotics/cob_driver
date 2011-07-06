@@ -16,16 +16,22 @@
   <depend package="image_transport"/>
   <depend package="polled_camera"/>
   <depend package="prosilica_camera"/>
+  <depend package="openni_camera"/>
   <depend package="cv_bridge"/>
   <depend package="cob_vision_utils"/>
   <depend package="cob_srvs"/>
   <depend package="libmesasr"/>
+  <depend package="nodelet"/>
+  <depend package="pcl"/>
+  <depend package="pcl_ros"/>
 
   <export>
     <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_camera_sensors"/>
+    <nodelet plugin="${prefix}/nodelet_plugins.xml" />
   </export>
 
   <rosdep name="libdc1394"/>
   <rosdep name="glut"/>
+  <rosdep name="libusb-0.1"/>
 
 </package>

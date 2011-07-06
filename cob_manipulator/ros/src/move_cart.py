@@ -106,8 +106,8 @@ class ik_solver:
 		#relpos.orientation.z = qrel[2]
 		#relpos.orientation.w = qrel[3]
 		print "Calling IK Server"
-		(new_config, error) = self.callIKSolver(relpos.pose)
-		if(error == 0):
+		(new_config, error_code) = self.callIKSolver(relpos.pose)
+		if(error_code.val == error_code.SUCCESS):
 			self.moveArm(new_config)
 			result.return_value = 0
 			self.as_.set_succeeded(result)
@@ -135,7 +135,7 @@ class ik_solver:
 		req.ik_request.ik_seed_state.joint_state.position = self.configuration
 		req.ik_request.pose_stamped.pose = goal_pose
 		resp = self.iks(req)
-		return (resp.solution.joint_state.position, resp.error_code.val)
+		return (resp.solution.joint_state.position, resp.error_code)
 	
 		
 		

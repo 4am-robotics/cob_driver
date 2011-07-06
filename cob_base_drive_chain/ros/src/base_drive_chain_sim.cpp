@@ -1,5 +1,6 @@
 #include "ros/ros.h"
 #include "sensor_msgs/JointState.h"
+#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 #include "std_msgs/Float64.h"
 
 ros::Publisher br_steer_pub;
@@ -13,30 +14,30 @@ ros::Publisher fr_caster_pub;
 ros::Publisher fl_caster_pub;
 
 
-void velCallback(const sensor_msgs::JointState::ConstPtr& msg)
+void velCallback(const pr2_controllers_msgs::JointTrajectoryControllerState::ConstPtr& msg)
 {
-	if(msg->velocity.size() != 8)
+	if(msg->desired.velocities.size() != 8)
 		return;
 	std_msgs::Float64 fl;
 	for(unsigned int i = 0; i < 8; i++)
 	{
-		fl.data = msg->velocity[i];
-		if(msg->name[i] == "fl_caster_r_wheel_joint")
+		fl.data = msg->desired.velocities[i];
+		if(msg->joint_names[i] == "fl_caster_r_wheel_joint")
 			fl_caster_pub.publish(fl);
-		if(msg->name[i] == "fr_caster_r_wheel_joint")
+		if(msg->joint_names[i] == "fr_caster_r_wheel_joint")
 			fr_caster_pub.publish(fl);
-		if(msg->name[i] == "bl_caster_r_wheel_joint")
+		if(msg->joint_names[i] == "bl_caster_r_wheel_joint")
 			bl_caster_pub.publish(fl);
-		if(msg->name[i] == "br_caster_r_wheel_joint")
+		if(msg->joint_names[i] == "br_caster_r_wheel_joint")
 			br_caster_pub.publish(fl);
 
-		if(msg->name[i] == "fl_caster_rotation_joint")
+		if(msg->joint_names[i] == "fl_caster_rotation_joint")
 			fl_steer_pub.publish(fl);
-		if(msg->name[i] == "fr_caster_rotation_joint")
+		if(msg->joint_names[i] == "fr_caster_rotation_joint")
 			fr_steer_pub.publish(fl);
-		if(msg->name[i] == "bl_caster_rotation_joint")
+		if(msg->joint_names[i] == "bl_caster_rotation_joint")
 			bl_steer_pub.publish(fl);
-		if(msg->name[i] == "br_caster_rotation_joint")
+		if(msg->joint_names[i] == "br_caster_rotation_joint")
 			br_steer_pub.publish(fl);
 	}
 }
