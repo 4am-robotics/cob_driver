@@ -180,6 +180,8 @@ class NodeClass
 		
 		std::vector<double> m_gazeboPos;
 		std::vector<double> m_gazeboVel;
+
+		ros::Subscriber topicSub_GazeboJointStates;
 #else
 		CanCtrlPltfCOb3 *m_CanCtrlPltf;
 #endif
@@ -256,6 +258,8 @@ class NodeClass
 			br_steer_sub = n.subscribe("/base_br_caster_rotation_controller/state", 1, &NodeClass::gazebo_br_steer_Callback, this);
 			fl_steer_sub = n.subscribe("/base_fl_caster_rotation_controller/state", 1, &NodeClass::gazebo_fl_steer_Callback, this);
 			fr_steer_sub = n.subscribe("/base_fr_caster_rotation_controller/state", 1, &NodeClass::gazebo_fr_steer_Callback, this);
+
+			topicSub_GazeboJointStates = n.subscribe("/joint_states", 1, &NodeClass::gazebo_joint_states_Callback, this);
 			
 			m_gazeboPos.resize(m_iNumMotors);
 			m_gazeboVel.resize(m_iNumMotors);
@@ -366,10 +370,12 @@ class NodeClass
 			
 				}
 				
-				
+			
 				// check if velocities lie inside allowed boundaries
 				for(int i = 0; i < m_iNumMotors; i++)
 				{
+#ifdef __SIM__
+#else	
 					// for steering motors
 					if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
 					{
@@ -394,6 +400,7 @@ class NodeClass
 							JointStateCmd.velocity[i] = -m_Param.dMaxDriveRateRadpS;
 						}
 					}
+#endif
 
 					// and cmd velocities to Can-Nodes
 					//m_CanCtrlPltf->setVelGearRadS(iCanIdent, dVelEncRadS);
@@ -729,58 +736,116 @@ class NodeClass
 		bool initDrives();
 
 #ifdef __SIM__
-		// get pos and vel values for drives and steers from gazebo
+		void gazebo_joint_states_Callback(const sensor_msgs::JointState::ConstPtr& msg) {
+			for (unsigned int i=0; i<msg->name.size(); i++) {
+				//Drives
+				if(msg->name[i] == "fl_caster_r_wheel_joint") {
+					m_gazeboPos[0] = msg->position[i];
+					m_gazeboVel[0] = msg->velocity[i];
+				}
+				else if(msg->name[i] == "bl_caster_r_wheel_joint") {
+					m_gazeboPos[2] = msg->position[i];
+					m_gazeboVel[2] = msg->velocity[i];
+				}
+				else if(msg->name[i] == "br_caster_r_wheel_joint") {
+					m_gazeboPos[4] = msg->position[i];
+					m_gazeboVel[4] = msg->velocity[i];
+				}
+				else if(msg->name[i] == "fr_caster_r_wheel_joint") {
+					m_gazeboPos[6] = msg->position[i];
+					m_gazeboVel[6] = msg->velocity[i];
+				}
+				
+				//Steers
+				else if(msg->name[i] == "fl_caster_rotation_joint") {
+					m_gazeboPos[1] = msg->position[i];
+					m_gazeboVel[1] = msg->velocity[i];
+				}
+				else if(msg->name[i] == "bl_caster_rotation_joint") {
+					m_gazeboPos[3] = msg->position[i];
+					m_gazeboVel[3] = msg->velocity[i];
+				}
+				else if(msg->name[i] == "br_caster_rotation_joint") {
+					m_gazeboPos[5] = msg->position[i];
+					m_gazeboVel[5] = msg->velocity[i];
+				}
+				else if(msg->name[i] == "fr_caster_rotation_joint") {
+					m_gazeboPos[7] = msg->position[i];
+					m_gazeboVel[7] = msg->velocity[i];
+				}
+			}
+		}
 
+		//!! The following doesn't work, as process value already is velocity, position infos isn't transmitted
+
+		// get pos and vel values for drives and steers from gazebo
+		
 		// DRIVES
 		// fl_caster_r_wheel_joint is JointStateCmd[0]
 		void gazebo_fl_caster_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
 		{
+		/*
 			m_gazeboPos[0] = msg->process_value;
 			m_gazeboVel[0] = msg->process_value_dot;
+		*/
 		}
 		// bl_caster_r_wheel_joint is JointStateCmd[2]
 		void gazebo_bl_caster_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
 		{
+		/*
 			m_gazeboPos[2] = msg->process_value;
 			m_gazeboVel[2] = msg->process_value_dot;
+		*/
 		}
 		// br_caster_r_wheel_joint is JointStateCmd[4]
 		void gazebo_br_caster_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
 		{
+		/*
 			m_gazeboPos[4] = msg->process_value;
 			m_gazeboVel[4] = msg->process_value_dot;
+		*/
 		}
 		// fr_caster_r_wheel_joint is JointStateCmd[6]
 		void gazebo_fr_caster_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
 		{
+		/*
 			m_gazeboPos[6] = msg->process_value;
 			m_gazeboVel[6] = msg->process_value_dot;
+		*/
 		}
 
 		// STEERS		
 		// fl_caster_rotation_joint is JointStateCmd[1]
 		void gazebo_fl_steer_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
 		{
+		/*
 			m_gazeboPos[1] = msg->process_value;
 			m_gazeboVel[1] = msg->process_value_dot;
+		*/
 		}
 		// bl_caster_rotation_joint is JointStateCmd[3]
 		void gazebo_bl_steer_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
 		{
+		/*
 			m_gazeboPos[3] = msg->process_value;
 			m_gazeboVel[3] = msg->process_value_dot;
+		*/
 		}
 		// br_caster_rotation_joint is JointStateCmd[5]
 		void gazebo_br_steer_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
 		{
+		/*
 			m_gazeboPos[5] = msg->process_value;
 			m_gazeboVel[5] = msg->process_value_dot;
+		*/
 		}
 		// fr_caster_rotation_joint is JointStateCmd[7]
 		void gazebo_fr_steer_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
 		{
+		/*
 			m_gazeboPos[7] = msg->process_value;
 			m_gazeboVel[7] = msg->process_value_dot;
+		*/
 		}
 #else
 
