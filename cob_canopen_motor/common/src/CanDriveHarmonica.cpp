@@ -1289,7 +1289,7 @@ bool CanDriveHarmonica::evalStatusRegister(int iStatus)
 void CanDriveHarmonica::evalMotorFailure(int iFailure)
 {
 
-	std::cout << "Motor " << m_DriveParam.getDriveIdent() << " has a failure:" << std::endl;
+	std::cout << "Motor " << m_DriveParam.getDriveIdent() << " has a failure: " << iFailure << std::endl;
 	
 	if( isBitSet(iFailure, 2) )
 	{
