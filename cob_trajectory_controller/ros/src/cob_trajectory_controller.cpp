@@ -113,6 +113,7 @@ public:
 	current_operation_mode_ = "undefined";
 		q_current.resize(7);
 		traj_generator_ = new genericArmCtrl(7);
+		//TODO here set velocities and accelerations from parameter server
 	}
 
 	bool srvCallback_Stop(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res)

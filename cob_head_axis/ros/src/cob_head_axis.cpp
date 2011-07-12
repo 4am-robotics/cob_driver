@@ -396,6 +396,7 @@ class NodeClass
 		ROS_INFO("Set default velocity to [%f]", req.default_vel);
 		MaxVel_ = req.default_vel;
 		CamAxisParams_->SetMaxVel(MaxVel_);
+		CamAxis_->setMaxVelocity(MaxVel_);
 		res.success.data = true; // 0 = true, else = false
 		return true;
 	}
