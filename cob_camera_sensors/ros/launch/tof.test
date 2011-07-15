@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <launch>
 
-	<!-- hztest full_cloud -->
-	<param name="hztest_tof/topic" value="/full_cloud" />
-	<param name="hztest_tof/hz" value="55.0" />
-	<param name="hztest_tof/hzerror" value="55.0" />
-	<param name="hztest_tof/test_duration" value="10.0" />
-	<test test-name="hz_tof" pkg="rostest" type="hztest" name="hztest_tof" />
+	<!-- hztest cam3d_depth -->
+	<param name="hztest_tof_cam3d_depth/topic" value="/cam3d/depth/points" />
+	<param name="hztest_tof_cam3d_depth/hz" value="55.0" />
+	<param name="hztest_tof_cam3d_depth/hzerror" value="55.0" />
+	<param name="hztest_tof_cam3d_depth/test_duration" value="10.0" />
+	<test test-name="hz_tof_cam3d_depth" pkg="rostest" type="hztest" name="hztest_tof_cam3d_depth" />
 
 </launch>
