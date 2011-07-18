@@ -354,4 +354,3 @@ double BSplineND<PointND>::evalBasis(double u, unsigned int i, int n)
 
 
 #endif
-

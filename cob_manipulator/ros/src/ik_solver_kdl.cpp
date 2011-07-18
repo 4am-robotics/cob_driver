@@ -18,6 +18,7 @@
 using namespace std;
 using namespace KDL;
 KDL::Chain chain;
+KDL::Tree my_tree;
 
 void getKDLChainInfo(kinematics_msgs::KinematicSolverInfo &chain_info)
 {
@@ -73,6 +74,13 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
          kinematics_msgs::GetPositionIK::Response &res )
 {
 	ROS_INFO("get_ik_service has been called!");
+	
+	if(req.ik_request.ik_link_name.length() == 0)
+		my_tree.getChain("base_link","arm_7_link", chain);
+	else
+		my_tree.getChain("base_link",req.ik_request.ik_link_name, chain);
+	
+	
 	
 	unsigned int nj = chain.getNrOfJoints();
 	
@@ -396,7 +404,6 @@ int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "cob_ik_solver");
 	ros::NodeHandle n;
-	KDL::Tree my_tree;
 	ros::NodeHandle node;
 	std::string robot_desc_string;
 	node.param("/robot_description", robot_desc_string, string());

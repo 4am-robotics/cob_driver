@@ -1,0 +1,18 @@
+<package>
+  <description brief="cob_tray_sensors">
+
+     cob_tray_sensors
+
+  </description>
+  <author>Alexander Bubeck</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_tray_sensors</url>
+
+  <depend package="roscpp"/>
+  <depend package="libphidgets"/>
+
+
+</package>
+
+
