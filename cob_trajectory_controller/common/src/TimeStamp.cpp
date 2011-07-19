@@ -50,7 +50,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
-
 #include <cob_trajectory_controller/TimeStamp.h>
 
 //-----------------------------------------------------------------------------
@@ -153,4 +152,3 @@ void TimeStamp::setTimeStamp(const long& lSeconds, const long& lNanoSeconds)
 	m_TimeStamp.tv_sec = lSeconds;
 	m_TimeStamp.tv_nsec = lNanoSeconds;
 };
-
