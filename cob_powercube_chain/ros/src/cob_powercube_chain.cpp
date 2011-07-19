@@ -311,6 +311,7 @@ class PowercubeChainNode
 				//std::cout << "MaxVel[" << JointNames_[i].c_str() << "] = " << MaxVel[i] << std::endl;
 			}
 			PCubeParams_->SetMaxVel(MaxVel);
+			PCube_->setMaxVelocity(MaxVel);
 			
 			// get LowerLimits out of urdf model
 			std::vector<double> LowerLimits;
