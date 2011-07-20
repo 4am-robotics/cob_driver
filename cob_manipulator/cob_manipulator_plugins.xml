@@ -1,0 +1,7 @@
+<library path="lib/libcob3_arm_kinematics">
+  <class name="cob3_arm_kinematics/IKFastKinematicsPlugin" type="cob3_arm_kinematics::IKFastKinematicsPlugin" base_class_type="kinematics::KinematicsBase">
+    <description>
+      Kinematics plugin for the FastIK solver 
+    </description>
+  </class>
+</library>
