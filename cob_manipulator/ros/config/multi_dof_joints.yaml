@@ -1,0 +1,5 @@
+multi_dof_joints:
+  - name: base_joint
+    type: Floating
+    parent_frame_id: map #base_footprint #odom_combined
+    child_frame_id: base_footprint

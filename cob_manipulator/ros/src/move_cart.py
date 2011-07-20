@@ -34,7 +34,7 @@ class move_cart:
 		self.thread.start()
 		rospy.wait_for_service('get_ik')
 		self.iks = rospy.ServiceProxy('get_ik', GetPositionIK)
-		rospy.rosinfo("move cart interface is ready")
+		rospy.loginfo("move cart interface is ready")
 
 	#thread function: listen for joint_states messages
 	def joint_states_listener(self):
@@ -46,8 +46,8 @@ class move_cart:
 	def joint_states_callback(self, msg):
 		self.lock.acquire()
 		for k in range(7):
+			joint_name = "arm_" + str(k+1) + "_joint"
 			for i in range(len(msg.name)):
-				joint_name = "arm_" + str(k+1) + "_joint"
 				if(msg.name[i] == joint_name):
 					self.configuration[k] = msg.position[i]
 		self.name = msg.name
@@ -63,7 +63,6 @@ class move_cart:
 		msg.goal_pose.header.stamp = self.listener.getLatestCommonTime("/arm_0_link",msg.goal_pose.header.frame_id)
 		print "Calling IK Server"
 		(new_config, error_code) = self.callIKSolver(msg.goal_pose)
-		rospy.logerr("config: "+new_config)
 		if(error_code.val == error_code.SUCCESS):
 			self.moveArm(new_config)
 			result.return_value = 0
@@ -89,6 +88,7 @@ class move_cart:
 		while(not self.received_state):
 			time.sleep(0.1)
 		req = GetPositionIKRequest()
+		req.ik_request.ik_seed_state.joint_state.name = ["arm_%d_joint" % (i+1) for i in range(7)]
 		req.ik_request.ik_seed_state.joint_state.position = self.configuration
 		req.ik_request.pose_stamped = goal_pose_stamped
 		resp = self.iks(req)
