@@ -60,7 +60,8 @@ class move_cart:
 	def cbMoveCart(self,msg):
 		result = MoveCartResult()
 		feedback = MoveCartFeedback()
-		msg.goal_pose.header.stamp = self.listener.getLatestCommonTime("/arm_0_link",msg.goal_pose.header.frame_id)
+		#msg.goal_pose.header.stamp = self.listener.getLatestCommonTime("/arm_0_link",msg.goal_pose.header.frame_id)
+		self.listener.waitForTransform("/arm_0_link",msg.goal_pose.header.frame_id,rospy.Time(),rospy.Duration(5))
 		print "Calling IK Server"
 		(new_config, error_code) = self.callIKSolver(msg.goal_pose)
 		if(error_code.val == error_code.SUCCESS):
@@ -69,6 +70,7 @@ class move_cart:
 			self.as_.set_succeeded(result)
 		else:
 			result.return_value = 1
+			rospy.logerr("no ik solution found")
 			self.as_.set_aborted(result);
 	
 	def moveArm(self, positions):
@@ -91,7 +93,9 @@ class move_cart:
 		req.ik_request.ik_seed_state.joint_state.name = ["arm_%d_joint" % (i+1) for i in range(7)]
 		req.ik_request.ik_seed_state.joint_state.position = self.configuration
 		req.ik_request.pose_stamped = goal_pose_stamped
+		req.timeout = rospy.Duration(5)
 		resp = self.iks(req)
+		print resp.error_code
 		return (resp.solution.joint_state.position, resp.error_code)
 
 if __name__ == "__main__":
