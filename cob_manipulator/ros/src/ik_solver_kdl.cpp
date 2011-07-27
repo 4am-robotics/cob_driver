@@ -18,19 +18,24 @@
 using namespace std;
 using namespace KDL;
 KDL::Chain chain;
+KDL::Tree my_tree;
 
 void getKDLChainInfo(kinematics_msgs::KinematicSolverInfo &chain_info)
 {
 	unsigned int nj = chain.getNrOfJoints();
 	unsigned int nl = chain.getNrOfSegments();
+	
+	ROS_DEBUG("nj: %d", nj);
+	ROS_DEBUG("nl: %d", nl);
 
 	//---setting up response
 
 	//joint_names
 	for(unsigned int i=0; i<nj; i++)
-  {
+	{
+		ROS_DEBUG("joint_name[%d]: %s", i, chain.getSegment(i).getJoint().getName().c_str());
 		chain_info.joint_names.push_back(chain.getSegment(i).getJoint().getName());
-  }
+	}
 	//limits
 		//joint limits are only saved in KDL::ChainIkSolverPos_NR_JL iksolverpos -> ik_solve().....but this is not visible here!
 /*for(unsigned int i=0; i<nj; i++)
@@ -46,9 +51,9 @@ void getKDLChainInfo(kinematics_msgs::KinematicSolverInfo &chain_info)
 	}*/
 	//link_names	
 	for(unsigned int i=0; i<nl; i++)
-  {
+	{
 		chain_info.link_names.push_back(chain.getSegment(i).getName());
-  }
+	}
 }
 
 int getJointIndex(const std::string &name,
@@ -70,21 +75,29 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 {
 	ROS_INFO("get_ik_service has been called!");
 	
+	if(req.ik_request.ik_link_name.length() == 0)
+		my_tree.getChain("base_link","arm_7_link", chain);
+	else
+		my_tree.getChain("base_link",req.ik_request.ik_link_name, chain);
+	
+	
+	
 	unsigned int nj = chain.getNrOfJoints();
 	
 	JntArray q_min(nj);
 	JntArray q_max(nj);
+	
+	//ToDo: get joint limits from robot_description on parameter_server or use /cob_arm_kinematics/get_ik_solver_info!!!
 	for(int i = 0; i < nj; i+=2)
 	{
-		q_min(i) = -6.0;
-		q_max(i) = 6.0;
+		q_min(i) =-2.9670;		//adjusted due to cob_description/lbr.urdf.xacro
+		q_max(i) = 2.9670;
 	}
 	for(int i = 1; i < nj; i+=2)
 	{
-		q_min(i) = -2.0;
-		q_max(i) = 2.0;
+		q_min(i) =-2.0943951;	//adjusted due to cob_description/lbr.urdf.xacro
+		q_max(i) = 2.0943951;
 	}
-
 	
 	ChainFkSolverPos_recursive fksolver1(chain);//Forward position solver
 	ChainIkSolverVel_pinv iksolver1v(chain);//Inverse velocity solver
@@ -100,31 +113,53 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	tf::PoseMsgToKDL(req.ik_request.pose_stamped.pose, F_dest);
 	std::cout << "Getting Goal\n";
 	std::cout << F_dest <<"\n";
-	std::cout << "Calculated Position out of Configuration:\n";
+	std::cout << "Calculated Position out of Seed-Configuration:\n";
 	std::cout << F_ist <<"\n";
 
 	//uhr-fm: here comes the actual IK-solver-call -> could be replaced by analytical-IK-solver (cob)
 	int ret = iksolverpos.CartToJnt(q_init,F_dest,q);
-	res.solution.joint_state.name = req.ik_request.ik_seed_state.joint_state.name;
+	
+	//res.solution.joint_state.name = req.ik_request.ik_seed_state.joint_state.name;	
+	res.solution.joint_state.name.resize(nj);
+	res.solution.joint_state.name[0]="arm_1_joint";
+	res.solution.joint_state.name[1]="arm_2_joint";
+	res.solution.joint_state.name[2]="arm_3_joint";
+	res.solution.joint_state.name[3]="arm_4_joint";
+	res.solution.joint_state.name[4]="arm_5_joint";
+	res.solution.joint_state.name[5]="arm_6_joint";
+	res.solution.joint_state.name[6]="arm_7_joint";
+	
 	res.solution.joint_state.position.resize(nj);
+	res.solution.joint_state.velocity.resize(nj);
+	res.solution.joint_state.effort.resize(nj);
 	if(ret < 0)
 	{
-		res.error_code.val = 1;
+		//res.error_code.val = 0;
+		res.error_code.val = res.error_code.NO_IK_SOLUTION;
 		ROS_INFO("Inverse Kinematic found no solution");
 		std::cout << "RET: " << ret << std::endl;
-		for(int i = 0; i < nj; i++)	
+		for(int i = 0; i < nj; i++)
+		{
 			res.solution.joint_state.position[i] = q_init(i);
+			res.solution.joint_state.velocity[i] = 0.0;
+			res.solution.joint_state.effort[i] = 0.0;
+		}
 	}
 	else
 	{
 		ROS_INFO("Inverse Kinematic found a solution");
-		res.error_code.val = 0;
-		for(int i = 0; i < nj; i++)	
+		//res.error_code.val = 1;
+		res.error_code.val = res.error_code.SUCCESS;
+		for(int i = 0; i < nj; i++)
+		{
 			res.solution.joint_state.position[i] = q(i);
+			res.solution.joint_state.velocity[i] = 0.0;
+			res.solution.joint_state.effort[i] = 0.0;
+		}
 	}
 	//std::cout << "q_init\n";
-	ROS_DEBUG("q_init: %f %f %f %f %f %f %f", q_init(0), q_init(1), q_init(2), q_init(3), q_init(4), q_init(5), q_init(6));
-	ROS_DEBUG("q_out: %f %f %f %f %f %f %f", q(0), q(1), q(2), q(3), q(4), q(5), q(6));		
+	ROS_INFO("q_init: %f %f %f %f %f %f %f", q_init(0), q_init(1), q_init(2), q_init(3), q_init(4), q_init(5), q_init(6));
+	ROS_INFO("q_out: %f %f %f %f %f %f %f", q(0), q(1), q(2), q(3), q(4), q(5), q(6));		
 	//std::cout << "Solved with " << ret << " as return\n";
 	//std::cout << q(0) << " " << q(1) << " " << q(2) << " " << q(3) << " " << q(4) << " " << q(5) << " " << q(6)  << "\n";	
 
@@ -139,6 +174,9 @@ bool constraint_aware_ik_solve(kinematics_msgs::GetConstraintAwarePositionIK::Re
 	kinematics_msgs::GetPositionIK::Request request;
 	kinematics_msgs::GetPositionIK::Response response;
 	
+	
+	//ToDo: configure pr2_arm_kinematics_constraint_aware for care-o-bot instead of this service (it is NOT constraint aware!!!)
+	
 	//transform GetConstraintAwarePositionIK-msgs to GetPositionIK-msgs
 	request.ik_request=req.ik_request;
 	request.timeout=req.timeout;
@@ -146,8 +184,11 @@ bool constraint_aware_ik_solve(kinematics_msgs::GetConstraintAwarePositionIK::Re
 	
 	bool success = ik_solve(request, response);
 	
+	if(response.error_code.val == 1) res.error_code.val = res.error_code.SUCCESS;
+	else res.error_code.val = res.error_code.NO_IK_SOLUTION;
+	
 	res.solution=response.solution;
-	res.error_code=response.error_code;
+	res.solution.multi_dof_joint_state = motion_planning_msgs::MultiDOFJointState();
 
 	return true;
 }
@@ -158,6 +199,7 @@ bool getIKSolverInfo(kinematics_msgs::GetKinematicSolverInfo::Request  &req,
 {
 	ROS_INFO("[TESTING]: get_ik_solver_info_service has been called!");
 	
+	///ToDo: this call returns joint_names "arm_i_joint", where i=0...6. should be: i=1...7!!!!
 	getKDLChainInfo(res.kinematic_solver_info);
 
 	return true;
@@ -362,7 +404,6 @@ int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "cob_ik_solver");
 	ros::NodeHandle n;
-	KDL::Tree my_tree;
 	ros::NodeHandle node;
 	std::string robot_desc_string;
 	node.param("/robot_description", robot_desc_string, string());
@@ -371,7 +412,7 @@ int main(int argc, char **argv)
       	      return false;
 	}
 	my_tree.getChain("base_link","arm_7_link", chain);
-	
+
 
 	ros::ServiceServer get_ik_service = n.advertiseService("get_ik", ik_solve);
 	ros::ServiceServer get_constraint_aware_ik_service = n.advertiseService("get_constraint_aware_ik", constraint_aware_ik_solve);

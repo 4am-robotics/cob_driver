@@ -60,7 +60,7 @@
 #ifndef __IPA_VIRTUALCOLORCAM_H__
 #define __IPA_VIRTUALCOLORCAM_H__
 
-#ifdef __COB_ROS__
+#ifdef __LINUX__
 	#include "cob_camera_sensors/AbstractColorCamera.h"
 #else
 	#include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/AbstractColorCamera.h"

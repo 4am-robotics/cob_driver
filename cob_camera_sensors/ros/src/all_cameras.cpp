@@ -399,6 +399,7 @@ public:
 					break;
 				}
 				right_color_image_msg.header.stamp = now; 
+				right_color_image_msg.encoding = "bgr8"; 
 				right_color_image_msg.header.frame_id = "head_color_camera_r_link";   
 		
 				right_color_image_info = right_color_camera_info_msg_;
@@ -433,6 +434,7 @@ public:
 					break;
 				}
 				left_color_image_msg.header.stamp = now;    
+				left_color_image_msg.encoding = "bgr8";
 				left_color_image_msg.header.frame_id = "head_color_camera_l_link"; 
 		
 				left_color_image_info = left_color_camera_info_msg_;
@@ -448,7 +450,7 @@ public:
 			if (tof_camera_)
 			{
 				//ROS_INFO("[all_cameras] TOF");
-				if(tof_camera_->AcquireImages(0, &grey_tof_image_32F1_, &xyz_tof_image_32F3_, false, false, ipa_CameraSensors::INTENSITY) & ipa_Utils::RET_FAILED)
+				if(tof_camera_->AcquireImages(0, &grey_tof_image_32F1_, &xyz_tof_image_32F3_, false, false, ipa_CameraSensors::INTENSITY_32F1) & ipa_Utils::RET_FAILED)
 				{
 					ROS_ERROR("[all_cameras] Tof image acquisition failed");
 					tof_camera_->Close();

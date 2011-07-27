@@ -66,6 +66,8 @@
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
+#include <cob_srvs/SetOperationMode.h>
+#include <cob_srvs/SetDefaultVel.h>
 
 // external includes
 #include <cob_camera_axis/ElmoCtrl.h>
@@ -89,6 +91,8 @@ class NodeClass
 	ros::ServiceServer srvServer_Init_;
 	ros::ServiceServer srvServer_Stop_;
 	ros::ServiceServer srvServer_Recover_;
+	ros::ServiceServer srvServer_SetOperationMode_;
+	ros::ServiceServer srvServer_SetDefaultVel_;
 		
 	// declaration of service clients
 	//--
@@ -102,6 +106,7 @@ class NodeClass
 	// global variables
 	ElmoCtrl * CamAxis_;
 	ElmoCtrlParams* CamAxisParams_;
+	
 	std::string CanDevice_;
 	std::string CanIniFile_;
 	int CanBaudrate_;
@@ -113,6 +118,10 @@ class NodeClass
 	double LowerLimit_;
 	double UpperLimit_; 
 	double Offset_;
+	int MotorDirection_;
+	int EnoderIncrementsPerRevMot_;
+	double GearRatio_;
+	
 	std::string JointName_;
 	bool isInitialized_;
 	bool finished_;
@@ -143,24 +152,27 @@ class NodeClass
 		srvServer_Init_ = n_.advertiseService("init", &NodeClass::srvCallback_Init, this);
 		srvServer_Stop_ = n_.advertiseService("stop", &NodeClass::srvCallback_Stop, this);
 		srvServer_Recover_ = n_.advertiseService("recover", &NodeClass::srvCallback_Recover, this);
+		srvServer_SetOperationMode_ = n_.advertiseService("set_operation_mode", &NodeClass::srvCallback_SetOperationMode, this);
+		srvServer_SetDefaultVel_ = n_.advertiseService("set_default_vel", &NodeClass::srvCallback_SetDefaultVel, this);
 		
 		// implementation of service clients
 		//--
 
 		// read parameters from parameter server
-		CanDevice_ = "PCAN";
-		CanBaudrate_ = 500;
+		if(!n_.hasParam("EnoderIncrementsPerRevMot")) ROS_WARN("cob_head_axis: couldn't find parameter EnoderIncrementsPerRevMot, check if ALL parameters have been set correctly");
 
-		n_.getParam("CanDevice", CanDevice_);
-		n_.getParam("CanBaudrate", CanBaudrate_);
-		n_.getParam("HomingDir", HomingDir_);
-		n_.getParam("HomingDigIn", HomingDigIn_);
-		n_.getParam("ModId",ModID_);
-		n_.getParam("JointName",JointName_);
-		n_.getParam("CanIniFile",CanIniFile_);
-		n_.getParam("OperationMode",operationMode_);
+		n_.param<std::string>("CanDevice", CanDevice_, "PCAN");
+		n_.param<int>("CanBaudrate", CanBaudrate_, 500);
+		n_.param<int>("HomingDir", HomingDir_, 1);
+		n_.param<int>("HomingDigIn", HomingDigIn_, 11);
+		n_.param<int>("ModId",ModID_, 17);
+		n_.param<std::string>("JointName",JointName_, "head_axis_joint");
+		n_.param<std::string>("CanIniFile",CanIniFile_, "/");
+		n_.param<std::string>("operation_mode",operationMode_, "position");
+		n_.param<int>("MotorDirection",MotorDirection_, 1);
+		n_.param<double>("GearRatio",GearRatio_, 62.5);
+		n_.param<int>("EnoderIncrementsPerRevMot",EnoderIncrementsPerRevMot_, 4096);
 		
-		//n_.param<double>("MaxVel", MaxVel_, 2.0); -> from urdf
 		ROS_INFO("CanDevice=%s, CanBaudrate=%d, ModID=%d, HomingDigIn=%d",CanDevice_.c_str(),CanBaudrate_,ModID_,HomingDigIn_);
 		
 		
@@ -213,6 +225,12 @@ class NodeClass
 		CamAxisParams_->SetHomingDir(HomingDir_);
 		CamAxisParams_->SetHomingDigIn(HomingDigIn_);
 		CamAxisParams_->SetMaxVel(MaxVel_);
+		CamAxisParams_->SetGearRatio(GearRatio_);
+		CamAxisParams_->SetMotorDirection(MotorDirection_);
+		CamAxisParams_->SetEncoderIncrements(EnoderIncrementsPerRevMot_);
+		
+		
+		
 
 		CamAxisParams_->Init(CanDevice_, CanBaudrate_, ModID_);
 		
@@ -283,20 +301,21 @@ class NodeClass
 			if (CamAxis_->Init(CamAxisParams_))
 			{
 				ROS_INFO("Initializing of camera axis succesful");
-					isInitialized_ = true;
+				isInitialized_ = true;
 				res.success.data = true;
+				res.error_message.data = "initializing camera axis successfull";
 			}
 			else
 			{
 				ROS_ERROR("Initializing camera axis not succesful \n");
-				//res.success = 1; // 0 = true, else = false
-				//res.error_message.data = PCube->getErrorMessage();
+				res.success.data = false;
+				res.error_message.data = "initializing camera axis not successfull";
 			}
 			}
 			else
 			{
-				ROS_ERROR("...camera axis already initialized...");			
-				res.success.data = false;
+				ROS_WARN("...camera axis already initialized...");			
+				res.success.data = true;
 				res.error_message.data = "camera axis already initialized";
 		}
 		
@@ -310,11 +329,14 @@ class NodeClass
 	
 	// stopping all arm movements
 	if (CamAxis_->Stop()) {
-		ROS_INFO("Stopping camera axis succesful");
+		ROS_INFO("Stopping camera axis successful");
 		res.success.data = true;
+		res.error_message.data = "camera axis stopped successfully";
 	}
 	else {
 		ROS_ERROR("Stopping camera axis not succesful. error");
+		res.success.data = false;
+		res.error_message.data = "stopping camera axis not successful";
 	}
 
 	return true;
@@ -330,13 +352,52 @@ class NodeClass
 			if (CamAxis_->RecoverAfterEmergencyStop()) {
 				ROS_INFO("Recovering camera axis succesful");
 				res.success.data = true;
+				res.error_message.data = "camera axis successfully recovered";
 			} else {
 				ROS_ERROR("Recovering camera axis not succesful. error");
+				res.success.data = false;
+				res.error_message.data = "recovering camera axis failed";
 			}
 		} else {
-			ROS_ERROR("...camera axis already recovered...");			
+			ROS_WARN("...camera axis already recovered...");			
+			res.success.data = true;
+			res.error_message.data = "camera axis already recovered";
 		}
 
+		return true;
+	}
+
+	/*!
+	* \brief Executes the service callback for set_operation_mode.
+	*
+	* Changes the operation mode.
+	* \param req Service request
+	* \param res Service response
+	*/
+	bool srvCallback_SetOperationMode(	cob_srvs::SetOperationMode::Request &req,
+										cob_srvs::SetOperationMode::Response &res )
+	{
+		ROS_INFO("Set operation mode to [%s]", req.operation_mode.data.c_str());
+		n_.setParam("operation_mode", req.operation_mode.data.c_str());
+		res.success.data = true; // 0 = true, else = false
+		return true;
+	}
+
+	/*!
+	* \brief Executes the service callback for set_default_vel.
+	*
+	* Sets the default velocity.
+	* \param req Service request
+	* \param res Service response
+	*/
+	bool srvCallback_SetDefaultVel(	cob_srvs::SetDefaultVel::Request &req,
+									cob_srvs::SetDefaultVel::Response &res )
+	{
+		ROS_INFO("Set default velocity to [%f]", req.default_vel);
+		MaxVel_ = req.default_vel;
+		CamAxisParams_->SetMaxVel(MaxVel_);
+		CamAxis_->setMaxVelocity(MaxVel_);
+		res.success.data = true; // 0 = true, else = false
 		return true;
 	}
 

@@ -204,14 +204,14 @@ public:
 		cv::Mat d = tof_sensor_toolbox->GetDistortionParameters(tof_camera_type_, tof_camera_index_);
 		camera_info_msg_.header.stamp = ros::Time::now();
 		camera_info_msg_.header.frame_id = "head_tof_link";
-		camera_info_msg_.D[0] = d.at<double>(0, 0);
+		/*camera_info_msg_.D[0] = d.at<double>(0, 0);
 		camera_info_msg_.D[1] = d.at<double>(0, 1);
 		camera_info_msg_.D[2] = d.at<double>(0, 2);
 		camera_info_msg_.D[3] = d.at<double>(0, 3);
-		camera_info_msg_.D[4] = 0;
+		camera_info_msg_.D[4] = 0;*/
 	
 		cv::Mat k = tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_type_, tof_camera_index_);
-		camera_info_msg_.K[0] = k.at<double>(0, 0);
+		/*camera_info_msg_.K[0] = k.at<double>(0, 0);
 		camera_info_msg_.K[1] = k.at<double>(0, 1);
 		camera_info_msg_.K[2] = k.at<double>(0, 2);
 		camera_info_msg_.K[3] = k.at<double>(1, 0);
@@ -219,7 +219,7 @@ public:
 		camera_info_msg_.K[5] = k.at<double>(1, 2);
 		camera_info_msg_.K[6] = k.at<double>(2, 0);
 		camera_info_msg_.K[7] = k.at<double>(2, 1);
-		camera_info_msg_.K[8] = k.at<double>(2, 2);
+		camera_info_msg_.K[8] = k.at<double>(2, 2);*/
 
 		camera_info_msg_.width = range_sensor_width;		
 		camera_info_msg_.height = range_sensor_height;
@@ -251,7 +251,7 @@ public:
 		sensor_msgs::Image::Ptr grey_image_msg_ptr;
 		sensor_msgs::CameraInfo tof_image_info;
 	
-		if(tof_camera_->AcquireImages(0, &grey_image_32F1_, &xyz_image_32F3_, false, false, ipa_CameraSensors::INTENSITY) & ipa_Utils::RET_FAILED)
+		if(tof_camera_->AcquireImages(0, &grey_image_32F1_, &xyz_image_32F3_, false, false, ipa_CameraSensors::INTENSITY_32F1) & ipa_Utils::RET_FAILED)
 		{
 			ROS_ERROR("[tof_camera] Tof image acquisition failed");
 			return false;

@@ -11,7 +11,7 @@
 	<param name="hztest_tray_state/topic" value="/tray_controller/state" />
 	<param name="hztest_tray_state/hz" value="55.25" />
 	<param name="hztest_tray_state/hzerror" value="54.75" />
-	<param name="hztest_tray_state/test_duration" value="1.0" />
+	<param name="hztest_tray_state/test_duration" value="10.0" />
 	<test test-name="hz_tray_state" pkg="rostest" type="hztest" name="hztest_tray_state" />
 
 	<!-- hztest /tray_controller/joint_trajectory_action/status -->

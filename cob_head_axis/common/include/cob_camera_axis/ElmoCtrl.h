@@ -128,11 +128,28 @@ class ElmoCtrlParams
 		//HomingDigIn
 		void SetHomingDigIn(int dig_in){m_HomingDigIn = dig_in;}
 		int GetHomingDigIn(){return m_HomingDigIn;}
-
+		
 		//CanIniFile
 		void SetCanIniFile(std::string iniFile){m_CanIniFile=iniFile;}
 		std::string GetCanIniFile(){return m_CanIniFile;}
 		
+		//Encoder increments
+		void SetEncoderIncrements(int enc_incr){m_EncIncrPerRevMot = enc_incr;}
+		int GetEncoderIncrements(){return m_EncIncrPerRevMot;}
+		
+		//Belt & Gear ratio in one
+		void SetGearRatio(double gear_ratio){m_GearRatio = gear_ratio;}
+		double GetGearRatio(){return m_GearRatio;}
+		
+		//Motor direction
+		void SetMotorDirection(int motor_dir){
+			if(motor_dir<0) m_MotorDirection = -1;
+			else m_MotorDirection = 1;
+		}
+		int GetMotorDirection(){return m_MotorDirection;}
+		
+		
+			
 		
 	private:
 		int m_ModuleID;
@@ -140,6 +157,9 @@ class ElmoCtrlParams
 		int m_BaudRate;
 		int m_HomingDir;
 		int m_HomingDigIn;
+		int m_EncIncrPerRevMot;
+		int m_MotorDirection;
+		double m_GearRatio;
 		double m_Offset;
 		double m_UpperLimit;
 		double m_LowerLimit;
@@ -231,6 +251,9 @@ private:
 	double m_MaxVel;
 	int m_HomingDir;
 	int m_HomingDigIn;
+	int m_EncIncrPerRevMot;
+	int m_MotorDirection;
+	double m_GearRatio;
 
 	double  m_UpperLimit;
 	double  m_LowerLimit;
