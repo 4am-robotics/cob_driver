@@ -30,8 +30,5 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/lib)
 #target_link_libraries(example ${PROJECT_NAME})
 
 # add include search paths
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
-rosbuild_add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp common/src/ScannerSickS300.cpp common/src/SerialIO.cpp)
-rosbuild_add_executable(cob_scan_filter ros/src/cob_scan_filter.cpp)
-rosbuild_add_executable(cob_unified_scan_publisher ros/src/cob_unified_scan_publisher.cpp)
+rosbuild_add_executable(cob_hokuyo_filter ros/src/cob_hokuyo_filter.cpp)
