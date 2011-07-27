@@ -204,7 +204,7 @@ namespace ipa_CameraSensors
         convertColorImageMessageToMat(color_image_msg, color_image_ptr, color_image);
         
         // point cloud
-        pcl::PointCloud<pcl::PointXYZRGB> point_cloud_src;
+        pcl::PointCloud<pcl::PointXYZ> point_cloud_src;
         pcl::fromROSMsg(*point_cloud_msg, point_cloud_src);
 
         // rotate images by 180 degrees
@@ -232,7 +232,7 @@ namespace ipa_CameraSensors
         }
         
         // point cloud
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_turned(new pcl::PointCloud<pcl::PointXYZRGB>);
+        pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud_turned(new pcl::PointCloud<pcl::PointXYZ>);
         for (int v=(int)point_cloud_src.height-1; v>=0; v--)
         {
           for (int u=(int)point_cloud_src.width-1; u>=0; u--)
