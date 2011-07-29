@@ -17,9 +17,9 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/lib)
 
 #uncomment if you have defined messages
-#genmsg()
+#rosbuild_genmsg()
 #uncomment if you have defined services
-#gensrv()
+rosbuild_gensrv()
 
 #common commands for building c++ executables and libraries
 #rospack_add_library(${PROJECT_NAME} src/example.cpp)
