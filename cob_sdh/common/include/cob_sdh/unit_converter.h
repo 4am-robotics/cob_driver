@@ -18,9 +18,9 @@
 
     \subsection sdhlibrary_cpp_unit_converter_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2009-03-18 09:39:27 +0100 (Mi, 18 Mrz 2009) $
+      $LastChangedDate: 2011-03-09 11:55:11 +0100 (Mi, 09 Mrz 2011) $
       \par SVN file revision:
-        $Id: unit_converter.h 4191 2009-03-18 08:39:27Z Osswald2 $
+        $Id: unit_converter.h 6526 2011-03-09 10:55:11Z Osswald2 $
 
   \subsection sdhlibrary_cpp_unit_converter_h_changelog Changelog of this file:
       \include unit_converter.h.log
@@ -72,7 +72,7 @@ NAMESPACE_SDH_START
 
    <hr>
 */
-class cUnitConverter
+class VCC_EXPORT cUnitConverter
 {
 public:
     /*!

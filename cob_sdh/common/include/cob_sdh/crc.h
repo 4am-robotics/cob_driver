@@ -19,9 +19,9 @@
 
     \subsection sdhlibrary_cpp_crc_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2008-10-14 11:32:33 +0200 (Di, 14 Okt 2008) $
+      $LastChangedDate: 2011-03-09 11:55:11 +0100 (Mi, 09 Mrz 2011) $
       \par SVN file revision:
-        $Id: crc.h 3692 2008-10-14 09:32:33Z Osswald2 $
+        $Id: crc.h 6526 2011-03-09 10:55:11Z Osswald2 $
 
   \subsection sdhlibrary_cpp_crc_h_changelog Changelog of this file:
       \include crc.h.log
@@ -73,11 +73,13 @@ typedef UInt16 tCRCValue;   //!< the data type used to calculate and exchange CR
 //----------------------------------------------------------------------
 
  /*!
+     \brief Cyclic Redundancy Code checker class, used for protecting communication against transmission errors.
+
      Generic class to calculate a CRC using a given, precalculated table.
 
      Use derived classes like cCRC_DSACON32m with a specifically set CRC table.
  */
-class cCRC
+class VCC_EXPORT cCRC
 {
  protected:
     //! current value of the CRC checksum
@@ -102,6 +104,14 @@ class cCRC
     tCRCValue AddByte( unsigned char byte )
     {
         current_crc = ( (current_crc & 0xFF00) >> 8 ) ^ crc_table[ ( current_crc & 0x00FF ) ^ (byte & 0x00FF)];
+        return current_crc;
+    }
+
+    //! insert \a nb_bytes from \a bytes into CRC calculation and return the new current CRC checksum
+    tCRCValue AddBytes( unsigned char* bytes, int nb_bytes )
+    {
+        for ( int i=0; i<nb_bytes; i++ )
+            current_crc = ( (current_crc & 0xFF00) >> 8 ) ^ crc_table[ ( current_crc & 0x00FF ) ^ (bytes[i] & 0x00FF)];
         return current_crc;
     }
 
@@ -134,7 +144,7 @@ class cCRC
 //----------------------------------------------------------------------
 
 //! A derived CRC class that uses a CRC table and initial value suitable for the Weiss Robotics DSACON32m controller
-class cCRC_DSACON32m : public cCRC
+class VCC_EXPORT cCRC_DSACON32m : public cCRC
 {
  protected:
     //! the CRC table used by the DSACON32m controller
@@ -144,6 +154,25 @@ class cCRC_DSACON32m : public cCRC
     //! constructor to create a cCRC object suitable for checksumming the communication with a DSACON32m tactile sensor controller
     inline cCRC_DSACON32m( void )
         : cCRC( crc_table_dsacon32m, 0xffff )
+    {
+        // nothing more to do
+    }
+};
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+
+/*!
+ * \brief A derived CRC class that uses a CRC table and initial value suitable for protecing the binary communication with SDH via RS232
+ *
+ * (for now we use the same CRC as for DSACON32m, but we use this separate
+ *  class to simplify future changes).
+ */
+class VCC_EXPORT cCRC_SDH : public cCRC_DSACON32m
+{
+ public:
+    //! constructor to create a cCRC object suitable for checksumming the binary communication with SDH
+    inline cCRC_SDH( void )
+        : cCRC_DSACON32m()
     {
         // nothing more to do
     }
