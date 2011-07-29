@@ -28,3 +28,5 @@ rosbuild_gensrv()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 rosbuild_add_executable(cob_tray_sensors ros/src/cob_tray_sensors.cpp)
 #target_link_libraries(phidget21 ${PROJECT_NAME})
+
+target_link_libraries(cob_tray_sensors phidget21)
