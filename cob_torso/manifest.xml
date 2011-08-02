@@ -1,14 +1,16 @@
 <package>
   <description brief="cob_torso">
 
-    Launch files to configure and startup the Care-O-bot torso.
+    Launch files to configure and startup the Care-O-bot torso based on the cob_powercube_chain.
 
   </description>
   <author>Florian Weisshardt</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_torso</url>
-  
+
   <depend package="cob_powercube_chain"/>
+  <depend package="cob_manipulator"/>
+  <depend package="cob_trajectory_controller"/>
 
 </package>

@@ -69,7 +69,7 @@
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
 
-#include <cob_srvs/GetTOFImages.h>
+#include <cob_camera_sensors/GetTOFImages.h>
 
 // external includes
 #include <cob_camera_sensors/AbstractRangeImagingSensor.h>
@@ -382,8 +382,8 @@ public:
 		topicPub_pointCloud2_.publish(pc_msg);
 	}
 
-	bool imageSrvCallback(cob_srvs::GetTOFImages::Request &req,
-			cob_srvs::GetTOFImages::Response &res)
+	bool imageSrvCallback(cob_camera_sensors::GetTOFImages::Request &req,
+			cob_camera_sensors::GetTOFImages::Response &res)
 	{
 		boost::mutex::scoped_lock lock(service_mutex_);
 		// Convert openCV IplImages to ROS messages

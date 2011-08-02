@@ -50,7 +50,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
-
 #ifndef _TimeStamp_H
 #define _TimeStamp_H
 
@@ -122,4 +121,3 @@ private:
 };
 
 #endif
-

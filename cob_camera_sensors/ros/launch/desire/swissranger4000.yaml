@@ -16,5 +16,5 @@ rectification_matrix:
 projection_matrix:
   rows: 3
   cols: 4
-  data: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0]
+  data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
 

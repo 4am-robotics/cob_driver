@@ -106,6 +106,7 @@ class NodeClass
 	// global variables
 	ElmoCtrl * CamAxis_;
 	ElmoCtrlParams* CamAxisParams_;
+	
 	std::string CanDevice_;
 	std::string CanIniFile_;
 	int CanBaudrate_;
@@ -117,6 +118,10 @@ class NodeClass
 	double LowerLimit_;
 	double UpperLimit_; 
 	double Offset_;
+	int MotorDirection_;
+	int EnoderIncrementsPerRevMot_;
+	double GearRatio_;
+	
 	std::string JointName_;
 	bool isInitialized_;
 	bool finished_;
@@ -154,19 +159,20 @@ class NodeClass
 		//--
 
 		// read parameters from parameter server
-		CanDevice_ = "PCAN";
-		CanBaudrate_ = 500;
+		if(!n_.hasParam("EnoderIncrementsPerRevMot")) ROS_WARN("cob_head_axis: couldn't find parameter EnoderIncrementsPerRevMot, check if ALL parameters have been set correctly");
 
-		n_.getParam("CanDevice", CanDevice_);
-		n_.getParam("CanBaudrate", CanBaudrate_);
-		n_.getParam("HomingDir", HomingDir_);
-		n_.getParam("HomingDigIn", HomingDigIn_);
-		n_.getParam("ModId",ModID_);
-		n_.getParam("JointName",JointName_);
-		n_.getParam("CanIniFile",CanIniFile_);
-		n_.getParam("operation_mode",operationMode_);
+		n_.param<std::string>("CanDevice", CanDevice_, "PCAN");
+		n_.param<int>("CanBaudrate", CanBaudrate_, 500);
+		n_.param<int>("HomingDir", HomingDir_, 1);
+		n_.param<int>("HomingDigIn", HomingDigIn_, 11);
+		n_.param<int>("ModId",ModID_, 17);
+		n_.param<std::string>("JointName",JointName_, "head_axis_joint");
+		n_.param<std::string>("CanIniFile",CanIniFile_, "/");
+		n_.param<std::string>("operation_mode",operationMode_, "position");
+		n_.param<int>("MotorDirection",MotorDirection_, 1);
+		n_.param<double>("GearRatio",GearRatio_, 62.5);
+		n_.param<int>("EnoderIncrementsPerRevMot",EnoderIncrementsPerRevMot_, 4096);
 		
-		//n_.param<double>("MaxVel", MaxVel_, 2.0); -> from urdf
 		ROS_INFO("CanDevice=%s, CanBaudrate=%d, ModID=%d, HomingDigIn=%d",CanDevice_.c_str(),CanBaudrate_,ModID_,HomingDigIn_);
 		
 		
@@ -219,6 +225,12 @@ class NodeClass
 		CamAxisParams_->SetHomingDir(HomingDir_);
 		CamAxisParams_->SetHomingDigIn(HomingDigIn_);
 		CamAxisParams_->SetMaxVel(MaxVel_);
+		CamAxisParams_->SetGearRatio(GearRatio_);
+		CamAxisParams_->SetMotorDirection(MotorDirection_);
+		CamAxisParams_->SetEncoderIncrements(EnoderIncrementsPerRevMot_);
+		
+		
+		
 
 		CamAxisParams_->Init(CanDevice_, CanBaudrate_, ModID_);
 		
@@ -384,6 +396,7 @@ class NodeClass
 		ROS_INFO("Set default velocity to [%f]", req.default_vel);
 		MaxVel_ = req.default_vel;
 		CamAxisParams_->SetMaxVel(MaxVel_);
+		CamAxis_->setMaxVelocity(MaxVel_);
 		res.success.data = true; // 0 = true, else = false
 		return true;
 	}
@@ -462,7 +475,7 @@ class NodeClass
 			msg.velocity[0] = ActualVel_;
 
 
-			std::cout << "Joint " << msg.name[0] <<": pos="<<  msg.position[0] << " vel=" << msg.velocity[0] << std::endl;
+			//std::cout << "Joint " << msg.name[0] <<": pos="<<  msg.position[0] << " vel=" << msg.velocity[0] << std::endl;
 				
 			// publish message
 			topicPub_JointState_.publish(msg);
