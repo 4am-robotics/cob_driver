@@ -18,9 +18,9 @@
 
   \subsection sdhlibrary_cpp_serialbase_h_details SVN related, detailed file specific information:
   $LastChangedBy: Osswald2 $
-  $LastChangedDate: 2009-04-30 20:14:37 +0200 (Do, 30 Apr 2009) $
+  $LastChangedDate: 2011-03-09 11:55:11 +0100 (Mi, 09 Mrz 2011) $
   \par SVN file revision:
-  $Id: serialbase.h 4340 2009-04-30 18:14:37Z Osswald2 $
+  $Id: serialbase.h 6526 2011-03-09 10:55:11Z Osswald2 $
 
   \subsection sdhlibrary_cpp_serialbase_h_changelog Changelog of this file:
   \include serialbase.h.log
@@ -40,6 +40,13 @@
 // System Includes - include with <>
 //----------------------------------------------------------------------
 
+#if SDH_USE_VCC
+# include <windows.h>
+# include <strsafe.h>
+#else
+# include <errno.h>
+#endif
+
 //----------------------------------------------------------------------
 // Project Includes - include with ""
 //----------------------------------------------------------------------
@@ -54,6 +61,11 @@
 
 NAMESPACE_SDH_START
 
+typedef void* tDeviceHandle;  //!< generic device handle for CAN devices
+
+#if SDH_USE_VCC
+# define snprintf _snprintf
+#endif
 
 //----------------------------------------------------------------------
 // Global variables
@@ -71,7 +83,7 @@ NAMESPACE_SDH_START
 /*!
   \brief Derived exception class for low-level serial communication related exceptions.
 */
-class cSerialBaseException: public cSDHErrorCommunication
+class VCC_EXPORT cSerialBaseException: public cSDHErrorCommunication
 {
  public:
     cSerialBaseException( cMsg const & _msg )
@@ -90,7 +102,7 @@ class cSerialBaseException: public cSDHErrorCommunication
 
   (This is an abstract base class with pure virtual functions)
 */
-class cSerialBase
+class VCC_EXPORT cSerialBase
 {
  protected:
 
@@ -110,7 +122,7 @@ class cSerialBase
         ungetch('\0'),
         ungetch_valid(false),
         // setting the timeout does not make sense here. should be left to virtual SetTimeout()
-        dbg( false, "yellow", g_sdh_debug_log )
+        dbg( false, "cyan", g_sdh_debug_log )
     {
         // nothing more to do
     }
@@ -143,11 +155,35 @@ class cSerialBase
         timeout = _timeout;
     }
 
-    //! set the timeout for next #readline() calls (negative value means: no timeout, wait for ever)
+    //! get the timeout for next #readline() calls (negative value means: no timeout, wait for ever)
     virtual double GetTimeout()
     {
         return timeout;
     }
+
+    //! helper class to set timeout of _serial_base on construction and reset to previous value on destruction. (RAII-idiom)
+    class cSetTimeoutTemporarily
+    {
+        cSerialBase* serial_base;
+        double       old_timeout;
+    public:
+        //! CTOR: remember current timeout of \a _serial_base and set its timeout to \a new_timeout, but only if current timeout and new_timeout differ
+        cSetTimeoutTemporarily( cSerialBase* _serial_base, double new_timeout )
+        : serial_base(_serial_base),
+          old_timeout( serial_base->GetTimeout() )
+        {
+            if ( new_timeout != old_timeout )
+                serial_base->SetTimeout( new_timeout );
+        }
+
+        //! DTOR: restore the remembered timeout
+        ~cSetTimeoutTemporarily()
+        {
+            if ( old_timeout != serial_base->GetTimeout() )
+                serial_base->SetTimeout( old_timeout );
+        }
+    };
+
 
     //! Write data to a previously opened port.
     /*!
@@ -174,8 +210,9 @@ class cSerialBase
 
     //! Read a line from the device.
     /*!
-      A line is terminated with one of the end-of-line (eol)
-      characters ('\n' by default) or until timeout
+      A line is terminated with one of the end-of-line (\a eol)
+      characters ('\n' by default) or until timeout.
+      Up to \a size-1 bytes are read and a '\0' char is appended.
 
       \param line - ptr to where to store the read line
       \param size - space available in line (bytes)
@@ -193,6 +230,54 @@ class cSerialBase
 
     //! A stream object to print colored debug messages
     cDBG dbg;
+
+    //! type of the error code, DWORD on windows and int on Linux/cygwin
+#if SDH_USE_VCC
+    typedef DWORD tErrorCode;
+#else
+    typedef int tErrorCode;
+#endif
+
+    /*!
+     * Helper function that returns the last error number.
+     * - On windows GetLastError() is used
+     * - On cygwin/linux this uses errno
+     */
+    virtual tErrorCode GetErrorNumber()
+    {
+#if SDH_USE_VCC
+        return GetLastError();
+#else
+        return errno;
+#endif
+    }
+
+    /*!
+     * Helper function that returns an error message for error code dw.
+     * - On windows FormatMessageA() is used
+     * - On cygwin/linux this uses errno
+     *
+     * \remark The string returned will be overwritten by the next call to the function
+     */
+    virtual char const* GetErrorMessage( tErrorCode dw );
+
+    //! return the last error message as string. The string returned will be overwritten by the next call to the function
+    char const* GetLastErrorMessage( void )
+    {
+        return GetErrorMessage( GetErrorNumber() );
+    }
+
+    /*!
+     *  function that returns true if a CRC16 is used to protect binary communication.
+     *
+     *  The default is false since only RS232 communication needs this.
+     */
+    virtual bool UseCRC16()
+    {
+        return false;
+    }
+    //----------------------------------------------------------------------
+
 };
 //======================================================================
 
@@ -212,4 +297,3 @@ NAMESPACE_SDH_END
   End:
 */
 //======================================================================
-

@@ -21,9 +21,9 @@
 
   \subsection sdhlibrary_cpp_sdhlibrary_settings_h_details SVN related, detailed file specific information:
   $LastChangedBy: Osswald2 $
-  $LastChangedDate: 2009-12-01 11:41:18 +0100 (Di, 01 Dez 2009) $
+  $LastChangedDate: 2011-03-09 11:55:11 +0100 (Mi, 09 Mrz 2011) $
   \par SVN file revision:
-  $Id: sdhlibrary_settings.h 5000 2009-12-01 10:41:18Z Osswald2 $
+  $Id: sdhlibrary_settings.h 6526 2011-03-09 10:55:11Z Osswald2 $
 
   \subsection sdhlibrary_cpp_sdhlibrary_settings_h_changelog Changelog of this file:
   \include sdhlibrary_settings.h.log
@@ -58,6 +58,9 @@
 //! Flag, if 1 then all classes are put into a namespace called #SDH. If 0 then the classes are left outside any namespace.
 #define  SDH_USE_NAMESPACE  1
 
+//! Flag, if 1 then binary communication is used where possible for better performance (requires at least firmware 0.0.2.15)
+#define  SDH_USE_BINARY_COMMUNICATION 1
+
 //! @}   // end of doxygen module group sdhlibrary_cpp_sdhlibrary_settings_h_settings_group
 //-----------------------------------------------------------------
 
@@ -76,10 +79,12 @@
 # define NAMESPACE_SDH_START namespace SDH {
 # define NAMESPACE_SDH_END   }
 # define USING_NAMESPACE_SDH using namespace SDH;
+# define NS_SDH              SDH::
 #else
 # define NAMESPACE_SDH_START
 # define NAMESPACE_SDH_END
 # define USING_NAMESPACE_SDH
+# define NS_SDH
 #endif
 
 
@@ -98,6 +103,9 @@
 //! gcc checks for NAN (Not a number) with isnan
 # define SDH_ISNAN( V ) isnan( (V) )
 
+# define VCC_EXPORT
+# define VCC_EXPORT_TEMPLATE
+
 //---------------------
 // WIN32 might be defined by ntcan.h
 #elif defined( WIN32 ) && ( ! defined( OSNAME_CYGWIN ) ) && ( ! defined( OSNAME_LINUX ) )
@@ -113,6 +121,28 @@
 # define SDH_ISNAN( V ) _isnan( (V) )
 
 typedef long          ssize_t;
+
+/*!
+ * \def SDH_IN_SDHLIBRARY_DLL
+ * The SDH_IN_SDHLIBRARY_DLL macro must be defined when compiling the
+ * SDHLibrary-C++ as a DLL with VCC, since w have to 'flatter' VCC to
+ * actually export some functions into a DLL... Sigh!
+ *
+ * See http://support.microsoft.com/default.aspx?scid=kb;EN-US;q168958
+ * but be aware of http://www.codesynthesis.com/~boris/blog/2010/01/18/dll-export-cxx-templates/
+ * as well.
+ */
+
+//disable warnings on extern before template instantiation
+# pragma warning (disable : 4231)
+# ifdef SDH_IN_SDHLIBRARY_DLL
+#  define VCC_EXPORT           __declspec( dllexport )
+#  define VCC_EXPORT_TEMPLATE
+# else
+#  define VCC_EXPORT           __declspec( dllimport )
+#  define VCC_EXPORT_TEMPLATE  extern
+# endif
+
 
 //---------------------
 #else
