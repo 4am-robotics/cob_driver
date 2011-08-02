@@ -17,12 +17,16 @@
   <depend package="geometry_msgs"/>
   <depend package="kinematics_msgs"/>
   <depend package="cob_srvs"/>
-  <depend package="cob_msgs"/>
   <depend package="tf_conversions"/>
   <depend package="tf"/>
   <depend package="kdl"/>
   <depend package="kdl_parser"/>
-  <depend package="pr2_arm_kinematics"/>
+  <!--  <depend package="pr2_arm_kinematics"/> -->
   <depend package="cob_description"/>
-
+  <depend package="collada_urdf"/>
+  <depend package="pluginlib"/>
+  <depend package="kinematics_base"/>
+  <export>
+    <kinematics_base plugin="${prefix}/cob_manipulator_plugins.xml" />
+  </export>
 </package>

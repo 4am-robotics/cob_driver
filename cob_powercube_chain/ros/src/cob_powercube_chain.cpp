@@ -77,6 +77,7 @@
 // ROS service includes
 #include <cob_srvs/Trigger.h>
 #include <cob_srvs/SetOperationMode.h>
+#include <cob_srvs/SetDefaultVel.h>
 
 // ROS diagnostic msgs
 #include <diagnostic_updater/diagnostic_updater.h>
@@ -117,6 +118,7 @@ class PowercubeChainNode
 		ros::ServiceServer srvServer_Stop_;
 		ros::ServiceServer srvServer_Recover_;
 		ros::ServiceServer srvServer_SetOperationMode_;
+		ros::ServiceServer srvServer_SetDefaultVel_;
 
 		// actionlib server
 		actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
@@ -206,6 +208,7 @@ class PowercubeChainNode
 			srvServer_Stop_ = n_.advertiseService("stop", &PowercubeChainNode::srvCallback_Stop, this);
 			srvServer_Recover_ = n_.advertiseService("recover", &PowercubeChainNode::srvCallback_Recover, this);
 			srvServer_SetOperationMode_ = n_.advertiseService("set_operation_mode", &PowercubeChainNode::srvCallback_SetOperationMode, this);
+			srvServer_SetDefaultVel_ = n_.advertiseService("set_default_vel", &PowercubeChainNode::srvCallback_SetDefaultVel, this);
 
 			// implementation of service clients
 			//--
@@ -308,6 +311,7 @@ class PowercubeChainNode
 				//std::cout << "MaxVel[" << JointNames_[i].c_str() << "] = " << MaxVel[i] << std::endl;
 			}
 			PCubeParams_->SetMaxVel(MaxVel);
+			PCube_->setMaxVelocity(MaxVel);
 			
 			// get LowerLimits out of urdf model
 			std::vector<double> LowerLimits;
@@ -552,6 +556,22 @@ class PowercubeChainNode
 		{
 			ROS_INFO("Set operation mode to [%s]", req.operation_mode.data.c_str());
 			n_.setParam("OperationMode", req.operation_mode.data.c_str());
+			res.success.data = true; // 0 = true, else = false
+			return true;
+		}
+
+		/*!
+		* \brief Executes the service callback for set_default_vel.
+		*
+		* Changes the default velocity.
+		* \param req Service request
+		* \param res Service response
+		*/
+		bool srvCallback_SetDefaultVel(	cob_srvs::SetDefaultVel::Request &req,
+						cob_srvs::SetDefaultVel::Response &res )
+		{
+			ROS_INFO("Set default vel to [%f]", req.default_vel);
+			PCube_->setMaxVelocity(double(req.default_vel));
 			res.success.data = true; // 0 = true, else = false
 			return true;
 		}

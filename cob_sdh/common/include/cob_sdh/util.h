@@ -18,9 +18,9 @@
 
     \subsection sdhlibrary_cpp_util_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2009-12-01 11:41:18 +0100 (Di, 01 Dez 2009) $
+      $LastChangedDate: 2011-03-09 11:55:11 +0100 (Mi, 09 Mrz 2011) $
       \par SVN file revision:
-        $Id: util.h 5000 2009-12-01 10:41:18Z Osswald2 $
+        $Id: util.h 6526 2011-03-09 10:55:11Z Osswald2 $
 
   \subsection sdhlibrary_cpp_util_h_changelog Changelog of this file:
       \include util.h.log
@@ -129,13 +129,13 @@ NAMESPACE_SDH_START
 /*!
     Return True if v is in range [0 .. max[
 */
-bool InIndex( int v, int max );
+VCC_EXPORT bool InIndex( int v, int max );
 
 
 /*!
     Return True if v is in range [min .. max]
 */
-bool InRange( double v, double min, double max );
+VCC_EXPORT bool InRange( double v, double min, double max );
 
 
 /*!
@@ -143,7 +143,7 @@ bool InRange( double v, double min, double max );
     v_i is in range [min_i..max_i] with
     min = (min1, min2,...) max = (max1, max2, ..)
 */
-bool InRange( int n, double const* v, double const* min, double const* max );
+VCC_EXPORT bool InRange( int n, double const* v, double const* min, double const* max );
 
 
 /*!
@@ -151,7 +151,7 @@ bool InRange( int n, double const* v, double const* min, double const* max );
     min is returned, or if v > max then max is returned, else v is
     returned
 */
-double ToRange( double v, double min, double max );
+VCC_EXPORT double ToRange( double v, double min, double max );
 
 
 /*!
@@ -159,7 +159,7 @@ double ToRange( double v, double min, double max );
     min = (min1, min2,...) max = (max1, max2, ..)
     This modifies \a *v!
 */
-void ToRange( int n, double* v, double const* min, double const* max );
+VCC_EXPORT void ToRange( int n, double* v, double const* min, double const* max );
 
 
 /*!
@@ -167,7 +167,7 @@ void ToRange( int n, double* v, double const* min, double const* max );
     min = (min1, min2,...) max = (max1, max2, ..)
     This modifies \a v!
 */
-void ToRange( std::vector<double>& v, std::vector<double> const& min, std::vector<double> const& max );
+VCC_EXPORT void ToRange( std::vector<double>& v, std::vector<double> const& min, std::vector<double> const& max );
 
 
 /*!
@@ -175,38 +175,38 @@ void ToRange( std::vector<double>& v, std::vector<double> const& min, std::vecto
     min = (min1, min2,...) max = (max1, max2, ..)
     This modifies \a v!
 */
-void ToRange( cSimpleVector& v, std::vector<double> const& min, std::vector<double> const& max );
+VCC_EXPORT void ToRange( cSimpleVector& v, std::vector<double> const& min, std::vector<double> const& max );
 
 
 /*!
     Return True if a is approximately the same as b. I.E. |a-b| < eps
 */
-double Approx( double a, double b, double eps );
+VCC_EXPORT double Approx( double a, double b, double eps );
 
 
 /*!
     Return True if list/tuple/array a=(a1,a2,...) is approximately
     the same as b=(b1,b2,...). I.E. |a_i-b_i| < eps[i]
 */
-bool Approx( int n, double* a, double* b, double* eps );
+VCC_EXPORT bool Approx( int n, double* a, double* b, double* eps );
 
 
 /*!
     Return d in deg converted to rad
 */
-double DegToRad( double d );
+VCC_EXPORT double DegToRad( double d );
 
 
 /*!
     Return r in rad converted to deg
 */
-double RadToDeg( double r );
+VCC_EXPORT double RadToDeg( double r );
 
 
 /*!
     Sleep for t seconds. (t is a double!)
 */
-void SleepSec( double t );
+VCC_EXPORT void SleepSec( double t );
 
 
 /*!
@@ -326,7 +326,30 @@ std::ostream& operator<<(std::ostream& stream, std::vector<T> const& v)
 //----------------------------------------------------------------------
 
 //! compare release strings
-int CompareReleases( char const* rev1, char const* rev2 );
+VCC_EXPORT int CompareReleases( char const* rev1, char const* rev2 );
+//----------------------------------------------------------------------
+
+//! helper class to set value on construction and reset to previous value on destruction. (RAII-idiom)
+template<typename T>
+class VCC_EXPORT cSetValueTemporarily
+{
+    T* value_ptr;
+    T  old_value;
+public:
+    //! CTOR: remember current value of \a _value_ptr and set it to \a new_value
+    cSetValueTemporarily( T* _value_ptr, T new_value )
+    : value_ptr( _value_ptr ),
+      old_value( *value_ptr )
+    {
+        *value_ptr = new_value;
+    }
+
+    //! DTOR: restore the remembered value
+    ~cSetValueTemporarily()
+    {
+        *value_ptr = old_value;
+    }
+};
 
 //! @}   // end of doxygen name group sdhlibrary_cpp_util_h_auxiliary
 
