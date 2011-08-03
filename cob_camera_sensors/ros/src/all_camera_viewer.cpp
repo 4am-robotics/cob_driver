@@ -73,7 +73,7 @@
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/fill_image.h>
 
-#include <cob_srvs/AcquireCalibrationImages.h>
+#include <cob_camera_sensors/AcquireCalibrationImages.h>
 
 // external includes
 #include <cob_vision_utils/VisionUtils.h>
@@ -444,8 +444,8 @@ public:
 		ROS_INFO("[all_camera_viewer] stereoModeSrvCallback [OK]");
 	}
 
-	bool saveCameraImagesServiceCallback(cob_srvs::AcquireCalibrationImages::Request &req,
-			cob_srvs::AcquireCalibrationImages::Response &res)
+	bool saveCameraImagesServiceCallback(cob_camera_sensors::AcquireCalibrationImages::Request &req,
+			cob_camera_sensors::AcquireCalibrationImages::Response &res)
 	{
 		ROS_INFO("[all_camera_viewer] Service Callback");
 		boost::mutex::scoped_lock lock(m_ServiceMutex);

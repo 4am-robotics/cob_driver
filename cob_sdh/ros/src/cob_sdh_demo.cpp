@@ -58,11 +58,11 @@
 #include "cob_sdh/dbg.h"
 
 //include msgs
-#include <cob_msgs/JointCommand.h>
-#include <cob_msgs/TactileForce.h>
+#include <sdh_msgs/JointCommand.h>
+#include <sdh_msgs/TactileForce.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <cob_actions/JointCommandAction.h>
-#include <cob_msgs/ContactArea.h>
+#include <sdh_msgs/ContactArea.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -125,7 +125,7 @@ char const* usage =
  
 
 //-----------------------------------------------------------------
-/*void ForceCallback(const cob_msgs::TactileForceConstPtr& msg)
+/*void ForceCallback(const sdh_msgs::TactileForceConstPtr& msg)
    { int i;
      
        
@@ -145,7 +145,7 @@ double area3;
 
 
 
-void AreaCallback(const cob_msgs::ContactAreaConstPtr& msg)
+void AreaCallback(const sdh_msgs::ContactAreaConstPtr& msg)
     { 
        area2 = msg->data2;
        area3 = msg->data3;
@@ -219,7 +219,7 @@ actionlib::SimpleActionClient<cob_actions::JointCommandAction> ac_("JointCommand
 //Goal to send
 cob_actions::JointCommandGoal goal;
 //command to send
-cob_msgs::JointCommand command_;
+sdh_msgs::JointCommand command_;
 
 
 
