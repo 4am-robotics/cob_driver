@@ -57,6 +57,8 @@
 #include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/VirtualColorCam.h"
 #endif
 
+#include <opencv/highgui.h>
+
 using namespace std;
 using namespace ipa_CameraSensors;
 
