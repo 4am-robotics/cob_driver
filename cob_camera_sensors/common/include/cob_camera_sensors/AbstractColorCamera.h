@@ -59,7 +59,7 @@
 #ifndef __IPA_ABSTRACTCOLORCAMERA_H__
 #define __IPA_ABSTRACTCOLORCAMERA_H__
 
-#ifdef __COB_ROS__
+#ifdef __LINUX__
 	#include "cob_vision_utils/CameraSensorDefines.h"
 
 	#include "tinyxml/tinyxml.h"
@@ -69,7 +69,7 @@
 #else
 	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/CameraSensorDefines.h"
 
-	#include "Vision/Extern/TinyXml/tinyxml.h"
+	#include "cob_vision/windows/src/extern/TinyXml/tinyxml.h"
 
 	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/CameraSensorTypes.h"
 	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/VisionUtils.h"
@@ -116,7 +116,7 @@ class __DLL_LIBCAMERASENSORS__ AbstractColorCamera
 
 		/// Initializes the color camera.
 		/// Camera specific constants may be set within the configuration file <I>cameraSensorsIni.xml</I>.
-		/// The function has to set the member variable <code>m_initilized</code>.
+		/// The function has to set the member variable <code>m_initialized</code>.
 		/// @param directory Path to the configuration file directory.
 		/// @param cameraIndex It is possible to have several cameras of the same type on the system.
 		///	       One may us the camera index to apply different configuration files to each of them
@@ -237,6 +237,7 @@ __DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr CreateColorCamera_VirtualCam();
 __DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr CreateColorCamera_ICCam();
 __DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr CreateColorCamera_AxisCam();
 __DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr CreateColorCamera_AVTPikeCam();
+__DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr CreateColorCamera_OpenCVCamera();
 
 
 } // end namespace

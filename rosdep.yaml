@@ -1,6 +1,9 @@
 libdc1394:
   ubuntu: libdc1394-22-dev
 
+libusb-0.1:
+  ubuntu: libusb-0.1-4
+
 touchscreen: 
   ubuntu:
     10.04: xserver-xorg-input-evtouch

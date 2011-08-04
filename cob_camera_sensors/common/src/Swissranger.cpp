@@ -51,7 +51,7 @@
 *
 ****************************************************************/
  
-#ifdef __COB_ROS__
+#ifdef __LINUX__
 	#include "cob_camera_sensors/Swissranger.h"
 #else
 	#include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/Swissranger.h"
@@ -659,7 +659,9 @@ unsigned long Swissranger::AcquireImages(cv::Mat* rangeImage, cv::Mat* grayImage
 	char* rangeImageData = 0;
 	char* grayImageData = 0;
 	char* cartesianImageData = 0;
-	int widthStepOneChannel = -1;
+	int widthStepRange = -1;
+	int widthStepGray = -1;
+	int widthStepCartesian = -1;
 
 	int width = -1;
 	int height = -1;
@@ -673,34 +675,34 @@ unsigned long Swissranger::AcquireImages(cv::Mat* rangeImage, cv::Mat* grayImage
 	{
 		rangeImage->create(height, width, CV_32FC(1));
 		rangeImageData = rangeImage->ptr<char>(0);
-		widthStepOneChannel = rangeImage->step;
+		widthStepRange = rangeImage->step;
 	}
 
 	if(grayImage)
 	{
 		grayImage->create(height, width, CV_32FC(1));
 		grayImageData = grayImage->ptr<char>(0);
-		widthStepOneChannel = grayImage->step;
+		widthStepGray = grayImage->step;
 	}	
 
 	if(cartesianImage)
 	{
 		cartesianImage->create(height, width, CV_32FC(3));
 		cartesianImageData = cartesianImage->ptr<char>(0);
-		widthStepOneChannel = cartesianImage->step/3;
+		widthStepCartesian = cartesianImage->step;
 	}
 
-	if (widthStepOneChannel == 0)
+	if (!rangeImage && !grayImage && !cartesianImage)
 	{
 		return RET_OK;
 	}
 
-	return AcquireImages(widthStepOneChannel, rangeImageData, grayImageData, cartesianImageData, getLatestFrame, undistort, grayImageType);
+	return AcquireImages(widthStepRange, widthStepGray, widthStepCartesian, rangeImageData, grayImageData, cartesianImageData, getLatestFrame, undistort, grayImageType);
 	
 }
 
 // Enables faster image retrival than AcquireImage
-unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeImageData, char* grayImageData, char* cartesianImageData,
+unsigned long Swissranger::AcquireImages(int widthStepRange, int widthStepGray, int widthStepCartesian, char* rangeImageData, char* grayImageData, char* cartesianImageData,
 										 bool getLatestFrame, bool undistort, ipa_CameraSensors::t_ToFGrayImageType grayImageType)
 {
 ///***********************************************************************
@@ -751,7 +753,6 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 ///***********************************************************************
 	if (rangeImageData)
 	{
-		int widthStepRangeImage = widthStepOneChannel;
 		int imageStep = -1;
 		float* f_ptr = 0;
 		
@@ -759,7 +760,7 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 		for(unsigned int row=0; row<(unsigned int)height; row++)
 		{
 			imageStep = row*width;
-			f_ptr = (float*)(rangeImageData + row*widthStepRangeImage);
+			f_ptr = (float*)(rangeImageData + row*widthStepRange);
 
 			for (unsigned int col=0; col<(unsigned int)width; col++)
 			{
@@ -784,7 +785,7 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 ///***********************************************************************
 	if(grayImageData)
 	{
-		if (grayImageType == ipa_CameraSensors::INTENSITY &&
+		if (grayImageType == ipa_CameraSensors::INTENSITY_32F1 &&
 			m_GrayImageAcquireCalled == false)
 		{
 			std::cout << "WARNING - Swissranger::AcquireImages:" << std::endl;
@@ -793,7 +794,6 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 			m_GrayImageAcquireCalled = true;
 		}
 
-		int widthStepGrayImage = widthStepOneChannel;
 		int imageSize = width*height;
 		int imageStep = 0;
 		float* f_ptr = 0;
@@ -801,7 +801,7 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 		for(unsigned int row=0; row<(unsigned int)height-1; row++)
 		{
 			imageStep = imageSize+row*width;
-			f_ptr = (float*)(grayImageData + row*widthStepGrayImage);
+			f_ptr = (float*)(grayImageData + row*widthStepGray);
 
 			for (unsigned int col=0; col<(unsigned int)width-1; col++)
 			{
@@ -825,7 +825,6 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 ///***********************************************************************
 	if(cartesianImageData)
 	{
-		int widthStepCartesianImage = widthStepOneChannel*3;
 		float x = -1;
 		float y = -1;
 		float zRaw = -1;
@@ -875,7 +874,7 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 				for(unsigned int row=0; row<(unsigned int)height; row++)
 				{
 					zCalibratedPtr = undistortedData.ptr<float>(row);
-					f_ptr = (float*)(cartesianImageData + row*widthStepCartesianImage);
+					f_ptr = (float*)(cartesianImageData + row*widthStepCartesian);
 
 					for (unsigned int col=0; col<(unsigned int)width; col++)
 					{
@@ -920,7 +919,7 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 			for(unsigned int row=0; row<(unsigned int)height; row++)
 			{
 				zCalibratedPtr = undistortedData.ptr<float>(row);
-				f_ptr = (float*)(cartesianImageData + row*widthStepCartesianImage);
+				f_ptr = (float*)(cartesianImageData + row*widthStepCartesian);
 
 				for (unsigned int col=0; col<(unsigned int)width; col++)
 				{
@@ -939,7 +938,7 @@ unsigned long Swissranger::AcquireImages(int widthStepOneChannel, char* rangeIma
 					
 			for(unsigned int row=0; row<(unsigned int)height; row++)
 			{
-				f_ptr = (float*)(cartesianImageData + row*widthStepCartesianImage);
+				f_ptr = (float*)(cartesianImageData + row*widthStepCartesian);
 
 				for (unsigned int col=0; col<(unsigned int)width; col++)
 				{

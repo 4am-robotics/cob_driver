@@ -59,7 +59,7 @@
 #ifndef __IPA_VIRTUALRANGECAM_H__
 #define __IPA_VIRTUALRANGECAM_H__
 
-#ifdef __COB_ROS__
+#ifdef __LINUX__
 	#include <cob_camera_sensors/AbstractRangeImagingSensor.h>
 #else
 	#include <cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/AbstractRangeImagingSensor.h>
@@ -112,12 +112,12 @@ public:
 	unsigned long SetPropertyDefaults();
 	unsigned long GetProperty(t_cameraProperty* cameraProperty);
 
-	unsigned long AcquireImages(int widthStepOneChannel, char* rangeImage=NULL, char* intensityImage=NULL,
+	unsigned long AcquireImages(int widthStepRange, int widthStepGray, int widthStepCartesian, char* rangeImage=NULL, char* intensityImage=NULL,
 		char* cartesianImage=NULL, bool getLatestFrame=true, bool undistort=true,
-		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY);
+		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY_32F1);
 	unsigned long AcquireImages(cv::Mat* rangeImage = 0, cv::Mat* intensityImage = 0,
 		cv::Mat* cartesianImage = 0, bool getLatestFrame = true, bool undistort = true,
-		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY);
+		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY_32F1);
 
 	unsigned long GetCalibratedUV(double x, double y, double z, double& u, double& v);
 
@@ -140,6 +140,16 @@ private:
 	//*******************************************************************************
 	// Camera specific members
 	//*******************************************************************************
+
+	/// Reads out the image width and height from the first image found in the filesystem.
+	/// @param filename The name of that image.
+	inline void UpdateImageDimensionsOnFirstImage(std::string filename, std::string ext=".xml");
+
+	/// Compares the value of the iterator with ext in order to find the extension which has instances in the directory.
+	/// Throws an error if different file formats are present at the same time.
+	/// @param itCounter Iterator containing a file extension and a number of instances.
+	/// @param ext Is empty if no extension was found before, otherwise it contains the found extension.
+	inline void FindSourceImageFormat(std::map<std::string, int>::iterator& itCounter, std::string& ext);
 
 	unsigned long GetCalibratedZMatlab(int u, int v, float zRaw, float& zCalibrated);
 	unsigned long GetCalibratedXYMatlab(int u, int v, float z, float& x, float& y);

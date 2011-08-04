@@ -3,5 +3,8 @@ CanBaudrate: 500
 ModId: 17
 JointName: head_axis_joint
 HomingDir: -1
+MotorDirection: -1
 HomingDigIn: 11
-OperationMode: position
+GearRatio: 47.77
+EnoderIncrementsPerRevMot: 4096
+operation_mode: position
