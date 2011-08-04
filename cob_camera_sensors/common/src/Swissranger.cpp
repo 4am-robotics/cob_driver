@@ -54,9 +54,11 @@
 #ifdef __LINUX__
 	#include "cob_camera_sensors/Swissranger.h"
 	#include "cob_vision_utils/VisionUtils.h"
+	#include "tinyxml.h"
 #else
 	#include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/Swissranger.h"
 	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/VisionUtils.h"
+	#include "cob_vision/windows/src/extern/TinyXml/tinyxml.h"
 #endif
 
 using namespace ipa_CameraSensors;

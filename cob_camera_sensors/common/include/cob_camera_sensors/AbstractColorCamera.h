@@ -70,6 +70,8 @@
 #endif
 
 #include <boost/shared_ptr.hpp>
+#include <sstream>
+#include <opencv/cv.h>
 
 namespace ipa_CameraSensors {
 
