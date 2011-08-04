@@ -1,1 +1,0 @@
-#include "cob_vision/cob_object_detection/common/include/cob_object_detection/StdAfx.h"
