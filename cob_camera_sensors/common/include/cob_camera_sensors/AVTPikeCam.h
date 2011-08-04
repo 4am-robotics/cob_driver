@@ -60,6 +60,8 @@
 #ifndef __IPA_AVTPIKECAM_H__
 #define __IPA_AVTPIKECAM_H__
 
+#include "StdAfx.h"
+
 #ifdef __LINUX__
 	#include "cob_camera_sensors/AbstractColorCamera.h"
 #else

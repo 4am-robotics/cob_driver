@@ -50,7 +50,8 @@
 * If not, see <http://www.gnu.org/licenses/>.
 *
 ****************************************************************/
- 
+#include "../include/cob_camera_sensors/StdAfx.h" 
+
 #ifdef __LINUX__
 #include "cob_camera_sensors/VirtualColorCam.h"
 #else
@@ -59,7 +60,7 @@
 
 #include <opencv/highgui.h>
 
-using namespace std;
+namespace fs = boost::filesystem;
 using namespace ipa_CameraSensors;
 
 __DLL_LIBCAMERASENSORS__ AbstractColorCameraPtr ipa_CameraSensors::CreateColorCamera_VirtualCam()

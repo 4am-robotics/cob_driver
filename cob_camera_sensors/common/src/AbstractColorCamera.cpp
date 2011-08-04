@@ -51,6 +51,8 @@
 *
 ****************************************************************/
 
+#include "../include/cob_camera_sensors/StdAfx.h"
+
 #ifdef __LINUX__
 #include "cob_camera_sensors/AbstractColorCamera.h"
 #else
