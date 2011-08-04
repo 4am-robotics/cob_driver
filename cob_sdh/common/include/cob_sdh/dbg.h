@@ -19,9 +19,9 @@
 *
 * \subsection sdhlibrary_cpp_dbg_h_details SVN related, detailed file specific information:
 * $LastChangedBy: Osswald2 $
-* $LastChangedDate: 2011-04-27 09:01:33 +0200 (Mi, 27 Apr 2011) $
+* $LastChangedDate: 2009-08-31 15:46:47 +0200 (Mo, 31 Aug 2009) $
 * \par SVN file revision:
-* $Id: dbg.h 6745 2011-04-27 07:01:33Z Osswald2 $
+* $Id: dbg.h 4766 2009-08-31 13:46:47Z Osswald2 $
 *
 * \subsection sdhlibrary_cpp_dbg_h_changelog Changelog of this file:
 * \include dbg.h.log
@@ -43,7 +43,6 @@
 
 #include <iostream>
 #include <iomanip>
-#include <string>
 #include <stdarg.h>
 #include <cstring>    // needed in gcc-4.3 for prototypes like strcmp according to http://gcc.gnu.org/gcc-4.3/porting_to.html
 #include <stdlib.h>   // needed in gcc-4.3 for prototypes like getenv
@@ -110,14 +109,13 @@ NAMESPACE_SDH_START
 *   g << "This messages is not printed";
 * \endcode
 */
-class VCC_EXPORT cDBG
+class cDBG
 {
 protected:
     char const*   debug_color;
     char const*   normal_color;
     std::ostream *output;
     bool          debug_flag;
-    std::streamsize mywidth;
 public:
 
     /*!
@@ -133,7 +131,6 @@ public:
         debug_flag     = flag;
         SetColor( color );
         output         = fd;
-        mywidth = output->width();
     }
     //---------------------
 
@@ -275,23 +272,12 @@ public:
     {
         if (!debug_flag) return *this;
 
-        output->width( 0 );
-        *output << debug_color;
-        output->width( mywidth );
-        *output << v;
-        mywidth = output->width();
-        output->width( 0 );
-        *output << normal_color << std::flush;
+        *output << debug_color
+        << v
+        << normal_color << std::flush;
         return *this;
     }
     //---------------------
-
-    std::ostream& flush()
-    {
-        return output->flush();
-    }
-    //---------------------
-
 
     /*!
     * Print name and value of variable \a _var in output stream \a _d. This will
@@ -317,50 +303,12 @@ public:
     *   d = cDBG( true );
     *   v = 42;
     *   s = "test";
-    *   d << VAL( v ) << "but " << VAL(s);
+    *   d << V( v ) << "but " << V(s);
     * \endcode
     * Will print "v=42" and "s=test" on stderr
     */
-# define VAL( _var )                      \
+# define V( _var )                      \
     #_var << "='" << _var << "' "
-};
-
-//! dummy class for (debug) stream output of bytes as list of hex values
-class VCC_EXPORT cHexByteString
-{
-    char const* bytes;
-    int         len;
-public:
-    //! ctor: create a cHexByteString with \a _len bytes at \a _bytes
-    cHexByteString( char const* _bytes, int _len ) :
-        bytes(_bytes),
-        len(_len)
-        {};
-
-    friend VCC_EXPORT std::ostream &operator<<(std::ostream &stream, cHexByteString const &s);
-};
-
-//! output the bytes in \a s to \a stream as a list of space separated hex bytes (without 0x prefix)
-inline VCC_EXPORT std::ostream &operator<<(std::ostream &stream, cHexByteString const &s)
-{
-    //-----
-    // print all bytes as hex bytes:
-    bool is_all_printable_ascii = true;
-    for ( int i = 0; i < s.len; i++ )
-    {
-        stream << std::hex << std::setw(2) << std::setfill('0') << int( ((unsigned char const*)s.bytes)[i] ) << " ";
-        if ( s.bytes[i] < 0x20 || ((unsigned char) s.bytes[i]) >= 0x80 )
-            is_all_printable_ascii = false;
-    }
-    //-----
-
-    //-----
-    // if the bytes were all printable ascii codes then print them as string as well:
-    if ( is_all_printable_ascii )
-        stream << "= \"" << std::string( s.bytes, s.len ) << "\"";
-    //-----
-
-    return stream << std::dec;
 };
 
 NAMESPACE_SDH_END
