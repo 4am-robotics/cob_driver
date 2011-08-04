@@ -65,13 +65,13 @@
 #include <actionlib/server/simple_action_server.h>
 
 // ROS message includes
-#include <sdh_msgs/JointCommand.h>
+#include <cob_msgs/JointCommand.h>
 #include <sensor_msgs/JointState.h>
 #include <cob_actions/JointCommandAction.h>
-#include <sdh_msgs/TactileSensor.h>
-#include <sdh_msgs/TactileMatrix.h>
-#include <sdh_msgs/TactileForce.h>
-#include <sdh_msgs/ContactArea.h>
+#include <cob_msgs/TactileSensor.h>
+#include <cob_msgs/TactileMatrix.h>
+#include <cob_msgs/TactileForce.h>
+#include <cob_msgs/ContactArea.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -142,7 +142,7 @@ class SdhDriverNode
 		int DOF_HW_,DOF_ROS_;
 		double pi_;
 		
-		sdh_msgs::JointCommand command_;
+		cob_msgs::JointCommand command_;
 		
 		std::vector<std::string> JointNames_;
 		std::vector<std::string> JointNamesAll_;
@@ -179,9 +179,9 @@ class SdhDriverNode
 
 			// implementation of topics to publish
 			topicPub_JointState_ = nh_.advertise<sensor_msgs::JointState>("/joint_states", 1);
-			topicPub_TactileSensor_ = nh_.advertise<sdh_msgs::TactileSensor>("tactile_data", 1);
-            //topicPub_Force_ = nh_.advertise<sdh_msgs::TactileForce>("force_data", 1);
-            topicPub_ContactArea_ = nh_.advertise<sdh_msgs::ContactArea>("area_data", 1); 
+			topicPub_TactileSensor_ = nh_.advertise<cob_msgs::TactileSensor>("tactile_data", 1);
+            //topicPub_Force_ = nh_.advertise<cob_msgs::TactileForce>("force_data", 1);
+            topicPub_ContactArea_ = nh_.advertise<cob_msgs::ContactArea>("area_data", 1); 
 
 			// pointer to sdh
 			sdh_ = new SDH::cSDH(false, false, 0); //(_use_radians=false, bool _use_fahrenheit=false, int _debug_level=0)
@@ -694,9 +694,9 @@ class SdhDriverNode
 		void updateTactileData()
 		{
 			ROS_DEBUG("updateTactileData"); //Create new Topic to publish Force
-			sdh_msgs::TactileSensor msg;
-			//sdh_msgs::TactileForce forcemsg;
-            sdh_msgs::ContactArea areamsg;
+			cob_msgs::TactileSensor msg;
+			//cob_msgs::TactileForce forcemsg;
+            cob_msgs::ContactArea areamsg;
 			if(isDSAInitialized_)
 			{
 				msg.header.stamp = ros::Time::now();
@@ -715,7 +715,7 @@ class SdhDriverNode
 					//double force = dsa_->GetContactInfo( m ).force;
                                         //forcemsg.data[m] = force;
                                          
-                                        sdh_msgs::TactileMatrix &tm = msg.tactile_matrix[m];
+                                        cob_msgs::TactileMatrix &tm = msg.tactile_matrix[m];
 					tm.matrix_id = m;
 					tm.cells_x = dsa_->GetMatrixInfo( m ).cells_x;
 					tm.cells_y = dsa_->GetMatrixInfo( m ).cells_y;
