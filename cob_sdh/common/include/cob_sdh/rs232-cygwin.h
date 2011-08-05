@@ -18,9 +18,9 @@
 
     \subsection sdhlibrary_cpp_rs232_cygwin_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2011-04-26 17:40:10 +0200 (Di, 26 Apr 2011) $
+      $LastChangedDate: 2009-08-31 15:46:47 +0200 (Mo, 31 Aug 2009) $
       \par SVN file revision:
-        $Id: rs232-cygwin.h 6744 2011-04-26 15:40:10Z Osswald2 $
+        $Id: rs232-cygwin.h 4766 2009-08-31 13:46:47Z Osswald2 $
 
   \subsection sdhlibrary_cpp_rs232_cygwin_h_changelog Changelog of this file:
       \include rs232-cygwin.h.log
@@ -119,16 +119,7 @@ public:
   cRS232( int _port, unsigned long _baudrate, double _timeout, char const* _device_format_string = "/dev/ttyS%d" );
 
   /*!
-   *  Open the device as configured by the parameters given to the constructor
-   *
-   * \bug
-   *   The binary communication introduced in firmware 0.0.2.15 and
-   *   SDHLibrary-C++ 0.0.2.0 did not work properly on Linux when RS232 was
-   *   used for communication.
-   *   <br>See also:
-   *   - <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=1011)">Bug 1011: Bug: Binary communication does not work via RS232 on Linux</a>
-   *   - #SDH_USE_BINARY_COMMUNICATION
-   *   <br><b>=> Resolved in %SDHLibrary 0.0.2.2</b>
+      Open the device as configured by the parameters given to the constructor
   */
   void Open( void )
       throw (cRS232Exception*);
@@ -163,13 +154,6 @@ public:
    */
   ssize_t Read( void *data, ssize_t size, long timeout_us, bool return_on_less_data )
       throw (cRS232Exception*);
-
-  //! overloaded from cSerialBase::UseCRC16 since we want to use a CRC16 to protect binary RS232 communication
-  virtual bool UseCRC16()
-  {
-      return true;
-  }
-
 };
 //======================================================================
 
