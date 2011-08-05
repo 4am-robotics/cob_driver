@@ -17,9 +17,9 @@
 
     \subsection sdhlibrary_cpp_dsa_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2011-03-09 11:55:11 +0100 (Mi, 09 Mrz 2011) $
+      $LastChangedDate: 2010-03-05 10:00:43 +0100 (Fr, 05 Mrz 2010) $
       \par SVN file revision:
-        $Id: dsa.h 6526 2011-03-09 10:55:11Z Osswald2 $
+        $Id: dsa.h 5355 2010-03-05 09:00:43Z Osswald2 $
 
   \subsection sdhlibrary_cpp_dsa_h_changelog Changelog of this file:
       \include dsa.h.log
@@ -85,7 +85,7 @@ NAMESPACE_SDH_START
 /*!
    \brief Derived exception class for low-level DSA related exceptions.
 */
-class VCC_EXPORT cDSAException: public cSDHLibraryException
+class cDSAException: public cSDHLibraryException
 {
 public:
   cDSAException( cMsg const & _msg )
@@ -105,10 +105,8 @@ public:
     is started from a native windows command console (cmd.exe), but not e.g.
     when the program is started from a cygwin console. Strange.
     \b Workaround is to catch the exception and ignore the frame.
-    <br><b>=> Resolved in SDHLibrary-C++ v0.0.2.1</b>
-    <br>Problem was an overrun of the windows input buffer, e.g. on heavy processor load.
 */
-class VCC_EXPORT cDSA
+class cDSA
 {
  public:
     //! data type for a single 'texel' (tactile sensor element)
@@ -221,7 +219,7 @@ class VCC_EXPORT cDSA
 
 
     /*!
-        \brief A data structure describing a full tactile sensor frame read from the remote DSACON32m controller
+        A data structure describing a full tactile sensor frame read from the remote DSACON32m controller
 
         \remark
         - An object of this type is stored within the cDSA object
@@ -232,7 +230,7 @@ class VCC_EXPORT cDSA
           - by calling #UpdateFrame() periodically
         -
     */
-    struct VCC_EXPORT sTactileSensorFrame
+    struct sTactileSensorFrame
     {
         UInt32  timestamp;  //!< the timestamp of the frame. Use #GetAgeOfFrame() to set this into relation with the time of the PC.
         UInt8   flags;      //!< internal data
@@ -278,7 +276,7 @@ class VCC_EXPORT cDSA
 #pragma pack(pop)   // for VCC (MS Visual Studio) restore normal packing
 #endif
 
-    friend VCC_EXPORT std::ostream &operator<<(std::ostream &stream, cDSA::sResponse const &response );
+    friend std::ostream &operator<<(std::ostream &stream, cDSA::sResponse const &response );
 
     //! A stream object to print coloured debug messages
     cDBG dbg;
@@ -331,8 +329,7 @@ class VCC_EXPORT cDSA
     double calib_voltage;   // "what the DSA reports:" ~mV
 
 
-    void WriteCommandWithPayload( UInt8 command, UInt8* payload, UInt16 payload_len )
-    throw (cDSAException*);
+    void WriteCommandWithPayload( UInt8 command, UInt8* payload, UInt16 payload_len );
 
     inline void WriteCommand( UInt8 command )
     {
@@ -341,7 +338,7 @@ class VCC_EXPORT cDSA
     //----------------------------------------------------------------------
 
     /*!
-        Read any response from the remote DSACON32m, expect the \a command_id as command id
+        Read any response from the remote DSACON32m
 
         - tries to find the preamble within the next at most DSA_MAX_PREAMBLE_SEARCH bytes from the device
         - reads the packet id and size
@@ -350,73 +347,64 @@ class VCC_EXPORT cDSA
           if there is not enough space in the payload of the response then the data is received but forgotten (to keep the communication line clear)
         - if sent, the CRC checksum is read and the data is checked. For invalid data an exception is thrown
     */
-    void ReadResponse( sResponse* response, UInt8 command_id )
-    throw (cDSAException*);
+    void ReadResponse( sResponse* response );
+
 
     /*!
         Read and parse a controller info response from the remote DSA
     */
-    void ReadControllerInfo( sControllerInfo* _controller_info )
-    throw (cDSAException*);
+    void ReadControllerInfo( sControllerInfo* _controller_info );
 
 
     /*!
         Read and parse a sensor info response from the remote DSA
     */
-    void ReadSensorInfo( sSensorInfo* _sensor_info )
-    throw (cDSAException*);
+    void ReadSensorInfo( sSensorInfo* _sensor_info );
 
 
     /*!
         Read and parse a matrix info response from the remote DSA
     */
-    void ReadMatrixInfo( sMatrixInfo* _matrix_info  )
-    throw (cDSAException*);
+    void ReadMatrixInfo( sMatrixInfo* _matrix_info  );
 
 
     /*!
         read and parse a full frame response from remote DSA
     */
-    void ReadFrame( sTactileSensorFrame* frame_p  )
-    throw (cDSAException*);
+    void ReadFrame( sTactileSensorFrame* frame_p  );
 
 
     /*!
         Send command to resquest controller info from remote DSACON32m.
         Read and parse the response from the remote DSACON32m.
     */
-    void QueryControllerInfo( sControllerInfo* _controller_info  )
-    throw (cDSAException*);
+    void QueryControllerInfo( sControllerInfo* _controller_info  );
 
 
     /*!
         Send command to request sensor info from remote DSACON32m.
         Read and parse the response from the remote DSACON32m.
     */
-    void QuerySensorInfo( sSensorInfo* _sensor_info )
-    throw (cDSAException*);
+    void QuerySensorInfo( sSensorInfo* _sensor_info );
 
 
     /*!
         Send command to request matrix info from remote DSACON32m.
         Read and parse the response from the remote DSACON32m.
     */
-    void QueryMatrixInfo( sMatrixInfo* _matrix_info, int matrix_no )
-    throw (cDSAException*);
+    void QueryMatrixInfo( sMatrixInfo* _matrix_info, int matrix_no );
 
 
     /*!
       Query all matrix infos
     */
-    void QueryMatrixInfos( void )
-    throw (cDSAException*);
+    void QueryMatrixInfos( void );
 
 
     /*!
         Parse a full frame response from remote DSA
     */
-    void ParseFrame( sResponse* response, sTactileSensorFrame* frame_p )
-    throw (cDSAException*);
+    void ParseFrame( sResponse* response, sTactileSensorFrame* frame_p );
 
 
  public:
@@ -484,44 +472,23 @@ class VCC_EXPORT cDSA
     //-----------------------------------------------------------------
 
     //! (Re-)open connection to DSACON32m controller, this is called by the constructor automatically, but is still usefull to call after a call to Close()
-    void Open(void)
-    throw (cDSAException*);
+    void Open(void);
 
     //! Set the framerate of the remote DSACON32m controller to 0 and close connection to it.
-    void Close(void)
-    throw (cDSAException*);
+    void Close(void);
 
 
     /*!
      * Set the \a framerate for querying full frames.
      *
-     * @param framerate           - rate of frames.
+     * @param framerate - rate of frames. 0 will make the remote DSACON32m in
+     *                    %SDH stop sending frames, any value > 0 will make
+     *                    the remote DSACON32m in %SDH send frames at the
+     *                    highest possible rate (for now: 30 FPS (frames per second)).
      * @param do_RLE              - flag, if true then use RLE (run length encoding) for sending frames
      * @param do_data_acquisition - flag, enable or disable data acquisition. Must be true if you want to get new frames
-     *
-     * - Use \a framerate=0 and \a do_data_acquisition=false to make the remote DSACON32m in %SDH stop sending frames
-     * - Use \a framerate=0 and \a do_data_acquisition=true to read a single frame
-     * - Use \a framerate>0 and \a do_data_acquisition=true to make the remote DSACON32m in %SDH send frames at the
-     *   highest possible rate (for now: 30 FPS (frames per second)).
-     *
-     *  \bug SCHUNK-internal bugzilla ID: Bug 680<br>
-     *  With DSACON32m firmware R276 and after and SDHLibrary-C++ v0.0.1.15
-     *  and before stopping of the sending did not work.
-     *  <br><b>=> Resolved in SDHLibrary-C++ v0.0.1.16</b>
-     *
-     *  \bug SCHUNK-internal bugzilla ID: Bug 680<br>
-     *  With DSACON32m firmware before R276 and SDHLibrary-C++ v0.0.1.16
-     *  and before acquiring of single frames did not work
-     *  <br><b>=> Resolved in SDHLibrary-C++ v0.0.1.17</b>
-     *
-     *  \bug SCHUNK-internal bugzilla ID: Bug 703<br>
-     *  With DSACON32m firmware R288 and before and SDHLibrary-C++ v0.0.2.1 and before
-     *  tactile sensor frames could not be read reliably in single frame mode.
-     *  <br><b>=> Resolved in DSACON32m firmware 2.9.0.0</b>
-     *  <br><b>=> Resolved in SDHLibrary-C++ v0.0.2.1 with workaround for older DSACON32m firmwares</b>
      */
-    void SetFramerate( UInt16 framerate, bool do_RLE=true, bool do_data_acquisition=true )
-    throw (cDSAException*);
+    void SetFramerate( UInt16 framerate, bool do_RLE=true, bool do_data_acquisition=true );
 
     /*!
      * Set the \a framerate for querying full frames.
@@ -645,8 +612,7 @@ class VCC_EXPORT cDSA
  private:
     double VoltageToPressure( double voltage );
 
-    void ReadAndCheckErrorResponse( char const* msg, UInt8 command_id )
-    throw (cDSAException*);
+    void ReadAndCheckErrorResponse( char const* msg );
 
 
  public:
@@ -665,40 +631,25 @@ class VCC_EXPORT cDSA
         return ErrorCodeToString( (eDSAErrorCode) error_code );
     }
 
- private:
-     //! flag, true if user requested acquiring of a single frame. Needed for DSACON32m firmware-bug workaround.
-     bool acquiring_single_frame;
 
-     /*!
-      * Cleanup communication line: read all available bytes
-      * with \a timeout_us_first timeout in us for first byte
-      * and \a timeout_us_subsequent timeoutin us for subsequent bytes
-      *
-      * @param timeout_us_first - timeout in us for first byte
-      * @param timeout_us_subsequent - timeout in us for subsequent bytes
-      *
-      * The push mode of the DSACON32m must be switched off on call since
-      * else the method will not return.
-      */
-     void FlushInput( long timeout_us_first, long timeout_us_subsequent );
 }; // end of class cDSA
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 
 
-VCC_EXPORT std::ostream &operator<<( std::ostream &stream,  cDSA::sControllerInfo const &controller_info );
+std::ostream &operator<<( std::ostream &stream,  cDSA::sControllerInfo const &controller_info );
 
 
-VCC_EXPORT std::ostream &operator<<( std::ostream &stream,  cDSA::sSensorInfo const &sensor_info );
+std::ostream &operator<<( std::ostream &stream,  cDSA::sSensorInfo const &sensor_info );
 
 
-VCC_EXPORT std::ostream &operator<<( std::ostream &stream,  cDSA::sMatrixInfo const &matrix_info );
+std::ostream &operator<<( std::ostream &stream,  cDSA::sMatrixInfo const &matrix_info );
 
 
-VCC_EXPORT std::ostream &operator<<( std::ostream &stream,  cDSA::sResponse const &response );
+std::ostream &operator<<( std::ostream &stream,  cDSA::sResponse const &response );
 
 
-VCC_EXPORT std::ostream &operator<<( std::ostream &stream,  cDSA const &dsa );
+std::ostream &operator<<( std::ostream &stream,  cDSA const &dsa );
 
 
 NAMESPACE_SDH_END

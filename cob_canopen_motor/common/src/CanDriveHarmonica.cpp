@@ -838,7 +838,7 @@ bool CanDriveHarmonica::isError()
 			if ( m_bOutputOfFailure == false)
 			{
 				std::cout << "Motor " << m_DriveParam.getDriveIdent() <<
-					" has no can communiction for " << dWatchTime << " s." << std::endl;
+					" has no can communication for " << dWatchTime << " s." << std::endl;
 			}
 
 			m_iMotorState = ST_MOTOR_FAILURE;

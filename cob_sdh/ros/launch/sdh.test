@@ -11,7 +11,7 @@
 	<param name="hztest_sdh_state/topic" value="/sdh_controller/state" />
 	<param name="hztest_sdh_state/hz" value="55.25" />
 	<param name="hztest_sdh_state/hzerror" value="54.74" />
-	<param name="hztest_sdh_state/test_duration" value="10.0" />
+	<param name="hztest_sdh_state/test_duration" value="1.0" />
 	<test test-name="hz_sdh_state" pkg="rostest" type="hztest" name="hztest_sdh_state" />
 
 	<!-- hztest /sdh_controller/joint_trajectory_action/status -->

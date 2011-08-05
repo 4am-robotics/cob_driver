@@ -20,9 +20,9 @@
 
     \subsection sdhlibrary_cpp_sdh_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2011-04-26 17:40:10 +0200 (Di, 26 Apr 2011) $
+      $LastChangedDate: 2009-12-04 17:05:53 +0100 (Fr, 04 Dez 2009) $
       \par SVN file revision:
-        $Id: sdh.h 6744 2011-04-26 15:40:10Z Osswald2 $
+        $Id: sdh.h 5022 2009-12-04 16:05:53Z Osswald2 $
 
   \subsection sdhlibrary_cpp_sdh_h_changelog Changelog of this file:
       \include sdh.h.log
@@ -33,19 +33,13 @@
 #define SDH_h_
 
 #include "sdhlibrary_settings.h"
+#include "basisdef.h"
 
 #if SDH_USE_VCC
 # pragma warning(disable : 4996)
-#else
-// must be included first on some linuxes
-extern "C" {
-# include <stdint.h>
-}
 #endif
 
-#include "basisdef.h"
-
-  //----------------------------------------------------------------------
+//----------------------------------------------------------------------
 // System Includes - include with <>
 //----------------------------------------------------------------------
 
@@ -60,6 +54,13 @@ extern "C" {
 #include "sdhserial.h"
 #include "unit_converter.h"
 #include "serialbase.h"
+#if WITH_ESD_CAN
+# include "canserial-esd.h"
+#endif
+
+#if WITH_PEAK_CAN
+# include "canserial-peak.h"
+#endif
 
 //----------------------------------------------------------------------
 // Defines, enums, unions, structs
@@ -76,6 +77,15 @@ extern "C" {
 #endif
 
 NAMESPACE_SDH_START
+
+#if ! WITH_ESD_CAN
+typedef void* NTCAN_HANDLE;  //!< dummy definition in case ntcan.h is not available
+#endif
+
+#if ! WITH_PEAK_CAN
+// Linux libpcan uses HANDLE where Windows Pcan_usb.h uses no handle at all:
+typedef void* PCAN_HANDLE;  //!< dummy definition in case Pcan_usb.h is not available
+#endif
 
 //----------------------------------------------------------------------
 // Global variables (declarations)
@@ -96,23 +106,7 @@ NAMESPACE_SDH_START
 // Class declarations
 //----------------------------------------------------------------------
 
-#if SDH_USE_VCC
-// these are needed by VCC for template instantiation into a DLL,
-// see http://support.microsoft.com/default.aspx?scid=kb;EN-US;q168958
-// and http://www.unknownroad.com/rtfm/VisualStudio/warningC4251.html
-//
-VCC_EXPORT_TEMPLATE template class VCC_EXPORT std::allocator<int>;
-VCC_EXPORT_TEMPLATE template class VCC_EXPORT std::vector<int,std::allocator<int> >;
 
-VCC_EXPORT_TEMPLATE template class VCC_EXPORT std::allocator<std::vector<int> >;
-VCC_EXPORT_TEMPLATE template class VCC_EXPORT std::vector<std::vector<int>,std::allocator<std::vector<int> > >;
-
-VCC_EXPORT_TEMPLATE template class VCC_EXPORT std::allocator<double>;
-VCC_EXPORT_TEMPLATE template class VCC_EXPORT std::vector<double,std::allocator<double> >;
-
-VCC_EXPORT_TEMPLATE template class VCC_EXPORT std::allocator<std::vector<double> >;
-VCC_EXPORT_TEMPLATE template class VCC_EXPORT std::vector<std::vector<double>,std::allocator<std::vector<double> > >;
-#endif
 
 //======================================================================
 
@@ -169,7 +163,7 @@ VCC_EXPORT_TEMPLATE template class VCC_EXPORT std::vector<std::vector<double>,st
 
    <hr>
 */
-class VCC_EXPORT cSDH : public cSDHBase
+class cSDH : public cSDHBase
 {
 public:
 
@@ -358,7 +352,7 @@ protected:
 
     // !!! make this public for now (to access comm_interface->ref() / comm_interface->pos_save() for hands with missing absolute encoders)
 public:
-    //! The object to interface with the %SDH attached via serial RS232 or CAN or TCP.
+    //! The object to interface with the %SDH attached via serial RS232 or CAN.
     cSDHSerial comm_interface;
 
     //! change the stream to use for debug messages
@@ -391,10 +385,6 @@ protected:
         \param max_values - a vector with the maximum allowed values
         \param name       - a string with the name of the values (for constructing error message)
 
-        \return the values returned from the SDH will be returned
-           (for most commands ll_set/ll_get functions this will be the \a values, except
-            for the cSDHSerial::tvav and cSDHSerial::tpap functions)
-
         \remark
         - The length of the \a axis and \a values vector must match.
         - The indices can be given in any order, but the order of the
@@ -409,15 +399,15 @@ protected:
         - If \b any index or value is invalid then \b none of the specified values is
           sent to the %SDH, instead a #SDH::cSDHErrorInvalidParameter* exception is thrown.
     */
-    std::vector<double> SetAxisValueVector( std::vector<int> const& axes,
-                                            std::vector<double> const& values,
-                                            pSetFunction ll_set,
-                                            pGetFunction ll_get,
-                                            cUnitConverter const* uc,
-                                            std::vector<double> const& min_values,
-                                            std::vector<double> const& max_values,
-                                            char const* name )
-                                            throw (cSDHLibraryException*);
+    void SetAxisValueVector( std::vector<int> const& axes,
+                             std::vector<double> const& values,
+                             pSetFunction ll_set,
+                             pGetFunction ll_get,
+                             cUnitConverter const* uc,
+                             std::vector<double> const& min_values,
+                             std::vector<double> const& max_values,
+                             char const* name )
+        throw (cSDHLibraryException*);
 
 
     //----------------------------------------------------------------------
@@ -586,10 +576,10 @@ public:
        used to set/report parameters to/from %SDH. This is shown in the
        example code below. The default units used (if not overwritten
        by constructor parameters) are:
-       - \c degrees [deg] for (axis) angles
-       - \c degrees \c per \c second [deg/s] for (axis) angular velocities
+       - \c degrees [°] for (axis) angles
+       - \c degrees \c per \c second [°/s] for (axis) angular velocities
        - \c seconds [s] for times
-       - \c degrees \c celsius [deg C] for temperatures
+       - \c degrees \c celsius [°C] for temperatures
 
        \param _use_radians    : Flag, if true then use radians and radians/second
                                 to set/report (axis) angles and angular velocities
@@ -1019,7 +1009,7 @@ public:
       If the library was compiled without ESD CAN support then this will just throw an
       exception. See setting for WITH_ESD_CAN in the top level makefile.
 
-       \param _ntcan_handle : the ESD CAN handle to reuse (please cast your NTCAN_HANDLE to tDeviceHandle! It is save to do that!)
+       \param _ntcan_handle : The ESD CAN handle to reuse to connect to the ESD CAN driver
        \param _timeout : The timeout to use:
                          - <= 0 : wait forever (default)
                          - T  : wait for T seconds
@@ -1029,10 +1019,10 @@ public:
        \par Examples:
        \code
          // Assuming 'hand' is a cSDH object ...
-         // and 'handle' is a valid NTCAN_HANDLE for the ESD device
+         // and 'handle' is a valid ESD NTCAN_HANDLE
 
          // use default parameters for timeout and IDs
-         hand.OpenCAN_ESD( tDeviceHandle(handle) );
+         hand.OpenCAN_ESD( handle );
 
          // or use non default settings:
          // timeout=1.0, id_read=0x143, id_write=0x142
@@ -1042,7 +1032,7 @@ public:
 
        <hr>
     */
-    void OpenCAN_ESD(  tDeviceHandle _ntcan_handle, double _timeout=0.0, Int32 _id_read=43, Int32 _id_write=42 )
+    void OpenCAN_ESD(  NTCAN_HANDLE _ntcan_handle, double _timeout=0.0, Int32 _id_read=43, Int32 _id_write=42 )
         throw (cSDHLibraryException*);
 
 
@@ -1073,7 +1063,7 @@ public:
 
        <hr>
     */
-    void OpenCAN_PEAK( unsigned long _baudrate=1000000, double _timeout=0.0, Int32 _id_read=43, Int32 _id_write=42, const char *_device="/dev/pcanusb0" )
+    void OpenCAN_PEAK( unsigned long _baudrate=1000000, double _timeout=0.0, Int32 _id_read=43, Int32 _id_write=42, const char *device="/dev/pcanusb0" )
         throw (cSDHLibraryException*);
 
 
@@ -1082,20 +1072,21 @@ public:
       If the library was compiled without PEAK CAN support then this will just throw an
       exception. See setting for WITH_PEAK_CAN in the top level makefile.
 
-       \param _handle : The PEAK CAN handle to reuse to connect to the PEAK CAN driver (please cast your PEAK_HANDLE to tDeviceHandle! It is save to do that!)
+       \param _handle : The PEAK CAN handle to reuse to connect to the PEAK CAN driver
        \param _timeout : The timeout to use:
                          - <= 0 : wait forever (default)
                          - T  : wait for T seconds
        \param _id_read  - the CAN ID to use for reading (The %SDH sends data on this ID, default=43=0x2a)
        \param _id_write - the CAN ID to use for writing (The %SDH receives data on this ID, default=42=0x2a)
+       \param _device   - the PEAK device name. Used for the Linux char dev driver only. default="/dev/pcanusb0"
 
        \par Examples:
        \code
          // Assuming 'hand' is a cSDH object ...
-         // and 'handle' is a valid HANDLE for the PEAK device
+         // and 'handle' is a valid PEAK NTCAN_HANDLE
 
          // use default parameters for timeout and IDs
-         hand.OpenCAN_PEAK( tDeviceHandle(handle) );
+         hand.OpenCAN_PEAK( handle );
 
          // or use non default settings:
          // timeout=1.0, id_read=0x143, id_write=0x142
@@ -1105,30 +1096,9 @@ public:
 
        <hr>
     */
-    void OpenCAN_PEAK(  tDeviceHandle _handle, double _timeout=0.0, Int32 _id_read=43, Int32 _id_write=42 )
+    void OpenCAN_PEAK(  PCAN_HANDLE _handle, double _timeout=0.0, Int32 _id_read=43, Int32 _id_write=42 )
         throw (cSDHLibraryException*);
 
-    /*!
-      Open connection to %SDH via TCP using TCP/IP address \a _tcp_adr and \a _tcp_port.
-
-       \param _tcp_adr : The tcp host address of the SDH. Either a numeric IP as string or a hostname
-       \param _tcp_port : the tcp port number on the SDH to connect to
-       \param _timeout : The timeout to use:
-                         - <= 0 : wait forever (default)
-                         - T  : wait for T seconds
-
-       \par Examples:
-       \code
-         // Assuming 'hand' is a cSDH object ...
-
-         // IP-address 192.168.1.1, port 23, timeout=0.0
-         hand.OpenTCP( "192.168.1.1.", 23, 0.0 );
-       \endcode
-
-       <hr>
-    */
-    void OpenTCP( char const* _tcp_adr="192.168.1.1", int _tcp_port=23, double _timeout=0.0 )
-        throw (cSDHLibraryException*);
 
     //-----------------------------------------------------------------
     /*!
@@ -1824,7 +1794,7 @@ public:
 
           // ... insert any calculation here ...
 
-          // Before doing something else with the hand make sure the
+          // Before doing something else with the hand make shure the
           // selected axes have finished the last movement:
           hand.WaitAxis( axes123 );
 
@@ -1876,7 +1846,7 @@ public:
           hand.SetAxisTargetVelocity( axes123, velocities123 ); // this will make the axes break with the default (de)acceleration
 
           // The previous command returned immediately, so
-          // before doing something else with the hand make sure the
+          // before doing something else with the hand make shure the
           // selected axes have stopped:
           hand.WaitAxis( axes123 );
 
@@ -1924,8 +1894,8 @@ public:
           to axis \c axes[i] (not axis \c i).
         - The indices are checked if they are valid axis indices.
         - The angles are checked if they are in the allowed range
-          [#f_min_angle_v .. #f_max_angle_v], i.e. it is checked that \c angles[i],
-          converted to internal units, is in \c [#f_min_angle_v[axes[i]] .. \c f_max_angle_v[axes[i]]].
+          [0 .. #f_max_angle_v], i.e. it is checked that \c angles[i],
+          converted to internal units, is in \c [0 .. \c f_max_angle_v[axes[i]]].
         - If \b any index or value is invalid then \b none of the specified
           values is sent to the %SDH, instead a #SDH::cSDHErrorInvalidParameter*
           exception is thrown.
@@ -1952,10 +1922,10 @@ public:
           hand.SetAxisTargetAngle( hand.all_axes, all_angles );
 
 
-          // Set target axis angle of axis 3 to -42 degrees:
+          // Set target axis angle of axis 3 to -42°:
           hand.SetAxisTargetAngle( 3, -42.0 );
 
-          // Set target angle of for axis 0, 4 and 2 to 0.0, -44.4 and -2.22 degrees respectively:
+          // Set target angle of for axis 0, 4 and 2 to 0.0°, -44.4° and -2.22° respectively:
           std::vector<int> axes042;
           axes042.push_back( 0 );
           axes042.push_back( 4 );
@@ -1968,7 +1938,7 @@ public:
           hand.SetAxisTargetAngle( axes042, angles042 );
 
 
-          // Set target axis angle of all axes to 0 degrees (home-position)
+          // Set target axis angle of all axes to 0° (home-position)
           hand.SetAxisTargetAngle( hand.All, 0.0 );
 
         \endcode
@@ -1987,75 +1957,6 @@ public:
         If \a iAxis is #All then \a motor_current is set for all axes.
     */
     void SetAxisTargetAngle( int iAxis, double angle )
-        throw (cSDHLibraryException*);
-
-
-    //----------------------------------------------------------------------
-    /*!
-        Set the \b target angle(s) and get the \b actual angle(s) for axis(axes).
-
-        Opposed to SetAxisTargetAngle() this will make the fingers move to the
-        set target angles immediately, if the axis controllers are already enabled!
-
-        \param axes       - A vector of axis indices to access.
-        \param angles     - A vector of axis target angles to set. If any
-                            of the numbers in the vector is \c NaN (Not a
-                            Number) then the currently set axis target angle
-                            will be kept for the corresponding axis. The
-                            value(s) are expected in the configured angle
-                            unit system #uc_angle.
-
-        \return the actual angle(s) of the selected axes
-
-        \remark
-        - The lengths of the \a axes and \a angles vector must match.
-        - The indices can be given in any order, but the order of
-          their elements must match, i.e. \c angles[i] will be applied
-          to axis \c axes[i] (not axis \c i).
-        - The indices are checked if they are valid axis indices.
-        - The angles are checked if they are in the allowed range
-          [#f_min_angle_v .. #f_max_angle_v], i.e. it is checked that \c angles[i],
-          converted to internal units, is in \c [#f_min_angle_v[axis[i]] .. \c f_max_angle_v[axes[i]]].
-        - If \b any index or value is invalid then \b none of the specified
-          values is sent to the %SDH, instead a #SDH::cSDHErrorInvalidParameter*
-          exception is thrown.
-
-        \par Examples:
-        \code
-          // Assuming "hand" is a cSDH object ...
-
-          // Set target axis angles of all axes to the given values and read back the actual angle:
-          std::vector<double> all_target_angles;
-          all_target_angles.push_back( 0.0 );
-          all_target_angles.push_back( 11.0 );
-          all_target_angles.push_back( 22.0 );
-          all_target_angles.push_back( 33.0 );
-          all_target_angles.push_back( 44.0 );
-          all_target_angles.push_back( 55.0 );
-          all_target_angles.push_back( 66.0 );
-
-          std::vector<double> all_acutal_angles;
-          all_acutal_angles = hand.SetAxisTargetGetAxisActualAngle( hand.all_axes, all_target_angles );
-
-
-          // Set target angle of for axis 0,4 and 2 to 0.0, 44.4 and 2.22 degrees per second respectively:
-          std::vector<int> axes042;
-          axes042.push_back( 0 );
-          axes042.push_back( 4 );
-          axes042.push_back( 2 );
-          std::vector<double> target_angles042;
-          target_angles042.push_back( 0.0 );
-          target_angles042.push_back( 44.4 );
-          target_angles042.push_back( 2.22 );
-
-          std::vector<double> actual_angles042;
-          actual_angles042 = hand.SetAxisTargetGetAxisActualAngle( axes042, target_angles042 );
-
-        \endcode
-
-        <hr>
-    */
-    std::vector<double> SetAxisTargetGetAxisActualAngle( std::vector<int> const& axes, std::vector<double> const& angles )
         throw (cSDHLibraryException*);
 
 
@@ -2196,8 +2097,7 @@ public:
           not take effect until an additional move command is sent:
           MoveAxis(), MoveFinger(), MoveHand()
         - in eCT_VELOCITY and eCT_VELOCITY_ACCELERATION controller type
-          the new target velocity will take effect immediately,
-          if the axis controllers are already enabled.
+          the new target velocity will take effect immediately.
           This means that in eCT_VELOCITY_ACCELERATION controller type
           the accelerations must be set with SetAxisTargetAcceleration()
           \b before calling SetAxisTargetVelocity().
@@ -2218,13 +2118,9 @@ public:
           their elements must match, i.e. \c velocities[i] will be applied
           to axis \c axes[i] (not axis \c i).
         - The indices are checked if they are valid axis indices.
-        - The velocities are checked if they are in the allowed range:
-          - in eCT_POSE controller type:
-            [0 .. #f_max_velocity_v], i.e. it is checked that \c velocities[i],
-            converted to internal units, is in \c [0 .. \c f_max_velocity_v[axes[i]]].
-          - in eCT_VELOCITY and eCT_VELOCITY_ACCELERATION controller type:
-            [-#f_max_velocity_v .. #f_max_velocity_v], i.e. it is checked that \c velocities[i],
-            converted to internal units, is in \c [-f_max_velocity_v[axes[i]] .. \c f_max_velocity_v[axes[i]]].
+        - The velocities are checked if they are in the allowed range
+          [0 .. #f_max_velocity_v], i.e. it is checked that \c velocities[i],
+          converted to internal units, is in \c [0 .. \c f_max_velocity_v[axes[i]]].
         - If \b any index or value is invalid then \b none of the specified
           values is sent to the %SDH, instead a #SDH::cSDHErrorInvalidParameter*
           exception is thrown.
@@ -2251,10 +2147,10 @@ public:
           hand.SetAxisTargetVelocity( hand.all_axes, all_velocities );
 
 
-          // Set target axis velocity of axis 3 to 42 degrees per second:
+          // Set target axis velocity of axis 3 to 42°/s:
           hand.SetAxisTargetVelocity( 3, 42.0 );
 
-          // Set target velocity of for axis 0,4 and 2 to 0.0, 44.4 and 2.22 degrees per second respectively:
+          // Set target velocity of for axis 0,4 and 2 to 0.0°/s, 44.4°/s and 2.22°/s respectively:
           std::vector<int> axes042;
           axes042.push_back( 0 );
           axes042.push_back( 4 );
@@ -2267,7 +2163,7 @@ public:
           hand.SetAxisTargetVelocity( axes042, velocities042 );
 
 
-          // Set target axis velocity of all axes to 47.11 degrees per second
+          // Set target axis velocity of all axes to 47.11°/s
           hand.SetAxisTargetVelocity( hand.All, 47.11 );
 
         \endcode
@@ -2284,89 +2180,6 @@ public:
         just for a single axis \a iAxis and a single velocity \a velocity, see there for details and examples.
     */
     void SetAxisTargetVelocity( int iAxis, double velocity )
-        throw (cSDHLibraryException*);
-
-
-    //----------------------------------------------------------------------
-    /*!
-        Set the \b target velocity(s) and get the \b actual velocitiy(s) for axis(axes).
-
-        The target velocities are stored in the %SDH. The time at which
-        a new target velocities will take effect depends on the current
-        axis controller type:
-        - in eCT_POSE controller type the new target velocities will
-          not take effect until an additional move command is sent:
-          MoveAxis(), MoveFinger(), MoveHand()
-        - in eCT_VELOCITY and eCT_VELOCITY_ACCELERATION controller type
-          the new target velocity will take effect immediately,
-          if the axis controllers are already enabled.
-          This means that in eCT_VELOCITY_ACCELERATION controller type
-          the accelerations must be set with SetAxisTargetAcceleration()
-          \b before calling SetAxisTargetVelocity().
-
-        \param axes       - A vector of axis indices to access.
-        \param velocities - A vector of axis target velocities to set. If any
-                            of the numbers in the vector is \c NaN (Not a
-                            Number) then the currently set axis target velocity
-                            will be kept for the corresponding axis. The
-                            value(s) are expected in the configured angular
-                            velocity unit system #uc_angular_velocity.
-
-        \return the actual velocity(s) of the selected axes
-
-        \remark
-        - The lengths of the \a axes and \a velocities vector must match.
-        - The indices can be given in any order, but the order of
-          their elements must match, i.e. \c velocities[i] will be applied
-          to axis \c axes[i] (not axis \c i).
-        - The indices are checked if they are valid axis indices.
-        - The velocities are checked if they are in the allowed range:
-          - in eCT_POSE controller type:
-            [0 .. #f_max_velocity_v], i.e. it is checked that \c velocities[i],
-            converted to internal units, is in \c [0 .. \c f_max_velocity_v[axes[i]]].
-          - in eCT_VELOCITY and eCT_VELOCITY_ACCELERATION controller type:
-            [-#f_max_velocity_v .. #f_max_velocity_v], i.e. it is checked that \c velocities[i],
-            converted to internal units, is in \c [-f_max_velocity_v[axes[i]] .. \c f_max_velocity_v[axes[i]]].
-        - If \b any index or value is invalid then \b none of the specified
-          values is sent to the %SDH, instead a #SDH::cSDHErrorInvalidParameter*
-          exception is thrown.
-
-        \par Examples:
-        \code
-          // Assuming "hand" is a cSDH object ...
-
-          // Set target axis velocity of all axes to the given values and read back the actual velocity:
-          std::vector<double> all_target_velocities;
-          all_target_velocities.push_back( 0.0 );
-          all_target_velocities.push_back( 11.0 );
-          all_target_velocities.push_back( 22.0 );
-          all_target_velocities.push_back( 33.0 );
-          all_target_velocities.push_back( 44.0 );
-          all_target_velocities.push_back( 55.0 );
-          all_target_velocities.push_back( 66.0 );
-
-          std::vector<double> all_acutal_velocities;
-          all_acutal_velocities = hand.SetAxisTargetGetAxisActualVelocity( hand.all_axes, all_target_velocities );
-
-
-          // Set target velocity of for axis 0,4 and 2 to 0.0, 44.4 and 2.22 degrees per second respectively:
-          std::vector<int> axes042;
-          axes042.push_back( 0 );
-          axes042.push_back( 4 );
-          axes042.push_back( 2 );
-          std::vector<double> target_velocities042;
-          target_velocities042.push_back( 0.0 );
-          target_velocities042.push_back( 44.4 );
-          target_velocities042.push_back( 2.22 );
-
-          std::vector<double> actual_velocities042;
-          actual_velocities042 = hand.SetAxisTargetGetAxisActualVelocity( axes042, target_velocities042 );
-
-        \endcode
-
-        <hr>
-    */
-    std::vector<double> SetAxisTargetGetAxisActualVelocity( std::vector<int> const& axes, std::vector<double> const& velocities )
         throw (cSDHLibraryException*);
 
 
@@ -2748,10 +2561,10 @@ public:
           hand.SetAxisTargetAcceleration( hand.all_axes, all_accelerations );
 
 
-          // Set target axis acceleration of axis 3 to 420 degrees per square-second:
+          // Set target axis acceleration of axis 3 to 420°/s²:
           hand.SetAxisTargetAcceleration( 3, 420.0 );
 
-          // Set target acceleration of for axis 0,4 and 2 to 0.0, 444.0 and 222 degrees per square-second respectively:
+          // Set target acceleration of for axis 0,4 and 2 to 0.0°/s², 444.0°/s² and 222°/s² respectively:
           std::vector<int> axes042;
           axes042.push_back( 0 );
           axes042.push_back( 4 );
@@ -2764,7 +2577,7 @@ public:
           hand.SetAxisTargetAcceleration( axes042, accelerations042 );
 
 
-          // Set target axis acceleration of all axes to 142.1 degrees per square-second
+          // Set target axis acceleration of all axes to 142.1°/s
           hand.SetAxisTargetAcceleration( hand.All, 142.1 );
 
         \endcode
@@ -3193,7 +3006,7 @@ public:
           // First move Axis 0 only to its new target position:
           hand.MoveAxis( 0 );
 
-          // The axis 0 has now reached its target position 0.0 degrees.  The
+          // The axis 0 has now reached its target position 0.0°.  The
           // target poses for axes 4 and 2 are still set since the
           // last MoveAxes() call was sequentially (und thus it could
           // restore the previously set target axis angles of not
@@ -3463,7 +3276,7 @@ public:
         \code
           // Assuming "hand" is a cSDH object ...
 
-          // Set target axis angles of finger 0 to { 10.0, -08.15, 47.11 } degrees
+          // Set target axis angles of finger 0 to { 10.0°, -08.15°, 47.11° }
           std::vector<double> angles;
           angles.push_back( 10.0 );
           angles.push_back( -08.15 );
@@ -3472,14 +3285,14 @@ public:
           hand.SetFingerTargetAngle( 0, angles );
 
 
-          // Set target axis angles of finger 1 to { 0.0, 24.7, 17.4 } degrees
+          // Set target axis angles of finger 1 to { 0.0°, 24.7°, 17.4° }
           angles[0] = 0.0;   // "virtual" base axis of finger 1
           angles[1] = 24.7;
           angles[2] = 17.4;
           hand.SetFingerTargetAngle( 1, { 0.0, 24.7, 17.4 } );
 
 
-          // Set target axis angles of all axes of finger 0 to 12.34 degrees
+          // Set target axis angles of all axes of finger 0 to 12.34°
           hand.SetFingerTargetAngle( 0, 12.34, 12.34, 12.34 );
 
 
@@ -4036,13 +3849,13 @@ public:
         \code
           // Assuming 'hand' is a cSDH object ...
 
-          // Perform a fully opened centrical grip at 50 degrees per second:
+          // Perform a fully opened centrical grip at 50°/s:
           hand.GripHand( hand.eGID_CENTRICAL, 0.0, 50.0, true );
 
-          // Now close it 50% with 30 degrees per second:
+          // Now close it 50% with 30°/s:
           hand.GripHand( hand.eGID_CENTRICAL, 0.5, 30.0, true );
 
-          // Then close it completely with 20 degrees per second:
+          // Then close it completely with 20°/s:
           hand.GripHand( hand.eGID_CENTRICAL, 1.0, 20.0, true );
         \endcode
 
