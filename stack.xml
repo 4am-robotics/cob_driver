@@ -1,7 +1,7 @@
 <stack>
   <description brief="Care-O-bot stack with driver packages">
 
-     The cob_driver stack includes packages that provide access to the Care-O-bot hardware over ROS messages and services. E.g. for mobile base, arm, camera_sensors, scanners, etc...
+     The cob_driver stack includes packages that provide access to the Care-O-bot hardware through ROS messages, services and actions. E.g. for mobile base, arm, camera sensors, laser scanners, etc...
 
   </description>
   <author>Maintained by Florian Weisshardt</author>
