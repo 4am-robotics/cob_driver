@@ -25,7 +25,7 @@
   <depend stack="pr2_controllers" /> <!-- pr2_controllers_msgs -->
   <depend stack="robot_model" /> <!-- collada_urdf, urdf, kdl_parser -->
   <depend stack="ros" /> <!-- roslib -->
-  <depend stack="ros_comm" /> <!-- rospy, rostest, std_msgs, roscpp, message_filters -->
+  <depend stack="ros_comm" /> <!-- std_msgs, rostest, rospy, roscpp, message_filters -->
   <depend stack="vision_opencv" /> <!-- opencv2, cv_bridge -->
 
 </stack>
