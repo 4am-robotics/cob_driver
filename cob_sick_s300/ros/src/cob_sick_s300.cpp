@@ -100,15 +100,15 @@ class NodeClass
         NodeClass()
         {
 			// create a handle for this node, initialize node
-	    	ros::NodeHandle private_nh_("~");
+	    	//ros::NodeHandle private_nh_("~");
             // initialize global variables
-			private_nh_.param<std::string>("port", port, "/dev/ttyUSB0");
-			private_nh_.param<int>("baud", baud, 500000);
-			private_nh_.param<int>("scan_id", scan_id, 7);
-			private_nh_.param<bool>("inverted", inverted, false);
-			private_nh_.param<std::string>("frame_id", frame_id, "/base_laser_link");
-            private_nh_.param<int>("start_scan", start_scan, 0);
-            private_nh_.param<int>("stop_scan", stop_scan, 541);
+			nodeHandle.param<std::string>("port", port, "/dev/ttyUSB0");
+			nodeHandle.param<int>("baud", baud, 500000);
+			nodeHandle.param<int>("scan_id", scan_id, 7);
+			nodeHandle.param<bool>("inverted", inverted, false);
+			nodeHandle.param<std::string>("frame_id", frame_id, "/base_laser_link");
+            nodeHandle.param<int>("start_scan", start_scan, 0);
+            nodeHandle.param<int>("stop_scan", stop_scan, 541);
 
         	// implementation of topics to publish
             topicPub_LaserScan = nodeHandle.advertise<sensor_msgs::LaserScan>("scan", 1);
