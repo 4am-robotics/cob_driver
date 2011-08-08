@@ -17,9 +17,9 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/lib)
 
 #uncomment if you have defined messages
-#genmsg()
+#rosbuild_genmsg()
 #uncomment if you have defined services
-#gensrv()
+rosbuild_gensrv()
 
 #common commands for building c++ executables and libraries
 #rospack_add_library(${PROJECT_NAME} src/example.cpp)
@@ -45,27 +45,27 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 
 # add project executable
-rosbuild_add_executable(tof_camera ros/src/tof_camera.cpp)
-rosbuild_add_executable(tof_camera_viewer ros/src/tof_camera_viewer.cpp)
-rosbuild_add_executable(color_camera ros/src/color_camera.cpp)
-rosbuild_add_executable(all_cameras ros/src/all_cameras.cpp)
-rosbuild_add_executable(all_camera_viewer ros/src/all_camera_viewer.cpp)
-rosbuild_add_executable(undistort_tof ros/src/undistort_tof.cpp)
+#rosbuild_add_executable(tof_camera ros/src/tof_camera.cpp)
+#rosbuild_add_executable(tof_camera_viewer ros/src/tof_camera_viewer.cpp)
+#rosbuild_add_executable(color_camera ros/src/color_camera.cpp)
+#rosbuild_add_executable(all_cameras ros/src/all_cameras.cpp)
+#rosbuild_add_executable(all_camera_viewer ros/src/all_camera_viewer.cpp)
+#rosbuild_add_executable(undistort_tof ros/src/undistort_tof.cpp)
 
 # add include search paths
 #INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 # add compile flag
 rosbuild_add_compile_flags(cob_camera_sensors -D__LINUX__ -D__COB_ROS__)
-rosbuild_add_compile_flags(tof_camera -D__LINUX__ -D__COB_ROS__)
-rosbuild_add_compile_flags(tof_camera_viewer -D__LINUX__ -D__COB_ROS__)
-rosbuild_add_compile_flags(color_camera -D__LINUX__ -D__COB_ROS__)
-rosbuild_add_compile_flags(all_cameras -D__LINUX__ -D__COB_ROS__)
-rosbuild_add_compile_flags(all_camera_viewer -D__LINUX__ -D__COB_ROS__ -D__ROS_1_1__)
+#rosbuild_add_compile_flags(tof_camera -D__LINUX__ -D__COB_ROS__)
+#rosbuild_add_compile_flags(tof_camera_viewer -D__LINUX__ -D__COB_ROS__)
+#rosbuild_add_compile_flags(color_camera -D__LINUX__ -D__COB_ROS__)
+#rosbuild_add_compile_flags(all_cameras -D__LINUX__ -D__COB_ROS__)
+#rosbuild_add_compile_flags(all_camera_viewer -D__LINUX__ -D__COB_ROS__ -D__ROS_1_1__)
 
 # link libraries
 target_link_libraries(cob_camera_sensors mesasr dc1394)
-target_link_libraries(tof_camera cob_camera_sensors usb)
-target_link_libraries(tof_camera_viewer cob_camera_sensors)
-target_link_libraries(color_camera cob_camera_sensors)
-target_link_libraries(all_cameras cob_camera_sensors usb)
+#target_link_libraries(tof_camera cob_camera_sensors usb)
+#target_link_libraries(tof_camera_viewer cob_camera_sensors)
+#target_link_libraries(color_camera cob_camera_sensors)
+#target_link_libraries(all_cameras cob_camera_sensors usb)

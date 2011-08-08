@@ -18,9 +18,9 @@
 
     \subsection sdhlibrary_cpp_sdhexception_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2009-06-17 10:55:45 +0200 (Mi, 17 Jun 2009) $
+      $LastChangedDate: 2011-03-09 11:55:11 +0100 (Mi, 09 Mrz 2011) $
       \par SVN file revision:
-        $Id: sdhexception.h 4605 2009-06-17 08:55:45Z Osswald2 $
+        $Id: sdhexception.h 6526 2011-03-09 10:55:11Z Osswald2 $
 
   \subsection sdhlibrary_cpp_sdhexception_h_changelog Changelog of this file:
       \include sdhexception.h.log
@@ -74,13 +74,13 @@ NAMESPACE_SDH_START
 
     See #SDH::cSDHLibraryException::cSDHLibraryException() for exemplary use.
 */
-class cMsg
+class VCC_EXPORT cMsg
 {
 protected:
 
   //! anonymous enum instead of define macros
   enum {
-    eMAX_MSG = 256 //!< maximum length in bytes of a message to store
+    eMAX_MSG = 512 //!< maximum length in bytes of a message to store
   };
 
   char msg[ eMAX_MSG ];
@@ -111,7 +111,7 @@ public:
 
 };
 
-std::ostream &operator<<(std::ostream &stream, cMsg const &msg);
+VCC_EXPORT std::ostream &operator<<(std::ostream &stream, cMsg const &msg);
 
 
 //======================================================================
@@ -129,7 +129,7 @@ std::ostream &operator<<(std::ostream &stream, cMsg const &msg);
    See the verbose description of the constructor
    #SDH::cSDHLibraryException::cSDHLibraryException() for examplary use.
 */
-class cSDHLibraryException: public std::exception
+class VCC_EXPORT cSDHLibraryException: public std::exception
 {
 
 protected:
@@ -159,7 +159,7 @@ public:
         looks like:
       \code
       // Derived exception class for more specific exceptions:
-      class cDerivedException : public cSDHLibraryException
+      class VCC_EXPORT cDerivedException : public cSDHLibraryException
       {
       public:
         cDerivedException( cMsg const & _msg )
@@ -203,7 +203,7 @@ public:
 /*!
    \brief Derived exception class for exceptions related to communication between the SDHLibrary and the %SDH.
 */
-class cSDHErrorCommunication: public cSDHLibraryException
+class VCC_EXPORT cSDHErrorCommunication: public cSDHLibraryException
 {
 public:
   cSDHErrorCommunication( cMsg const & _msg )
@@ -216,7 +216,7 @@ public:
 };
 //-----------------------------------------------------------------
 
-std::ostream &operator<<(std::ostream &stream, cSDHLibraryException const &e);
+VCC_EXPORT std::ostream &operator<<(std::ostream &stream, cSDHLibraryException const &e);
 
 //======================================================================
 

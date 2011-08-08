@@ -17,9 +17,9 @@
 
     \subsection sdhlibrary_cpp_rs232_vcc_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2009-08-31 15:46:47 +0200 (Mo, 31 Aug 2009) $
+      $LastChangedDate: 2011-03-09 11:55:11 +0100 (Mi, 09 Mrz 2011) $
       \par SVN file revision:
-        $Id: rs232-vcc.h 4766 2009-08-31 13:46:47Z Osswald2 $
+        $Id: rs232-vcc.h 6526 2011-03-09 10:55:11Z Osswald2 $
 
   \subsection sdhlibrary_cpp_rs232_vcc_h_changelog Changelog of this file:
       \include rs232-vcc.h.log
@@ -57,8 +57,7 @@
 
 NAMESPACE_SDH_START
 
-
-class cRS232Exception: public cSerialBaseException
+class VCC_EXPORT cRS232Exception: public cSerialBaseException
 {
 public:
     cRS232Exception( cMsg const & _msg )
@@ -69,7 +68,7 @@ public:
 /*!
 \brief Low-level communication class to access a serial port on VCC Windows
 */
-class cRS232 : public cSerialBase
+class VCC_EXPORT cRS232 : public cSerialBase
 {
 private:
 #ifndef RS_232_TEST
@@ -132,6 +131,12 @@ public:
 
     char* readline(char* line, int size, char* eol, bool return_on_less_data)
     throw (cRS232Exception*);
+
+    //! overloaded from cSerialBase::UseCRC16 since we want to use a CRC16 to protect binary RS232 communication
+    virtual bool UseCRC16()
+    {
+        return true;
+    }
 };
 
 NAMESPACE_SDH_END
