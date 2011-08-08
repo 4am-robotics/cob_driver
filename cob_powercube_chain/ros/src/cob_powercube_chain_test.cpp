@@ -63,7 +63,6 @@
 #include <actionlib/client/terminal_state.h>
 
 // ROS message includes
-//#include <cob_msgs/JointCommand.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <pr2_controllers_msgs/JointTrajectoryAction.h>
 

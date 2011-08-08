@@ -18,9 +18,9 @@
 
     \subsection sdhlibrary_cpp_sdhserial_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2011-03-09 11:55:11 +0100 (Mi, 09 Mrz 2011) $
+      $LastChangedDate: 2010-02-02 10:35:37 +0100 (Di, 02 Feb 2010) $
       \par SVN file revision:
-        $Id: sdhserial.h 6526 2011-03-09 10:55:11Z Osswald2 $
+        $Id: sdhserial.h 5186 2010-02-02 09:35:37Z Osswald2 $
 
   \subsection sdhlibrary_cpp_sdhserial_h_changelog Changelog of this file:
       \include sdhserial.h.log
@@ -56,7 +56,8 @@
 // Defines, enums, unions, structs,
 //----------------------------------------------------------------------
 
-#include "sdh_codes.h"
+NAMESPACE_SDH_START
+
 
 //----------------------------------------------------------------------
 // Global variables
@@ -72,11 +73,6 @@
 // Class declarations
 //----------------------------------------------------------------------
 
-NAMESPACE_SDH_START
-
-// forward declarations of privatly used structures:
-struct sSDHBinaryRequest;
-struct sSDHBinaryResponse;
 
 /*!
   \brief The class to communicate with a %SDH via RS232.
@@ -88,11 +84,8 @@ struct sSDHBinaryResponse;
 
    <hr>
 */
-class VCC_EXPORT cSDHSerial : public cSDHBase
+class cSDHSerial : public cSDHBase
 {
-    friend struct sSDHBinaryRequest;
-    friend struct sSDHBinaryResponse;
-
 protected:
     /*!
         \brief additional time in seconds to wait for sequential execution of m
@@ -229,12 +222,6 @@ public:
         throw( cSDHErrorCommunication* );
 
     /*!
-      Read all available bytes within \a timeout_s seconds to resync execution of PC and %SDH.
-     */
-    void BinarySync( double timeout_s = 0.5 )
-        throw( cSDHErrorCommunication* );
-
-    /*!
       Read an unknown number of lines from %SDH to resync execution of PC and %SDH.
      */
     void SyncUnknown( )
@@ -255,22 +242,6 @@ public:
           values are set accordingly, a NUMBER_OF_AXES-list is returned.
     */
     cSimpleVector AxisCommand( char const* command, int axis=All, double* value=NULL )
-        throw (cSDHLibraryException*);
-
-    /*!
-        Get/Set values using binary mode.
-
-        - If axis is All and value is None then a
-          NUMBER_OF_AXES-list of the actual values
-          read from the %SDH is returned
-        - If axis is a single number and value is None then the
-          actual value for that axis is read from the %SDH and is returned
-        - If axis and value are single numbers then that value
-          is set for that axis and returned.
-        - If axis is All and value is a NUMBER_OF_AXES-vector then all axes
-          values are set accordingly, a NUMBER_OF_AXES-list is returned.
-    */
-    cSimpleVector BinaryAxisCommand( eCommandCode command, int axis=All, double* value=NULL )
         throw (cSDHLibraryException*);
 
 
@@ -446,31 +417,6 @@ public:
 
     //-----------------------------------------------------------------
     /*!
-        Set target velocity and get actual velocity!)
-
-        The default velocity is 40 deg/s for axes 0-6 in eCT_POSE controller type.
-        The default velocity is 0.0 deg/s for axes 0-6 in eCT_VELOCITY and eCT_VELOCITY_ACCELERATION controller types.
-
-        - If axis is All and velocity is None then a NUMBER_OF_AXES-list
-          of the actual velocities is returned
-        - If axis is a single number and velocity is None then the
-          actual velocity for that axis is returned.
-        - If axis and velocity are single numbers then the target
-          velocity for that axis is set and the actual velocity is returned.
-        - If axis is All and velocity is a NUMBER_OF_AXES-vector
-          then all axes target velocities are set accordingly, the NUMBER_OF_AXES-list
-          of actual velocities is returned.
-
-        Velocities are set/reported in degrees per second.
-
-        \bug With %SDH firmware < 0.0.1.0 axis 0 can go no faster than 14 deg/s
-        <br><b>=> Resolved in %SDH firmware 0.0.1.0</b>
-    */
-    cSimpleVector tvav( int axis=All, double* velocity=NULL )
-        throw (cSDHLibraryException*);
-
-    //-----------------------------------------------------------------
-    /*!
         Get velocity limits.
 
         - If axis is All then a NUMBER_OF_AXES-list
@@ -541,25 +487,6 @@ public:
         Angles are set/reported in degrees.
     */
     cSimpleVector p( int axis=All, double* angle=NULL )
-        throw (cSDHLibraryException*);
-
-    //-----------------------------------------------------------------
-    /*!
-        Set target angle and get actual angle for axis.
-
-        - If axis is All and angle is None then a NUMBER_OF_AXES-list
-          of the actual angles is returned
-        - If axis is a single number and angle is None then the
-          actual angle for that axis is returned.
-        - If axis and angle are single numbers then the target
-          angle for that axis is set and the actual angles are returned.
-        - If axis is All and angle is a NUMBER_OF_AXES-vector
-          then all axes target angles are set accordingly, the NUMBER_OF_AXES-list
-          of actual angles is returned.
-
-        Angles are set/reported in degrees.
-    */
-    cSimpleVector tpap( int axis=All, double* angle=NULL )
         throw (cSDHLibraryException*);
 
     //-----------------------------------------------------------------

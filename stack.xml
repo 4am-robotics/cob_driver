@@ -1,7 +1,7 @@
 <stack>
   <description brief="Care-O-bot stack with driver packages">
 
-     The cob_driver stack includes packages that provide access to the Care-O-bot hardware over ROS messages and services. E.g. for mobile base, arm, camera_sensors, scanners, etc...
+     The cob_driver stack includes packages that provide access to the Care-O-bot hardware through ROS messages, services and actions. E.g. for mobile base, arm, camera sensors, laser scanners, etc...
 
   </description>
   <author>Maintained by Florian Weisshardt</author>
@@ -9,23 +9,23 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_driver</url>
   <depend stack="camera_drivers" /> <!-- prosilica_camera -->
-  <depend stack="cob_common" /> <!-- cob_msgs, brics_actuator, cob_utilities, cob_vision_utils, cob_srvs, cob_description -->
-  <depend stack="cob_extern" /> <!-- libpcan, libmesasr, libm5api, brics_oodl_scanner_libs, libntcan -->
-  <depend stack="common" /> <!-- actionlib, nodelet, tinyxml -->
+  <depend stack="cob_common" /> <!-- cob_utilities, cob_srvs, cob_description, cob_vision_utils, brics_actuator -->
+  <depend stack="cob_extern" /> <!-- libmesasr, libm5api, brics_oodl_scanner_libs, libphidgets, libpcan, libntcan -->
+  <depend stack="common" /> <!-- actionlib, nodelet, tinyxml, pluginlib -->
   <depend stack="common_msgs" /> <!-- nav_msgs, trajectory_msgs, sensor_msgs, geometry_msgs, visualization_msgs, diagnostic_msgs -->
   <depend stack="diagnostics" /> <!-- diagnostic_updater -->
   <depend stack="geometry" /> <!-- tf, kdl, eigen, tf_conversions -->
   <depend stack="image_common" /> <!-- polled_camera, image_transport -->
   <depend stack="joystick_drivers" /> <!-- joy -->
-  <depend stack="kinematics" /> <!-- kinematics_msgs -->
+  <depend stack="kinematics" /> <!-- kinematics_base, kinematics_msgs -->
   <depend stack="laser_drivers" /> <!-- hokuyo_node -->
+  <depend stack="laser_pipeline" /> <!-- laser_geometry -->
   <depend stack="openni_kinect" /> <!-- openni_camera -->
   <depend stack="perception_pcl" /> <!-- pcl, pcl_ros -->
   <depend stack="pr2_controllers" /> <!-- pr2_controllers_msgs -->
-  <depend stack="pr2_kinematics" /> <!-- pr2_arm_kinematics -->
-  <depend stack="robot_model" /> <!-- urdf, kdl_parser -->
+  <depend stack="robot_model" /> <!-- collada_urdf, urdf, kdl_parser -->
   <depend stack="ros" /> <!-- roslib -->
-  <depend stack="ros_comm" /> <!-- rospy, rostest, std_msgs, roscpp -->
+  <depend stack="ros_comm" /> <!-- std_msgs, rostest, rospy, roscpp, message_filters -->
   <depend stack="vision_opencv" /> <!-- opencv2, cv_bridge -->
 
 </stack>

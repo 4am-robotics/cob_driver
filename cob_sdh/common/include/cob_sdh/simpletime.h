@@ -18,9 +18,9 @@
 
     \subsection sdhlibrary_cpp_simpletime_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2011-03-09 11:55:11 +0100 (Mi, 09 Mrz 2011) $
+      $LastChangedDate: 2008-08-08 19:05:54 +0200 (Fr, 08 Aug 2008) $
       \par SVN file revision:
-        $Id: simpletime.h 6526 2011-03-09 10:55:11Z Osswald2 $
+        $Id: simpletime.h 3444 2008-08-08 17:05:54Z Osswald2 $
 
   \subsection sdhlibrary_cpp_simpletime_h_changelog Changelog of this file:
       \include simpletime.h.log
@@ -70,18 +70,11 @@ NAMESPACE_SDH_START
 // Class declarations
 //----------------------------------------------------------------------
 
-#if SDH_USE_VCC
-typedef long        tTimevalSec;
-typedef long        tTimevalUSec;
-#else
-typedef time_t      tTimevalSec;
-typedef suseconds_t tTimevalUSec;
-#endif
 
 /*!
   \brief Very simple class to measure elapsed time
 */
-class VCC_EXPORT cSimpleTime
+class cSimpleTime
 {
 protected:
 #if SDH_USE_VCC

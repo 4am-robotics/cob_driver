@@ -92,8 +92,8 @@ class NodeClass
       nodeHandle.param<int>("stop_right_scan", stop_right_scan, 681);
 	  nodeHandle.param<int>("start_tray_filter", start_tray_filter, 442);
       nodeHandle.param<int>("stop_tray_filter", stop_tray_filter, 520);
-	  nodeHandle.param<double>("tray_filter_min_angle", tray_filter_min_angle, 0);
-      nodeHandle.param<double>("tray_filter_max_angle", tray_filter_max_angle, 1.57);
+	  nodeHandle.param<double>("tray_filter_min_angle", tray_filter_min_angle, -2.941);
+      nodeHandle.param<double>("tray_filter_max_angle", tray_filter_max_angle, -1.1431);
       // implementation of topics to publish
       topicPub_LaserScan = nodeHandle.advertise<sensor_msgs::LaserScan>("scan_top_filtered", 1);
       topicPub_LaserScan_self = nodeHandle.advertise<sensor_msgs::LaserScan>("scan_top_self_filtered", 1);

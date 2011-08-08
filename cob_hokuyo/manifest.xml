@@ -8,6 +8,7 @@
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_hokuyo</url>
+
   <depend package="roscpp"/>
   <depend package="sensor_msgs"/>
   <depend package="pr2_controllers_msgs"/>
