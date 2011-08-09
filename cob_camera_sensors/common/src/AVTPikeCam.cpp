@@ -50,12 +50,17 @@
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
+#include "../include/cob_camera_sensors/StdAfx.h"
 
 #ifdef __LINUX__
 #include "cob_camera_sensors/AVTPikeCam.h"
+#include "tinyxml.h"
 #else
 #include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/AVTPikeCam.h"
+#include "cob_vision/windows/src/extern/TinyXml/tinyxml.h"
 #endif
+
+#include <iostream>
 
 using namespace std;
 using namespace ipa_CameraSensors;

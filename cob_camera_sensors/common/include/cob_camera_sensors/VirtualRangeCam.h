@@ -59,6 +59,8 @@
 #ifndef __IPA_VIRTUALRANGECAM_H__
 #define __IPA_VIRTUALRANGECAM_H__
 
+#include "StdAfx.h"
+
 #ifdef __LINUX__
 	#include <cob_camera_sensors/AbstractRangeImagingSensor.h>
 #else
@@ -71,17 +73,6 @@
 #include <sstream>
 
 #include <boost/filesystem.hpp>
-
-#ifdef SWIG
-%module Sensors3D
-
-%{
-	#include "Swissranger.h"
-%}
-#endif
-
-namespace fs = boost::filesystem;
-using namespace ipa_Utils;
 
 namespace ipa_CameraSensors {
 
