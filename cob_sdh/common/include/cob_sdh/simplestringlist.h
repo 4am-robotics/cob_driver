@@ -18,9 +18,9 @@
 
     \subsection sdhlibrary_cpp_simplestirnglist_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2011-03-09 11:55:11 +0100 (Mi, 09 Mrz 2011) $
+      $LastChangedDate: 2009-08-31 15:46:47 +0200 (Mo, 31 Aug 2009) $
       \par SVN file revision:
-        $Id: simplestringlist.h 6526 2011-03-09 10:55:11Z Osswald2 $
+        $Id: simplestringlist.h 4766 2009-08-31 13:46:47Z Osswald2 $
 
   \subsection sdhlibrary_cpp_simplestirnglist_h_changelog Changelog of this file:
       \include simplestringlist.h.log
@@ -67,7 +67,7 @@ NAMESPACE_SDH_START
 
 
 //! A simple string list. (Fixed maximum number of strings of fixed maximum length)
-class VCC_EXPORT cSimpleStringList
+class cSimpleStringList
 {
 public:
 
@@ -124,7 +124,7 @@ protected:
 
 
 //! Output of cSimpleStringList objects in 'normal' output streams.
-VCC_EXPORT std::ostream& operator<<( std::ostream& stream, cSimpleStringList const& ssl );
+std::ostream& operator<<( std::ostream& stream, cSimpleStringList const& ssl );
 
 
 //-----------------------------------------------------------------
