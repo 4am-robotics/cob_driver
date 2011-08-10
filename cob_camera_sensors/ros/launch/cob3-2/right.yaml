@@ -24,8 +24,8 @@ exposure:          0.009
 auto_gain:         True
 gain:              1
 auto_whitebalance: True
-frame_id: head_color_camera_r_link
-stream_bytes_per_second: 54000000
+frame_id: head_color_camera_l_link
+stream_bytes_per_second: 55000000
 auto_adjust_stream_bytes_per_second: False
-trigger_mode: streaming
+trigger_mode: syncin1
 packet_size: 9000
