@@ -26,6 +26,7 @@
   <depend package="collada_urdf"/>
   <depend package="pluginlib"/>
   <depend package="kinematics_base"/>
+  <depend package="arm_navigation_msgs"/>
   <export>
     <kinematics_base plugin="${prefix}/cob_manipulator_plugins.xml" />
   </export>
