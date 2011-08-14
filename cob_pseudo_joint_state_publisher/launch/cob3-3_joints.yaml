@@ -1,0 +1,7 @@
+PseudoJoints: ['floating_trans_x', 'floating_trans_y', 'floating_trans_z', 'floating_rot_x', 'floating_rot_y', 'floating_rot_z', 'fl_caster_rotation_joint', 'fl_caster_r_wheel_joint', 'fr_caster_rotation_joint', 'fr_caster_r_wheel_joint', 'bl_caster_rotation_joint', 'bl_caster_r_wheel_joint', 'br_caster_rotation_joint', 'br_caster_r_wheel_joint', 'torso_tray_joint', 'torso_lower_neck_tilt_joint', 'torso_pan_joint', 'torso_upper_neck_tilt_joint', 'arm_1_joint', 'arm_2_joint', 'arm_3_joint', 'arm_4_joint', 'arm_5_joint', 'arm_6_joint', 'arm_7_joint', 'head_axis_joint', 'sdh_finger_21_joint', 'sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
+
+
+
+
+
+
