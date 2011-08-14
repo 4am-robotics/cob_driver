@@ -10,6 +10,7 @@
   <url>http://ros.org/wiki/cob_camera_sensors</url>
 
   <depend package="roscpp"/>
+  <depend package="rostest"/>
   <depend package="sensor_msgs"/>
   <depend package="tinyxml"/>
   <depend package="opencv2"/>
