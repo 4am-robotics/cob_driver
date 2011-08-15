@@ -57,6 +57,8 @@
 #include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/VirtualRangeCam.h"
 #endif
 
+#include <opencv/highgui.h>
+
 using namespace ipa_CameraSensors;
 
 __DLL_LIBCAMERASENSORS__ AbstractRangeImagingSensorPtr ipa_CameraSensors::CreateRangeImagingSensor_VirtualCam()

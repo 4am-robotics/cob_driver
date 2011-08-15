@@ -75,6 +75,8 @@
 	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/VisionUtils.h"
 #endif
 
+#include <boost/shared_ptr.hpp>
+
 namespace ipa_CameraSensors {
 
 /// Define smart pointer type for toolbox
