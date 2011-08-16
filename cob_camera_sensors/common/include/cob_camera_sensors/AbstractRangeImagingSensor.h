@@ -59,21 +59,17 @@
 #ifndef __IPA_ABSTRACTRANGEIMAGINGSENSOR_H__
 #define __IPA_ABSTRACTRANGEIMAGINGSENSOR_H__
 
+#include "StdAfx.h"
+
 #ifdef __LINUX__
 	#include "cob_vision_utils/CameraSensorDefines.h"
-
-	#include "tinyxml/tinyxml.h"
-
-	#include "cob_vision_utils/VisionUtils.h"
 	#include "cob_vision_utils/CameraSensorTypes.h"
 #else
 	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/CameraSensorDefines.h"
-
-	#include "cob_vision/windows/src/extern/TinyXml/tinyxml.h"
-
-	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/VisionUtils.h"
 	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/CameraSensorTypes.h"
 #endif
+
+#include <opencv/cv.h>
 
 #include <iostream>
 #include <limits>
@@ -220,7 +216,7 @@ public:
 	/// Resets the image directory read from the configuration file.
 	/// @param path The camera path
 	/// @return Return code
-	virtual unsigned long SetPathToImages(std::string path) {return ipa_Utils::RET_OK;};
+	virtual unsigned long SetPathToImages(std::string path);
 
 	unsigned int m_ImageCounter; ///< Holds the index of the image that is extracted during the next call of <code>AcquireImages</code>
 
