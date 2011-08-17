@@ -125,7 +125,7 @@ namespace ipa_CameraSensors
     {
       node_handle_ = getNodeHandle();
       it_ = new image_transport::ImageTransport(node_handle_);
-      sync_pointcloud_ = new message_filters::Synchronizer<message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, sensor_msgs::Image> >(2);
+      sync_pointcloud_ = new message_filters::Synchronizer<message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, sensor_msgs::Image> >(1);//(2);  //todo: what does this parameter mean
       color_camera_image_pub_ = it_->advertise("rgb/upright/image_color", 1);
       point_cloud_pub_ = node_handle_.advertise<sensor_msgs::PointCloud2>("depth/upright/points", 1);
       
@@ -187,8 +187,12 @@ namespace ipa_CameraSensors
       if (turnAround==false)
       {
         // image upright, robot is watching backwards
-        color_camera_image_pub_.publish(color_image_msg);
-        point_cloud_pub_.publish(point_cloud_msg);
+    	sensor_msgs::Image color_image_turned_msg = *color_image_msg;
+    	color_image_turned_msg.header.stamp = ros::Time::now();
+        color_camera_image_pub_.publish(color_image_turned_msg);
+        sensor_msgs::PointCloud2 point_cloud_turned_msg = *point_cloud_msg;
+        point_cloud_turned_msg.header.stamp = ros::Time::now();
+        point_cloud_pub_.publish(point_cloud_turned_msg);
       }
       else
       {
@@ -200,7 +204,7 @@ namespace ipa_CameraSensors
         convertColorImageMessageToMat(color_image_msg, color_image_ptr, color_image);
         
         // point cloud
-        pcl::PointCloud<pcl::PointXYZRGB> point_cloud_src;
+        pcl::PointCloud<pcl::PointXYZ> point_cloud_src;
         pcl::fromROSMsg(*point_cloud_msg, point_cloud_src);
 
         // rotate images by 180 degrees
@@ -228,7 +232,7 @@ namespace ipa_CameraSensors
         }
         
         // point cloud
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_turned(new pcl::PointCloud<pcl::PointXYZRGB>);
+        pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud_turned(new pcl::PointCloud<pcl::PointXYZ>);
         for (int v=(int)point_cloud_src.height-1; v>=0; v--)
         {
           for (int u=(int)point_cloud_src.width-1; u>=0; u--)
@@ -243,7 +247,7 @@ namespace ipa_CameraSensors
         cv_ptr.image = color_image_turned;
         cv_ptr.encoding = "bgr8";
         sensor_msgs::Image::Ptr color_image_turned_msg = cv_ptr.toImageMsg();
-        color_image_turned_msg->header.stamp = color_image_msg->header.stamp;
+        color_image_turned_msg->header.stamp = ros::Time::now(); //color_image_msg->header.stamp;
         color_camera_image_pub_.publish(color_image_turned_msg);
         
         
@@ -254,7 +258,10 @@ namespace ipa_CameraSensors
         //point_cloud_turned->sensor_orientation_ = point_cloud_msg->sensor_orientation_;
         //point_cloud_turned->sensor_origin_ = point_cloud_msg->sensor_origin_;
         point_cloud_turned->is_dense = point_cloud_msg->is_dense;
-        point_cloud_pub_.publish(point_cloud_turned);
+        sensor_msgs::PointCloud2::Ptr point_cloud_turned_msg(new sensor_msgs::PointCloud2);
+        pcl::toROSMsg(*point_cloud_turned, *point_cloud_turned_msg);
+        point_cloud_turned_msg->header.stamp = ros::Time::now();
+        point_cloud_pub_.publish(point_cloud_turned_msg);
         
   //      cv::namedWindow("test");
   //      cv::imshow("test", color_image_turned);

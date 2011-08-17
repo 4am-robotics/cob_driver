@@ -18,9 +18,9 @@
 
     \subsection sdhlibrary_cpp_simplevector_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2009-06-17 10:55:45 +0200 (Mi, 17 Jun 2009) $
+      $LastChangedDate: 2011-03-09 11:55:11 +0100 (Mi, 09 Mrz 2011) $
       \par SVN file revision:
-        $Id: simplevector.h 4605 2009-06-17 08:55:45Z Osswald2 $
+        $Id: simplevector.h 6526 2011-03-09 10:55:11Z Osswald2 $
 
   \subsection sdhlibrary_cpp_simplevector_h_changelog Changelog of this file:
       \include simplevector.h.log
@@ -71,7 +71,7 @@ NAMESPACE_SDH_START
 /*!
    \brief Derived exception class for low-level simple vector related exceptions.
 */
-class cSimpleVectorException: public cSDHLibraryException
+class VCC_EXPORT cSimpleVectorException: public cSDHLibraryException
 {
 public:
   cSimpleVectorException( cMsg const & _msg )
@@ -88,7 +88,7 @@ public:
     this class, as cSDH, the real end user interface class provides a
     more convenient way using STL vectors.
 */
-class cSimpleVector
+class VCC_EXPORT cSimpleVector
 {
 public:
     //! anonymous enum (instead of define like macros)
@@ -102,17 +102,21 @@ public:
         throw (cSimpleVectorException*);
 
 
-    //! Constructor: init members from \a _nb_values comma separated values in the give string \a str
-    cSimpleVector( int _nb_values, char const* str )
+    //! Constructor: init members from \a nb_values comma separated values in the give string \a str
+    cSimpleVector( int nb_values, char const* str )
         throw (cSimpleVectorException*);
 
 
-    //! Constructor: init members from \a _nb_values comma separated values in the give string \a str
-    cSimpleVector( int _nb_values, int start_index, char const* str )
+    //! Constructor: init members from \a nb_values comma separated values in the give string \a str
+    cSimpleVector( int nb_values, int start_index, char const* str )
+        throw (cSimpleVectorException*);
+
+    //! Constructor: init members beginning with \a start_index from \a nb_values in arrray \a values
+    cSimpleVector( int nb_values, int start_index, float* values )
         throw (cSimpleVectorException*);
 
 
-    //! init \a _nb_values starting from index \a start_index from comma separated values in \a str
+    //! init \a nb_values starting from index \a start_index from comma separated values in \a str
     void FromString( int nb_values, int start_index, char const* str )
         throw (cSimpleVectorException*);
 

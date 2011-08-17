@@ -49,7 +49,7 @@ genericArmCtrl::genericArmCtrl(int DOF)
 
 	//TODO: make configurable
 	SetPTPvel(0.7);
-	SetPTPacc(0.4);
+	SetPTPacc(0.2);
 
 	//m_P = 2.5;
 	m_P = 4.0;

@@ -18,9 +18,9 @@
 
   \subsection sdhlibrary_cpp_canserial_esd_h_details SVN related, detailed file specific information:
   $LastChangedBy: Osswald2 $
-  $LastChangedDate: 2009-12-01 11:41:18 +0100 (Di, 01 Dez 2009) $
+  $LastChangedDate: 2011-03-09 11:55:11 +0100 (Mi, 09 Mrz 2011) $
   \par SVN file revision:
-  $Id: canserial-esd.h 5000 2009-12-01 10:41:18Z Osswald2 $
+  $Id: canserial-esd.h 6526 2011-03-09 10:55:11Z Osswald2 $
 
   \subsection sdhlibrary_cpp_canserial_esd_h_changelog Changelog of this file:
   \include canserial-esd.h.log
@@ -42,11 +42,6 @@
 #include "sdhexception.h"
 #include "serialbase.h"
 #include "basisdef.h"
-
-// on cygwin ntcan.h includes windef.h which defines macros named max/min which the compiler confuses with max/min templates
-// but defining NOMINMAX prevents those evil macros from being defined
-#define NOMINMAX
-#include "ntcan.h"
 #include "sdhlibrary_settings.h"
 
 //----------------------------------------------------------------------
@@ -54,40 +49,6 @@
 //----------------------------------------------------------------------
 
 NAMESPACE_SDH_START
-
-/*
-   The Linux version of the ESD ntcan.h file differ a little from the
-   Windows (and Cygwin) version.
-   So define some macros for mapping/defining names to make the code compile
-   on Linux systems too.
-*/
-#ifdef OSNAME_LINUX
-
-// Linux ntcan.h maps its internal error number to std unix error numbers, so include their definitions:
-# include <errno.h>
-
-
-// Old Linux ntcan.h used HANDLE where Windows ntcan uses NTCAN_HANDLE
-// so we had to make the following define:
-//# define NTCAN_HANDLE HANDLE
-// But newer ESD drivers seem to use NTCAN_HANDLE for both Linux and Windows
-// and give deprecation warnings on the use of HANDLE
-
-# ifndef NTCAN_BAUD_1000
-   // Some Linux ntcan.h do not define any baudrate codes. The following ones were taken from
-   // the Windows version in the hope that they are the same for Linux. Lets see...:
-#  define NTCAN_BAUD_1000                 0
-#  define NTCAN_BAUD_800                 14
-#  define NTCAN_BAUD_500                  2
-#  define NTCAN_BAUD_250                  4
-#  define NTCAN_BAUD_125                  6
-#  define NTCAN_BAUD_100                  7
-#  define NTCAN_BAUD_50                   9
-#  define NTCAN_BAUD_20                  11
-#  define NTCAN_BAUD_10                  13
-# endif
-#endif
-
 
 //! transmit queue size for CAN frames
 #define CAN_ESD_TXQUEUESIZE 32
@@ -104,14 +65,14 @@ NAMESPACE_SDH_START
 // Function and class member declarations
 //----------------------------------------------------------------------
 
-
-
+//! forward declaration of internal implementation specific data (Pimpl idiom)
+class cCANSerial_ESD_Internal;
 
 
 /*!
   \brief Derived exception class for low-level CAN ESD related exceptions.
 */
-class cCANSerial_ESDException: public cSerialBaseException
+class VCC_EXPORT cCANSerial_ESDException: public cSerialBaseException
 {
 public:
     cCANSerial_ESDException( cMsg const & _msg )
@@ -120,11 +81,20 @@ public:
 };
 //======================================================================
 
-
 /*!
-  \brief Low-level communication class to access a CAN port
+  \brief Low-level communication class to access a CAN port from company ESD (http://www.esd.eu/)
+
+  Since SDHLibrary-C++ release 0.0.2.0 implementation specific
+  parts of the access to ESD CAN devices have been removed from
+  the header file here in order to get rid of dependencies from
+  the weird ntcan.h.
+  Specifically the ntcan_handle of type NTCAN_HANDLE member was removed.
+  You can still provide an existing handle for reuse on construction,
+  but you must cast your NTCAN_HANDLE to a tDeviceHandle.
+  You can get the internally used NTCAN_HANDLE cast to a tDeviceHandle
+  with GetHandle().
 */
-class cCANSerial_ESD : public cSerialBase
+class VCC_EXPORT cCANSerial_ESD : public cSerialBase
 {
 
 protected:
@@ -136,38 +106,28 @@ protected:
     unsigned long baudrate;
 
     //! the CAN ID used for reading
-    Int32 id_read;
+    int id_read;
 
     //! the CAN ID used for writing
-    Int32 id_write;
+    int id_write;
 
-    //! the handle to the driver
-    NTCAN_HANDLE ntcan_handle;    /* remark: if you get a compiler error here
-                                     (e.g. "error: NTCAN_HANDLE does not name a type")
-                                     then please consider updating your ESD CAN
-                                     driver (and hence ntcan.h). See also the
-                                     comment on NTCAN_HANDLE on the beginning
-                                     of this file.
-                                  */
+    // ntcan_handle was removed from here, see class comment and GetHandle()
 
     //! Translate a baudrate given as unsigned long into a baudrate code for struct termios
-    UInt32 BaudrateToBaudrateCode( unsigned long baudrate )
+    unsigned int BaudrateToBaudrateCode( unsigned long baudrate )
         throw (cCANSerial_ESDException*);
 
     int status;
 
 private:
-    UInt32 timeout_ms;
+    //! ptr to private, implementation specific members (using the 'Pimpl' (pointer to implementatino) design pattern)
+    cCANSerial_ESD_Internal* pimpl;
 
-    /*!
-    * received messages might be split over several CAN messages
-    * it might therefore happen that more data is received than
-    * can be returned to the user. To not loose that data it is
-    * kept here to be be returned in a later call
-    */
-    CMSG m_cmsg;
-    //! index of next received data byte to return to user in m_cmsg
-    int m_cmsg_next;
+    //! private copy constructor without implementation, since copying of cCANSerial_ESD objects makes no sense
+    cCANSerial_ESD( cCANSerial_ESD const& other );
+
+    //! private copy assignment operator without implementation, since copying of cCANSerial_ESD objects makes no sense
+    cCANSerial_ESD& operator=( cCANSerial_ESD const& rhs );
 
 public:
     /*!
@@ -180,20 +140,23 @@ public:
       \param _id_read  - the CAN ID to use for reading (The %SDH sends data on this ID)
       \param _id_write - the CAN ID to use for writing (The %SDH receives data on this ID)
      */
-    cCANSerial_ESD( int _net, unsigned long _baudrate, double _timeout, Int32 _id_read, Int32 _id_write )
+    cCANSerial_ESD( int _net, unsigned long _baudrate, double _timeout, int _id_read, int _id_write )
         throw (cCANSerial_ESDException*);
 
     /*!
       Constructor: constructs an object to communicate with an %SDH via CAN bus using an
       ESD CAN card by reusing an already existing handle.
 
-      \param _ntcan_handle - the ESD CAN handle to reuse
+      \param _ntcan_handle - the ESD CAN handle to reuse (please cast your NTCAN_HANDLE to tDeviceHandle! It is save to do that!)
       \param _timeout  - the timeout in seconds (0 for no timeout = wait for ever)
       \param _id_read  - the CAN ID to use for reading (The %SDH sends data on this ID)
       \param _id_write - the CAN ID to use for writing (The %SDH receives data on this ID)
      */
-    cCANSerial_ESD( NTCAN_HANDLE _ntcan_handle, double _timeout, Int32 _id_read, Int32 _id_write )
+    cCANSerial_ESD( tDeviceHandle _ntcan_handle, double _timeout, int _id_read, int _id_write )
         throw (cCANSerial_ESDException*);
+
+    //! destructor: clean up
+    ~cCANSerial_ESD();
 
     /*!
       Open the device as configured by the parameters given to the constructor
@@ -235,6 +198,21 @@ public:
     //! set the timeout for next #readline() calls (negative value means: no timeout, wait for ever)
     void SetTimeout( double _timeout )
         throw (cSerialBaseException*);
+
+    /*!
+     * Overloaded helper function that returns the last ESD error number.
+     */
+    virtual tErrorCode GetErrorNumber();
+
+    /*!
+     * Overloaded helper function that returns an ESD error message for ESD error code dw.
+     *
+     * \remark The string returned will be overwritten by the next call to the function
+     */
+    virtual char const* GetErrorMessage( tErrorCode dw );
+
+    //! return the internally used NTCAN_HANDLE cast to a tDeviceHandle
+    tDeviceHandle GetHandle();
 };
 //======================================================================
 

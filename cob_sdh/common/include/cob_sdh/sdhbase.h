@@ -18,9 +18,9 @@
 
     \subsection sdhlibrary_cpp_sdhbase_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2009-06-17 10:55:45 +0200 (Mi, 17 Jun 2009) $
+      $LastChangedDate: 2011-03-09 11:55:11 +0100 (Mi, 09 Mrz 2011) $
       \par SVN file revision:
-        $Id: sdhbase.h 4605 2009-06-17 08:55:45Z Osswald2 $
+        $Id: sdhbase.h 6526 2011-03-09 10:55:11Z Osswald2 $
 
   \subsection sdhlibrary_cpp_sdhbase_h_changelog Changelog of this file:
       \include sdhbase.h.log
@@ -61,7 +61,7 @@ NAMESPACE_SDH_START
 // Global variables
 //----------------------------------------------------------------------
 
-extern std::ostream* g_sdh_debug_log;
+extern VCC_EXPORT std::ostream* g_sdh_debug_log;
 
 //----------------------------------------------------------------------
 // Function declarations
@@ -75,7 +75,7 @@ extern std::ostream* g_sdh_debug_log;
 /*!
    \brief Derived exception class for exceptions related to invalid parameters.
 */
-class cSDHErrorInvalidParameter: public cSDHLibraryException
+class VCC_EXPORT cSDHErrorInvalidParameter: public cSDHLibraryException
 {
 public:
   cSDHErrorInvalidParameter( cMsg const & _msg )
@@ -94,7 +94,7 @@ public:
 
    <hr>
 */
-class cSDHBase
+class VCC_EXPORT cSDHBase
 {
 public:
 
@@ -112,36 +112,43 @@ public:
     enum eErrorCode
     {
         eEC_SUCCESS = 0,
-        eEC_NOT_AVAILABLE = 1,
-        eEC_NO_SENSOR = 2,
-        eEC_NOT_INITIALIZED = 3,
-        eEC_ALREADY_RUNNING = 4,
-        eEC_FEATURE_NOT_SUPPORTED = 5,
-        eEC_INCONSISTENT_DATA = 6,
-        eEC_TIMEOUT = 7,
-        eEC_READ_ERROR = 8,
-        eEC_WRITE_ERROR = 9,
-        eEC_INSUFFICIENT_RESOURCES = 10,
-        eEC_CHECKSUM_ERROR = 11,
-        eEC_NOT_ENOUGH_PARAMS = 12 ,
-        eEC_NO_PARAMS_EXPECTED = 13,
-        eEC_CMD_UNKNOWN = 14,
-        eEC_CMD_FORMAT_ERROR = 15,
-        eEC_ACCESS_DENIED = 16,
-        eEC_ALREADY_OPEN = 17,
-        eEC_CMD_FAILED = 18,
-        eEC_CMD_ABORTED = 19,
-        eEC_INVALID_HANDLE = 20,
-        eEC_DEVICE_NOT_FOUND = 21,
-        eEC_DEVICE_NOT_OPENED = 22,
-        eEC_IO_ERROR = 23,
-        eEC_INVALID_PARAMETER = 24,
-        eEC_RANGE_ERROR = 25,
-        eEC_NO_DATAPIPE = 26,
-        eEC_INDEX_OUT_OF_BOUNDS = 27,
-        eEC_HOMING_ERROR = 28,
-        eEC_AXIS_DISABLED = 29,
-        eEC_OVER_TEMPERATURE = 30,
+        eEC_NOT_AVAILABLE,
+        eEC_NOT_INITIALIZED,
+        eEC_ALREADY_RUNNING,
+        eEC_FEATURE_NOT_SUPPORTED,
+        eEC_INCONSISTENT_DATA,
+        eEC_TIMEOUT,
+        eEC_READ_ERROR,
+        eEC_WRITE_ERROR,
+        eEC_INSUFFICIENT_RESOURCES,
+        eEC_CHECKSUM_ERROR,
+        eEC_NOT_ENOUGH_PARAMS,
+        eEC_NO_PARAMS_EXPECTED,
+        eEC_CMD_UNKNOWN,
+        eEC_CMD_FORMAT_ERROR,
+        eEC_ACCESS_DENIED,
+        eEC_ALREADY_OPEN,
+        eEC_CMD_FAILED,
+        eEC_CMD_ABORTED,
+        eEC_INVALID_HANDLE,
+        eEC_DEVICE_NOT_FOUND,
+        eEC_DEVICE_NOT_OPENED,
+        eEC_IO_ERROR,
+        eEC_INVALID_PARAMETER,
+        eEC_RANGE_ERROR,
+        eEC_NO_DATAPIPE,
+        eEC_INDEX_OUT_OF_BOUNDS,
+        eEC_HOMING_ERROR,
+        eEC_AXIS_DISABLED,
+        eEC_OVER_TEMPERATURE,
+        eEC_MAX_COMMANDS_EXCEEDED,
+        eEC_INVALID_PASSWORD,
+        eEC_MAX_COMMANDLINE_EXCEEDED,
+        eEC_CRC_ERROR,
+        eEC_NO_COMMAND,
+
+        eEC_INTERNAL,
+        eEC_UNKNOWN_ERROR,
 
         eEC_DIMENSION         //!< Endmarker and dimension
     };

@@ -28,33 +28,6 @@
 #include "basisdef.h"
 #include "sdhlibrary_settings.h"
 
-#if defined( OSNAME_LINUX )
-# include <libpcan.h>
-// Linux libpcan uses HANDLE where Windows Pcan_usb.h uses no handle at all:
-# define PCAN_HANDLE HANDLE
-
-#elif defined( OSNAME_CYGWIN )
-// on cygwin Pcan_usb.h includes windef.h which defines macros named max/min which the compiler confuses with max/min templates
-// but defining NOMINMAX prevents those evil macros from being defined
-# define NOMINMAX
-# include <windows.h>
-# include <Pcan_usb.h>
-// Linux libpcan uses HANDLE where Windows Pcan_usb.h uses no handle at all:
-typedef void* PCAN_HANDLE; // dummy definition
-
-#elif SDH_USE_VCC
-# include <windows.h>
-# include <Pcan_usb.h>
-// Linux libpcan uses HANDLE where Windows Pcan_usb.h uses no handle at all:
-typedef void* PCAN_HANDLE; // dummy definition
-
-#else
-# error "FIXME: support for PEAK CAN devices in other systems than linux/cygwin is not provided yet!"
-        // e.g. the include header from peak is named libpcan.h on linux and peak_usb.h on windows
-#endif
-#include "sdhlibrary_settings.h"
-
-
 //----------------------------------------------------------------------
 // Defines, enums, unions, structs,
 //----------------------------------------------------------------------
@@ -71,13 +44,15 @@ NAMESPACE_SDH_START
 //----------------------------------------------------------------------
 
 
+//! forward declaration of internal implementation specific data (Pimpl idiom)
+class cCANSerial_PEAK_Internal;
 
 
 
 /*!
  \brief Derived exception class for low-level CAN PEAK related exceptions.
 */
-class cCANSerial_PEAKException: public cSerialBaseException
+class VCC_EXPORT cCANSerial_PEAKException: public cSerialBaseException
 {
 public:
    cCANSerial_PEAKException( cMsg const & _msg )
@@ -88,9 +63,19 @@ public:
 
 
 /*!
- \brief Low-level communication class to access a CAN port
+ \brief Low-level communication class to access a CAN port from company PEAK (http://www.peak-system.com)
+
+  Since SDHLibrary-C++ release 0.0.2.0 implementation specific
+  parts of the access to PEAK CAN devices have been removed from
+  the header file here in order to get rid of dependencies from
+  the Pcan_usb.h.
+  Specifically the peak_handle of type PEAK_HANDLE member was removed.
+  You can still provide an existing handle for reuse on construction,
+  but you must cast your HANDLE to a tDeviceHandle.
+  You can get the internally used PEAK_HANDLE cast to a tDeviceHandle
+  with GetHandle().
 */
-class cCANSerial_PEAK : public cSerialBase
+class VCC_EXPORT cCANSerial_PEAK : public cSerialBase
 {
 
 protected:
@@ -99,43 +84,28 @@ protected:
     unsigned long baudrate;
 
     //! the CAN ID used for reading
-    DWORD id_read;
+    int id_read;
 
     //! the CAN ID used for writing
-    DWORD id_write;
+    int id_write;
 
-    //! the handle to the driver
-    PCAN_HANDLE handle;
+    // handle was removed from here, see class comment and GetHandle()
 
     //! Translate a baudrate given as unsigned long into a baudrate code for struct termios
-    WORD BaudrateToBaudrateCode( unsigned long baudrate )
+    int BaudrateToBaudrateCode( unsigned long baudrate )
     throw (cCANSerial_PEAKException*);
 
     char m_device[64];
 
 private:
+    //! ptr to private, implementation specific members (using the 'Pimpl' (pointer to implementatino) design pattern)
+    cCANSerial_PEAK_Internal* pimpl;
 
-#if defined( OSNAME_LINUX )
-    int timeout_us; // timeout in micro seconds
-#else
-    // The cygwin/windows version of the PEAK library/driver cannot handle timeouts...
-#endif
+    //! private copy constructor without implementation, since copying of cCANSerial_PEAK objects makes no sense
+    cCANSerial_PEAK( cCANSerial_PEAK const& other );
 
-    /*!
-    * received messages might be split over several CAN messages
-    * it might therefore happen that more data is received than
-    * can be returned to the user. To not loose that data it is
-    * kept here to be be returned in a later call
-    */
-#if defined( OSNAME_LINUX )
-    TPCANRdMsg m_cmsg;
-#   define M_CMSG_MSG() m_cmsg.Msg
-#else
-    TPCANMsg m_cmsg;
-#   define M_CMSG_MSG() m_cmsg
-#endif
-    //! index of next received data byte to return to user in m_cmsg
-    int m_cmsg_next;
+    //! private copy assignment operator without implementation, since copying of cCANSerial_PEAK objects makes no sense
+    cCANSerial_PEAK& operator=( cCANSerial_PEAK const& rhs );
 
 public:
     /*!
@@ -148,32 +118,32 @@ public:
      \param _id_write - the CAN ID to use for writing (The SDH receives data on this ID)
      \param device    - the name of the char device to communicate with the PEAD driver (Needed on Linux only!)
     */
-   cCANSerial_PEAK( unsigned long _baudrate, double _timeout, Int32 _id_read, Int32 _id_write, const char *device="/dev/pcanusb0" )
+   cCANSerial_PEAK( unsigned long _baudrate, double _timeout, int _id_read, int _id_write, const char *device="/dev/pcanusb0" )
        throw (cCANSerial_PEAKException*);
 
    /*!
      Constructor: constructs an object to communicate with an SDH via CAN bus using a
      PEAK CAN card by reusing an already existing handle (will work in Linux only).
 
-     \param _handle   - the PEAK CAN handle to reuse (Works on Linux only!)
+     \param _peak_handle   - the PEAK CAN handle to reuse (Works on Linux only!)
      \param _timeout  - the timeout in seconds (0 for no timeout = wait for ever)
      \param _id_read  - the CAN ID to use for reading (The SDH sends data on this ID)
      \param _id_write - the CAN ID to use for writing (The SDH receives data on this ID)
     */
-   cCANSerial_PEAK( PCAN_HANDLE _handle, double _timeout, Int32 _id_read, Int32 _id_write )
+   cCANSerial_PEAK( tDeviceHandle _peak_handle, double _timeout, int _id_read, int _id_write )
        throw (cCANSerial_PEAKException*);
 
+   //! destructor: clean up
+   ~cCANSerial_PEAK();
+
    /*!
-    * Return the value of the HANDLe to the actual CAN device.
+    * Return the value of the HANDLE to the actual CAN device.
     * Works on Linux only! Only returns a valid handle after a call to Open()!
     *
     * \remark The returned handle can be used to open a connection to a second SDH on the same CAN bus
     * @return the handle to the actual CAN device
     */
-   PCAN_HANDLE GetHandle()
-   {
-       return handle;
-   }
+   tDeviceHandle GetHandle();
 
    /*!
      Open the device as configured by the parameters given to the constructor
@@ -215,6 +185,19 @@ public:
    //! set the timeout for next #readline() calls (negative value means: no timeout, wait for ever)
    void SetTimeout( double _timeout )
        throw (cSerialBaseException*);
+
+   /*!
+    * Overloaded helper function that returns the last Peak error number.
+    */
+   virtual tErrorCode GetErrorNumber();
+
+   /*!
+    * Overloaded helper function that returns a PEAK error message for error code dw.
+    *
+    * \remark The string returned will be overwritten by the next call to the function
+    */
+   virtual char const* GetErrorMessage( tErrorCode dw );
+
 };
 //======================================================================
 
