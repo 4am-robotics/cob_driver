@@ -9,6 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_joy</url>
   
+  <depend package="rostest"/>
   <depend package="joy"/>
 
 </package>

@@ -51,11 +51,15 @@
 *
 ****************************************************************/
 
+#include "../include/cob_camera_sensors/StdAfx.h"
+
 #ifdef __LINUX__
 #include "cob_camera_sensors/AbstractColorCamera.h"
 #else
 #include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/AbstractColorCamera.h"
 #endif
+
+#include <iostream>
 
 using namespace ipa_CameraSensors;
 

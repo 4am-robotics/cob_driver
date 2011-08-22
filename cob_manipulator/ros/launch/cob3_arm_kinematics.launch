@@ -1,7 +1,6 @@
 <launch>
-  <include file="$(find cob_manipulator)/ros/launch/planning_environment.launch" />
-  <node pkg="arm_kinematics_constraint_aware" type="arm_kinematics_constraint_aware" name="cob3_arm_kinematics" output="screen" cwd="node">
-    <rosparam command="load" file="$(find cob_manipulator)/ros/config/cob3_arm_kinematics.yaml" />
-    <param name="arm/robot" type="string" value="$(env ROBOT)"/>
-  </node> 
+  <node pkg="pr2_arm_kinematics" type="pr2_arm_kinematics_node" name="cob3_arm_kinematics" output="screen">
+   <param name="tip_name" value="arm_7_link" />
+   <param name="root_name" value="base_link" />
+  </node>
 </launch>
