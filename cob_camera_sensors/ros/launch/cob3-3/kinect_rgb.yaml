@@ -1,10 +1,11 @@
 image_width: 640
 image_height: 480
-camera_name: right
+camera_name: rgb_A00366909204046A
 camera_matrix:
   rows: 3
   cols: 3
   data: [527.595653, 0.000000, 313.357624, 0, 526.138418, 258.808737, 0, 0, 1]
+distortion_model: plumb_bob
 distortion_coefficients:
   rows: 1
   cols: 5
