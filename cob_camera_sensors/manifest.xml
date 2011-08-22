@@ -24,6 +24,9 @@
   <depend package="nodelet"/>
   <depend package="pcl"/>
   <depend package="pcl_ros"/>
+  <depend package="image_proc"/>
+  <depend package="point_cloud_converter"/>
+
 
   <export>
     <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_camera_sensors"/>
