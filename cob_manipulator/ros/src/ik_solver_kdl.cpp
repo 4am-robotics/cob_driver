@@ -188,7 +188,7 @@ bool constraint_aware_ik_solve(kinematics_msgs::GetConstraintAwarePositionIK::Re
 	else res.error_code.val = res.error_code.NO_IK_SOLUTION;
 	
 	res.solution=response.solution;
-	res.solution.multi_dof_joint_state = motion_planning_msgs::MultiDOFJointState();
+	res.solution.multi_dof_joint_state = arm_navigation_msgs::MultiDOFJointState();
 
 	return true;
 }
