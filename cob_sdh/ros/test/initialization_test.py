@@ -5,6 +5,7 @@ import sys
 import rospy
 import unittest
 import time
+from cob_msgs.msg import *
 from cob_srvs.srv import *
 from pr2_controllers_msgs.msg import *
 from sensor_msgs.msg import *
