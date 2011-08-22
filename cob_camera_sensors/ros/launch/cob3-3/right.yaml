@@ -1,6 +1,6 @@
 image_width: 1360
 image_height: 1024
-camera_name: left
+camera_name: right
 camera_matrix:
   rows: 3
   cols: 3
