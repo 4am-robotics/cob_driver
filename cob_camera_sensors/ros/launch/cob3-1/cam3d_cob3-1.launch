@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-
+<group ns="cam3d">	
   <arg name="debug" default="false"/>
   <arg if="$(arg debug)" name="launch_prefix" value="xterm -rv -e gdb -ex run -args"/>
   <arg unless="$(arg debug)" name="launch_prefix" value=""/>
@@ -38,6 +38,6 @@
     <remap from="camera/rgb/points" to="rgb/points"/>
   </node>
   <include file="$(find openni_launch)/launch/kinect_frames.launch"/>
-
+</group>
 </launch>
 
