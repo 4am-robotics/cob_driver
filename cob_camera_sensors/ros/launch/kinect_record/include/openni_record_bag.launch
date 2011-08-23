@@ -1,0 +1,6 @@
+<launch>
+
+  <node pkg="rosbag" type="record" name="record" output="screen"
+    args="/camera/depth_registered/camera_info /camera/depth_registered/image_raw /camera/driver/parameter_descriptions /camera/driver/parameter_updates /camera/rgb/camera_info /camera/rgb/image_color -o $(env HOME)/ros/bags/kinect"/>
+
+</launch>
