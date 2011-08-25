@@ -61,6 +61,8 @@
 #ifndef __IPA_SWISSRANGER_H__
 #define __IPA_SWISSRANGER_H__
 
+#include "StdAfx.h"
+
 // Windows
 #ifdef _WIN32
 	// Windows with MinGW
@@ -74,7 +76,7 @@
 typedef unsigned long DWORD;
 #endif
 
-#ifdef __COB_ROS__
+#ifdef __LINUX__
 	#include <cob_camera_sensors/AbstractRangeImagingSensor.h>
 #else
 	#include <cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/AbstractRangeImagingSensor.h>
@@ -85,17 +87,6 @@ typedef unsigned long DWORD;
 #include <sstream>
 #include <assert.h>
 #include <libMesaSR.h>
-
-#ifdef SWIG
-%module Sensors3D
-
-%{
-	#include "Swissranger.h"
-%}
-#endif
-
-
-using namespace ipa_Utils;
 
 namespace ipa_CameraSensors {
 

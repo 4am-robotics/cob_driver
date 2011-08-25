@@ -375,7 +375,7 @@ public:
 		cv::Mat filtered_grey_mat_32F1 = cv::Mat::zeros(grey_mat_32F1_.rows, grey_mat_32F1_.cols, CV_8UC1/*32FC1*/);
 
 		// Accumulate greyscale images to remove noise
-		if (vec_grey_mat_32F1_.size() <=  tof_image_counter_)
+		if (vec_grey_mat_32F1_.size() <=  (unsigned int) tof_image_counter_)
 			vec_grey_mat_32F1_.push_back(grey_mat_32F1_);
 		else
 			vec_grey_mat_32F1_[tof_image_counter_] = grey_mat_32F1_;
@@ -383,7 +383,7 @@ public:
 		tof_image_counter_ = (++tof_image_counter_)%5;
 
 		// Compute average out of accumulated tof greyscale data
-		for (int i=0; i<vec_grey_mat_32F1_.size(); i++)
+		for (unsigned int i=0; i<vec_grey_mat_32F1_.size(); i++)
 			filtered_grey_mat_32F1 += vec_grey_mat_32F1_[i];
 		filtered_grey_mat_32F1 * (1/vec_grey_mat_32F1_.size());
 
