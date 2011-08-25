@@ -69,3 +69,9 @@ target_link_libraries(cob_camera_sensors mesasr dc1394)
 #target_link_libraries(tof_camera_viewer cob_camera_sensors)
 #target_link_libraries(color_camera cob_camera_sensors)
 #target_link_libraries(all_cameras cob_camera_sensors usb)
+
+
+# rostest
+rosbuild_add_roslaunch_check(ros/launch/left.launch)
+rosbuild_add_roslaunch_check(ros/launch/right.launch)
+rosbuild_add_roslaunch_check(ros/launch/cam3d.launch)

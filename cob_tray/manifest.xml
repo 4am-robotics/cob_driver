@@ -9,6 +9,8 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_tray</url>
 
+  <depend package="rostest"/>
+  <depend package="cob_srvs"/>
   <depend package="cob_powercube_chain"/>
   <depend package="cob_manipulator"/>
   <depend package="cob_trajectory_controller"/>

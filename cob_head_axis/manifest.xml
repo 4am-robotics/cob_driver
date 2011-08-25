@@ -10,6 +10,7 @@
   <url>http://ros.org/wiki/cob_head_axis</url>
 
   <depend package="roscpp"/>
+  <depend package="rostest"/>
   <depend package="sensor_msgs"/>
   <depend package="cob_srvs"/>
   <depend package="actionlib"/>
