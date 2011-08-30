@@ -1,14 +1,14 @@
 image_width: 1360
 image_height: 1024
-camera_name: left
+camera_name: right
 camera_matrix:
   rows: 3
   cols: 3
-  data: [1438.569084, 0.000000, 696.714835, 0, 1433.577327, 545.756249, 0, 0, 1]
+  data: [1442.379517, 0.000000, 691.077031, 0, 1438.067494, 522.581452, 0, 0, 1]
 distortion_coefficients:
   rows: 1
   cols: 5
-  data: [-0.253144, 0.184956, -0.001163, -0.000322, 0.000000]
+  data: [-0.262314, 0.218288, 0.000219, -0.000282, 0.000000]
 rectification_matrix:
   rows: 3
   cols: 3
@@ -16,7 +16,7 @@ rectification_matrix:
 projection_matrix:
   rows: 3
   cols: 4
-  data: [1438.569084, 0.000000, 696.714835, 0, 0, 1433.577327, 545.756249, 0, 0, 0, 1, 0]
+  data: [1442.379517, 0.000000, 691.077031, 0, 0, 1438.067494, 522.581452, 0, 0, 0, 1, 0]
 auto_exposure:     True
 exposure_auto_max: 25000
 exposure_auto_target: 40

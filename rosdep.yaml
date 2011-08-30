@@ -5,7 +5,10 @@ libusb-0.1:
   ubuntu: libusb-0.1-4
 
 touchscreen: 
-  ubuntu: xserver-xorg-input-evtouch
+  ubuntu:
+    10.04: xserver-xorg-input-evtouch
+    10.10: xserver-xorg-input-evtouch
+    11.04: xserver-xorg-input-evdev
 #    sudo cp  `rospack find cob_touch`/common/files/50-tsc.fdi /usr/share/hal/fdi/policy/20thirdparty
 
 festival:

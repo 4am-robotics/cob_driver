@@ -23,9 +23,9 @@
 
     \subsection sdhlibrary_cpp_release_h_details SVN related, detailed file specific information:
       $LastChangedBy: Osswald2 $
-      $LastChangedDate: 2011-05-10 13:55:42 +0200 (Di, 10 Mai 2011) $
+      $LastChangedDate: 2010-03-05 10:00:43 +0100 (Fr, 05 Mrz 2010) $
       \par SVN file revision:
-        $Id: release.h 6819 2011-05-10 11:55:42Z Osswald2 $
+        $Id: release.h 5355 2010-03-05 09:00:43Z Osswald2 $
 
   \subsection sdhlibrary_cpp_release_h_changelog Changelog of this file:
       \include release.h.log
@@ -60,66 +60,8 @@
     A suffix of "-a", "-b", ... indicates a bugfix release.
 
     From newest to oldest the releases have the following names and features:
-
-    - \b 0.0.2.3:
-      - working <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=1012">Bug 1012: Bug: cannot communicate with SDH via PEAK-CAN on Linux</a>
-        => testing compliance of SDHLibrary with PEAK CAN driver v7.1 for Linux
-        - cannot be confirmed as a bug
-        - minor bug in cCANSerial_PEAK::Open() now only the read-ID is filtered instead of both write and read
-        - slightly improved cancat
-        - improved debug output cCANSerial_PEAK and cCANSeral_ESD while
-
-    - \b 0.0.2.2: 2011-04-27
-      - fixed <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=1011">Bug 1011: Bug: Binary communication does not work via RS232 on Linux</a>
-        The ISTRIP (Strip parity bits) bit MUST NOT be set on linux.
-        If set then the MSbit of received bytes is set to 0 always...
-        (Thanks to the hints of M. Schoepfer from Uni Bielefeld!)
-      - In distribution CAN bus and boost support is now disabled by default.
-        (Can be enabled in Makefile-settings, see WITH_ESD_CAN, WITH_PEAK_CAN, HAVE_BOOST)
-
-    - \b 0.0.2.1: 2011-03-09
-      - fixed <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=844">Bug 844: Bug: Korean windows cannot handle specific unit characters like ° and ²</a>
-        The non ASCII string litearals for degrees and squared were replaced by ASCII literals
-      - added <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=996">Bug 996: Task: Version numbering of DSACON32m firmware has changed since 2011-02-15</a>
-        software version numbers for DSACON32m are reported correctly for the new firmwares
-      - fixed <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=703">Bug 703: Bug: Tactile sensor frames cannot be read reliably in single frame mode</a>
-        - Some firmware versions of the DSACON32m are not able to do single frame acquisition and enter push-mode. This might fill up the RS232 input buffer and leads to problems like reading of outdated frames or frame loss.
-        - Added workaround to stop push mode immediately after it was entered unintentionally
-        - made debug output of communication functions (RS232 and CAN and TCP) more concise
-      - Enhancement <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=985">Bug 985: Task: Get Visual Studio to compile SDHLibrary-c++ as DLL</a>
-        - The Visual Studio projects now generate and use a DLL version of the SDHLibrary
-
-    - \b 0.0.2.0: 2011-02-08
-      - added new documentation file SDH2_exchanging_tactile_sensor_controller
-      - added support for communication via TCP (requires at least SDH firmware 0.0.3.0)
-        - enhancement <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=874">Bug 874: Task: Enable TCP communication in SDHLibrary</a>
-        - refactoring <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=918">Bug 918: Task: Refactor generation of error messages</a>
-      - added properties for "Release" configuration in VCC project files
-      - bugifx <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=959">Bug 959: Bug: SDHLibrary does not compile in new cygwin-1.7 environment</a>
-        - refactored device driver specific CAN stuff from headers into code files
-      - added demo-benchmark for measuring communication performance <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=963">Bug 963: Task: implement benchmark for measuring communication rate</a>
-      - added support for fast binary communication with CRC protection <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=964">Bug 964: Task: implement new binary communication in SDHLibrary</a>
-      - added commands to set target angles/velocities and get actual angles/velocities in one command,
-        see cSDH::SetAxisTargetGetAxisActualAngle() and cSDH::SetAxisTargetGetAxisActualVelocity()
-      - <b>These last two points along with the accompanying changes in the firmware boost the communication speed significantly!</b>
-        - For RS232 the communication cycles per second rise from ca. 30 to 75 Hz (according to demo-benchmark)
-        - For CAN the improvement goes even higher to ca. 160 Hz (according to demo-benchmark)
-      - Doxygen documentation is now generated with doxygen-1.7.3 with included javascript search engine
-
-    - \b 0.0.1.18:
-      - added bug description for <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=822"> Bug 822: Online help of C++ demo programs compiled with VCC misses description for CAN parameters</a>
-      - added new documentation file SDH2_FingerDimensions
-
-    - \b 0.0.1.17: (2010-05-11)
-      - enhancement <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=706"> Task: Reorganise Makefiles to simplify making of user provided demo-programs</a>
-        extracted common Makefile settings to Makefile-settings for better maintenance and extensibility,
-      - Enhancement made acquiring of single tactile sensor frames available
-
-    - \b 0.0.1.16: (2010-04-12)
-      - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=680"> Bug 680: cDSA fails to communicate with Release 276 of DSACON32m Firmware</a>
-
     - \b 0.0.1.15: (2010-03-05)
-       - enhancement: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=482"> Bug 482: add support for adjusting sensitivity and threshold in SDHLibrary-CPP</a>
+       - enhancement: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=482"> Bug 482: add support for adjusting sensitivity and threshold in SDHLibrary-CPP"</a>
          - added cDSA.SetMatrixSensitivity() cDSA.GetMatrixSensitivity() cDSA.SetMatrixThreshold() cDSA.GetMatrixThreshold()
          - the sensitivity and the threshold can now be changed and saved temporarily or persistently to configuration memory of the DSACON32m
          - added command line options to demo-dsa to adjust matrix sensitivity and threshold (needs DSACON32m Firmware >= R268)
@@ -167,7 +109,7 @@
       - Bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=351">Bug 351: make does not work recursively</a>
         reopend and fixed again since still had problems on Linux where the shell command "test" or "[]" is somewhat picky about comparing strings ("==" is not understood)
       - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=471">Bug 471: Incorporate feedback for 64 bit compatibility</a>
-        changes to make compilation work on 64 bit systems according to feedback from Niklas Bergstroem.
+        changes to make compilation work on 64 bit systems according to feedback from Niklas Bergström.
       - enhancement: Added possibility to set the RS232 device name format string (e.g. to use /dev/ttyUSB%d like devices)
       - bugfix: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=469">Bug 469: make clean funktioniert unter Linux nicht</a>
       - enhancement: <a href="https://192.168.101.101/mechatronik/show_bug.cgi?id=472"> Bug 472: Objects of type cDSA should be able to recover from power cycling</a>
@@ -429,7 +371,7 @@
           - fixed many typos in doxygen comments
 
     - \b 0.0.0.3: 2007-03-09
-      - Release modified at visit Uni-Wales
+      - Release modified at visit Uni-Whales
         - Changes to make everything work on Ubuntu-Linux
         - Enhanced Makefile a little bit to be more comfortable for the end user
 
@@ -437,7 +379,7 @@
       - release, for Uni-Wales
 
     - \b 0.0.0.1
-      - initial release, works for the first time, but not reliably
+      - initial release, works for the first time, but not relyably
 
     \internal
     \remark
@@ -453,16 +395,16 @@
       - As release name/number of the project within the generated documentation.
       - As part of the name of the generated install directory and pdf files.
  */
-#define PROJECT_RELEASE "0.0.2.3"
+#define PROJECT_RELEASE "0.0.1.15"
 
 //! Date of the release of the software project.
 /*!
     \anchor project_date_sdhlibrary_cpp
     The date of the release of the project.
 */
-#define PROJECT_DATE "2011-05-11"
+#define PROJECT_DATE "2010-03-05"
 
-#define PROJECT_COPYRIGHT "(c) SCHUNK GmbH & Co. KG, 2007-2011"
+#define PROJECT_COPYRIGHT "(c) SCHUNK GmbH & Co. KG, 2007"
 
 #endif
 //======================================================================

@@ -12,6 +12,8 @@
 
   </node>
 
+  <node name="hokuyo_filter" pkg="cob_hokuyo" type="cob_hokuyo_filter" respawn="false" output="screen"/>
+
   <!-- include rostest -->
   <include file="$(find cob_hokuyo)/ros/launch/hokuyo.test" />
   
