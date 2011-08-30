@@ -59,6 +59,13 @@
       <arg name="depth"                 value="$(arg depth)" />
       <arg name="depth_registered"      value="$(arg depth_registered)" />
     </include>
+		<group ns="driver">
+    <rosparam>
+      depth_registration: true
+      depth_ir_offset_x: 0
+      depth_ir_offset_y: 0
+    </rosparam>
+		</group>
 
   </group> <!-- camera -->
 
