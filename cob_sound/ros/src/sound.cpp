@@ -51,7 +51,19 @@ public:
   void say(std::string text)
   {
     ROS_INFO("Saying: %s", text.c_str());
-  	std::string command = "echo " + text + " | text2wave | aplay -q";
+    std::string mode;
+    std::string command;
+    std::string cepstral_conf;
+    nh_.param<std::string>("/sound_controller/mode",mode,"festival");
+    nh_.param<std::string>("/sound_controller/cepstral_settings",cepstral_conf,"\"speech/rate=170\"");
+    if (mode == "cepstral")
+    {
+    	command = "/opt/swift/bin/swift -p " + cepstral_conf + " " + text;
+    }
+    else
+    {
+  		command = "echo " + text + " | text2wave | aplay -q";
+  	}
     system(command.c_str());
   }
 

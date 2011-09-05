@@ -311,6 +311,7 @@ class PowercubeChainNode
 				//std::cout << "MaxVel[" << JointNames_[i].c_str() << "] = " << MaxVel[i] << std::endl;
 			}
 			PCubeParams_->SetMaxVel(MaxVel);
+			PCube_->setMaxVelocity(MaxVel);
 			
 			// get LowerLimits out of urdf model
 			std::vector<double> LowerLimits;
@@ -562,19 +563,19 @@ class PowercubeChainNode
 		/*!
 		* \brief Executes the service callback for set_default_vel.
 		*
-		* Sets the default velocity.
+		* Changes the default velocity.
 		* \param req Service request
 		* \param res Service response
 		*/
 		bool srvCallback_SetDefaultVel(	cob_srvs::SetDefaultVel::Request &req,
-											cob_srvs::SetDefaultVel::Response &res )
+						cob_srvs::SetDefaultVel::Response &res )
 		{
-			ROS_INFO("Set default velocity to [%f]", req.default_vel);
-			PCube_->setMaxVelocity(req.default_vel);
+			ROS_INFO("Set default vel to [%f]", req.default_vel);
+			PCube_->setMaxVelocity(double(req.default_vel));
 			res.success.data = true; // 0 = true, else = false
 			return true;
 		}
-		
+
 		/*!
 		* \brief Routine for publishing joint_states.
 		*

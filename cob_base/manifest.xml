@@ -9,7 +9,11 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_base</url>
   
+  <depend package="rostest"/>
+  <depend package="robot_state_publisher"/>
+  <depend package="cob_srvs"/>
   <depend package="cob_undercarriage_ctrl"/>
   <depend package="cob_base_drive_chain"/>
+  <depend package="cob_relayboard"/>
 
 </package>

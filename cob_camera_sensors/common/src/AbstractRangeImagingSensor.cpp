@@ -51,10 +51,14 @@
 *
 ****************************************************************/
 
+#include "../include/cob_camera_sensors/StdAfx.h"
+
 #ifdef __LINUX__
 #include "cob_camera_sensors/AbstractRangeImagingSensor.h"
+#include "cob_vision_utils/GlobalDefines.h"
 #else
 #include "cob_driver/cob_camera_sensors/common/include/cob_camera_sensors/AbstractRangeImagingSensor.h"
+#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/GlobalDefines.h"
 #endif
 
 using namespace ipa_CameraSensors;
@@ -73,3 +77,7 @@ unsigned long AbstractRangeImagingSensor::SetIntrinsics(cv::Mat& intrinsicMatrix
 	return RET_OK; 
 }
 
+unsigned long AbstractRangeImagingSensor::SetPathToImages(std::string path) 
+{
+	return ipa_Utils::RET_OK;
+};
