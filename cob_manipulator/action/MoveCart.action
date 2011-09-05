@@ -1,0 +1,7 @@
+#goal definition
+geometry_msgs/PoseStamped goal_pose
+---
+#result definition
+int16 return_value
+---
+#feedback definition

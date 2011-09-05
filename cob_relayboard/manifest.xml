@@ -10,6 +10,7 @@
   <url>http://ros.org/wiki/cob_relayboard</url>
 
   <depend package="roscpp"/>
+  <depend package="rostest"/>
   <depend package="std_msgs"/>
   <depend package="cob_utilities"/>
 
