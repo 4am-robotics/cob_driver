@@ -156,6 +156,9 @@ bool CANPeakSysUSB::transmitMsg(CanMsg CMsg, bool bBlocking)
 		TPCMsg.DATA[i] = CMsg.getAt(i);
 	
 	// write msg
+	
+	//TODO Hier stürtzt die Base ab.. verwende libpcan.h pcan.h um Fehler auszulesen, diagnostizieren, ausgeben und CAN_INIT erneut aufzurufen = neustart can-hardware. 
+	
 	int iRet;
 	iRet = CAN_Write(m_handle, &TPCMsg);
 	iRet = CAN_Status(m_handle);
