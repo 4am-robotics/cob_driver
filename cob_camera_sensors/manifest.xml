@@ -10,6 +10,7 @@
   <url>http://ros.org/wiki/cob_camera_sensors</url>
 
   <depend package="roscpp"/>
+  <depend package="rostest"/>
   <depend package="sensor_msgs"/>
   <depend package="tinyxml"/>
   <depend package="opencv2"/>
@@ -19,11 +20,13 @@
   <depend package="openni_camera"/>
   <depend package="cv_bridge"/>
   <depend package="cob_vision_utils"/>
-  <depend package="cob_srvs"/>
   <depend package="libmesasr"/>
   <depend package="nodelet"/>
   <depend package="pcl"/>
   <depend package="pcl_ros"/>
+  <depend package="image_proc"/>
+  <depend package="point_cloud_converter"/>
+
 
   <export>
     <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_camera_sensors"/>

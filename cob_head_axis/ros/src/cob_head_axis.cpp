@@ -300,6 +300,7 @@ class NodeClass
 			// init powercubes 
 			if (CamAxis_->Init(CamAxisParams_))
 			{
+				CamAxis_->setGearPosVelRadS(0.0f, MaxVel_);
 				ROS_INFO("Initializing of camera axis succesful");
 				isInitialized_ = true;
 				res.success.data = true;
@@ -396,6 +397,7 @@ class NodeClass
 		ROS_INFO("Set default velocity to [%f]", req.default_vel);
 		MaxVel_ = req.default_vel;
 		CamAxisParams_->SetMaxVel(MaxVel_);
+		CamAxis_->setMaxVelocity(MaxVel_);
 		res.success.data = true; // 0 = true, else = false
 		return true;
 	}

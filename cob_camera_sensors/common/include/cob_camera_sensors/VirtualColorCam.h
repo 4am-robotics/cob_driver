@@ -60,6 +60,7 @@
 #ifndef __IPA_VIRTUALCOLORCAM_H__
 #define __IPA_VIRTUALCOLORCAM_H__
 
+#include "StdAfx.h"
 #ifdef __LINUX__
 	#include "cob_camera_sensors/AbstractColorCamera.h"
 #else
@@ -68,17 +69,6 @@
 
 #include <cstdlib>
 #include <boost/filesystem.hpp>
-namespace fs = boost::filesystem;
-using namespace std;
-
-#ifdef SWIG
-%module Sensors
-%include "Source/Vision/CameraSensors/AbstractColorCamera.h"
-
-%{
-	#include "VirtualColorCam.h"
-%}
-#endif
 
 namespace ipa_CameraSensors {
 /// @ingroup VirtualCameraDriver
