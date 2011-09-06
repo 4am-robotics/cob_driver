@@ -147,6 +147,9 @@ bool CANPeakSysUSB::transmitMsg(CanMsg CMsg, bool bBlocking)
 		std::cout <<  "Trying to restart PeakSysUSB Hardware..." << std::endl;
 		bRet = init_CAN();
 		
+	} else if((iRet & CAN_ERR_ANYBUSERR) == CAN_ERR_ANYBUSERR) {
+		std::cout <<  "CANPeakSysUSB::transmitMsg, ANYBUSERR: Heavy load on CAN-bus" << std::endl;
+		
 	} else if(iRet > 0) {
 		std::cout << "CANPeakSysUSB::transmitMsg, CAN_Error: " << iRet << std::endl;
 		bRet = false;
