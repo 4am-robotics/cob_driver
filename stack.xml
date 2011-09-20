@@ -12,7 +12,6 @@
   <depend stack="camera_drivers" /> <!-- prosilica_camera -->
   <depend stack="cob_common" /> <!-- cob_utilities, cob_srvs, cob_description, cob_vision_utils, brics_actuator -->
   <depend stack="cob_extern" /> <!-- libmesasr, libm5api, brics_oodl_scanner_libs, libphidgets, libpcan, libntcan -->
-  <depend stack="cob_vision" /> <!-- opencv2 -->
   <depend stack="common" /> <!-- actionlib, tinyxml -->
   <depend stack="common_msgs" /> <!-- nav_msgs, actionlib_msgs, trajectory_msgs, sensor_msgs, geometry_msgs, visualization_msgs, diagnostic_msgs -->
   <depend stack="diagnostics" /> <!-- diagnostic_updater -->
