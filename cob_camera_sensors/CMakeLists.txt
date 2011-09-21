@@ -72,6 +72,6 @@ target_link_libraries(cob_camera_sensors mesasr dc1394)
 
 
 # rostest
-rosbuild_add_roslaunch_check(ros/launch/left.launch)
-rosbuild_add_roslaunch_check(ros/launch/right.launch)
-rosbuild_add_roslaunch_check(ros/launch/cam3d.launch)
+rosbuild_add_roslaunch_check(ros/launch/left.launch ROBOT=cob3-3 ROBOT_ENV=ipa-kitchen)
+rosbuild_add_roslaunch_check(ros/launch/right.launch ROBOT=cob3-3 ROBOT_ENV=ipa-kitchen)
+#rosbuild_add_roslaunch_check(ros/launch/cam3d.launch ROBOT=cob3-3 ROBOT_ENV=ipa-kitchen)
