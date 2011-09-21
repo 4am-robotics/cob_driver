@@ -1,0 +1,65 @@
+<launch>
+
+  #### PARAMETERS ##############################################################
+
+  <arg name="camera" default="cam3d" />
+  <arg name="manager" value="$(arg camera)_nodelet_manager" />
+  <arg name="rgb_frame_id"   default="/head_cam3d_link" />
+  <arg name="depth_frame_id" default="/head_cam3d_link" />
+  <arg name="device_id" default="#1" />
+  <arg name="calibration_dir" default="/tmp" />
+  <arg name="generic_cal_file" value="$(arg calibration_dir)/calibration_%s.yaml" />
+  <arg name="rgb_calibration"   default="$(arg generic_cal_file)" />
+  <arg name="depth_calibration" default="$(arg generic_cal_file)" />
+  <arg name="rgb"              default="rgb" />
+  <arg name="ir"               default="ir" />
+  <arg name="depth"            default="depth" />
+  <arg name="depth_registered" default="depth_registered" />
+  <arg name="debug" default="false" />
+
+  <group ns="$(arg camera)">
+
+    #### RGB #################################################################
+    <include file="$(find openni_launch)/launch/includes/rgb.launch"
+	     ns="$(arg rgb)">
+      <arg name="manager" value="/cam3d_nodelet_manager" />
+    </include>
+
+    #### IR ###################################################################
+    <include file="$(find openni_launch)/launch/includes/ir.launch"
+	     ns="$(arg ir)">
+      <arg name="manager" value="/cam3d_nodelet_manager" />
+    </include>
+
+    #### UNREG DEPTH ##########################################################
+    <include file="$(find openni_launch)/launch/includes/depth.launch"
+	     ns="$(arg depth)">
+      <arg name="manager" value="/cam3d_nodelet_manager" />
+    </include>
+
+    #### DEPTH-TO_RGB #########################################################
+    <include file="$(find openni_launch)/launch/includes/depth_registered.launch">
+      <arg name="manager" value="/cam3d_nodelet_manager" />
+      <arg name="rgb" value="$(arg rgb)" />
+      <arg name="depth" value="$(arg depth)" />
+      <arg name="depth_registered" value="$(arg depth_registered)" />
+    </include>
+
+  </group>
+
+  #### FRAMES #########################################################
+
+  <!--arg name="pi/2" value="1.5707963267948966" />
+  <arg name="optical_rotate" value="0 0 0 -$(arg pi/2) 0 -$(arg pi/2)" />
+
+  <node pkg="tf" type="static_transform_publisher" name="$(arg camera)_base_link"
+        args="0 -0.02  0 0 0 0  /$(arg camera)_link /$(arg camera)_depth_frame 100" />  
+  <node pkg="tf" type="static_transform_publisher" name="$(arg camera)_base_link1"
+        args="0 -0.045 0 0 0 0  /$(arg camera)_link /$(arg camera)_rgb_frame 100" />  
+  <node pkg="tf" type="static_transform_publisher" name="$(arg camera)_base_link2"
+        args="$(arg optical_rotate) /$(arg camera)_depth_frame /$(arg camera)_depth_optical_frame  100" />  
+  <node pkg="tf" type="static_transform_publisher" name="$(arg camera)_base_link3"
+        args="$(arg optical_rotate) /$(arg camera)_rgb_frame /$(arg camera)_rgb_optical_frame 100" />  
+  <node pkg="tf" type="static_transform_publisher" name="kinect_base" 
+        args="0 0 0.0 0 0.0 0 /base_link /$(arg camera)_link 100" /-->  
+</launch>

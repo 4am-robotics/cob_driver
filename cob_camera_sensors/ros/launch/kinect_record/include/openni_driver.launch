@@ -1,0 +1,38 @@
+<launch>
+
+  #### PARAMETERS ###################################################################
+
+  <arg name="camera" default="camera" />
+  <arg name="manager" value="$(arg camera)_nodelet_manager" />
+  <arg name="rgb_frame_id"   default="/$(arg camera)_rgb_optical_frame" />
+  <arg name="depth_frame_id" default="/$(arg camera)_depth_optical_frame" />
+  <arg name="device_id" default="#1" />
+  <arg name="calibration_dir" default="/tmp" />
+  <arg name="generic_cal_file" value="$(arg calibration_dir)/calibration_%s.yaml" />
+  <arg name="rgb_calibration"   default="$(arg generic_cal_file)" />
+  <arg name="depth_calibration" default="$(arg generic_cal_file)" />
+  <arg name="rgb"              default="rgb" />
+  <arg name="ir"               default="ir" />
+  <arg name="depth"            default="depth" />
+  <arg name="depth_registered" default="depth_registered" />
+  <arg name="debug" default="false" />
+
+  #### DRIVER ###################################################################
+
+  <group ns="$(arg camera)">
+    <node pkg="nodelet" type="nodelet" name="driver" 
+          args="load openni_camera/driver /camera_nodelet_manager">
+      <param name="device_id" value="$(arg device_id)" />
+      <param name="rgb_camera_info_url"   value="file://$(arg rgb_calibration)" />
+      <param name="depth_camera_info_url" value="file://$(arg depth_calibration)" />
+      <param name="rgb_frame_id"   value="$(arg rgb_frame_id)" />
+      <param name="depth_frame_id" value="$(arg depth_frame_id)" />
+      <param name="depth_registration" value="true" />
+      <remap from="ir" to="$(arg ir)" />
+      <remap from="rgb" to="$(arg rgb)" />
+      <remap from="depth" to="$(arg depth)" />
+      <remap from="depth_registered" to="$(arg depth_registered)" />
+    </node>
+  </group> 
+
+</launch>
