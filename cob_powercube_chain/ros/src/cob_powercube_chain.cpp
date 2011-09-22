@@ -156,7 +156,7 @@ class PowercubeChainNode
 		
 		trajectory_msgs::JointTrajectory traj_;
 		trajectory_msgs::JointTrajectoryPoint traj_point_;
-		int traj_point_nr_;
+		unsigned int traj_point_nr_;
 		sem_t * can_sem ;
 		bool sem_can_available;
 
@@ -677,7 +677,7 @@ class PowercubeChainNode
 							traj_point_ = traj_.points[traj_point_nr_];
 							lock_semaphore(can_sem);
 							printf("cob_powercube_chain: Moving to position: ");
-							for (int i = 0; i < traj_point_.positions.size(); i++)
+							for (unsigned int i = 0; i < traj_point_.positions.size(); i++)
 							{
 								printf("%f ",traj_point_.positions[i]);
 							}
