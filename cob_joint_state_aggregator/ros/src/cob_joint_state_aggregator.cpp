@@ -8,7 +8,7 @@ MapType jointvelocities;
 void jsCallback(const sensor_msgs::JointState::ConstPtr& msg)
 {
 	MapType::iterator iter = jointpositions.begin();
-	for(int i = 0; i < msg->name.size(); i++)
+	for(unsigned int i = 0; i < msg->name.size(); i++)
 	{
 		//std::cout << msg->name[i] << std::endl;
 		

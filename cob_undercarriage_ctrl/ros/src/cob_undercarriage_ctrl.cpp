@@ -710,7 +710,8 @@ int main(int argc, char** argv)
     NodeClass nodeClass;
 	
 	// automatically do initializing of controller, because it's not directly depending any hardware components
-	if( nodeClass.is_initialized_bool_ = nodeClass.InitCtrl() ) {
+	nodeClass.is_initialized_bool_ = nodeClass.InitCtrl();
+	if( nodeClass.is_initialized_bool_ ) {
 		nodeClass.last_time_ = ros::Time::now();
 		ROS_INFO("Undercarriage control successfully initialized.");
 	} else
