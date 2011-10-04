@@ -473,6 +473,7 @@ class PowercubeChainNode
 				res.error_message.data = "powercubes already initialized";
 			}
 
+			PCube_->setMaxVelocity(0.2); //FIXME this is hard coded default velocity at init
 			return true;
 		}
 
