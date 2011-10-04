@@ -50,3 +50,9 @@ target_link_libraries(${PROJECT_NAME} ${PROJECT_SOURCE_DIR}/common/lib/libSDHLib
 #target_link_libraries(${PROJECT_NAME}_demo ${PROJECT_SOURCE_DIR}/common/lib/libSDHLibrary-CPP.a ntcan pcan)
 #target_link_libraries(${PROJECT_NAME}_driver ${PROJECT_SOURCE_DIR}/common/lib/libSDHLibrary-CPP.a ntcan pcan)
 #${PROJECT_SOURCE_DIR}/common/lib/libSDHLibrary-CPP.so pcan)
+
+# rostest
+#rosbuild_add_roslaunch_check(ros/launch/sdh.launch ROBOT=cob3-1)
+#rosbuild_add_roslaunch_check(ros/launch/sdh.launch ROBOT=cob3-2)
+rosbuild_add_roslaunch_check(ros/launch/sdh.launch ROBOT=cob3-3)
+#rosbuild_add_roslaunch_check(ros/launch/sdh.launch ROBOT=cob3-4)

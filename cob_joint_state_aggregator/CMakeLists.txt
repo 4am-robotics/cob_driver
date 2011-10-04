@@ -28,3 +28,6 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 rosbuild_add_executable(cob_joint_state_aggregator ros/src/cob_joint_state_aggregator.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
+
+# rostest
+rosbuild_add_roslaunch_check(ros/launch/joint_state_aggregator.launch)

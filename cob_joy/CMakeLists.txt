@@ -14,7 +14,7 @@ rosbuild_init()
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/bin)
 #set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/lib)
+set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 #uncomment if you have defined messages
 #rosbuild_genmsg()
@@ -26,17 +26,10 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/lib)
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
-#rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
-
-rosbuild_add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp common/src/ElmoCtrl.cpp)
-
-#rosbuild_add_executable(${PROJECT_NAME}_test ros/src/${PROJECT_NAME}_test.cpp)
-
-target_link_libraries(${PROJECT_NAME}_node pcan)
-#target_link_libraries(${PROJECT_NAME}_node ntcan)
-
 # rostest
-rosbuild_add_roslaunch_check(ros/launch/head_axis.launch)
+#rosbuild_add_roslaunch_check(ros/launch/joy.launch ROBOT=cob3-1)
+#rosbuild_add_roslaunch_check(ros/launch/joy.launch ROBOT=cob3-2)
+rosbuild_add_roslaunch_check(ros/launch/joy.launch ROBOT=cob3-3)
+#rosbuild_add_roslaunch_check(ros/launch/joy.launch ROBOT=cob3-4)
