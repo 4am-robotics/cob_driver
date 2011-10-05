@@ -128,8 +128,8 @@ class NodeClass
 		int num_readings = (stop_right_scan - start_left_scan);
 		laserScan.angle_min = msg->angle_min; //     first ScanAngle
 		laserScan.angle_max = msg->angle_max; // 		last ScanAngle
-		laserScan.set_ranges_size(num_readings);
-		laserScan.set_intensities_size(0);
+		laserScan.ranges.resize(num_readings);
+		laserScan.intensities.resize(0);
 
 		for(int i = 0; i < (stop_left_scan - start_left_scan); i++)
 		{
