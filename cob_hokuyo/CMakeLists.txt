@@ -29,6 +29,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/lib)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-# add include search paths
-
 rosbuild_add_executable(cob_hokuyo_filter ros/src/cob_hokuyo_filter.cpp)
+
+# rostest
+rosbuild_add_roslaunch_check(ros/launch/hokuyo.launch)
