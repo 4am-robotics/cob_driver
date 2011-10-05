@@ -399,7 +399,7 @@ class PowercubeChainNode
 		*/
 		void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal)
 		{
-			ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
+			ROS_INFO("Received new goal trajectory with %d points",(int)goal->trajectory.points.size());
 			if (!isInitialized_)
 			{
 				ROS_ERROR("%s: Rejected, powercubes not initialized", action_name_.c_str());
@@ -456,7 +456,7 @@ class PowercubeChainNode
 		*/
 		void executeFollowCB(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal)
 		{
-			ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
+			ROS_INFO("Received new goal trajectory with %d points",(int)goal->trajectory.points.size());
 			if (!isInitialized_)
 			{
 				ROS_ERROR("%s: Rejected, powercubes not initialized", action_name_follow_.c_str());
@@ -735,7 +735,7 @@ class PowercubeChainNode
 					{
 						//feedback_.isMoving = false;
 			
-						ROS_DEBUG("next point is %d from %d",traj_point_nr_,traj_.points.size());
+						ROS_DEBUG("next point is %d from %d",traj_point_nr_,(int)traj_.points.size());
 			
 						if (traj_point_nr_ < traj_.points.size())
 						{
