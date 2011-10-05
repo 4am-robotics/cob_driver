@@ -30,4 +30,7 @@ rosbuild_add_executable(cob_joint_state_aggregator ros/src/cob_joint_state_aggre
 #target_link_libraries(example ${PROJECT_NAME})
 
 # rostest
-rosbuild_add_roslaunch_check(ros/launch/joint_state_aggregator.launch)
+#rosbuild_add_roslaunch_check(ros/launch/joint_state_aggregator.launch ROBOT=cob3-1)
+#rosbuild_add_roslaunch_check(ros/launch/joint_state_aggregator.launch ROBOT=cob3-2)
+rosbuild_add_roslaunch_check(ros/launch/joint_state_aggregator.launch ROBOT=cob3-3)
+#rosbuild_add_roslaunch_check(ros/launch/joint_state_aggregator.launch ROBOT=cob3-4)
