@@ -130,7 +130,8 @@ bool genericArmCtrl::moveThetas(std::vector<double> conf_goal, std::vector<doubl
 	isMoving = true;
 	TotalTime_ = m_pRefVals->getTotalTime();
 	ROS_INFO("Starting control of trajectory: %f s long", TotalTime_);
-	
+
+	return true; //TODO when to return false?
 }
 	
 bool genericArmCtrl::moveTrajectory(trajectory_msgs::JointTrajectory pfad, std::vector<double> conf_current)
@@ -214,7 +215,7 @@ bool genericArmCtrl::step(std::vector<double> current_pos, std::vector<double> &
 		std::vector<double> m_vsoll = m_pRefVals->dr_dt(t);
 
 		double len = 0;
-		for(unsigned int i = 0; i < m_DOF; i++)
+		for(int i = 0; i < m_DOF; i++)
 		{
 			 len +=  (m_qsoll.at(i) - current_pos.at(i)) * (m_qsoll.at(i) - current_pos.at(i));
 		}
@@ -243,7 +244,7 @@ bool genericArmCtrl::step(std::vector<double> current_pos, std::vector<double> &
 			ROS_INFO("Probably finished trajectory");
 			isMoving = false;
 			desired_vel.resize(m_DOF);
-			for(unsigned int i = 0; i < m_DOF; i++)
+			for(int i = 0; i < m_DOF; i++)
 			{
 				desired_vel.at(i) = 0.0;
 			}
