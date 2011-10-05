@@ -127,19 +127,19 @@ public:
 		double PTPvel = 0.7;
 		double PTPacc = 0.2;
 		double maxError = 0.7;
-		if (n_.hasParam("PTPvel"))
+		if (n_.hasParam("ptp_vel"))
 		{
-			n_.getParam("PTPvel", PTPvel);
+			n_.getParam("ptp_vel", PTPvel);
 		}
-		if (n_.hasParam("PTPacc"))
+		if (n_.hasParam("ptp_acc"))
 		{
-			n_.getParam("PTPacc", PTPacc);
+			n_.getParam("ptp_acc", PTPacc);
 		}
-		if (n_.hasParam("maxError"))
+		if (n_.hasParam("max_error"))
 		{
-			n_.getParam("maxError", maxError);
+			n_.getParam("max_error", maxError);
 		}
-
+		ROS_INFO("starting controller with PTPvel: %f PTPAcc: %f maxError %f", PTPvel, PTPacc, maxError);
 		traj_generator_ = new genericArmCtrl(7, PTPvel, PTPacc, maxError);
 	}
 
