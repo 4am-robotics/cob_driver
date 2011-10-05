@@ -121,11 +121,26 @@ public:
 		      sleep(1);
 		  }
         executing_ = false;
-	watchdog_counter = 0;
-	current_operation_mode_ = "undefined";
+		watchdog_counter = 0;
+		current_operation_mode_ = "undefined";
 		q_current.resize(7);
-		traj_generator_ = new genericArmCtrl(7);
-		//TODO here set velocities and accelerations from parameter server
+		double PTPvel = 0.7;
+		double PTPacc = 0.2;
+		double maxError = 0.7;
+		if (n_.hasParam("ptp_vel"))
+		{
+			n_.getParam("ptp_vel", PTPvel);
+		}
+		if (n_.hasParam("ptp_acc"))
+		{
+			n_.getParam("ptp_acc", PTPacc);
+		}
+		if (n_.hasParam("max_error"))
+		{
+			n_.getParam("max_error", maxError);
+		}
+		ROS_INFO("starting controller with PTPvel: %f PTPAcc: %f maxError %f", PTPvel, PTPacc, maxError);
+		traj_generator_ = new genericArmCtrl(7, PTPvel, PTPacc, maxError);
 	}
 
 	bool srvCallback_Stop(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res)

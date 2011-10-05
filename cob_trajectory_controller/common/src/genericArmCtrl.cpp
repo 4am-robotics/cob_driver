@@ -38,7 +38,7 @@ if ( m_cThread.startJob(m_pRefVals) == false ) {						\
  ********************************************************************/
 
 
-genericArmCtrl::genericArmCtrl(int DOF)
+genericArmCtrl::genericArmCtrl(int DOF, double PTPvel, double PTPacc, double maxError) 
 {
 	
 	m_DOF = DOF;
@@ -48,13 +48,13 @@ genericArmCtrl::genericArmCtrl(int DOF)
 	isMoving = false;
 
 	//TODO: make configurable
-	SetPTPvel(0.7);
-	SetPTPacc(0.2);
+	SetPTPvel(PTPvel);
+	SetPTPacc(PTPacc);
 
 	//m_P = 2.5;
 	m_P = 4.0;
 	m_Vorsteuer = 0.9;
-	m_AllowedError = 0.75;//0.5;//0.25; // rad
+	m_AllowedError = maxError;//0.5;//0.25; // rad
 	m_CurrentError = 0.0; // rad
 	m_TargetError = 0.02; // rad;
 
