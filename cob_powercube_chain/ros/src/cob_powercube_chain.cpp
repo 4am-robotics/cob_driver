@@ -69,6 +69,7 @@
 #include <actionlib/server/simple_action_server.h>
 #include <pr2_controllers_msgs/JointTrajectoryAction.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
+#include <control_msgs/FollowJointTrajectoryAction.h>
 
 // ROS message includes
 #include <sensor_msgs/JointState.h>
@@ -122,10 +123,16 @@ class PowercubeChainNode
 
 		// actionlib server
 		actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
+		actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> as_follow_;
 		std::string action_name_;
+		std::string action_name_follow_;
+
 		// create messages that are used to published feedback/result
 		pr2_controllers_msgs::JointTrajectoryFeedback feedback_;
 		pr2_controllers_msgs::JointTrajectoryResult result_;
+		control_msgs::FollowJointTrajectoryFeedback feedback_follow_;
+		control_msgs::FollowJointTrajectoryResult result_follow_;
+
 
 		// diagnostic stuff
 		diagnostic_updater::Updater updater_;
@@ -178,9 +185,11 @@ class PowercubeChainNode
 		*
 		* \param name Name for the actionlib server.
 		*/
-		PowercubeChainNode(std::string name):
+		PowercubeChainNode(std::string name, std::string follow_name):
 			as_(n_, name, boost::bind(&PowercubeChainNode::executeCB, this, _1)),
-			action_name_(name)
+			as_follow_(n_, follow_name, boost::bind(&PowercubeChainNode::executeFollowCB, this, _1)),
+			action_name_(name),
+			action_name_follow_(follow_name)
 		{
 			sem_can_available = false;
 			can_sem = SEM_FAILED;
@@ -436,6 +445,63 @@ class PowercubeChainNode
 			ROS_INFO("%s: Succeeded", action_name_.c_str());
 			// set the action state to succeeded
 			as_.setSucceeded(result_);
+		}
+
+		/*!
+		* \brief Executes the follow callback from the actionlib.
+		*
+		* New interface for arm_navigation
+		* Set the current goal to aborted after receiving a new goal and write new goal to a member variable. Wait for the goal to finish and set actionlib status to succeeded.
+		* \param goal FollowJointTrajectoryGoal
+		*/
+		void executeFollowCB(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal)
+		{
+			ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
+			if (!isInitialized_)
+			{
+				ROS_ERROR("%s: Rejected, powercubes not initialized", action_name_follow_.c_str());
+				as_follow_.setAborted();
+				return;
+			}
+			// saving goal into local variables
+			traj_ = goal->trajectory;
+			traj_point_nr_ = 0;
+			traj_point_ = traj_.points[traj_point_nr_];
+			finished_ = false;
+			
+			// stoping arm to prepare for new trajectory
+			std::vector<double> VelZero;
+			VelZero.resize(ModIds_param_.size());
+			PCube_->MoveVel(VelZero);
+
+			// check that preempt has not been requested by the client
+			if (as_follow_.isPreemptRequested())
+			{
+				ROS_INFO("%s: Preempted", action_name_follow_.c_str());
+				// set the action state to preempted
+				as_follow_.setPreempted();
+			}
+			
+			usleep(500000); // needed sleep until powercubes starts to change status from idle to moving
+			
+			while(finished_ == false)
+			{
+				if (as_follow_.isNewGoalAvailable())
+				{
+					ROS_WARN("%s: Aborted", action_name_follow_.c_str());
+					as_follow_.setAborted();
+					return;
+				}
+		   		usleep(10000);
+				//feedback_ = 
+				//as_.send feedback_
+			}
+
+			// set the action state to succeed			
+			//result_.result.data = "executing trajectory";
+			ROS_INFO("%s: Succeeded", action_name_follow_.c_str());
+			// set the action state to succeeded
+			as_follow_.setSucceeded(result_follow_);
 		}
 
 		/*!
@@ -737,7 +803,7 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "powercube_chain");
 
 	// create class
-	PowercubeChainNode pc_node("joint_trajectory_action");
+	PowercubeChainNode pc_node("joint_trajectory_action", "follow_trajectory_action");
 
 
 	

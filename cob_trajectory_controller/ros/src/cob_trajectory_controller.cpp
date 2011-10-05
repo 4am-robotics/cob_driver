@@ -64,6 +64,8 @@
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 #include <actionlib/server/simple_action_server.h>
 #include <pr2_controllers_msgs/JointTrajectoryAction.h>
+#include <control_msgs/FollowJointTrajectoryAction.h>
+
 #include <brics_actuator/JointVelocities.h>
 #include <cob_trajectory_controller/genericArmCtrl.h>
 // ROS service includes
@@ -81,26 +83,36 @@ private:
     ros::Publisher joint_pos_pub_;
     ros::Publisher joint_vel_pub_;
     ros::Subscriber controller_state_;
-  ros::Subscriber operation_mode_;
-  ros::ServiceServer srvServer_Stop_;
-  ros::ServiceClient srvClient_SetOperationMode;
+ 	ros::Subscriber operation_mode_;
+ 	ros::ServiceServer srvServer_Stop_;
+ 	ros::ServiceClient srvClient_SetOperationMode;
+
     actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
+    actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> as_follow_;
+ 
+  
     std::string action_name_;
-  std::string current_operation_mode_;
+    std::string action_name_follow_;	
+  	std::string current_operation_mode_;
     bool executing_;
-  int watchdog_counter;
+
+  	int watchdog_counter;
     genericArmCtrl* traj_generator_;
     trajectory_msgs::JointTrajectory traj_;
     std::vector<double> q_current, startposition_, joint_distance_;
 
 public:
-    cob_trajectory_controller():as_(n_, "joint_trajectory_action", boost::bind(&cob_trajectory_controller::executeTrajectory, this, _1), true),
-    action_name_("joint_trajectory_action")
+    cob_trajectory_controller():
+    as_(n_, "joint_trajectory_action", boost::bind(&cob_trajectory_controller::executeTrajectory, this, _1), true),
+    as_follow_(n_, "follow_joint_trajectory", boost::bind(&cob_trajectory_controller::executeFollowTrajectory, this, _1), true),
+    action_name_("joint_trajectory_action"),
+    action_name_follow_("follow_joint_trajectory")
+ 
     {
         joint_pos_pub_ = n_.advertise<sensor_msgs::JointState>("target_joint_pos", 1);
 		joint_vel_pub_ = n_.advertise<brics_actuator::JointVelocities>("command_vel", 1);
         controller_state_ = n_.subscribe("state", 1, &cob_trajectory_controller::state_callback, this);
-	operation_mode_ = n_.subscribe("current_operationmode", 1, &cob_trajectory_controller::operationmode_callback, this);
+		operation_mode_ = n_.subscribe("current_operationmode", 1, &cob_trajectory_controller::operationmode_callback, this);
 		srvServer_Stop_ = n_.advertiseService("stop", &cob_trajectory_controller::srvCallback_Stop, this);
 		srvClient_SetOperationMode = n_.serviceClient<cob_srvs::SetOperationMode>("set_operation_mode");
 		while(!srvClient_SetOperationMode.exists())
@@ -192,6 +204,59 @@ public:
 			sleep(1);
 		}
 		as_.setSucceeded();
+    }
+
+     void executeFollowTrajectory(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal)
+  {
+        ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
+        if(!executing_)
+        {
+	  	//set arm to velocity mode
+	  	cob_srvs::SetOperationMode opmode;
+	  	opmode.request.operation_mode.data = "velocity";
+	  	srvClient_SetOperationMode.call(opmode);
+	  	while(current_operation_mode_ != "velocity")
+	    {
+	      ROS_INFO("waiting for arm to go to velocity mode");
+	      usleep(100000);
+	    }
+        traj_ = goal->trajectory;
+        if(traj_.points.size() == 1)
+        {
+        	traj_generator_->moveThetas(traj_.points[0].positions, q_current);
+        }
+        else
+        {
+        	//Insert the current point as first point of trajectory, then generate SPLINE trajectory
+        	trajectory_msgs::JointTrajectoryPoint p;
+        	p.positions.resize(7);
+        	p.velocities.resize(7);
+        	p.accelerations.resize(7);
+        	for(unsigned int i = 0; i<7; i++)
+        	{
+        		p.positions.at(i) = q_current.at(i);
+        		p.velocities.at(i) = 0.0;
+        		p.accelerations.at(i) = 0.0;
+        	}
+        	std::vector<trajectory_msgs::JointTrajectoryPoint>::iterator it;
+        	it = traj_.points.begin();
+        	traj_.points.insert(it,p);
+        	traj_generator_->moveTrajectory(traj_, q_current);
+        }
+        executing_ = true;
+        startposition_ = q_current;
+
+        //TODO: std::cout << "Trajectory time: " << traj_end_time_ << " Trajectory step: " << traj_step_ << "\n";
+	    }
+	    else //suspend current movement and start new one
+	    {
+	   
+	    }
+		while(executing_)
+		{
+			sleep(1);
+		}
+		as_follow_.setSucceeded();
     }
     
     void run()

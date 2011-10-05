@@ -14,6 +14,7 @@
   <depend stack="cob_extern" /> <!-- libmesasr, libm5api, brics_oodl_scanner_libs, libphidgets, libpcan, libntcan -->
   <depend stack="common" /> <!-- actionlib, tinyxml -->
   <depend stack="common_msgs" /> <!-- nav_msgs, actionlib_msgs, trajectory_msgs, sensor_msgs, geometry_msgs, visualization_msgs, diagnostic_msgs -->
+  <depend stack="control" /> <!-- control_msgs -->
   <depend stack="diagnostics" /> <!-- diagnostic_updater -->
   <depend stack="eigen" /> <!-- eigen -->
   <depend stack="geometry" /> <!-- tf, tf_conversions -->
@@ -32,7 +33,7 @@
   <depend stack="pr2_kinematics" /> <!-- pr2_arm_kinematics -->
   <depend stack="robot_model" /> <!-- robot_state_publisher, urdf, kdl_parser, collada_urdf -->
   <depend stack="ros" /> <!-- roslib -->
-  <depend stack="ros_comm" /> <!-- rospy, rostest, std_msgs, roscpp, message_filters -->
+  <depend stack="ros_comm" /> <!-- std_msgs, rostest, rospy, roscpp, message_filters -->
   <depend stack="vision_opencv" /> <!-- cv_bridge -->
 
 </stack>
