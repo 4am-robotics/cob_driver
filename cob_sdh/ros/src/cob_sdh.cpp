@@ -282,7 +282,7 @@ class SdhNode
 			targetAngles_[4] = goal->trajectory.points[0].positions[2]*180.0/pi_; // sdh_thumb3_joint
 			targetAngles_[5] = goal->trajectory.points[0].positions[3]*180.0/pi_; // sdh_finger12_joint
 			targetAngles_[6] = goal->trajectory.points[0].positions[4]*180.0/pi_; // sdh_finger13_joint
-			ROS_INFO("received new position goal: [['sdh_knuckle_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']] = [%f,%f,%f,%f,%f,%f,%f,%f]",goal->trajectory.points[0].positions[0],goal->trajectory.points[0].positions[1],goal->trajectory.points[0].positions[2],goal->trajectory.points[0].positions[3],goal->trajectory.points[0].positions[4],goal->trajectory.points[0].positions[5],goal->trajectory.points[0].positions[6]);
+			ROS_INFO("received new position goal: [['sdh_knuckle_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']] = [%f,%f,%f,%f,%f,%f,%f]",goal->trajectory.points[0].positions[0],goal->trajectory.points[0].positions[1],goal->trajectory.points[0].positions[2],goal->trajectory.points[0].positions[3],goal->trajectory.points[0].positions[4],goal->trajectory.points[0].positions[5],goal->trajectory.points[0].positions[6]);
 		
 			hasNewGoal_ = true;
 			
@@ -297,7 +297,7 @@ class SdhNode
 					as_.setAborted();
 					return;
 				}
-				for ( size_t i = 0; i < state_.size(); i++ )
+				for ( unsigned int i = 0; i < state_.size(); i++ )
 		 		{
 		 			ROS_DEBUG("state[%d] = %d",i,state_[i]);
 		 			if (state_[i] == 0)
@@ -562,7 +562,7 @@ class SdhNode
 				delete e;
 			}
 			
-			ROS_DEBUG("received %d angles from sdh",actualAngles.size());
+			ROS_DEBUG("received %d angles from sdh",(int)actualAngles.size());
 			
 			// create joint_state message
 			sensor_msgs::JointState msg;
