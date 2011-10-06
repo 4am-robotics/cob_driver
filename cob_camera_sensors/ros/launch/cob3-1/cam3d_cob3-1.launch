@@ -13,8 +13,8 @@
     <!--rosparam command="load" file="$(find cob_camera_sensors)/ros/launch/kinect_rgb.yaml" /-->
     
     <!-- use these lines to load your own calibration for the rgb and depth camera of teh kinect-->
-    <param name="rgb_camera_info_url" value="file:///$(find cob_camera_sensors)/ros/launch/cob3-1/kinect_rgb.yaml" />
-    <!-- <param name="depth_camera_info_url" value="file:///(find cob_camera_sensors)/ros/launch/cob3-1/kinect_depth.yaml" /> --> <!-- if you do not provide a calibration, the driver will output a warning and maybe an error - however, it will take a standard calibration and will proceed working-->
+    <param name="rgb_camera_info_url" value="file:///$(find cob_camera_sensors)/ros/launch/$(env ROBOT)/kinect_rgb.yaml" />
+    <!-- <param name="depth_camera_info_url" value="file:///(find cob_camera_sensors)/ros/launch/$(env ROBOT)/kinect_depth.yaml" /> --> <!-- if you do not provide a calibration, the driver will output a warning and maybe an error - however, it will take a standard calibration and will proceed working-->
     
     <param name="rgb_frame_id" value="/head_cam3d_link" />
     <param name="depth_frame_id" value="/head_cam3d_link" />
