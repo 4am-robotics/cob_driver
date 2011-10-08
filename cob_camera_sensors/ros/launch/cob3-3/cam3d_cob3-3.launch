@@ -20,8 +20,8 @@
        See camera_info_manager docs for calibration URL details. -->
   <arg name="rgb_camera_info_url"   default="" />
   <arg name="depth_camera_info_url" default="" />
-    <!--arg name="rgb_camera_info_url" default="file:///$(find cob_camera_sensors)/ros/launch/cob3-3/kinect_rgb.yaml" /-->
-    <!--arg name="depth_camera_info_url" default="file:///$(find cob_camera_sensors)/ros/launch/cob3-3/kinect_depth.yaml" /--> <!-- if you do not provide a calibration, the driver will output a warning and maybe an error - however, it will take a standard calibration and will proceed working-->
+    <!--arg name="rgb_camera_info_url" default="file:///$(find cob_camera_sensors)/ros/launch/$(env ROBOT)/kinect_rgb.yaml" /-->
+    <!--arg name="depth_camera_info_url" default="file:///$(find cob_camera_sensors)/ros/launch/$(env ROBOT)/kinect_depth.yaml" /--> <!-- if you do not provide a calibration, the driver will output a warning and maybe an error - however, it will take a standard calibration and will proceed working-->
 
   <!-- Arguments for remapping "rgb", "depth", "depth_registered" namespaces -->
   <arg name="rgb"              default="rgb" />

@@ -564,13 +564,14 @@ class SdhNode
 			
 			ROS_DEBUG("received %d angles from sdh",(int)actualAngles.size());
 			
+			ros::Time time = ros::Time::now();
+			
 			// create joint_state message
 			sensor_msgs::JointState msg;
-			msg.header.stamp = ros::Time::now();
+			msg.header.stamp = time;
 			msg.name.resize(DOF_);
 			msg.position.resize(DOF_);
 			msg.velocity.resize(DOF_);
-
 			// set joint names and map them to angles
 			msg.name = JointNames_;
 			//['sdh_knuckle_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']
@@ -590,9 +591,60 @@ class SdhNode
 			msg.velocity[4] = actualVelocities[6]*pi_/180.0; // sdh_finger_13_joint
 			msg.velocity[5] = actualVelocities[1]*pi_/180.0; // sdh_finger_22_joint
 			msg.velocity[6] = actualVelocities[2]*pi_/180.0; // sdh_finger_23_joint
-
 			// publish message
-			topicPub_JointState_.publish(msg); 
+			topicPub_JointState_.publish(msg);
+			
+			
+			// because the robot_state_publisher doen't know about the mimic joint, we have to publish the coupled joint separately
+			sensor_msgs::JointState  mimicjointmsg;
+			mimicjointmsg.header.stamp = time;
+			mimicjointmsg.name.resize(1);
+			mimicjointmsg.position.resize(1);
+			mimicjointmsg.velocity.resize(1);
+			mimicjointmsg.name[0] = "sdh_finger_21_joint";
+			mimicjointmsg.position[0] = msg.position[0]; // sdh_knuckle_joint = sdh_finger_21_joint
+			mimicjointmsg.velocity[0] = msg.velocity[0]; // sdh_knuckle_joint = sdh_finger_21_joint
+			topicPub_JointState_.publish(mimicjointmsg);
+			
+			
+			// publish controller state message
+			pr2_controllers_msgs::JointTrajectoryControllerState controllermsg;
+			controllermsg.header.stamp = time;
+			controllermsg.joint_names.resize(DOF_);
+			controllermsg.desired.positions.resize(DOF_);
+			controllermsg.desired.velocities.resize(DOF_);
+			controllermsg.actual.positions.resize(DOF_);
+			controllermsg.actual.velocities.resize(DOF_);
+			controllermsg.error.positions.resize(DOF_);
+			controllermsg.error.velocities.resize(DOF_);
+			// set joint names and map them to angles
+			controllermsg.joint_names = JointNames_;
+			//['sdh_knuckle_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']
+			// desired pos
+			if (targetAngles_.size() != 0)
+			{
+				controllermsg.desired.positions[0] = targetAngles_[0]*pi_/180.0; // sdh_knuckle_joint
+				controllermsg.desired.positions[1] = targetAngles_[3]*pi_/180.0; // sdh_thumb_2_joint
+				controllermsg.desired.positions[2] = targetAngles_[4]*pi_/180.0; // sdh_thumb_3_joint
+				controllermsg.desired.positions[3] = targetAngles_[5]*pi_/180.0; // sdh_finger_12_joint
+				controllermsg.desired.positions[4] = targetAngles_[6]*pi_/180.0; // sdh_finger_13_joint
+				controllermsg.desired.positions[5] = targetAngles_[1]*pi_/180.0; // sdh_finger_22_joint
+				controllermsg.desired.positions[6] = targetAngles_[2]*pi_/180.0; // sdh_finger_23_joint
+			}
+			// desired vel
+				// they are all zero
+			// actual pos			
+			controllermsg.actual.positions = msg.position;
+			// actual vel
+			controllermsg.actual.velocities = msg.velocity;
+			// error, calculated out of desired and actual values
+			for (int i = 0; i<DOF_; i++ )
+			{
+				controllermsg.error.positions[i] = controllermsg.desired.positions[i] - controllermsg.actual.positions[i];
+				controllermsg.error.velocities[i] = controllermsg.desired.velocities[i] - controllermsg.actual.velocities[i];
+			}
+			// publish controller message
+			topicPub_ControllerState_.publish(controllermsg);
 
 			// read sdh status
 			state_ = sdh_->GetAxisActualState(axes_);
