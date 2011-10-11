@@ -92,7 +92,7 @@
 #include <sys/stat.h>        /* For mode constants */
 #include <semaphore.h>
 #include <stdio.h>
-#include<unistd.h>
+#include <unistd.h>
 #include <stdlib.h>
 
 /*!
@@ -223,8 +223,9 @@ class PowercubeChainNode
 			//--
 
 			// diagnostics
-			updater_.setHardwareID(ros::this_node::getName());
+			updater_.setHardwareID("none"); // TODO: how to get serial number(s) out of module(s)
 			updater_.add("initialization", this, &PowercubeChainNode::diag_init);
+			updater_.add("chain", this, &PowercubeChainNode::diag_chain);
 
 
 			// read parameters from parameter server
@@ -382,14 +383,25 @@ class PowercubeChainNode
 			cmd_vel_ = msg->points[0].velocities;
 		}
 
-  void diag_init(diagnostic_updater::DiagnosticStatusWrapper &stat)
-  {
-    if(isInitialized_)
-      stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "");
-    else
-      stat.summary(diagnostic_msgs::DiagnosticStatus::WARN, "");
-    stat.add("Initialized", isInitialized_);
-  }
+		void diag_init(diagnostic_updater::DiagnosticStatusWrapper &stat)
+		{
+			if(isInitialized_)
+				stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Powercubes initialized.");
+			else
+				stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "Powercubes not initialized.");
+			stat.add("Powercubes initialized", isInitialized_);
+		}
+		
+		void diag_chain(diagnostic_updater::DiagnosticStatusWrapper &stat)
+		{
+			stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Powercubes configuration");
+			stat.add("Number of powercubes in chain", ModIds_.size());
+			//stat.add("Joint names", std::stringstream(JointNames_param_)); // TODO get vectors in here
+			stat.add("Can device", CanDevice_);
+			stat.add("Can module", CanModule_);
+			stat.add("Can baudrate", CanBaudrate_);
+			//stat.add("Modul IDs", std::stringstream(ModIds_param_)); // TODO get vectors in here
+		}
 
 		/*!
 		* \brief Executes the callback from the actionlib.

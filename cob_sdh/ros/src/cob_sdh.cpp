@@ -158,7 +158,7 @@ class SdhNode
 		{
 			pi_ = 3.1415926;
 			// diagnostics
-			updater_.setHardwareID(ros::this_node::getName());
+			updater_.setHardwareID("none"); // TODO: how to get serial number from driver?
 			updater_.add("initialization", this, &SdhNode::diag_init);
 
 		}
@@ -177,12 +177,16 @@ class SdhNode
 
 		void diag_init(diagnostic_updater::DiagnosticStatusWrapper &stat)
 		  {
-		    if(isInitialized_ && isDSAInitialized_)
-		      stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "");
+		    if (not isInitialized_ && not isDSAInitialized_)
+		      stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "SDH and DSA not initialized.");
+		    else if (not isInitialized_ && isDSAInitialized_)
+		      stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "SDH not initialized.");
+		    else if(isInitialized_ && not isDSAInitialized_)
+		      stat.summary(diagnostic_msgs::DiagnosticStatus::WARN, "DSA not initialized.");
 		    else
-		      stat.summary(diagnostic_msgs::DiagnosticStatus::WARN, "");
-		    stat.add("Hand initialized", isInitialized_);
-		    stat.add("Tactile iInitialized", isDSAInitialized_);
+		      stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "SDH and DSA initialized.");
+		    stat.add("SDH initialized", isInitialized_);
+		    stat.add("DSA initialized", isDSAInitialized_);
 		  }
 
 		/*!
@@ -719,8 +723,19 @@ int main(int argc, char** argv)
 	
 	ROS_INFO("...sdh node running...");
 
-	sleep(1);
-	ros::Rate loop_rate(5); // Hz
+	double frequency;
+	if (sdh_node.nh_.hasParam("frequency"))
+	{
+		sdh_node.nh_.getParam("frequency", frequency);
+	}
+	else
+	{
+		frequency = 5; //Hz
+		ROS_WARN("Parameter frequency not available, setting to default value: %f Hz", frequency);
+	}
+
+	//sleep(1);
+	ros::Rate loop_rate(frequency); // Hz
 	while(sdh_node.nh_.ok())
 	{
 		// publish JointState
