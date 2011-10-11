@@ -158,7 +158,7 @@ class SdhNode
 		{
 			pi_ = 3.1415926;
 			// diagnostics
-			updater_.setHardwareID(ros::this_node::getName());
+			updater_.setHardwareID("none"); // TODO: how to get serial number from driver?
 			updater_.add("initialization", this, &SdhNode::diag_init);
 
 		}
@@ -177,12 +177,16 @@ class SdhNode
 
 		void diag_init(diagnostic_updater::DiagnosticStatusWrapper &stat)
 		  {
-		    if(isInitialized_ && isDSAInitialized_)
-		      stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "");
+		    if (not isInitialized_ && not isDSAInitialized_)
+		      stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "SDH and DSA not initialized.");
+		    else if (not isInitialized_ && isDSAInitialized_)
+		      stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "SDH not initialized.");
+		    else if(isInitialized_ && not isDSAInitialized_)
+		      stat.summary(diagnostic_msgs::DiagnosticStatus::WARN, "DSA not initialized.");
 		    else
-		      stat.summary(diagnostic_msgs::DiagnosticStatus::WARN, "");
-		    stat.add("Hand initialized", isInitialized_);
-		    stat.add("Tactile iInitialized", isDSAInitialized_);
+		      stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "SDH and DSA initialized.");
+		    stat.add("SDH initialized", isInitialized_);
+		    stat.add("DSA initialized", isDSAInitialized_);
 		  }
 
 		/*!
@@ -282,7 +286,7 @@ class SdhNode
 			targetAngles_[4] = goal->trajectory.points[0].positions[2]*180.0/pi_; // sdh_thumb3_joint
 			targetAngles_[5] = goal->trajectory.points[0].positions[3]*180.0/pi_; // sdh_finger12_joint
 			targetAngles_[6] = goal->trajectory.points[0].positions[4]*180.0/pi_; // sdh_finger13_joint
-			ROS_INFO("received new position goal: [['sdh_knuckle_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']] = [%f,%f,%f,%f,%f,%f,%f,%f]",goal->trajectory.points[0].positions[0],goal->trajectory.points[0].positions[1],goal->trajectory.points[0].positions[2],goal->trajectory.points[0].positions[3],goal->trajectory.points[0].positions[4],goal->trajectory.points[0].positions[5],goal->trajectory.points[0].positions[6]);
+			ROS_INFO("received new position goal: [['sdh_knuckle_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']] = [%f,%f,%f,%f,%f,%f,%f]",goal->trajectory.points[0].positions[0],goal->trajectory.points[0].positions[1],goal->trajectory.points[0].positions[2],goal->trajectory.points[0].positions[3],goal->trajectory.points[0].positions[4],goal->trajectory.points[0].positions[5],goal->trajectory.points[0].positions[6]);
 		
 			hasNewGoal_ = true;
 			
@@ -297,7 +301,7 @@ class SdhNode
 					as_.setAborted();
 					return;
 				}
-				for ( size_t i = 0; i < state_.size(); i++ )
+				for ( unsigned int i = 0; i < state_.size(); i++ )
 		 		{
 		 			ROS_DEBUG("state[%d] = %d",i,state_[i]);
 		 			if (state_[i] == 0)
@@ -562,15 +566,16 @@ class SdhNode
 				delete e;
 			}
 			
-			ROS_DEBUG("received %d angles from sdh",actualAngles.size());
+			ROS_DEBUG("received %d angles from sdh",(int)actualAngles.size());
+			
+			ros::Time time = ros::Time::now();
 			
 			// create joint_state message
 			sensor_msgs::JointState msg;
-			msg.header.stamp = ros::Time::now();
+			msg.header.stamp = time;
 			msg.name.resize(DOF_);
 			msg.position.resize(DOF_);
 			msg.velocity.resize(DOF_);
-
 			// set joint names and map them to angles
 			msg.name = JointNames_;
 			//['sdh_knuckle_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']
@@ -590,9 +595,60 @@ class SdhNode
 			msg.velocity[4] = actualVelocities[6]*pi_/180.0; // sdh_finger_13_joint
 			msg.velocity[5] = actualVelocities[1]*pi_/180.0; // sdh_finger_22_joint
 			msg.velocity[6] = actualVelocities[2]*pi_/180.0; // sdh_finger_23_joint
-
 			// publish message
-			topicPub_JointState_.publish(msg); 
+			topicPub_JointState_.publish(msg);
+			
+			
+			// because the robot_state_publisher doen't know about the mimic joint, we have to publish the coupled joint separately
+			sensor_msgs::JointState  mimicjointmsg;
+			mimicjointmsg.header.stamp = time;
+			mimicjointmsg.name.resize(1);
+			mimicjointmsg.position.resize(1);
+			mimicjointmsg.velocity.resize(1);
+			mimicjointmsg.name[0] = "sdh_finger_21_joint";
+			mimicjointmsg.position[0] = msg.position[0]; // sdh_knuckle_joint = sdh_finger_21_joint
+			mimicjointmsg.velocity[0] = msg.velocity[0]; // sdh_knuckle_joint = sdh_finger_21_joint
+			topicPub_JointState_.publish(mimicjointmsg);
+			
+			
+			// publish controller state message
+			pr2_controllers_msgs::JointTrajectoryControllerState controllermsg;
+			controllermsg.header.stamp = time;
+			controllermsg.joint_names.resize(DOF_);
+			controllermsg.desired.positions.resize(DOF_);
+			controllermsg.desired.velocities.resize(DOF_);
+			controllermsg.actual.positions.resize(DOF_);
+			controllermsg.actual.velocities.resize(DOF_);
+			controllermsg.error.positions.resize(DOF_);
+			controllermsg.error.velocities.resize(DOF_);
+			// set joint names and map them to angles
+			controllermsg.joint_names = JointNames_;
+			//['sdh_knuckle_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']
+			// desired pos
+			if (targetAngles_.size() != 0)
+			{
+				controllermsg.desired.positions[0] = targetAngles_[0]*pi_/180.0; // sdh_knuckle_joint
+				controllermsg.desired.positions[1] = targetAngles_[3]*pi_/180.0; // sdh_thumb_2_joint
+				controllermsg.desired.positions[2] = targetAngles_[4]*pi_/180.0; // sdh_thumb_3_joint
+				controllermsg.desired.positions[3] = targetAngles_[5]*pi_/180.0; // sdh_finger_12_joint
+				controllermsg.desired.positions[4] = targetAngles_[6]*pi_/180.0; // sdh_finger_13_joint
+				controllermsg.desired.positions[5] = targetAngles_[1]*pi_/180.0; // sdh_finger_22_joint
+				controllermsg.desired.positions[6] = targetAngles_[2]*pi_/180.0; // sdh_finger_23_joint
+			}
+			// desired vel
+				// they are all zero
+			// actual pos			
+			controllermsg.actual.positions = msg.position;
+			// actual vel
+			controllermsg.actual.velocities = msg.velocity;
+			// error, calculated out of desired and actual values
+			for (int i = 0; i<DOF_; i++ )
+			{
+				controllermsg.error.positions[i] = controllermsg.desired.positions[i] - controllermsg.actual.positions[i];
+				controllermsg.error.velocities[i] = controllermsg.desired.velocities[i] - controllermsg.actual.velocities[i];
+			}
+			// publish controller message
+			topicPub_ControllerState_.publish(controllermsg);
 
 			// read sdh status
 			state_ = sdh_->GetAxisActualState(axes_);
@@ -667,8 +723,19 @@ int main(int argc, char** argv)
 	
 	ROS_INFO("...sdh node running...");
 
-	sleep(1);
-	ros::Rate loop_rate(5); // Hz
+	double frequency;
+	if (sdh_node.nh_.hasParam("frequency"))
+	{
+		sdh_node.nh_.getParam("frequency", frequency);
+	}
+	else
+	{
+		frequency = 5; //Hz
+		ROS_WARN("Parameter frequency not available, setting to default value: %f Hz", frequency);
+	}
+
+	//sleep(1);
+	ros::Rate loop_rate(frequency); // Hz
 	while(sdh_node.nh_.ok())
 	{
 		// publish JointState

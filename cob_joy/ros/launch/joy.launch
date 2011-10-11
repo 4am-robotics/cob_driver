@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<launch>
+
+	<!-- send parameters to parameter server -->
+	<rosparam command="load" ns="joy_node" file="$(find cob_joy)/ros/launch/$(env ROBOT).yaml"/>
+
+	<!-- run joystick -->
+	<node pkg="joy" type="joy_node" name="joy_node"/>
+
+	<!-- include rostest -->
+	<include file="$(find cob_joy)/ros/launch/joy.test" />
+
+</launch>

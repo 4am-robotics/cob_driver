@@ -129,7 +129,7 @@ class NodeClass
 	double ActualVel_;
 	trajectory_msgs::JointTrajectory traj_;
 	trajectory_msgs::JointTrajectoryPoint traj_point_;
-	int traj_point_nr_;
+	unsigned int traj_point_nr_;
 
 	// Constructor
 	NodeClass(std::string name):

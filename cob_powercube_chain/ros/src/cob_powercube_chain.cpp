@@ -69,6 +69,7 @@
 #include <actionlib/server/simple_action_server.h>
 #include <pr2_controllers_msgs/JointTrajectoryAction.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
+#include <control_msgs/FollowJointTrajectoryAction.h>
 
 // ROS message includes
 #include <sensor_msgs/JointState.h>
@@ -91,7 +92,7 @@
 #include <sys/stat.h>        /* For mode constants */
 #include <semaphore.h>
 #include <stdio.h>
-#include<unistd.h>
+#include <unistd.h>
 #include <stdlib.h>
 
 /*!
@@ -122,10 +123,16 @@ class PowercubeChainNode
 
 		// actionlib server
 		actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
+		actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> as_follow_;
 		std::string action_name_;
+		std::string action_name_follow_;
+
 		// create messages that are used to published feedback/result
 		pr2_controllers_msgs::JointTrajectoryFeedback feedback_;
 		pr2_controllers_msgs::JointTrajectoryResult result_;
+		control_msgs::FollowJointTrajectoryFeedback feedback_follow_;
+		control_msgs::FollowJointTrajectoryResult result_follow_;
+
 
 		// diagnostic stuff
 		diagnostic_updater::Updater updater_;
@@ -156,7 +163,7 @@ class PowercubeChainNode
 		
 		trajectory_msgs::JointTrajectory traj_;
 		trajectory_msgs::JointTrajectoryPoint traj_point_;
-		int traj_point_nr_;
+		unsigned int traj_point_nr_;
 		sem_t * can_sem ;
 		bool sem_can_available;
 
@@ -178,9 +185,11 @@ class PowercubeChainNode
 		*
 		* \param name Name for the actionlib server.
 		*/
-		PowercubeChainNode(std::string name):
+		PowercubeChainNode(std::string name, std::string follow_name):
 			as_(n_, name, boost::bind(&PowercubeChainNode::executeCB, this, _1)),
-			action_name_(name)
+			as_follow_(n_, follow_name, boost::bind(&PowercubeChainNode::executeFollowCB, this, _1)),
+			action_name_(name),
+			action_name_follow_(follow_name)
 		{
 			sem_can_available = false;
 			can_sem = SEM_FAILED;
@@ -214,8 +223,9 @@ class PowercubeChainNode
 			//--
 
 			// diagnostics
-			updater_.setHardwareID(ros::this_node::getName());
+			updater_.setHardwareID("none"); // TODO: how to get serial number(s) out of module(s)
 			updater_.add("initialization", this, &PowercubeChainNode::diag_init);
+			updater_.add("chain", this, &PowercubeChainNode::diag_chain);
 
 
 			// read parameters from parameter server
@@ -373,14 +383,25 @@ class PowercubeChainNode
 			cmd_vel_ = msg->points[0].velocities;
 		}
 
-  void diag_init(diagnostic_updater::DiagnosticStatusWrapper &stat)
-  {
-    if(isInitialized_)
-      stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "");
-    else
-      stat.summary(diagnostic_msgs::DiagnosticStatus::WARN, "");
-    stat.add("Initialized", isInitialized_);
-  }
+		void diag_init(diagnostic_updater::DiagnosticStatusWrapper &stat)
+		{
+			if(isInitialized_)
+				stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Powercubes initialized.");
+			else
+				stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "Powercubes not initialized.");
+			stat.add("Powercubes initialized", isInitialized_);
+		}
+		
+		void diag_chain(diagnostic_updater::DiagnosticStatusWrapper &stat)
+		{
+			stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Powercubes configuration");
+			stat.add("Number of powercubes in chain", ModIds_.size());
+			//stat.add("Joint names", std::stringstream(JointNames_param_)); // TODO get vectors in here
+			stat.add("Can device", CanDevice_);
+			stat.add("Can module", CanModule_);
+			stat.add("Can baudrate", CanBaudrate_);
+			//stat.add("Modul IDs", std::stringstream(ModIds_param_)); // TODO get vectors in here
+		}
 
 		/*!
 		* \brief Executes the callback from the actionlib.
@@ -390,7 +411,7 @@ class PowercubeChainNode
 		*/
 		void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal)
 		{
-			ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
+			ROS_INFO("Received new goal trajectory with %d points",(int)goal->trajectory.points.size());
 			if (!isInitialized_)
 			{
 				ROS_ERROR("%s: Rejected, powercubes not initialized", action_name_.c_str());
@@ -439,6 +460,63 @@ class PowercubeChainNode
 		}
 
 		/*!
+		* \brief Executes the follow callback from the actionlib.
+		*
+		* New interface for arm_navigation
+		* Set the current goal to aborted after receiving a new goal and write new goal to a member variable. Wait for the goal to finish and set actionlib status to succeeded.
+		* \param goal FollowJointTrajectoryGoal
+		*/
+		void executeFollowCB(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal)
+		{
+			ROS_INFO("Received new goal trajectory with %d points",(int)goal->trajectory.points.size());
+			if (!isInitialized_)
+			{
+				ROS_ERROR("%s: Rejected, powercubes not initialized", action_name_follow_.c_str());
+				as_follow_.setAborted();
+				return;
+			}
+			// saving goal into local variables
+			traj_ = goal->trajectory;
+			traj_point_nr_ = 0;
+			traj_point_ = traj_.points[traj_point_nr_];
+			finished_ = false;
+			
+			// stoping arm to prepare for new trajectory
+			std::vector<double> VelZero;
+			VelZero.resize(ModIds_param_.size());
+			PCube_->MoveVel(VelZero);
+
+			// check that preempt has not been requested by the client
+			if (as_follow_.isPreemptRequested())
+			{
+				ROS_INFO("%s: Preempted", action_name_follow_.c_str());
+				// set the action state to preempted
+				as_follow_.setPreempted();
+			}
+			
+			usleep(500000); // needed sleep until powercubes starts to change status from idle to moving
+			
+			while(finished_ == false)
+			{
+				if (as_follow_.isNewGoalAvailable())
+				{
+					ROS_WARN("%s: Aborted", action_name_follow_.c_str());
+					as_follow_.setAborted();
+					return;
+				}
+		   		usleep(10000);
+				//feedback_ = 
+				//as_.send feedback_
+			}
+
+			// set the action state to succeed			
+			//result_.result.data = "executing trajectory";
+			ROS_INFO("%s: Succeeded", action_name_follow_.c_str());
+			// set the action state to succeeded
+			as_follow_.setSucceeded(result_follow_);
+		}
+
+		/*!
 		* \brief Executes the service callback for init.
 		*
 		* Connects to the hardware and initialized it.
@@ -473,6 +551,7 @@ class PowercubeChainNode
 				res.error_message.data = "powercubes already initialized";
 			}
 
+			PCube_->setMaxVelocity(0.2); //FIXME this is hard coded default velocity at init
 			return true;
 		}
 
@@ -668,7 +747,7 @@ class PowercubeChainNode
 					{
 						//feedback_.isMoving = false;
 			
-						ROS_DEBUG("next point is %d from %d",traj_point_nr_,traj_.points.size());
+						ROS_DEBUG("next point is %d from %d",traj_point_nr_,(int)traj_.points.size());
 			
 						if (traj_point_nr_ < traj_.points.size())
 						{
@@ -677,7 +756,7 @@ class PowercubeChainNode
 							traj_point_ = traj_.points[traj_point_nr_];
 							lock_semaphore(can_sem);
 							printf("cob_powercube_chain: Moving to position: ");
-							for (int i = 0; i < traj_point_.positions.size(); i++)
+							for (unsigned int i = 0; i < traj_point_.positions.size(); i++)
 							{
 								printf("%f ",traj_point_.positions[i]);
 							}
@@ -736,7 +815,7 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "powercube_chain");
 
 	// create class
-	PowercubeChainNode pc_node("joint_trajectory_action");
+	PowercubeChainNode pc_node("joint_trajectory_action", "follow_trajectory_action");
 
 
 	
