@@ -578,11 +578,11 @@ class NodeClass
 			// create temporary (local) JointState/Diagnostics Data-Container
 			sensor_msgs::JointState jointstate;
 			diagnostic_msgs::DiagnosticStatus diagnostics;
-			
 			pr2_controllers_msgs::JointTrajectoryControllerState controller_state;
 			
 			// get time stamp for header
 			jointstate.header.stamp = ros::Time::now();
+			controller_state.header.stamp = jointstate.header.stamp;
 
 			// assign right size to JointState
 			//jointstate.name.resize(m_iNumMotors);
