@@ -3,8 +3,8 @@
 
   <node pkg="camera1394" type="camera1394_node" name="left_node" ns="left">
     <param name="auto_brightness" value="2" />
-    <!--param name="camera_info_url" value="file:///$(find cob_camera_sensors)/ros/launch/cob3-1/left_640x480_rgb8.yaml" /-->
-    <param name="camera_info_url" value="file:///$(find cob_camera_sensors)/ros/launch/cob3-1/left_1280x960_rgb8.yaml" />
+    <!--param name="camera_info_url" value="file:///$(find cob_camera_sensors)/ros/launch/$(env ROBOT)/left_640x480_rgb8.yaml" /-->
+    <param name="camera_info_url" value="file:///$(find cob_camera_sensors)/ros/launch/$(env ROBOT)/left_1280x960_rgb8.yaml" />
     <param name="frame_id" value="head_color_camera_l_link" />
     <param name="auto_white_balance" value="2" />
     <param name="guid" value="000a470110077026" />
@@ -20,4 +20,3 @@
   <node ns="left" pkg="image_proc" type="image_proc" respawn="false" name="left_image_proc" />
 
 </launch>
-

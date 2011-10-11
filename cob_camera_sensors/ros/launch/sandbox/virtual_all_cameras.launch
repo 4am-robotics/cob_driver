@@ -4,7 +4,7 @@
   <!-- start all cameras -->
   <node pkg="cob_camera_sensors" type="all_cameras" name="all_cameras" cwd="node" respawn="false" output="screen">
 	<!-- Path to IPA configuration file -->
-	<param name="configuration_files" value="../../common/files/cob3-2/"/>
+	<param name="configuration_files" value="../../common/files/$(env ROBOT)/"/>
 	
 	<!-- Specifies the used color camera type -->
 	<!-- CAM_AVTPIKE or CAM_PROSILICA -->

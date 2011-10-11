@@ -3,7 +3,7 @@
 
   <!-- Start PMD CamCube camera -->
   <node pkg="cob_camera_sensors" type="tof_camera" name="tof_camera" ns="cam_cube" cwd="node" respawn="false" output="screen">
-	<param name="configuration_files" value="$(find cob_camera_sensors)/common/files/demo-cell/"/>
+	<param name="configuration_files" value="$(find cob_camera_sensors)/common/files/$(env ROBOT)/"/>
 	<param name="camera_index" value="0"/>
 	<!-- Specifies the used camera type -->
  	<param name="tof_camera_type" value="CAM_PMDCAMCUBE" />	

@@ -112,7 +112,7 @@ void CanESD::initIntern()
 		std::cout << "error in CANESD::receiveMsg: " << GetErrorStr(iRet) << std::endl;
 	Sleep(300);
 
-	long lArg;
+	//long lArg;
 	iRet = canIoctl(m_Handle, NTCAN_IOCTL_FLUSH_RX_FIFO, NULL);
 
 	// MMB/24.02.2006: Add all 11-bit identifiers as there is no loss in performance.
@@ -170,7 +170,7 @@ bool CanESD::transmitMsg(CanMsg CMsg, bool bBlocking)
 //-----------------------------------------------
 bool CanESD::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
 {
-	int id = pCMsg->m_iID;
+	//int id = pCMsg->m_iID;
 	CMSG NTCANMsg;
 	NTCANMsg.len = 8;
 	
