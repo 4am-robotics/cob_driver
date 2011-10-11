@@ -186,8 +186,8 @@ class PowercubeChainNode
 		* \param name Name for the actionlib server.
 		*/
 		PowercubeChainNode(std::string name, std::string follow_name):
-			as_(n_, name, boost::bind(&PowercubeChainNode::executeCB, this, _1)),
-			as_follow_(n_, follow_name, boost::bind(&PowercubeChainNode::executeFollowCB, this, _1)),
+			as_(n_, name, boost::bind(&PowercubeChainNode::executeCB, this, _1),false),
+			as_follow_(n_, follow_name, boost::bind(&PowercubeChainNode::executeFollowCB, this, _1),false),
 			action_name_(name),
 			action_name_follow_(follow_name)
 		{
@@ -358,6 +358,10 @@ class PowercubeChainNode
 			can_sem = sem_open("/semcan", O_CREAT, S_IRWXU | S_IRWXG,1);
 			if (can_sem != SEM_FAILED)
 				sem_can_available = true;
+				
+			// start action servers
+			as_.start();
+			as_follow_.start();
 		}
 
 		/*!
