@@ -13,6 +13,7 @@
   <depend package="rostest"/>
   <depend package="std_msgs"/>
   <depend package="cob_utilities"/>
+  <depend package="pr2_msgs"/>
 
   <!-- As we deviate from the standard ROS Repository-Structure we have to tell ROS where to find header and lib -->
   <export>
