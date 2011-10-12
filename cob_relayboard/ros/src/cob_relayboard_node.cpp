@@ -96,7 +96,7 @@ class NodeClass
 		{
 			topicPub_isEmergencyStop = n.advertise<cob_relayboard::EmergencyStopState>("/emergency_stop_state", 1);
 			topicPub_PowerState = n.advertise<pr2_msgs::PowerState>("/power_state", 1);
-			topicPub_PowerBoardState = n.advertise<pr2_msgs::PowerBoardState>("/power_board_state", 1);
+			topicPub_PowerBoardState = n.advertise<pr2_msgs::PowerBoardState>("/power_board/state", 1);
 
 			// Make sure member variables have a defined state at the beginning
 			EM_stop_status_ = ST_EM_FREE;
@@ -315,9 +315,9 @@ void NodeClass::sendEmergencyStopStates()
 	
 	EM_msg.emergency_state = EM_stop_status_;
 	if(EM_stop_status_ == ST_EM_FREE)
-	  pbs.run_stop = false;
-	else
 	  pbs.run_stop = true;
+	else
+	  pbs.run_stop = false;
 	pbs.wireless_stop = true;
   
 
