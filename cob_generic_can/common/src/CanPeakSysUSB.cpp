@@ -100,44 +100,10 @@ void CANPeakSysUSB::init()
 		exit(0);
 	}
 
-	int ret = CAN_ERR_OK;
-	int iBaudrateVal = 0;
-	m_IniFile.GetKeyInt( "CanCtrl", "BaudrateVal", &iBaudrateVal, true);
+	m_iBaudrateVal = 0;
+	m_IniFile.GetKeyInt( "CanCtrl", "BaudrateVal", &m_iBaudrateVal, true);
 	
-	switch(iBaudrateVal)
-	{
-	case 0:
-		ret = CAN_Init(m_handle, CAN_BAUD_1M, CAN_INIT_TYPE_ST);
-		break;
-	case 2:
-		ret = CAN_Init(m_handle, CAN_BAUD_500K, CAN_INIT_TYPE_ST);
-		break;
-	case 4:
-		ret = CAN_Init(m_handle, CAN_BAUD_250K, CAN_INIT_TYPE_ST);
-		break;
-	case 6:
-		ret = CAN_Init(m_handle, CAN_BAUD_125K, CAN_INIT_TYPE_ST);
-		break;
-	case 9:
-		ret = CAN_Init(m_handle, CAN_BAUD_50K, CAN_INIT_TYPE_ST);
-		break;
-	case 11:
-		ret = CAN_Init(m_handle, CAN_BAUD_20K, CAN_INIT_TYPE_ST);
-		break;
-	case 13:
-		ret = CAN_Init(m_handle, CAN_BAUD_10K, CAN_INIT_TYPE_ST);
-		break;
-	}
-
-	if(ret)
-	{
-		std::cout << "CANPeakSysUSB::CANPeakSysUSB(), error in init" << std::endl;
-	}
-	else
-	{
-		std::cout << "CANPeakSysUSB::CanpeakSys(), init ok" << std::endl;
-		m_bInitialized = true;
-	}
+	init_CAN();
 }
 
 //-------------------------------------------
@@ -156,16 +122,38 @@ bool CANPeakSysUSB::transmitMsg(CanMsg CMsg, bool bBlocking)
 		TPCMsg.DATA[i] = CMsg.getAt(i);
 	
 	// write msg
+	
+	//TODO Hier stürtzt die Base ab.. verwende libpcan.h pcan.h um Fehler auszulesen, diagnostizieren, ausgeben und CAN_INIT erneut aufzurufen = neustart can-hardware. 
+	
 	int iRet;
-	iRet = CAN_Write(m_handle, &TPCMsg);
+	//iRet = CAN_Write(m_handle, &TPCMsg);
+	iRet = LINUX_CAN_Write_Timeout(m_handle, &TPCMsg, 25); //Timeout in micrsoseconds
+	if(iRet != CAN_ERR_OK) {
+		std::cout << "CANPeakSysUSB::transmitMsg An error occured." << iRet << std::endl;
+	}
+	
 	iRet = CAN_Status(m_handle);
 
 	if(iRet < 0)
 	{
-		std::cout <<  "CANPeakSysUSB::transmitMsg, errorcode= " << nGetLastError() << std::endl;
+		//std::cout <<  "CANPeakSysUSB::transmitMsg, errorcode= " << nGetLastError() << std::endl;
+		std::cout <<  "CANPeakSysUSB::transmitMsg, lib-status = " << iRet << std::endl;
+		bRet = false;
+	} else if((iRet & CAN_ERR_BUSOFF) == CAN_ERR_BUSOFF) {
+		std::cout <<  "CANPeakSysUSB::transmitMsg, BUSOFF detected" << std::endl;
+		
+		//Try to restart CAN-Device
+		std::cout <<  "Trying to restart PeakSysUSB Hardware..." << std::endl;
+		bRet = init_CAN();
+		
+	} else if((iRet & CAN_ERR_ANYBUSERR) == CAN_ERR_ANYBUSERR) {
+		std::cout <<  "CANPeakSysUSB::transmitMsg, ANYBUSERR: Heavy load on CAN-bus" << std::endl;
+		
+	} else if((iRet > 0) && (iRet != CAN_ERR_QRCVEMPTY)) {
+		std::cout << "CANPeakSysUSB::transmitMsg, CAN_ERROR: " << iRet << std::endl;
 		bRet = false;
 	}
-
+	
 
 	return bRet;
 }
@@ -179,11 +167,16 @@ bool CANPeakSysUSB::receiveMsg(CanMsg* pCMsg)
 	TPCMsg.Msg.ID = 0;
 	
 	int iRet = CAN_ERR_OK;
+	
+	int iRetDEBUG=0;
+	
 	bool bRet = false;
 
 	if (m_bInitialized == false) return false;
 
 	iRet = LINUX_CAN_Read_Timeout(m_handle, &TPCMsg, 0);
+
+	iRetDEBUG = iRet;
 
 	if (iRet == CAN_ERR_OK)
 	{
@@ -192,10 +185,12 @@ bool CANPeakSysUSB::receiveMsg(CanMsg* pCMsg)
 			TPCMsg.Msg.DATA[4], TPCMsg.Msg.DATA[5], TPCMsg.Msg.DATA[6], TPCMsg.Msg.DATA[7]);
 		bRet = true;
 	}
-	else if (CAN_Status(m_handle) != CAN_ERR_QRCVEMPTY)
+	else if (((iRet=CAN_Status(m_handle)) != CAN_ERR_QRCVEMPTY) && iRet!=0)
 	{
+		std::cout << "iRetDEBUG = " << iRetDEBUG << std::endl;
 		// Error (Don't output error of empty queue)
-		std::cout << "CANPeakSysUSB::receiveMsg, errorcode= " << nGetLastError() << std::endl;
+		//std::cout << "CANPeakSysUSB::receiveMsg, errorcode= " << nGetLastError() << std::endl;
+		std::cout << "CANPeakSysUSB::receiveMsg, errorcode= " << iRet << std::endl;
 		pCMsg->set(0, 0, 0, 0, 0, 0, 0, 0);
 	}
 
@@ -247,3 +242,47 @@ bool CANPeakSysUSB::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
 	return bRet;
 }
 
+bool CANPeakSysUSB::init_CAN() {
+	int ret = CAN_ERR_OK;
+	bool bRet = true;
+
+	switch(m_iBaudrateVal)
+	{
+	case 0:
+		ret = CAN_Init(m_handle, CAN_BAUD_1M, CAN_INIT_TYPE_ST);
+		break;
+	case 2:
+		ret = CAN_Init(m_handle, CAN_BAUD_500K, CAN_INIT_TYPE_ST);
+		break;
+	case 4:
+		ret = CAN_Init(m_handle, CAN_BAUD_250K, CAN_INIT_TYPE_ST);
+		break;
+	case 6:
+		ret = CAN_Init(m_handle, CAN_BAUD_125K, CAN_INIT_TYPE_ST);
+		break;
+	case 9:
+		ret = CAN_Init(m_handle, CAN_BAUD_50K, CAN_INIT_TYPE_ST);
+		break;
+	case 11:
+		ret = CAN_Init(m_handle, CAN_BAUD_20K, CAN_INIT_TYPE_ST);
+		break;
+	case 13:
+		ret = CAN_Init(m_handle, CAN_BAUD_10K, CAN_INIT_TYPE_ST);
+		break;
+	}
+
+	if(ret)
+	{
+		std::cout << "CANPeakSysUSB::CANPeakSysUSB(), error in init" << std::endl;
+		m_bInitialized = false;
+		bRet = false;
+	}
+	else
+	{
+		std::cout << "CANPeakSysUSB::CanpeakSys(), init ok" << std::endl;
+		m_bInitialized = true;
+		bRet = true;
+	}
+	
+	return bRet;
+}
