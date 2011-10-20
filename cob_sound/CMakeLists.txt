@@ -34,3 +34,6 @@ rosbuild_gensrv()
 #target_link_libraries(example ${PROJECT_NAME})
 
 rosbuild_add_executable(sound ros/src/sound.cpp)
+
+# rostest
+rosbuild_add_roslaunch_check(ros/launch/sound.launch)

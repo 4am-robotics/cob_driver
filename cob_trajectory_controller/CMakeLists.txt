@@ -31,3 +31,6 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 rosbuild_add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp common/src/genericArmCtrl.cpp common/src/RefValJS_PTP.cpp common/src/RefValJS_PTP_Trajectory.cpp common/src/TimeStamp.cpp)
 rosbuild_add_executable(cob_simulation_tester ros/src/cob_simulation_tester.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
+
+# rostest
+rosbuild_add_roslaunch_check(ros/launch/trajectory_controller.launch ROBOT=cob3-3)

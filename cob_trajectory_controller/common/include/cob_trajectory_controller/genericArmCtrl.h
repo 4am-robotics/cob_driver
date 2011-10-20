@@ -17,7 +17,7 @@ class genericArmCtrl
 {
 	public: 
 		
-		genericArmCtrl(int DOF);
+		genericArmCtrl(int DOF, double PTPvel = 0.7, double PTPacc = 0.2, double maxError = 0.7);
 		~genericArmCtrl();
 		
 		std::vector<double> GetPTPvel() const;

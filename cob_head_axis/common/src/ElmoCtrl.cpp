@@ -78,7 +78,7 @@ ElmoCtrl::ElmoCtrl() {
 	m_Joint = NULL;
 	m_JointParams = NULL;
 	m_CanCtrl = NULL;
-	m_CanBaseAddress = NULL;
+	m_CanBaseAddress = 0;
 	m_MotionCtrlType = POS_CTRL;
 	m_MaxVel = 2.0;
 	m_Params = NULL;

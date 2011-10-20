@@ -28,6 +28,10 @@
   <depend package="pluginlib"/>
   <depend package="kinematics_base"/>
   <depend package="arm_navigation_msgs"/>
+
+  <depend package="urdf"/>
+  <depend package="pr2_arm_kinematics"/>
+
   <export>
     <kinematics_base plugin="${prefix}/cob_manipulator_plugins.xml" />
   </export>
