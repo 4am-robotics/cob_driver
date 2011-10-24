@@ -136,6 +136,8 @@ class NodeClass
 		as_(n_, name, boost::bind(&NodeClass::executeCB, this, _1)),
 		action_name_(name)
 	{
+		n_ = ros::NodeHandle("~");
+	
 		isInitialized_ = false;
 		ActualPos_=0.0;
 		ActualVel_=0.0;
