@@ -127,6 +127,7 @@ class NodeClass
     	int iwatchdog_;
     	
     	//TODO: odom test vars
+    	double 	vel_x_rob_last_, vel_y_rob_last_, vel_theta_rob_last_;
     	 
 		
 		int m_iNumJoints;
@@ -144,6 +145,9 @@ class NodeClass
 			x_rob_m_ = 0.0;
 			y_rob_m_ = 0.0;
 			theta_rob_rad_ = 0.0;
+			vel_x_rob_last_ = 0.0;
+			vel_y_rob_last_ = 0.0;
+			vel_theta_rob_last_ = 0.0;
 			// set status of drive chain to WARN by default
 			drive_chain_diagnostic_ = diagnostic_status_lookup_.OK; //WARN; <- THATS FOR DEBUGGING ONLY!
 			
@@ -442,7 +446,8 @@ class NodeClass
 
 
 			// calculate odometry every time
-			UpdateOdometry();	
+			UpdateOdometry();
+			
 		}
 		
         // other function declarations
@@ -648,21 +653,26 @@ void NodeClass::UpdateOdometry()
 	last_time_ = current_time;
 	vel_rob_ms = sqrt(vel_x_rob_ms*vel_x_rob_ms + vel_y_rob_ms*vel_y_rob_ms);
 	
+
 	/*
 	// calculation from ROS odom publisher tutorial http://www.ros.org/wiki/navigation/Tutorials/RobotSetup/Odom
 	x_rob_m_ = x_rob_m_ + (vel_x_rob_ms * cos(theta_rob_rad_) - vel_y_rob_ms * sin(theta_rob_rad_)) * dt;
 	y_rob_m_ = y_rob_m_ + (vel_x_rob_ms * sin(theta_rob_rad_) + vel_y_rob_ms * cos(theta_rob_rad_)) * dt;
-	theta_rob_rad_ = theta_rob_rad_ + rot_rob_rads * dt;
-	*/
-
-	//TODO: Test new odometry implementation, slide: "dead reckoning"
-	/*
-	x_rob_m_ = x_rob_m_ - vel_rob_ms/rot_rob_rads * sin(theta_rob_rad_) + vel_rob_ms/rot_rob_rads * sin(theta_rob_rad_ + rot_rob_rads*dt);
-	y_rob_m_ = y_rob_m_ + vel_rob_ms/rot_rob_rads * cos(theta_rob_rad_) - vel_rob_ms/rot_rob_rads * cos(theta_rob_rad_ + rot_rob_rads*dt);
-	theta_rob_rad_ = theta_rob_rad_ + rot_rob_rads * dt;
-	*/
+	theta_rob_rad_ = theta_rob_rad_ + rot_rob_rads * dt;*/
 	
-	// slide "dead reckoning", reviewed cpc-pk:
+	
+	// calculation from ROS odom publisher tutorial http://www.ros.org/wiki/navigation/Tutorials/RobotSetup/Odom, using now midpoint integration
+	x_rob_m_ = x_rob_m_ + ((vel_x_rob_ms+vel_x_rob_last_)/2.0 * cos(theta_rob_rad_) - (vel_y_rob_ms+vel_y_rob_last_)/2.0 * sin(theta_rob_rad_)) * dt;
+	y_rob_m_ = y_rob_m_ + ((vel_x_rob_ms+vel_x_rob_last_)/2.0 * sin(theta_rob_rad_) + (vel_y_rob_ms+vel_y_rob_last_)/2.0 * cos(theta_rob_rad_)) * dt;
+	theta_rob_rad_ = theta_rob_rad_ + rot_rob_rads * dt;
+	//theta_rob_rad_ = theta_rob_rad_ + (rot_rob_rads+vel_theta_rob_last_)/2.0 * dt;
+	
+	vel_x_rob_last_ = vel_x_rob_ms;
+	vel_y_rob_last_ = vel_y_rob_ms;
+	vel_theta_rob_last_ = rot_rob_rads;
+
+	// slide "dead reckoning", reviewed by cpc-pk:
+	/*
 	double u_xk, u_yk;
 	double theta_rob_rad_last = theta_rob_rad_;
 	
@@ -678,6 +688,7 @@ void NodeClass::UpdateOdometry()
 		y_rob_m_ = y_rob_m_ + (vel_x_rob_ms * sin(theta_rob_rad_) + vel_y_rob_ms * cos(theta_rob_rad_)) * dt;
 		theta_rob_rad_ = theta_rob_rad_ + rot_rob_rads * dt;
 	}
+	*/
 
 
 	// format data for compatibility with tf-package and standard odometry msg
@@ -735,7 +746,7 @@ void NodeClass::UpdateOdometry()
 	}
 	
 	// publish odometry msg
-	topic_pub_odometry_.publish(odom_top);
+	//topic_pub_odometry_.publish(odom_top);
 }
 
 
