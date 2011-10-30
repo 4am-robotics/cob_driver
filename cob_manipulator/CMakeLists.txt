@@ -41,7 +41,7 @@ rosbuild_add_library(cob3_arm_kinematics
 # rostest
 #rosbuild_add_roslaunch_check(ros/launch/kdl_solver.launch ROBOT=cob3-1)
 #rosbuild_add_roslaunch_check(ros/launch/kdl_solver.launch ROBOT=cob3-2)
-rosbuild_add_roslaunch_check(ros/launch/kdl_solver.launch ROBOT=cob3-3)
+#rosbuild_add_roslaunch_check(ros/launch/kdl_solver.launch ROBOT=cob3-3)
 #rosbuild_add_roslaunch_check(ros/launch/kdl_solver.launch ROBOT=cob3-4)
 #rosbuild_add_rostest(ros/launch/kdl_solver.launch ROBOT=cob3-3)
 
