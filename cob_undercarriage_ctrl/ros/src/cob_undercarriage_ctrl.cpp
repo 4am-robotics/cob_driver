@@ -115,6 +115,10 @@ class NodeClass
         // service clients
         ros::ServiceClient srv_client_get_joint_state_;	// get current configuration of undercarriage
 
+		// controller Timer
+        ros::Timer timer_ctrl_step_;
+
+
         // member variables
 		UndercarriageCtrlGeom * ucar_ctrl_;	// instantiate undercarriage controller
 		std::string sIniDirectory;
@@ -123,6 +127,7 @@ class NodeClass
 		int drive_chain_diagnostic_;		// flag whether base drive chain is operating normal 
 		ros::Time last_time_;				// time Stamp for last odometry measurement
 		ros::Time joint_state_odom_stamp_;	// time stamp of joint states used for current odometry calc
+		double sample_time_;
 		double x_rob_m_, y_rob_m_, theta_rob_rad_; // accumulated motion of robot since startup
     	int iwatchdog_;
     	
@@ -142,6 +147,7 @@ class NodeClass
 			is_moving_ = false;
 			iwatchdog_ = 0;
 			last_time_ = ros::Time::now();
+			sample_time_ = 0.020;
 			x_rob_m_ = 0.0;
 			y_rob_m_ = 0.0;
 			theta_rob_rad_ = 0.0;
@@ -197,6 +203,10 @@ class NodeClass
 
 			// implementation of service clients
             srv_client_get_joint_state_ = n.serviceClient<cob_base_drive_chain::GetJointState>("GetJointState");
+            
+            //set up timer to cyclically call controller-step
+            timer_ctrl_step_ = n.createTimer(ros::Duration(sample_time_), &NodeClass::timerCallbackCtrlStep, this);
+
         }
         
         // Destructor
@@ -450,6 +460,10 @@ class NodeClass
 			
 		}
 		
+		void timerCallbackCtrlStep(const ros::TimerEvent& e) {
+			CalcCtrlStep();
+		}
+		
         // other function declarations
 		// Initializes controller
         bool InitCtrl();
@@ -478,13 +492,11 @@ int main(int argc, char** argv)
 	} else
 		ROS_WARN("Undercarriage control initialization failed! Try manually.");
 	
+
 	// specify looprate of control-cycle
- 	
- 	//TODO: Test to double odometry frequency
- 	//ros::Rate loop_rate(50); // Hz 
-    ros::Rate loop_rate(100); //Hz
-    bool calc_ctrl = true;
-    
+    /*
+    // ros::Rate loop_rate(1.0/sample_time_); //Hz
+
     while(nodeClass.n.ok())
     {
 		// process Callbacks (get new pltf-cmd's and check for EMStop)
@@ -492,9 +504,7 @@ int main(int argc, char** argv)
 		
 		// perform one control step, calculate inverse kinematics
 		// and publish updated joint cmd's (if no EMStop occurred)
-		if(calc_ctrl)
-			nodeClass.CalcCtrlStep();
-		calc_ctrl = !calc_ctrl;
+		nodeClass.CalcCtrlStep();
 
 		// calculate forward kinematics and update Odometry
 		// nodeClass.UpdateOdometry(); do this directly after receiving state messages
@@ -502,6 +512,15 @@ int main(int argc, char** argv)
 		// -> let node sleep for the rest of the cycle
         loop_rate.sleep();
     }
+    */
+    
+    
+	/* 
+	CALLBACKS being executed are:
+		- actual motor values -> calculating direct kinematics and doing odometry (topicCallbackJointControllerStates)
+		- timer callback -> calculate controller step at a rate of sample_time_ (timerCallbackCtrlStep)
+	*/
+    ros::spin();
 
     return 0;
 }
