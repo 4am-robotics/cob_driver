@@ -696,7 +696,7 @@ void NodeClass::UpdateOdometry()
 	// compose header
 	//odom_tf.header.stamp = current_time;
 	odom_tf.header.stamp = joint_state_odom_stamp_;
-	odom_tf.header.frame_id = "/wheelodom";
+	odom_tf.header.frame_id = "/odom_combined";
 	odom_tf.child_frame_id = "/base_footprint";
 	// compose data container
 	odom_tf.transform.translation.x = x_rob_m_;
@@ -707,9 +707,8 @@ void NodeClass::UpdateOdometry()
     // compose and publish odometry message as topic
     nav_msgs::Odometry odom_top;
 	// compose header
-    odom_top.header.stamp = current_time;
     odom_top.header.stamp = joint_state_odom_stamp_;
-    odom_top.header.frame_id = "/wheelodom";
+    odom_top.header.frame_id = "/odom_combined";
     odom_top.child_frame_id = "/base_footprint";
     // compose pose of robot
     odom_top.pose.pose.position.x = x_rob_m_;
