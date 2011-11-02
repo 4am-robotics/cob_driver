@@ -491,29 +491,6 @@ int main(int argc, char** argv)
 		ROS_INFO("Undercarriage control successfully initialized.");
 	} else
 		ROS_WARN("Undercarriage control initialization failed! Try manually.");
-	
-
-	// specify looprate of control-cycle
-    /*
-    // ros::Rate loop_rate(1.0/sample_time_); //Hz
-
-    while(nodeClass.n.ok())
-    {
-		// process Callbacks (get new pltf-cmd's and check for EMStop)
-        ros::spinOnce();
-		
-		// perform one control step, calculate inverse kinematics
-		// and publish updated joint cmd's (if no EMStop occurred)
-		nodeClass.CalcCtrlStep();
-
-		// calculate forward kinematics and update Odometry
-		// nodeClass.UpdateOdometry(); do this directly after receiving state messages
-
-		// -> let node sleep for the rest of the cycle
-        loop_rate.sleep();
-    }
-    */
-    
     
 	/* 
 	CALLBACKS being executed are:
