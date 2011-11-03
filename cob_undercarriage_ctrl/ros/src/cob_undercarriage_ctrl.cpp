@@ -130,10 +130,7 @@ class NodeClass
 		double sample_time_;
 		double x_rob_m_, y_rob_m_, theta_rob_rad_; // accumulated motion of robot since startup
     	int iwatchdog_;
-    	
-    	//TODO: odom test vars
-    	double 	vel_x_rob_last_, vel_y_rob_last_, vel_theta_rob_last_;
-    	 
+    	double 	vel_x_rob_last_, vel_y_rob_last_, vel_theta_rob_last_; //save velocities for better odom calculation
 		
 		int m_iNumJoints;
 		
@@ -648,15 +645,7 @@ void NodeClass::UpdateOdometry()
 	dt = current_time.toSec() - last_time_.toSec();
 	last_time_ = current_time;
 	vel_rob_ms = sqrt(vel_x_rob_ms*vel_x_rob_ms + vel_y_rob_ms*vel_y_rob_ms);
-	
 
-	/*
-	// calculation from ROS odom publisher tutorial http://www.ros.org/wiki/navigation/Tutorials/RobotSetup/Odom
-	x_rob_m_ = x_rob_m_ + (vel_x_rob_ms * cos(theta_rob_rad_) - vel_y_rob_ms * sin(theta_rob_rad_)) * dt;
-	y_rob_m_ = y_rob_m_ + (vel_x_rob_ms * sin(theta_rob_rad_) + vel_y_rob_ms * cos(theta_rob_rad_)) * dt;
-	theta_rob_rad_ = theta_rob_rad_ + rot_rob_rads * dt;*/
-	
-	
 	// calculation from ROS odom publisher tutorial http://www.ros.org/wiki/navigation/Tutorials/RobotSetup/Odom, using now midpoint integration
 	x_rob_m_ = x_rob_m_ + ((vel_x_rob_ms+vel_x_rob_last_)/2.0 * cos(theta_rob_rad_) - (vel_y_rob_ms+vel_y_rob_last_)/2.0 * sin(theta_rob_rad_)) * dt;
 	y_rob_m_ = y_rob_m_ + ((vel_x_rob_ms+vel_x_rob_last_)/2.0 * sin(theta_rob_rad_) + (vel_y_rob_ms+vel_y_rob_last_)/2.0 * cos(theta_rob_rad_)) * dt;
@@ -667,25 +656,6 @@ void NodeClass::UpdateOdometry()
 	vel_y_rob_last_ = vel_y_rob_ms;
 	vel_theta_rob_last_ = rot_rob_rads;
 
-	// slide "dead reckoning", reviewed by cpc-pk:
-	/*
-	double u_xk, u_yk;
-	double theta_rob_rad_last = theta_rob_rad_;
-	
-	if(rot_rob_rads>0.01) {
-		theta_rob_rad_ = theta_rob_rad_ + rot_rob_rads * dt;
-		u_xk = vel_rob_ms/rot_rob_rads * sin(theta_rob_rad_ - theta_rob_rad_last);
-		u_yk = - vel_rob_ms/rot_rob_rads * ( cos(theta_rob_rad_ - theta_rob_rad_last) + 1.0);
-	
-		x_rob_m_ = x_rob_m_ + u_xk * cos(theta_rob_rad_) - u_yk * sin(theta_rob_rad_);
-		y_rob_m_ = y_rob_m_ + u_xk * sin(theta_rob_rad_) + u_yk * cos(theta_rob_rad_);
-	} else {
-		x_rob_m_ = x_rob_m_ + (vel_x_rob_ms * cos(theta_rob_rad_) - vel_y_rob_ms * sin(theta_rob_rad_)) * dt;
-		y_rob_m_ = y_rob_m_ + (vel_x_rob_ms * sin(theta_rob_rad_) + vel_y_rob_ms * cos(theta_rob_rad_)) * dt;
-		theta_rob_rad_ = theta_rob_rad_ + rot_rob_rads * dt;
-	}
-	*/
-
 
 	// format data for compatibility with tf-package and standard odometry msg
 	// generate quaternion for rotation
@@ -694,7 +664,6 @@ void NodeClass::UpdateOdometry()
 	// compose and publish transform for tf package
 	geometry_msgs::TransformStamped odom_tf;
 	// compose header
-	//odom_tf.header.stamp = current_time;
 	odom_tf.header.stamp = joint_state_odom_stamp_;
 	odom_tf.header.frame_id = "/odom_combined";
 	odom_tf.child_frame_id = "/base_footprint";
@@ -741,7 +710,7 @@ void NodeClass::UpdateOdometry()
 	}
 	
 	// publish odometry msg
-	//topic_pub_odometry_.publish(odom_top);
+	// topic_pub_odometry_.publish(odom_top);
 }
 
 
