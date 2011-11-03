@@ -132,14 +132,14 @@ bool CANPeakSysUSB::transmitMsg(CanMsg CMsg, bool bBlocking)
 		outputDetailedStatus();
 	}
 	
-	//this is necessary? try iRet==CAN_Status(m_handle) ?
+	//is this necessary? try iRet==CAN_Status(m_handle) ?
 	iRet = CAN_Status(m_handle);
 
 	if(iRet < 0)
 	{
 		std::cout <<  "CANPeakSysUSB::transmitMsg, system error: " << iRet << std::endl;
 		bRet = false;
-	} else if((iRet & CAN_ERR_BUSOFF) == CAN_ERR_BUSOFF) {
+	} else if((iRet & CAN_ERR_BUSOFF) != 0) {
 		std::cout <<  "CANPeakSysUSB::transmitMsg, BUSOFF detected" << std::endl;
 		//Try to restart CAN-Device
 		std::cout <<  "Trying to re-init Hardware..." << std::endl;
@@ -148,7 +148,7 @@ bool CANPeakSysUSB::transmitMsg(CanMsg CMsg, bool bBlocking)
 	} else if((iRet & CAN_ERR_ANYBUSERR) != 0) {
 		std::cout <<  "CANPeakSysUSB::transmitMsg, ANYBUSERR" << std::endl;
 	
-	} else if( (iRet & CAN_ERR_QRCVEMPTY) != 0) {
+	} else if( (iRet & (~CAN_ERR_QRCVEMPTY)) != 0) {
 		std::cout << "CANPeakSysUSB::transmitMsg, CAN_STATUS: " << iRet << std::endl;
 		bRet = false;
 	}
@@ -179,7 +179,7 @@ bool CANPeakSysUSB::receiveMsg(CanMsg* pCMsg)
 			TPCMsg.Msg.DATA[4], TPCMsg.Msg.DATA[5], TPCMsg.Msg.DATA[6], TPCMsg.Msg.DATA[7]);
 		bRet = true;
 	}
-	else if( (iRet & CAN_ERR_QRCVEMPTY) != 0) //no"empty-queue"-status
+	else if( (iRet & (~CAN_ERR_QRCVEMPTY)) != 0) //no"empty-queue"-status
 	{
 			std::cout << "CANPeakSysUSB::receiveMsg, CAN_STATUS: " << iRet << std::endl;
 			pCMsg->set(0, 0, 0, 0, 0, 0, 0, 0);
