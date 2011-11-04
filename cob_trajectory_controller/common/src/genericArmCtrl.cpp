@@ -225,8 +225,9 @@ bool genericArmCtrl::step(std::vector<double> current_pos, std::vector<double> &
 				if ( m_CurrentError >= m_AllowedError )
 				{
 					ROS_ERROR("Current control error exceeds limit: %f >= %f", m_CurrentError, m_AllowedError);
-					ROS_ERROR("Current Soll: %f %f %f %f %f %f %f ", m_qsoll.at(0), m_qsoll.at(1), m_qsoll.at(2), m_qsoll.at(3), m_qsoll.at(4), m_qsoll.at(5), m_qsoll.at(6));
-					ROS_ERROR("Current Ist: %f %f %f %f %f %f %f ", current_pos.at(0), current_pos.at(1), current_pos.at(2), current_pos.at(3), current_pos.at(4), current_pos.at(5), current_pos.at(6));
+					//TODO: make generic to avoid out of bound exception
+					//ROS_ERROR("Current Soll: %f %f %f %f %f %f %f ", m_qsoll.at(0), m_qsoll.at(1), m_qsoll.at(2), m_qsoll.at(3), m_qsoll.at(4), m_qsoll.at(5), m_qsoll.at(6));
+					//ROS_ERROR("Current Ist: %f %f %f %f %f %f %f ", current_pos.at(0), current_pos.at(1), current_pos.at(2), current_pos.at(3), current_pos.at(4), current_pos.at(5), current_pos.at(6));
 					isMoving = false;
 					return false;
 				}
