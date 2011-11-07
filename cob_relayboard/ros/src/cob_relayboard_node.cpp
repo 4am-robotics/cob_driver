@@ -64,6 +64,9 @@
 // ROS message includes
 #include <std_msgs/Bool.h>
 #include <cob_relayboard/EmergencyStopState.h>
+#include <pr2_msgs/PowerState.h>
+#include <pr2_msgs/PowerBoardState.h>
+
 
 // ROS service includes
 //--
@@ -82,6 +85,8 @@ class NodeClass
                 
 		// topics to publish
 		ros::Publisher topicPub_isEmergencyStop;
+                ros::Publisher topicPub_PowerState;
+                ros::Publisher topicPub_PowerBoardState;
         
 		// topics to subscribe, callback is called for new messages arriving
 		// --
@@ -89,13 +94,20 @@ class NodeClass
 		// Constructor
 		NodeClass()
 		{
+			n = ros::NodeHandle("~");
+			
 			topicPub_isEmergencyStop = n.advertise<cob_relayboard::EmergencyStopState>("/emergency_stop_state", 1);
+			topicPub_PowerState = n.advertise<pr2_msgs::PowerState>("/power_state", 1);
+			topicPub_PowerBoardState = n.advertise<pr2_msgs::PowerBoardState>("/power_board/state", 1);
 
 			// Make sure member variables have a defined state at the beginning
 			EM_stop_status_ = ST_EM_FREE;
 			relayboard_available = false;
 			relayboard_online = false;
 			relayboard_timeout_ = 2.0;
+			voltage_offset_ = 2.0;
+			voltage_min_ = 48.0;
+			voltage_max_ = 56.0;
 			protocol_version_ = 1;
 			duration_for_EM_free_ = ros::Duration(1);
 		}
@@ -107,6 +119,7 @@ class NodeClass
 		}
     
 		void sendEmergencyStopStates();
+                void sendBatteryVoltage();
 		int init();
 
 	private:        
@@ -117,6 +130,9 @@ class NodeClass
 		ros::Duration duration_for_EM_free_;
 		ros::Time time_of_EM_confirmed_;
 		double relayboard_timeout_;
+		double voltage_offset_;
+                double voltage_min_;
+                double voltage_max_;
 		int protocol_version_;
 
 		ros::Time time_last_message_received_;
@@ -172,7 +188,10 @@ int NodeClass::init()
 		ROS_WARN("ComPort Parameter not available, using default Port: %s",sComPort.c_str());
 	}
 
-	n.param("message_timeout", relayboard_timeout_, 2.0);
+	n.param("relayboard_timeout", relayboard_timeout_, 2.0);
+	n.param("relayboard_voltage_offset", voltage_offset_, 2.0);
+	n.param("cob3_min_voltage", voltage_min_, 48.0);
+	n.param("cob3_max_voltage", voltage_max_, 56.0); 
 
 	n.param("protocol_version", protocol_version_, 1);
     
@@ -217,16 +236,35 @@ int NodeClass::requestBoardStatus() {
 	return 0;
 }
 
+void NodeClass::sendBatteryVoltage()
+{
+	ROS_DEBUG("Current Battery Voltage: %f", (m_SerRelayBoard->getBatteryVoltage()/1000.0) + voltage_offset_);
+	double percentage = ((m_SerRelayBoard->getBatteryVoltage()/1000.0) + voltage_offset_ - voltage_min_) * 100/(voltage_max_ - voltage_min_);
+	//Not supported by relayboard
+	//ROS_INFO("Current Charge current: %d", m_SerRelayBoard->getChargeCurrent());
+	//---
+	pr2_msgs::PowerState ps;
+	ps.header.stamp = ros::Time::now();
+	ps.power_consumption = 0.0;
+	ps.time_remaining = ros::Duration(1000);
+	ps.relative_capacity = percentage;
+	topicPub_PowerState.publish(ps);
+}
+
 void NodeClass::sendEmergencyStopStates()
 {
 	requestBoardStatus();
 
 	if(!relayboard_available) return;
-	
+
+	sendBatteryVoltage();
+
 	
 	bool EM_signal;
 	ros::Duration duration_since_EM_confirmed;
 	cob_relayboard::EmergencyStopState EM_msg;
+	pr2_msgs::PowerBoardState pbs;
+	pbs.header.stamp = ros::Time::now();
 
 	// assign input (laser, button) specific EM state
 	EM_msg.emergency_button_stop = m_SerRelayBoard->isEMStop();
@@ -278,10 +316,17 @@ void NodeClass::sendEmergencyStopStates()
 
 	
 	EM_msg.emergency_state = EM_stop_status_;
+	if(EM_stop_status_ == ST_EM_FREE)
+	  pbs.run_stop = true;
+	else
+	  pbs.run_stop = false;
+	pbs.wireless_stop = true;
+  
 
 	//publish EM-Stop-Active-messages, when connection to relayboard got cut
 	if(relayboard_online == false) {
 		EM_msg.emergency_state = EM_msg.EMSTOP;
 	}
 	topicPub_isEmergencyStop.publish(EM_msg);
+	topicPub_PowerBoardState.publish(pbs);
 }

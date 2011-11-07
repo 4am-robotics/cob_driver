@@ -100,7 +100,7 @@ class NodeClass
         NodeClass()
         {
 			// create a handle for this node, initialize node
-	    	//ros::NodeHandle private_nh_("~");
+	    	nodeHandle = ros::NodeHandle("~");
             // initialize global variables
 			nodeHandle.param<std::string>("port", port, "/dev/ttyUSB0");
 			nodeHandle.param<int>("baud", baud, 500000);

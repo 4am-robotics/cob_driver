@@ -9,11 +9,13 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_driver</url>
   <depend stack="arm_navigation" /> <!-- kinematics_base, kinematics_msgs, arm_navigation_msgs -->
+  <depend stack="audio_common" /> <!-- sound_play -->
   <depend stack="camera_drivers" /> <!-- prosilica_camera -->
   <depend stack="cob_common" /> <!-- cob_utilities, cob_srvs, cob_description, cob_vision_utils, brics_actuator -->
   <depend stack="cob_extern" /> <!-- libmesasr, libm5api, brics_oodl_scanner_libs, libphidgets, libpcan, libntcan -->
   <depend stack="common" /> <!-- actionlib, tinyxml -->
   <depend stack="common_msgs" /> <!-- nav_msgs, actionlib_msgs, trajectory_msgs, sensor_msgs, geometry_msgs, visualization_msgs, diagnostic_msgs -->
+  <depend stack="control" /> <!-- control_msgs -->
   <depend stack="diagnostics" /> <!-- diagnostic_updater -->
   <depend stack="eigen" /> <!-- eigen -->
   <depend stack="geometry" /> <!-- tf, tf_conversions -->
@@ -23,15 +25,17 @@
   <depend stack="laser_drivers" /> <!-- hokuyo_node -->
   <depend stack="laser_pipeline" /> <!-- laser_geometry -->
   <depend stack="nodelet_core" /> <!-- nodelet -->
-  <depend stack="openni_kinect" /> <!-- openni_camera -->
+  <depend stack="openni_kinect" /> <!-- openni_launch, openni_camera -->
   <depend stack="orocos_kinematics_dynamics" /> <!-- kdl -->
   <depend stack="perception_pcl" /> <!-- pcl, pcl_ros -->
   <depend stack="pluginlib" /> <!-- pluginlib -->
   <depend stack="point_cloud_perception" /> <!-- point_cloud_converter -->
+  <depend stack="pr2_common" /> <!-- pr2_msgs -->
   <depend stack="pr2_controllers" /> <!-- pr2_controllers_msgs -->
+  <depend stack="pr2_kinematics" /> <!-- pr2_arm_kinematics -->
   <depend stack="robot_model" /> <!-- robot_state_publisher, urdf, kdl_parser, collada_urdf -->
   <depend stack="ros" /> <!-- roslib -->
   <depend stack="ros_comm" /> <!-- std_msgs, rostest, rospy, roscpp, message_filters -->
-  <depend stack="vision_opencv" /> <!-- cv_bridge -->
+  <depend stack="vision_opencv" /> <!-- opencv2, cv_bridge -->
 
 </stack>

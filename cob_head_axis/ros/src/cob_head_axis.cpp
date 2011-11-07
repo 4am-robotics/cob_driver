@@ -129,13 +129,15 @@ class NodeClass
 	double ActualVel_;
 	trajectory_msgs::JointTrajectory traj_;
 	trajectory_msgs::JointTrajectoryPoint traj_point_;
-	int traj_point_nr_;
+	unsigned int traj_point_nr_;
 
 	// Constructor
 	NodeClass(std::string name):
 		as_(n_, name, boost::bind(&NodeClass::executeCB, this, _1)),
 		action_name_(name)
 	{
+		n_ = ros::NodeHandle("~");
+	
 		isInitialized_ = false;
 		ActualPos_=0.0;
 		ActualVel_=0.0;

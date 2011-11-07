@@ -30,3 +30,6 @@ rosbuild_add_executable(cob_tray_sensors ros/src/cob_tray_sensors.cpp)
 #target_link_libraries(phidget21 ${PROJECT_NAME})
 
 target_link_libraries(cob_tray_sensors phidget21)
+
+# rostest
+rosbuild_add_roslaunch_check(ros/launch/tray_sensors.launch ROBOT=cob3-3)

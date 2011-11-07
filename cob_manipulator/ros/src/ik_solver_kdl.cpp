@@ -88,12 +88,12 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	JntArray q_max(nj);
 	
 	//ToDo: get joint limits from robot_description on parameter_server or use /cob_arm_kinematics/get_ik_solver_info!!!
-	for(int i = 0; i < nj; i+=2)
+	for(unsigned int i = 0; i < nj; i+=2)
 	{
 		q_min(i) =-2.9670;		//adjusted due to cob_description/lbr.urdf.xacro
 		q_max(i) = 2.9670;
 	}
-	for(int i = 1; i < nj; i+=2)
+	for(unsigned int i = 1; i < nj; i+=2)
 	{
 		q_min(i) =-2.0943951;	//adjusted due to cob_description/lbr.urdf.xacro
 		q_max(i) = 2.0943951;
@@ -105,7 +105,7 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 
 	JntArray q(nj);
 	JntArray q_init(nj);
-	for(int i = 0; i < nj; i++)
+	for(unsigned int i = 0; i < nj; i++)
 		q_init(i) = req.ik_request.ik_seed_state.joint_state.position[i];
 	Frame F_dest;
 	Frame F_ist;
@@ -138,7 +138,7 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 		res.error_code.val = res.error_code.NO_IK_SOLUTION;
 		ROS_INFO("Inverse Kinematic found no solution");
 		std::cout << "RET: " << ret << std::endl;
-		for(int i = 0; i < nj; i++)
+		for(unsigned int i = 0; i < nj; i++)
 		{
 			res.solution.joint_state.position[i] = q_init(i);
 			res.solution.joint_state.velocity[i] = 0.0;
@@ -150,7 +150,7 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 		ROS_INFO("Inverse Kinematic found a solution");
 		//res.error_code.val = 1;
 		res.error_code.val = res.error_code.SUCCESS;
-		for(int i = 0; i < nj; i++)
+		for(unsigned int i = 0; i < nj; i++)
 		{
 			res.solution.joint_state.position[i] = q(i);
 			res.solution.joint_state.velocity[i] = 0.0;
@@ -183,6 +183,14 @@ bool constraint_aware_ik_solve(kinematics_msgs::GetConstraintAwarePositionIK::Re
 	//all other fields of GetConstraintAwarePositionIK::Request (allowed_contacts, ordered_collision_operations, link_padding, constraints) are dropped
 	
 	bool success = ik_solve(request, response);
+	if (success)
+	{
+		ROS_INFO("Inverse Kinematic found a solution");
+	}
+	else
+	{
+		ROS_INFO("Inverse Kinematic found no solution");
+	}
 	
 	if(response.error_code.val == 1) res.error_code.val = res.error_code.SUCCESS;
 	else res.error_code.val = res.error_code.NO_IK_SOLUTION;
@@ -218,7 +226,7 @@ bool fk_solve_TCP(kinematics_msgs::GetPositionFK::Request &req,
     geometry_msgs::PoseStamped pose;
     tf::Stamped<tf::Pose> tf_pose;
 
-	for(int i = 0; i < nj; i++)
+	for(unsigned int i = 0; i < nj; i++)
 		conf(i) = req.robot_state.joint_state.position[i];
 	Frame F_ist;
 	res.pose_stamped.resize(1);
@@ -271,12 +279,12 @@ bool fk_solve_all(kinematics_msgs::GetPositionFK::Request &req,
     geometry_msgs::PoseStamped pose;
     tf::Stamped<tf::Pose> tf_pose;
 
-	for(int i = 0; i < nj; i++)
+	for(unsigned int i = 0; i < nj; i++)
 		conf(i) = req.robot_state.joint_state.position[i];
 	Frame F_ist;
 		res.pose_stamped.resize(nl);
 	res.fk_link_names.resize(nl);
-	for(int j = 0; j < nl; j++)
+	for(unsigned int j = 0; j < nl; j++)
 	{
 		if(fksolver1.JntToCart(conf, F_ist, j+1) >= 0)
 		{
@@ -342,7 +350,7 @@ bool fk_solve(kinematics_msgs::GetPositionFK::Request  &req,
     tf::Stamped<tf::Pose> tf_pose;
 
     jnt_pos_in.resize(dimension_);
-    for(int i=0; i < dimension_; i++)
+    for(unsigned int i=0; i < dimension_; i++)
     {
       int tmp_index = getJointIndex(request.robot_state.joint_state.name[i],fk_solver_info_);
       if(tmp_index >=0)

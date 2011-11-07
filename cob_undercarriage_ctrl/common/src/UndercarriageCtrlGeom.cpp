@@ -566,7 +566,7 @@ void UndercarriageCtrlGeom::CalcControlStep(void)
 
 	// declare auxilliary variables
 	double dCurrentPosWheelRAD;
-	double dDeltaPhi, dVelCmd;
+	double dDeltaPhi;
 	double dForceDamp, dForceProp, dAccCmd, dVelCmdInt; // PI- and Impedance-Ctrl
 	
 	for (int i=0; i<4; i++)

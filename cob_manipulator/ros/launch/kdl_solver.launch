@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!-- send parameters to parameter server -->
+	<!--rosparam command="load" ns="arm_controller" file="$(find cob_arm)/ros/launch/$(env ROBOT).yaml"/-->
+
+	<!-- start ik_solver for arm -->
+	<node pkg="cob_manipulator" type="cob_ik_solver_kdl" name="cob_ik_solver" ns="/arm_kinematics" cwd="node" respawn="false" output="screen"/>
+
+	<!-- include test file -->
+	<include file="$(find cob_manipulator)/ros/test/move_cart.test"/>
+
+</launch>

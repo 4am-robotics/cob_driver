@@ -3,7 +3,7 @@
 
   <!-- start left camera -->
   <node pkg="cob_camera_sensors" type="color_camera" name="color_camera" ns="pike_145C/left" cwd="node" respawn="false" output="screen">
-	<param name="configuration_files" value="$(find cob_camera_sensors)/common/files/demo-cell/"/>
+	<param name="configuration_files" value="$(find cob_camera_sensors)/common/files/$(env ROBOT)/"/>
 	<param name="camera_index" value="1"/>
 	<!-- Specifies the used camera type -->
 	<!-- CAM_AVTPIKE or CAM_PROSILICA -->
