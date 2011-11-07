@@ -180,6 +180,7 @@ class NodeClass
 		
 		std::vector<double> m_gazeboPos;
 		std::vector<double> m_gazeboVel;
+		ros::Time m_gazeboStamp;
 
 		ros::Subscriber topicSub_GazeboJointStates;
 #else
@@ -581,8 +582,13 @@ class NodeClass
 			pr2_controllers_msgs::JointTrajectoryControllerState controller_state;
 			
 			// get time stamp for header
+#ifdef __SIM__
+			jointstate.header.stamp = m_gazeboStamp;
+			controller_state.header.stamp = m_gazeboStamp;
+#else
 			jointstate.header.stamp = ros::Time::now();
 			controller_state.header.stamp = jointstate.header.stamp;
+#endif
 
 			// assign right size to JointState
 			//jointstate.name.resize(m_iNumMotors);
@@ -742,6 +748,7 @@ class NodeClass
 				if(msg->name[i] == "fl_caster_r_wheel_joint") {
 					m_gazeboPos[0] = msg->position[i];
 					m_gazeboVel[0] = msg->velocity[i];
+					m_gazeboStamp = msg->header.stamp;
 				}
 				else if(msg->name[i] == "bl_caster_r_wheel_joint") {
 					m_gazeboPos[2] = msg->position[i];
