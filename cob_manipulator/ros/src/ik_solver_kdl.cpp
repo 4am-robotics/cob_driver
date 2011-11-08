@@ -24,7 +24,7 @@ void getKDLChainInfo(kinematics_msgs::KinematicSolverInfo &chain_info)
 {
 	unsigned int nj = chain.getNrOfJoints();
 	unsigned int nl = chain.getNrOfSegments();
-	
+
 	ROS_DEBUG("nj: %d", nj);
 	ROS_DEBUG("nl: %d", nl);
 
@@ -159,7 +159,7 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	}
 	//std::cout << "q_init\n";
 	ROS_INFO("q_init: %f %f %f %f %f %f %f", q_init(0), q_init(1), q_init(2), q_init(3), q_init(4), q_init(5), q_init(6));
-	ROS_INFO("q_out: %f %f %f %f %f %f %f", q(0), q(1), q(2), q(3), q(4), q(5), q(6));		
+	ROS_INFO("q_out: %f %f %f %f %f %f %f", q(0), q(1), q(2), q(3), q(4), q(5), q(6));
 	//std::cout << "Solved with " << ret << " as return\n";
 	//std::cout << q(0) << " " << q(1) << " " << q(2) << " " << q(3) << " " << q(4) << " " << q(5) << " " << q(6)  << "\n";	
 
