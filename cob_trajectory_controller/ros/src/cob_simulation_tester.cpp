@@ -3,6 +3,8 @@
 #include <sensor_msgs/JointState.h>
 #include <brics_actuator/JointVelocities.h>
 #include <trajectory_msgs/JointTrajectory.h>
+#include <cob_srvs/Trigger.h>
+
 
 
 using namespace std;
@@ -10,34 +12,13 @@ using namespace KDL;
 
 KDL::JntArray VirtualQ;
 KDL::JntArray q;
-
+KDL::JntArray q_last;
 ros::Time last;
 bool started = false;
 
 ros::Publisher arm_pub_;  //publish topic arm_controller/command
+ros::ServiceServer serv_reset;//service for resetting interface
 
-JntArray parseJointStates(std::vector<std::string> names, std::vector<double> positions)
-{
-	JntArray q_temp(7);
-	int count = 0;
-	for(unsigned int i = 0; i < names.size(); i++)
-    {
-			if(strncmp(names[i].c_str(), "arm_", 4) == 0)
-			{
-				q_temp(count) = positions[i];
-				count++;
-      }
-    }
-	if(!started)
-	{
-		VirtualQ = q_temp;
-		started = true;
-		last = ros::Time::now();
-
-		ROS_INFO("Starting up controller with first configuration");
-	}
-	return q_temp;
-}
 
 
 void sendVel(JntArray q_dot)
@@ -62,7 +43,7 @@ void sendVel(JntArray q_dot)
 	bool nonzero = false;
 	for(int i = 0; i < 7; i++)
 	{
-		if(q_dot(i) != 0.0)
+		if(fabs(q_dot(i)) >= 0.005)
 		{
 			traj.points[0].positions.push_back(VirtualQ(i) + q_dot(i)*horizon);
 			traj.points[0].velocities.push_back(q_dot(i));
@@ -74,6 +55,43 @@ void sendVel(JntArray q_dot)
 	if(nonzero)
 		arm_pub_.publish(traj);
 }
+
+JntArray parseJointStates(std::vector<std::string> names, std::vector<double> positions)
+{
+	JntArray q_temp(7);
+	int count = 0;
+    bool parsed = false;
+	for(unsigned int i = 0; i < names.size(); i++)
+    {
+			if(strncmp(names[i].c_str(), "arm_", 4) == 0)
+			{
+				q_temp(count) = positions[i];
+				count++;
+				parsed = true;
+      }
+    }
+	if(!parsed)
+		return q_last;
+	q_last = q_temp;
+	//ROS_INFO("CurrentConfig: %f %f %f %f %f %f %f", q_temp(0), q_temp(1), q_temp(2), q_temp(3), q_temp(4), q_temp(5), q_temp(6));
+	if(!started)
+	{
+		//JntArray zero(7);
+		//sendVel(zero);
+		VirtualQ = q_temp;
+		started = true;
+		last = ros::Time::now();
+
+		ROS_INFO("Starting up controller with first configuration: %f %f %f", q_temp(0), q_temp(1), q_temp(2));
+	}
+	return q_temp;
+}
+
+bool resetCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response)
+{
+	started = false;
+}
+
 
 void controllerStateCallback(const sensor_msgs::JointState::ConstPtr& msg)
 {
@@ -102,6 +120,7 @@ int main(int argc, char **argv)
 	arm_pub_ = n.advertise<trajectory_msgs::JointTrajectory>("/arm_controller/command",1);
 	ros::Subscriber sub = n.subscribe("/joint_states", 1, controllerStateCallback);
 	ros::Subscriber sub_vc = n.subscribe("/arm_controller/command_vel", 1, velocityCallback);
+	serv_reset = n.advertiseService("reset_brics_interface", resetCB);
 	ros::spin();
 
 	return 0;
