@@ -93,8 +93,11 @@ private:
   
     std::string action_name_;
     std::string action_name_follow_;	
-  	std::string current_operation_mode_;
+    std::string current_operation_mode_;
+    XmlRpc::XmlRpcValue JointNames_param_;
+    std::vector<std::string> JointNames_;
     bool executing_;
+    int DOF;
 
   	int watchdog_counter;
     genericArmCtrl* traj_generator_;
@@ -123,24 +126,41 @@ public:
         executing_ = false;
 		watchdog_counter = 0;
 		current_operation_mode_ = "undefined";
-		q_current.resize(7);
 		double PTPvel = 0.7;
 		double PTPacc = 0.2;
 		double maxError = 0.7;
-		if (n_.hasParam("PTPvel"))
+		DOF = 7;
+		// get JointNames from parameter server
+                ROS_INFO("getting JointNames from parameter server");
+                if (n_.hasParam("joint_names"))
+                {
+                	n_.getParam("joint_names", JointNames_param_);
+                }
+                else
+                {
+                        ROS_ERROR("Parameter joint_names not set");
+                }
+                JointNames_.resize(JointNames_param_.size());
+                for (int i = 0; i<JointNames_param_.size(); i++ )
+                {
+                	JointNames_[i] = (std::string)JointNames_param_[i];
+                }
+		DOF = JointNames_param_.size();
+		if (n_.hasParam("ptp_vel"))
 		{
-			n_.getParam("PTPvel", PTPvel);
+			n_.getParam("ptp_vel", PTPvel);
 		}
-		if (n_.hasParam("PTPacc"))
+		if (n_.hasParam("ptp_acc"))
 		{
-			n_.getParam("PTPacc", PTPacc);
+			n_.getParam("ptp_acc", PTPacc);
 		}
-		if (n_.hasParam("maxError"))
+		if (n_.hasParam("max_error"))
 		{
-			n_.getParam("maxError", maxError);
+			n_.getParam("max_error", maxError);
 		}
-
-		traj_generator_ = new genericArmCtrl(7, PTPvel, PTPacc, maxError);
+		q_current.resize(DOF);
+		ROS_INFO("starting controller with DOF: %d PTPvel: %f PTPAcc: %f maxError %f", DOF, PTPvel, PTPacc, maxError);
+		traj_generator_ = new genericArmCtrl(DOF, PTPvel, PTPacc, maxError);
 	}
 
 	bool srvCallback_Stop(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res)
@@ -191,10 +211,10 @@ public:
             {
             	//Insert the current point as first point of trajectory, then generate SPLINE trajectory
             	trajectory_msgs::JointTrajectoryPoint p;
-            	p.positions.resize(7);
-            	p.velocities.resize(7);
-            	p.accelerations.resize(7);
-            	for(unsigned int i = 0; i<7; i++)
+            	p.positions.resize(DOF);
+            	p.velocities.resize(DOF);
+            	p.accelerations.resize(DOF);
+            	for(unsigned int i = 0; i<DOF; i++)
             	{
             		p.positions.at(i) = q_current.at(i);
             		p.velocities.at(i) = 0.0;
@@ -244,10 +264,10 @@ public:
         {
         	//Insert the current point as first point of trajectory, then generate SPLINE trajectory
         	trajectory_msgs::JointTrajectoryPoint p;
-        	p.positions.resize(7);
-        	p.velocities.resize(7);
-        	p.accelerations.resize(7);
-        	for(unsigned int i = 0; i<7; i++)
+        	p.positions.resize(DOF);
+        	p.velocities.resize(DOF);
+        	p.accelerations.resize(DOF);
+        	for(unsigned int i = 0; i<DOF; i++)
         	{
         		p.positions.at(i) = q_current.at(i);
         		p.velocities.at(i) = 0.0;
@@ -297,12 +317,10 @@ public:
         			executing_ = false;
         		}
 				brics_actuator::JointVelocities target_joint_vel;
-				target_joint_vel.velocities.resize(7);
-				for(unsigned int i=0; i<7; i++)
+				target_joint_vel.velocities.resize(DOF);
+				for(unsigned int i=0; i<DOF; i++)
 				{
-					std::stringstream joint_name;
-					joint_name << "arm_" << (i+1) << "_joint";
-					target_joint_vel.velocities[i].joint_uri = joint_name.str();
+					target_joint_vel.velocities[i].joint_uri = JointNames_[i].c_str();
 					target_joint_vel.velocities[i].unit = "rad";
 					target_joint_vel.velocities[i].value = des_vel.at(i);
 
@@ -322,18 +340,16 @@ public:
 		  if(watchdog_counter < 10)
 		    {
 			sensor_msgs::JointState target_joint_position;
-			target_joint_position.position.resize(7);
+			target_joint_position.position.resize(DOF);
 			brics_actuator::JointVelocities target_joint_vel;
-			target_joint_vel.velocities.resize(7);
-			for (unsigned int i = 0; i < 7; i += 1)
+			target_joint_vel.velocities.resize(DOF);
+			for (unsigned int i = 0; i < DOF; i += 1)
 			{
-				std::stringstream joint_name;
-				joint_name << "arm_" << (i+1) << "_joint";
-				target_joint_vel.velocities[i].joint_uri = joint_name.str();
-						target_joint_position.position[i] = 0;
+				target_joint_vel.velocities[i].joint_uri = JointNames_[i].c_str();
+				target_joint_position.position[i] = 0;
 				target_joint_vel.velocities[i].unit = "rad";
 				target_joint_vel.velocities[i].value = 0;
-					}
+			}
 				joint_vel_pub_.publish(target_joint_vel);
 				joint_pos_pub_.publish(target_joint_position);
 			}

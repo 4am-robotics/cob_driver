@@ -125,7 +125,7 @@ namespace ipa_CameraSensors
     {
       node_handle_ = getNodeHandle();
       it_ = new image_transport::ImageTransport(node_handle_);
-      sync_pointcloud_ = new message_filters::Synchronizer<message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, sensor_msgs::Image> >(1);//(2);  //todo: what does this parameter mean
+      sync_pointcloud_ = new message_filters::Synchronizer<message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, sensor_msgs::Image> >(3);//(2);  //this parameter is the queue size for comparing time stanps of messages (might work badly if set to 1)
       color_camera_image_pub_ = it_->advertise("rgb/upright/image_color", 1);
       point_cloud_pub_ = node_handle_.advertise<sensor_msgs::PointCloud2>("depth/upright/points", 1);
       
@@ -183,7 +183,7 @@ namespace ipa_CameraSensors
       {
         ROS_WARN("%s",ex.what());
       }
-      
+            
       if (turnAround==false)
       {
         // image upright, robot is watching backwards

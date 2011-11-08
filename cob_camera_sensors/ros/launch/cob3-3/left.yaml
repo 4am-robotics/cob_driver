@@ -30,3 +30,4 @@ stream_bytes_per_second: 55000000
 auto_adjust_stream_bytes_per_second: False
 trigger_mode: syncin1
 packet_size: 9000
+trig_rate: 10
