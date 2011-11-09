@@ -214,7 +214,7 @@ public:
             	p.positions.resize(DOF);
             	p.velocities.resize(DOF);
             	p.accelerations.resize(DOF);
-            	for(unsigned int i = 0; i<DOF; i++)
+            	for(int i = 0; i<DOF; i++)
             	{
             		p.positions.at(i) = q_current.at(i);
             		p.velocities.at(i) = 0.0;
@@ -267,7 +267,7 @@ public:
         	p.positions.resize(DOF);
         	p.velocities.resize(DOF);
         	p.accelerations.resize(DOF);
-        	for(unsigned int i = 0; i<DOF; i++)
+        	for(int i = 0; i<DOF; i++)
         	{
         		p.positions.at(i) = q_current.at(i);
         		p.velocities.at(i) = 0.0;
@@ -318,7 +318,7 @@ public:
         		}
 				brics_actuator::JointVelocities target_joint_vel;
 				target_joint_vel.velocities.resize(DOF);
-				for(unsigned int i=0; i<DOF; i++)
+				for(int i=0; i<DOF; i++)
 				{
 					target_joint_vel.velocities[i].joint_uri = JointNames_[i].c_str();
 					target_joint_vel.velocities[i].unit = "rad";
@@ -343,7 +343,7 @@ public:
 			target_joint_position.position.resize(DOF);
 			brics_actuator::JointVelocities target_joint_vel;
 			target_joint_vel.velocities.resize(DOF);
-			for (unsigned int i = 0; i < DOF; i += 1)
+			for (int i = 0; i < DOF; i += 1)
 			{
 				target_joint_vel.velocities[i].joint_uri = JointNames_[i].c_str();
 				target_joint_position.position[i] = 0;
