@@ -11,7 +11,7 @@
 	<remap from="image_grey" to="tof/image_grey"/>
 	<remap from="save_camera_images" to="cob_camera_sensors/save_camera_images"/>
 
-	<param name="absolute_output_directory_path" value="$(find cob_camera_sensors)/common/files/cob3-1/calib/" />
+	<param name="absolute_output_directory_path" value="$(find cob_camera_sensors)/common/files/$(env ROBOT)/calib/" />
 
 	<param name="use_right_color_camera" value="true" />
 	<param name="use_left_color_camera" value="true" />

@@ -36,3 +36,9 @@ rosbuild_genmsg()
 #rospack_link_boost(${PROJECT_NAME} thread)
 #rospack_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
+
+# rostest
+rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-1)
+#rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-2)
+#rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-3)
+#rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-4)

@@ -1,7 +1,0 @@
-<launch>
-  <include file="$(find cob_manipulator)/ros/launch/planning_environment.launch" />
-  <node pkg="arm_kinematics_constraint_aware" type="arm_kinematics_constraint_aware" name="cob3_arm_kinematics" output="screen" cwd="node">
-    <rosparam command="load" file="$(find cob_manipulator)/ros/config/cob3_arm_kinematics.yaml" />
-    <param name="arm/robot" type="string" value="$(env ROBOT)"/>
-  </node> 
-</launch>

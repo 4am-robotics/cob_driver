@@ -168,7 +168,7 @@ class NodeClass
 			//topic_pub_joint_state_cmd_ = n.advertise<sensor_msgs::JointState>("joint_command", 1);
 			topic_pub_controller_joint_command_ = n.advertise<pr2_controllers_msgs::JointTrajectoryControllerState> ("joint_command", 1);
 
-			topic_pub_odometry_ = n.advertise<nav_msgs::Odometry>("odometry", 50);
+			topic_pub_odometry_ = n.advertise<nav_msgs::Odometry>("odometry", 1);
 
             // subscribed topics
 			topic_sub_CMD_pltf_twist_ = n.subscribe("command", 1, &NodeClass::topicCallbackTwistCmd, this);
@@ -354,7 +354,7 @@ class NodeClass
 			return true;
 		}
 
-		// Init Controller Configuration
+/*		// Init Controller Configuration
         bool srvCallbackInit(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res )
         {
             if(is_initialized_bool_ == false)
@@ -383,8 +383,9 @@ class NodeClass
             }            
             return true;
         }
-		
-		// reset Controller Configuration
+*/
+	
+/*		// reset Controller Configuration
         bool srvCallbackReset(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res )
         {
 			bool ctrlr_reset;
@@ -449,8 +450,9 @@ class NodeClass
 
 		    return true;
         }
+*/
 		
-		// shutdown Controller
+/*		// shutdown Controller
         bool srvCallbackShutdown(cob_srvs::Trigger::Request &req,
                                      cob_srvs::Trigger::Response &res )
         {
@@ -475,6 +477,7 @@ class NodeClass
 			}
 	    	return true;
         }
+*/
 
 		void topicCallbackJointControllerStates(const pr2_controllers_msgs::JointTrajectoryControllerState::ConstPtr& msg) {
 			int num_joints;
@@ -694,7 +697,7 @@ class NodeClass
 		// perform one control step, calculate inverse kinematics and publish updated joint cmd's (if no EMStop occurred)
 		void CalcCtrlStep();
 		// acquires the current undercarriage configuration from base_drive_chain
-		void GetJointState();
+		//void GetJointState(); // TODO: not used any more, can be deleted
 		// calculates odometry from current measurement values and publishes it via an odometry topic and the tf broadcaster
 		void UpdateOdometry();
 };
@@ -710,7 +713,8 @@ int main(int argc, char** argv)
     NodeClass nodeClass;
 	
 	// automatically do initializing of controller, because it's not directly depending any hardware components
-	if( nodeClass.is_initialized_bool_ = nodeClass.InitCtrl() ) {
+	nodeClass.is_initialized_bool_ = nodeClass.InitCtrl();
+	if( nodeClass.is_initialized_bool_ ) {
 		nodeClass.last_time_ = ros::Time::now();
 		ROS_INFO("Undercarriage control successfully initialized.");
 	} else
@@ -728,13 +732,12 @@ int main(int argc, char** argv)
 		// EXPERIMENTAL: listen to JointStates via topic
 		// nodeClass.GetJointState();
 		
-
-		// calculate forward kinematics and update Odometry
-		nodeClass.UpdateOdometry();
-
 		// perform one control step, calculate inverse kinematics
 		// and publish updated joint cmd's (if no EMStop occurred)
 		nodeClass.CalcCtrlStep();
+
+		// calculate forward kinematics and update Odometry
+		nodeClass.UpdateOdometry();
 
 		// -> let node sleep for the rest of the cycle
         loop_rate.sleep();
@@ -786,7 +789,7 @@ void NodeClass::CalcCtrlStep()
 		// perform one control step,
 		// get the resulting cmd's for the wheel velocities and -angles from the controller class
 		// and output the achievable pltf velocity-cmds (if velocity limits where exceeded)
-		ucar_ctrl_->GetNewCtrlStateSteerDriveSetValues(drive_jointvel_cmds_rads,  steer_jointvel_cmds_rads, 									steer_jointang_cmds_rad, vx_cmd_ms, vy_cmd_ms, w_cmd_rads, dummy);
+		ucar_ctrl_->GetNewCtrlStateSteerDriveSetValues(drive_jointvel_cmds_rads,  steer_jointvel_cmds_rads, steer_jointang_cmds_rad, vx_cmd_ms, vy_cmd_ms, w_cmd_rads, dummy);
 		// ToDo: adapt interface of controller class --> remove last values (not used anymore)
 
 		// if drives not operating nominal -> force commands to zero
@@ -857,7 +860,7 @@ void NodeClass::CalcCtrlStep()
 
 }
 
-
+/*
 // acquires the current undercarriage configuration from base_drive_chain
 void NodeClass::GetJointState()
 {
@@ -911,7 +914,7 @@ void NodeClass::GetJointState()
 							drive_joint_ang_rad, steer_joint_ang_rad);
 
 }
-
+*/
 
 // calculates odometry from current measurement values
 // and publishes it via an odometry topic and the tf broadcaster
@@ -932,12 +935,14 @@ void NodeClass::UpdateOdometry()
 		// ToDo: last values are not used anymore --> remove from interface
 		ucar_ctrl_->GetActualPltfVelocity(delta_x_rob_m, delta_y_rob_m, delta_theta_rob_rad, dummy1,
 									vel_x_rob_ms, vel_y_rob_ms, rot_rob_rads, dummy2);
-
+		
 		// convert variables to SI-Units
 		vel_x_rob_ms = vel_x_rob_ms/1000.0;
 		vel_y_rob_ms = vel_y_rob_ms/1000.0;
 		delta_x_rob_m = delta_x_rob_m/1000.0;
 		delta_y_rob_m = delta_y_rob_m/1000.0;
+		
+		ROS_DEBUG("Odmonetry delta is: x=%f, y=%f, th=%f", delta_x_rob_m, delta_y_rob_m, rot_rob_rads);
 	}
 	else
 	{

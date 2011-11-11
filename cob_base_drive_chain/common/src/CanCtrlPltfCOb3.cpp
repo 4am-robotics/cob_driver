@@ -1007,7 +1007,7 @@ bool CanCtrlPltfCOb3::initPltf()
 	// ---------------------- start homing procedurs
 	// Perform homing of all wheels simultaneously
 	// o.k. to avoid crashing hardware -> lets check that we have at least the 8 motors, like we have on cob
-	if( m_vpMotor.size() == m_iNumMotors )
+	if( (int)m_vpMotor.size() == m_iNumMotors )
 	{
 		// Initialize and start all motors
 		for (int i = 0; i<m_iNumDrives; i++)
@@ -1502,7 +1502,9 @@ int CanCtrlPltfCOb3::ElmoRecordings(int iFlag, int iParam, std::string sString) 
 
 		case 1: //Flag = 1 means start readout process, mustn't be called too early (while Rec is in process..)
 			for(unsigned int i = 0; i < m_vpMotor.size(); i++) {
-				if(tempRet = m_vpMotor[i]->setRecorder(1, iParam, sString) > bRet) bRet = tempRet; //Query Readout of Index to Log Directory
+				if((tempRet = m_vpMotor[i]->setRecorder(1, iParam, sString)) > bRet) { 
+					bRet = tempRet; //Query Readout of Index to Log Directory
+				}
 			}
 			return bRet;
 		

@@ -59,21 +59,19 @@
 #ifndef __IPA_ABSTRACTCOLORCAMERA_H__
 #define __IPA_ABSTRACTCOLORCAMERA_H__
 
+#include "StdAfx.h"
+
 #ifdef __LINUX__
 	#include "cob_vision_utils/CameraSensorDefines.h"
-
-	#include "tinyxml/tinyxml.h"
-
 	#include "cob_vision_utils/CameraSensorTypes.h"
-	#include "cob_vision_utils/VisionUtils.h"
 #else
 	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/CameraSensorDefines.h"
-
-	#include "cob_vision/windows/src/extern/TinyXml/tinyxml.h"
-
 	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/CameraSensorTypes.h"
-	#include "cob_common/cob_vision_utils/common/include/cob_vision_utils/VisionUtils.h"
 #endif
+
+#include <boost/shared_ptr.hpp>
+#include <sstream>
+#include <opencv/cv.h>
 
 namespace ipa_CameraSensors {
 

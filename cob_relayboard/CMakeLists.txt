@@ -41,3 +41,8 @@ target_link_libraries(${PROJECT_NAME} SerialIO)
 rosbuild_add_executable(cob_relayboard_node ros/src/cob_relayboard_node.cpp)
 target_link_libraries(cob_relayboard_node ${PROJECT_NAME})
 
+# rostest
+#rosbuild_add_roslaunch_check(ros/launch/relayboard.launch ROBOT=cob3-1)
+#rosbuild_add_roslaunch_check(ros/launch/relayboard.launch ROBOT=cob3-2)
+rosbuild_add_roslaunch_check(ros/launch/relayboard.launch ROBOT=cob3-3)
+#rosbuild_add_roslaunch_check(ros/launch/relayboard.launch ROBOT=cob3-4)

@@ -1,0 +1,6 @@
+<launch>
+
+  <node pkg="rosbag" type="record" name="record" output="screen"
+    args="/cam3d/depth_registered/camera_info /cam3d/depth_registered/image_raw /cam3d/driver/parameter_descriptions /cam3d/driver/parameter_updates /cam3d/rgb/camera_info /cam3d/rgb/image_color /tf -o /media/GOADaten/Daten/20110823_bagfiles/kitchen.bag"/>
+
+</launch>

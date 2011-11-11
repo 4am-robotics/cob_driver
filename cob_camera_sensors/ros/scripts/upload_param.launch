@@ -2,7 +2,7 @@
 <launch>
 
 	<!-- send ROBOT parameters to parameter server -->
-	<rosparam command="load" ns="arm" file="$(find cob_camera_sensors)/ros/scripts/arm_joint_configurations.yaml"/>
-	<rosparam command="load" ns="sdh" file="$(find cob_camera_sensors)/ros/scripts/sdh_joint_configurations.yaml"/>
+	<rosparam command="load" ns="/script_server/arm" file="$(find cob_camera_sensors)/ros/scripts/arm_joint_configurations.yaml"/>
+	<rosparam command="load" ns="/script_server/sdh" file="$(find cob_camera_sensors)/ros/scripts/sdh_joint_configurations.yaml"/>
 
 </launch>

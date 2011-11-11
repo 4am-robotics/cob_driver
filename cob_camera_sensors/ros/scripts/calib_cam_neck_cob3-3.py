@@ -32,7 +32,7 @@ class CalibCam(script):
 		print "start"
 		seed()
 		maxVal = 0.1
-		file_path = "/home/rmb/"
+		file_path = "/home/goa/cal/"
 		listener = tf.TransformListener()
 		nr_images = 14
 
@@ -65,11 +65,8 @@ class CalibCam(script):
 			self.sss.move("torso",[[0.75*r1,r2,r1]])
 			self.sss.sleep(1)
 			try:
-<<<<<<< HEAD
+				listener.waitForTransform('/base_link', '/head_color_camera_l_link',rospy.Time(0),rospy.Duration(1.0))
 				(trans,rot) = listener.lookupTransform('/base_link', '/head_color_camera_l_link', rospy.Time(0))
-=======
-				(trans,rot) = listener.lookupTransform('/base_link', '/head_axis_link', rospy.Time(0))
->>>>>>> ce1bbe12844deb9fe445965663d22adcf513bcad
 				rpy = euler_from_quaternion(rot)
 				cyaw = cos(rpy[2])
 				syaw = sin(rpy[2])

@@ -78,7 +78,7 @@ ElmoCtrl::ElmoCtrl() {
 	m_Joint = NULL;
 	m_JointParams = NULL;
 	m_CanCtrl = NULL;
-	m_CanBaseAddress = NULL;
+	m_CanBaseAddress = 0;
 	m_MotionCtrlType = POS_CTRL;
 	m_MaxVel = 2.0;
 	m_Params = NULL;
@@ -115,8 +115,8 @@ bool ElmoCtrl::Home()
 	Sleep(10);
 	printf("ElmoCtrl: Home(): Homing Vel = %f\n",m_HomingDir*0.3);
 	m_Joint->setGearVelRadS(m_HomingDir*0.3);
-	//ToDo: UHR: necessary?
-	Sleep(750);
+	//cpc-pk: removed this sleep, it's not necessary to leave home-sensor during homing
+	//Sleep(750);
 	success = m_Joint->execHoming();
 	m_Joint->setGearVelRadS(0.0);
 

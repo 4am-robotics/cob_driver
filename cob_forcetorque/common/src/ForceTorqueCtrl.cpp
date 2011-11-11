@@ -303,8 +303,8 @@ void ForceTorqueCtrl::ReadSGData(double &Fx, double &Fy, double &Fz, double &Tx,
 	
 	StrainGaugeToForce(sg0, sg1, sg2, sg3, sg4, sg5);
 	
-	Fx = m_vForceData[0]; Fy = m_vForceData[1]; Fz = m_vForceData[2]; 
-	Tx = m_vForceData[3]; Ty= m_vForceData[4]; Tz = m_vForceData[5];
+	Fx = m_vForceData(0); Fy = m_vForceData(1); Fz = m_vForceData(2); 
+	Tx = m_vForceData(3); Ty= m_vForceData(4); Tz = m_vForceData(5);
 	//out<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<" Tx: "<<Tx<<" Ty: "<<Ty<<" Tz: "<<Tz<<std::endl;
 	
 }
@@ -402,47 +402,47 @@ void ForceTorqueCtrl::SetTZGain(float tzg0, float tzg1, float tzg2, float tzg3, 
 void ForceTorqueCtrl::CalcCalibMatrix()
 {
 	Eigen::MatrixXf tmp(6, 6);
-	tmp[0] = m_v3FXGain[0]/m_v3GaugeGain[0];
-	tmp[1] = m_v3FXGain[1]/m_v3GaugeGain[1];
-	tmp[2] = m_v3FXGain[2]/m_v3GaugeGain[2];
-	tmp[3] = m_v3FXGain[3]/m_v3GaugeGain[3];
-	tmp[4] = m_v3FXGain[4]/m_v3GaugeGain[4];
-	tmp[5] = m_v3FXGain[5]/m_v3GaugeGain[5];
+	tmp(0) = m_v3FXGain[0]/m_v3GaugeGain[0];
+	tmp(1) = m_v3FXGain[1]/m_v3GaugeGain[1];
+	tmp(2) = m_v3FXGain[2]/m_v3GaugeGain[2];
+	tmp(3) = m_v3FXGain[3]/m_v3GaugeGain[3];
+	tmp(4) = m_v3FXGain[4]/m_v3GaugeGain[4];
+	tmp(5) = m_v3FXGain[5]/m_v3GaugeGain[5];
 
-	tmp[6] = m_v3FYGain[0]/m_v3GaugeGain[0];
-	tmp[7] = m_v3FYGain[1]/m_v3GaugeGain[1];
-	tmp[8] = m_v3FYGain[2]/m_v3GaugeGain[2];
-	tmp[9] = m_v3FYGain[3]/m_v3GaugeGain[3];
-	tmp[10] = m_v3FYGain[4]/m_v3GaugeGain[4];
-	tmp[11] = m_v3FYGain[5]/m_v3GaugeGain[5];
+	tmp(6) = m_v3FYGain[0]/m_v3GaugeGain[0];
+	tmp(7) = m_v3FYGain[1]/m_v3GaugeGain[1];
+	tmp(8) = m_v3FYGain[2]/m_v3GaugeGain[2];
+	tmp(9) = m_v3FYGain[3]/m_v3GaugeGain[3];
+	tmp(10) = m_v3FYGain[4]/m_v3GaugeGain[4];
+	tmp(11) = m_v3FYGain[5]/m_v3GaugeGain[5];
 
-	tmp[12] = m_v3FZGain[0]/m_v3GaugeGain[0];
-	tmp[13] = m_v3FZGain[1]/m_v3GaugeGain[1];
-	tmp[14] = m_v3FZGain[2]/m_v3GaugeGain[2];
-	tmp[15] = m_v3FZGain[3]/m_v3GaugeGain[3];
-	tmp[16] = m_v3FZGain[4]/m_v3GaugeGain[4];
-	tmp[17] = m_v3FZGain[5]/m_v3GaugeGain[5];
+	tmp(12) = m_v3FZGain[0]/m_v3GaugeGain[0];
+	tmp(13) = m_v3FZGain[1]/m_v3GaugeGain[1];
+	tmp(14) = m_v3FZGain[2]/m_v3GaugeGain[2];
+	tmp(15) = m_v3FZGain[3]/m_v3GaugeGain[3];
+	tmp(16) = m_v3FZGain[4]/m_v3GaugeGain[4];
+	tmp(17) = m_v3FZGain[5]/m_v3GaugeGain[5];
 
-	tmp[18] = m_v3TXGain[0]/m_v3GaugeGain[0];
-	tmp[19] = m_v3TXGain[1]/m_v3GaugeGain[1];
-	tmp[20] = m_v3TXGain[2]/m_v3GaugeGain[2];
-	tmp[21] = m_v3TXGain[3]/m_v3GaugeGain[3];
-	tmp[22] = m_v3TXGain[4]/m_v3GaugeGain[4];
-	tmp[23] = m_v3TXGain[5]/m_v3GaugeGain[5];
+	tmp(18) = m_v3TXGain[0]/m_v3GaugeGain[0];
+	tmp(19) = m_v3TXGain[1]/m_v3GaugeGain[1];
+	tmp(20) = m_v3TXGain[2]/m_v3GaugeGain[2];
+	tmp(21) = m_v3TXGain[3]/m_v3GaugeGain[3];
+	tmp(22) = m_v3TXGain[4]/m_v3GaugeGain[4];
+	tmp(23) = m_v3TXGain[5]/m_v3GaugeGain[5];
 
-	tmp[24] = m_v3TYGain[0]/m_v3GaugeGain[0];
-	tmp[25] = m_v3TYGain[1]/m_v3GaugeGain[1];
-	tmp[26] = m_v3TYGain[2]/m_v3GaugeGain[2];
-	tmp[27] = m_v3TYGain[3]/m_v3GaugeGain[3];
-	tmp[28] = m_v3TYGain[4]/m_v3GaugeGain[4];
-	tmp[29] = m_v3TYGain[5]/m_v3GaugeGain[5];
+	tmp(24) = m_v3TYGain[0]/m_v3GaugeGain[0];
+	tmp(25) = m_v3TYGain[1]/m_v3GaugeGain[1];
+	tmp(26) = m_v3TYGain[2]/m_v3GaugeGain[2];
+	tmp(27) = m_v3TYGain[3]/m_v3GaugeGain[3];
+	tmp(28) = m_v3TYGain[4]/m_v3GaugeGain[4];
+	tmp(29) = m_v3TYGain[5]/m_v3GaugeGain[5];
 
-	tmp[30] = m_v3TZGain[0]/m_v3GaugeGain[0];
-	tmp[31] = m_v3TZGain[1]/m_v3GaugeGain[1];
-	tmp[32] = m_v3TZGain[2]/m_v3GaugeGain[2];
-	tmp[33] = m_v3TZGain[3]/m_v3GaugeGain[3];
-	tmp[34] = m_v3TZGain[4]/m_v3GaugeGain[4];
-	tmp[35] = m_v3TZGain[5]/m_v3GaugeGain[5];
+	tmp(30) = m_v3TZGain[0]/m_v3GaugeGain[0];
+	tmp(31) = m_v3TZGain[1]/m_v3GaugeGain[1];
+	tmp(32) = m_v3TZGain[2]/m_v3GaugeGain[2];
+	tmp(33) = m_v3TZGain[3]/m_v3GaugeGain[3];
+	tmp(34) = m_v3TZGain[4]/m_v3GaugeGain[4];
+	tmp(35) = m_v3TZGain[5]/m_v3GaugeGain[5];
 	
 	m_mXCalibMatrix = tmp;
 			
@@ -450,47 +450,47 @@ void ForceTorqueCtrl::CalcCalibMatrix()
 void ForceTorqueCtrl::SetCalibMatrix()
 {
 	Eigen::MatrixXf tmp(6, 6);
-	tmp[0] = m_v3FXGain[0];
-	tmp[1] = m_v3FXGain[1];
-	tmp[2] = m_v3FXGain[2];
-	tmp[3] = m_v3FXGain[3];
-	tmp[4] = m_v3FXGain[4];
-	tmp[5] = m_v3FXGain[5];
+	tmp(0) = m_v3FXGain[0];
+	tmp(1) = m_v3FXGain[1];
+	tmp(2) = m_v3FXGain[2];
+	tmp(3) = m_v3FXGain[3];
+	tmp(4) = m_v3FXGain[4];
+	tmp(5) = m_v3FXGain[5];
 
-	tmp[6] = m_v3FYGain[0];
-	tmp[7] = m_v3FYGain[1];
-	tmp[8] = m_v3FYGain[2];
-	tmp[9] = m_v3FYGain[3];
-	tmp[10] = m_v3FYGain[4];
-	tmp[11] = m_v3FYGain[5];
+	tmp(6) = m_v3FYGain[0];
+	tmp(7) = m_v3FYGain[1];
+	tmp(8) = m_v3FYGain[2];
+	tmp(9) = m_v3FYGain[3];
+	tmp(10) = m_v3FYGain[4];
+	tmp(11) = m_v3FYGain[5];
 
-	tmp[12] = m_v3FZGain[0];
-	tmp[13] = m_v3FZGain[1];
-	tmp[14] = m_v3FZGain[2];
-	tmp[15] = m_v3FZGain[3];
-	tmp[16] = m_v3FZGain[4];
-	tmp[17] = m_v3FZGain[5];
+	tmp(12) = m_v3FZGain[0];
+	tmp(13) = m_v3FZGain[1];
+	tmp(14) = m_v3FZGain[2];
+	tmp(15) = m_v3FZGain[3];
+	tmp(16) = m_v3FZGain[4];
+	tmp(17) = m_v3FZGain[5];
 
-	tmp[18] = m_v3TXGain[0];
-	tmp[19] = m_v3TXGain[1];
-	tmp[20] = m_v3TXGain[2];
-	tmp[21] = m_v3TXGain[3];
-	tmp[22] = m_v3TXGain[4];
-	tmp[23] = m_v3TXGain[5];
+	tmp(18) = m_v3TXGain[0];
+	tmp(19) = m_v3TXGain[1];
+	tmp(20) = m_v3TXGain[2];
+	tmp(21) = m_v3TXGain[3];
+	tmp(22) = m_v3TXGain[4];
+	tmp(23) = m_v3TXGain[5];
 
-	tmp[24] = m_v3TYGain[0];
-	tmp[25] = m_v3TYGain[1];
-	tmp[26] = m_v3TYGain[2];
-	tmp[27] = m_v3TYGain[3];
-	tmp[28] = m_v3TYGain[4];
-	tmp[29] = m_v3TYGain[5];
+	tmp(24) = m_v3TYGain[0];
+	tmp(25) = m_v3TYGain[1];
+	tmp(26) = m_v3TYGain[2];
+	tmp(27) = m_v3TYGain[3];
+	tmp(28) = m_v3TYGain[4];
+	tmp(29) = m_v3TYGain[5];
 
-	tmp[30] = m_v3TZGain[0];
-	tmp[31] = m_v3TZGain[1];
-	tmp[32] = m_v3TZGain[2];
-	tmp[33] = m_v3TZGain[3];
-	tmp[34] = m_v3TZGain[4];
-	tmp[35] = m_v3TZGain[5];
+	tmp(30) = m_v3TZGain[0];
+	tmp(31) = m_v3TZGain[1];
+	tmp(32) = m_v3TZGain[2];
+	tmp(33) = m_v3TZGain[3];
+	tmp(34) = m_v3TZGain[4];
+	tmp(35) = m_v3TZGain[5];
 
 	
 	m_mXCalibMatrix = tmp.transpose();

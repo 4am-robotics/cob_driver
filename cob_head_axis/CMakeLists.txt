@@ -37,3 +37,9 @@ rosbuild_add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp common/
 
 target_link_libraries(${PROJECT_NAME}_node pcan)
 #target_link_libraries(${PROJECT_NAME}_node ntcan)
+
+# rostest
+#rosbuild_add_roslaunch_check(ros/launch/head_axis.launch ROBOT=cob3-1)
+#rosbuild_add_roslaunch_check(ros/launch/head_axis.launch ROBOT=cob3-2)
+rosbuild_add_roslaunch_check(ros/launch/head_axis.launch ROBOT=cob3-3)
+#rosbuild_add_roslaunch_check(ros/launch/head_axis.launch ROBOT=cob3-4)

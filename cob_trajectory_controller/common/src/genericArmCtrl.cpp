@@ -38,7 +38,7 @@ if ( m_cThread.startJob(m_pRefVals) == false ) {						\
  ********************************************************************/
 
 
-genericArmCtrl::genericArmCtrl(int DOF)
+genericArmCtrl::genericArmCtrl(int DOF, double PTPvel, double PTPacc, double maxError) 
 {
 	
 	m_DOF = DOF;
@@ -48,13 +48,13 @@ genericArmCtrl::genericArmCtrl(int DOF)
 	isMoving = false;
 
 	//TODO: make configurable
-	SetPTPvel(0.7);
-	SetPTPacc(0.2);
+	SetPTPvel(PTPvel);
+	SetPTPacc(PTPacc);
 
 	//m_P = 2.5;
 	m_P = 4.0;
 	m_Vorsteuer = 0.9;
-	m_AllowedError = 0.75;//0.5;//0.25; // rad
+	m_AllowedError = maxError;//0.5;//0.25; // rad
 	m_CurrentError = 0.0; // rad
 	m_TargetError = 0.02; // rad;
 
@@ -130,7 +130,8 @@ bool genericArmCtrl::moveThetas(std::vector<double> conf_goal, std::vector<doubl
 	isMoving = true;
 	TotalTime_ = m_pRefVals->getTotalTime();
 	ROS_INFO("Starting control of trajectory: %f s long", TotalTime_);
-	
+
+	return true; //TODO when to return false?
 }
 	
 bool genericArmCtrl::moveTrajectory(trajectory_msgs::JointTrajectory pfad, std::vector<double> conf_current)
@@ -214,7 +215,7 @@ bool genericArmCtrl::step(std::vector<double> current_pos, std::vector<double> &
 		std::vector<double> m_vsoll = m_pRefVals->dr_dt(t);
 
 		double len = 0;
-		for(unsigned int i = 0; i < m_DOF; i++)
+		for(int i = 0; i < m_DOF; i++)
 		{
 			 len +=  (m_qsoll.at(i) - current_pos.at(i)) * (m_qsoll.at(i) - current_pos.at(i));
 		}
@@ -224,8 +225,9 @@ bool genericArmCtrl::step(std::vector<double> current_pos, std::vector<double> &
 				if ( m_CurrentError >= m_AllowedError )
 				{
 					ROS_ERROR("Current control error exceeds limit: %f >= %f", m_CurrentError, m_AllowedError);
-					ROS_ERROR("Current Soll: %f %f %f %f %f %f %f ", m_qsoll.at(0), m_qsoll.at(1), m_qsoll.at(2), m_qsoll.at(3), m_qsoll.at(4), m_qsoll.at(5), m_qsoll.at(6));
-					ROS_ERROR("Current Ist: %f %f %f %f %f %f %f ", current_pos.at(0), current_pos.at(1), current_pos.at(2), current_pos.at(3), current_pos.at(4), current_pos.at(5), current_pos.at(6));
+					//TODO: make generic to avoid out of bound exception
+					//ROS_ERROR("Current Soll: %f %f %f %f %f %f %f ", m_qsoll.at(0), m_qsoll.at(1), m_qsoll.at(2), m_qsoll.at(3), m_qsoll.at(4), m_qsoll.at(5), m_qsoll.at(6));
+					//ROS_ERROR("Current Ist: %f %f %f %f %f %f %f ", current_pos.at(0), current_pos.at(1), current_pos.at(2), current_pos.at(3), current_pos.at(4), current_pos.at(5), current_pos.at(6));
 					isMoving = false;
 					return false;
 				}
@@ -243,7 +245,7 @@ bool genericArmCtrl::step(std::vector<double> current_pos, std::vector<double> &
 			ROS_INFO("Probably finished trajectory");
 			isMoving = false;
 			desired_vel.resize(m_DOF);
-			for(unsigned int i = 0; i < m_DOF; i++)
+			for(int i = 0; i < m_DOF; i++)
 			{
 				desired_vel.at(i) = 0.0;
 			}
