@@ -1,7 +1,0 @@
-can_module: ESD
-can_device: /dev/can0
-can_baudrate: 1000
-modul_ids: [4,5,6,7,8,9,10]
-joint_names: [arm_1_joint, arm_2_joint, arm_3_joint, arm_4_joint, arm_5_joint, arm_6_joint, arm_7_joint]
-max_accelerations: [0.8,0.8,0.8,0.8,0.8,0.8,0.8]
-frequency: 20
