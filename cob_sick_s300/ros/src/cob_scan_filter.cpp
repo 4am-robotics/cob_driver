@@ -79,6 +79,8 @@ class NodeClass
 
     NodeClass()
     {
+      nodeHandle = ros::NodeHandle("~");
+    
       // loading config
       nodeHandle.param<int>("start_scan", start_scan, 115);
       nodeHandle.param<int>("stop_scan", stop_scan, 426);

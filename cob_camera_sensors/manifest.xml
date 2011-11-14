@@ -12,7 +12,6 @@
   <depend package="roscpp"/>
   <depend package="rostest"/>
   <depend package="sensor_msgs"/>
-  <depend package="tinyxml"/>
   <depend package="opencv2"/>
   <depend package="image_transport"/>
   <depend package="polled_camera"/>
@@ -34,6 +33,7 @@
     <nodelet plugin="${prefix}/nodelet_plugins.xml" />
   </export>
 
+  <rosdep name="tinyxml"/>
   <rosdep name="libdc1394"/>
   <rosdep name="glut"/>
   <rosdep name="libusb-0.1"/>

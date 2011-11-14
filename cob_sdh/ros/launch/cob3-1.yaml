@@ -1,7 +1,0 @@
-sdhdevicetype: PCAN
-sdhdevicestring: /dev/pcan2
-dsadevicestring: /dev/ttyTact
-baudrate: 1000000
-JointNames: ['sdh_knuckle_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']
-OperationMode: position
-frequency: 5

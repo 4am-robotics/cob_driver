@@ -64,7 +64,7 @@ rosbuild_add_compile_flags(cob_camera_sensors -D__LINUX__ -D__COB_ROS__)
 #rosbuild_add_compile_flags(all_camera_viewer -D__LINUX__ -D__COB_ROS__ -D__ROS_1_1__)
 
 # link libraries
-target_link_libraries(cob_camera_sensors mesasr dc1394)
+target_link_libraries(cob_camera_sensors mesasr dc1394 tinyxml)
 #target_link_libraries(tof_camera cob_camera_sensors usb)
 #target_link_libraries(tof_camera_viewer cob_camera_sensors)
 #target_link_libraries(color_camera cob_camera_sensors)
