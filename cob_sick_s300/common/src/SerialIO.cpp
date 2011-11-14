@@ -313,7 +313,7 @@ int SerialIO::open()
 	}
 
 	// set buffer sizes
-//	SetupComm(m_Device, m_ReadBufSize, m_WriteBufSize);
+	// SetupComm(m_Device, m_ReadBufSize, m_WriteBufSize);
 
 	// set timeout
 	setTimeout(m_Timeout);
@@ -388,12 +388,13 @@ int SerialIO::readBlocking(char *Buffer, int Length)
 int SerialIO::readNonBlocking(char *Buffer, int Length)
 {
 	int iAvaibleBytes = getSizeRXQueue();
+	std::cout << "1 Bytes available: " << iAvaibleBytes << std::endl;
 	int iBytesToRead = (Length < iAvaibleBytes) ? Length : iAvaibleBytes;
 	ssize_t BytesRead;
 
 
 	BytesRead = ::read(m_Device, Buffer, iBytesToRead);
-	
+
 
 	// Debug
 //	printf("%2d Bytes read:", BytesRead);

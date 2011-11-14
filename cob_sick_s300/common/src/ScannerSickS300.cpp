@@ -146,7 +146,7 @@ bool ScannerSickS300::open(const char* pcPort, int iBaudRate, int iScanId=7)
 	m_SerialIO.setHandshake(SerialIO::HS_NONE);
 	m_SerialIO.setMultiplier(m_dBaudMult);
 	bRetSerial = m_SerialIO.open();
-	m_SerialIO.setTimeout(0.5);
+	m_SerialIO.setTimeout(0.0);
 	m_SerialIO.SetFormat(8, SerialIO::PA_NONE, SerialIO::SB_ONE);
 
     if(bRetSerial == 0)
@@ -211,6 +211,8 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 	  	printf("not enough data in queue \n");
 		return false;
 	}
+	
+	printf("iNumRead = %d\n",iNumRead);
 
 	// Try to find scan.
 	for(i=0; i<iNumRead; i++)
