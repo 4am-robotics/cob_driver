@@ -496,7 +496,7 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "cob_camera_axis");
 	
 	// create nodeClass
-	NodeClass nodeClass("joint_trajectory_action");
+	NodeClass nodeClass(ros::this_node::getName() + "/joint_trajectory_action");
  
 	// main loop
  	ros::Rate loop_rate(5); // Hz
