@@ -64,6 +64,7 @@
 #include <std_msgs/Float64.h>
 #include <sensor_msgs/JointState.h>
 #include <diagnostic_msgs/DiagnosticStatus.h>
+#include <diagnostic_msgs/DiagnosticArray.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 #include <pr2_controllers_msgs/JointControllerState.h>
 
@@ -97,6 +98,7 @@ class NodeClass
 		ros::Publisher topicPub_JointState;
 
 		ros::Publisher topicPub_ControllerState;
+		ros::Publisher topicPub_DiagnosticGlobal_;
 
 
 		/**
@@ -271,7 +273,7 @@ class NodeClass
 			// published topics
 			topicPub_JointState = n.advertise<sensor_msgs::JointState>("/joint_states", 1);
 			topicPub_ControllerState = n.advertise<pr2_controllers_msgs::JointTrajectoryControllerState>("state", 1);
-			
+			topicPub_DiagnosticGlobal_ = n.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 			
 			topicPub_Diagnostic = n.advertise<diagnostic_msgs::DiagnosticStatus>("diagnostic", 1);
 			// subscribed topics
@@ -728,6 +730,33 @@ class NodeClass
 			// publish diagnostic message
 			topicPub_Diagnostic.publish(diagnostics);
 			ROS_DEBUG("published new drive-chain configuration (JointState message)");
+			//publish global diagnostic messages
+			diagnostic_msgs::DiagnosticArray diagnostics_gl;
+		    diagnostics_gl.status.resize(1);
+		    // set data to diagnostics
+		    if(bIsError)
+		    {
+		      diagnostics_gl.status[0].level = 2;
+		      diagnostics_gl.status[0].name = n.getNamespace();;
+		      //TODOdiagnostics.status[0].message = error_msg_;
+		    }
+		    else
+		    {
+		      if (m_bisInitialized)
+		      {
+		        diagnostics_gl.status[0].level = 0;
+		        diagnostics_gl.status[0].name = n.getNamespace(); //"schunk_powercube_chain";
+		        diagnostics_gl.status[0].message = "base_drive_chain initialized and running";
+		      }
+		      else
+		      {
+		        diagnostics_gl.status[0].level = 1;
+		        diagnostics_gl.status[0].name = n.getNamespace(); //"schunk_powercube_chain";
+		        diagnostics_gl.status[0].message = "base_drive_chain not initialized";
+		      }
+		    }
+		    // publish diagnostic message
+		    topicPub_DiagnosticGlobal_.publish(diagnostics_gl);
 
 			return true;
 		}
