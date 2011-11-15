@@ -1,0 +1,21 @@
+<package>
+  <description brief="cob_utilities">
+
+    Deprecated
+    "cob_utilities" subsumes a number of classes, which are used in the original COb3 software. E.g. "IniFile.h" supports the original inifile structure of Care-O-bot 3. "MathSup.h" provides some basic functions like conversion from degree to radion or norming of angles within +/- PI. The package is currently used while the drivers are ported to ROS and Orocos respectively. Midterm it shall be removed and the ROS structures shall be used for reading parameters during initialization. So, don't use this package in new code!
+
+  </description>
+  <author>Christian Connette</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_utilities</url>
+
+  <!-- Dependencies from other packages or external libs-->
+  <depend package="roscpp"/>
+
+  <!-- As we deviate from the standard ROS Repository-Structure we have to tell ROS where to find header and lib -->
+  <export>
+    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_utilities"/>
+  </export>
+
+</package>
