@@ -25,15 +25,15 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
- *       Engineering and Automation (IPA) nor the names of its
- *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
+ *	 * Redistributions of source code must retain the above copyright
+ *	   notice, this list of conditions and the following disclaimer.
+ *	 * Redistributions in binary form must reproduce the above copyright
+ *	   notice, this list of conditions and the following disclaimer in the
+ *	   documentation and/or other materials provided with the distribution.
+ *	 * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *	   Engineering and Automation (IPA) nor the names of its
+ *	   contributors may be used to endorse or promote products derived from
+ *	   this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License LGPL as 
@@ -73,79 +73,79 @@
 //#### node class ####
 class NodeClass
 {
-    //
-    public:
-	      
+	//
+	public:
+		  
 		ros::NodeHandle nodeHandle;   
-        // topics to publish
-        ros::Publisher topicPub_LaserScan;
-        
-	    // topics to subscribe, callback is called for new messages arriving
+		// topics to publish
+		ros::Publisher topicPub_LaserScan;
+		
+		// topics to subscribe, callback is called for new messages arriving
 		//--
-        
-        // service servers
-        //--
-            
-        // service clients
-        //--
-        
-        // global variables
-        std::string port;
-        int baud, start_scan, stop_scan, scan_id;
-        bool inverted;
-        std::string frame_id;
+		
+		// service servers
+		//--
+			
+		// service clients
+		//--
+		
+		// global variables
+		std::string port;
+		int baud, start_scan, stop_scan, scan_id;
+		bool inverted;
+		std::string frame_id;
 
 
-        // Constructor
-        NodeClass()
-        {
+		// Constructor
+		NodeClass()
+		{
 			// create a handle for this node, initialize node
-	    	nodeHandle = ros::NodeHandle("~");
-            // initialize global variables
+			nodeHandle = ros::NodeHandle("~");
+			// initialize global variables
 			nodeHandle.param<std::string>("port", port, "/dev/ttyUSB0");
 			nodeHandle.param<int>("baud", baud, 500000);
 			nodeHandle.param<int>("scan_id", scan_id, 7);
 			nodeHandle.param<bool>("inverted", inverted, false);
 			nodeHandle.param<std::string>("frame_id", frame_id, "/base_laser_link");
-            nodeHandle.param<int>("start_scan", start_scan, 0);
-            nodeHandle.param<int>("stop_scan", stop_scan, 541);
+			nodeHandle.param<int>("start_scan", start_scan, 0);
+			nodeHandle.param<int>("stop_scan", stop_scan, 541);
 
-        	// implementation of topics to publish
-            topicPub_LaserScan = nodeHandle.advertise<sensor_msgs::LaserScan>("scan", 1);
+			// implementation of topics to publish
+			topicPub_LaserScan = nodeHandle.advertise<sensor_msgs::LaserScan>("scan", 1);
 
-            // implementation of topics to subscribe
+			// implementation of topics to subscribe
 			//--
-            
-            // implementation of service servers
+			
+			// implementation of service servers
 			//--
-        }
-        
-        // Destructor
-        ~NodeClass() 
-        {
-        }
+		}
+		
+		// Destructor
+		~NodeClass() 
+		{
+		}
 
-        // topic callback functions 
-        // function will be called when a new message arrives on a topic
+		// topic callback functions 
+		// function will be called when a new message arrives on a topic
 		//--
 
-        // service callback functions
-        // function will be called when a service is querried
-        //--
-        
-        // other function declarations
+		// service callback functions
+		// function will be called when a service is querried
+		//--
+		
+		// other function declarations
 	void publishLaserScan(std::vector<double> vdDistM, std::vector<double> vdAngRAD, std::vector<double> vdIntensAU)
-        {
-        	// fill message
-        	int num_readings = vdDistM.size(); // initialize with max scan size
-      		start_scan = 0;
-      stop_scan = vdDistM.size();
+		{
+			// fill message
+			int num_readings = vdDistM.size(); // initialize with max scan size
+	  		start_scan = 0;
+			stop_scan = vdDistM.size();
 			double laser_frequency = 10; //TODO: read from Ini-file
 			
 			// create LaserScan message
-        	sensor_msgs::LaserScan laserScan;
+			sensor_msgs::LaserScan laserScan;
 			laserScan.header.stamp = ros::Time::now();
-            
+			
 			// fill message
 			laserScan.header.frame_id = frame_id;
 			laserScan.angle_increment = vdAngRAD[start_scan + 1] - vdAngRAD[start_scan];
@@ -158,43 +158,38 @@ class NodeClass
 			laserScan.angle_min = vdAngRAD[start_scan]; // first ScanAngle
 			laserScan.angle_max = vdAngRAD[stop_scan - 1]; // last ScanAngle
    			laserScan.set_ranges_size(num_readings);
-    		laserScan.set_intensities_size(num_readings);
+			laserScan.set_intensities_size(num_readings);
 
 			// check for inverted laser
-		//	inverted = true; //true; // TODO remove hardcoded parameter
 			for(int i = 0; i < (stop_scan - start_scan); i++)
 			{
 				if(inverted)
 				{
-			    	laserScan.ranges[i] = vdDistM[stop_scan-1-i];
-			    	laserScan.intensities[i] = vdIntensAU[stop_scan-1-i];
+					laserScan.ranges[i] = vdDistM[stop_scan-1-i];
+					laserScan.intensities[i] = vdIntensAU[stop_scan-1-i];
 				}
 				else
 				{
-			    	laserScan.ranges[i] = vdDistM[start_scan + i];
-			    	laserScan.intensities[i] = vdIntensAU[start_scan + i];
+					laserScan.ranges[i] = vdDistM[start_scan + i];
+					laserScan.intensities[i] = vdIntensAU[start_scan + i];
 				}
 			}
-        
-        	// publish message
-            topicPub_LaserScan.publish(laserScan);
-        }
+		
+			// publish message
+			topicPub_LaserScan.publish(laserScan);
+		}
 };
 
 //#######################
 //#### main programm ####
 int main(int argc, char** argv)
 {
-    // initialize ROS, spezify name of node
-    ros::init(argc, argv, "sick_s300");
-    
-    NodeClass nodeClass;
+	// initialize ROS, spezify name of node
+	ros::init(argc, argv, "sick_s300");
+	
+	NodeClass nodeClass;
 	ScannerSickS300 SickS300;
 
-	//char *pcPort = new char();
-//	const char pcPort[] = "/dev/ttyUSB1"; //TODO replace with parameter port
-//	const char pcPort[] = nodeClass.port;
-//	int iBaudRate = 500000;
 	int iBaudRate = nodeClass.baud;
 	int iScanId = nodeClass.scan_id;
 	bool bOpenScan = false, bRecScan = false;
@@ -217,31 +212,27 @@ int main(int argc, char** argv)
 	ROS_INFO("...scanner opened successfully on port %s",nodeClass.port.c_str());
 
 	// main loop
-	ros::Rate loop_rate(2); // Hz
-    while(nodeClass.nodeHandle.ok())
-    {
+	ros::Rate loop_rate(5); // Hz
+	while(nodeClass.nodeHandle.ok())
+	{
 		// read scan
 		ROS_DEBUG("Reading scanner...");
 		bRecScan = SickS300.getScan(vdDistM, vdAngRAD, vdIntensAU);
 		ROS_DEBUG("...read %d points from scanner successfully",vdDistM.size());
-    	// publish LaserScan
-        if(bRecScan)
-        {
-		    ROS_DEBUG("...publishing LaserScan message");
-            nodeClass.publishLaserScan(vdDistM, vdAngRAD, vdIntensAU);
-        }
-        else
-        {
-		    ROS_WARN("...no Scan available");
-        }
+		// publish LaserScan
+		if(bRecScan)
+		{
+			ROS_DEBUG("...publishing LaserScan message");
+			nodeClass.publishLaserScan(vdDistM, vdAngRAD, vdIntensAU);
+		}
+		else
+		{
+			ROS_WARN("...no Scan available");
+		}
 
-        // sleep and waiting for messages, callbacks    
-        ros::spinOnce();
-        loop_rate.sleep();
-    }
-    return 0;
+		// sleep and waiting for messages, callbacks	
+		ros::spinOnce();
+		loop_rate.sleep();
+	}
+	return 0;
 }
-
-//##################################
-//#### function implementations ####
-//--
