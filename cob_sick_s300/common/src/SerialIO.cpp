@@ -388,7 +388,6 @@ int SerialIO::readBlocking(char *Buffer, int Length)
 int SerialIO::readNonBlocking(char *Buffer, int Length)
 {
 	int iAvaibleBytes = getSizeRXQueue();
-	std::cout << "1 Bytes available: " << iAvaibleBytes << std::endl;
 	int iBytesToRead = (Length < iAvaibleBytes) ? Length : iAvaibleBytes;
 	ssize_t BytesRead;
 

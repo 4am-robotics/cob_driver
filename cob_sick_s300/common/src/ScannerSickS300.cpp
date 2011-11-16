@@ -198,6 +198,8 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 	int iNumData;
 	int iFirstByteOfHeader;
 	int iFirstByteOfData;
+	unsigned int iTimeStamp;
+	unsigned int iTelegramNumber;
 	unsigned int uiReadCRC;
 	unsigned int uiCalcCRC;
 	std::vector<ScanPolarType> vecScanPolar;
@@ -215,7 +217,7 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 	printf("iNumRead = %d\n",iNumRead);
 
 	// Try to find scan.
-	for(i=0; i<iNumRead; i++)
+	for(i=iNumRead-m_Param.iDataLength; i>0; i--)
 	{
 		// parse through the telegram until header with correct scan id is found
 		if (
@@ -232,6 +234,14 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 		{
 			// ---- Start bytes found
 			iFirstByteOfHeader = i;
+			std::cout <<"Found iFirstByteOfHeader at  " << iFirstByteOfHeader << std::endl;
+			
+			//extract time stamp from header:
+			iTimeStamp = (m_ReadBuf[i+17]<<24) | (m_ReadBuf[i+16]<<16) | (m_ReadBuf[i+15]<<8) |  (m_ReadBuf[i+14]);
+			std::cout << "TimeStamp is :  " << iTimeStamp << std::endl;
+			iTelegramNumber = (m_ReadBuf[i+19]<<8) |  (m_ReadBuf[i+18]);
+			std::cout << "TelegramNumber is :  " << iTelegramNumber << std::endl;
+			
 			iFirstByteOfData = i + m_Param.iHeaderLength;
 			
 			// check length of transmitted data (see Telegram in .h for reference)
