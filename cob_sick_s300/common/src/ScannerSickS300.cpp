@@ -190,7 +190,7 @@ void ScannerSickS300::stopScanner()
 
 
 //-----------------------------------------------
-bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<double> &vdAngleRAD, std::vector<double> &vdIntensityAU)
+bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<double> &vdAngleRAD, std::vector<double> &vdIntensityAU, unsigned int &iTimestamp, unsigned int &iTimeNow)
 {
 	bool bRet = false;
 	int i,j;
@@ -198,7 +198,6 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 	int iNumData;
 	int iFirstByteOfHeader;
 	int iFirstByteOfData;
-	unsigned int iTimeStamp;
 	unsigned int iTelegramNumber;
 	unsigned int uiReadCRC;
 	unsigned int uiCalcCRC;
@@ -237,10 +236,19 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 			std::cout <<"Found iFirstByteOfHeader at  " << iFirstByteOfHeader << std::endl;
 			
 			//extract time stamp from header:
-			iTimeStamp = (m_ReadBuf[i+17]<<24) | (m_ReadBuf[i+16]<<16) | (m_ReadBuf[i+15]<<8) |  (m_ReadBuf[i+14]);
-			std::cout << "TimeStamp is :  " << iTimeStamp << std::endl;
+			iTimestamp = (m_ReadBuf[i+17]<<24) | (m_ReadBuf[i+16]<<16) | (m_ReadBuf[i+15]<<8) |  (m_ReadBuf[i+14]);
+			std::cout << "TimeStamp is :  " << iTimestamp << std::endl;
 			iTelegramNumber = (m_ReadBuf[i+19]<<8) |  (m_ReadBuf[i+18]);
 			std::cout << "TelegramNumber is :  " << iTelegramNumber << std::endl;
+			
+			if(iNumRead-iFirstByteOfHeader > m_Param.iDataLength+4+17) { //Data + 4byte response + at least 17 bytes of next header!
+				
+				//grabbed during transmission of a message, good to sync ros time with sick time :)
+				std::cout << "********HAVE ONE**********" << std::endl;
+				iTimeNow = (m_ReadBuf[i+m_Param.iDataLength+4+17]<<24) | (m_ReadBuf[i+m_Param.iDataLength+4+16]<<16) | (m_ReadBuf[i+m_Param.iDataLength+4+15]<<8) |  (m_ReadBuf[i+m_Param.iDataLength+4+14]);
+				std::cout << "Now it's exactly: " << iTimeNow << std::endl;
+				std::cout << "********HAVE ONE**********" << std::endl;
+			} else iTimeNow = 0;
 			
 			iFirstByteOfData = i + m_Param.iHeaderLength;
 			

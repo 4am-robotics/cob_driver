@@ -93,7 +93,13 @@ class NodeClass
 		std::string port;
 		int baud, start_scan, stop_scan, scan_id;
 		bool inverted;
+		double laser_frequency;
 		std::string frame_id;
+		ros::Time syncedROSTime;
+		unsigned int syncedSICKStamp;
+		bool syncedTimeReady;
+		
+		
 
 
 		// Constructor
@@ -109,6 +115,12 @@ class NodeClass
 			nodeHandle.param<std::string>("frame_id", frame_id, "/base_laser_link");
 			nodeHandle.param<int>("start_scan", start_scan, 0);
 			nodeHandle.param<int>("stop_scan", stop_scan, 541);
+			
+			laser_frequency = 1.0 / 40.0; //SICK-docu says S300 scans every 40ms //10; //TODO: read from Ini-file / 
+			
+			syncedSICKStamp = 0;
+			syncedROSTime = ros::Time::now();
+			syncedTimeReady = false;
 
 			// implementation of topics to publish
 			topicPub_LaserScan = nodeHandle.advertise<sensor_msgs::LaserScan>("scan", 1);
@@ -134,17 +146,40 @@ class NodeClass
 		//--
 		
 		// other function declarations
-	void publishLaserScan(std::vector<double> vdDistM, std::vector<double> vdAngRAD, std::vector<double> vdIntensAU)
+	void publishLaserScan(std::vector<double> vdDistM, std::vector<double> vdAngRAD, std::vector<double> vdIntensAU, unsigned int iSickTimeStamp, unsigned int iSickNow)
 		{
 			// fill message
 			int num_readings = vdDistM.size(); // initialize with max scan size
 	  		start_scan = 0;
 			stop_scan = vdDistM.size();
-			double laser_frequency = 25;//10; //TODO: read from Ini-file
+			
+			//Sync handling: find out exact scan time by using the syncTime-syncStamp pair:
+			if(iSickNow != 0) {
+				syncedROSTime = ros::Time::now();
+				syncedSICKStamp = iSickNow;
+				syncedTimeReady = true;
+				ROS_WARN("Got iSickNow: %d", syncedSICKStamp);
+			}
 			
 			// create LaserScan message
 			sensor_msgs::LaserScan laserScan;
-			laserScan.header.stamp = ros::Time::now();
+			if(syncedTimeReady) {
+				double timeDiff = (double)(iSickTimeStamp - syncedSICKStamp) / laser_frequency;
+				ROS_INFO("time-diff %d",timeDiff);
+				
+				if(timeDiff >= 0.0)
+					laserScan.header.stamp = syncedROSTime + ros::Duration(timeDiff);
+				else laserScan.header.stamp = syncedROSTime - ros::Duration(fabs(timeDiff));
+				
+				//laserScan.header.stamp = syncedROSTime + ros::Duration((iSickTimeStamp - syncedSICKStamp) / laser_frequency);
+				
+				ROS_INFO("stamp-diff %d",(iSickTimeStamp - syncedSICKStamp));
+				ROS_INFO("Stamp = %f",laserScan.header.stamp.toSec());
+				ROS_INFO("NOW - Stamp = %f",(ros::Time::now() - laserScan.header.stamp).toSec());
+			} else {
+				laserScan.header.stamp = ros::Time::now();
+			}
+			
 			
 			// fill message
 			laserScan.header.frame_id = frame_id;
@@ -194,8 +229,10 @@ int main(int argc, char** argv)
 	int iScanId = nodeClass.scan_id;
 	bool bOpenScan = false, bRecScan = false;
 	bool firstTry = true;
+	
+	unsigned int iSickTimeStamp, iSickNow;
 	std::vector<double> vdDistM, vdAngRAD, vdIntensAU;
- 
+		
  	while (!bOpenScan)
  	{
  		ROS_INFO("Opening scanner... (port:%s)",nodeClass.port.c_str());
@@ -210,20 +247,20 @@ int main(int argc, char** argv)
 		sleep(1); // wait for scann to get ready if successfull, or wait befor retrying
 	}
 	ROS_INFO("...scanner opened successfully on port %s",nodeClass.port.c_str());
-
+	
 	// main loop
 	ros::Rate loop_rate(5); // Hz
 	while(nodeClass.nodeHandle.ok())
 	{
 		// read scan
 		ROS_DEBUG("Reading scanner...");
-		bRecScan = SickS300.getScan(vdDistM, vdAngRAD, vdIntensAU);
+		bRecScan = SickS300.getScan(vdDistM, vdAngRAD, vdIntensAU, iSickTimeStamp, iSickNow);
 		ROS_DEBUG("...read %d points from scanner successfully",vdDistM.size());
 		// publish LaserScan
 		if(bRecScan)
 		{
 			ROS_DEBUG("...publishing LaserScan message");
-			nodeClass.publishLaserScan(vdDistM, vdAngRAD, vdIntensAU);
+			nodeClass.publishLaserScan(vdDistM, vdAngRAD, vdIntensAU, iSickTimeStamp, iSickNow);
 		}
 		else
 		{
