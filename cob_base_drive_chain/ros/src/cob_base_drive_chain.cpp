@@ -326,50 +326,53 @@ class NodeClass
 							JointStateCmd.velocity[0] = msg->desired.velocities[i];
 							//JointStateCmd.effort[0] = msg->effort[i];
 					}
-					if(msg->joint_names[i] ==  "bl_caster_r_wheel_joint")
+					else if(msg->joint_names[i] ==  "bl_caster_r_wheel_joint")
 					{
 							JointStateCmd.position[2] = msg->desired.positions[i];
 							JointStateCmd.velocity[2] = msg->desired.velocities[i];
 							//JointStateCmd.effort[2] = msg->effort[i];
 					}
-					if(msg->joint_names[i] ==  "br_caster_r_wheel_joint")
+					else if(msg->joint_names[i] ==  "br_caster_r_wheel_joint")
 					{
 							JointStateCmd.position[4] = msg->desired.positions[i];
 							JointStateCmd.velocity[4] = msg->desired.velocities[i];
 							//JointStateCmd.effort[4] = msg->effort[i];
 					}
-					if(msg->joint_names[i] ==  "fr_caster_r_wheel_joint")
+					else if(msg->joint_names[i] ==  "fr_caster_r_wheel_joint")
 					{
 							JointStateCmd.position[6] = msg->desired.positions[i];
 							JointStateCmd.velocity[6] = msg->desired.velocities[i];
 							//JointStateCmd.effort[6] = msg->effort[i];
 					}
 					//STEERS
-					if(msg->joint_names[i] ==  "fl_caster_rotation_joint")
+					else if(msg->joint_names[i] ==  "fl_caster_rotation_joint")
 					{
 							JointStateCmd.position[1] = msg->desired.positions[i];
 							JointStateCmd.velocity[1] = msg->desired.velocities[i];
 							//JointStateCmd.effort[1] = msg->effort[i];
 					}
-					if(msg->joint_names[i] ==  "bl_caster_rotation_joint")
+					else if(msg->joint_names[i] ==  "bl_caster_rotation_joint")
 					{ 
 							JointStateCmd.position[3] = msg->desired.positions[i];
 							JointStateCmd.velocity[3] = msg->desired.velocities[i];
 							//JointStateCmd.effort[3] = msg->effort[i];
 					}
-					if(msg->joint_names[i] ==  "br_caster_rotation_joint")
+					else if(msg->joint_names[i] ==  "br_caster_rotation_joint")
 					{
 							JointStateCmd.position[5] = msg->desired.positions[i];
 							JointStateCmd.velocity[5] = msg->desired.velocities[i];
 							//JointStateCmd.effort[5] = msg->effort[i];
 					}
-					if(msg->joint_names[i] ==  "fr_caster_rotation_joint")
+					else if(msg->joint_names[i] ==  "fr_caster_rotation_joint")
 					{
 							JointStateCmd.position[7] = msg->desired.positions[i];
 							JointStateCmd.velocity[7] = msg->desired.velocities[i];
 							//JointStateCmd.effort[7] = msg->effort[i];
 					}
-			
+					else
+					{
+						ROS_ERROR("Unkown joint name");
+					}
 				}
 				
 			
