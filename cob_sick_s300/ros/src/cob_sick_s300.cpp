@@ -159,10 +159,11 @@ class NodeClass
 	  		start_scan = 0;
 			stop_scan = vdDistM.size();
 			
-			//Sync handling: find out exact scan time by using the syncTime-syncStamp pair:
+			// Sync handling: find out exact scan time by using the syncTime-syncStamp pair:
 			// Timestamp: "This counter is internally incremented at each scan, i.e. every 40 ms (S300)"
 			if(iSickNow != 0) {
-				syncedROSTime = ros::Time::now(); //TODO: -1.0/laser_frequency * 2.0? (when has the timestamp actually been set?)
+				syncedROSTime = ros::Time::now() - ros::Duration(-1.0/laser_frequency); 
+				//TODO: -1.0/laser_frequency * 2.0(Mehrfachauswertung)? (when has the timestamp actually been set?)
 				syncedSICKStamp = iSickNow;
 				syncedTimeReady = true;
 				
@@ -183,13 +184,14 @@ class NodeClass
 				laserScan.header.stamp = ros::Time::now();
 			}
 			
-			
 			// fill message
 			laserScan.header.frame_id = frame_id;
 			laserScan.angle_increment = vdAngRAD[start_scan + 1] - vdAngRAD[start_scan];
 			laserScan.range_min = 0.0;
 			laserScan.range_max = 100.0;
-			laserScan.time_increment = (1 / laser_frequency) / (vdDistM.size()); //TODO: time increment now meaningless, negative value allowed??
+			laserScan.time_increment = (1 / laser_frequency) / (vdDistM.size()); //TODO: time increment descending (inverted scanner)
+																		//negative value allowed?? else: might use negative angle_increment?
+
 			
 			// rescale scan
 			num_readings = vdDistM.size();
