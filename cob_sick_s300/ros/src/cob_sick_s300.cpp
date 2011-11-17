@@ -93,7 +93,7 @@ class NodeClass
 		std::string port;
 		int baud, scan_id;
 		bool inverted;
-		double laser_frequency;
+		double scan_duration;
 		std::string frame_id;
 		ros::Time syncedROSTime;
 		unsigned int syncedSICKStamp;
@@ -120,8 +120,8 @@ class NodeClass
 			if(!nh.hasParam("frame_id")) ROS_WARN("Used default parameter for frame_id");
 			nh.param("frame_id", frame_id, std::string("/base_laser_link"));
 			
-			if(!nh.hasParam("laser_frequency")) ROS_WARN("Used default parameter for laser_frequency");
-			nh.param("laser_frequency", laser_frequency, 1.0/0.040); //SICK-docu says S300 scans every 40ms //10;
+			if(!nh.hasParam("scan_duration")) ROS_WARN("Used default parameter for scan_duration");
+			nh.param("scan_duration", scan_duration, 0.040); //SICK-docu says S300 scans every 40ms
 			
 			syncedSICKStamp = 0;
 			syncedROSTime = ros::Time::now();
@@ -162,8 +162,8 @@ class NodeClass
 			// Sync handling: find out exact scan time by using the syncTime-syncStamp pair:
 			// Timestamp: "This counter is internally incremented at each scan, i.e. every 40 ms (S300)"
 			if(iSickNow != 0) {
-				syncedROSTime = ros::Time::now() - ros::Duration(-1.0/laser_frequency); 
-				//TODO: -1.0/laser_frequency * 2.0(Mehrfachauswertung)? (when has the timestamp actually been set?)
+				syncedROSTime = ros::Time::now() - ros::Duration(scan_duration); 
+				//TODO: -scan_duration * 2.0(Mehrfachauswertung)? (when has the timestamp actually been set?)
 				syncedSICKStamp = iSickNow;
 				syncedTimeReady = true;
 				
@@ -173,7 +173,7 @@ class NodeClass
 			// create LaserScan message
 			sensor_msgs::LaserScan laserScan;
 			if(syncedTimeReady) {
-				double timeDiff = (int)(iSickTimeStamp - syncedSICKStamp) / laser_frequency;
+				double timeDiff = (int)(iSickTimeStamp - syncedSICKStamp) * scan_duration;
 				laserScan.header.stamp = syncedROSTime + ros::Duration(timeDiff);
 				
 				ROS_DEBUG("time-diff %f",timeDiff);
@@ -189,7 +189,7 @@ class NodeClass
 			laserScan.angle_increment = vdAngRAD[start_scan + 1] - vdAngRAD[start_scan];
 			laserScan.range_min = 0.0;
 			laserScan.range_max = 100.0;
-			laserScan.time_increment = (1 / laser_frequency) / (vdDistM.size()); //TODO: time increment descending (inverted scanner)
+			laserScan.time_increment = (scan_duration) / (vdDistM.size()); //TODO: time increment descending (inverted scanner)
 																		//negative value allowed?? else: might use negative angle_increment?
 
 			
