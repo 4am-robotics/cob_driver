@@ -71,7 +71,6 @@
 class NodeClass
 {
 public:
-	int start_scan, stop_scan;
 	std::vector<std::vector<double> > scan_intervals;
 		  
 	ros::NodeHandle nh;   
@@ -81,15 +80,8 @@ public:
 
 	NodeClass() {
 		// loading config
-		if(!nh.hasParam("start_scan")) ROS_WARN("Used default parameter for start_scan");
-		nh.param("start_scan", start_scan, 115);
-
-		if(!nh.hasParam("stop_scan")) ROS_WARN("Used default parameter for stop_scan");
-		nh.param("stop_scan", stop_scan, 426);
-		
 		loadScanRanges();	
 		
-			
 		// implementation of topics to publish
 		topicPub_LaserScan = nh.advertise<sensor_msgs::LaserScan>("scan_filtered", 1);
 		topicSub_LaserScan_raw = nh.subscribe("scan", 1, &NodeClass::scanCallback, this);
@@ -102,6 +94,7 @@ public:
 			return;
 		}
 		
+		
 		// create LaserScan message
 		sensor_msgs::LaserScan laserScan;
 		laserScan.header = msg->header;
@@ -110,7 +103,18 @@ public:
 		laserScan.range_max = msg->range_max; //100.0 TODO read from ini-file/parameter-file / set correct in sick_s300
 		laserScan.time_increment = msg->time_increment;
 		
+		//check, wether last interval is bigger than scan:
+		while( scan_intervals.back().at(0) >= msg->ranges.size()-1 ) {
+				scan_intervals.pop_back(); //if begin of last interval >= total scan points delete it
+				ROS_WARN("scan filter: received scan message, that is smaller than specified interval");
+				if(scan_intervals.size()==0) {
+					topicPub_LaserScan.publish(*msg);
+					return;
+				}
+		}
+
 		//implementation for unused ranges = VAL
+		int start_scan, stop_scan;
 		start_scan = scan_intervals.front().at(0);
 		stop_scan = scan_intervals.back().at(1);
 		
@@ -128,7 +132,7 @@ public:
 		//handle last interval separately because there is no following gap:
 		use_current_element.insert(use_current_element.end(), true, scan_intervals.back().at(1) - scan_intervals.back().at(0) +1);
 		
-		if((int)use_current_element.size() != num_readings) ROS_WARN("Vector size problem...");
+		if((int)use_current_element.size() != num_readings) ROS_WARN("Vector size problem, rest is cut off..");
 
 		for(int i=0; i<num_readings; i++) {
 			if(use_current_element.at(i)) {
