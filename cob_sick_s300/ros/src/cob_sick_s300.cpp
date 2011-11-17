@@ -76,7 +76,7 @@ class NodeClass
 	//
 	public:
 		  
-		ros::NodeHandle nodeHandle;   
+		ros::NodeHandle nh;   
 		// topics to publish
 		ros::Publisher topicPub_LaserScan;
 		
@@ -91,39 +91,44 @@ class NodeClass
 		
 		// global variables
 		std::string port;
-		int baud, start_scan, stop_scan, scan_id;
+		int baud, scan_id;
 		bool inverted;
 		double laser_frequency;
 		std::string frame_id;
 		ros::Time syncedROSTime;
 		unsigned int syncedSICKStamp;
 		bool syncedTimeReady;
-		
-		
-
 
 		// Constructor
 		NodeClass()
 		{
 			// create a handle for this node, initialize node
-			nodeHandle = ros::NodeHandle("~");
-			// initialize global variables
-			nodeHandle.param<std::string>("port", port, "/dev/ttyUSB0");
-			nodeHandle.param<int>("baud", baud, 500000);
-			nodeHandle.param<int>("scan_id", scan_id, 7);
-			nodeHandle.param<bool>("inverted", inverted, false);
-			nodeHandle.param<std::string>("frame_id", frame_id, "/base_laser_link");
-			nodeHandle.param<int>("start_scan", start_scan, 0);
-			nodeHandle.param<int>("stop_scan", stop_scan, 541);
+			nh = ros::NodeHandle("~");
 			
-			laser_frequency = 1.0 / 40.0; //SICK-docu says S300 scans every 40ms //10; //TODO: read from Ini-file / 
+			if(!nh.hasParam("port")) ROS_WARN("Used default parameter for port");
+			nh.param("port", port, std::string("/dev/ttyUSB0"));
+			
+			if(!nh.hasParam("baud")) ROS_WARN("Used default parameter for baud");
+			nh.param("baud", baud, 500000);
+			
+			if(!nh.hasParam("scan_id")) ROS_WARN("Used default parameter for scan_id");
+			nh.param("scan_id", scan_id, 7);
+			
+			if(!nh.hasParam("inverted")) ROS_WARN("Used default parameter for inverted");
+			nh.param("inverted", inverted, false);
+			
+			if(!nh.hasParam("frame_id")) ROS_WARN("Used default parameter for frame_id");
+			nh.param("frame_id", frame_id, std::string("/base_laser_link"));
+			
+			if(!nh.hasParam("laser_frequency")) ROS_WARN("Used default parameter for laser_frequency");
+			nh.param("laser_frequency", laser_frequency, 1.0/0.040); //SICK-docu says S300 scans every 40ms //10;
 			
 			syncedSICKStamp = 0;
 			syncedROSTime = ros::Time::now();
 			syncedTimeReady = false;
 
 			// implementation of topics to publish
-			topicPub_LaserScan = nodeHandle.advertise<sensor_msgs::LaserScan>("scan", 1);
+			topicPub_LaserScan = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
 
 			// implementation of topics to subscribe
 			//--
@@ -149,6 +154,7 @@ class NodeClass
 	void publishLaserScan(std::vector<double> vdDistM, std::vector<double> vdAngRAD, std::vector<double> vdIntensAU, unsigned int iSickTimeStamp, unsigned int iSickNow)
 		{
 			// fill message
+			int start_scan, stop_scan;
 			int num_readings = vdDistM.size(); // initialize with max scan size
 	  		start_scan = 0;
 			stop_scan = vdDistM.size();
@@ -181,16 +187,16 @@ class NodeClass
 			// fill message
 			laserScan.header.frame_id = frame_id;
 			laserScan.angle_increment = vdAngRAD[start_scan + 1] - vdAngRAD[start_scan];
-			laserScan.range_min = -135.0/180.0*3.14;//0.0; //TODO read from ini-file/parameter-file
-			laserScan.range_max = 135.0/180.0*3.14;//100.0; //TODO read from ini-file/parameter-file
-			laserScan.time_increment = (1 / laser_frequency) / (vdDistM.size()); //TODO read from ini-file/parameter-file
+			laserScan.range_min = 0.0;
+			laserScan.range_max = 100.0;
+			laserScan.time_increment = (1 / laser_frequency) / (vdDistM.size()); //TODO: time increment now meaningless, negative value allowed??
 			
 			// rescale scan
-			num_readings = stop_scan - start_scan;
+			num_readings = vdDistM.size();
 			laserScan.angle_min = vdAngRAD[start_scan]; // first ScanAngle
 			laserScan.angle_max = vdAngRAD[stop_scan - 1]; // last ScanAngle
-   			laserScan.set_ranges_size(num_readings);
-			laserScan.set_intensities_size(num_readings);
+   			laserScan.ranges.resize(num_readings);
+			laserScan.intensities.resize(num_readings);
 
 			// check for inverted laser
 			for(int i = 0; i < (stop_scan - start_scan); i++)
@@ -241,18 +247,18 @@ int main(int argc, char** argv)
 			ROS_ERROR("...scanner not available on port %s. Will retry every second.",nodeClass.port.c_str());
 			firstTry = false;
 		}
-		sleep(1); // wait for scann to get ready if successfull, or wait befor retrying
+		sleep(1); // wait for scan to get ready if successfull, or wait befor retrying
 	}
 	ROS_INFO("...scanner opened successfully on port %s",nodeClass.port.c_str());
 	
 	// main loop
 	ros::Rate loop_rate(5); // Hz
-	while(nodeClass.nodeHandle.ok())
+	while(nodeClass.nh.ok())
 	{
 		// read scan
 		ROS_DEBUG("Reading scanner...");
 		bRecScan = SickS300.getScan(vdDistM, vdAngRAD, vdIntensAU, iSickTimeStamp, iSickNow);
-		ROS_DEBUG("...read %d points from scanner successfully",vdDistM.size());
+		ROS_DEBUG("...read %d points from scanner successfully",(int)vdDistM.size());
 		// publish LaserScan
 		if(bRecScan)
 		{
