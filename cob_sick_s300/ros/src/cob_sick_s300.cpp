@@ -154,28 +154,25 @@ class NodeClass
 			stop_scan = vdDistM.size();
 			
 			//Sync handling: find out exact scan time by using the syncTime-syncStamp pair:
+			// Timestamp: "This counter is internally incremented at each scan, i.e. every 40 ms (S300)"
 			if(iSickNow != 0) {
-				syncedROSTime = ros::Time::now();
+				syncedROSTime = ros::Time::now(); //TODO: -1.0/laser_frequency * 2.0? (when has the timestamp actually been set?)
 				syncedSICKStamp = iSickNow;
 				syncedTimeReady = true;
-				ROS_WARN("Got iSickNow: %d", syncedSICKStamp);
+				
+				ROS_DEBUG("Got iSickNow: %d", syncedSICKStamp);
 			}
 			
 			// create LaserScan message
 			sensor_msgs::LaserScan laserScan;
 			if(syncedTimeReady) {
-				double timeDiff = (double)(iSickTimeStamp - syncedSICKStamp) / laser_frequency;
-				ROS_INFO("time-diff %d",timeDiff);
+				double timeDiff = (int)(iSickTimeStamp - syncedSICKStamp) / laser_frequency;
+				laserScan.header.stamp = syncedROSTime + ros::Duration(timeDiff);
 				
-				if(timeDiff >= 0.0)
-					laserScan.header.stamp = syncedROSTime + ros::Duration(timeDiff);
-				else laserScan.header.stamp = syncedROSTime - ros::Duration(fabs(timeDiff));
-				
-				//laserScan.header.stamp = syncedROSTime + ros::Duration((iSickTimeStamp - syncedSICKStamp) / laser_frequency);
-				
-				ROS_INFO("stamp-diff %d",(iSickTimeStamp - syncedSICKStamp));
-				ROS_INFO("Stamp = %f",laserScan.header.stamp.toSec());
-				ROS_INFO("NOW - Stamp = %f",(ros::Time::now() - laserScan.header.stamp).toSec());
+				ROS_DEBUG("time-diff %f",timeDiff);
+				ROS_DEBUG("stamp-diff %d",(int)(iSickTimeStamp - syncedSICKStamp));
+				ROS_DEBUG("Stamp = %f",laserScan.header.stamp.toSec());
+				ROS_DEBUG("NOW - Stamp = %f",(ros::Time::now() - laserScan.header.stamp).toSec());
 			} else {
 				laserScan.header.stamp = ros::Time::now();
 			}
