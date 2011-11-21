@@ -163,11 +163,10 @@ class NodeClass
 			// Timestamp: "This counter is internally incremented at each scan, i.e. every 40 ms (S300)"
 			if(iSickNow != 0) {
 				syncedROSTime = ros::Time::now() - ros::Duration(scan_duration); 
-				//TODO: -scan_duration * 2.0(Mehrfachauswertung)? (when has the timestamp actually been set?)
 				syncedSICKStamp = iSickNow;
 				syncedTimeReady = true;
 				
-				ROS_DEBUG("Got iSickNow: %d", syncedSICKStamp);
+				ROS_DEBUG("Got iSickNow, store sync-stamp: %d", syncedSICKStamp);
 			}
 			
 			// create LaserScan message
@@ -176,10 +175,7 @@ class NodeClass
 				double timeDiff = (int)(iSickTimeStamp - syncedSICKStamp) * scan_duration;
 				laserScan.header.stamp = syncedROSTime + ros::Duration(timeDiff);
 				
-				ROS_DEBUG("time-diff %f",timeDiff);
-				ROS_DEBUG("stamp-diff %d",(int)(iSickTimeStamp - syncedSICKStamp));
-				ROS_DEBUG("Stamp = %f",laserScan.header.stamp.toSec());
-				ROS_DEBUG("NOW - Stamp = %f",(ros::Time::now() - laserScan.header.stamp).toSec());
+				ROS_DEBUG("Time::now() - calculated sick time stamp = %f",(ros::Time::now() - laserScan.header.stamp).toSec());
 			} else {
 				laserScan.header.stamp = ros::Time::now();
 			}
@@ -192,7 +188,6 @@ class NodeClass
 			laserScan.time_increment = (scan_duration) / (vdDistM.size()); //TODO: time increment descending (inverted scanner)
 																		//negative value allowed?? else: might use negative angle_increment?
 
-			
 			// rescale scan
 			num_readings = vdDistM.size();
 			laserScan.angle_min = vdAngRAD[start_scan]; // first ScanAngle
@@ -200,11 +195,28 @@ class NodeClass
    			laserScan.ranges.resize(num_readings);
 			laserScan.intensities.resize(num_readings);
 
+			
 			// check for inverted laser
+			if(inverted) {
+				/*to be really accurate, we should invert time_increment, without doing so looks better in rviz
+					- maybe no negative time_increment is allowed
+					- rviz might not use the costly laser-tf, that incorporates time_increments between scan_points
+				*/
+				//laserScan.header.stamp = laserScan.header.stamp + ros::Duration(scan_duration);
+				//laserScan.time_increment = - laserScan.time_increment;
+
+				laserScan.angle_min = vdAngRAD[stop_scan - 1];
+				laserScan.angle_max = vdAngRAD[start_scan];
+				laserScan.angle_increment = - laserScan.angle_increment;
+				//ROS_INFO("Min angle: %f, max angle %f",laserScan.angle_min, laserScan.angle_max);
+			}
+
 			for(int i = 0; i < (stop_scan - start_scan); i++)
 			{
-				if(inverted)
+				if(false)//inverted)
 				{
+					
+					
 					laserScan.ranges[i] = vdDistM[stop_scan-1-i];
 					laserScan.intensities[i] = vdIntensAU[stop_scan-1-i];
 				}
