@@ -93,7 +93,7 @@ class NodeClass
 		std::string port;
 		int baud, scan_id;
 		bool inverted;
-		double scan_duration;
+		double scan_duration, scan_cycle_time;
 		std::string frame_id;
 		ros::Time syncedROSTime;
 		unsigned int syncedSICKStamp;
@@ -121,7 +121,10 @@ class NodeClass
 			nh.param("frame_id", frame_id, std::string("/base_laser_link"));
 			
 			if(!nh.hasParam("scan_duration")) ROS_WARN("Used default parameter for scan_duration");
-			nh.param("scan_duration", scan_duration, 0.040); //SICK-docu says S300 scans every 40ms
+			nh.param("scan_duration", scan_duration, 0.025); //no info about that in SICK-docu, but 0.025 is believable and looks good in rviz
+			
+			if(!nh.hasParam("scan_cycle_time")) ROS_WARN("Used default parameter for scan_cycle_time");
+			nh.param("scan_cycle_time", scan_cycle_time, 0.040); //SICK-docu says S300 scans every 40ms
 			
 			syncedSICKStamp = 0;
 			syncedROSTime = ros::Time::now();
@@ -162,7 +165,7 @@ class NodeClass
 			// Sync handling: find out exact scan time by using the syncTime-syncStamp pair:
 			// Timestamp: "This counter is internally incremented at each scan, i.e. every 40 ms (S300)"
 			if(iSickNow != 0) {
-				syncedROSTime = ros::Time::now() - ros::Duration(scan_duration); 
+				syncedROSTime = ros::Time::now() - ros::Duration(scan_cycle_time); 
 				syncedSICKStamp = iSickNow;
 				syncedTimeReady = true;
 				
@@ -172,7 +175,7 @@ class NodeClass
 			// create LaserScan message
 			sensor_msgs::LaserScan laserScan;
 			if(syncedTimeReady) {
-				double timeDiff = (int)(iSickTimeStamp - syncedSICKStamp) * scan_duration;
+				double timeDiff = (int)(iSickTimeStamp - syncedSICKStamp) * scan_cycle_time;
 				laserScan.header.stamp = syncedROSTime + ros::Duration(timeDiff);
 				
 				ROS_DEBUG("Time::now() - calculated sick time stamp = %f",(ros::Time::now() - laserScan.header.stamp).toSec());
@@ -185,8 +188,7 @@ class NodeClass
 			laserScan.angle_increment = vdAngRAD[start_scan + 1] - vdAngRAD[start_scan];
 			laserScan.range_min = 0.0;
 			laserScan.range_max = 100.0;
-			laserScan.time_increment = (scan_duration) / (vdDistM.size()); //TODO: time increment descending (inverted scanner)
-																		//negative value allowed?? else: might use negative angle_increment?
+			laserScan.time_increment = (scan_duration) / (vdDistM.size());
 
 			// rescale scan
 			num_readings = vdDistM.size();
@@ -198,25 +200,17 @@ class NodeClass
 			
 			// check for inverted laser
 			if(inverted) {
-				/*to be really accurate, we should invert time_increment, without doing so looks better in rviz
-					- maybe no negative time_increment is allowed
-					- rviz might not use the costly laser-tf, that incorporates time_increments between scan_points
-				*/
-				laserScan.header.stamp = laserScan.header.stamp + ros::Duration(scan_duration);
+				// to be really accurate, we now invert time_increment
+				// laserScan.header.stamp = laserScan.header.stamp + ros::Duration(scan_duration); //adding of the sum over all negative increments would be mathematically correct, but looks worse.
 				laserScan.time_increment = - laserScan.time_increment;
-
-				//laserScan.angle_min = vdAngRAD[stop_scan - 1];
-				//laserScan.angle_max = vdAngRAD[start_scan];
-				//laserScan.angle_increment = - laserScan.angle_increment;
-				//ROS_INFO("Min angle: %f, max angle %f",laserScan.angle_min, laserScan.angle_max);
+			} else {
+				laserScan.header.stamp = laserScan.header.stamp - ros::Duration(scan_duration); //to be consistent with the omission of the addition above
 			}
 
 			for(int i = 0; i < (stop_scan - start_scan); i++)
 			{
 				if(inverted)
 				{
-					
-					
 					laserScan.ranges[i] = vdDistM[stop_scan-1-i];
 					laserScan.intensities[i] = vdIntensAU[stop_scan-1-i];
 				}
