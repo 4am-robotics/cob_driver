@@ -208,10 +208,17 @@ std::vector<std::vector<double> > NodeClass::loadScanRanges() {
 			vd_interval.push_back( interval[1].getType() == XmlRpc::XmlRpcValue::TypeInt ? (int)(interval[1]) : (double)(interval[1]) );
 			
 			//basic checking validity
-			if(vd_interval.at(0)<0 || vd_interval.at(1)<0) {
-				ROS_FATAL("Found a negative scan interval!");
-				throw std::runtime_error("Found a negative scan interval!");
+			if(vd_interval.at(0)< -M_PI || vd_interval.at(1)< -M_PI) {
+				ROS_FATAL("Found a scan interval < -PI!");
+				throw std::runtime_error("Found a scan interval < -PI!");
 			}
+			//basic checking validity
+			if(vd_interval.at(0)>M_PI || vd_interval.at(1)>M_PI) {
+				ROS_FATAL("Found a scan interval > PI!");
+				throw std::runtime_error("Found a scan interval > PI!");
+			}
+			
+			
 			if(vd_interval.at(0) >= vd_interval.at(1)) {
 				ROS_WARN("Found a scan interval with i1 > i2, switched order!");
 				vd_interval[1] = vd_interval[0];
