@@ -136,6 +136,8 @@ class NodeClass
 		as_(n_, name, boost::bind(&NodeClass::executeCB, this, _1)),
 		action_name_(name)
 	{
+		n_ = ros::NodeHandle("~");
+	
 		isInitialized_ = false;
 		ActualPos_=0.0;
 		ActualVel_=0.0;
@@ -494,7 +496,7 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "cob_camera_axis");
 	
 	// create nodeClass
-	NodeClass nodeClass("joint_trajectory_action");
+	NodeClass nodeClass(ros::this_node::getName() + "/joint_trajectory_action");
  
 	// main loop
  	ros::Rate loop_rate(5); // Hz

@@ -94,6 +94,8 @@ class NodeClass
 		// Constructor
 		NodeClass()
 		{
+			n = ros::NodeHandle("~");
+			
 			topicPub_isEmergencyStop = n.advertise<cob_relayboard::EmergencyStopState>("/emergency_stop_state", 1);
 			topicPub_PowerState = n.advertise<pr2_msgs::PowerState>("/power_state", 1);
 			topicPub_PowerBoardState = n.advertise<pr2_msgs::PowerBoardState>("/power_board/state", 1);
