@@ -209,13 +209,15 @@ std::vector<std::vector<double> > NodeClass::loadScanRanges() {
 			
 			//basic checking validity
 			if(vd_interval.at(0)< -M_PI || vd_interval.at(1)< -M_PI) {
-				ROS_FATAL("Found a scan interval < -PI!");
-				throw std::runtime_error("Found a scan interval < -PI!");
+				ROS_WARN("Found a scan interval < -PI, skip!");
+				continue;
+				//throw std::runtime_error("Found a scan interval < -PI!");
 			}
 			//basic checking validity
 			if(vd_interval.at(0)>M_PI || vd_interval.at(1)>M_PI) {
-				ROS_FATAL("Found a scan interval > PI!");
-				throw std::runtime_error("Found a scan interval > PI!");
+				ROS_WARN("Found a scan interval > PI, skip!");
+				continue;
+				//throw std::runtime_error("Found a scan interval > PI!");
 			}
 			
 			
