@@ -84,7 +84,9 @@ private:
 	static const int c_iInterrupt;
 	static const int c_iPort;
 	
-	bool init_CAN();
+	bool initCAN();
+	
+	void outputDetailedStatus();
 };
 //-----------------------------------------------
 #endif
