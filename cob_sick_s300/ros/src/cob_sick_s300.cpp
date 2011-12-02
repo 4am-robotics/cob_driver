@@ -157,7 +157,7 @@ class NodeClass
 		//--
 		
 		// other function declarations
-	void publishLaserScan(std::vector<double> vdDistM, std::vector<double> vdAngRAD, std::vector<double> vdIntensAU, unsigned int iSickTimeStamp, unsigned int iSickNow)
+		void publishLaserScan(std::vector<double> vdDistM, std::vector<double> vdAngRAD, std::vector<double> vdIntensAU, unsigned int iSickTimeStamp, unsigned int iSickNow)
 		{
 			// fill message
 			int start_scan, stop_scan;
@@ -231,19 +231,19 @@ class NodeClass
 			diagnostic_msgs::DiagnosticArray diagnostics;
 			diagnostics.status.resize(1);
 			diagnostics.status[0].level = 0;
-			diagnostics.status[0].name = nodeHandle.getNamespace();
+			diagnostics.status[0].name = nh.getNamespace();
 			diagnostics.status[0].message = "sick scanner running";
 			topicPub_Diagnostic_.publish(diagnostics); 
 		}
 
-	void publishError(std::string error_str) {
-		diagnostic_msgs::DiagnosticArray diagnostics;
-		diagnostics.status.resize(1);
-		diagnostics.status[0].level = 2;
-		diagnostics.status[0].name = nodeHandle.getNamespace();
-		diagnostics.status[0].message = error_str;
-		topicPub_Diagnostic_.publish(diagnostics);     
-	}
+		void publishError(std::string error_str) {
+			diagnostic_msgs::DiagnosticArray diagnostics;
+			diagnostics.status.resize(1);
+			diagnostics.status[0].level = 2;
+			diagnostics.status[0].name = nh.getNamespace();
+			diagnostics.status[0].message = error_str;
+			topicPub_Diagnostic_.publish(diagnostics);     
+		}
 };
 
 //#######################
