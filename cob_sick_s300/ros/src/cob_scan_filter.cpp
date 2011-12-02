@@ -80,7 +80,7 @@ public:
 
 	NodeClass() {
 		// loading config
-		loadScanRanges();	
+		scan_intervals = loadScanRanges();	
 		
 		// implementation of topics to publish
 		topicPub_laser_scan = nh.advertise<sensor_msgs::LaserScan>("scan_filtered", 1);
