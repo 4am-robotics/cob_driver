@@ -62,6 +62,7 @@
 
 // ROS message includes
 #include <sensor_msgs/LaserScan.h>
+#include <diagnostic_msgs/DiagnosticArray.h>
 
 // ROS service includes
 //--
@@ -79,6 +80,7 @@ class NodeClass
 		ros::NodeHandle nh;   
 		// topics to publish
 		ros::Publisher topicPub_LaserScan;
+        ros::Publisher topicPub_Diagnostic_;
 		
 		// topics to subscribe, callback is called for new messages arriving
 		//--
@@ -132,6 +134,7 @@ class NodeClass
 
 			// implementation of topics to publish
 			topicPub_LaserScan = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
+			topicPub_Diagnostic_ = nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 
 			// implementation of topics to subscribe
 			//--
@@ -220,10 +223,27 @@ class NodeClass
 					laserScan.intensities[i] = vdIntensAU[start_scan + i];
 				}
 			}
-		
-			// publish message
+        
+			// publish Laserscan-message
 			topicPub_LaserScan.publish(laserScan);
+			
+			//Diagnostics
+			diagnostic_msgs::DiagnosticArray diagnostics;
+			diagnostics.status.resize(1);
+			diagnostics.status[0].level = 0;
+			diagnostics.status[0].name = nodeHandle.getNamespace();
+			diagnostics.status[0].message = "sick scanner running";
+			topicPub_Diagnostic_.publish(diagnostics); 
 		}
+
+	void publishError(std::string error_str) {
+		diagnostic_msgs::DiagnosticArray diagnostics;
+		diagnostics.status.resize(1);
+		diagnostics.status[0].level = 2;
+		diagnostics.status[0].name = nodeHandle.getNamespace();
+		diagnostics.status[0].message = error_str;
+		topicPub_Diagnostic_.publish(diagnostics);     
+	}
 };
 
 //#######################
@@ -253,6 +273,7 @@ int main(int argc, char** argv)
 	 	if(!bOpenScan)
 		{
 			ROS_ERROR("...scanner not available on port %s. Will retry every second.",nodeClass.port.c_str());
+			nodeClass.publishError("...scanner not available on port");
 			firstTry = false;
 		}
 		sleep(1); // wait for scan to get ready if successfull, or wait befor retrying
