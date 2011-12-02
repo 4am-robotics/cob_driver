@@ -75,77 +75,68 @@ public:
 		  
 	ros::NodeHandle nh;   
 	// topics to publish
-	ros::Subscriber topicSub_LaserScan_raw;
-	ros::Publisher topicPub_LaserScan;
+	ros::Subscriber topicSub_laser_scan_raw;
+	ros::Publisher topicPub_laser_scan;
 
 	NodeClass() {
 		// loading config
 		loadScanRanges();	
 		
 		// implementation of topics to publish
-		topicPub_LaserScan = nh.advertise<sensor_msgs::LaserScan>("scan_filtered", 1);
-		topicSub_LaserScan_raw = nh.subscribe("scan", 1, &NodeClass::scanCallback, this);
+		topicPub_laser_scan = nh.advertise<sensor_msgs::LaserScan>("scan_filtered", 1);
+		topicSub_laser_scan_raw = nh.subscribe("scan", 1, &NodeClass::scanCallback, this);
 	}
 
 	void scanCallback(const sensor_msgs::LaserScan::ConstPtr& msg) {
 		//if no filter intervals specified
 		if(scan_intervals.size()==0) {
-			topicPub_LaserScan.publish(*msg);
+			topicPub_laser_scan.publish(*msg);
 			return;
 		}
 		
 		
-		// create LaserScan message
-		sensor_msgs::LaserScan laserScan;
-		laserScan.header = msg->header;
-		laserScan.angle_increment = msg->angle_increment;
-		laserScan.range_min = msg->range_min; //0.0 TODO read from ini-file/parameter-file / set correct in sick_s300
-		laserScan.range_max = msg->range_max; //100.0 TODO read from ini-file/parameter-file / set correct in sick_s300
-		laserScan.time_increment = msg->time_increment;
+		// use hole received message, later only clear some ranges
+		sensor_msgs::LaserScan laser_scan = * msg;
 		
-		//check, wether last interval is bigger than scan:
-		while( scan_intervals.back().at(0) >= msg->ranges.size()-1 ) {
-				scan_intervals.pop_back(); //if begin of last interval >= total scan points delete it
-				ROS_WARN("scan filter: received scan message, that is smaller than specified interval");
-				if(scan_intervals.size()==0) {
-					topicPub_LaserScan.publish(*msg);
-					return;
-				}
-		}
-
-		//implementation for unused ranges = VAL
-		int start_scan, stop_scan;
-		start_scan = scan_intervals.front().at(0);
-		stop_scan = scan_intervals.back().at(1);
 		
-		int num_readings = start_scan - stop_scan +1;
-		laserScan.angle_min = (-135.0/180.0*3.14) + laserScan.angle_increment * start_scan; // first ScanAngle
-		laserScan.angle_max = (-135.0/180.0*3.14) + laserScan.angle_increment * stop_scan; // last ScanAngle
-		laserScan.ranges.resize(num_readings);
-		laserScan.intensities.resize(num_readings);
+		int start_scan, stop_scan, num_scans;
+		num_scans = laser_scan.ranges.size();
 		
-		std::vector<bool> use_current_element;
-		for(unsigned int u=0; u<scan_intervals.size()-1; u++) {
-			use_current_element.insert(use_current_element.end(), true, scan_intervals.at(u).at(1) - scan_intervals.at(u).at(0) +1);
-			use_current_element.insert(use_current_element.end(), false, scan_intervals.at(u+1).at(0) - scan_intervals.at(u).at(1) -1);
-		}
-		//handle last interval separately because there is no following gap:
-		use_current_element.insert(use_current_element.end(), true, scan_intervals.back().at(1) - scan_intervals.back().at(0) +1);
-		
-		if((int)use_current_element.size() != num_readings) ROS_WARN("Vector size problem, rest is cut off..");
-
-		for(int i=0; i<num_readings; i++) {
-			if(use_current_element.at(i)) {
-				laserScan.ranges[i] = msg->ranges[start_scan + i];
-				laserScan.intensities[i] = msg->intensities[start_scan + i];
-			} else {
-				laserScan.ranges[i] = 0.0; //filtered out
-				laserScan.intensities[i] = 0.0; //filtered out
+		stop_scan = 0;
+		for ( unsigned int i=0; i<scan_intervals.size(); i++) {
+			std::vector<double> * it = & scan_intervals.at(i);
+			
+			if( it->at(1) <= laser_scan.angle_min ) {
+				ROS_WARN("Found an interval that lies below min scan range, skip!");
+				continue;
 			}
+			if( it->at(0) >= laser_scan.angle_max ) {
+				ROS_WARN("Found an interval that lies beyond max scan range, skip!");
+				continue;
+			}
+			
+			if( it->at(0) <= laser_scan.angle_min ) start_scan = 0;
+			else {
+				start_scan = (int)( (it->at(0) - laser_scan.angle_min) / laser_scan.angle_increment);
+			}
+			
+			for(int u = stop_scan; u<start_scan; u++) {
+				laser_scan.ranges.at(u) = laser_scan.range_min;
+			}
+			
+			if( it->at(1) >= laser_scan.angle_max ) stop_scan = num_scans-1;
+			else {
+				stop_scan = (int)( (it->at(1) - laser_scan.angle_min) / laser_scan.angle_increment);
+			}
+
+		}
+		
+		for(unsigned int u = stop_scan; u<laser_scan.ranges.size(); u++) {
+			laser_scan.ranges.at(u) = laser_scan.range_min; //0.0
 		}
 		
 		// publish message
-		topicPub_LaserScan.publish(laserScan);
+		topicPub_laser_scan.publish(laser_scan);
 	}
 	
 	std::vector<std::vector<double> > loadScanRanges();
