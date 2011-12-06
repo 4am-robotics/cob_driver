@@ -64,6 +64,7 @@
 #include <std_msgs/Float64.h>
 #include <sensor_msgs/JointState.h>
 #include <diagnostic_msgs/DiagnosticStatus.h>
+#include <diagnostic_msgs/DiagnosticArray.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 #include <pr2_controllers_msgs/JointControllerState.h>
 
@@ -97,6 +98,7 @@ class NodeClass
 		ros::Publisher topicPub_JointState;
 
 		ros::Publisher topicPub_ControllerState;
+		ros::Publisher topicPub_DiagnosticGlobal_;
 
 
 		/**
@@ -271,7 +273,7 @@ class NodeClass
 			// published topics
 			topicPub_JointState = n.advertise<sensor_msgs::JointState>("/joint_states", 1);
 			topicPub_ControllerState = n.advertise<pr2_controllers_msgs::JointTrajectoryControllerState>("state", 1);
-			
+			topicPub_DiagnosticGlobal_ = n.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 			
 			topicPub_Diagnostic = n.advertise<diagnostic_msgs::DiagnosticStatus>("diagnostic", 1);
 			// subscribed topics
@@ -324,50 +326,53 @@ class NodeClass
 							JointStateCmd.velocity[0] = msg->desired.velocities[i];
 							//JointStateCmd.effort[0] = msg->effort[i];
 					}
-					if(msg->joint_names[i] ==  "bl_caster_r_wheel_joint")
+					else if(msg->joint_names[i] ==  "bl_caster_r_wheel_joint")
 					{
 							JointStateCmd.position[2] = msg->desired.positions[i];
 							JointStateCmd.velocity[2] = msg->desired.velocities[i];
 							//JointStateCmd.effort[2] = msg->effort[i];
 					}
-					if(msg->joint_names[i] ==  "br_caster_r_wheel_joint")
+					else if(msg->joint_names[i] ==  "br_caster_r_wheel_joint")
 					{
 							JointStateCmd.position[4] = msg->desired.positions[i];
 							JointStateCmd.velocity[4] = msg->desired.velocities[i];
 							//JointStateCmd.effort[4] = msg->effort[i];
 					}
-					if(msg->joint_names[i] ==  "fr_caster_r_wheel_joint")
+					else if(msg->joint_names[i] ==  "fr_caster_r_wheel_joint")
 					{
 							JointStateCmd.position[6] = msg->desired.positions[i];
 							JointStateCmd.velocity[6] = msg->desired.velocities[i];
 							//JointStateCmd.effort[6] = msg->effort[i];
 					}
 					//STEERS
-					if(msg->joint_names[i] ==  "fl_caster_rotation_joint")
+					else if(msg->joint_names[i] ==  "fl_caster_rotation_joint")
 					{
 							JointStateCmd.position[1] = msg->desired.positions[i];
 							JointStateCmd.velocity[1] = msg->desired.velocities[i];
 							//JointStateCmd.effort[1] = msg->effort[i];
 					}
-					if(msg->joint_names[i] ==  "bl_caster_rotation_joint")
+					else if(msg->joint_names[i] ==  "bl_caster_rotation_joint")
 					{ 
 							JointStateCmd.position[3] = msg->desired.positions[i];
 							JointStateCmd.velocity[3] = msg->desired.velocities[i];
 							//JointStateCmd.effort[3] = msg->effort[i];
 					}
-					if(msg->joint_names[i] ==  "br_caster_rotation_joint")
+					else if(msg->joint_names[i] ==  "br_caster_rotation_joint")
 					{
 							JointStateCmd.position[5] = msg->desired.positions[i];
 							JointStateCmd.velocity[5] = msg->desired.velocities[i];
 							//JointStateCmd.effort[5] = msg->effort[i];
 					}
-					if(msg->joint_names[i] ==  "fr_caster_rotation_joint")
+					else if(msg->joint_names[i] ==  "fr_caster_rotation_joint")
 					{
 							JointStateCmd.position[7] = msg->desired.positions[i];
 							JointStateCmd.velocity[7] = msg->desired.velocities[i];
 							//JointStateCmd.effort[7] = msg->effort[i];
 					}
-			
+					else
+					{
+						ROS_ERROR("Unkown joint name");
+					}
 				}
 				
 			
@@ -728,6 +733,33 @@ class NodeClass
 			// publish diagnostic message
 			topicPub_Diagnostic.publish(diagnostics);
 			ROS_DEBUG("published new drive-chain configuration (JointState message)");
+			//publish global diagnostic messages
+			diagnostic_msgs::DiagnosticArray diagnostics_gl;
+		    diagnostics_gl.status.resize(1);
+		    // set data to diagnostics
+		    if(bIsError)
+		    {
+		      diagnostics_gl.status[0].level = 2;
+		      diagnostics_gl.status[0].name = n.getNamespace();;
+		      //TODOdiagnostics.status[0].message = error_msg_;
+		    }
+		    else
+		    {
+		      if (m_bisInitialized)
+		      {
+		        diagnostics_gl.status[0].level = 0;
+		        diagnostics_gl.status[0].name = n.getNamespace(); //"schunk_powercube_chain";
+		        diagnostics_gl.status[0].message = "base_drive_chain initialized and running";
+		      }
+		      else
+		      {
+		        diagnostics_gl.status[0].level = 1;
+		        diagnostics_gl.status[0].name = n.getNamespace(); //"schunk_powercube_chain";
+		        diagnostics_gl.status[0].message = "base_drive_chain not initialized";
+		      }
+		    }
+		    // publish diagnostic message
+		    topicPub_DiagnosticGlobal_.publish(diagnostics_gl);
 
 			return true;
 		}
