@@ -39,6 +39,6 @@ rosbuild_add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp)
 target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME})
 
 #Geom Controller for one-wheel-COB3_5
-rosbuild_add_library(${PROJECT_NAME}_Trike common/src/UndercarriageCtrlGeomTrike.cpp)
-rosbuild_add_executable(${PROJECT_NAME}_Trike_node ros/src/${PROJECT_NAME}.cpp)
-target_link_libraries(${PROJECT_NAME}_Trike_node ${PROJECT_NAME}_Trike)
+#rosbuild_add_library(${PROJECT_NAME}_Trike common/src/UndercarriageCtrlGeomTrike.cpp)
+#rosbuild_add_executable(${PROJECT_NAME}_Trike_node ros/src/${PROJECT_NAME}.cpp)
+#target_link_libraries(${PROJECT_NAME}_Trike_node ${PROJECT_NAME}_Trike)
