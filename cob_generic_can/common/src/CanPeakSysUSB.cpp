@@ -51,6 +51,8 @@
  *
  ****************************************************************/
 
+//#define __DEBUG__
+
 #include <cob_generic_can/CanPeakSysUSB.h>
 #include <stdlib.h>
 #include <cerrno>
@@ -126,12 +128,16 @@ bool CANPeakSysUSB::transmitMsg(CanMsg CMsg, bool bBlocking)
 	int iRet;
 	//iRet = CAN_Write(m_handle, &TPCMsg);
 	iRet = LINUX_CAN_Write_Timeout(m_handle, &TPCMsg, 25); //Timeout in micrsoseconds
-	if(iRet != CAN_ERR_OK) {
-		std::cout << "CANPeakSysUSB::transmitMsg An error occured while sending..." << iRet << std::endl;
-		
-		outputDetailedStatus();
-	}
 	
+	if(iRet != CAN_ERR_OK) {
+#ifdef __DEBUG__
+		std::cout << "CANPeakSysUSB::transmitMsg An error occured while sending..." << iRet << std::endl;		
+		outputDetailedStatus();
+#endif		
+		bRet = false;
+	}
+
+#ifdef __DEBUG__	
 	//is this necessary? try iRet==CAN_Status(m_handle) ?
 	iRet = CAN_Status(m_handle);
 
@@ -152,7 +158,8 @@ bool CANPeakSysUSB::transmitMsg(CanMsg CMsg, bool bBlocking)
 		std::cout << "CANPeakSysUSB::transmitMsg, CAN_STATUS: " << iRet << std::endl;
 		bRet = false;
 	}
-	
+#endif
+
 	return bRet;
 }
 
