@@ -966,6 +966,8 @@ void NodeClass::UpdateOdometry()
 	// format data for compatibility with tf-package and standard odometry msg
 	// generate quaternion for rotation
 	geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(theta_rob_rad_);
+	geometry_msgs::Quaternion odom_quat_neg = tf::createQuaternionMsgFromYaw(-theta_rob_rad_);
+	
 
 	// compose and publish transform for tf package
 	geometry_msgs::TransformStamped odom_tf;
@@ -974,10 +976,10 @@ void NodeClass::UpdateOdometry()
 	odom_tf.header.frame_id = "/base_footprint";
 	odom_tf.child_frame_id = "/odom";
 	// compose data container
-	odom_tf.transform.translation.x = x_rob_m_;
-	odom_tf.transform.translation.y = y_rob_m_;
+	odom_tf.transform.translation.x = -x_rob_m_ * cos(theta_rob_rad_) - y_rob_m_ * sin(theta_rob_rad_);
+	odom_tf.transform.translation.y = x_rob_m_ * sin(theta_rob_rad_) - y_rob_m_ * cos(theta_rob_rad_);
 	odom_tf.transform.translation.z = 0.0;
-	odom_tf.transform.rotation = odom_quat;
+	odom_tf.transform.rotation = odom_quat_neg;
 
     // compose and publish odometry message as topic
     nav_msgs::Odometry odom_top;
