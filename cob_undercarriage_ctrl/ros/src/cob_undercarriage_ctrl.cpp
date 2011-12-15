@@ -696,9 +696,6 @@ void NodeClass::UpdateOdometry()
     odom_top.twist.twist.angular.z = rot_rob_rads;
     for(int i = 0; i < 6; i++)
       odom_top.twist.covariance[6*i+i] = 0.1;
-	// publish data
-	// publish the transform
-	tf_broadcast_odometry_.sendTransform(odom_tf);
 	
 	if (fabs(vel_x_rob_ms) > 0.005 or fabs(vel_y_rob_ms) > 0.005 or fabs(rot_rob_rads) > 0.005)
 	{
@@ -708,6 +705,9 @@ void NodeClass::UpdateOdometry()
 	{
 		is_moving_ = false;
 	}
+
+	// publish the transform (for debugging, conflicts with robot-pose-ekf)
+	// tf_broadcast_odometry_.sendTransform(odom_tf);
 	
 	// publish odometry msg
 	topic_pub_odometry_.publish(odom_top);
