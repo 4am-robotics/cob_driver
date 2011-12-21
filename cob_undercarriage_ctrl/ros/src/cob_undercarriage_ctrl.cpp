@@ -212,17 +212,13 @@ class NodeClass
         }
 
 		void diag_init(diagnostic_updater::DiagnosticStatusWrapper &stat)
-	  {
-	    if(is_initialized_bool_)
-	      stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "");
-	    else
-	      stat.summary(diagnostic_msgs::DiagnosticStatus::WARN, "");
-	    stat.add("Initialized", is_initialized_bool_);
-	  }
-
-
-        // topic callback functions 
-        // function will be called when a new message arrives on a topic
+		{
+		if(is_initialized_bool_)
+			stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "");
+		else
+			stat.summary(diagnostic_msgs::DiagnosticStatus::WARN, "");
+			stat.add("Initialized", is_initialized_bool_);
+		}
 
 		// Listen for Pltf Cmds
 		void topicCallbackTwistCmd(const geometry_msgs::Twist::ConstPtr& msg)
@@ -238,10 +234,10 @@ class NodeClass
 			w_cmd_rads = msg->angular.z;
 
 			// only process if controller is already initialized
-			if (is_initialized_bool_)
+			if (is_initialized_bool_ && drive_chain_diagnostic_==diagnostic_status_lookup_.OK)
             {
 				ROS_DEBUG("received new velocity command [cmdVelX=%3.5f,cmdVelY=%3.5f,cmdVelTh=%3.5f]", 
-                     msg->linear.x, msg->linear.y, msg->angular.z);
+					msg->linear.x, msg->linear.y, msg->angular.z);
 
 				// Set desired value for Plattform Velocity to UndercarriageCtrl (setpoint setting)
 				ucar_ctrl_->SetDesiredPltfVelocity(vx_cmd_mms, vy_cmd_mms, w_cmd_rads, 0.0);
@@ -311,7 +307,7 @@ class NodeClass
 			joint_state_cmd.joint_names.push_back("fr_caster_rotation_joint");
 			// compose jointcmds
 			for(int i=0; i<m_iNumJoints; i++)
-			{					
+			{
 				joint_state_cmd.desired.positions[i] = 0.0;
 				joint_state_cmd.desired.velocities[i] = 0.0;
 				//joint_state_cmd.desired.effort[i] = 0.0;
@@ -341,7 +337,7 @@ class NodeClass
 					if (drive_chain_diagnostic_ != diagnostic_status_lookup_.WARN)
 					{
 						// publish zero-vel. jointcmds to avoid Watchdogs stopping ctrlr
-						topic_pub_controller_joint_command_.publish(joint_state_cmd);
+						// this is already done in CalcControlStep
 					}
 				}
 			}
@@ -482,17 +478,22 @@ int main(int argc, char** argv)
     NodeClass nodeClass;
 	
 	// automatically do initializing of controller, because it's not directly depending any hardware components
-	nodeClass.is_initialized_bool_ = nodeClass.InitCtrl();
+	nodeClass.ucar_ctrl_->InitUndercarriageCtrl();
+	nodeClass.is_initialized_bool_ = true;
+	
 	if( nodeClass.is_initialized_bool_ ) {
 		nodeClass.last_time_ = ros::Time::now();
 		ROS_INFO("Undercarriage control successfully initialized.");
-	} else
-		ROS_WARN("Undercarriage control initialization failed! Try manually.");
+	} else {
+		ROS_FATAL("Undercarriage control initialization failed!");
+		throw std::runtime_error("Undercarriage control initialization failed, check ini-Files!");
+	}
     
 	/* 
 	CALLBACKS being executed are:
 		- actual motor values -> calculating direct kinematics and doing odometry (topicCallbackJointControllerStates)
 		- timer callback -> calculate controller step at a rate of sample_time_ (timerCallbackCtrlStep)
+		- other topic callbacks (diagnostics, command, em_stop_state)
 	*/
     ros::spin();
 
@@ -501,16 +502,6 @@ int main(int argc, char** argv)
 
 //##################################
 //#### function implementations ####
-bool NodeClass::InitCtrl()
-{
-    ROS_INFO("Initializing Undercarriage Controller");
-
-	// Init Controller Class
-	ucar_ctrl_->InitUndercarriageCtrl();
-	ROS_INFO("Initializing Undercarriage Controller done");
-
-    return true;
-}
 
 // perform one control step, calculate inverse kinematics and publish updated joint cmd's (if no EMStop occurred)
 void NodeClass::CalcCtrlStep()
@@ -539,7 +530,6 @@ void NodeClass::CalcCtrlStep()
 		{
 			steer_jointang_cmds_rad.assign(m_iNumJoints, 0.0);
 			steer_jointvel_cmds_rads.assign(m_iNumJoints, 0.0);
-			
 		}
 
 		// convert variables to SI-Units
