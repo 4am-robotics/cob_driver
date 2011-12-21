@@ -390,9 +390,6 @@ class NodeClass
 						}
 					}
 #endif
-
-					// and cmd velocities to Can-Nodes
-					//m_CanCtrlPltf->setVelGearRadS(iCanIdent, dVelEncRadS);
 #ifdef __SIM__
 					ROS_DEBUG("Send velocity data to gazebo");
 					std_msgs::Float64 fl;
@@ -553,7 +550,6 @@ class NodeClass
 		//publish JointStates cyclical instead of service callback
 		bool publish_JointStates()
 		{
-			ROS_DEBUG("Service Callback GetJointState");
 			// init local variables
 			int j, k;
 			bool bIsError;
@@ -643,9 +639,6 @@ class NodeClass
 						}
 					}
 
-
-
-					
    					// if a steering motor was read -> correct for offset
    					if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
 					{
