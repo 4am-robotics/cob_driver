@@ -189,8 +189,8 @@ class NodeClass
 			// fill message
 			laserScan.header.frame_id = frame_id;
 			laserScan.angle_increment = vdAngRAD[start_scan + 1] - vdAngRAD[start_scan];
-			laserScan.range_min = 0.0;
-			laserScan.range_max = 100.0;
+			laserScan.range_min = 0.001;
+			laserScan.range_max = 30.0;
 			laserScan.time_increment = (scan_duration) / (vdDistM.size());
 
 			// rescale scan

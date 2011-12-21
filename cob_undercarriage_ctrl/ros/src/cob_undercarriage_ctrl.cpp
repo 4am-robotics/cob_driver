@@ -106,14 +106,18 @@ class NodeClass
 		//ros::Subscriber topic_sub_joint_states_;
 		ros::Subscriber topic_sub_joint_controller_states_;
         
-        // service servers
-        ros::ServiceServer srvServer_IsMoving;
+		// service servers
+		ros::ServiceServer srvServer_IsMoving;
             
-	// diagnostic stuff
-  	diagnostic_updater::Updater updater_;
+		// diagnostic stuff
+		diagnostic_updater::Updater updater_;
 
         // service clients
         ros::ServiceClient srv_client_get_joint_state_;	// get current configuration of undercarriage
+
+		// controller Timer
+        ros::Timer timer_ctrl_step_;
+
 
         // member variables
 		UndercarriageCtrlGeom * ucar_ctrl_;	// instantiate undercarriage controller
@@ -122,8 +126,11 @@ class NodeClass
 		bool is_moving_;					// flag wether base is moving or not
 		int drive_chain_diagnostic_;		// flag whether base drive chain is operating normal 
 		ros::Time last_time_;				// time Stamp for last odometry measurement
+		ros::Time joint_state_odom_stamp_;	// time stamp of joint states used for current odometry calc
+		double sample_time_;
 		double x_rob_m_, y_rob_m_, theta_rob_rad_; // accumulated motion of robot since startup
     	int iwatchdog_;
+    	double 	vel_x_rob_last_, vel_y_rob_last_, vel_theta_rob_last_; //save velocities for better odom calculation
 		
 		int m_iNumJoints;
 		
@@ -135,11 +142,15 @@ class NodeClass
 			// initialization of variables
 			is_initialized_bool_ = false;
 			is_moving_ = false;
-      iwatchdog_ = 0;
+			iwatchdog_ = 0;
 			last_time_ = ros::Time::now();
+			sample_time_ = 0.020;
 			x_rob_m_ = 0.0;
 			y_rob_m_ = 0.0;
 			theta_rob_rad_ = 0.0;
+			vel_x_rob_last_ = 0.0;
+			vel_y_rob_last_ = 0.0;
+			vel_theta_rob_last_ = 0.0;
 			// set status of drive chain to WARN by default
 			drive_chain_diagnostic_ = diagnostic_status_lookup_.OK; //WARN; <- THATS FOR DEBUGGING ONLY!
 			
@@ -189,6 +200,10 @@ class NodeClass
 
 			// implementation of service clients
             srv_client_get_joint_state_ = n.serviceClient<cob_base_drive_chain::GetJointState>("GetJointState");
+            
+            //set up timer to cyclically call controller-step
+            timer_ctrl_step_ = n.createTimer(ros::Duration(sample_time_), &NodeClass::timerCallbackCtrlStep, this);
+
         }
         
         // Destructor
@@ -197,17 +212,13 @@ class NodeClass
         }
 
 		void diag_init(diagnostic_updater::DiagnosticStatusWrapper &stat)
-	  {
-	    if(is_initialized_bool_)
-	      stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "");
-	    else
-	      stat.summary(diagnostic_msgs::DiagnosticStatus::WARN, "");
-	    stat.add("Initialized", is_initialized_bool_);
-	  }
-
-
-        // topic callback functions 
-        // function will be called when a new message arrives on a topic
+		{
+		if(is_initialized_bool_)
+			stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "");
+		else
+			stat.summary(diagnostic_msgs::DiagnosticStatus::WARN, "");
+			stat.add("Initialized", is_initialized_bool_);
+		}
 
 		// Listen for Pltf Cmds
 		void topicCallbackTwistCmd(const geometry_msgs::Twist::ConstPtr& msg)
@@ -223,10 +234,10 @@ class NodeClass
 			w_cmd_rads = msg->angular.z;
 
 			// only process if controller is already initialized
-			if (is_initialized_bool_)
+			if (is_initialized_bool_ && drive_chain_diagnostic_==diagnostic_status_lookup_.OK)
             {
 				ROS_DEBUG("received new velocity command [cmdVelX=%3.5f,cmdVelY=%3.5f,cmdVelTh=%3.5f]", 
-                     msg->linear.x, msg->linear.y, msg->angular.z);
+					msg->linear.x, msg->linear.y, msg->angular.z);
 
 				// Set desired value for Plattform Velocity to UndercarriageCtrl (setpoint setting)
 				ucar_ctrl_->SetDesiredPltfVelocity(vx_cmd_mms, vy_cmd_mms, w_cmd_rads, 0.0);
@@ -296,7 +307,7 @@ class NodeClass
 			joint_state_cmd.joint_names.push_back("fr_caster_rotation_joint");
 			// compose jointcmds
 			for(int i=0; i<m_iNumJoints; i++)
-			{					
+			{
 				joint_state_cmd.desired.positions[i] = 0.0;
 				joint_state_cmd.desired.velocities[i] = 0.0;
 				//joint_state_cmd.desired.effort[i] = 0.0;
@@ -326,7 +337,7 @@ class NodeClass
 					if (drive_chain_diagnostic_ != diagnostic_status_lookup_.WARN)
 					{
 						// publish zero-vel. jointcmds to avoid Watchdogs stopping ctrlr
-						topic_pub_controller_joint_command_.publish(joint_state_cmd);
+						// this is already done in CalcControlStep
 					}
 				}
 			}
@@ -354,137 +365,14 @@ class NodeClass
 			return true;
 		}
 
-/*		// Init Controller Configuration
-        bool srvCallbackInit(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res )
-        {
-            if(is_initialized_bool_ == false)
-            {
-				is_initialized_bool_ = InitCtrl();
-				// intializes some configuration variabes
-				res.success.data = is_initialized_bool_;
-           	    
-				if (is_initialized_bool_)
-				{
-					ROS_INFO("Undercarriage-Ctrl initialized");
-					// reset Time
-					last_time_ = ros::Time::now();
-				}
-				else
-				{
-					ROS_INFO("Undercarriage-Ctrl initialization failed");
-                	res.error_message.data = "initialization of undercarriage controller failed";
-				}
-            }
-            else
-            {
-                ROS_ERROR("... undercarriage controller already initialized...");
-                res.success.data = false;
-                res.error_message.data = "undercarriage controller already initialized";
-            }            
-            return true;
-        }
-*/
-	
-/*		// reset Controller Configuration
-        bool srvCallbackReset(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res )
-        {
-			bool ctrlr_reset;
-
-			if (is_initialized_bool_)
-			{
-
-				// flag that Controller is not initialized
-				is_initialized_bool_ = false;
-
-				// first of all stop controller (similar to EMStop)
-				// Set desired value for Plattform Velocity to zero (setpoint setting)
-				ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
-				// ToDo: last value (0.0) is not used anymore --> remove from interface
-				ROS_DEBUG("Forced platform-velocity cmds to zero");
-				// Set EM flag and stop Ctrlr
-				ucar_ctrl_->setEMStopActive(true);
-
-				// now re-init controller configuration
-				ctrlr_reset = InitCtrl();
-
-				if (ctrlr_reset)
-				{
-					// restart controller
-					// Set desired value for Plattform Velocity to zero (setpoint setting)
-					ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
-					// ToDo: last value (0.0) is not used anymore --> remove from interface
-					ROS_DEBUG("Forced platform-velocity cmds to zero");
-					// Set EM flag and stop Ctrlr
-					ucar_ctrl_->setEMStopActive(false);
-
-					// reset Time
-					last_time_ = ros::Time::now();
-					// and reset odometry
-					x_rob_m_ = 0.0;
-					y_rob_m_ = 0.0;
-					theta_rob_rad_ = 0.0;
-
-					// flag that controller is initialized
-					is_initialized_bool_ = true;
-
-					// set answer for service request
-	       	    	ROS_INFO("Undercarriage Controller resetted");
-					res.success.data = true;
-				}
-				else
-				{
-					// set answer for service request
-	       	    	ROS_INFO("Re-Init after Reset of Undercarriage Controller failed");
-					res.success.data = false;
-                	res.error_message.data = "reinit after reset of undercarriage controller failed";
-				}
-			}
-			else
-			{
-				// Reset not possible, because Controller not yet set up
-                ROS_ERROR("... undercarriage controller not yet initialized, reset not possible ...");
-				// set answer for service request
-                res.success.data = false;
-                res.error_message.data = "undercarriage controller not yet initialized";
-			}
-
-		    return true;
-        }
-*/
-		
-/*		// shutdown Controller
-        bool srvCallbackShutdown(cob_srvs::Trigger::Request &req,
-                                     cob_srvs::Trigger::Response &res )
-        {
-			if (is_initialized_bool_)
-			{
-				// stop controller
-				// Set desired value for Plattform Velocity to zero (setpoint setting)
-				ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
-				ROS_DEBUG("Forced platform-velocity cmds to zero");
-
-				// flag that controller is not running anymore
-				is_initialized_bool_ = false;
-	
-				res.success.data = true;
-			}
-			else
-			{
-				// shutdown not possible, because pltf not running
-                ROS_ERROR("...platform not initialized...");
-                res.success.data = false;
-                res.error_message.data = "platform already or still down";
-			}
-	    	return true;
-        }
-*/
-
 		void topicCallbackJointControllerStates(const pr2_controllers_msgs::JointTrajectoryControllerState::ConstPtr& msg) {
 			int num_joints;
 			int iter_k, iter_j;
 			std::vector<double> drive_joint_ang_rad, drive_joint_vel_rads, drive_joint_effort_NM;
 			std::vector<double> steer_joint_ang_rad, steer_joint_vel_rads, steer_joint_effort_NM;
 			cob_base_drive_chain::GetJointState srv_get_joint;
+	
+			joint_state_odom_stamp_ = msg->header.stamp;
 	
 			// copy configuration into vector classes
 			num_joints = msg->joint_names.size();
@@ -553,151 +441,28 @@ class NodeClass
 						steer_joint_vel_rads[3] = msg->actual.velocities[i];
 						//steer_joint_effort_NM[3] = msg->effort[i];
 				}
-				
 			}
 
 			// Set measured Wheel Velocities and Angles to Controler Class (implements inverse kinematic)
 			ucar_ctrl_->SetActualWheelValues(drive_joint_vel_rads, steer_joint_vel_rads,
 									drive_joint_ang_rad, steer_joint_ang_rad);
 
+
+			// calculate odometry every time
+			UpdateOdometry();
 			
-			
-			/*pr2_controllers_msgs::JointTrajectoryControllerState controller_state_msg;
-
-			controller_state_msg.header.stamp = msg->header.stamp;
-			controller_state_msg.actual.positions.resize(m_iNumJoints);
-			controller_state_msg.actual.velocities.resize(m_iNumJoints);            
-			controller_state_msg.actual.accelerations.resize(m_iNumJoints);
-			controller_state_msg.joint_names.push_back("fl_caster_r_wheel_joint");
-			controller_state_msg.joint_names.push_back("fl_caster_rotation_joint");
-			controller_state_msg.joint_names.push_back("bl_caster_r_wheel_joint");
-			controller_state_msg.joint_names.push_back("bl_caster_rotation_joint");
-			controller_state_msg.joint_names.push_back("br_caster_r_wheel_joint");
-			controller_state_msg.joint_names.push_back("br_caster_rotation_joint");
-			controller_state_msg.joint_names.push_back("fr_caster_r_wheel_joint");
-			controller_state_msg.joint_names.push_back("fr_caster_rotation_joint");
-			controller_state_msg.actual.positions = msg->position;
-			controller_state_msg.actual.velocities = msg->velocity;
-			controller_state_msg.actual.accelerations = msg->effort;
-	
-			topic_pub_controller_state_.publish(controller_state_msg);*/		
-		}
-
-
-		/*
-		void topicCallbackJointStates(const sensor_msgs::JointState::ConstPtr& msg) {
-			int num_joints;
-			int iter_k, iter_j;
-			std::vector<double> drive_joint_ang_rad, drive_joint_vel_rads, drive_joint_effort_NM;
-			std::vector<double> steer_joint_ang_rad, steer_joint_vel_rads, steer_joint_effort_NM;
-			cob_base_drive_chain::GetJointState srv_get_joint;
-	
-			// copy configuration into vector classes
-			num_joints = msg->position.size();
-			// drive joints
-			drive_joint_ang_rad.assign(m_iNumJoints, 0.0);
-			drive_joint_vel_rads.assign(m_iNumJoints, 0.0);
-			drive_joint_effort_NM.assign(m_iNumJoints, 0.0);
-			// steer joints
-			steer_joint_ang_rad.assign(m_iNumJoints, 0.0);
-			steer_joint_vel_rads.assign(m_iNumJoints, 0.0);
-			steer_joint_effort_NM.assign(m_iNumJoints, 0.0);
-
-			// init iterators
-			iter_k = 0;
-			iter_j = 0;
-
-			for(int i = 0; i < num_joints; i++)
-			{
-				// associate inputs to according steer and drive joints
-				// ToDo: specify this globally (Prms-File or config-File or via msg-def.)	
-				if(msg->name[i] ==  "fl_caster_r_wheel_joint")
-				{
-						drive_joint_ang_rad[0] = msg->position[i]; 
-						drive_joint_vel_rads[0] = msg->velocity[i];
-						drive_joint_effort_NM[0] = msg->effort[i];
-				}
-				if(msg->name[i] ==  "bl_caster_r_wheel_joint")
-				{
-						drive_joint_ang_rad[1] = msg->position[i]; 
-						drive_joint_vel_rads[1] = msg->velocity[i];
-						drive_joint_effort_NM[1] = msg->effort[i];
-				}
-				if(msg->name[i] ==  "br_caster_r_wheel_joint")
-				{
-						drive_joint_ang_rad[2] = msg->position[i]; 
-						drive_joint_vel_rads[2] = msg->velocity[i];
-						drive_joint_effort_NM[2] = msg->effort[i];
-				}
-				if(msg->name[i] ==  "fr_caster_r_wheel_joint")
-				{
-						drive_joint_ang_rad[3] = msg->position[i]; 
-						drive_joint_vel_rads[3] = msg->velocity[i];
-						drive_joint_effort_NM[3] = msg->effort[i];
-				}
-				if(msg->name[i] ==  "fl_caster_rotation_joint")
-				{
-						steer_joint_ang_rad[0] = msg->position[i]; 
-						steer_joint_vel_rads[0] = msg->velocity[i];
-						steer_joint_effort_NM[0] = msg->effort[i];
-				}
-				if(msg->name[i] ==  "bl_caster_rotation_joint")
-				{ 
-						steer_joint_ang_rad[1] = msg->position[i]; 
-						steer_joint_vel_rads[1] = msg->velocity[i];
-						steer_joint_effort_NM[1] = msg->effort[i];
-				}
-				if(msg->name[i] ==  "br_caster_rotation_joint")
-				{
-						steer_joint_ang_rad[2] = msg->position[i]; 
-						steer_joint_vel_rads[2] = msg->velocity[i];
-						steer_joint_effort_NM[2] = msg->effort[i];
-				}
-				if(msg->name[i] ==  "fr_caster_rotation_joint")
-				{
-						steer_joint_ang_rad[3] = msg->position[i]; 
-						steer_joint_vel_rads[3] = msg->velocity[i];
-						steer_joint_effort_NM[3] = msg->effort[i];
-				}
-				
-			}
-
-			// Set measured Wheel Velocities and Angles to Controler Class (implements inverse kinematic)
-			ucar_ctrl_->SetActualWheelValues(drive_joint_vel_rads, steer_joint_vel_rads,
-									drive_joint_ang_rad, steer_joint_ang_rad);
-
-			pr2_controllers_msgs::JointTrajectoryControllerState controller_state_msg;
-
-			controller_state_msg.header.stamp = msg->header.stamp;
-			controller_state_msg.actual.positions.resize(m_iNumJoints);
-			controller_state_msg.actual.velocities.resize(m_iNumJoints);            
-			controller_state_msg.actual.accelerations.resize(m_iNumJoints);
-			controller_state_msg.joint_names.push_back("fl_caster_r_wheel_joint");
-			controller_state_msg.joint_names.push_back("fl_caster_rotation_joint");
-			controller_state_msg.joint_names.push_back("bl_caster_r_wheel_joint");
-			controller_state_msg.joint_names.push_back("bl_caster_rotation_joint");
-			controller_state_msg.joint_names.push_back("br_caster_r_wheel_joint");
-			controller_state_msg.joint_names.push_back("br_caster_rotation_joint");
-			controller_state_msg.joint_names.push_back("fr_caster_r_wheel_joint");
-			controller_state_msg.joint_names.push_back("fr_caster_rotation_joint");
-			controller_state_msg.actual.positions = msg->position;
-			controller_state_msg.actual.velocities = msg->velocity;
-			controller_state_msg.actual.accelerations = msg->effort;
-	
-			topic_pub_controller_state_.publish(controller_state_msg);
-
 		}
 		
-		*/
-
-       
+		void timerCallbackCtrlStep(const ros::TimerEvent& e) {
+			CalcCtrlStep();
+		}
+		
         // other function declarations
 		// Initializes controller
         bool InitCtrl();
 		// perform one control step, calculate inverse kinematics and publish updated joint cmd's (if no EMStop occurred)
 		void CalcCtrlStep();
 		// acquires the current undercarriage configuration from base_drive_chain
-		//void GetJointState(); // TODO: not used any more, can be deleted
 		// calculates odometry from current measurement values and publishes it via an odometry topic and the tf broadcaster
 		void UpdateOdometry();
 };
@@ -713,62 +478,30 @@ int main(int argc, char** argv)
     NodeClass nodeClass;
 	
 	// automatically do initializing of controller, because it's not directly depending any hardware components
-	nodeClass.is_initialized_bool_ = nodeClass.InitCtrl();
+	nodeClass.ucar_ctrl_->InitUndercarriageCtrl();
+	nodeClass.is_initialized_bool_ = true;
+	
 	if( nodeClass.is_initialized_bool_ ) {
 		nodeClass.last_time_ = ros::Time::now();
 		ROS_INFO("Undercarriage control successfully initialized.");
-	} else
-		ROS_WARN("Undercarriage control initialization failed! Try manually.");
-	
-	// specify looprate of control-cycle
- 	ros::Rate loop_rate(50); // Hz 
+	} else {
+		ROS_FATAL("Undercarriage control initialization failed!");
+		throw std::runtime_error("Undercarriage control initialization failed, check ini-Files!");
+	}
     
-    while(nodeClass.n.ok())
-    {
-		// process Callbacks (get new pltf-cmd's and check for EMStop)
-        ros::spinOnce();
-
-		// request Update of Undercarriage Configuration
-		// EXPERIMENTAL: listen to JointStates via topic
-		// nodeClass.GetJointState();
-		
-		// perform one control step, calculate inverse kinematics
-		// and publish updated joint cmd's (if no EMStop occurred)
-		nodeClass.CalcCtrlStep();
-
-		// calculate forward kinematics and update Odometry
-		nodeClass.UpdateOdometry();
-
-		// -> let node sleep for the rest of the cycle
-        loop_rate.sleep();
-    }
+	/* 
+	CALLBACKS being executed are:
+		- actual motor values -> calculating direct kinematics and doing odometry (topicCallbackJointControllerStates)
+		- timer callback -> calculate controller step at a rate of sample_time_ (timerCallbackCtrlStep)
+		- other topic callbacks (diagnostics, command, em_stop_state)
+	*/
+    ros::spin();
 
     return 0;
 }
 
 //##################################
 //#### function implementations ####
-bool NodeClass::InitCtrl()
-{
-    ROS_INFO("Initializing Undercarriage Controller");
-
-    // ToDo:
-	// 1st step: pass the path to the Inifile via the Parameterserver
-	// 2nd step: replace the Inifiles by ROS configuration files
-    
-	// create Inifile class and set target inifile (from which data shall be read)
-	//IniFile iniFile;
-	// Parameters are set within the launch file
-	//n.param<std::string>("base_drive_chain_node/IniDirectory", sIniDirectory, "Platform/IniFiles/");
-	//ROS_INFO("IniDirectory loaded from Parameter-Server is: %s", sIniDirectory.c_str());
-	//iniFile.SetFileName(sIniDirectory + "Platform.ini", "PltfHardwareCoB3.h");
-
-	// Init Controller Class
-	ucar_ctrl_->InitUndercarriageCtrl();
-	ROS_INFO("Initializing Undercarriage Controller done");
-
-    return true;
-}
 
 // perform one control step, calculate inverse kinematics and publish updated joint cmd's (if no EMStop occurred)
 void NodeClass::CalcCtrlStep()
@@ -777,7 +510,7 @@ void NodeClass::CalcCtrlStep()
 	std::vector<double> drive_jointvel_cmds_rads, steer_jointvel_cmds_rads, steer_jointang_cmds_rad;
 	pr2_controllers_msgs::JointTrajectoryControllerState joint_state_cmd;
 	int j, k;
-  iwatchdog_ += 1;	
+	iwatchdog_ += 1;	
 
 	// if controller is initialized and underlying hardware is operating normal
 	if (is_initialized_bool_) //&& (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK))
@@ -797,7 +530,6 @@ void NodeClass::CalcCtrlStep()
 		{
 			steer_jointang_cmds_rad.assign(m_iNumJoints, 0.0);
 			steer_jointvel_cmds_rads.assign(m_iNumJoints, 0.0);
-			
 		}
 
 		// convert variables to SI-Units
@@ -828,99 +560,43 @@ void NodeClass::CalcCtrlStep()
 		k = 0;
 		for(int i = 0; i<m_iNumJoints; i++)
 		{
-      if(iwatchdog_ < 50)
-      {
-			  // for steering motors
-			  if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the Msg
-			  {
-				  joint_state_cmd.desired.positions[i] = steer_jointang_cmds_rad[j];
-				  joint_state_cmd.desired.velocities[i] = steer_jointvel_cmds_rads[j];
-				  //joint_state_cmd.effort[i] = 0.0;
-				  j = j + 1;
-			  }
-			  else
-			  {
-				  joint_state_cmd.desired.positions[i] = 0.0;
-				  joint_state_cmd.desired.velocities[i] = drive_jointvel_cmds_rads[k];
-				  //joint_state_cmd.effort[i] = 0.0;
-				  k = k + 1;
-			  }
-      }
-      else
-      {
-          joint_state_cmd.desired.positions[i] = 0.0;
-		  joint_state_cmd.desired.velocities[i] = 0.0;
-		  //joint_state_cmd.effort[i] = 0.0;
-      }
+			if(iwatchdog_ < 50)
+			{
+				// for steering motors
+				if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the Msg
+				{
+					joint_state_cmd.desired.positions[i] = steer_jointang_cmds_rad[j];
+					joint_state_cmd.desired.velocities[i] = steer_jointvel_cmds_rads[j];
+					//joint_state_cmd.effort[i] = 0.0;
+					j = j + 1;
+				}
+				else
+				{
+					joint_state_cmd.desired.positions[i] = 0.0;
+					joint_state_cmd.desired.velocities[i] = drive_jointvel_cmds_rads[k];
+					//joint_state_cmd.effort[i] = 0.0;
+					k = k + 1;
+				}
+			}
+			else
+			{
+		    	joint_state_cmd.desired.positions[i] = 0.0;
+				joint_state_cmd.desired.velocities[i] = 0.0;
+				//joint_state_cmd.effort[i] = 0.0;
+			}
 		}
 
 		// publish jointcmds
 		topic_pub_controller_joint_command_.publish(joint_state_cmd);
-	}
+		}
 
 }
-
-/*
-// acquires the current undercarriage configuration from base_drive_chain
-void NodeClass::GetJointState()
-{
-	int num_joints;
-	int iter_k, iter_j;
-	std::vector<double> drive_joint_ang_rad, drive_joint_vel_rads, drive_joint_effort_NM;
-	std::vector<double> steer_joint_ang_rad, steer_joint_vel_rads, steer_joint_effort_NM;
-	cob_base_drive_chain::GetJointState srv_get_joint;
-	
-	// request update for pltf config --> call GetJointstate service
-	srv_client_get_joint_state_.call(srv_get_joint);
-
-	// copy configuration into vector classes
-	num_joints = srv_get_joint.response.jointstate.position.size();
-	// drive joints
-	drive_joint_ang_rad.assign(num_joints, 0.0);
-	drive_joint_vel_rads.assign(num_joints, 0.0);
-	drive_joint_effort_NM.assign(num_joints, 0.0);
-	// steer joints
-	steer_joint_ang_rad.assign(num_joints, 0.0);
-	steer_joint_vel_rads.assign(num_joints, 0.0);
-	steer_joint_effort_NM.assign(num_joints, 0.0);
-
-	// init iterators
-	iter_k = 0;
-	iter_j = 0;
-
-	for(int i = 0; i < num_joints; i++)
-	{
-		// associate inputs to according steer and drive joints
-		// ToDo: specify this globally (Prms-File or config-File or via msg-def.)
-		// ToDo: use joint names instead of magic integers
-		if( i == 1 || i == 3 || i == 5 || i == 7)
-		{
-			steer_joint_ang_rad[iter_k] = srv_get_joint.response.jointstate.position[i];
-			steer_joint_vel_rads[iter_k] = srv_get_joint.response.jointstate.velocity[i];
-			steer_joint_effort_NM[iter_k] = srv_get_joint.response.jointstate.effort[i];
-			iter_k = iter_k + 1;
-		}
-		else
-		{
-			drive_joint_ang_rad[iter_j] = srv_get_joint.response.jointstate.position[i];
-			drive_joint_vel_rads[iter_j] = srv_get_joint.response.jointstate.velocity[i];
-			drive_joint_effort_NM[iter_j] = srv_get_joint.response.jointstate.effort[i];
-			iter_j = iter_j + 1;
-		}
-	}
-
-	// Set measured Wheel Velocities and Angles to Controler Class (implements inverse kinematic)
-	ucar_ctrl_->SetActualWheelValues(drive_joint_vel_rads, steer_joint_vel_rads,
-							drive_joint_ang_rad, steer_joint_ang_rad);
-
-}
-*/
 
 // calculates odometry from current measurement values
 // and publishes it via an odometry topic and the tf broadcaster
 void NodeClass::UpdateOdometry()
 {
-	double vel_x_rob_ms, vel_y_rob_ms, rot_rob_rads, delta_x_rob_m, delta_y_rob_m, delta_theta_rob_rad;
+	double vel_x_rob_ms, vel_y_rob_ms, vel_rob_ms, rot_rob_rads, delta_x_rob_m, delta_y_rob_m, delta_theta_rob_rad;
 	double dummy1, dummy2;
 	double dt;
 	ros::Time current_time;
@@ -958,10 +634,18 @@ void NodeClass::UpdateOdometry()
 	current_time = ros::Time::now();
 	dt = current_time.toSec() - last_time_.toSec();
 	last_time_ = current_time;
-	// calculation from ROS odom publisher tutorial http://www.ros.org/wiki/navigation/Tutorials/RobotSetup/Odom
-	x_rob_m_ = x_rob_m_ + (vel_x_rob_ms * cos(theta_rob_rad_) - vel_y_rob_ms * sin(theta_rob_rad_)) * dt;
-	y_rob_m_ = y_rob_m_ + (vel_x_rob_ms * sin(theta_rob_rad_) + vel_y_rob_ms * cos(theta_rob_rad_)) * dt;
+	vel_rob_ms = sqrt(vel_x_rob_ms*vel_x_rob_ms + vel_y_rob_ms*vel_y_rob_ms);
+
+	// calculation from ROS odom publisher tutorial http://www.ros.org/wiki/navigation/Tutorials/RobotSetup/Odom, using now midpoint integration
+	x_rob_m_ = x_rob_m_ + ((vel_x_rob_ms+vel_x_rob_last_)/2.0 * cos(theta_rob_rad_) - (vel_y_rob_ms+vel_y_rob_last_)/2.0 * sin(theta_rob_rad_)) * dt;
+	y_rob_m_ = y_rob_m_ + ((vel_x_rob_ms+vel_x_rob_last_)/2.0 * sin(theta_rob_rad_) + (vel_y_rob_ms+vel_y_rob_last_)/2.0 * cos(theta_rob_rad_)) * dt;
 	theta_rob_rad_ = theta_rob_rad_ + rot_rob_rads * dt;
+	//theta_rob_rad_ = theta_rob_rad_ + (rot_rob_rads+vel_theta_rob_last_)/2.0 * dt;
+	
+	vel_x_rob_last_ = vel_x_rob_ms;
+	vel_y_rob_last_ = vel_y_rob_ms;
+	vel_theta_rob_last_ = rot_rob_rads;
+
 
 	// format data for compatibility with tf-package and standard odometry msg
 	// generate quaternion for rotation
@@ -970,7 +654,7 @@ void NodeClass::UpdateOdometry()
 	// compose and publish transform for tf package
 	geometry_msgs::TransformStamped odom_tf;
 	// compose header
-	odom_tf.header.stamp = current_time;
+	odom_tf.header.stamp = joint_state_odom_stamp_;
 	odom_tf.header.frame_id = "/wheelodom";
 	odom_tf.child_frame_id = "/base_footprint";
 	// compose data container
@@ -982,7 +666,7 @@ void NodeClass::UpdateOdometry()
     // compose and publish odometry message as topic
     nav_msgs::Odometry odom_top;
 	// compose header
-    odom_top.header.stamp = current_time;
+    odom_top.header.stamp = joint_state_odom_stamp_;
     odom_top.header.frame_id = "/wheelodom";
     odom_top.child_frame_id = "/base_footprint";
     // compose pose of robot
@@ -1002,9 +686,6 @@ void NodeClass::UpdateOdometry()
     odom_top.twist.twist.angular.z = rot_rob_rads;
     for(int i = 0; i < 6; i++)
       odom_top.twist.covariance[6*i+i] = 0.1;
-	// publish data
-	// publish the transform
-	//tf_broadcast_odometry_.sendTransform(odom_tf);
 	
 	if (fabs(vel_x_rob_ms) > 0.005 or fabs(vel_y_rob_ms) > 0.005 or fabs(rot_rob_rads) > 0.005)
 	{
@@ -1014,7 +695,14 @@ void NodeClass::UpdateOdometry()
 	{
 		is_moving_ = false;
 	}
+
+	// publish the transform (for debugging, conflicts with robot-pose-ekf)
+	// tf_broadcast_odometry_.sendTransform(odom_tf);
 	
 	// publish odometry msg
 	topic_pub_odometry_.publish(odom_top);
 }
+
+
+
+
