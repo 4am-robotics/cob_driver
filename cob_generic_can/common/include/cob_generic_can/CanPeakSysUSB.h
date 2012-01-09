@@ -56,14 +56,16 @@
 //-----------------------------------------------
 #include <cob_generic_can/CanItf.h>
 #include <libpcan/libpcan.h>
-#include <cob_utilities/IniFile.h>
+
+#include <cstring>
+#include <string>
 //-----------------------------------------------
 
 class CANPeakSysUSB : public CanItf
 {
 public:
 	// --------------- Interface
-	CANPeakSysUSB(const char* cIniFile);
+	CANPeakSysUSB(std::string sDevicePath, int iBaudrateVal);
 	~CANPeakSysUSB();
 	void init();
 	void destroy() {};
@@ -77,7 +79,7 @@ private:
 	HANDLE m_handle;
 	
 	bool m_bInitialized;
-	IniFile m_IniFile;
+	std::string m_sDevicePath;
 	bool m_bSimuEnabled;
 	int m_iBaudrateVal;
 
