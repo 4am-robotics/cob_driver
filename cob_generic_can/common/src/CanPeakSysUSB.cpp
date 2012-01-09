@@ -52,8 +52,8 @@
  ****************************************************************/
 
 //#define __DEBUG__
-
 #include <cob_generic_can/CanPeakSysUSB.h>
+
 #include <stdlib.h>
 #include <cerrno>
 #include <sys/types.h>
@@ -61,13 +61,13 @@
 #include <fcntl.h>
 //-----------------------------------------------
 
-CANPeakSysUSB::CANPeakSysUSB(std::string sDevicePath, int iBaudrateVal)
+CANPeakSysUSB::CANPeakSysUSB(CanDeviceParams can_device_params)
 {
 	m_bInitialized = false;
 	
-	m_sDevicePath = sDevicePath;
+	m_sDevicePath = can_device_params.sDevicePath;
 	if(m_sDevicePath == "") m_sDevicePath = "/dev/pcan32";
-	m_iBaudrateVal = iBaudrateVal;
+	m_iBaudrateVal = can_device_params.iBaudrateVal;
 
 	init();
 }

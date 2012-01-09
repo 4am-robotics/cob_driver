@@ -14,11 +14,11 @@
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
- * Author: Christian Connette, email:christian.connette@ipa.fhg.de
+ * Author: Philipp Köhler
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
- * Date of creation: Feb 2009
- * ToDo: Remove dependency to inifiles_old -> Inifile.h
+ * Date of creation: Jan 2012
+ * ToDo:
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
@@ -51,44 +51,28 @@
  *
  ****************************************************************/
 
-#ifndef CANPEAKSYSUSB_INCLUDEDEF_H
-#define CANPEAKSYSUSB_INCLUDEDEF_H
+#ifndef CANDEVICEPARAMS_INCLUDEDEF_H
+#define CANDEVICEPARAMS_INCLUDEDEF_H
 //-----------------------------------------------
-#include <cob_generic_can/CanItf.h>
-#include <cob_generic_can/CanDeviceParams.h>
-#include <libpcan/libpcan.h>
+#include <cstring>
+#include <string>
 
 //-----------------------------------------------
-
-class CANPeakSysUSB : public CanItf
-{
+class CanDeviceParams {
 public:
-	// --------------- Interface
-	CANPeakSysUSB(CanDeviceParams can_device_params);
-	~CANPeakSysUSB();
-	void init();
-	void destroy() {};
-	bool transmitMsg(CanMsg CMsg, bool bBlocking = true);
-	bool receiveMsg(CanMsg* pCMsg);
-	bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry);
-	bool isObjectMode() { return false; }
-
-private:
-	// --------------- Types
-	HANDLE m_handle;
+	CanDeviceParams() {
+		sDevicePath = "";
+		iBaudrateVal = 0;
+	};
+	CanDeviceParams(std::string DevicePath, int BaudrateVal) {
+		sDevicePath = DevicePath;
+		iBaudrateVal = BaudrateVal;
+	}
 	
-	bool m_bInitialized;
-	std::string m_sDevicePath;
-	bool m_bSimuEnabled;
-	int m_iBaudrateVal;
-
-	static const int c_iInterrupt;
-	static const int c_iPort;
-	
-	bool initCAN();
-	
-	void outputDetailedStatus();
+	std::string sDevicePath;
+	int iBaudrateVal;
 };
+
 //-----------------------------------------------
 #endif
 

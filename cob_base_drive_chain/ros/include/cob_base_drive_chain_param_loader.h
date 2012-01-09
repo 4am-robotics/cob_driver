@@ -1,6 +1,6 @@
 /****************************************************************
  *
- * Copyright (c) 2010
+ * Copyright (c) 2012
  *
  * Fraunhofer Institute for Manufacturing Engineering	
  * and Automation (IPA)
@@ -8,17 +8,17 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob_drivers
- * ROS package name: cob_generic_can
+ * ROS stack name: cob_intern
+ * ROS package name: cob_base_drive_chain
  * Description:
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
- * Author: Christian Connette, email:christian.connette@ipa.fhg.de
+ * Author: Philipp Koehler
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
- * Date of creation: Feb 2009
- * ToDo: Remove dependency to inifiles_old -> Inifile.h
+ * Date of creation: Jan 2012
+ * ToDo: 
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
@@ -51,44 +51,26 @@
  *
  ****************************************************************/
 
-#ifndef CANPEAKSYSUSB_INCLUDEDEF_H
-#define CANPEAKSYSUSB_INCLUDEDEF_H
-//-----------------------------------------------
-#include <cob_generic_can/CanItf.h>
-#include <cob_generic_can/CanDeviceParams.h>
-#include <libpcan/libpcan.h>
+#ifndef BASE_DRIVE_CHAIN_PARAM_LOADER_INCLUDEDEF_H
+#define BASE_DRIVE_CHAIN_PARAM_LOADER_INCLUDEDEF_H
 
-//-----------------------------------------------
+#include <ros/ros.h>
 
-class CANPeakSysUSB : public CanItf
-{
+#include <cob_base_drive_chain/PlatformParams.h>
+
+
+class cob_base_drive_chain_param_loader {
 public:
-	// --------------- Interface
-	CANPeakSysUSB(CanDeviceParams can_device_params);
-	~CANPeakSysUSB();
-	void init();
-	void destroy() {};
-	bool transmitMsg(CanMsg CMsg, bool bBlocking = true);
-	bool receiveMsg(CanMsg* pCMsg);
-	bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry);
-	bool isObjectMode() { return false; }
+	cob_base_drive_chain_param_loader();
+	~cob_base_drive_chain_param_loader();
+	
+	bool read_configuration(ros::NodeHandle * n, std::string node_name);
+	
+	PlatformParams get_platform_params;
 
 private:
-	// --------------- Types
-	HANDLE m_handle;
-	
-	bool m_bInitialized;
-	std::string m_sDevicePath;
-	bool m_bSimuEnabled;
-	int m_iBaudrateVal;
-
-	static const int c_iInterrupt;
-	static const int c_iPort;
-	
-	bool initCAN();
-	
-	void outputDetailedStatus();
+	PlatformParams params;
 };
-//-----------------------------------------------
+
 #endif
 

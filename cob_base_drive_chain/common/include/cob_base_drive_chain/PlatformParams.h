@@ -1,6 +1,6 @@
 /****************************************************************
  *
- * Copyright (c) 2010
+ * Copyright (c) 2012
  *
  * Fraunhofer Institute for Manufacturing Engineering	
  * and Automation (IPA)
@@ -9,16 +9,16 @@
  *
  * Project name: care-o-bot
  * ROS stack name: cob_drivers
- * ROS package name: cob_generic_can
- * Description:
+ * ROS package name: cob_base_drive_chain
+ * Description: This is a sample implementation of a can-bus with several nodes. In this case it implements the drive-chain of the Care-O-bot3 mobile base. yet, this can be used as template for using the generic_can and canopen_motor packages to implement arbitrary can-setups.
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
- * Author: Christian Connette, email:christian.connette@ipa.fhg.de
+ * Author: Philipp Koehler
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
- * Date of creation: Feb 2009
- * ToDo: Remove dependency to inifiles_old -> Inifile.h
+ * Date of creation: Jan 2012
+ * ToDo:
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
@@ -51,44 +51,36 @@
  *
  ****************************************************************/
 
-#ifndef CANPEAKSYSUSB_INCLUDEDEF_H
-#define CANPEAKSYSUSB_INCLUDEDEF_H
+#ifndef PLATFORMPARAMS_INCLUDEDEF_H
+#define PLATFORMPARAMS_INCLUDEDEF_H
+
 //-----------------------------------------------
-#include <cob_generic_can/CanItf.h>
+
+// general includes
+#include <cob_base_drive_chain/CanCtrlPltfTypes.h>
 #include <cob_generic_can/CanDeviceParams.h>
-#include <libpcan/libpcan.h>
+#include <cob_canopen_motor/DriveParams.h>
 
-//-----------------------------------------------
-
-class CANPeakSysUSB : public CanItf
-{
+class PlatformParams {
 public:
-	// --------------- Interface
-	CANPeakSysUSB(CanDeviceParams can_device_params);
-	~CANPeakSysUSB();
-	void init();
-	void destroy() {};
-	bool transmitMsg(CanMsg CMsg, bool bBlocking = true);
-	bool receiveMsg(CanMsg* pCMsg);
-	bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry);
-	bool isObjectMode() { return false; }
-
-private:
-	// --------------- Types
-	HANDLE m_handle;
+	PlatformParams();
+	~PlatformParams();
 	
-	bool m_bInitialized;
-	std::string m_sDevicePath;
-	bool m_bSimuEnabled;
-	int m_iBaudrateVal;
-
-	static const int c_iInterrupt;
-	static const int c_iPort;
+	CanDeviceParams can_device_params;
 	
-	bool initCAN();
+	CanOpenIDType canopen_ids;
 	
-	void outputDetailedStatus();
+	DriveParam drive_param_w1_drive;
+	DriveParam drive_param_w1_steer;
+	DriveParam drive_param_w2_drive;
+	DriveParam drive_param_w2_steer;
+	DriveParam drive_param_w3_drive;
+	DriveParam drive_param_w3_steer;
+	DriveParam drive_param_w4_drive;
+	DriveParam drive_param_w4_steer;
+	
+	
 };
-//-----------------------------------------------
 #endif
+
 

@@ -66,9 +66,11 @@
 
 //-----------------------------------------------
 
-CanCtrlPltfCOb3::CanCtrlPltfCOb3(std::string iniDirectory)
+CanCtrlPltfCOb3::CanCtrlPltfCOb3(std::string iniDirectory,PlatformParams platform_parameters)
 {	
 	sIniDirectory = iniDirectory;
+	m_PlatformParams = platform_parameters;
+	
 	IniFile iniFile;
 	iniFile.SetFileName(sIniDirectory + "Platform.ini", "PltfHardwareCoB3.h");
 
@@ -260,23 +262,10 @@ void CanCtrlPltfCOb3::readConfiguration()
 	std::string strTypeSteer;
 
 	double dScaleToMM;
-
-	// read Platform.ini (Coupling of Drive/Steer for Homing)
-	m_IniFile.SetFileName(sIniDirectory + "Platform.ini", "CanCtrlPltfCOb3.cpp");
-
-	m_IniFile.GetKeyInt("Geom", "RadiusWheel", &m_Param.iRadiusWheelMM, true);
-	m_IniFile.GetKeyInt("Geom", "DistSteerAxisToDriveWheelCenter", &m_Param.iDistSteerAxisToDriveWheelMM, true);
-
-	if(m_iNumDrives >= 1)
-		m_IniFile.GetKeyDouble("DrivePrms", "Wheel1SteerDriveCoupling", &m_Param.dWheel1SteerDriveCoupling, true);
-	if(m_iNumDrives >= 2)
-		m_IniFile.GetKeyDouble("DrivePrms", "Wheel2SteerDriveCoupling", &m_Param.dWheel2SteerDriveCoupling, true);
-	if(m_iNumDrives >= 3)
-		m_IniFile.GetKeyDouble("DrivePrms", "Wheel3SteerDriveCoupling", &m_Param.dWheel3SteerDriveCoupling, true);
-	if(m_iNumDrives == 4)
-		m_IniFile.GetKeyDouble("DrivePrms", "Wheel4SteerDriveCoupling", &m_Param.dWheel4SteerDriveCoupling, true);
-
-
+	
+	m_pCanCtrl = new CANPeakSysUSB(m_PlatformParams.can_device_params);
+	
+	/*
 	// read CanCtrl.ini
 	m_IniFile.SetFileName(sIniDirectory + "CanCtrl.ini", "CanCtrlPltfCOb3.cpp");
 
@@ -305,6 +294,23 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_pCanCtrl = new CanESD(sComposed.c_str(), false);
 		std::cout << "Uses CAN-ESD-card" << std::endl;
 	}
+	*/
+
+	// read Platform.ini (Coupling of Drive/Steer for Homing)
+	m_IniFile.SetFileName(sIniDirectory + "Platform.ini", "CanCtrlPltfCOb3.cpp");
+
+	m_IniFile.GetKeyInt("Geom", "RadiusWheel", &m_Param.iRadiusWheelMM, true);
+	m_IniFile.GetKeyInt("Geom", "DistSteerAxisToDriveWheelCenter", &m_Param.iDistSteerAxisToDriveWheelMM, true);
+
+	if(m_iNumDrives >= 1)
+		m_IniFile.GetKeyDouble("DrivePrms", "Wheel1SteerDriveCoupling", &m_Param.dWheel1SteerDriveCoupling, true);
+	if(m_iNumDrives >= 2)
+		m_IniFile.GetKeyDouble("DrivePrms", "Wheel2SteerDriveCoupling", &m_Param.dWheel2SteerDriveCoupling, true);
+	if(m_iNumDrives >= 3)
+		m_IniFile.GetKeyDouble("DrivePrms", "Wheel3SteerDriveCoupling", &m_Param.dWheel3SteerDriveCoupling, true);
+	if(m_iNumDrives == 4)
+		m_IniFile.GetKeyDouble("DrivePrms", "Wheel4SteerDriveCoupling", &m_Param.dWheel4SteerDriveCoupling, true);
+
 
 	// CanOpenId's ----- Default values (DESIRE)
 	// Wheel 1
