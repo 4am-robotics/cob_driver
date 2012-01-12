@@ -57,29 +57,34 @@
 //-----------------------------------------------
 
 // general includes
+#include <vector>
 #include <cob_base_drive_chain/CanCtrlPltfTypes.h>
 #include <cob_generic_can/CanDeviceParams.h>
-#include <cob_canopen_motor/DriveParams.h>
+#include <cob_canopen_motor/DriveParam.h>
 
 class PlatformParams {
 public:
-	PlatformParams();
-	~PlatformParams();
+	PlatformParams() {};
+	~PlatformParams() {};
 	
+	//CAN-device parameters
 	CanDeviceParams can_device_params;
 	
+	
+	//general parameters
+	int num_wheels;
+	double max_drive_rate_rad_s; 
+	double max_steer_rate_rad_s; 
+		
+	ParamType platform_config;
+	
+	//parameters for each wheel	
 	CanOpenIDType canopen_ids;
 	
-	DriveParam drive_param_w1_drive;
-	DriveParam drive_param_w1_steer;
-	DriveParam drive_param_w2_drive;
-	DriveParam drive_param_w2_steer;
-	DriveParam drive_param_w3_drive;
-	DriveParam drive_param_w3_steer;
-	DriveParam drive_param_w4_drive;
-	DriveParam drive_param_w4_steer;
-	
-	
+	std::vector<GearMotorParamType> drive_param_drive;
+	std::vector<GearMotorParamType> drive_param_steer;
+	std::vector<double> steer_drive_coupling;
+	std::vector<double> wheel_neutral_pos;
 };
 #endif
 

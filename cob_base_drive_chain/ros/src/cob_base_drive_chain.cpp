@@ -76,9 +76,10 @@
 
 
 // external includes
+#include <cob_base_drive_chain_param_loader.h>
+#include <cob_base_drive_chain/PlatformParams.h>
 #include <cob_base_drive_chain/CanCtrlPltfCOb3.h>
-#include <cob_base_drive_chain/cob_base_drive_chain_param_loader.h>
-#include <cob_utilities/IniFile.h>
+//#include <cob_utilities/IniFile.h>
 #include <cob_utilities/MathSup.h>
 
 //####################
@@ -181,9 +182,8 @@ class NodeClass
 		CanCtrlPltfCOb3 *m_CanCtrlPltf;
 #endif
 		bool m_bisInitialized;
-		int m_iNumMotors;
-		int m_iNumDrives;
 
+		/*
 		struct ParamType
 		{ 
 			double dMaxDriveRateRadpS;
@@ -192,14 +192,27 @@ class NodeClass
 			std::vector<double> vdWheelNtrlPosRad;
 		};
 		ParamType m_Param;
+		*/
 		
 		std::string sIniDirectory;
+		int m_iNumMotors;
+		int m_iNumDrives;
+		
+		cob_base_drive_chain_param_loader * param_loader;
+		PlatformParams platform_parameters;
 		bool m_bPubEffort;
 		bool m_bReadoutElmo;
 
 		// Constructor
 		NodeClass()
 		{
+			param_loader = new cob_base_drive_chain_param_loader(&n);
+			
+			param_loader->get_platform_params();
+			m_iNumDrives = platform_parameters.num_wheels;
+			m_iNumMotors = m_iNumDrives * 2;
+
+			/*
 			/// Parameters are set within the launch file
 			// Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
 			if (n.hasParam("IniDirectory"))
@@ -212,11 +225,12 @@ class NodeClass
 				sIniDirectory = "Platform/IniFiles/";
 				ROS_WARN("IniDirectory not found on Parameter-Server, using default value: %s", sIniDirectory.c_str());
 			}
+			*/
 
 			n.param<bool>("PublishEffort", m_bPubEffort, false);
 			if(m_bPubEffort) ROS_INFO("You have choosen to publish effort of motors, that charges capacity of CAN");
 			
-			
+			/*
 			IniFile iniFile;
 			iniFile.SetFileName(sIniDirectory + "Platform.ini", "PltfHardwareCoB3.h");
 
@@ -227,6 +241,7 @@ class NodeClass
 				m_iNumMotors = 8;
 				m_iNumDrives = 4;
 			}
+			*/
 			
 #ifdef __SIM__
 			bl_caster_pub = n.advertise<std_msgs::Float64>("/base_bl_caster_r_wheel_controller/command", 1);
@@ -243,7 +258,7 @@ class NodeClass
 			m_gazeboPos.resize(m_iNumMotors);
 			m_gazeboVel.resize(m_iNumMotors);
 #else
-			m_CanCtrlPltf = new CanCtrlPltfCOb3(sIniDirectory);
+			m_CanCtrlPltf = new CanCtrlPltfCOb3(platform_parameters);
 #endif
 			
 			// implementation of topics
@@ -369,25 +384,25 @@ class NodeClass
 					// for steering motors
 					if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
 					{
-						if (JointStateCmd.velocity[i] > m_Param.dMaxSteerRateRadpS)
+						if (JointStateCmd.velocity[i] > platform_parameters.max_steer_rate_rad_s)
 						{
-							JointStateCmd.velocity[i] = m_Param.dMaxSteerRateRadpS;
+							JointStateCmd.velocity[i] = platform_parameters.max_steer_rate_rad_s;
 						}
-						if (JointStateCmd.velocity[i] < -m_Param.dMaxSteerRateRadpS)
+						if (JointStateCmd.velocity[i] < -platform_parameters.max_steer_rate_rad_s)
 						{
-							JointStateCmd.velocity[i] = -m_Param.dMaxSteerRateRadpS;
+							JointStateCmd.velocity[i] = -platform_parameters.max_steer_rate_rad_s;
 						}
 					}
 					// for driving motors
 					else
 					{
-						if (JointStateCmd.velocity[i] > m_Param.dMaxDriveRateRadpS)
+						if (JointStateCmd.velocity[i] > platform_parameters.max_drive_rate_rad_s)
 						{
-							JointStateCmd.velocity[i] = m_Param.dMaxDriveRateRadpS;
+							JointStateCmd.velocity[i] = platform_parameters.max_drive_rate_rad_s;
 						}
-						if (JointStateCmd.velocity[i] < -m_Param.dMaxDriveRateRadpS)
+						if (JointStateCmd.velocity[i] < -platform_parameters.max_drive_rate_rad_s)
 						{
-							JointStateCmd.velocity[i] = -m_Param.dMaxDriveRateRadpS;
+							JointStateCmd.velocity[i] = -platform_parameters.max_drive_rate_rad_s;
 						}
 					}
 #endif
@@ -644,7 +659,7 @@ class NodeClass
    					if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
 					{
 						// correct for initial offset of steering angle (arbitrary homing position)
-						vdAngGearRad[i] += m_Param.vdWheelNtrlPosRad[j];
+						vdAngGearRad[i] += platform_parameters.wheel_neutral_pos.at(j);
 						MathSup::normalizePi(vdAngGearRad[i]);
 						j = j+1;
 					}
@@ -840,8 +855,9 @@ bool NodeClass::initDrives()
 {
 	ROS_INFO("Initializing Base Drive Chain");
 
+	/*
 	// init member vectors
-	m_Param.vdWheelNtrlPosRad.assign((m_iNumDrives),0);
+	//m_Param.vdWheelNtrlPosRad.assign((m_iNumDrives),0);
 //	m_Param.vdWheelNtrlPosRad.assign(4,0);
 	// ToDo: replace the following steps by ROS configuration files
 	// create Inifile class and set target inifile (from which data shall be read)
@@ -853,18 +869,20 @@ bool NodeClass::initDrives()
 	// get max Joint-Velocities (in rad/s) for Steer- and Drive-Joint
 	iniFile.GetKeyDouble("DrivePrms", "MaxDriveRate", &m_Param.dMaxDriveRateRadpS, true);
 	iniFile.GetKeyDouble("DrivePrms", "MaxSteerRate", &m_Param.dMaxSteerRateRadpS, true);
+	*/
 
 #ifdef __SIM__
 	// get Offset from Zero-Position of Steering
 	if(m_iNumDrives >=1)
-		m_Param.vdWheelNtrlPosRad[0] = 0.0f;
+		platform_parameters.wheel_neutral_pos.at(0) = 0.0f;
 	if(m_iNumDrives >=2)
-		m_Param.vdWheelNtrlPosRad[1] = 0.0f;
+		platform_parameters.wheel_neutral_pos.at(1) = 0.0f;
 	if(m_iNumDrives >=3)
-		m_Param.vdWheelNtrlPosRad[2] = 0.0f;
+		platform_parameters.wheel_neutral_pos.at(2) = 0.0f;
 	if(m_iNumDrives >=4)
-		m_Param.vdWheelNtrlPosRad[3] = 0.0f;
+		platform_parameters.wheel_neutral_pos.at(3) = 0.0f;
 #else
+	/*
 	// get Offset from Zero-Position of Steering
 	if(m_iNumDrives >=1)
 		iniFile.GetKeyDouble("DrivePrms", "Wheel1NeutralPosition", &m_Param.vdWheelNtrlPosRad[0], true);
@@ -880,6 +898,7 @@ bool NodeClass::initDrives()
 	{
 		m_Param.vdWheelNtrlPosRad[i] = MathSup::convDegToRad(m_Param.vdWheelNtrlPosRad[i]);
 	}
+	*/
 #endif
 
 	// debug log

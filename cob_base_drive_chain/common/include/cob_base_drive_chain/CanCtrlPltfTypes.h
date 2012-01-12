@@ -76,13 +76,15 @@ struct ParamType
 
 	int iRadiusWheelMM;
 	int iDistSteerAxisToDriveWheelMM;
-
+	
+	/*
 	int iHasRelayBoard;
 	int iHasIOBoard;
 	int iHasUSBoard;
 	int iHasGyroBoard;
 	int iHasRadarBoard;
-
+	*/	
+	
 	double dCanTimeout;
 };
 

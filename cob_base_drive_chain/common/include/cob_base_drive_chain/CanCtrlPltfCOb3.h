@@ -91,7 +91,7 @@ public:
 	/** 
 	 * Default constructor.
 	 */
-	CanCtrlPltfCOb3(std::string iniDirectory, PlatformParams platform_parameters);
+	CanCtrlPltfCOb3(PlatformParams platform_parameters);
 
 	/**
 	 * Default destructor.

@@ -61,14 +61,17 @@
 
 class cob_base_drive_chain_param_loader {
 public:
-	cob_base_drive_chain_param_loader();
-	~cob_base_drive_chain_param_loader();
+	cob_base_drive_chain_param_loader(ros::NodeHandle * node_handle);
+	~cob_base_drive_chain_param_loader() {};
 	
-	bool read_configuration(ros::NodeHandle * n, std::string node_name);
+
 	
-	PlatformParams get_platform_params;
+	PlatformParams get_platform_params();
 
 private:
+	void read_configuration();
+	
+	ros::NodeHandle * n;
 	PlatformParams params;
 };
 
