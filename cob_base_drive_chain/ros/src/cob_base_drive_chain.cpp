@@ -171,17 +171,9 @@ class NodeClass
 		ros::Publisher fr_caster_pub;
 		ros::Publisher fl_caster_pub;
 		
-		ros::Subscriber br_steer_sub;
-		ros::Subscriber bl_steer_sub;
-		ros::Subscriber fr_steer_sub;
-		ros::Subscriber fl_steer_sub;
-		ros::Subscriber br_caster_sub;
-		ros::Subscriber bl_caster_sub;
-		ros::Subscriber fr_caster_sub;
-		ros::Subscriber fl_caster_sub;
-		
 		std::vector<double> m_gazeboPos;
 		std::vector<double> m_gazeboVel;
+		ros::Time m_gazeboStamp;
 
 		ros::Subscriber topicSub_GazeboJointStates;
 #else
@@ -207,13 +199,6 @@ class NodeClass
 		// Constructor
 		NodeClass()
 		{
-			// initialization of variables
-#ifdef __SIM__
-			m_bisInitialized = initDrives();
-#else
-			m_bisInitialized = false;
-#endif
-
 			/// Parameters are set within the launch file
 			// Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
 			if (n.hasParam("IniDirectory"))
@@ -252,15 +237,6 @@ class NodeClass
 			fl_steer_pub = n.advertise<std_msgs::Float64>("/base_fl_caster_rotation_controller/command", 1);
 			fr_steer_pub = n.advertise<std_msgs::Float64>("/base_fr_caster_rotation_controller/command", 1);
 
-			bl_caster_sub = n.subscribe("/base_bl_caster_r_wheel_controller/state", 1, &NodeClass::gazebo_bl_caster_Callback, this);
-			br_caster_sub = n.subscribe("/base_br_caster_r_wheel_controller/state", 1, &NodeClass::gazebo_br_caster_Callback, this);
-			fl_caster_sub = n.subscribe("/base_fl_caster_r_wheel_controller/state", 1, &NodeClass::gazebo_fl_caster_Callback, this);
-			fr_caster_sub = n.subscribe("/base_fr_caster_r_wheel_controller/state", 1, &NodeClass::gazebo_fr_caster_Callback, this);
-			bl_steer_sub = n.subscribe("/base_bl_caster_rotation_controller/state", 1, &NodeClass::gazebo_bl_steer_Callback, this);
-			br_steer_sub = n.subscribe("/base_br_caster_rotation_controller/state", 1, &NodeClass::gazebo_br_steer_Callback, this);
-			fl_steer_sub = n.subscribe("/base_fl_caster_rotation_controller/state", 1, &NodeClass::gazebo_fl_steer_Callback, this);
-			fr_steer_sub = n.subscribe("/base_fr_caster_rotation_controller/state", 1, &NodeClass::gazebo_fr_steer_Callback, this);
-
 			topicSub_GazeboJointStates = n.subscribe("/joint_states", 1, &NodeClass::gazebo_joint_states_Callback, this);
 			
 			m_gazeboPos.resize(m_iNumMotors);
@@ -287,6 +263,14 @@ class NodeClass
 
 			srvServer_Recover = n.advertiseService("recover", &NodeClass::srvCallback_Recover, this);
 			srvServer_Shutdown = n.advertiseService("shutdown", &NodeClass::srvCallback_Shutdown, this);
+			
+			// initialization of variables
+#ifdef __SIM__
+			m_bisInitialized = initDrives();
+#else
+			m_bisInitialized = false;
+#endif
+
 		}
 
 		// Destructor
@@ -326,19 +310,19 @@ class NodeClass
 							JointStateCmd.velocity[0] = msg->desired.velocities[i];
 							//JointStateCmd.effort[0] = msg->effort[i];
 					}
-					else if(msg->joint_names[i] ==  "bl_caster_r_wheel_joint")
+					else if(m_iNumDrives>=2 && msg->joint_names[i] ==  "bl_caster_r_wheel_joint")
 					{
 							JointStateCmd.position[2] = msg->desired.positions[i];
 							JointStateCmd.velocity[2] = msg->desired.velocities[i];
 							//JointStateCmd.effort[2] = msg->effort[i];
 					}
-					else if(msg->joint_names[i] ==  "br_caster_r_wheel_joint")
+					else if(m_iNumDrives>=3 && msg->joint_names[i] ==  "br_caster_r_wheel_joint")
 					{
 							JointStateCmd.position[4] = msg->desired.positions[i];
 							JointStateCmd.velocity[4] = msg->desired.velocities[i];
 							//JointStateCmd.effort[4] = msg->effort[i];
 					}
-					else if(msg->joint_names[i] ==  "fr_caster_r_wheel_joint")
+					else if(m_iNumDrives>=4 && msg->joint_names[i] ==  "fr_caster_r_wheel_joint")
 					{
 							JointStateCmd.position[6] = msg->desired.positions[i];
 							JointStateCmd.velocity[6] = msg->desired.velocities[i];
@@ -351,19 +335,19 @@ class NodeClass
 							JointStateCmd.velocity[1] = msg->desired.velocities[i];
 							//JointStateCmd.effort[1] = msg->effort[i];
 					}
-					else if(msg->joint_names[i] ==  "bl_caster_rotation_joint")
+					else if(m_iNumDrives>=2 && msg->joint_names[i] ==  "bl_caster_rotation_joint")
 					{ 
 							JointStateCmd.position[3] = msg->desired.positions[i];
 							JointStateCmd.velocity[3] = msg->desired.velocities[i];
 							//JointStateCmd.effort[3] = msg->effort[i];
 					}
-					else if(msg->joint_names[i] ==  "br_caster_rotation_joint")
+					else if(m_iNumDrives>=3 && msg->joint_names[i] ==  "br_caster_rotation_joint")
 					{
 							JointStateCmd.position[5] = msg->desired.positions[i];
 							JointStateCmd.velocity[5] = msg->desired.velocities[i];
 							//JointStateCmd.effort[5] = msg->effort[i];
 					}
-					else if(msg->joint_names[i] ==  "fr_caster_rotation_joint")
+					else if(m_iNumDrives>=4 && msg->joint_names[i] ==  "fr_caster_rotation_joint")
 					{
 							JointStateCmd.position[7] = msg->desired.positions[i];
 							JointStateCmd.velocity[7] = msg->desired.velocities[i];
@@ -406,9 +390,6 @@ class NodeClass
 						}
 					}
 #endif
-
-					// and cmd velocities to Can-Nodes
-					//m_CanCtrlPltf->setVelGearRadS(iCanIdent, dVelEncRadS);
 #ifdef __SIM__
 					ROS_DEBUG("Send velocity data to gazebo");
 					std_msgs::Float64 fl;
@@ -569,7 +550,6 @@ class NodeClass
 		//publish JointStates cyclical instead of service callback
 		bool publish_JointStates()
 		{
-			ROS_DEBUG("Service Callback GetJointState");
 			// init local variables
 			int j, k;
 			bool bIsError;
@@ -586,8 +566,13 @@ class NodeClass
 			pr2_controllers_msgs::JointTrajectoryControllerState controller_state;
 			
 			// get time stamp for header
+#ifdef __SIM__
+			jointstate.header.stamp = m_gazeboStamp;
+			controller_state.header.stamp = m_gazeboStamp;
+#else
 			jointstate.header.stamp = ros::Time::now();
 			controller_state.header.stamp = jointstate.header.stamp;
+#endif
 
 			// assign right size to JointState
 			//jointstate.name.resize(m_iNumMotors);
@@ -654,9 +639,6 @@ class NodeClass
 						}
 					}
 
-
-
-					
    					// if a steering motor was read -> correct for offset
    					if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
 					{
@@ -774,6 +756,7 @@ class NodeClass
 				if(msg->name[i] == "fl_caster_r_wheel_joint") {
 					m_gazeboPos[0] = msg->position[i];
 					m_gazeboVel[0] = msg->velocity[i];
+					m_gazeboStamp = msg->header.stamp;
 				}
 				else if(msg->name[i] == "bl_caster_r_wheel_joint") {
 					m_gazeboPos[2] = msg->position[i];
@@ -806,78 +789,6 @@ class NodeClass
 					m_gazeboVel[7] = msg->velocity[i];
 				}
 			}
-		}
-
-		//!! The following doesn't work, as process value already is velocity, position infos isn't transmitted
-
-		// get pos and vel values for drives and steers from gazebo
-		
-		// DRIVES
-		// fl_caster_r_wheel_joint is JointStateCmd[0]
-		void gazebo_fl_caster_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
-		{
-		/*
-			m_gazeboPos[0] = msg->process_value;
-			m_gazeboVel[0] = msg->process_value_dot;
-		*/
-		}
-		// bl_caster_r_wheel_joint is JointStateCmd[2]
-		void gazebo_bl_caster_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
-		{
-		/*
-			m_gazeboPos[2] = msg->process_value;
-			m_gazeboVel[2] = msg->process_value_dot;
-		*/
-		}
-		// br_caster_r_wheel_joint is JointStateCmd[4]
-		void gazebo_br_caster_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
-		{
-		/*
-			m_gazeboPos[4] = msg->process_value;
-			m_gazeboVel[4] = msg->process_value_dot;
-		*/
-		}
-		// fr_caster_r_wheel_joint is JointStateCmd[6]
-		void gazebo_fr_caster_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
-		{
-		/*
-			m_gazeboPos[6] = msg->process_value;
-			m_gazeboVel[6] = msg->process_value_dot;
-		*/
-		}
-
-		// STEERS		
-		// fl_caster_rotation_joint is JointStateCmd[1]
-		void gazebo_fl_steer_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
-		{
-		/*
-			m_gazeboPos[1] = msg->process_value;
-			m_gazeboVel[1] = msg->process_value_dot;
-		*/
-		}
-		// bl_caster_rotation_joint is JointStateCmd[3]
-		void gazebo_bl_steer_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
-		{
-		/*
-			m_gazeboPos[3] = msg->process_value;
-			m_gazeboVel[3] = msg->process_value_dot;
-		*/
-		}
-		// br_caster_rotation_joint is JointStateCmd[5]
-		void gazebo_br_steer_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
-		{
-		/*
-			m_gazeboPos[5] = msg->process_value;
-			m_gazeboVel[5] = msg->process_value_dot;
-		*/
-		}
-		// fr_caster_rotation_joint is JointStateCmd[7]
-		void gazebo_fr_steer_Callback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
-		{
-		/*
-			m_gazeboPos[7] = msg->process_value;
-			m_gazeboVel[7] = msg->process_value_dot;
-		*/
 		}
 #else
 

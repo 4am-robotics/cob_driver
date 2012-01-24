@@ -146,7 +146,7 @@ bool ScannerSickS300::open(const char* pcPort, int iBaudRate, int iScanId=7)
 	m_SerialIO.setHandshake(SerialIO::HS_NONE);
 	m_SerialIO.setMultiplier(m_dBaudMult);
 	bRetSerial = m_SerialIO.open();
-	m_SerialIO.setTimeout(0.5);
+	m_SerialIO.setTimeout(0.0);
 	m_SerialIO.SetFormat(8, SerialIO::PA_NONE, SerialIO::SB_ONE);
 
     if(bRetSerial == 0)
@@ -190,7 +190,7 @@ void ScannerSickS300::stopScanner()
 
 
 //-----------------------------------------------
-bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<double> &vdAngleRAD, std::vector<double> &vdIntensityAU)
+bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<double> &vdAngleRAD, std::vector<double> &vdIntensityAU, unsigned int &iTimestamp, unsigned int &iTimeNow)
 {
 	bool bRet = false;
 	int i,j;
@@ -198,6 +198,7 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 	int iNumData;
 	int iFirstByteOfHeader;
 	int iFirstByteOfData;
+	unsigned int iTelegramNumber;
 	unsigned int uiReadCRC;
 	unsigned int uiCalcCRC;
 	std::vector<ScanPolarType> vecScanPolar;
@@ -208,12 +209,12 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 	if( iNumRead < m_Param.iDataLength )
 	{
 		// not enough data in queue --> abort reading
-	  	printf("not enough data in queue \n");
+	  	printf("Not enough data in queue, read data at slower rate!\n");
 		return false;
 	}
-
-	// Try to find scan.
-	for(i=0; i<iNumRead; i++)
+	
+	// Try to find scan. Searching backwards in the receive queue.
+	for(i=iNumRead-m_Param.iDataLength; i>=0; i--)
 	{
 		// parse through the telegram until header with correct scan id is found
 		if (
@@ -230,6 +231,19 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 		{
 			// ---- Start bytes found
 			iFirstByteOfHeader = i;
+			
+			//extract time stamp from header:
+			iTimestamp = (m_ReadBuf[i+17]<<24) | (m_ReadBuf[i+16]<<16) | (m_ReadBuf[i+15]<<8) |  (m_ReadBuf[i+14]);
+			iTelegramNumber = (m_ReadBuf[i+19]<<8) |  (m_ReadBuf[i+18]);
+			
+			if(iNumRead-iFirstByteOfHeader > m_Param.iDataLength+4+17) {
+				/*
+				Besides the actual data set we found some parts of the following message.
+				This means we grabbed these during transmission of a new message, let's use that to sync ros time with sick time
+				*/
+				iTimeNow = (m_ReadBuf[i+m_Param.iDataLength+4+17]<<24) | (m_ReadBuf[i+m_Param.iDataLength+4+16]<<16) | (m_ReadBuf[i+m_Param.iDataLength+4+15]<<8) |  (m_ReadBuf[i+m_Param.iDataLength+4+14]);
+			} else iTimeNow = 0;
+			
 			iFirstByteOfData = i + m_Param.iHeaderLength;
 			
 			// check length of transmitted data (see Telegram in .h for reference)
