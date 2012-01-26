@@ -43,7 +43,7 @@ void sendVel(JntArray q_dot)
 	bool nonzero = false;
 	for(int i = 0; i < 7; i++)
 	{
-		if(fabs(q_dot(i)) >= 0.005)
+		if(fabs(q_dot(i)) >= 0.0)
 		{
 			traj.points[0].positions.push_back(VirtualQ(i) + q_dot(i)*horizon);
 			traj.points[0].velocities.push_back(q_dot(i));
