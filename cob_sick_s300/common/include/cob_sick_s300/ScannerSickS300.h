@@ -156,7 +156,7 @@ public:
 
 	void purgeScanBuf();
 
-	bool getScan(std::vector<double> &vdDistanceM, std::vector<double> &vdAngleRAD, std::vector<double> &vdIntensityAU);
+	bool getScan(std::vector<double> &vdDistanceM, std::vector<double> &vdAngleRAD, std::vector<double> &vdIntensityAU, unsigned int &iTimestamp, unsigned int &iTimeNow);
 	//sick_lms.GetSickScan(values, num_values);
 
 	// add sick_lms.GetSickScanResolution();

@@ -966,25 +966,27 @@ void NodeClass::UpdateOdometry()
 	// format data for compatibility with tf-package and standard odometry msg
 	// generate quaternion for rotation
 	geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(theta_rob_rad_);
+	geometry_msgs::Quaternion odom_quat_neg = tf::createQuaternionMsgFromYaw(-theta_rob_rad_);
+	
 
 	// compose and publish transform for tf package
 	geometry_msgs::TransformStamped odom_tf;
 	// compose header
 	odom_tf.header.stamp = current_time;
-	odom_tf.header.frame_id = "/wheelodom";
-	odom_tf.child_frame_id = "/base_footprint";
+	odom_tf.header.frame_id = "/base_footprint";
+	odom_tf.child_frame_id = "/odom";
 	// compose data container
-	odom_tf.transform.translation.x = x_rob_m_;
-	odom_tf.transform.translation.y = y_rob_m_;
+	odom_tf.transform.translation.x = -x_rob_m_ * cos(theta_rob_rad_) - y_rob_m_ * sin(theta_rob_rad_);
+	odom_tf.transform.translation.y = x_rob_m_ * sin(theta_rob_rad_) - y_rob_m_ * cos(theta_rob_rad_);
 	odom_tf.transform.translation.z = 0.0;
-	odom_tf.transform.rotation = odom_quat;
+	odom_tf.transform.rotation = odom_quat_neg;
 
     // compose and publish odometry message as topic
     nav_msgs::Odometry odom_top;
 	// compose header
     odom_top.header.stamp = current_time;
-    odom_top.header.frame_id = "/wheelodom";
-    odom_top.child_frame_id = "/base_footprint";
+    odom_top.header.frame_id = "/odom";
+    //odom_top.child_frame_id = "/base_footprint";
     // compose pose of robot
     odom_top.pose.pose.position.x = x_rob_m_;
     odom_top.pose.pose.position.y = y_rob_m_;
@@ -1004,7 +1006,7 @@ void NodeClass::UpdateOdometry()
       odom_top.twist.covariance[6*i+i] = 0.1;
 	// publish data
 	// publish the transform
-	//tf_broadcast_odometry_.sendTransform(odom_tf);
+	tf_broadcast_odometry_.sendTransform(odom_tf);
 	
 	if (fabs(vel_x_rob_ms) > 0.005 or fabs(vel_y_rob_ms) > 0.005 or fabs(rot_rob_rads) > 0.005)
 	{
@@ -1018,7 +1020,3 @@ void NodeClass::UpdateOdometry()
 	// publish odometry msg
 	topic_pub_odometry_.publish(odom_top);
 }
-
-
-
-
