@@ -208,7 +208,7 @@ class NodeClass
 		{
 			param_loader = new cob_base_drive_chain_param_loader(&n);
 			
-			param_loader->get_platform_params();
+			platform_parameters = param_loader->get_platform_params();
 			ROS_INFO("Successfully loaded platform parameters");
 			
 			m_iNumDrives = platform_parameters.num_wheels;
@@ -823,7 +823,7 @@ int main(int argc, char** argv)
 	NodeClass nodeClass;
 
 	// specify looprate of control-cycle
- 	ros::Rate loop_rate(1); // Hz 
+ 	ros::Rate loop_rate(100); // Hz 
 
 	while(nodeClass.n.ok())
 	{

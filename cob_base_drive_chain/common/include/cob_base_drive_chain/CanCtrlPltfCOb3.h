@@ -70,12 +70,7 @@
 #include <cob_base_drive_chain/PlatformParams.h>
 
 // Headers provided by cob-packages which should be avoided/removed
-#include <cob_utilities/IniFile.h>
 #include <cob_utilities/Mutex.h>
-
-// remove (not supported)
-//#include "stdafx.h"
-
 
 //-----------------------------------------------
 
@@ -257,8 +252,6 @@ protected:
 	 * Reads configuration of can node and components from Inifile
 	 * (should be adapted to use ROS-Parameter file)
 	 */
-	std::string sIniDirectory;
-	std::string sComposed;
 	PlatformParams m_PlatformParams;
 	void readConfiguration();
 
@@ -267,28 +260,9 @@ protected:
 	 */
 	void sendNetStartCanOpen();
 
-
-	//--------------------------------- Types
-	
-	/**
-	 * Parameters of the class CanCtrlPltfCOb3.
-	 */
-
-
 	//--------------------------------- Parameter
-	// ParamType m_Param;
-//	CanNeoIDType m_CanNeoIDParam;
 	CanOpenIDType m_CanOpenIDParam;
 
-	// Prms for all Motor/Gear combos
-	GearMotorParamType m_GearMotDrive1;
-	GearMotorParamType m_GearMotDrive2;
-	GearMotorParamType m_GearMotDrive3;
-	GearMotorParamType m_GearMotDrive4;	
-	GearMotorParamType m_GearMotSteer1;
-	GearMotorParamType m_GearMotSteer2;
-	GearMotorParamType m_GearMotSteer3;
-	GearMotorParamType m_GearMotSteer4;
 
 	//--------------------------------- Variables
 	CanMsg m_CanMsgRec;
@@ -298,7 +272,6 @@ protected:
 	//--------------------------------- Components
 	// Can-Interface
 	CanItf* m_pCanCtrl;
-	IniFile m_IniFile;
 
 	int m_iNumMotors;
 	int m_iNumDrives;
@@ -306,13 +279,7 @@ protected:
 	// Motor-Controllers
 	// pointer to each motors Can-Itf
 	std::vector<CanDriveItf*> m_vpMotor;
-	// vector with enums (specifying hardware-structure) -> simplifies cmd-check
-	// this has to be adapted in c++ file to your hardware
 	std::vector<int> m_viMotorID;
-
-	// other
-
-
 };
 
 
