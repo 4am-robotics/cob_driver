@@ -276,7 +276,7 @@ protected:
 
 
 	//--------------------------------- Parameter
-	ParamType m_Param;
+	// ParamType m_Param;
 //	CanNeoIDType m_CanNeoIDParam;
 	CanOpenIDType m_CanOpenIDParam;
 
@@ -304,14 +304,6 @@ protected:
 	int m_iNumDrives;
 
 	// Motor-Controllers
-/*	CanDriveItf* m_pW1DriveMotor;
-	CanDriveItf* m_pW1SteerMotor;
-	CanDriveItf* m_pW2DriveMotor;
-	CanDriveItf* m_pW2SteerMotor;
-	CanDriveItf* m_pW3DriveMotor;
-	CanDriveItf* m_pW3SteerMotor;
-	CanDriveItf* m_pW4DriveMotor;
-	CanDriveItf* m_pW4SteerMotor;*/
 	// pointer to each motors Can-Itf
 	std::vector<CanDriveItf*> m_vpMotor;
 	// vector with enums (specifying hardware-structure) -> simplifies cmd-check

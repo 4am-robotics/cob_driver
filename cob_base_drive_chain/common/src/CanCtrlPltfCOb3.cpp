@@ -121,7 +121,7 @@ CanCtrlPltfCOb3::CanCtrlPltfCOb3(PlatformParams platform_parameters)
 		m_viMotorID[7] = CANNODE_WHEEL4STEERMOTOR;
 
 	// ------------- parameters
-	m_Param.dCanTimeout = m_PlatformParams.platform_config.dCanTimeout;
+	// m_Param.dCanTimeout = m_PlatformParams.platform_config.dCanTimeout;
 
 	/*
 	if(m_iNumMotors >= 1)
@@ -231,6 +231,8 @@ CanCtrlPltfCOb3::CanCtrlPltfCOb3(PlatformParams platform_parameters)
 		m_CanOpenIDParam.RxSDO_W4Steer = 0x605;
 	}
 	*/
+	
+	std::cout << "  CHECK 1" << std::endl;
 }
 
 //-----------------------------------------------
@@ -256,8 +258,8 @@ CanCtrlPltfCOb3::~CanCtrlPltfCOb3()
 void CanCtrlPltfCOb3::readConfiguration()
 {
 
-	int iTypeCan = 0;
-	int iMaxMessages = 0;
+	//int iTypeCan = 0;
+	//int iMaxMessages = 0;
 
 	DriveParam DriveParamW1DriveMotor;
 	DriveParam DriveParamW1SteerMotor;
@@ -306,19 +308,21 @@ void CanCtrlPltfCOb3::readConfiguration()
 	*/
 
 	// read Platform.ini (Coupling of Drive/Steer for Homing)
-	m_IniFile.SetFileName(sIniDirectory + "Platform.ini", "CanCtrlPltfCOb3.cpp");
+	// m_IniFile.SetFileName(sIniDirectory + "Platform.ini", "CanCtrlPltfCOb3.cpp");
 
-	m_IniFile.GetKeyInt("Geom", "RadiusWheel", &m_Param.iRadiusWheelMM, true);
-	m_IniFile.GetKeyInt("Geom", "DistSteerAxisToDriveWheelCenter", &m_Param.iDistSteerAxisToDriveWheelMM, true);
+	// m_IniFile.GetKeyInt("Geom", "RadiusWheel", &m_Param.iRadiusWheelMM, true);
+	// m_IniFile.GetKeyInt("Geom", "DistSteerAxisToDriveWheelCenter", &m_Param.iDistSteerAxisToDriveWheelMM, true);
 
+	/*
 	if(m_iNumDrives >= 1)
-		m_IniFile.GetKeyDouble("DrivePrms", "Wheel1SteerDriveCoupling", &m_Param.dWheel1SteerDriveCoupling, true);
+		m_IniFile.GetKeyDouble("DrivePrms", "Wheel1SteerDriveCoupling", &m_PlatformParams.platform_config.dWheel1SteerDriveCoupling, true);
 	if(m_iNumDrives >= 2)
 		m_IniFile.GetKeyDouble("DrivePrms", "Wheel2SteerDriveCoupling", &m_Param.dWheel2SteerDriveCoupling, true);
 	if(m_iNumDrives >= 3)
 		m_IniFile.GetKeyDouble("DrivePrms", "Wheel3SteerDriveCoupling", &m_Param.dWheel3SteerDriveCoupling, true);
 	if(m_iNumDrives == 4)
 		m_IniFile.GetKeyDouble("DrivePrms", "Wheel4SteerDriveCoupling", &m_Param.dWheel4SteerDriveCoupling, true);
+	*/
 
 	
 	// CanOpenId's
@@ -565,6 +569,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyInt("Steer4", "HomingDigIn", &(m_GearMotSteer4.iHomingDigIn), false);
 	}
 
+*/
 	if(m_iNumDrives >= 1)
 	{
 		DriveParamW1DriveMotor.setParam(
@@ -717,12 +722,14 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_PlatformParams.drive_param_steer.at(3).iHomingDigIn);
 	}
 	
+	std::cout << "  CHECK 2" << std::endl;
+	
 	//m_IniFile.GetKeyDouble("US", "ScaleToMM", &dScaleToMM, true);
 
 
 	// read Platform.ini
-	m_IniFile.SetFileName(sIniDirectory + "Platform.ini", "CanCtrlPltfCOb3.cpp");
-*/
+	// m_IniFile.SetFileName(sIniDirectory + "Platform.ini", "CanCtrlPltfCOb3.cpp");
+
 
 	// ------ WHEEL 1 ------ //
 	// --- Motor Wheel 1 Drive
@@ -908,9 +915,9 @@ void CanCtrlPltfCOb3::readConfiguration()
 		}
 	}
 
-	m_IniFile.GetKeyInt("Config", "GenericBufferLen", &iMaxMessages, true);
+	//m_IniFile.GetKeyInt("Config", "GenericBufferLen", &iMaxMessages, true);
 
-
+	std::cout << "  CHECK 3" << std::endl;
 }
 
 //-----------------------------------------------
@@ -1066,13 +1073,13 @@ bool CanCtrlPltfCOb3::initPltf()
 		{
 			// Calc Compensation factor for Velocity:
 			if(m_iNumDrives >= 1)
-				vdFactorVel[0] = - m_Param.dWheel1SteerDriveCoupling + double(m_Param.iDistSteerAxisToDriveWheelMM) / double(m_Param.iRadiusWheelMM);
+				vdFactorVel[0] = - m_PlatformParams.steer_drive_coupling.at(0) + double(m_PlatformParams.platform_config.iDistSteerAxisToDriveWheelMM) / double(m_PlatformParams.platform_config.iRadiusWheelMM);
 			if(m_iNumDrives >= 2)
-				vdFactorVel[1] = - m_Param.dWheel2SteerDriveCoupling + double(m_Param.iDistSteerAxisToDriveWheelMM) / double(m_Param.iRadiusWheelMM);
+				vdFactorVel[1] = - m_PlatformParams.steer_drive_coupling.at(1) + double(m_PlatformParams.platform_config.iDistSteerAxisToDriveWheelMM) / double(m_PlatformParams.platform_config.iRadiusWheelMM);
 			if(m_iNumDrives >= 3)
-				vdFactorVel[2] = - m_Param.dWheel3SteerDriveCoupling + double(m_Param.iDistSteerAxisToDriveWheelMM) / double(m_Param.iRadiusWheelMM);
+				vdFactorVel[2] = - m_PlatformParams.steer_drive_coupling.at(2) + double(m_PlatformParams.platform_config.iDistSteerAxisToDriveWheelMM) / double(m_PlatformParams.platform_config.iRadiusWheelMM);
 			if(m_iNumDrives == 4)
-				vdFactorVel[3] = - m_Param.dWheel4SteerDriveCoupling + double(m_Param.iDistSteerAxisToDriveWheelMM) / double(m_Param.iRadiusWheelMM);
+				vdFactorVel[3] = - m_PlatformParams.steer_drive_coupling.at(3) + double(m_PlatformParams.platform_config.iDistSteerAxisToDriveWheelMM) / double(m_PlatformParams.platform_config.iRadiusWheelMM);
 
 			// initialize homing procedure
 			for (int i = 0; i<m_iNumDrives; i++)
@@ -1293,11 +1300,11 @@ bool CanCtrlPltfCOb3::isPltfError()
 	{
 		dWatchTime = m_vpMotor[i]->getTimeToLastMsg();
 
-		if(dWatchTime <  m_Param.dCanTimeout)
+		if(dWatchTime <  m_PlatformParams.platform_config.dCanTimeout)
 		{
 			m_bWatchdogErr = false;
 		}
-		if( (dWatchTime > m_Param.dCanTimeout) && (m_bWatchdogErr == false) )
+		if( (dWatchTime > m_PlatformParams.platform_config.dCanTimeout) && (m_bWatchdogErr == false) )
 		{
 			std::cout << "timeout CAN motor " << i << std::endl;
 			m_bWatchdogErr = true;
