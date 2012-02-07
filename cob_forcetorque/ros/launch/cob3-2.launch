@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-
-<!-- start powercube_chain -->
-  <node pkg="cob_forcetorque" type="cob_forcetorque" name="cob_forcetorque" ns="fts" cwd="node" respawn="false" output="screen" />
-
-</launch>
