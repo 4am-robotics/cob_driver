@@ -30,6 +30,3 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/lib)
 #target_link_libraries(example ${PROJECT_NAME})
 
 rosbuild_add_executable(cob_hokuyo_filter ros/src/cob_hokuyo_filter.cpp)
-
-# rostest
-rosbuild_add_roslaunch_check(ros/launch/hokuyo.launch)

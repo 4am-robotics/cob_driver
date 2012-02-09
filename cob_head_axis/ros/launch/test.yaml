@@ -1,9 +1,0 @@
-JointCommand:
-  [
-    #JointNames ROS
-    #[joint_camera_axis]
-
-    [0.0],
-    [0.1],
-    [-0.1]
-  ]
