@@ -8,17 +8,17 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob_drivers
- * ROS package name: cob_generic_can
- * Description:
+ * ROS stack name: cob_common
+ * ROS package name: cob_utilities
+ * Description: some defs and mappings that are missing in Linux
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
  * Author: Christian Connette, email:christian.connette@ipa.fhg.de
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
- * Date of creation: Feb 2009
- * ToDo: Remove dependency to inifiles_old -> Inifile.h
+ * Date of creation: April 2010
+ * ToDo: - Get rid of it
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
@@ -51,43 +51,42 @@
  *
  ****************************************************************/
 
-#ifndef CANPEAKSYSUSB_INCLUDEDEF_H
-#define CANPEAKSYSUSB_INCLUDEDEF_H
-//-----------------------------------------------
-#include <cob_generic_can/CanItf.h>
-#include <libpcan/libpcan.h>
-#include <cob_utilities/IniFile.h>
-//-----------------------------------------------
+#ifndef WINDOWS_H
+#define WINDOWS_H
 
-class CANPeakSysUSB : public CanItf
+
+#include <sys/select.h>
+
+inline void Sleep(long dwMilliseconds)
 {
-public:
-	// --------------- Interface
-	CANPeakSysUSB(const char* cIniFile);
-	~CANPeakSysUSB();
-	void init();
-	void destroy() {};
-	bool transmitMsg(CanMsg CMsg, bool bBlocking = true);
-	bool receiveMsg(CanMsg* pCMsg);
-	bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry);
-	bool isObjectMode() { return false; }
+	::timeval sleepTime = {0, dwMilliseconds * 1000};
+	::select(0, 0, 0, 0, &sleepTime);
+}
 
-private:
-	// --------------- Types
-	HANDLE m_handle;
-	
-	bool m_bInitialized;
-	IniFile m_IniFile;
-	bool m_bSimuEnabled;
-	int m_iBaudrateVal;
 
-	static const int c_iInterrupt;
-	static const int c_iPort;
-	
-	bool initCAN();
-	
-	void outputDetailedStatus();
+//#ifndef HANDLE
+//typedef int HANDLE;
+//#endif
+//typedef int DWORD;
+typedef unsigned char BYTE;
+enum {
+	FALSE = false,
+	TRUE = true
 };
-//-----------------------------------------------
+
+
+inline int min(int a, int b)
+{
+	return (a < b) ? a : b;
+}
+
+
+inline int max(int a, int b)
+{
+	return (a > b) ? a : b;
+}
+
+
+
 #endif
 

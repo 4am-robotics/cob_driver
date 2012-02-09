@@ -17,9 +17,9 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/lib)
 
 #uncomment if you have defined messages
-#rosbuild_genmsg()
+rosbuild_genmsg()
 #uncomment if you have defined services
-#rosbuild_gensrv()
+rosbuild_gensrv()
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
@@ -31,6 +31,3 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 rosbuild_add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp common/src/genericArmCtrl.cpp common/src/RefValJS_PTP.cpp common/src/RefValJS_PTP_Trajectory.cpp common/src/TimeStamp.cpp)
 rosbuild_add_executable(cob_simulation_tester ros/src/cob_simulation_tester.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
-
-# rostest
-rosbuild_add_roslaunch_check(ros/launch/trajectory_controller.launch ROBOT=cob3-3)

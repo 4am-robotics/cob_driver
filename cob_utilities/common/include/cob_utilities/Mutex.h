@@ -8,9 +8,9 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob_drivers
- * ROS package name: cob_generic_can
- * Description:
+ * ROS stack name: cob3_common
+ * ROS package name: base_drive_chain
+ * Description: custom Mutex implementation
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
@@ -18,7 +18,7 @@
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
  * Date of creation: Feb 2009
- * ToDo: Remove dependency to inifiles_old -> Inifile.h
+ * ToDo: - Remove this class
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
@@ -51,42 +51,59 @@
  *
  ****************************************************************/
 
-#ifndef CANPEAKSYSUSB_INCLUDEDEF_H
-#define CANPEAKSYSUSB_INCLUDEDEF_H
+#ifndef MUTEX_INCLUDEDEF_H
+#define MUTEX_INCLUDEDEF_H
 //-----------------------------------------------
-#include <cob_generic_can/CanItf.h>
-#include <libpcan/libpcan.h>
-#include <cob_utilities/IniFile.h>
-//-----------------------------------------------
+#include <pthread.h>
 
-class CANPeakSysUSB : public CanItf
+const unsigned int INFINITE = 0;
+
+
+class Mutex
 {
-public:
-	// --------------- Interface
-	CANPeakSysUSB(const char* cIniFile);
-	~CANPeakSysUSB();
-	void init();
-	void destroy() {};
-	bool transmitMsg(CanMsg CMsg, bool bBlocking = true);
-	bool receiveMsg(CanMsg* pCMsg);
-	bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry);
-	bool isObjectMode() { return false; }
-
 private:
-	// --------------- Types
-	HANDLE m_handle;
-	
-	bool m_bInitialized;
-	IniFile m_IniFile;
-	bool m_bSimuEnabled;
-	int m_iBaudrateVal;
+	pthread_mutex_t m_hMutex;
 
-	static const int c_iInterrupt;
-	static const int c_iPort;
-	
-	bool initCAN();
-	
-	void outputDetailedStatus();
+public:
+	Mutex()
+	{
+		pthread_mutex_init(&m_hMutex, 0);
+	}
+
+	Mutex( std::string sName)
+	{
+// no named Mutexes for POSIX
+		pthread_mutex_init(&m_hMutex, 0);
+	}
+
+	~Mutex()
+	{
+		pthread_mutex_destroy(&m_hMutex);
+	}
+
+	/** Returns true if log was successful.
+	 */
+	bool lock( unsigned int uiTimeOut = INFINITE )
+	{
+		int ret;
+
+		if (uiTimeOut == INFINITE)
+		{
+			ret = pthread_mutex_lock(&m_hMutex);
+		}
+		else
+		{
+			timespec abstime = { time(0) + uiTimeOut, 0 };
+			ret = pthread_mutex_timedlock(&m_hMutex, &abstime);
+		}
+
+		return ! ret;
+	}
+
+	void unlock()
+	{
+		pthread_mutex_unlock(&m_hMutex);
+	}
 };
 //-----------------------------------------------
 #endif

@@ -1,9 +1,0 @@
-#Parameters for Relayboard
-
-#Device on which relayboard is attached
-ComPort: /dev/ttyRelais
-relayboard_timeout: 2.0
-relayboard_voltage_offset: 2.6
-
-#Define the version of the protocol used by the Relayboard
-protocol_version: 2

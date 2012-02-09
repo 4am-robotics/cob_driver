@@ -71,12 +71,12 @@
 // ROS service includes
 #include <cob_srvs/Trigger.h>
 #include <cob_srvs/SetOperationMode.h>
-
+#include <cob_trajectory_controller/SetFloat.h>
 
 
 #define HZ 100
 
-class cob_trajectory_controller
+class cob_trajectory_controller_node
 {
 private:
     ros::NodeHandle n_;
@@ -85,6 +85,8 @@ private:
     ros::Subscriber controller_state_;
  	ros::Subscriber operation_mode_;
  	ros::ServiceServer srvServer_Stop_;
+    ros::ServiceServer srvServer_SetVel_;
+    ros::ServiceServer srvServer_SetAcc_;
  	ros::ServiceClient srvClient_SetOperationMode;
 
     actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
@@ -105,18 +107,20 @@ private:
     std::vector<double> q_current, startposition_, joint_distance_;
 
 public:
-    cob_trajectory_controller():
-    as_(n_, "joint_trajectory_action", boost::bind(&cob_trajectory_controller::executeTrajectory, this, _1), true),
-    as_follow_(n_, "follow_joint_trajectory", boost::bind(&cob_trajectory_controller::executeFollowTrajectory, this, _1), true),
+    cob_trajectory_controller_node():
+    as_(n_, "joint_trajectory_action", boost::bind(&cob_trajectory_controller_node::executeTrajectory, this, _1), true),
+    as_follow_(n_, "follow_joint_trajectory", boost::bind(&cob_trajectory_controller_node::executeFollowTrajectory, this, _1), true),
     action_name_("joint_trajectory_action"),
     action_name_follow_("follow_joint_trajectory")
  
     {
         joint_pos_pub_ = n_.advertise<sensor_msgs::JointState>("target_joint_pos", 1);
 		joint_vel_pub_ = n_.advertise<brics_actuator::JointVelocities>("command_vel", 1);
-        controller_state_ = n_.subscribe("state", 1, &cob_trajectory_controller::state_callback, this);
-		operation_mode_ = n_.subscribe("current_operationmode", 1, &cob_trajectory_controller::operationmode_callback, this);
-		srvServer_Stop_ = n_.advertiseService("stop", &cob_trajectory_controller::srvCallback_Stop, this);
+        controller_state_ = n_.subscribe("state", 1, &cob_trajectory_controller_node::state_callback, this);
+		operation_mode_ = n_.subscribe("current_operationmode", 1, &cob_trajectory_controller_node::operationmode_callback, this);
+		srvServer_Stop_ = n_.advertiseService("stop", &cob_trajectory_controller_node::srvCallback_Stop, this);
+        srvServer_SetVel_ = n_.advertiseService("setVel", &cob_trajectory_controller_node::srvCallback_setVel, this);
+        srvServer_SetAcc_ = n_.advertiseService("setAcc", &cob_trajectory_controller_node::srvCallback_setAcc, this);
 		srvClient_SetOperationMode = n_.serviceClient<cob_srvs::SetOperationMode>("set_operation_mode");
 		while(!srvClient_SetOperationMode.exists())
 		  {
@@ -175,6 +179,20 @@ public:
 		//as_.setPreemted();
 		return true;
   	}
+    bool srvCallback_setVel(cob_trajectory_controller::SetFloat::Request &req, cob_trajectory_controller::SetFloat::Response &res)
+    {
+        ROS_INFO("Setting velocity to %f", req.value.data);
+        traj_generator_->SetPTPvel(req.value.data);
+        res.success.data = true;
+        return true;
+    }
+    bool srvCallback_setAcc(cob_trajectory_controller::SetFloat::Request &req, cob_trajectory_controller::SetFloat::Response &res)
+    {
+        ROS_INFO("Setting acceleration to %f", req.value.data);
+        traj_generator_->SetPTPacc(req.value.data);
+        res.success.data = true;
+        return true;
+    }
 
   void operationmode_callback(const std_msgs::StringPtr& message)
   {
@@ -364,7 +382,7 @@ public:
 int main(int argc, char ** argv)
 {
     ros::init(argc, argv, "cob_trajectory_controller");
-    cob_trajectory_controller tm;
+    cob_trajectory_controller_node tm;
     ros::Rate loop_rate(HZ);
     while (ros::ok())
     {

@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob_drivers
- * ROS package name: cob_generic_can
+ * ROS stack name: cob3_common
+ * ROS package name: generic_can
  * Description:
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -18,7 +18,7 @@
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
  * Date of creation: Feb 2009
- * ToDo: Remove dependency to inifiles_old -> Inifile.h
+ * ToDo: Check if this is still neccessary. Can we use the ROS-Infrastructure within the implementation?
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
@@ -51,43 +51,83 @@
  *
  ****************************************************************/
 
-#ifndef CANPEAKSYSUSB_INCLUDEDEF_H
-#define CANPEAKSYSUSB_INCLUDEDEF_H
-//-----------------------------------------------
-#include <cob_generic_can/CanItf.h>
-#include <libpcan/libpcan.h>
-#include <cob_utilities/IniFile.h>
-//-----------------------------------------------
+#ifndef _TimeStamp_H
+#define _TimeStamp_H
 
-class CANPeakSysUSB : public CanItf
+#include <time.h>
+#include <cob_utilities/StrUtil.h>
+
+//-------------------------------------------------------------------
+
+/** Measure system time.
+ * Use this class for measure system time accurately. Under Windows, it uses
+ * QueryPerformanceCounter(), which has a resolution of approx. one micro-second.
+ * The difference between two time stamps can be calculated.
+ */
+class TimeStamp
 {
-public:
-	// --------------- Interface
-	CANPeakSysUSB(const char* cIniFile);
-	~CANPeakSysUSB();
-	void init();
-	void destroy() {};
-	bool transmitMsg(CanMsg CMsg, bool bBlocking = true);
-	bool receiveMsg(CanMsg* pCMsg);
-	bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry);
-	bool isObjectMode() { return false; }
+	public:
+		/// Constructor.
+		TimeStamp();
 
-private:
-	// --------------- Types
-	HANDLE m_handle;
-	
-	bool m_bInitialized;
-	IniFile m_IniFile;
-	bool m_bSimuEnabled;
-	int m_iBaudrateVal;
+		/// Destructor.
+		virtual ~TimeStamp() {};
 
-	static const int c_iInterrupt;
-	static const int c_iPort;
-	
-	bool initCAN();
-	
-	void outputDetailedStatus();
+		/// Makes time measurement.
+		void SetNow();
+
+		/// Retrieves time difference in seconds.
+		double operator- ( const TimeStamp& EarlierTime ) const;
+
+		/// Increase the timestamp by TimeS seconds.
+		/** @param TimeS must be >0!.
+		 */
+		void operator+= ( double TimeS );
+
+		/// Reduces the timestamp by TimeS seconds.
+		/** @param TimeS must be >0!.
+		 */
+		void operator-= ( double TimeS );
+
+		/// Checks if this time is after time "Time".
+		bool operator> ( const TimeStamp& Time );
+
+		/// Checks if this time is before time "Time".
+		bool operator< ( const TimeStamp& Time );
+
+		/**
+		 * Gets seconds and nanoseconds of the timestamp.
+		 */
+		void getTimeStamp ( long& lSeconds, long& lNanoSeconds );
+
+		/**
+		 * Sets timestamp from seconds and nanoseconds.
+		 */
+		void setTimeStamp ( const long& lSeconds, const long& lNanoSeconds );
+
+		/**
+		 * return the current time as string, in long format YYYY-MM-DD HH:MM:SS.ssssss
+		 *** Attention *** call SetNow() before calling this function
+		 */
+		std::string CurrentToString();
+
+		std::string ToString();
+
+	protected:
+
+		/// Internal time stamp data.
+		timespec m_TimeStamp;
+
+	private:
+
+		/// Conversion timespec -> double
+		static double TimespecToDouble ( const ::timespec& LargeInt );
+
+		/// Conversion double -> timespec
+		static ::timespec DoubleToTimespec ( double TimeS );
+
 };
-//-----------------------------------------------
+
+
 #endif
 
