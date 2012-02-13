@@ -1,6 +1,0 @@
-#joint_names: ["sdh_knuckle_joint", "sdh_thumb_2_joint", "sdh_thumb_3_joint", "sdh_finger_12_joint", "sdh_finger_13_joint", "sdh_finger_22_joint", "sdh_finger_23_joint"]
-
-# single positions
-calib: [[0,0.1,0,0.1,0,0.1,0]]
-
-# trajectories

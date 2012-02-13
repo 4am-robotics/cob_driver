@@ -30,12 +30,12 @@ rosbuild_gensrv()
 #target_link_libraries(example ${PROJECT_NAME})
 
 # add project libraries
-rosbuild_add_library(cob_camera_sensors	common/src/AVTPikeCam.cpp
-					common/src/AbstractColorCamera.cpp
-					common/src/AbstractRangeImagingSensor.cpp
-					common/src/VirtualColorCam.cpp
-					common/src/VirtualRangeCam.cpp
-					common/src/Swissranger.cpp)
+#rosbuild_add_library(cob_camera_sensors	common/src/AVTPikeCam.cpp
+#					common/src/AbstractColorCamera.cpp
+#					common/src/AbstractRangeImagingSensor.cpp
+#					common/src/VirtualColorCam.cpp
+#					common/src/VirtualRangeCam.cpp
+#					common/src/Swissranger.cpp)
 rosbuild_add_library(cob_kinect_image_flip ros/src/kinect_image_flip.cpp)
 add_custom_command(TARGET cob_kinect_image_flip POST_BUILD COMMAND mkdir -p ${PROJECT_SOURCE_DIR}/ros/lib/)
 add_custom_command(TARGET cob_kinect_image_flip POST_BUILD COMMAND mv ${LIBRARY_OUTPUT_PATH}/libcob_kinect_image_flip.so ${PROJECT_SOURCE_DIR}/ros/lib/)
@@ -56,7 +56,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 #INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 # add compile flag
-rosbuild_add_compile_flags(cob_camera_sensors -D__LINUX__ -D__COB_ROS__)
+#rosbuild_add_compile_flags(cob_camera_sensors -D__LINUX__ -D__COB_ROS__)
 #rosbuild_add_compile_flags(tof_camera -D__LINUX__ -D__COB_ROS__)
 #rosbuild_add_compile_flags(tof_camera_viewer -D__LINUX__ -D__COB_ROS__)
 #rosbuild_add_compile_flags(color_camera -D__LINUX__ -D__COB_ROS__)
@@ -64,14 +64,8 @@ rosbuild_add_compile_flags(cob_camera_sensors -D__LINUX__ -D__COB_ROS__)
 #rosbuild_add_compile_flags(all_camera_viewer -D__LINUX__ -D__COB_ROS__ -D__ROS_1_1__)
 
 # link libraries
-target_link_libraries(cob_camera_sensors mesasr dc1394 tinyxml)
+#target_link_libraries(cob_camera_sensors mesasr dc1394 tinyxml)
 #target_link_libraries(tof_camera cob_camera_sensors usb)
 #target_link_libraries(tof_camera_viewer cob_camera_sensors)
 #target_link_libraries(color_camera cob_camera_sensors)
 #target_link_libraries(all_cameras cob_camera_sensors usb)
-
-
-# rostest
-rosbuild_add_roslaunch_check(ros/launch/left.launch ROBOT=cob3-3 ROBOT_ENV=ipa-kitchen)
-rosbuild_add_roslaunch_check(ros/launch/right.launch ROBOT=cob3-3 ROBOT_ENV=ipa-kitchen)
-#rosbuild_add_roslaunch_check(ros/launch/cam3d.launch ROBOT=cob3-3 ROBOT_ENV=ipa-kitchen) #deacivated because openni_launch test failed: missing dependecy to nodelet
