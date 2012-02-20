@@ -281,7 +281,8 @@ int main(int argc, char** argv)
 	ROS_INFO("...scanner opened successfully on port %s",nodeClass.port.c_str());
 	
 	// main loop
-	ros::Rate loop_rate(5); // Hz
+	ros::Rate loop_rate(10); // Hz
+	int nrMissTries = 0;
 	while(nodeClass.nh.ok())
 	{
 		// read scan
@@ -291,12 +292,18 @@ int main(int argc, char** argv)
 		// publish LaserScan
 		if(bRecScan)
 		{
+			nrMissTries = 0;
 			ROS_DEBUG("...publishing LaserScan message");
 			nodeClass.publishLaserScan(vdDistM, vdAngRAD, vdIntensAU, iSickTimeStamp, iSickNow);
 		}
 		else
 		{
-			ROS_WARN("...no Scan available");
+			nrMissTries++;
+			if(nrMissTries > 3)
+			{
+				nrMissTries = 0;
+				ROS_WARN("...no Scan available");
+			}
 		}
 
 		// sleep and waiting for messages, callbacks	
