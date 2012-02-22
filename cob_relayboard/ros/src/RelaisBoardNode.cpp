@@ -55,6 +55,7 @@ int RelaisBoardNode::init()
         n.param("voltage_min", voltage_min_, 23.7);
 	n.param("voltage_max", voltage_max_, 28.0);
 	n.param("charge_nominal", charge_nominal_, 40.0);
+	charge_nominal_ = charge_nominal_ * 360; //converts [Ah] to [As]
 	n.param("voltage_nominal", voltage_nominal_, 24.0);
 
 	current_voltage = 0;

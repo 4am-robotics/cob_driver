@@ -69,7 +69,7 @@
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
-#include <cob_relayboard/EmergencyStopState.h>
+#include <neo_msgs/EmergencyStopState.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 
 
@@ -253,7 +253,7 @@ class NodeClass
 		}
 
 		// Listen for Emergency Stop
-		void topicCallbackEMStop(const cob_relayboard::EmergencyStopState::ConstPtr& msg)
+		void topicCallbackEMStop(const neo_msgs::EmergencyStopState::ConstPtr& msg)
 		{
 			int EM_state;
 			EM_state = msg->emergency_state;
