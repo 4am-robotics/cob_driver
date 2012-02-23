@@ -12,32 +12,28 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 rosbuild_init()
 
 #set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/bin)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/lib)
+set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 #uncomment if you have defined messages
 #rosbuild_genmsg()
 #uncomment if you have defined services
 #rosbuild_gensrv()
 
-#common commands for building c++ executables and libraries
-#rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
-#target_link_libraries(${PROJECT_NAME} another_library)
-#rosbuild_add_boost_directories()
-#rosbuild_link_boost(${PROJECT_NAME} thread)
-#rosbuild_add_executable(example examples/example.cpp)
-#target_link_libraries(example ${PROJECT_NAME})
+#set the default path for built executables to the "bin" directory
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+#set the default path for built libraries to the "lib" directory
+set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-# add include search paths
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
-# add project libs
-rosbuild_add_library(${PROJECT_NAME}_peaksysusb common/src/CanPeakSysUSB.cpp)
-rosbuild_add_library(${PROJECT_NAME}_peaksys common/src/CanPeakSys.cpp)
-rosbuild_add_library(${PROJECT_NAME}_esd common/src/CanESD.cpp)
+file(GLOB neo_can_SRC
+    "${PROJECT_SOURCE_DIR}/common/include/${PROJECT_NAME}/*.h"
+    "${PROJECT_SOURCE_DIR}/common/src/*.cpp"
+)
 
-# link libraries
-target_link_libraries(${PROJECT_NAME}_peaksysusb pcan cob_utilities)
-target_link_libraries(${PROJECT_NAME}_peaksys pcan cob_utilities)
-target_link_libraries(${PROJECT_NAME}_esd ntcan cob_utilities)
+
+# add project libs
+rosbuild_add_library(${PROJECT_NAME} ${neo_can_SRC})
+

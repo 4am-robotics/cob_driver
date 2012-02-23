@@ -1,259 +1,219 @@
-/****************************************************************
+/*********************************************************************
+ * Software License Agreement (BSD License)
  *
- * Copyright (c) 2010
+ *  Copyright (c) 2011, Neobotix GmbH
+ *  All rights reserved.
  *
- * Fraunhofer Institute for Manufacturing Engineering	
- * and Automation (IPA)
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
  *
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Neobotix nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
  *
- * Project name: care-o-bot
- * ROS stack name: cob_driver
- * ROS package name: cob_canopen_motor
- * Description:
- *								
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
- * Author: Christian Connette, email:christian.connette@ipa.fhg.de
- * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
- *
- * Date of creation: Feb 2010
- * ToDo:
- *
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
- *       Engineering and Automation (IPA) nor the names of its
- *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
- * License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
- * If not, see <http://www.gnu.org/licenses/>.
- *
- ****************************************************************/
-
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 #ifndef DRIVEPARAM_INCLUDEDEF_H
 #define DRIVEPARAM_INCLUDEDEF_H
 
 //-----------------------------------------------
 
+const double PI = 3.14159265358979323846;
 
 /**
  * Parameters and conversion functionality of a motor drive.
- * \ingroup DriversCanModul	
  */
 class DriveParam
 {
-
-private:
-
-	int m_iDriveIdent;
-	int m_iEncIncrPerRevMot;	// encoder increments per revolution motor shaft 
-	double m_dVelMeasFrqHz;		// only used for Neo drive, else = 1
-	double m_dGearRatio;		//
-	double m_dBeltRatio;		// if drive has belt set ratio, else = 1
-	int m_iSign;				// direction of motion
-	double m_dVelMaxEncIncrS;	// max. veloctiy
-	double m_dAccIncrS2;		// max. acceleration
-	double m_dDecIncrS2;		// max. decelration
-	double m_dPosGearRadToPosMotIncr;
-	int m_iEncOffsetIncr;		// Position in Increments of Steerwheel when Homingposition
-					//  is reached (only needed forCoB3)
-	int m_iHomingDigIn; // specifies which digital input is used for homing signal, standart 11 is good for COB3, 19 for Cob3_5
-	bool m_bIsSteer;		// needed to distinguish motors for initializing
-    double m_dCurrToTorque;		// factor to convert motor active current [A] into torque [Nm]
-	double m_dCurrMax;		// max. current allowed
-
 public:
 
+	enum TypeEncoder
+	{
+		ENCODER_NO,
+		ENCODER_INCREMENTAL,
+		ENCODER_ABSOLUTE
+	};
+
 	/**
-	 * Default constructor.
+	 *
 	 */
 	DriveParam()
 	{
-	
-		m_bIsSteer = true; //has to be set, because it is checked for absolute / relative positioning
-	
+		m_iDriveIdent = 0;
+		m_iEncIncrPerRevMot = 0;
+		m_dVelMeasFrqHz = 0;
+		m_dGearRatio = 0;
+		m_dBeltRatio = 0;
+		m_iSign = 0;
+		m_bHoming = 0;
+		m_dHomePos = 0;
+		m_dHomeVel = 0;
+		m_iHomeEvent = 0;
+		m_iHomeDigIn = 0;
+		m_iHomeTimeOut = 0;
+		m_dVelMaxEncIncrS = 0;
+		m_dVelPModeEncIncrS = 0;
+		m_dAccIncrS2 = 0;
+		m_dDecIncrS2 = 0;
+		m_iCANId = 0;
+		m_iTypeEncoder = ENCODER_INCREMENTAL;
+		m_bUsePosMode = false;
+		m_bEnabled = false;
+
+		m_dRadToIncr = 0;
 	}
 
 	/**
 	 * Sets the drive parameters.
-	 * @param iDriveIdent identifier for the drive
-	 * @param iEncIncrPerRevMot encoder increments per revolution of the motor shaft
-	 * @param dVelMeasFrqHz set this value to 1
-	 * @param dGearRatio ratio of the gear
-	 * @param iSign change -1 for changing the motion direction
-	 * @param dVelMaxEncIncrS maximum velocity given in encoder increments per second
-	 * @param dAccIncrS2 acceleration in encoder increments per s^2
-	 * @param dDecIncrS2 deceleration in encoder increments per s^2
 	 */
-
-	void setParam(
-		int iDriveIdent,
-		int iEncIncrPerRevMot,
-		double dVelMeasFrqHz,
-		double dBeltRatio,
-		double dGearRatio,
-		int iSign,
-		double dVelMaxEncIncrS,
-		double dAccIncrS2,
-		double dDecIncrS2)
+	void set(		int iDriveIdent,
+				int iEncIncrPerRevMot,
+				double dVelMeasFrqHz,
+				double dBeltRatio, double dWheelRatio,
+				int iSign,
+				bool bHoming, double dHomePos, double dHomeVel, int iHomeEvent, int iHomeDigIn, int iHomeTimeOut,
+				double dVelMaxEncIncrS, double dVelPModeEncIncrS,
+				double dAccIncrS2, double dDecIncrS2,
+				int iTypeEncoder,
+				int iCANId,
+				bool bUsePosMode,
+				bool bEnabled )
 	{
-
 		m_iDriveIdent = iDriveIdent;
 		m_iEncIncrPerRevMot = iEncIncrPerRevMot;
 		m_dVelMeasFrqHz = dVelMeasFrqHz;
 		m_dBeltRatio = dBeltRatio;
-		m_dGearRatio = dGearRatio;
+		m_dGearRatio = dWheelRatio;
 		m_iSign = iSign;
+		m_bHoming = bHoming;
+		m_dHomePos = dHomePos;
+		m_dHomeVel = dHomeVel;
+		m_iHomeEvent = iHomeEvent;
+		m_iHomeDigIn = iHomeDigIn;
+		m_iHomeTimeOut = iHomeTimeOut;
 		m_dVelMaxEncIncrS = dVelMaxEncIncrS;
+		m_dVelPModeEncIncrS = dVelPModeEncIncrS;
 		m_dAccIncrS2 = dAccIncrS2;
 		m_dDecIncrS2 = dDecIncrS2;
+		m_iTypeEncoder = iTypeEncoder;
+		m_iCANId = iCANId;
+		m_bUsePosMode = bUsePosMode;
+		m_bEnabled = bEnabled;
 		
-		m_iHomingDigIn = 11; //for Cob3
+		m_dRadToIncr = (m_iEncIncrPerRevMot * m_dGearRatio * m_dBeltRatio) / (2. * PI);
+
 		
-		double dPI = 3.14159265358979323846;
-
-		m_dPosGearRadToPosMotIncr = m_iEncIncrPerRevMot * m_dGearRatio
-			* m_dBeltRatio / (2. * dPI);
-	}
-
-	//Overloaded Method for CoB3
-	void setParam(
-		int iDriveIdent,
-		int iEncIncrPerRevMot,
-		double dVelMeasFrqHz,
-		double dBeltRatio,
-		double dGearRatio,
-		int iSign,
-		double dVelMaxEncIncrS,
-		double dAccIncrS2,
-		double dDecIncrS2,
-		int iEncOffsetIncr,
-		bool bIsSteer,
-        double dCurrToTorque,
-		double dCurrMax)
-	{
-
-		m_iDriveIdent = iDriveIdent;
-		m_iEncIncrPerRevMot = iEncIncrPerRevMot;
-		m_dVelMeasFrqHz = dVelMeasFrqHz;
-		m_dBeltRatio = dBeltRatio;
-		m_dGearRatio = dGearRatio;
-		m_iSign = iSign;
-		m_dVelMaxEncIncrS = dVelMaxEncIncrS;
-		m_dAccIncrS2 = dAccIncrS2;
-		m_dDecIncrS2 = dDecIncrS2;
-		m_iEncOffsetIncr = iEncOffsetIncr;
-		m_bIsSteer = bIsSteer;
 		
-		m_iHomingDigIn = 11; //for Cob3
-
-		double dPI = 3.14159265358979323846;
-
-		m_dPosGearRadToPosMotIncr = m_iEncIncrPerRevMot * m_dGearRatio
-			* m_dBeltRatio / (2. * dPI);
-
-        m_dCurrToTorque = dCurrToTorque;
-		m_dCurrMax = dCurrMax;
-	}
-	
-	//Overloaded Method for CoB3 including new feature HomingDigIn, for compatibility reasons overloaded
-	void setParam(
-		int iDriveIdent,
-		int iEncIncrPerRevMot,
-		double dVelMeasFrqHz,
-		double dBeltRatio,
-		double dGearRatio,
-		int iSign,
-		double dVelMaxEncIncrS,
-		double dAccIncrS2,
-		double dDecIncrS2,
-		int iEncOffsetIncr,
-		bool bIsSteer,
-        double dCurrToTorque,
-		double dCurrMax,
-		int iHomingDigIn)
-	{
-
-		m_iDriveIdent = iDriveIdent;
-		m_iEncIncrPerRevMot = iEncIncrPerRevMot;
-		m_dVelMeasFrqHz = dVelMeasFrqHz;
-		m_dBeltRatio = dBeltRatio;
-		m_dGearRatio = dGearRatio;
-		m_iSign = iSign;
-		m_dVelMaxEncIncrS = dVelMaxEncIncrS;
-		m_dAccIncrS2 = dAccIncrS2;
-		m_dDecIncrS2 = dDecIncrS2;
-		m_iEncOffsetIncr = iEncOffsetIncr;
-		m_bIsSteer = bIsSteer;
-
-		double dPI = 3.14159265358979323846;
-
-		m_dPosGearRadToPosMotIncr = m_iEncIncrPerRevMot * m_dGearRatio
-			* m_dBeltRatio / (2. * dPI);
-
-        m_dCurrToTorque = dCurrToTorque;
-		m_dCurrMax = dCurrMax;
-		m_iHomingDigIn = iHomingDigIn;
 	}
 
 	/**
 	 * Returns the identifier of the drive.
 	 */
-	int getDriveIdent()
-	{
-		return m_iDriveIdent;
-	}
+	int getDriveIdent() { return m_iDriveIdent; }
+
+	/**
+	 * Returns the CAN identifier of the drive.
+	 */
+	int getCANId() { return m_iCANId; }
 	
 	/**
 	 * Returns the sign for the motion direction.
 	 */
-	int getSign()
-	{
-		return m_iSign;
-	}
+	int getSign() {	return m_iSign; }
+
+	/**
+	 *
+	 */
+	bool isEnabled() { return m_bEnabled; }
+
+	/**
+	 *
+	 */
+	bool usePosMode() { return m_bUsePosMode; }
+
+	/**
+	 *
+	 */
+	bool getHoming() { return m_bHoming; }
+
+	/**
+	 *
+	 */
+	void setHoming(bool b) { m_bHoming = b; }
 	
 	/**
-	 * Gets the maximum velocity of the drive in increments per second.
+	 *
 	 */
-	double getVelMax()
-	{
-		return m_dVelMaxEncIncrS;
-	}
+	double getHomePos() { return m_dHomePos; }
 	
 	/**
-	 * Converts position and velocity.
-	 * @param dPosRad position in radiant
-	 * @param dVelRadS velocity in radiant per seconds
-	 * @param piPosIncr converted position in increments
-	 * @param piVelIncrPeriod converted velocity in increments of period
+	 *
 	 */
-	void PosVelRadToIncr(double dPosRad, double dVelRadS, int* piPosIncr, int* piVelIncrPeriod)
-	{
-		*piPosIncr = PosGearRadToPosMotIncr(dPosRad);
-		*piVelIncrPeriod = VelGearRadSToVelMotIncrPeriod(dVelRadS);
-	}
+	double getHomeVel() { return m_dHomeVel; }
+	
+	/**
+	 *
+	 */
+	int getHomeEvent() { return m_iHomeEvent; }
+	
+	/**
+	 *
+	 */
+	int getHomeDigIn() { return m_iHomeDigIn; }
+	
+	/**
+	 *
+	 */
+	int getHomeTimeOut() { return m_iHomeTimeOut; }
+
+	/**
+	 * returns the maximum velocity of the drive in increments per second.
+	 */
+	double getVelMax() { return m_dVelMaxEncIncrS; }
+
+	/**
+	 * returns the maximum velocity of the drive in increments per second.
+	 */
+	double getVelPosMode() { return m_dVelPModeEncIncrS; }
+
+	/**
+	 *
+	 */
+	double getAcc()	{ return m_dAccIncrS2; }
+
+	/**
+	 *
+	 */
+	double getDec()	{ return m_dDecIncrS2; }
+
+	/**
+	 *
+	 */
+	int getTypeEncoder() { return m_iTypeEncoder; }
+
+	/**
+	 *
+	 */
+	int getEncoderIncr() { return m_iEncIncrPerRevMot; }
 
 	/**
 	 * Converts the temperature in degree Celsius.
@@ -270,156 +230,71 @@ public:
 	}
 
 	/**
-	 * Converts revolution angle form radian to encoder increments.
-	 * @param dPosGearRad angle in radian
+	 * Converts position and velocity.
+	 * @param dPosRad			position in radians
+	 * @param dVelRadS			velocity in radians per seconds
+	 * @param piPosIncr			converted position in increments
+	 * @param piVelIncrPeriod	converted velocity in increments per period
 	 */
-	int PosGearRadToPosMotIncr(double dPosGearRad)
+	void convRadSToIncrPerPeriod(double dPosRad, double dVelRadS, int* piPosIncr, int* piVelIncrPeriod)
 	{
-		return ((int)(dPosGearRad * m_dPosGearRadToPosMotIncr));
-	}
-	
-	/// Conversions of encoder increments to gear position in radians.
-	double PosMotIncrToPosGearRad(int iPosIncr)
-	{
-		return ((double)iPosIncr / m_dPosGearRadToPosMotIncr);
-	}
-	
-	/// Conversions of gear velocity in rad/s to encoder increments per measurment period.
-	int VelGearRadSToVelMotIncrPeriod(double dVelGearRadS)
-	{
-		return ((int)(dVelGearRadS * m_dPosGearRadToPosMotIncr / m_dVelMeasFrqHz));
-	}
-	
-	/// Conversions of  encoder increments per measurment period to gear velocity in rad/s.
-	double VelMotIncrPeriodToVelGearRadS(int iVelMotIncrPeriod)
-	{
-		return ((double)iVelMotIncrPeriod / m_dPosGearRadToPosMotIncr * m_dVelMeasFrqHz);
-	}
-	
-	/**
-	 * Set the maximum acceleration.
-	 * @param dMaxAcc Maximum acceleration
-	 */
-	void setMaxAcc(double dMaxAcc)
-	{
-		m_dAccIncrS2 = dMaxAcc;
+		*piPosIncr = (int)convRadToIncr(dPosRad);
+		*piVelIncrPeriod = (int)convRadSToIncrPerPeriod(dVelRadS);
 	}
 
-	/**
-	 * Get the maximum acceleration.
-	 * @return Maximum acceleration
-	 */
-	double getMaxAcc()
+	/// Conversions of wheel angle in radians to encoder increments.
+	double convRadToIncr(double dPosWheelRad)
 	{
-		return m_dAccIncrS2;
-	}
-
-	/**
-	 * Set the maximum deceleration.
-	 * @param dMaxAcc Maximum deceleration
-	 */
-	void setMaxDec(double dMaxDec)
-	{
-		m_dDecIncrS2 = dMaxDec;
-	}
-
-	/**
-	 * Get the maximum deceleration.
-	 * @return Maximum deceleration
-	 */
-	double getMaxDec()
-	{
-		return m_dDecIncrS2;
-	}
-
-	/**
-	 * Set the maximum velocity.
-	 * @param dMaxVel Maximum velocity
-	 */
-	void setMaxVel(double dMaxVel)
-	{
-		m_dVelMaxEncIncrS = dMaxVel;
-	}
-
-	/**
-	 * Get the maximum velocity in increments per second.
-	 * @return Maximum velocity [inc/sec].
-	 */
-	double getMaxVel()
-	{
-		return m_dVelMaxEncIncrS;
+		return (dPosWheelRad * m_dRadToIncr);
 	}
 	
-	/**
-	 * Get the gear ratio.
-	 * @return The gear ratio.
-	 */
-	double getGearRatio()
+	/// Conversions of encoder increments to wheel angle in radians.
+	double convIncrToRad(int iPosIncr)
 	{
-		return m_dGearRatio;
-	}
-	/**
-	 * Get the belt ratio.
-	 * @return The belt ratio.
-	 */
-	double getBeltRatio()
-	{
-		return m_dBeltRatio;
+		return ((double)iPosIncr / m_dRadToIncr);
 	}
 	
-	/**
-	 * Get the EncoderOffset
-	 * @return the Encoderoffset
-	 */
-	int getEncOffset()
+	/// Conversions of gear velocity in rad/s to encoder increments per measurement period.
+	double convRadSToIncrPerPeriod(double dVelWheelRadS)
 	{
-		return m_iEncOffsetIncr;
+		return ( (dVelWheelRadS * m_dRadToIncr) / m_dVelMeasFrqHz );
 	}
 	
-	/**
-	 * Get the DriveType - If it's a Steering or Driving Motor
-	 * @return the Encoderoffset
-	 */
-	bool getIsSteer()
+	/// Conversions of encoder increments per measurment period to gear velocity in rad/s.
+	double convIncrPerPeriodToRadS(int iVelMotIncrPeriod)
 	{
-		return m_bIsSteer;
+		return ( (double)iVelMotIncrPeriod / m_dRadToIncr * m_dVelMeasFrqHz );
 	}
-	/**
-	 * Get the DriveType - If it's a Steering or Driving Motor
-	 * @return the Encoderoffset
-	 */
-	int getEncIncrPerRevMot()
-	{
-		return m_iEncIncrPerRevMot;
-	}
-	/**
-	 * Get factor to convert motor active current [A] into torque [Nm]	 
-	 */
-	double getCurrToTorque()
-	{
-		return m_dCurrToTorque;
-	}
-	/**
-	 * Get maximum current allowed
-	 */
-	double getCurrMax()
-	{
-		return m_dCurrMax;
-	}
-	/**
-	 * Get digital Input for Homing signal
-	 */
-	int getHomingDigIn()
-	{
-		return m_iHomingDigIn;
-	}
-	/**
-	 * Set digital Input for Homing signal
-	 */
-	void setHomingDigIn(int HomingDigIn)
-	{
-		m_iHomingDigIn = HomingDigIn;
-	}
+
+private:
+
+	int m_iDriveIdent;			// drive identifier 0 ... n
+	int m_iEncIncrPerRevMot;	// encoder increments per revolution of motor shaft 
+	double m_dVelMeasFrqHz;		// only used for Neo drive = 500, else = 1
+	double m_dGearRatio;		// gear ratio
+	double m_dBeltRatio;		// if drive has belt set ratio, else = 1
+	int m_iSign;				// direction of motion
+	bool m_bHoming;				// if true, motor starts homing sequence on startup
+	double m_dHomePos;			// position set if homing switch active
+	double m_dHomeVel;			// velocity while homing
+	int m_iHomeEvent;			// type of homing input used at amplifier
+	int m_iHomeDigIn;			// number of digital input used for homing
+	int m_iHomeTimeOut;			// time out for homing
+	double m_dVelMaxEncIncrS;	// max. veloctiy [encoder increments / s]
+	double m_dVelPModeEncIncrS;	// velocity in position mode e. g. if amplifier generates trajectory
+	double m_dAccIncrS2;		// max. acceleration [encoder increments / s�]
+	double m_dDecIncrS2;		// max. deceleration [encoder increments / s�]
+	int m_iTypeEncoder;			// see enum TypeEncoder
+	int m_iCANId;				// CAN identifier
+	bool m_bUsePosMode;			// if enabled use amplifier position mode if velocity command = 0
+	bool m_bEnabled;			// if enabled, drive receives command data
+
+	double m_dRadToIncr;
+
+public:
+
+
+
 };
 //-----------------------------------------------
 #endif

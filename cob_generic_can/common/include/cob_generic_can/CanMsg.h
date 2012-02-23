@@ -1,61 +1,47 @@
-/****************************************************************
+/*********************************************************************
+ * Software License Agreement (BSD License)
  *
- * Copyright (c) 2010
+ *  Copyright (c) 2011, Neobotix GmbH
+ *  All rights reserved.
  *
- * Fraunhofer Institute for Manufacturing Engineering	
- * and Automation (IPA)
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
  *
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Neobotix nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
  *
- * Project name: care-o-bot
- * ROS stack name: cob3_common
- * ROS package name: generic_can
- * Description:
- *								
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
- * Author: Christian Connette, email:christian.connette@ipa.fhg.de
- * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
- *
- * Date of creation: Feb 2009
- * ToDo:
- *
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
- *       Engineering and Automation (IPA) nor the names of its
- *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
- * License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
- * If not, see <http://www.gnu.org/licenses/>.
- *
- ****************************************************************/
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 
 #ifndef CANMSG_INCLUDEDEF_H
 #define CANMSG_INCLUDEDEF_H
+
 //-----------------------------------------------
+
 #include <iostream>
+#include <cob_utilities/TimeStamp.h>
+#include <cob_generic_can/stdDef.h>
+
 //-----------------------------------------------
 
 /**
@@ -65,20 +51,15 @@
 class CanMsg
 {
 public:
-	/// Include typedefs from windows.h
-	typedef unsigned char BYTE;
-	/// @todo This should be private.
 	int m_iID;
-	/// @todo This should be private.
 	int m_iLen;
-	/// @todo This should be private.
 	int m_iType;
 
-protected:
+private:
 	/**
-	 * A CAN message consists of eight bytes.
+	 * A CAN message consists of eight chars.
 	 */
-	BYTE m_bDat[8];
+	unsigned char m_bDat[8];
 
 public:
 	/**
@@ -92,9 +73,9 @@ public:
 	}
 
 	/**
-	 * Sets the bytes to the telegram.
+	 * Sets the chars to the telegram.
 	 */
-	void set(BYTE Data0=0, BYTE Data1=0, BYTE Data2=0, BYTE Data3=0, BYTE Data4=0, BYTE Data5=0, BYTE Data6=0, BYTE Data7=0)
+	void set(char Data0, char Data1, char Data2, char Data3, char Data4, char Data5, char Data6, char Data7)
 	{
 		m_bDat[0] = Data0;
 		m_bDat[1] = Data1;
@@ -107,17 +88,9 @@ public:
 	}
 
 	/**
-	 * Set the byte at the given position.
+	 * Gets the chars of the telegram.
 	 */
-	void setAt(BYTE data, int iNr)
-	{
-		m_bDat[iNr] = data;
-	}
-
-	/**
-	 * Gets the bytes of the telegram.
-	 */
-	void get(BYTE* pData0, BYTE* pData1, BYTE* pData2, BYTE* pData3, BYTE* pData4, BYTE* pData5, BYTE* pData6, BYTE* pData7)
+	void get(char* pData0, char* pData1, char* pData2, char* pData3, char* pData4, char* pData5, char* pData6, char* pData7)
 	{
 		*pData0 = m_bDat[0];
 		*pData1 = m_bDat[1];
@@ -130,8 +103,8 @@ public:
 	}
 
 	/**
-	 * Returns a spezific byte of the telegram.
-	 * @param iNr number of the byte.
+	 * Returns a specific char of the telegram.
+	 * @param iNr number of the char.
 	 */
 	int getAt(int iNr)
 	{
@@ -157,17 +130,18 @@ public:
 	}
 
 	/**
-	 * Prints the telegram.
+	 * Prints the telegram to the standard output.
 	 */
 	void print()
 	{
-		std::cout << "id= " << m_iID << " type= " << m_iType << " len= " << m_iLen << " data= " <<
+		std::cout << std::hex << std::showbase << "                id= " << m_iID << " type= " << m_iType << 
+			" len= " << m_iLen << " msg= " <<
 			(int)m_bDat[0] << " " << (int)m_bDat[1] << " " << (int)m_bDat[2] << " " << (int)m_bDat[3] << " " <<
 			(int)m_bDat[4] << " " << (int)m_bDat[5] << " " << (int)m_bDat[6] << " " << (int)m_bDat[7] << std::endl;
 	}
 
 	/**
-	 * @deprecated function uses a spetific format of the telegram.
+	 * @deprecated function uses a specific format of the telegram.
 	 */
 	int getStatus()
 	{
@@ -176,71 +150,32 @@ public:
 	}
 
 	/**
-	 * @deprecated function uses a spetific format of the telegram.
+	 * @deprecated function uses a specific format of the telegram.
 	 */
 	int getCmd()
 	{
 		return (m_bDat[7] >> 2);
 	}
-	
-	/**
-	 * Get the identifier stored in this message structure.
-	 * @return the message identifier.
-	 */
-	int getID()
-	{
-		return m_iID;
-	}
-
-	/**
-	 * Set the message identifier within this message structure.
-	 * @param id The message identifier. Its value must be in the range [0..2047], i.e.
-	 * 29-bit identifiers are not supported here.
-	 */
-	void setID(int id)
-	{
-		if( (0 <= id) && (id <= 2047) )
-			m_iID = id;
-	}
-
-	/**
-	 * Get the message length set within this data structure.
-	 * @return The message length in the range [0..8].
-	 */
-	int getLength()
-	{
-		return m_iLen;
-	}
-
-	/**
-	 * Set the message length within this message structure.
-	 * @param len The message length. Its value must be in the range [0..8].
-	 */
-	void setLength(int len)
-	{
-		if( (0 <= len) && (len <= 8) )
-			m_iLen = len;
-	}
-
-	/**
-	 * Get the message type. By default, the type is 0x00.
-	 * @return The message type.
-	 */
-	int getType()
-	{
-		return m_iType;
-	}
-
-	/**
-	 * Set the message type. By default, the type is 0x00.
-	 * @param type The message type.
-	 */
-	void setType(int type)
-	{
-		m_iType = type;
-	}
-
-
 };
+
+/**
+ *	Represents a CAN message with a timestamp.
+ *  \ingroup DriversCanModul	
+ */
+class CANTimedMessage
+{
+	public:
+		/**
+			The timestamp associated with the CAN message.
+		*/
+		double dTimeStamp;
+
+		/**
+			The CAN message.
+		*/
+		CanMsg *pCanMsg;
+};
+
+
 //-----------------------------------------------
 #endif

@@ -31,73 +31,44 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
-#ifndef CANITF_INCLUDEDEF_H
-#define CANITF_INCLUDEDEF_H
+
+#ifndef CANPEAKSYSDONGLE_INCLUDEDEF_H
+#define CANPEAKSYSDONGLE_INCLUDEDEF_H
 
 //-----------------------------------------------
 
-#include <cob_generic_can/CanMsg.h>
+#include <cob_generic_can/CanItf.h>
+#include <libpcan.h>
 #include <cob_generic_can/stdDef.h>
 
 //-----------------------------------------------
 
-/**
- * General interface of the CAN bus.
- * \ingroup DriversCanModul	
- */
-class CanItf
+class CANPeakSysDongle : public CanItf
 {
 public:
+	
+	CANPeakSysDongle(int iBaudRate, std::string strDeviceName = "/dev/pcan24");
 
-	enum BaudRate
-	{
-		CAN_BAUDRATE_1M = 0,
-		CAN_BAUDRATE_500K = 1,
-		CAN_BAUDRATE_250K = 2,
-		CAN_BAUDRATE_125K = 3,
-		CAN_BAUDRATE_100K = 4,
-		CAN_BAUDRATE_50K = 5,
-		CAN_BAUDRATE_20K = 6,
-		CAN_BAUDRATED_10K = 7,
-		CAN_BAUDRATE_5K = 8
-	};
+	~CANPeakSysDongle();
 
-	/**
-	 *
-	 */
-	virtual ~CanItf() { }
+	void init(int iBaudRate);
 
-	/**
-	 * Initializes the CAN bus.
-	 */
-	virtual void init(int iBaudRate) = 0;
+	bool transmitMsg(CanMsg& cmsg);
 
-	/**
-	 * Sends a CAN message.
-	 */
-	virtual bool transmitMsg(CanMsg& CMsg) = 0;
+	bool receiveMsg(CanMsg* pCMsg);
 
-	/**
-	 * Reads a CAN message.
-	 * @return true if a message is available 
-	 */
-	virtual bool receiveMsg(CanMsg* pCMsg) = 0;
+	bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry);
 
-	/**
-	 * Reads a CAN message.
-	 * The function blocks between the attempts.
-	 * @param pCMsg CAN message
-	 * @param iNrOfRetry number of retries
-	 * @return true if a message is available
-	 */
-	virtual bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry) = 0;
+	bool emMessageError() { return false; }
 
-	/**
-	 * Set Em-stop in StateArm Active.
-	 * Only necessary for arm on mx500 because there is 
-	 * no possibility to recognize EM-Stop except on Can-Errors
-	 */
-	virtual bool emMessageError() = 0;
+private:
+
+	HANDLE m_handle;
+	bool m_bInitialized;
+
+	static const int c_iInterrupt;
+	static const int c_iPort;
 };
 //-----------------------------------------------
 #endif
+

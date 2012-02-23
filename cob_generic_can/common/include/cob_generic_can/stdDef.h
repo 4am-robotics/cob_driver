@@ -31,73 +31,28 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
-#ifndef CANITF_INCLUDEDEF_H
-#define CANITF_INCLUDEDEF_H
 
-//-----------------------------------------------
+#ifndef stddef_INCLUDEDEF_H
+#define stddef_INCLUDEDEF_H
 
-#include <cob_generic_can/CanMsg.h>
-#include <cob_generic_can/stdDef.h>
+#include <ros/ros.h>
+#include <iostream>
 
-//-----------------------------------------------
+//#define BYTE unsigned char
 
-/**
- * General interface of the CAN bus.
- * \ingroup DriversCanModul	
- */
-class CanItf
+#define LOGALERT(AString)
+#define LOGINFO(AString)
+#define LOGERROR(AString)
+
+/*
+#define LOGALERT(AString) std::cout<<AString<<std::endl;
+#define LOGINFO(AString) std::cout<<AString<<std::endl;
+#define LOGERROR(AString) std::cout<<AString<<std::endl;
+*/
+
+inline void Sleep (double t)
 {
-public:
+	usleep(t*1000);
+}
 
-	enum BaudRate
-	{
-		CAN_BAUDRATE_1M = 0,
-		CAN_BAUDRATE_500K = 1,
-		CAN_BAUDRATE_250K = 2,
-		CAN_BAUDRATE_125K = 3,
-		CAN_BAUDRATE_100K = 4,
-		CAN_BAUDRATE_50K = 5,
-		CAN_BAUDRATE_20K = 6,
-		CAN_BAUDRATED_10K = 7,
-		CAN_BAUDRATE_5K = 8
-	};
-
-	/**
-	 *
-	 */
-	virtual ~CanItf() { }
-
-	/**
-	 * Initializes the CAN bus.
-	 */
-	virtual void init(int iBaudRate) = 0;
-
-	/**
-	 * Sends a CAN message.
-	 */
-	virtual bool transmitMsg(CanMsg& CMsg) = 0;
-
-	/**
-	 * Reads a CAN message.
-	 * @return true if a message is available 
-	 */
-	virtual bool receiveMsg(CanMsg* pCMsg) = 0;
-
-	/**
-	 * Reads a CAN message.
-	 * The function blocks between the attempts.
-	 * @param pCMsg CAN message
-	 * @param iNrOfRetry number of retries
-	 * @return true if a message is available
-	 */
-	virtual bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry) = 0;
-
-	/**
-	 * Set Em-stop in StateArm Active.
-	 * Only necessary for arm on mx500 because there is 
-	 * no possibility to recognize EM-Stop except on Can-Errors
-	 */
-	virtual bool emMessageError() = 0;
-};
-//-----------------------------------------------
 #endif
