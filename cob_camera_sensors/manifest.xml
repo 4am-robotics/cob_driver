@@ -29,7 +29,7 @@
 
 
   <export>
-    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_camera_sensors"/>
+    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/ros/lib -lcob_kinect_image_flip"/>
     <nodelet plugin="${prefix}/nodelet_plugins.xml" />
   </export>
 

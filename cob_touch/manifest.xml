@@ -9,6 +9,4 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_touch</url>
 
-  <rosdep name="touchscreen"/>
-
 </package>

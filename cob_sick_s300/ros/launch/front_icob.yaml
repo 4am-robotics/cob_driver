@@ -1,6 +1,0 @@
-port: /dev/ttyUSB0
-baud: 500000
-inverted: true
-frame_id: /base_laser_front_link
-start_scan: 8
-stop_scan: 530
