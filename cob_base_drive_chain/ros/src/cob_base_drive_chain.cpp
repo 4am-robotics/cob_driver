@@ -106,9 +106,12 @@ class NodeClass
 		private:
 		std::vector<std::string> joint_names;
 		double *sendVel;
+		int* canIDs;
 		int m_iNumMotors;
 		int reset_retries;
 		bool bIsError;
+		ros::Duration timeOut;
+		ros::Time last_cmd_time;
 };
 
 //##################################
@@ -127,11 +130,18 @@ NodeClass::NodeClass()
 	// Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
 
 	n.param<bool>("PublishEffort", m_bPubEffort, false);
+	//stop all Drives if no new cmd_vel have been received within $errorStopTime seconds.
+	last_cmd_time = ros::Time::now();
+	double errorStopTime;
+	n.param<double>("TimeOut", errorStopTime, 3);
+	ros::Duration d(errorStopTime);
+	timeOut = d;
 	if(m_bPubEffort) ROS_INFO("You have choosen to publish effort of motors, that charges capacity of CAN");
 
 	// get max Joint-Velocities (in rad/s) for Steer- and Drive-Joint
 	n.getParam("numberOfMotors", m_iNumMotors);
 	sendVel = new double[m_iNumMotors];
+	canIDs = new int[m_iNumMotors];
 	for(int i=0; i<m_iNumMotors; i++) sendVel[i] = 0;
 	joint_names.resize(m_iNumMotors);
 	for(int i=0; i<m_iNumMotors; i++)
@@ -140,6 +150,8 @@ NodeClass::NodeClass()
 		stringstream<<"drive"<<i<<"/";
 		std::string pathName = stringstream.str();
 		n.getParam(pathName + "joint_name", joint_names[i]);
+		n.getParam(pathName + "CANId", canIDs[i]);
+		ROS_INFO("can id: %i", canIDs[i]);
 
 	}
 	m_CanCtrlPltf = new NeoCtrlPltfMpo500(&n);
@@ -181,15 +193,26 @@ NodeClass::~NodeClass()
 {
 	m_CanCtrlPltf->shutdownPltf();
 	delete[] sendVel;
+	delete[] canIDs;
 }
 
 void  NodeClass::sendVelCan()
 {
 	if(m_bisInitialized == true && !bIsError)
 	{
-		for(int i=0; i<m_iNumMotors; i++){
-			m_CanCtrlPltf->setVelGearRadS(i+2, sendVel[i]); //TODO: replace i+2 with can id
-			ROS_DEBUG("send velocity to can if: %i : %f", i, sendVel[i]);
+		if(timeOut > ros::Time::now() - last_cmd_time  )
+		{
+			for(int i=0; i<m_iNumMotors; i++){
+				m_CanCtrlPltf->setVelGearRadS(canIDs[i], sendVel[i]);
+				ROS_DEBUG("send velocity cmd to can: %i : %f", i, sendVel[i]);
+			}
+		}
+		else
+		{
+			for(int i=0; i<m_iNumMotors; i++){
+				m_CanCtrlPltf->setVelGearRadS(canIDs[i], 0);
+				ROS_DEBUG("last velocity cmd timed out: set velocity to 0");
+			}
 		}
 	} 
 	else 
@@ -221,11 +244,10 @@ void NodeClass::topicCallback_JointStateCmd(const trajectory_msgs::JointTrajecto
 				sendVel[i] = -m_Param.dMaxDriveRateRadpS;
 			}
 		}
+		last_cmd_time = ros::Time::now();
 	}
 }
 
-// service callback functions
-// function will be called when a service is querried
 
 // Init Can-Configuration
 bool NodeClass::can_init()
@@ -260,8 +282,9 @@ bool NodeClass::recover()
 	if(m_bisInitialized)
 	{	
 		reset_retries++;
-		if(reset_retries%10 == 0)
+		if(reset_retries > 10)
 		{
+			reset_retries = 0;
 			usleep(100000);
 			ROS_DEBUG("Service callback reset");
 			bool reset = m_CanCtrlPltf->resetPltf();
@@ -269,7 +292,7 @@ bool NodeClass::recover()
 				reset_retries = 0;
 				ROS_INFO("base resetted");
 			} else {
-				ROS_WARN("Resetting base failed");
+				ROS_DEBUG("Resetting base failed");
 			}
 		}
 	}
@@ -349,8 +372,8 @@ bool NodeClass::publish_JointStates()
 		for(int i = 0; i<m_iNumMotors; i++)
 		{
 
-			m_CanCtrlPltf->requestMotPosVel(i+2);
-			m_CanCtrlPltf->getGearPosVelRadS(i+2,  &vdAngGearRad[i], &vdVelGearRad[i]); //TODO: replace i+2 with canid
+			m_CanCtrlPltf->requestMotPosVel(canIDs[i]);
+			m_CanCtrlPltf->getGearPosVelRadS(canIDs[i],  &vdAngGearRad[i], &vdVelGearRad[i]); 
 			
 			//Get motor torque
 			if(m_bPubEffort) {

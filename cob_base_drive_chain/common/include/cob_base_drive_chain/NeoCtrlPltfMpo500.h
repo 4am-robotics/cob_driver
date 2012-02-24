@@ -77,19 +77,6 @@ public:
 
 	//--------------------------------- Hardware Specification
 
-	/**
-	 * Specify Cannodes (Identifiers to send velocities to one specific motor)
-	 * This has to be adapted to the hardware-setup!
-	 */
-	enum MotorCANNode
-	{
-		CANNODE_WHEEL1DRIVEMOTOR,
-		CANNODE_WHEEL2DRIVEMOTOR,
-		CANNODE_WHEEL3DRIVEMOTOR,
-		CANNODE_WHEEL4DRIVEMOTOR
-	};
-
-
 	//--------------------------------- Commands for all nodes on the bus
 
 	/** 

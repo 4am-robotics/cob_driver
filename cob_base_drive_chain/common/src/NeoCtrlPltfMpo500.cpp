@@ -37,6 +37,7 @@
 
 // Headers provided by other cob-packages
 #include <cob_generic_can/CanESD.h>
+#include <cob_generic_can/CANPeakSys2PCI.h>
 #include <cob_generic_can/CANPeakSysDongle.h>
 #include <cob_generic_can/CANPeakSysUSB.h>
 #include <cob_base_drive_chain/NeoCtrlPltfMpo500.h>
@@ -60,14 +61,6 @@ NeoCtrlPltfMpo500::NeoCtrlPltfMpo500(ros::NodeHandle* node)
 		m_vpMotor[i] = NULL;
 	}
 	m_viMotorID.resize(m_iNumMotors);
-	if(m_iNumMotors >= 1)
-		m_viMotorID[0] = CANNODE_WHEEL1DRIVEMOTOR;
-	if(m_iNumMotors >= 2)
-		m_viMotorID[1] = CANNODE_WHEEL2DRIVEMOTOR;
-	if(m_iNumMotors >= 3)
-		m_viMotorID[2] = CANNODE_WHEEL3DRIVEMOTOR;
-	if(m_iNumMotors >= 4)
-		m_viMotorID[3] = CANNODE_WHEEL4DRIVEMOTOR;
 }
 
 //-----------------------------------------------
@@ -112,7 +105,6 @@ void NeoCtrlPltfMpo500::readConfiguration()
 			ROS_INFO("set devicepath from config: %s %i",sCanDevice.c_str(), iBaudrateVal);
 			m_pCanCtrl = new CANPeakSysDongle(iBaudrateVal, sCanDevice);
 			
-	//TODO:
 		}
 		else m_pCanCtrl = new CANPeakSysDongle(iBaudrateVal);
 		std::cout << "Uses CAN-Peak-Systems dongle" << std::endl;
@@ -121,21 +113,30 @@ void NeoCtrlPltfMpo500::readConfiguration()
 	{
  		if( n->hasParam("devicePath") ){
 			n->getParam("devicePath", sCanDevice);
-			m_pCanCtrl = new CANPeakSysDongle(iBaudrateVal, sCanDevice);
+			m_pCanCtrl = new CANPeakSysUSB(iBaudrateVal, sCanDevice);
 		}
-		else m_pCanCtrl = new CANPeakSysDongle(iBaudrateVal);
-		std::cout << "Uses CAN-Peak-Systems dongle" << std::endl;
+		else m_pCanCtrl = new CANPeakSysUSB(iBaudrateVal);
+		std::cout << "Uses CAN-Peak-Systems USB" << std::endl;
 	}
 	else if (iTypeCan == 2)
 	{
  		if( n->hasParam("devicePath") ){
 			n->getParam("devicePath", sCanDevice);
-			m_pCanCtrl = new CANPeakSysDongle(iBaudrateVal, sCanDevice);
+			m_pCanCtrl = new CANPeakSys2PCI(iBaudrateVal, sCanDevice);
 		}
-		else m_pCanCtrl = new CANPeakSysDongle(iBaudrateVal);
-		std::cout << "Uses CAN-Peak-Systems dongle" << std::endl;
+		else m_pCanCtrl = new CANPeakSys2PCI(iBaudrateVal);
+		std::cout << "Uses CAN-Peak-Systems PCI" << std::endl;
 	}
-	m_pCanCtrl->init(iBaudrateVal);
+	else if (iTypeCan == 3)
+	{
+ 		if( n->hasParam("iNrNet") ){
+			int iNrNet;
+			n->getParam("iNrNet", iNrNet);
+			m_pCanCtrl = new CanESD(iBaudrateVal, iNrNet);
+		}
+		else m_pCanCtrl = new CanESD(iBaudrateVal, 1);
+		std::cout << "Uses CanESD" << std::endl;
+	}
 
 	std::string control_type[m_iNumMotors];
 	// "Drive Motor Type1" drive parameters
@@ -203,7 +204,8 @@ void NeoCtrlPltfMpo500::readConfiguration()
 
 }
 
-//send a synch msg
+//-----------------------------------------------
+
 bool NeoCtrlPltfMpo500::sendSynch()
 {
         CanMsg msg;
@@ -214,6 +216,7 @@ bool NeoCtrlPltfMpo500::sendSynch()
 }
 
 //-----------------------------------------------
+
 int NeoCtrlPltfMpo500::evalCanBuffer()
 {
 	bool bRet;
@@ -265,28 +268,13 @@ void NeoCtrlPltfMpo500::sendNetStartCanOpen()
 
 bool NeoCtrlPltfMpo500::initPltf()
 {	
-	// read Configuration parameters from Inifile
+	// read Configuration parameters from yaml files
 	readConfiguration();
+
+	//start can open network
 	sendNetStartCanOpen();
 		
-	// Vectors for drive objects and return values
-	std::vector<bool> vbRetDriveMotor;
-	std::vector<CanDriveItf*> vpDriveMotor;
-	bool bHomingOk;
-
-	vbRetDriveMotor.assign(m_iNumMotors,0);
-
-	// Homing is done on a wheel-module base (steering and driving needs to be synchronized) 
-	// copy Motor-Pointer into Steer/Drive vector for more insight
-	for(int i=0; i<=m_iNumMotors; i++)
-		vpDriveMotor.push_back(m_vpMotor[i]);
-
-	std::vector<double> vdFactorVel;
-//	vdFactorVel.assign(4,0);
-	vdFactorVel.assign(m_iNumMotors,0);
-	double dhomeVeloRadS = -1.0;
-
-	
+	//start motors
 	for(int i=0; i < m_vpMotor.size(); i++)
 	{
 		if(m_vpMotor[i]->init(true))
@@ -298,8 +286,34 @@ bool NeoCtrlPltfMpo500::initPltf()
 				m_vpMotor[i]->initWatchdog();
 			}
 		}
+	}
+	//homing:
+	for(int i=0; i < m_vpMotor.size(); i++)
+	{
+
+		if(m_vpMotor[i]->m_DriveParam.getHoming() )
+		{
+			// start translational (index i+1) wheel synchronously
+			// with homing drive (index i)
+
+			//TODO: i+1
+			m_vpMotor[i+1]->setWheelVel(m_vpMotor[i+1]->m_DriveParam.getSign() * 0.2, false, true);
+
+			m_vpMotor[i]->prepareHoming();
+			m_vpMotor[i]->initHoming();
+			m_vpMotor[i]->execHoming();
+			m_vpMotor[i]->isHomingFinished();
+			
+			// stop translational wheel
+			m_vpMotor[i+1]->setWheelVel(0.0, false, true);
+			
+			usleep(50000);
+			double pi_ = 3.14159265;
+			m_vpMotor[i]->setModuloCount(-pi_, pi_);
+		}
 
 	}
+
 	return true;
 }
 
@@ -362,9 +376,6 @@ bool NeoCtrlPltfMpo500::isPltfError()
 	{
 		dWatchTime = m_vpMotor[i]->getTimeToLastMsg();
 
-		if(dWatchTime <  1)
-		{
-		}
 		if( (dWatchTime > 1) && (m_bWatchdogErr == false) )
 		{
 			ROS_ERROR("timeout CAN motor %i", i );
