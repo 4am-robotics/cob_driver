@@ -46,7 +46,7 @@ class CANPeakSysUSB : public CanItf
 {
 public:
 	// --------------- Interface
-	CANPeakSysUSB(int iBaudRate);
+	CANPeakSysUSB(int iBaudRate, std::string strDeviceName = "/dev/pcan24");
 	~CANPeakSysUSB();
 	void init(int iBaudRate);
 	bool transmitMsg(CanMsg& CMsg);

@@ -48,7 +48,7 @@ class CANPeakSysPCI : public CanItf
 {
 public:
 	// --------------- Interface
-	CANPeakSysPCI(int iBaudRate);
+	CANPeakSysPCI(int iBaudRate, std::string strDeviceName = "/dev/pcan24");
 	~CANPeakSysPCI();
 	void init(int iBaudRate);
 	bool transmitMsg(CanMsg& CMsg);

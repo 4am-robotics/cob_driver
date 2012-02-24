@@ -44,10 +44,18 @@
 
 
 //-----------------------------------------------
-CANPeakSysUSB::CANPeakSysUSB(int iBaudRate)
+CANPeakSysUSB::CANPeakSysUSB(int iBaudRate, std::string strDeviceName)
 {
 	m_bInitialized = false;
+	m_handle = LINUX_CAN_Open(strDeviceName.c_str(), O_RDWR);
 
+	if (! m_handle)
+	{
+		// Fatal error
+		LOGERROR("can not open CANPeakSysUSB device : " << strerror(errno));
+		usleep(3000);
+		exit(0);
+	}
 	init(0);
 }
 
@@ -63,15 +71,7 @@ CANPeakSysUSB::~CANPeakSysUSB()
 //-----------------------------------------------
 void CANPeakSysUSB::init(int iBaudRate)
 {
-	m_handle = LINUX_CAN_Open("/dev/pcan32", O_RDWR);
 
-	if (! m_handle)
-	{
-		// Fatal error
-		LOGERROR("can not open CANPeakSysUSB device : " << strerror(errno));
-		usleep(3000);
-		exit(0);
-	}
 	
 	
 	int ret = CAN_ERR_OK;

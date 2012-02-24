@@ -45,10 +45,16 @@
 
 
 //-----------------------------------------------
-CANPeakSysPCI::CANPeakSysPCI(int iBaudRate)
+CANPeakSysPCI::CANPeakSysPCI(int iBaudRate, std::string strDeviceName)
 {
 	m_bInitialized = false;
-
+	m_handle = LINUX_CAN_Open(strDeviceName.c_str(), O_RDWR);
+	if (! m_handle)
+	{
+		LOGERROR("can not open CANPeakSysPCI device : "<< " " << strerror(errno));
+		Sleep(3000);
+		exit(0);
+	}
 	init(iBaudRate);
 }
 
@@ -64,15 +70,7 @@ CANPeakSysPCI::~CANPeakSysPCI()
 //-----------------------------------------------
 void CANPeakSysPCI::init(int iBaudRate)
 {
-	m_handle = LINUX_CAN_Open("/dev/pcan0", O_RDWR);
 
-	if (! m_handle)
-	{
-		LOGERROR("can not open CANPeakSysPCI device : " << strerror(errno));
-		Sleep(3000);
-		exit(0);
-	}
-	
 	
 	int ret = CAN_ERR_OK;
 
