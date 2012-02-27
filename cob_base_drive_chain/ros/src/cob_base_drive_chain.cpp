@@ -221,6 +221,7 @@ void  NodeClass::sendVelCan()
 	}
 }
 
+
 // topic callback functions 
 // function will be called when a new message arrives on a topic
 void NodeClass::topicCallback_JointStateCmd(const trajectory_msgs::JointTrajectory::ConstPtr& msg)
