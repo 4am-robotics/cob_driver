@@ -417,58 +417,74 @@ bool NodeClass::publish_JointStates()
 			if(status != 0)
 			{
 				// motor i has an failure
-				bIsError = true;
-				if ( MathSup::isBitSet ( status, 2 ) ){
+				/*if ( MathSup::isBitSet ( status, 2 ) ){
+					bIsError = true;
 					error_msg +=  canIDs[i] + " feedback loss";
 				}
 				if ( MathSup::isBitSet ( status, 3 ) ){
+					bIsError = true;
 					error_msg += canIDs[i] + " peak current exceeded";
 				}
 				if ( MathSup::isBitSet ( status, 4 ) ){
+					bIsError = true;
 					error_msg +=  canIDs[i] + " inhibit";
 				}
 				if ( MathSup::isBitSet ( status, 6 ) ){
+					bIsError = true;
 					error_msg +=  canIDs[i] + " Hall sensor error";
 				}
 				if ( MathSup::isBitSet ( status, 7 ) ){
+					bIsError = true;
 					error_msg +=  canIDs[i] + " speed track error";
 				}
 				if ( MathSup::isBitSet ( status, 8 ) ){
+					bIsError = true;
 					error_msg +=  canIDs[i] + " position track error";
 				}
 				if ( MathSup::isBitSet ( status, 9 ) ){
+					bIsError = true;
 					error_msg +=  canIDs[i] + " inconsistent database";
 				}
 				if ( MathSup::isBitSet ( status, 11 ) ){
+					bIsError = true;
 					error_msg +=  canIDs[i] + " heartbeat failure";
 				}
 				if ( MathSup::isBitSet ( status, 12 ) ){
+					bIsError = true;
 					error_msg += canIDs[i] + " servo drive fault";
 				}
 				if ( ( status & 0x0E000 ) == 0x2000 ){
+					bIsError = true;
 					error_msg +=  canIDs[i] + " under voltage";
 				}
 				if ( ( status & 0x0E000 ) == 0x4000 ){
+					bIsError = true;
 					error_msg +=  canIDs[i] + " over voltage";
 				}
 				if ( ( status & 0x0E000 ) == 0xA000 ){
+					bIsError = true;
 					error_msg +=  canIDs[i] + " short circuit";
 				}
 				if ( ( status & 0x0E000 ) == 0xC000 ){
+					bIsError = true;
 					error_msg +=  canIDs[i] + " over temp";
 				}
 				if ( MathSup::isBitSet ( status, 16 ) ){
+					bIsError = true;
 					error_msg +=  canIDs[i] + " electrical zero not found";
 				}
 				if ( MathSup::isBitSet ( status, 17 ) ){
+					bIsError = true;
 					error_msg +=  canIDs[i] + " speed limit exceeded";
 				}
 				if ( MathSup::isBitSet ( status, 21 ) ){
+					bIsError = true;
 					error_msg +=  canIDs[i] + " motor stuck";
 				}
 				if ( MathSup::isBitSet ( status, 22 ) ){
+					bIsError = true;
 					error_msg +=  canIDs[i] + " position limit excceded";
-				}
+				}*/
 
 			}	
 			
