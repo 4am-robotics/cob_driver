@@ -37,6 +37,7 @@
 
 // standard includes
 //--
+#include <sstream>
 
 // ROS includes
 #include <ros/ros.h>
@@ -48,6 +49,9 @@
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 #include <pr2_controllers_msgs/JointControllerState.h>
 #include <trajectory_msgs/JointTrajectory.h>
+
+//cob includes:
+#include <cob_srvs/Trigger.h>
 
 // external includes
 
@@ -73,10 +77,16 @@ class NodeClass
 		ros::Publisher topicPub_Diagnostic;
 		ros::Subscriber topicSub_JointStateCmd;
 
+		// service servers
+		ros::ServiceServer srvServer_Init;
+		ros::ServiceServer srvServer_Recover;
+		ros::ServiceServer srvServer_Shutdown;
+
 		// global variables
 		// generate can-node handle
 		NeoCtrlPltfMpo500 *m_CanCtrlPltf;
 		bool m_bisInitialized;
+		bool autoInit;
 
 		struct ParamType
 		{ 
@@ -93,13 +103,16 @@ class NodeClass
 		NodeClass();
 
 		// Destructor
-		~NodeClass() ;
+		~NodeClass();
 
 		void sendVelCan();
 		void topicCallback_JointStateCmd(const trajectory_msgs::JointTrajectory::ConstPtr& msg);
 		bool can_init();
+		bool srv_can_init(cob_srvs::Trigger::Request& req, cob_srvs::Trigger::Response& res );
 		bool recover();
+		bool srv_recover(cob_srvs::Trigger::Request& req, cob_srvs::Trigger::Response& res );
 		bool shutdown();
+		bool srv_shutdown(cob_srvs::Trigger::Request& req, cob_srvs::Trigger::Response& res );
 		bool publish_JointStates();
 		bool initDrives();
 
@@ -110,8 +123,8 @@ class NodeClass
 		int m_iNumMotors;
 		int reset_retries;
 		bool bIsError;
-		ros::Duration timeOut;
-		ros::Time last_cmd_time;
+		ros::Duration timeOut, auto_recover_interval;
+		ros::Time last_cmd_time, last_recover_try;
 };
 
 //##################################
@@ -119,17 +132,19 @@ class NodeClass
 
 
 // Constructor
-NodeClass::NodeClass()
+NodeClass::NodeClass() : auto_recover_interval(0.3)
 {
 	reset_retries = 0;
 	// initialization of variables
 	m_bisInitialized = false;
 
-	bIsError = true;
+	//bIsError = true;
 	/// Parameters are set within the launch file
 	// Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
 
 	n.param<bool>("PublishEffort", m_bPubEffort, false);
+	n.param<bool>("AutoInit",autoInit, true);
+	ROS_INFO("autoinitializing base_drive_chain");
 	//stop all Drives if no new cmd_vel have been received within $errorStopTime seconds.
 	last_cmd_time = ros::Time::now();
 	double errorStopTime;
@@ -164,7 +179,12 @@ NodeClass::NodeClass()
 	topicPub_Diagnostic = n.advertise<diagnostic_msgs::DiagnosticStatus>("diagnostic", 1);
 	// subscribed topics
 	topicSub_JointStateCmd = n.subscribe("cmd_joint_traj", 1, &NodeClass::topicCallback_JointStateCmd, this);
-
+	if(!autoInit)
+	{
+		srvServer_Init = n.advertiseService("init", &NodeClass::srv_can_init, this);
+		srvServer_Recover = n.advertiseService("recover", &NodeClass::srv_recover, this);
+		srvServer_Shutdown = n.advertiseService("shutdown", &NodeClass::srv_shutdown, this);
+	}
 }
 
 bool NodeClass::initDrives()
@@ -251,6 +271,22 @@ void NodeClass::topicCallback_JointStateCmd(const trajectory_msgs::JointTrajecto
 
 
 // Init Can-Configuration
+bool NodeClass::srv_can_init(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response& res )
+{
+	if(m_bisInitialized)
+	{
+		res.success.data = true;
+		res.error_message.data = "platform already initialized";
+		return true;
+	} 
+	can_init();
+	res.success.data = m_bisInitialized;
+	if(!m_bisInitialized) 
+	{
+		res.error_message.data = "initialization of base failed";
+	}
+}
+
 bool NodeClass::can_init()
 {
 	ROS_DEBUG("Service Callback init");
@@ -278,44 +314,70 @@ bool NodeClass::can_init()
 
 
 // reset Can-Configuration
+bool NodeClass::srv_recover(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response& res)
+{
+	if(!m_bisInitialized)
+	{
+		res.error_message.data = "failed to recover: base not initialized";
+		res.success.data = false;
+		return false;
+	}
+	res.success.data = recover();
+	if(!res.success.data)
+	{
+		res.error_message.data = "base failed to recover";
+	}
+	return res.success.data;
+}
+
 bool NodeClass::recover()
 {
 	if(m_bisInitialized)
 	{	
-		reset_retries++;
-		if(reset_retries > 10)
-		{
+		reset_retries = 0;
+		usleep(100000);
+		ROS_DEBUG("Service callback reset");
+		bool reset = m_CanCtrlPltf->resetPltf();
+		if (reset) {
 			reset_retries = 0;
-			usleep(100000);
-			ROS_DEBUG("Service callback reset");
-			bool reset = m_CanCtrlPltf->resetPltf();
-			if (reset) {
-				reset_retries = 0;
-				ROS_INFO("base resetted");
-			} else {
-				ROS_DEBUG("Resetting base failed");
-			}
+			ROS_INFO("base resetted");
+		} else {
+			ROS_DEBUG("Resetting base failed");
 		}
+		return reset;
 	}
 	else
 	{
-		ROS_WARN("...base already recovered...");
+		ROS_WARN("...base not initialized...");
 	}
 
-	return true;
+	return false;
 }
 
 // shutdown Drivers and Can-Node
+bool NodeClass::srv_shutdown(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response& res)
+{
+	res.success.data = shutdown();
+	if(!res.success.data)
+	{
+		res.error_message.data = "base failed to shutdown";
+	}
+	return res.success.data;
+}
+
 bool NodeClass::shutdown()
 {
 	ROS_DEBUG("Service callback shutdown");
 	bool success = m_CanCtrlPltf->shutdownPltf();
 	if (success)
+	{
 		ROS_INFO("Drives shut down");
+		return true;
+	}
 	else
 		ROS_INFO("Shutdown of Drives FAILED");
 
-	return true;
+	return false;
 }
 
 //publish JointStates cyclical instead of service callback
@@ -399,7 +461,7 @@ bool NodeClass::publish_JointStates()
 	ROS_DEBUG("published new drive-chain configuration (JointState message)");
 	
 
-	std::string error_msg;
+	std::ostringstream error_msg;
 	if(m_bisInitialized)
 	{
 		// read Can only after initialization
@@ -408,7 +470,7 @@ bool NodeClass::publish_JointStates()
 		bIsError = m_CanCtrlPltf->isPltfError();
 		if(bIsError)
 		{
-			error_msg="platform error: can communication error\n";
+			error_msg<<"platform error: can communication error\n";
 			ROS_DEBUG("platform has an error");
 		}
 		for(int i = 0; i<m_iNumMotors; i++)
@@ -418,74 +480,74 @@ bool NodeClass::publish_JointStates()
 			if(status != 0)
 			{
 				// motor i has an failure
-				/*if ( MathSup::isBitSet ( status, 2 ) ){
+				if ( MathSup::isBitSet ( status, 2 ) ){
 					bIsError = true;
-					error_msg +=  canIDs[i] + " feedback loss";
+					error_msg << canIDs[i] << " feedback loss\n";
 				}
 				if ( MathSup::isBitSet ( status, 3 ) ){
-					bIsError = true;
-					error_msg += canIDs[i] + " peak current exceeded";
+					//bIsError = true;
+					error_msg << canIDs[i] << " peak current exceeded\n";
 				}
 				if ( MathSup::isBitSet ( status, 4 ) ){
-					bIsError = true;
-					error_msg +=  canIDs[i] + " inhibit";
+					//bIsError = true;
+					error_msg << canIDs[i] <<" inhibit\n";
 				}
 				if ( MathSup::isBitSet ( status, 6 ) ){
 					bIsError = true;
-					error_msg +=  canIDs[i] + " Hall sensor error";
+					error_msg << canIDs[i] <<" Hall sensor error\n";
 				}
 				if ( MathSup::isBitSet ( status, 7 ) ){
-					bIsError = true;
-					error_msg +=  canIDs[i] + " speed track error";
+					//bIsError = true;
+					error_msg << canIDs[i] <<" speed track error\n";
 				}
 				if ( MathSup::isBitSet ( status, 8 ) ){
-					bIsError = true;
-					error_msg +=  canIDs[i] + " position track error";
+					//bIsError = true;
+					error_msg << canIDs[i] <<" position track error\n";
 				}
 				if ( MathSup::isBitSet ( status, 9 ) ){
-					bIsError = true;
-					error_msg +=  canIDs[i] + " inconsistent database";
+					//bIsError = true;
+					error_msg << canIDs[i] <<" inconsistent database\n";
 				}
 				if ( MathSup::isBitSet ( status, 11 ) ){
-					bIsError = true;
-					error_msg +=  canIDs[i] + " heartbeat failure";
+					//bIsError = true;
+					error_msg << canIDs[i] <<" heartbeat failure\n";
 				}
 				if ( MathSup::isBitSet ( status, 12 ) ){
 					bIsError = true;
-					error_msg += canIDs[i] + " servo drive fault";
+					error_msg << canIDs[i] << " servo drive fault\n";
 				}
 				if ( ( status & 0x0E000 ) == 0x2000 ){
 					bIsError = true;
-					error_msg +=  canIDs[i] + " under voltage";
+					error_msg << canIDs[i] <<" under voltage\n";
 				}
 				if ( ( status & 0x0E000 ) == 0x4000 ){
 					bIsError = true;
-					error_msg +=  canIDs[i] + " over voltage";
+					error_msg << canIDs[i] <<" over voltage\n";
 				}
 				if ( ( status & 0x0E000 ) == 0xA000 ){
 					bIsError = true;
-					error_msg +=  canIDs[i] + " short circuit";
+					error_msg << canIDs[i] <<" short circuit\n";
 				}
 				if ( ( status & 0x0E000 ) == 0xC000 ){
 					bIsError = true;
-					error_msg +=  canIDs[i] + " over temp";
+					error_msg << canIDs[i] <<" over temp\n";
 				}
 				if ( MathSup::isBitSet ( status, 16 ) ){
-					bIsError = true;
-					error_msg +=  canIDs[i] + " electrical zero not found";
+					//bIsError = true;
+					error_msg << canIDs[i] <<" electrical zero not found\n";
 				}
 				if ( MathSup::isBitSet ( status, 17 ) ){
-					bIsError = true;
-					error_msg +=  canIDs[i] + " speed limit exceeded";
+					//bIsError = true;
+					error_msg << canIDs[i] <<" speed limit exceeded\n";
 				}
 				if ( MathSup::isBitSet ( status, 21 ) ){
 					bIsError = true;
-					error_msg +=  canIDs[i] + " motor stuck";
+					error_msg << canIDs[i] <<" motor stuck\n";
 				}
 				if ( MathSup::isBitSet ( status, 22 ) ){
-					bIsError = true;
-					error_msg +=  canIDs[i] + " position limit excceded";
-				}*/
+					//bIsError = true;
+					error_msg << canIDs[i] <<" position limit excceded\n";
+				}
 
 			}	
 			
@@ -493,6 +555,7 @@ bool NodeClass::publish_JointStates()
 		if(old_errorState == false && bIsError == true)
 		{ 
 			// a new error has occured..
+			last_recover_try = ros::Time::now();
 			m_CanCtrlPltf->stopPltf();
 		}
 	}
@@ -502,8 +565,15 @@ bool NodeClass::publish_JointStates()
 	{
 		diagnostics.level = 2;
 		diagnostics.name = "drive-chain can node";
-		diagnostics.message = error_msg;
-		recover();
+		diagnostics.message = error_msg.str();
+		if(autoInit)
+		{
+			if(ros::Time::now() - last_recover_try > auto_recover_interval)
+			{
+				last_recover_try = ros::Time::now();
+				recover();
+			}
+		}
 	}
 	else
 	{
@@ -542,7 +612,10 @@ int main(int argc, char** argv)
 	nodeClass.n.getParam("cycleRate", rate);
  	ROS_INFO("set can querry rate to %i hz", rate);
 	ros::Rate loop_rate(rate); // Hz 
-	nodeClass.can_init();
+	if(nodeClass.autoInit)
+	{
+		nodeClass.can_init();
+	}
 
 	while(nodeClass.n.ok())
 	{

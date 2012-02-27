@@ -14,6 +14,7 @@
   <depend package="diagnostic_msgs"/>
   <depend package="pr2_controllers_msgs"/>
   <depend package="trajectory_msgs"/>
+  <depend package="cob_srvs"/>
   <export>
     <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_base_drive_chain"/>
   </export>
