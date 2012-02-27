@@ -308,7 +308,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 			m_vpMotor[i+1]->setWheelVel(0.0, false, true);
 			
 			usleep(50000);
-			double pi_ = 3.14159265;
+			const double pi_ = 3.14159265;
 			m_vpMotor[i]->setModuloCount(-pi_, pi_);
 		}
 
@@ -328,7 +328,7 @@ bool NeoCtrlPltfMpo500::resetPltf()
 		bRetMotor = m_vpMotor[i]->start();
 		if (bRetMotor == false)
 		{
-			std::cout << "Resetting of Motor " << i << " failed" << std::endl;
+			ROS_DEBUG("Resetting of Motor %i failed", i);
 		}
 
 		bRet &= bRetMotor;
@@ -349,6 +349,19 @@ bool NeoCtrlPltfMpo500::shutdownPltf()
 }
 
 //-----------------------------------------------
+bool NeoCtrlPltfMpo500::stopPltf()
+{
+        for(unsigned int i = 0; i < m_vpMotor.size(); i++)
+        {
+                m_vpMotor[i]->stop();
+		setVelGearRadS(m_GearMotDrive[i].iCANId,0);
+        }
+
+
+};
+
+
+//-----------------------------------------------
 bool NeoCtrlPltfMpo500::isPltfError()
 {
 	bool errMotor[m_vpMotor.size()];
@@ -357,14 +370,8 @@ bool NeoCtrlPltfMpo500::isPltfError()
 	{
 		int tmp = 0;
 		errMotor[i] = m_vpMotor[i]->isError(&tmp);
-		overCurrent[i] = m_vpMotor[i]->isCurrentLimit();
-		if(errMotor[i] || overCurrent[i])
+		if(errMotor[i])
 		{
-			for(unsigned int i= 0; i<m_vpMotor.size(); i++)
-			{
-				m_vpMotor[i]->stop();
-				setVelGearRadS(m_GearMotDrive[i].iCANId,0);
-			}
 			return true;
 		}
 	}
@@ -468,8 +475,7 @@ int NeoCtrlPltfMpo500::getGearPosVelRadS(int iCanIdent, double* pdAngleGearRad, 
 }
 
 //-----------------------------------------------
-int NeoCtrlPltfMpo500::getGearDeltaPosVelRadS(int iCanIdent, double* pdAngleGearRad,
-										   double* pdVelGearRadS)
+int NeoCtrlPltfMpo500::getGearDeltaPosVelRadS(int iCanIdent, double* pdAngleGearRad,  double* pdVelGearRadS)
 {
 
 	// init default outputs
@@ -489,18 +495,18 @@ int NeoCtrlPltfMpo500::getGearDeltaPosVelRadS(int iCanIdent, double* pdAngleGear
 }
 
 //-----------------------------------------------
-void NeoCtrlPltfMpo500::getStatus(int iCanIdent, int* piStatus, int* piTempCel)
+void NeoCtrlPltfMpo500::getStatus(int iCanIdent, int* piStatus, int* piCurrentMeasPromille, int* piTempCel)
 {
 	// init default outputs
 	*piStatus = 0;
 	*piTempCel = 0;
-
+	*piCurrentMeasPromille = 0;
 	for(unsigned int i = 0; i < m_vpMotor.size(); i++)
 	{
 		// check if Identifier fits to availlable hardware
 		if(iCanIdent == m_viMotorID[i])
 		{
-			//TODO: m_vpMotor[i]->getStatus(piStatus, piTempCel);
+			 m_vpMotor[i]->getStatus(piStatus, piCurrentMeasPromille, piTempCel);
 		}
 	}
 

@@ -95,6 +95,11 @@ public:
 	bool resetPltf();
 
 	/**
+	 * stop all motors and set velocities to 0 
+	 */
+	bool stopPltf();
+
+	/**
 	 * Signs an error of the platform.
 	 * @return true if there is an error.
 	 */
@@ -174,7 +179,7 @@ public:
 	 * (Not implemented for CanDriveHarmonica)
 	 * @param iCanIdent choose a CANNode enumatraion
 	 */
-	void getStatus(int iCanIdent, int* piStatus, int* piTempCel);
+	void getStatus(int iCanIdent, int* piStatus, int* piCurrentMeasPromille, int* piTempCel);
 
 	/**
 	 * Gets the motor torque (calculated from motor active current).
@@ -240,6 +245,9 @@ protected:
 		int iHomeEvent;
 		int iHomeDigIn;
 		int iHomeTimeOut;
+		bool bHomeDSCouple;
+		int bHomeDriveId;
+		
 		double dVelMaxEncIncrS;
 		double dVelPModeEncIncrS;
 		double dAccIncrS2;
