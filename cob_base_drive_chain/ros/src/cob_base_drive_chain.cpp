@@ -125,6 +125,7 @@ class NodeClass
 		bool bIsError;
 		ros::Duration timeOut, auto_recover_interval;
 		ros::Time last_cmd_time, last_recover_try;
+		bool checkJointNames;
 };
 
 //##################################
@@ -144,6 +145,7 @@ NodeClass::NodeClass() : auto_recover_interval(0.3)
 
 	n.param<bool>("PublishEffort", m_bPubEffort, false);
 	n.param<bool>("AutoInit",autoInit, true);
+	n.param<bool>("CheckJointNames",checkJointNames, false);
 	ROS_INFO("autoinitializing base_drive_chain");
 	//stop all Drives if no new cmd_vel have been received within $errorStopTime seconds.
 	last_cmd_time = ros::Time::now();
@@ -251,21 +253,52 @@ void NodeClass::topicCallback_JointStateCmd(const trajectory_msgs::JointTrajecto
 	if(m_bisInitialized == true)
 	{
 		ROS_DEBUG("Topic Callback joint_command - Sending Commands to drives (initialized), nr of motors: %i", m_iNumMotors);
-	
-		// check if velocities lie inside allowed boundaries
-		for(int i = 0; i < m_iNumMotors; i++)
-		{	
-			sendVel[i] = msg->points[0].velocities[i];
-			if (sendVel[i] > m_Param.dMaxDriveRateRadpS)
-			{
-				sendVel[i] = m_Param.dMaxDriveRateRadpS;
-			}
-			if (sendVel[i] < -m_Param.dMaxDriveRateRadpS)
-			{
-				sendVel[i] = -m_Param.dMaxDriveRateRadpS;
+		last_cmd_time = ros::Time::now();
+		if(checkJointNames)
+		{
+			for(int i = 0; i < m_iNumMotors; i++)
+			{	
+				int id = -1;
+				for(int j = 0; j < msg->joint_names.size(); j++)
+				{
+					if(msg->joint_names[j] == joint_names[i])
+					{
+						id = j;
+						break;
+					}
+				}
+				if(id == -1)
+				{
+					ROS_ERROR("cob_base_drive_chain: unknown joint names in trajectory cmd message");
+					return;
+				}
+				sendVel[i] = msg->points[0].velocities[id];
+				if (sendVel[i] > m_Param.dMaxDriveRateRadpS) //TODO: set different max drive rates for each motor
+				{
+					sendVel[i] = m_Param.dMaxDriveRateRadpS;
+				}
+				if (sendVel[i] < -m_Param.dMaxDriveRateRadpS)
+				{
+					sendVel[i] = -m_Param.dMaxDriveRateRadpS;
+				}
 			}
 		}
-		last_cmd_time = ros::Time::now();
+		else //assume fixed order
+		{
+			for(int i = 0; i < m_iNumMotors; i++)
+			{	
+				sendVel[i] = msg->points[0].velocities[i];
+				if (sendVel[i] > m_Param.dMaxDriveRateRadpS)
+				{
+					sendVel[i] = m_Param.dMaxDriveRateRadpS;
+				}
+				if (sendVel[i] < -m_Param.dMaxDriveRateRadpS)
+				{
+					sendVel[i] = -m_Param.dMaxDriveRateRadpS;
+				}
+			}
+
+		}
 	}
 }
 
@@ -481,7 +514,7 @@ bool NodeClass::publish_JointStates()
 			{
 				// motor i has an failure
 				if ( MathSup::isBitSet ( status, 2 ) ){
-					bIsError = true;
+					//bIsError = true;
 					error_msg << canIDs[i] << " feedback loss\n";
 				}
 				if ( MathSup::isBitSet ( status, 3 ) ){
@@ -493,7 +526,7 @@ bool NodeClass::publish_JointStates()
 					error_msg << canIDs[i] <<" inhibit\n";
 				}
 				if ( MathSup::isBitSet ( status, 6 ) ){
-					bIsError = true;
+					//bIsError = true;
 					error_msg << canIDs[i] <<" Hall sensor error\n";
 				}
 				if ( MathSup::isBitSet ( status, 7 ) ){
@@ -513,23 +546,23 @@ bool NodeClass::publish_JointStates()
 					error_msg << canIDs[i] <<" heartbeat failure\n";
 				}
 				if ( MathSup::isBitSet ( status, 12 ) ){
-					bIsError = true;
+					//bIsError = true;
 					error_msg << canIDs[i] << " servo drive fault\n";
 				}
 				if ( ( status & 0x0E000 ) == 0x2000 ){
-					bIsError = true;
+					//bIsError = true;
 					error_msg << canIDs[i] <<" under voltage\n";
 				}
 				if ( ( status & 0x0E000 ) == 0x4000 ){
-					bIsError = true;
+					//bIsError = true;
 					error_msg << canIDs[i] <<" over voltage\n";
 				}
 				if ( ( status & 0x0E000 ) == 0xA000 ){
-					bIsError = true;
+					//bIsError = true;
 					error_msg << canIDs[i] <<" short circuit\n";
 				}
 				if ( ( status & 0x0E000 ) == 0xC000 ){
-					bIsError = true;
+					//bIsError = true;
 					error_msg << canIDs[i] <<" over temp\n";
 				}
 				if ( MathSup::isBitSet ( status, 16 ) ){
@@ -541,7 +574,7 @@ bool NodeClass::publish_JointStates()
 					error_msg << canIDs[i] <<" speed limit exceeded\n";
 				}
 				if ( MathSup::isBitSet ( status, 21 ) ){
-					bIsError = true;
+					//bIsError = true;
 					error_msg << canIDs[i] <<" motor stuck\n";
 				}
 				if ( MathSup::isBitSet ( status, 22 ) ){
