@@ -52,9 +52,9 @@ int RelaisBoardNode::init()
 	n.param("protocol_version", protocol_version_, 1);
     
 
-        n.param("voltage_min", voltage_min_, 23.7);
-	n.param("voltage_max", voltage_max_, 28.0);
-	n.param("charge_nominal", charge_nominal_, 40.0);
+        n.param("voltage_min", voltage_min_, 23.0);
+	n.param("voltage_max", voltage_max_, 27.5);
+	n.param("charge_nominal", charge_nominal_, 80.0);
 	charge_nominal_ = charge_nominal_ * 360; //converts [Ah] to [As]
 	n.param("voltage_nominal", voltage_nominal_, 24.0);
 
@@ -250,12 +250,10 @@ void RelaisBoardNode::sendAnalogIn()
 	topicPub_temperatur.publish(temp);
 	//battery
 	pr2_msgs::PowerState bat;
-	current_voltage = analogIn[1];
+	current_voltage = analogIn[1]/1000;
 	bat.header.stamp = ros::Time::now();
-	bat.power_consumption = analogIn[1] * analogIn[0];
 	double percentage = ((analogIn[1] /*measured volts*/ / 1000.0) - voltage_min_) * 100 / (voltage_max_ - voltage_min_);
 	/*dt_remaining = (i*dt)_nominal * v_nominal * percentage_remaining / (v_meassured * i_meassured)*/
-	bat.time_remaining = ros::Duration(charge_nominal_ * voltage_nominal_ * percentage / (100 * bat.power_consumption ));
 	bat.relative_capacity = percentage;
 	/* charging rate: analogIn[0];*/
 	topicPub_batVoltage.publish(bat);
