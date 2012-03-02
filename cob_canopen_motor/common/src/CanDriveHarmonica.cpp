@@ -132,6 +132,7 @@ bool CanDriveHarmonica::evalReceivedMsg ( CanMsg& msg )
 
 	m_CanMsgLast = msg;
 	bRet = false;
+	
 
 	// eval answers from TPDO1 - transmitted on SYNC msg
 	if ( msg.m_iID == m_ParamCANopen.iTxPDO1 )
@@ -445,7 +446,7 @@ bool CanDriveHarmonica::shutdown()
 //-----------------------------------------------
 double CanDriveHarmonica::getTimeToLastMsg()
 {
-	m_dWatchdogTime += m_Param.dCycleTime;
+	m_dWatchdogTime +=  m_Param.dCycleTime;
 	return m_dWatchdogTime;
 }
 

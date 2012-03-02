@@ -45,7 +45,7 @@
 #include <cob_utilities/IniFile.h>
 
 #include <cob_utilities/MathSup.h>
-
+#include <ros/ros.h>
 //-----------------------------------------------
 
 // ElmoMC values
@@ -371,6 +371,7 @@ private:
 	//LogFile m_LogCANMsg;
 
 	int m_iDivStatus;
+
 };
 //-----------------------------------------------
 #endif

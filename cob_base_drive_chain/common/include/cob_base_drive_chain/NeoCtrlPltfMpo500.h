@@ -192,10 +192,11 @@ public:
 
 	//--------------------------------- Commands for other nodes
 
-
+	void timeStep();
 
 
 protected:
+	ros::Time last, now;
 
 	//--------------------------------- internal functions
 	
@@ -248,6 +249,7 @@ protected:
 		bool bHomeDSCouple;
 		int bHomeDriveId;
 		
+		double dCurrentToTorque;
 		double dVelMaxEncIncrS;
 		double dVelPModeEncIncrS;
 		double dAccIncrS2;

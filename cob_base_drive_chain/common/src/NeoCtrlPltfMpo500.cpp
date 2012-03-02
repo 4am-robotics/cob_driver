@@ -61,6 +61,9 @@ NeoCtrlPltfMpo500::NeoCtrlPltfMpo500(ros::NodeHandle* node)
 		m_vpMotor[i] = NULL;
 	}
 	m_viMotorID.resize(m_iNumMotors);
+	now = ros::Time::now();
+	last = ros::Time::now();
+	usleep(100); //avoid short (now-last).toSec();
 }
 
 //-----------------------------------------------
@@ -157,6 +160,7 @@ void NeoCtrlPltfMpo500::readConfiguration()
 		n->getParam(pathName + "HomeEvent", m_GearMotDrive[i].iHomeEvent);
 		n->getParam(pathName + "HomeDigIn", m_GearMotDrive[i].iHomeDigIn);
 		n->getParam(pathName + "HomeTimeOut", m_GearMotDrive[i].iHomeTimeOut);
+		n->getParam(pathName + "CurrentToTorque", m_GearMotDrive[i].dCurrentToTorque);
 		n->getParam(pathName + "VelMaxEncIncrS", m_GearMotDrive[i].dVelMaxEncIncrS);
 		n->getParam(pathName + "VelPModeEncIncrS", m_GearMotDrive[i].dVelPModeEncIncrS);
 		n->getParam(pathName + "AccIncrS", m_GearMotDrive[i].dAccIncrS2);
@@ -515,14 +519,8 @@ void NeoCtrlPltfMpo500::getStatus(int iCanIdent, int* piStatus, int* piCurrentMe
 //-----------------------------------------------
 void NeoCtrlPltfMpo500::requestMotorTorque()
 {
-	m_Mutex.lock();
+	//dummy function, not needed since torque requests are send automatically
 
-	for(unsigned int i = 0; i < m_vpMotor.size(); i++)
-	{
-		//TODO: m_vpMotor[i]->requestMotorTorque();
-	}
-
-	m_Mutex.unlock();
 }	
 
 //-----------------------------------------------
@@ -536,7 +534,11 @@ void NeoCtrlPltfMpo500::getMotorTorque(int iCanIdent, double* pdTorqueNm)
 		// check if Identifier fits to availlable hardware
 		if(iCanIdent == m_viMotorID[i])
 		{
-			//TODO: m_vpMotor[i]->getMotorTorque(pdTorqueNm);
+			int piStatus, piCurrentMeasPromille, piTempCel;
+			piCurrentMeasPromille = 0; piStatus = 0; piTempCel = 0;
+			m_vpMotor[i]->getStatus(&piStatus, &piCurrentMeasPromille, &piTempCel);
+			//TODO: is piCUrrentMeasPromille / 1000 = ic    or piCurrentMeasPromille / 1000 * rated_current(what ever rated current means?)
+			//TODO: *pdTorqueNm = m_GearMotDrive[i].iSign * ((double) piCurrentMeasPromille) / 1000 * m_GearMotDrive[i].dCurrentToTorque;
 		}
 	}
 
@@ -557,3 +559,16 @@ void NeoCtrlPltfMpo500::setMotorTorque(int iCanIdent, double dTorqueNm)
 
 	m_Mutex.unlock();
 }
+
+
+
+void NeoCtrlPltfMpo500::timeStep()
+{
+	now = ros::Time::now();
+	for(int i=0; i<m_vpMotor.size(); i++)
+	{
+		m_vpMotor[i]->setCycleTime( (now-last).toSec());
+	}
+	last = now;
+}
+

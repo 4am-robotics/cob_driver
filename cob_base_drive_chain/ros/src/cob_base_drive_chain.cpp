@@ -141,7 +141,7 @@ NodeClass::NodeClass() : auto_recover_interval(0.3)
 	/// Parameters are set within the launch file
 	// Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
 
-	n.param<bool>("PublishEffort", m_bPubEffort, false);
+	n.param<bool>("PublishEffort", m_bPubEffort, true);
 	n.param<bool>("AutoInit",autoInit, true);
 	n.param<bool>("CheckJointNames",checkJointNames, false);
 	ROS_INFO("autoinitializing base_drive_chain");
@@ -268,6 +268,7 @@ void NodeClass::topicCallback_JointStateCmd(const trajectory_msgs::JointTrajecto
 				if(id == -1)
 				{
 					ROS_ERROR("cob_base_drive_chain: unknown joint names in trajectory cmd message");
+					for(int j = 0; j<m_iNumMotors; j++) sendVel[j] = 0;
 					return;
 				}
 				sendVel[i] = msg->points[0].velocities[id];
@@ -289,12 +290,10 @@ void NodeClass::topicCallback_JointStateCmd(const trajectory_msgs::JointTrajecto
 				if (sendVel[i] > m_Param.dMaxDriveRateRadpS)
 				{
 					sendVel[i] = m_Param.dMaxDriveRateRadpS;
-					ROS_INFO("max drive rate too high %f", sendVel[i]);
 				}
 				if (sendVel[i] < -m_Param.dMaxDriveRateRadpS)
 				{
 					sendVel[i] = -m_Param.dMaxDriveRateRadpS;
-					ROS_INFO("max drive rate too low %f", sendVel[i]);
 				}
 			}
 
@@ -471,7 +470,7 @@ bool NodeClass::publish_JointStates()
 			
 			//Get motor torque
 			if(m_bPubEffort) {
-				m_CanCtrlPltf->getMotorTorque(i, &vdEffortGearNM[i]); //(int iCanIdent, double* pdTorqueNm)
+				m_CanCtrlPltf->getMotorTorque(canIDs[i], &vdEffortGearNM[i]); //(int iCanIdent, double* pdTorqueNm)
 			}
 		}
 		// set data to jointstate
@@ -635,6 +634,7 @@ int main(int argc, char** argv)
 		nodeClass.publish_JointStates();
 		nodeClass.sendVelCan();
 		loop_rate.sleep();
+		nodeClass.m_CanCtrlPltf->timeStep();	
 		ros::spinOnce();
 	}
 
