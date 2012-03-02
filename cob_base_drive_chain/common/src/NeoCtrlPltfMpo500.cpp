@@ -288,6 +288,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 		}
 	}
 	//homing:
+/*
 	for(int i=0; i < m_vpMotor.size(); i++)
 	{
 
@@ -313,7 +314,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 		}
 
 	}
-
+*/
 	return true;
 }
 

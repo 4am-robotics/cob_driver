@@ -121,7 +121,6 @@ class NodeClass
 		double *sendVel;
 		int* canIDs;
 		int m_iNumMotors;
-		int reset_retries;
 		bool bIsError;
 		ros::Duration timeOut, auto_recover_interval;
 		ros::Time last_cmd_time, last_recover_try;
@@ -135,7 +134,6 @@ class NodeClass
 // Constructor
 NodeClass::NodeClass() : auto_recover_interval(0.3)
 {
-	reset_retries = 0;
 	// initialization of variables
 	m_bisInitialized = false;
 
@@ -291,10 +289,12 @@ void NodeClass::topicCallback_JointStateCmd(const trajectory_msgs::JointTrajecto
 				if (sendVel[i] > m_Param.dMaxDriveRateRadpS)
 				{
 					sendVel[i] = m_Param.dMaxDriveRateRadpS;
+					ROS_INFO("max drive rate too high %f", sendVel[i]);
 				}
 				if (sendVel[i] < -m_Param.dMaxDriveRateRadpS)
 				{
 					sendVel[i] = -m_Param.dMaxDriveRateRadpS;
+					ROS_INFO("max drive rate too low %f", sendVel[i]);
 				}
 			}
 
@@ -367,12 +367,10 @@ bool NodeClass::recover()
 {
 	if(m_bisInitialized)
 	{	
-		reset_retries = 0;
 		usleep(100000);
 		ROS_DEBUG("Service callback reset");
 		bool reset = m_CanCtrlPltf->resetPltf();
 		if (reset) {
-			reset_retries = 0;
 			ROS_INFO("base resetted");
 		} else {
 			ROS_DEBUG("Resetting base failed");
@@ -494,7 +492,6 @@ bool NodeClass::publish_JointStates()
 	ROS_DEBUG("published new drive-chain configuration (JointState message)");
 	
 
-	std::ostringstream error_msg;
 	if(m_bisInitialized)
 	{
 		// read Can only after initialization
@@ -503,87 +500,7 @@ bool NodeClass::publish_JointStates()
 		bIsError = m_CanCtrlPltf->isPltfError();
 		if(bIsError)
 		{
-			error_msg<<"platform error: can communication error\n";
 			ROS_DEBUG("platform has an error");
-		}
-		for(int i = 0; i<m_iNumMotors; i++)
-		{
-			int status, currentMeasPromille, tempCel;
-			m_CanCtrlPltf->getStatus(canIDs[i], &status, &currentMeasPromille, &tempCel);
-			if(status != 0)
-			{
-				// motor i has an failure
-				if ( MathSup::isBitSet ( status, 2 ) ){
-					//bIsError = true;
-					error_msg << canIDs[i] << " feedback loss\n";
-				}
-				if ( MathSup::isBitSet ( status, 3 ) ){
-					//bIsError = true;
-					error_msg << canIDs[i] << " peak current exceeded\n";
-				}
-				if ( MathSup::isBitSet ( status, 4 ) ){
-					//bIsError = true;
-					error_msg << canIDs[i] <<" inhibit\n";
-				}
-				if ( MathSup::isBitSet ( status, 6 ) ){
-					//bIsError = true;
-					error_msg << canIDs[i] <<" Hall sensor error\n";
-				}
-				if ( MathSup::isBitSet ( status, 7 ) ){
-					//bIsError = true;
-					error_msg << canIDs[i] <<" speed track error\n";
-				}
-				if ( MathSup::isBitSet ( status, 8 ) ){
-					//bIsError = true;
-					error_msg << canIDs[i] <<" position track error\n";
-				}
-				if ( MathSup::isBitSet ( status, 9 ) ){
-					//bIsError = true;
-					error_msg << canIDs[i] <<" inconsistent database\n";
-				}
-				if ( MathSup::isBitSet ( status, 11 ) ){
-					//bIsError = true;
-					error_msg << canIDs[i] <<" heartbeat failure\n";
-				}
-				if ( MathSup::isBitSet ( status, 12 ) ){
-					//bIsError = true;
-					error_msg << canIDs[i] << " servo drive fault\n";
-				}
-				if ( ( status & 0x0E000 ) == 0x2000 ){
-					//bIsError = true;
-					error_msg << canIDs[i] <<" under voltage\n";
-				}
-				if ( ( status & 0x0E000 ) == 0x4000 ){
-					//bIsError = true;
-					error_msg << canIDs[i] <<" over voltage\n";
-				}
-				if ( ( status & 0x0E000 ) == 0xA000 ){
-					//bIsError = true;
-					error_msg << canIDs[i] <<" short circuit\n";
-				}
-				if ( ( status & 0x0E000 ) == 0xC000 ){
-					//bIsError = true;
-					error_msg << canIDs[i] <<" over temp\n";
-				}
-				if ( MathSup::isBitSet ( status, 16 ) ){
-					//bIsError = true;
-					error_msg << canIDs[i] <<" electrical zero not found\n";
-				}
-				if ( MathSup::isBitSet ( status, 17 ) ){
-					//bIsError = true;
-					error_msg << canIDs[i] <<" speed limit exceeded\n";
-				}
-				if ( MathSup::isBitSet ( status, 21 ) ){
-					//bIsError = true;
-					error_msg << canIDs[i] <<" motor stuck\n";
-				}
-				if ( MathSup::isBitSet ( status, 22 ) ){
-					//bIsError = true;
-					error_msg << canIDs[i] <<" position limit excceded\n";
-				}
-
-			}	
-			
 		}
 		if(old_errorState == false && bIsError == true)
 		{ 
@@ -596,6 +513,68 @@ bool NodeClass::publish_JointStates()
 	// set data to diagnostics
 	if(bIsError)
 	{
+		std::ostringstream error_msg;
+		error_msg<<"platform error: can communication error\n";
+		for(int i = 0; i<m_iNumMotors; i++)
+		{
+			int status, currentMeasPromille, tempCel;
+			m_CanCtrlPltf->getStatus(canIDs[i], &status, &currentMeasPromille, &tempCel);
+			if(status != 0)
+			{
+				// motor i has an failure
+				if ( MathSup::isBitSet ( status, 2 ) ){
+					error_msg << canIDs[i] << " feedback loss\n";
+				}
+				if ( MathSup::isBitSet ( status, 3 ) ){
+					error_msg << canIDs[i] << " peak current exceeded\n";
+				}
+				if ( MathSup::isBitSet ( status, 4 ) ){
+					error_msg << canIDs[i] <<" inhibit\n";
+				}
+				if ( MathSup::isBitSet ( status, 6 ) ){
+					error_msg << canIDs[i] <<" Hall sensor error\n";
+				}
+				if ( MathSup::isBitSet ( status, 7 ) ){
+					error_msg << canIDs[i] <<" speed track error\n";
+				}
+				if ( MathSup::isBitSet ( status, 8 ) ){
+					error_msg << canIDs[i] <<" position track error\n";
+				}
+				if ( MathSup::isBitSet ( status, 9 ) ){
+					error_msg << canIDs[i] <<" inconsistent database\n";
+				}
+				if ( MathSup::isBitSet ( status, 11 ) ){
+					error_msg << canIDs[i] <<" heartbeat failure\n";
+				}
+				if ( MathSup::isBitSet ( status, 12 ) ){
+					error_msg << canIDs[i] << " servo drive fault\n";
+				}
+				if ( ( status & 0x0E000 ) == 0x2000 ){
+					error_msg << canIDs[i] <<" under voltage\n";
+				}
+				if ( ( status & 0x0E000 ) == 0x4000 ){
+					error_msg << canIDs[i] <<" over voltage\n";
+				}
+				if ( ( status & 0x0E000 ) == 0xA000 ){
+					error_msg << canIDs[i] <<" short circuit\n";
+				}
+				if ( ( status & 0x0E000 ) == 0xC000 ){
+					error_msg << canIDs[i] <<" over temp\n";
+				}
+				if ( MathSup::isBitSet ( status, 16 ) ){
+					error_msg << canIDs[i] <<" electrical zero not found\n";
+				}
+				if ( MathSup::isBitSet ( status, 17 ) ){
+					error_msg << canIDs[i] <<" speed limit exceeded\n";
+				}
+				if ( MathSup::isBitSet ( status, 21 ) ){
+					error_msg << canIDs[i] <<" motor stuck\n";
+				}
+				if ( MathSup::isBitSet ( status, 22 ) ){
+					error_msg << canIDs[i] <<" position limit excceded\n";
+				}
+			}
+		}	
 		diagnostics.level = 2;
 		diagnostics.name = "drive-chain can node";
 		diagnostics.message = error_msg.str();
