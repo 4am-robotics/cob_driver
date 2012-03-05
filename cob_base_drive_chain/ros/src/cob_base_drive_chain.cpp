@@ -94,7 +94,6 @@ class NodeClass
 
 			std::vector<double> vdWheelNtrlPosRad;
 		};
-		ParamType m_Param;
 		
 		bool m_bPubEffort;
 		bool m_bReadoutElmo;
@@ -118,6 +117,7 @@ class NodeClass
 
 		private:
 		std::vector<std::string> joint_names;
+		std::vector<double> max_drive_rates;
 		double *sendVel;
 		int* canIDs;
 		int m_iNumMotors;
@@ -159,6 +159,7 @@ NodeClass::NodeClass() : auto_recover_interval(0.3)
 	canIDs = new int[m_iNumMotors];
 	for(int i=0; i<m_iNumMotors; i++) sendVel[i] = 0;
 	joint_names.resize(m_iNumMotors);
+	max_drive_rates.resize(m_iNumMotors);
 	for(int i=0; i<m_iNumMotors; i++)
 	{
 		std::ostringstream stringstream;
@@ -166,8 +167,17 @@ NodeClass::NodeClass() : auto_recover_interval(0.3)
 		std::string pathName = stringstream.str();
 		n.getParam(pathName + "joint_name", joint_names[i]);
 		n.getParam(pathName + "CANId", canIDs[i]);
-		ROS_INFO("can id: %i", canIDs[i]);
 
+		//calulate max velocity:
+		double velMaxEncIncrS, gearRatio, beltRatio, encIncrPerRevMot;
+		n.getParam(pathName + "GearRatio", gearRatio);
+		n.getParam(pathName + "BeltRatio", beltRatio);
+		n.getParam(pathName + "EncIncrPerRevMot", encIncrPerRevMot);
+		n.getParam(pathName + "VelMaxEncIncrS", velMaxEncIncrS);
+		double m_dRadToIncr = (encIncrPerRevMot * gearRatio * beltRatio) / (2. * 3.14159265);
+		max_drive_rates[i] = velMaxEncIncrS / m_dRadToIncr;
+		
+		ROS_INFO("motor nr: %i can id: %i, max_rad_per_s: %f",i, canIDs[i], max_drive_rates[i]);
 	}
 	m_CanCtrlPltf = new NeoCtrlPltfMpo500(&n);
 	
@@ -190,10 +200,6 @@ NodeClass::NodeClass() : auto_recover_interval(0.3)
 bool NodeClass::initDrives()
 {
 	ROS_INFO("Initializing Base Drive Chain");
-
-	// init member vectors
-	m_Param.vdWheelNtrlPosRad.assign((m_iNumMotors),0);
-	n.getParam("maxDriveRate", m_Param.dMaxDriveRateRadpS);
 
 	// debug log
 	ROS_INFO("Initializing CanCtrlItf");
@@ -272,15 +278,14 @@ void NodeClass::topicCallback_JointStateCmd(const trajectory_msgs::JointTrajecto
 					return;
 				}
 				sendVel[i] = msg->points[0].velocities[id];
-				if (sendVel[i] > m_Param.dMaxDriveRateRadpS) 	//TODO 1: set different max drive rates for each motor
-										//TODO 2: throw error
-										//TODO 3: are there better methods of handling these cases?
+				if (sendVel[i] > max_drive_rates[id]) 		//TODO 1: throw error
+										//TODO 2: are there better methods of handling these cases?
 				{
-					sendVel[i] = m_Param.dMaxDriveRateRadpS;
+					sendVel[i] = max_drive_rates[id];
 				}
-				if (sendVel[i] < -m_Param.dMaxDriveRateRadpS)
+				if (sendVel[i] < -max_drive_rates[id])
 				{
-					sendVel[i] = -m_Param.dMaxDriveRateRadpS;
+					sendVel[i] = -max_drive_rates[id];
 				}
 			}
 		}
@@ -289,13 +294,13 @@ void NodeClass::topicCallback_JointStateCmd(const trajectory_msgs::JointTrajecto
 			for(int i = 0; i < m_iNumMotors; i++)
 			{	
 				sendVel[i] = msg->points[0].velocities[i];
-				if (sendVel[i] > m_Param.dMaxDriveRateRadpS)
+				if (sendVel[i] > max_drive_rates[i])
 				{
-					sendVel[i] = m_Param.dMaxDriveRateRadpS;
+					sendVel[i] = max_drive_rates[i];
 				}
-				if (sendVel[i] < -m_Param.dMaxDriveRateRadpS)
+				if (sendVel[i] < -max_drive_rates[i])
 				{
-					sendVel[i] = -m_Param.dMaxDriveRateRadpS;
+					sendVel[i] = -max_drive_rates[i];
 				}
 			}
 
