@@ -28,6 +28,7 @@ rosbuild_add_library(${PROJECT_NAME} common/src/NeoCtrlPltfMpo500.cpp)
 
 # add executable
 rosbuild_add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp)
+rosbuild_add_executable(${PROJECT_NAME}_sim_node ros/src/${PROJECT_NAME}_sim.cpp)
 target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME})
 #common commands for building c++ executables and libraries
 #rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
