@@ -16,7 +16,7 @@
   <depend package="trajectory_msgs"/>
   <depend package="cob_srvs"/>
   <export>
-    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_base_drive_chain"/>
+    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lcob_base_drive_chain"/>
   </export>
 </package>
 

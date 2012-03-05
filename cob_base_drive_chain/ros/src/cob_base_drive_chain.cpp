@@ -267,12 +267,14 @@ void NodeClass::topicCallback_JointStateCmd(const trajectory_msgs::JointTrajecto
 				}
 				if(id == -1)
 				{
-					ROS_ERROR("cob_base_drive_chain: unknown joint names in trajectory cmd message");
 					for(int j = 0; j<m_iNumMotors; j++) sendVel[j] = 0;
+					ROS_FATAL("cob_base_drive_chain: unknown joint names in trajectory cmd message");
 					return;
 				}
 				sendVel[i] = msg->points[0].velocities[id];
-				if (sendVel[i] > m_Param.dMaxDriveRateRadpS) //TODO: set different max drive rates for each motor
+				if (sendVel[i] > m_Param.dMaxDriveRateRadpS) 	//TODO 1: set different max drive rates for each motor
+										//TODO 2: throw error
+										//TODO 3: are there better methods of handling these cases?
 				{
 					sendVel[i] = m_Param.dMaxDriveRateRadpS;
 				}
