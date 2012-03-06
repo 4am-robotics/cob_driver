@@ -326,6 +326,7 @@ public:
 	bool isCurrentLimit () { return m_bCurrentLimitOn; };
 
 private:
+	int last_pose_incr;
 
 	ParamCANopenID m_ParamCANopen;
 	ParamType m_Param;

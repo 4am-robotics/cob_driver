@@ -62,6 +62,7 @@ CanDriveHarmonica::CanDriveHarmonica()
 	m_iMotorState = ST_PRE_INITIALIZED;
 	m_iCommState = m_bCurrentLimitOn = false;
 
+	last_pose_incr = 0;
 	//
 	IniFile iFile;
 
@@ -139,12 +140,13 @@ bool CanDriveHarmonica::evalReceivedMsg ( CanMsg& msg )
 	{
 		iTemp1 = ( msg.getAt ( 3 ) << 24 ) | ( msg.getAt ( 2 ) << 16 )
 		         | ( msg.getAt ( 1 ) << 8 ) | ( msg.getAt ( 0 ) );
-		if( iTemp1 > 50000000 || iTemp1 < -50000000)  //TODO: test this line.  measurment error due to pos counter reset?
+		if( iTemp1 - last_pose_incr > 5000000 || iTemp1 - last_pose_incr < -5000000)  //TODO: test this line.  measurment error due to pos counter reset?
 		{
 			iTemp1 = 0;
 			m_dLastPos = m_DriveParam.getSign() * m_DriveParam.convIncrToRad ( iTemp1 );
-			ROS_ERROR("cob_canopen_motor: position counter overflow");
+			ROS_ERROR("cob_canopen_motor: position counter overflow, size: %i", iTemp1);
 		}
+		last_pose_incr = iTemp1;
 		m_dPosWheelMeasRad = m_DriveParam.getSign() * m_DriveParam.convIncrToRad ( iTemp1 );
 
 //#ifdef MEASURE_VELOCITY
