@@ -77,9 +77,9 @@ class RelaisBoardNode
 		RelaisBoardNode()
 		{
 			//topics which allways get published
-			topicPub_isEmergencyStop = n.advertise<neo_msgs::EmergencyStopState>("/srb_emergency_stop_state", 1);
+			topicPub_isEmergencyStop = n.advertise<neo_msgs::EmergencyStopState>("/emergency_stop_state", 1);
 			topicPub_batVoltage = n.advertise<pr2_msgs::PowerState>("/power_state", 1);
-			topicPub_temperatur = n.advertise<neo_msgs::Temperatur>("/srb_temperatur", 1);
+			topicPub_temperatur = n.advertise<neo_msgs::Temperatur>("/temperature", 1);
 			topicPub_boardState = n.advertise<pr2_msgs::PowerBoardState>("/power_board/state",1);
 			// Make sure member variables have a defined state at the beginning
 			EM_stop_status_ = ST_EM_FREE;
