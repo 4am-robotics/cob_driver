@@ -161,6 +161,7 @@ void NeoCtrlPltfMpo500::readConfiguration()
 		n->getParam(pathName + "HomeDigIn", m_GearMotDrive[i].iHomeDigIn);
 		n->getParam(pathName + "HomeTimeOut", m_GearMotDrive[i].iHomeTimeOut);
 		n->getParam(pathName + "CurrentToTorque", m_GearMotDrive[i].dCurrentToTorque);
+		n->getParam(pathName + "CurrentContLimit", m_GearMotDrive[i].dCurrentContLimit);
 		n->getParam(pathName + "VelMaxEncIncrS", m_GearMotDrive[i].dVelMaxEncIncrS);
 		n->getParam(pathName + "VelPModeEncIncrS", m_GearMotDrive[i].dVelPModeEncIncrS);
 		n->getParam(pathName + "AccIncrS", m_GearMotDrive[i].dAccIncrS2);
@@ -537,8 +538,8 @@ void NeoCtrlPltfMpo500::getMotorTorque(int iCanIdent, double* pdTorqueNm)
 			int piStatus, piCurrentMeasPromille, piTempCel;
 			piCurrentMeasPromille = 0; piStatus = 0; piTempCel = 0;
 			m_vpMotor[i]->getStatus(&piStatus, &piCurrentMeasPromille, &piTempCel);
-			//TODO: is piCUrrentMeasPromille / 1000 = ic    or piCurrentMeasPromille / 1000 * rated_current(what ever rated current means?)
-			//TODO: *pdTorqueNm = m_GearMotDrive[i].iSign * ((double) piCurrentMeasPromille) / 1000 * m_GearMotDrive[i].dCurrentToTorque;
+			double amps = m_GearMotDrive[i].dCurrentContLimit * ((double) piCurrentMeasPromille) / 1000;
+			*pdTorqueNm = m_GearMotDrive[i].iSign * amps * m_GearMotDrive[i].dCurrentToTorque;
 		}
 	}
 

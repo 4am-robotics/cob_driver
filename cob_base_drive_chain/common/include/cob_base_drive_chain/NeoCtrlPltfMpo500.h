@@ -250,6 +250,7 @@ protected:
 		int bHomeDriveId;
 		
 		double dCurrentToTorque;
+		double dCurrentContLimit;
 		double dVelMaxEncIncrS;
 		double dVelPModeEncIncrS;
 		double dAccIncrS2;

@@ -86,15 +86,8 @@ class NodeClass
 		// generate can-node handle
 		NeoCtrlPltfMpo500 *m_CanCtrlPltf;
 		bool m_bisInitialized;
+		//config parameters
 		bool autoInit;
-
-		struct ParamType
-		{ 
-			double dMaxDriveRateRadpS;
-
-			std::vector<double> vdWheelNtrlPosRad;
-		};
-		
 		bool m_bPubEffort;
 		bool m_bReadoutElmo;
 
@@ -132,7 +125,7 @@ class NodeClass
 
 
 // Constructor
-NodeClass::NodeClass() : auto_recover_interval(0.3)
+NodeClass::NodeClass() : auto_recover_interval(1.)
 {
 	// initialization of variables
 	m_bisInitialized = false;
@@ -177,7 +170,7 @@ NodeClass::NodeClass() : auto_recover_interval(0.3)
 		double m_dRadToIncr = (encIncrPerRevMot * gearRatio * beltRatio) / (2. * 3.14159265);
 		max_drive_rates[i] = velMaxEncIncrS / m_dRadToIncr;
 		
-		ROS_INFO("motor nr: %i can id: %i, max_rad_per_s: %f",i, canIDs[i], max_drive_rates[i]);
+		ROS_DEBUG("motor nr: %i can id: %i, max_rad_per_s: %f",i, canIDs[i], max_drive_rates[i]);
 	}
 	m_CanCtrlPltf = new NeoCtrlPltfMpo500(&n);
 	
