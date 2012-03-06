@@ -634,7 +634,7 @@ int main(int argc, char** argv)
 		nodeClass.publish_JointStates();
 		nodeClass.sendVelCan();
 		loop_rate.sleep();
-		nodeClass.m_CanCtrlPltf->timeStep();	
+		if(nodeClass.m_bisInitialized) nodeClass.m_CanCtrlPltf->timeStep();	
 		ros::spinOnce();
 	}
 
