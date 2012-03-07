@@ -122,7 +122,7 @@ public:
 	/*
 	 * Sets the control_type:
 	 */
-	bool setTypeMotion(std::string iType = "velocity_control");
+	bool setTypeMotion(int iType = 2);
 	/**
 	 * Sets the time between can calls
 	 */
@@ -218,13 +218,6 @@ public:
 	 * By calling the function the status is requested, too.
 	 */
 	bool setWheelVel(double dVel, bool bQuickStop, bool bBeginMotion);
-
-	/**
-	 * Sets the motion type drive.
-	 * The function is not implemented for Harmonica.
-	 * The harmonica drive is configured just for velocity mode.
-	 */
-	bool setTypeMotion(int iType) { return true; }
 
 	/**
 	 * Returns the position and the velocity of the drive.
@@ -343,6 +336,7 @@ private:
 	double m_dAngleWheelRadMem;
 	double m_dPosWheelMeasRad;
 	double m_dLastPos;
+	double m_dLastVel;
 	double m_dVelWheelMeasRadS;
 	int m_iCurrentMeasPromille; // units are promille of rated current
 

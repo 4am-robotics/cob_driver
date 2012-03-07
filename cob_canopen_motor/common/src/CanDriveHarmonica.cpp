@@ -55,6 +55,7 @@ CanDriveHarmonica::CanDriveHarmonica()
 	m_iStatusCtrl = 0;
 	m_dPosWheelMeasRad = 0;
 	m_dLastPos = 0;
+	m_dLastVel = 0;
 	m_dAngleWheelRadMem  = 0;
 	m_dVelWheelMeasRadS = 0;
 	m_iCurrentMeasPromille = 0;
@@ -140,13 +141,7 @@ bool CanDriveHarmonica::evalReceivedMsg ( CanMsg& msg )
 	{
 		iTemp1 = ( msg.getAt ( 3 ) << 24 ) | ( msg.getAt ( 2 ) << 16 )
 		         | ( msg.getAt ( 1 ) << 8 ) | ( msg.getAt ( 0 ) );
-		if( iTemp1 - last_pose_incr > 5000000 || iTemp1 - last_pose_incr < -5000000)  //TODO: test this line.  measurment error due to pos counter reset?
-		{
-			iTemp1 = 0;
-			m_dLastPos = m_DriveParam.getSign() * m_DriveParam.convIncrToRad ( iTemp1 );
-			ROS_ERROR("cob_canopen_motor: position counter overflow, size: %i", iTemp1);
-		}
-		last_pose_incr = iTemp1;
+
 		m_dPosWheelMeasRad = m_DriveParam.getSign() * m_DriveParam.convIncrToRad ( iTemp1 );
 
 //#ifdef MEASURE_VELOCITY
@@ -169,6 +164,18 @@ bool CanDriveHarmonica::evalReceivedMsg ( CanMsg& msg )
 
 		m_dVelWheelMeasRadS = ( m_dPosWheelMeasRad - m_dLastPos ) / m_Param.dCycleTime;
 		m_dLastPos = m_dPosWheelMeasRad;
+
+
+		if( iTemp1 - last_pose_incr > 900000000 || iTemp1 - last_pose_incr < -900000000)  //measurment error due to pos counter overflow
+		{
+			ROS_ERROR("cob_canopen_motor: position counter overflow, size: %i", iTemp1);
+			m_dVelWheelMeasRadS = m_dLastVel;
+
+		}
+		m_dLastVel = m_dVelWheelMeasRadS;
+		last_pose_incr = iTemp1;
+
+
 		ROS_DEBUG("vel: %f itemp1: %i, canid: %i type: %i",m_dVelWheelMeasRadS, iTemp1,
 			m_DriveParam.getCANId(), msg.m_iType);
 //#endif
@@ -284,10 +291,10 @@ bool CanDriveHarmonica::evalReceivedMsg ( CanMsg& msg )
 }
 
 
-bool CanDriveHarmonica::setTypeMotion(std::string iType)
+bool CanDriveHarmonica::setTypeMotion(int iType)
 {
 
-	if (iType == "position_control")
+	if (iType == 0)
 	{
 		// 1.) Switch to UnitMode = 5 (Single Loop Position Control) //
 	
@@ -305,7 +312,7 @@ bool CanDriveHarmonica::setTypeMotion(std::string iType)
 		
 		
 	}
-	else if (iType == "torque_control")
+	else if (iType == 1)
 	{
 		// Switch to TorqueControl-Mode
 		// switch off Motor to change Unit-Mode
