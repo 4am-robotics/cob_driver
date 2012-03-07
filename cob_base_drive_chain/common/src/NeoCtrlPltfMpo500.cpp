@@ -141,7 +141,7 @@ void NeoCtrlPltfMpo500::readConfiguration()
 		std::cout << "Uses CanESD" << std::endl;
 	}
 
-	std::string control_type[m_iNumMotors];
+	int control_type[m_iNumMotors];
 	// "Drive Motor Type1" drive parameters
 	for(int i=0; i<m_iNumMotors; i++)
 	{
@@ -153,6 +153,7 @@ void NeoCtrlPltfMpo500::readConfiguration()
 		n->getParam(pathName + "VelMeasFrqHz", m_GearMotDrive[i].dVelMeasFrqHz);
 		n->getParam(pathName + "BeltRatio", m_GearMotDrive[i].dBeltRatio);
 		n->getParam(pathName + "GearRatio", m_GearMotDrive[i].dGearRatio);
+		n->getParam(pathName + "GearEfficiency",m_GearMotDrive[i].dGearEfficiency);
 		n->getParam(pathName + "Sign", m_GearMotDrive[i].iSign);
 		n->getParam(pathName + "Homing", m_GearMotDrive[i].bHoming);
 		n->getParam(pathName + "HomePos", m_GearMotDrive[i].dHomePos);
@@ -426,6 +427,25 @@ int NeoCtrlPltfMpo500::setVelGearRadS(int iCanIdent, double dVelGearRadS)
 	return 0;
 }
 
+int NeoCtrlPltfMpo500::setPosGearRad(int iCanIdent, double dPosGearRad, double dVelGearRadS)
+{
+	m_Mutex.lock();
+
+	for(unsigned int i = 0; i < m_vpMotor.size(); i++)
+	{
+		// check if Identifier fits to availlable hardware
+		if(iCanIdent == m_viMotorID[i])
+		{
+			ROS_DEBUG("can send vel %f", dVelGearRadS);
+			m_vpMotor[i]->setWheelPosVel(dPosGearRad, dVelGearRadS, true, true);
+		}
+	}
+	
+	m_Mutex.unlock();
+	
+	return 0;
+}
+
 //-----------------------------------------------
 int NeoCtrlPltfMpo500::requestMotPosVel(int iCanIdent)
 {
@@ -539,7 +559,7 @@ void NeoCtrlPltfMpo500::getMotorTorque(int iCanIdent, double* pdTorqueNm)
 			piCurrentMeasPromille = 0; piStatus = 0; piTempCel = 0;
 			m_vpMotor[i]->getStatus(&piStatus, &piCurrentMeasPromille, &piTempCel);
 			double amps = m_GearMotDrive[i].dCurrentContLimit * ((double) piCurrentMeasPromille) / 1000;
-			*pdTorqueNm = m_GearMotDrive[i].iSign * amps * m_GearMotDrive[i].dCurrentToTorque;
+			*pdTorqueNm = m_GearMotDrive[i].iSign * amps * m_GearMotDrive[i].dCurrentToTorque * m_GearMotDrive[i].dGearRatio * m_GearMotDrive[i].dGearEfficiency;
 		}
 	}
 

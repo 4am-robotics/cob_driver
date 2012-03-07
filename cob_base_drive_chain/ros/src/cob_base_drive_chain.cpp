@@ -111,7 +111,9 @@ class NodeClass
 		private:
 		std::vector<std::string> joint_names;
 		std::vector<double> max_drive_rates;
+		std::vector<int> control_type;
 		double *sendVel;
+		double *sendPos;
 		int* canIDs;
 		int m_iNumMotors;
 		bool bIsError;
@@ -144,15 +146,19 @@ NodeClass::NodeClass() : auto_recover_interval(1.)
 	n.param<double>("TimeOut", errorStopTime, 3);
 	ros::Duration d(errorStopTime);
 	timeOut = d;
-	if(m_bPubEffort) ROS_INFO("You have choosen to publish effort of motors, that charges capacity of CAN");
-
 	// get max Joint-Velocities (in rad/s) for Steer- and Drive-Joint
 	n.getParam("numberOfMotors", m_iNumMotors);
 	sendVel = new double[m_iNumMotors];
+	sendPos = new double[m_iNumMotors];
 	canIDs = new int[m_iNumMotors];
-	for(int i=0; i<m_iNumMotors; i++) sendVel[i] = 0;
+	for(int i=0; i<m_iNumMotors; i++)
+	{
+		sendVel[i] = 0;
+		sendPos[i] = 0;
+	}
 	joint_names.resize(m_iNumMotors);
 	max_drive_rates.resize(m_iNumMotors);
+	control_type.resize(m_iNumMotors);
 	for(int i=0; i<m_iNumMotors; i++)
 	{
 		std::ostringstream stringstream;
@@ -160,6 +166,7 @@ NodeClass::NodeClass() : auto_recover_interval(1.)
 		std::string pathName = stringstream.str();
 		n.getParam(pathName + "joint_name", joint_names[i]);
 		n.getParam(pathName + "CANId", canIDs[i]);
+		n.getParam(pathName + "control_type", control_type[i]);
 
 		//calulate max velocity:
 		double velMaxEncIncrS, gearRatio, beltRatio, encIncrPerRevMot;
@@ -212,6 +219,7 @@ NodeClass::~NodeClass()
 {
 	m_CanCtrlPltf->shutdownPltf();
 	delete[] sendVel;
+	delete[] sendPos;
 	delete[] canIDs;
 }
 
@@ -222,15 +230,36 @@ void  NodeClass::sendVelCan()
 		if(timeOut > ros::Time::now() - last_cmd_time  )
 		{
 			for(int i=0; i<m_iNumMotors; i++){
-				m_CanCtrlPltf->setVelGearRadS(canIDs[i], sendVel[i]);
-				ROS_DEBUG("send velocity cmd to can: %i : %f", i, sendVel[i]);
+				switch(control_type[i])
+				{
+					case 2: //velocity control:
+						m_CanCtrlPltf->setVelGearRadS(canIDs[i], sendVel[i]);
+						ROS_DEBUG("send velocity cmd to can: %i : %f", i, sendVel[i]);
+					break;
+					case 1: //position control:
+						m_CanCtrlPltf->setPosGearRad(canIDs[i], sendPos[i], sendVel[i]);
+					break;
+					case 0: //torque control: not supported yet.
+					break;					
+
+				}
 			}
 		}
 		else
 		{
 			for(int i=0; i<m_iNumMotors; i++){
-				m_CanCtrlPltf->setVelGearRadS(canIDs[i], 0);
-				ROS_DEBUG("last velocity cmd timed out: set velocity to 0");
+				switch(control_type[i])
+				{
+					case 2: //velocity control:
+						m_CanCtrlPltf->setVelGearRadS(canIDs[i], 0);
+						ROS_DEBUG("last velocity cmd timed out: set velocity to 0");
+					case 1: //pose control:
+						//TODO: what's the best thing? do nothing?
+					break;
+					case 0: //torque control: not supported yet.
+					break;					
+
+				}
 			}
 		}
 	} 
@@ -270,7 +299,8 @@ void NodeClass::topicCallback_JointStateCmd(const trajectory_msgs::JointTrajecto
 					ROS_FATAL("cob_base_drive_chain: unknown joint names in trajectory cmd message");
 					return;
 				}
-				sendVel[i] = msg->points[0].velocities[id];
+				if(msg->points[0].velocities.size() > id) sendVel[i] = msg->points[0].velocities[id];
+				if(msg->points[0].positions.size() > id) sendPos[i] = msg->points[0].positions[id];
 				if (sendVel[i] > max_drive_rates[id]) 		//TODO 1: throw error
 										//TODO 2: are there better methods of handling these cases?
 				{
@@ -286,7 +316,8 @@ void NodeClass::topicCallback_JointStateCmd(const trajectory_msgs::JointTrajecto
 		{
 			for(int i = 0; i < m_iNumMotors; i++)
 			{	
-				sendVel[i] = msg->points[0].velocities[i];
+				if(msg->points[0].velocities.size() > i) sendVel[i] = msg->points[0].velocities[i];
+				if(msg->points[0].positions.size() > i) sendPos[i] = msg->points[0].positions[i];
 				if (sendVel[i] > max_drive_rates[i])
 				{
 					sendVel[i] = max_drive_rates[i];

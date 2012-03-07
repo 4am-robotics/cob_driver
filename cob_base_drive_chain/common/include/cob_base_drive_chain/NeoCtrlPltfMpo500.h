@@ -128,6 +128,15 @@ public:
 	int setVelGearRadS(int iCanIdent, double dVelGearRadS);
 
 	/**
+	 * Sends position to the can node.
+	 * Status is requested, too.
+	 * @param iCanIdent choose a can node
+	 * @param dPosGearRad joint-position in radian
+	 * @param dVelGearRadS joint-velocity in radian per second
+	 */	
+	int setPosGearRad(int iCanIdent, double dPosGearRad, double dVelGearRadS);
+
+	/**
 	 * Sends torques to the can node.
 	 * Status is requested, too.
 	 * @param iCanIdent choose a can node
@@ -251,6 +260,7 @@ protected:
 		
 		double dCurrentToTorque;
 		double dCurrentContLimit;
+		double dGearEfficiency;
 		double dVelMaxEncIncrS;
 		double dVelPModeEncIncrS;
 		double dAccIncrS2;
