@@ -1147,7 +1147,7 @@ bool CanDriveHarmonica::evalStatusRegister ( int iStatus )
 		{
 			ROS_ERROR(" SR-under voltage %i", iNumDrive);
 			m_iStatusCtrl |= 0x00020000;
-			critical_state = true;
+			//critical_state = true;
 		}
 
 		if ( ( ( iStatus & 0x0E ) == 4 ) && !MathSup::isBitSet ( m_iStatusCtrl, 19 ) )
@@ -1396,6 +1396,8 @@ bool CanDriveHarmonica::execBlockWidthMeas()
 	}
 	while ( i < 20 );
 
+
+	//TODO:
 	pFile = fopen ( "Arm/IniFiles/AbsBlockEnc.ini", "w" );
 
 	fprintf ( pFile, "This file contains calibration data for block width homing\n" );
