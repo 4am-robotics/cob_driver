@@ -320,6 +320,7 @@ public:
 
 private:
 	int last_pose_incr;
+	bool critical_state;
 
 	ParamCANopenID m_ParamCANopen;
 	ParamType m_Param;

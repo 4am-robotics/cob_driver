@@ -59,6 +59,7 @@ CanDriveHarmonica::CanDriveHarmonica()
 	m_dAngleWheelRadMem  = 0;
 	m_dVelWheelMeasRadS = 0;
 	m_iCurrentMeasPromille = 0;
+	critical_state = false;
 
 	m_iMotorState = ST_PRE_INITIALIZED;
 	m_iCommState = m_bCurrentLimitOn = false;
@@ -978,7 +979,7 @@ bool CanDriveHarmonica::isError(int* piDigIn)
 		}
 	}*/
 
-	if ( m_iMotorState == ST_OPERATION_ENABLED )
+	if ( m_iMotorState == ST_OPERATION_ENABLED  &&  !critical_state )
 	{
 		return false;
 	}
@@ -1139,30 +1140,35 @@ bool CanDriveHarmonica::evalStatusRegister ( int iStatus )
 	}
 
 	// set m_iStatusCtrl bits
+	critical_state = false;
 	if ( MathSup::isBitSet ( iStatus, 0 ) )
 	{
 		if ( ( ( iStatus & 0x0E ) == 2 ) && !MathSup::isBitSet ( m_iStatusCtrl, 18 ) )
 		{
 			ROS_ERROR(" SR-under voltage %i", iNumDrive);
 			m_iStatusCtrl |= 0x00020000;
+			critical_state = true;
 		}
 
 		if ( ( ( iStatus & 0x0E ) == 4 ) && !MathSup::isBitSet ( m_iStatusCtrl, 19 ) )
 		{
 			ROS_ERROR( " SR-over voltage %i", iNumDrive );
 			m_iStatusCtrl |= 0x00040000;
+			critical_state = true;
 		}
 
 		if ( ( ( iStatus & 0x0E ) == 10 ) && !MathSup::isBitSet ( m_iStatusCtrl, 20 ) )
 		{
 			ROS_ERROR( " SR-short circuit %i ", iNumDrive );
 			m_iStatusCtrl |= 0x00080000;
+			critical_state = true;
 		}
 
 		if ( ( ( iStatus & 0x0E ) == 12 ) && !MathSup::isBitSet ( m_iStatusCtrl, 21 ) )
 		{
 			ROS_ERROR(" SR-overheating %i", iNumDrive );
 			m_iStatusCtrl |= 0x00100000;
+			critical_state = true;
 		}
 	}
 	else if ( MathSup::isBitSet ( iStatus, 6 ) )
