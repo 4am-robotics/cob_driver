@@ -35,7 +35,7 @@
 
 #include <ros/ros.h>
 #include <iostream>
-#include <neo_msgs/IRSensors.h>
+#include <cob_relayboard/IRSensors.h>
 #include <sensor_msgs/Range.h>
 #include <sensor_msgs/Imu.h>
 #include <XmlRpcValue.h>
@@ -52,7 +52,7 @@ class SRB_IR_Node
 	ros::Subscriber topicSub_SRB_ir;
 	
 	int init();
-	void send_IR_State(const neo_msgs::IRSensors& state);
+	void send_IR_State(const cob_relayboard::IRSensors& state);
 	std::vector<bool> activeSensors;
 	std::vector<int> sensor_type;
 	std::vector<std::string> frame_name;
@@ -141,7 +141,7 @@ int SRB_IR_Node::init()
 	return 0;
 }
 
-void SRB_IR_Node::send_IR_State(const neo_msgs::IRSensors& srsState)
+void SRB_IR_Node::send_IR_State(const cob_relayboard::IRSensors& srsState)
 {
 	sensor_msgs::Range state;
 

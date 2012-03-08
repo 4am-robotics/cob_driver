@@ -35,7 +35,7 @@
 
 #include <ros/ros.h>
 #include <iostream>
-#include <neo_msgs/USBoard.h>
+#include <cob_relayboard/USBoard.h>
 #include <sensor_msgs/Range.h>
 #include <sensor_msgs/Imu.h>
 #include <XmlRpcValue.h>
@@ -52,7 +52,7 @@ class SRB_US_Node
 	ros::Subscriber topicSub_SRB_ir;
 	
 	int init();
-	void send_US_State(const neo_msgs::USBoard& state);
+	void send_US_State(const cob_relayboard::USBoard& state);
 	std::vector<bool> activeSensors;
 	std::vector<int> sensor_type;
 	std::vector<std::string> frame_name;
@@ -141,7 +141,7 @@ int SRB_US_Node::init()
 	return 0;
 }
 
-void SRB_US_Node::send_US_State(const neo_msgs::USBoard& srsState)
+void SRB_US_Node::send_US_State(const cob_relayboard::USBoard& srsState)
 {
 	sensor_msgs::Range state;
 

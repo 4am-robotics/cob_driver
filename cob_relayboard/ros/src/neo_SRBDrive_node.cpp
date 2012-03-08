@@ -35,8 +35,8 @@
 
 #include <ros/ros.h>
 #include <iostream>
-#include <neo_msgs/DriveStates.h>
-#include <neo_msgs/DriveCommands.h>
+#include <cob_relayboard/DriveStates.h>
+#include <cob_relayboard/DriveCommands.h>
 #include <sensor_msgs/JointState.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <boost/thread.hpp>
@@ -54,7 +54,7 @@ class SRBDriveNode
 	ros::Subscriber topicSub_SRBdrives;
 	
 	int init();
-	void sendJointState(const neo_msgs::DriveStates& state);
+	void sendJointState(const cob_relayboard::DriveStates& state);
 	void sendDriveCommands(const trajectory_msgs::JointTrajectory& newState);
 	private:
 	boost::mutex mOut;
@@ -68,13 +68,13 @@ int SRBDriveNode::init()
 	topicSub_SRBdrives = n.subscribe("/drive_states",1,&SRBDriveNode::sendJointState, this);
 	topicPub_drives = n.advertise<sensor_msgs::JointState>("/joint_states",1);
 
-	topicPub_SRBdrives = n.advertise<neo_msgs::DriveCommands>("/cmd_drives",1);
+	topicPub_SRBdrives = n.advertise<cob_relayboard::DriveCommands>("/cmd_drives",1);
         topicSub_drives = n.subscribe("/cmd_joint_traj",1,&SRBDriveNode::sendDriveCommands, this);
 	ROS_INFO("started relayboard drive wrapper");
 	return 0;
 }
 
-void SRBDriveNode::sendJointState(const neo_msgs::DriveStates& srsState)
+void SRBDriveNode::sendJointState(const cob_relayboard::DriveStates& srsState)
 {
 	//ROS_INFO("wrap srs velocity cmd: %f %f",srsState.angularVelocity[0],srsState.angularVelocity[1]);
 	sensor_msgs::JointState state;
@@ -93,7 +93,7 @@ void SRBDriveNode::sendJointState(const neo_msgs::DriveStates& srsState)
 void SRBDriveNode::sendDriveCommands(const trajectory_msgs::JointTrajectory& newState)
 {
 	//ROS_INFO("wrap velocity cmd: %f %f",newState.velocities[0],newState.velocities[1]);
-	neo_msgs::DriveCommands cmd;
+	cob_relayboard::DriveCommands cmd;
 	for(int i=0; i<2; i++)
 	{
 		cmd.angularVelocity[i] = newState.points[0].velocities[i];

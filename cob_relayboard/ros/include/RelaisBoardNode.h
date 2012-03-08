@@ -9,18 +9,18 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/Int16.h>
 #include <std_msgs/Empty.h>
-#include <neo_msgs/EmergencyStopState.h>
-#include <neo_msgs/Temperatur.h>
-#include <neo_msgs/DriveStates.h>
-#include <neo_msgs/DriveCommands.h>
-#include <neo_msgs/Keypad.h>
-#include <neo_msgs/LCDOutput.h>
-#include <neo_msgs/IRSensors.h>
-#include <neo_msgs/GyroBoard.h>
-#include <neo_msgs/RadarBoard.h>
-#include <neo_msgs/USBoard.h>
-#include <neo_msgs/IOOut.h>
-#include <neo_msgs/IOAnalogIn.h>
+#include <cob_relayboard/EmergencyStopState.h>
+#include <cob_relayboard/Temperatur.h>
+#include <cob_relayboard/DriveStates.h>
+#include <cob_relayboard/DriveCommands.h>
+#include <cob_relayboard/Keypad.h>
+#include <cob_relayboard/LCDOutput.h>
+#include <cob_relayboard/IRSensors.h>
+#include <cob_relayboard/GyroBoard.h>
+#include <cob_relayboard/RadarBoard.h>
+#include <cob_relayboard/USBoard.h>
+#include <cob_relayboard/IOOut.h>
+#include <cob_relayboard/IOAnalogIn.h>
 
 // ROS service includes
 //--
@@ -77,9 +77,9 @@ class RelaisBoardNode
 		RelaisBoardNode()
 		{
 			//topics which allways get published
-			topicPub_isEmergencyStop = n.advertise<neo_msgs::EmergencyStopState>("/emergency_stop_state", 1);
+			topicPub_isEmergencyStop = n.advertise<cob_relayboard::EmergencyStopState>("/emergency_stop_state", 1);
 			topicPub_batVoltage = n.advertise<pr2_msgs::PowerState>("/power_state", 1);
-			topicPub_temperatur = n.advertise<neo_msgs::Temperatur>("/temperature", 1);
+			topicPub_temperatur = n.advertise<cob_relayboard::Temperatur>("/temperature", 1);
 			topicPub_boardState = n.advertise<pr2_msgs::PowerBoardState>("/power_board/state",1);
 			// Make sure member variables have a defined state at the beginning
 			EM_stop_status_ = ST_EM_FREE;
@@ -99,14 +99,14 @@ class RelaisBoardNode
 		void sendEmergencyStopStates();
 		void sendAnalogIn();
 		//IOBoard
-		void getNewLCDOutput(const neo_msgs::LCDOutput&); //output on a 20 char lcd display
+		void getNewLCDOutput(const cob_relayboard::LCDOutput&); //output on a 20 char lcd display
 		void sendIOBoardDigIn();
 		void sendIOBoardDigOut();
-		void getIOBoardDigOut(const neo_msgs::IOOut&);
+		void getIOBoardDigOut(const cob_relayboard::IOOut&);
 		void sendIOBoardAnalogIn();
 		//motor:
 		void sendDriveStates();
-		void getNewDriveStates(const neo_msgs::DriveCommands& driveCommands);
+		void getNewDriveStates(const cob_relayboard::DriveCommands& driveCommands);
 		//gyroBoard:
 		void sendGyroBoard();
 		void zeroGyro(const std_msgs::Bool& b);

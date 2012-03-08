@@ -73,7 +73,7 @@ int RelaisBoardNode::init()
 	n.getParam("hasMotorLeft",activeModule[DRIVE2]);
 	if(activeModule[DRIVE1] == 1 || activeModule[DRIVE2] == 1)
 	{
-		topicPub_drives = n.advertise<neo_msgs::DriveStates>("/drive_states",1);
+		topicPub_drives = n.advertise<cob_relayboard::DriveStates>("/drive_states",1);
 		topicSub_drives = n.subscribe("/cmd_drives",1,&RelaisBoardNode::getNewDriveStates, this);
 	}
 	n.getParam("hasIOBoard", activeModule[IO_BOARD]);
@@ -85,31 +85,31 @@ int RelaisBoardNode::init()
 		topicSub_setDigOut = n.subscribe("/srb_io_set_dig_out",1,&RelaisBoardNode::getIOBoardDigOut, this);
 		topicPub_ioDigIn = n.advertise<std_msgs::Int16>("/srb_io_dig_in",1);
 		topicPub_ioDigOut = n.advertise<std_msgs::Int16>("/srb_io_dig_out",1);
-		topicPub_analogIn = n.advertise<neo_msgs::IOAnalogIn>("/srb_io_analog_in",1);
+		topicPub_analogIn = n.advertise<cob_relayboard::IOAnalogIn>("/srb_io_analog_in",1);
 
 	}
 	n.getParam("hasUSBoard", activeModule[US_BOARD]);
 	if(activeModule[US_BOARD] == 1)
 	{
-		topicPub_usBoard = n.advertise<neo_msgs::USBoard>("/srb_us_measurements",1);
+		topicPub_usBoard = n.advertise<cob_relayboard::USBoard>("/srb_us_measurements",1);
 		topicSub_startUSBoard = n.subscribe("/srb_start_us_board",1,&RelaisBoardNode::startUSBoard, this);
 		topicSub_stopUSBoard = n.subscribe("/srb_stop_us_board",1,&RelaisBoardNode::stopUSBoard, this);
 
 	}
 	n.getParam("hasRadarBoard", activeModule[RADAR_BOARD]);
-	if(activeModule[RADAR_BOARD] == 1) topicPub_radarBoard = n.advertise<neo_msgs::RadarBoard>("/srb_radar_measurements",1);
+	if(activeModule[RADAR_BOARD] == 1) topicPub_radarBoard = n.advertise<cob_relayboard::RadarBoard>("/srb_radar_measurements",1);
 
 	n.getParam("hasGyroBoard", activeModule[GYRO_BOARD]);
 	if(activeModule[GYRO_BOARD] == 1)
 	{
-		topicPub_gyroBoard = n.advertise<neo_msgs::GyroBoard>("/srb_gyro_measurements",1);
+		topicPub_gyroBoard = n.advertise<cob_relayboard::GyroBoard>("/srb_gyro_measurements",1);
 		topicSub_zeroGyro = n.subscribe("/srb_zero_gyro",1,&RelaisBoardNode::zeroGyro, this);
 	}
 
 	n.getParam("hasKeyPad", hasKeyPad);
-	if(hasKeyPad == 1) topicPub_keypad = n.advertise<neo_msgs::Keypad>("/srb_keypad",1);
+	if(hasKeyPad == 1) topicPub_keypad = n.advertise<cob_relayboard::Keypad>("/srb_keypad",1);
 	n.getParam("hasIRSensors", hasIRSensors);
-	if(hasIRSensors == 1) topicPub_IRSensor = n.advertise<neo_msgs::IRSensors>("/srb_ir_measurements",1);
+	if(hasIRSensors == 1) topicPub_IRSensor = n.advertise<cob_relayboard::IRSensors>("/srb_ir_measurements",1);
 
 
 
@@ -168,7 +168,7 @@ void RelaisBoardNode::sendEmergencyStopStates()
 	
 	bool EM_signal;
 	ros::Duration duration_since_EM_confirmed;
-	neo_msgs::EmergencyStopState EM_msg;
+	cob_relayboard::EmergencyStopState EM_msg;
 
 	// assign input (laser, button) specific EM state
 	EM_msg.emergency_button_stop = m_SerRelayBoard->isEMStop();
@@ -245,7 +245,7 @@ void RelaisBoardNode::sendAnalogIn()
 	int analogIn[8];
 	m_SerRelayBoard->getRelayBoardAnalogIn(analogIn);
 	//temperatur
-	neo_msgs::Temperatur temp;
+	cob_relayboard::Temperatur temp;
 	temp.temperatur = analogIn[2];
 	topicPub_temperatur.publish(temp);
 	//battery
@@ -260,7 +260,7 @@ void RelaisBoardNode::sendAnalogIn()
 	//keypad
 	if(hasKeyPad == 1)
 	{
-		neo_msgs::Keypad pad;
+		cob_relayboard::Keypad pad;
 		int mask = 1;
 		for(int i = 0; i<4; i++)
 		{
@@ -276,7 +276,7 @@ void RelaisBoardNode::sendAnalogIn()
 	}
 	if(hasIRSensors == 1)
 	{
-		neo_msgs::IRSensors irmsg;
+		cob_relayboard::IRSensors irmsg;
 		for(int i=0; i<4; i++) irmsg.measurement[i] = analogIn[4+i];
 		topicPub_IRSensor.publish(irmsg);
 	}
@@ -288,7 +288,7 @@ void RelaisBoardNode::sendAnalogIn()
 void RelaisBoardNode::sendDriveStates()
 {
 	if(!relayboard_available) return;
-	neo_msgs::DriveStates state;
+	cob_relayboard::DriveStates state;
 	for(int i = 0; i<2; i++)  state.joint_names[i] = joint_names[i];
 	int temp;
 	if(activeModule[DRIVE1] == 1 && activeModule[DRIVE2] == 1)
@@ -313,7 +313,7 @@ void RelaisBoardNode::sendDriveStates()
 	}
 }
 
-void RelaisBoardNode::getNewDriveStates(const neo_msgs::DriveCommands& driveCommands)
+void RelaisBoardNode::getNewDriveStates(const cob_relayboard::DriveCommands& driveCommands)
 {
 	ROS_INFO("received drive command: %f   %f",driveCommands.angularVelocity[0],driveCommands.angularVelocity[1]);
 	if(!relayboard_available) return;
@@ -335,7 +335,7 @@ void RelaisBoardNode::getNewDriveStates(const neo_msgs::DriveCommands& driveComm
 void RelaisBoardNode::sendGyroBoard()
 {
 	if(!relayboard_available || activeModule[GYRO_BOARD] != 1) return;
-	neo_msgs::GyroBoard gyro;
+	cob_relayboard::GyroBoard gyro;
 	m_SerRelayBoard->getGyroBoardAngBoost(&(gyro.orientation),gyro.acceleration);
 	topicPub_gyroBoard.publish(gyro);
 }
@@ -352,7 +352,7 @@ void RelaisBoardNode::zeroGyro(const std_msgs::Bool& b)
 void RelaisBoardNode::sendRadarBoard()
 {
 	if(!relayboard_available || activeModule[RADAR_BOARD] != 1) return;
-	neo_msgs::RadarBoard radar;
+	cob_relayboard::RadarBoard radar;
 	double radarState[4];
 	m_SerRelayBoard->getRadarBoardData(radarState);
 	for(int i=0; i<3;i++)
@@ -371,7 +371,7 @@ void RelaisBoardNode::sendUSBoard()
 	if(!relayboard_available || activeModule[US_BOARD] != 1) return;
 	int usSensors[8];
 	int usAnalog[4];
-	neo_msgs::USBoard usBoard;
+	cob_relayboard::USBoard usBoard;
 	m_SerRelayBoard->getUSBoardData1To8(usSensors);
 	for(int i=0; i<8; i++) usBoard.sensor[i] = usSensors[i];
 	m_SerRelayBoard->getUSBoardData9To16(usSensors);
@@ -396,14 +396,14 @@ void RelaisBoardNode::stopUSBoard(const std_msgs::Empty& empty)
 //////////////
 // ioBoard
 
-void RelaisBoardNode::getNewLCDOutput(const neo_msgs::LCDOutput& msg) 
+void RelaisBoardNode::getNewLCDOutput(const cob_relayboard::LCDOutput& msg) 
 {
 	if(!relayboard_available || hasLCDOut != 1) return;
 	m_SerRelayBoard->writeIOBoardLCD(0,0,msg.msg_line);
 
 }
 
-void RelaisBoardNode::getIOBoardDigOut(const neo_msgs::IOOut& setOut)
+void RelaisBoardNode::getIOBoardDigOut(const cob_relayboard::IOOut& setOut)
 {
 	if(!relayboard_available || activeModule[IO_BOARD] != 1) return;
 	m_SerRelayBoard->setIOBoardDigOut(setOut.channel, setOut.active);
@@ -430,7 +430,7 @@ void RelaisBoardNode::sendIOBoardAnalogIn()
 {
 	if(!relayboard_available || activeModule[IO_BOARD] != 1) return;
 	int analogIn[8];
-	neo_msgs::IOAnalogIn in;
+	cob_relayboard::IOAnalogIn in;
 	m_SerRelayBoard->getIOBoardAnalogIn(analogIn);
 	for(int i=0;i <8; i++) in.input[i] = analogIn[i];
 	topicPub_analogIn.publish(in);

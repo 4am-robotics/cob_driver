@@ -35,7 +35,7 @@
 
 #include <ros/ros.h>
 #include <iostream>
-#include <neo_msgs/GyroBoard.h>
+#include <cob_relayboard/GyroBoard.h>
 #include <sensor_msgs/Imu.h>
 #include <tf/transform_broadcaster.h>
 
@@ -50,7 +50,7 @@ class SRBGyroNode
 	ros::Subscriber topicSub_SRBgyro;
 	
 	int init();
-	void sendGyroState(const neo_msgs::GyroBoard& state);
+	void sendGyroState(const cob_relayboard::GyroBoard& state);
 	private:
 	tf::TransformBroadcaster br;
 	tf::Transform transform;
@@ -87,7 +87,7 @@ int SRBGyroNode::init()
 	return 0;
 }
 
-void SRBGyroNode::sendGyroState(const neo_msgs::GyroBoard& srsState)
+void SRBGyroNode::sendGyroState(const cob_relayboard::GyroBoard& srsState)
 {
 	sensor_msgs::Imu state;
 	state.header.stamp = ros::Time::now();
