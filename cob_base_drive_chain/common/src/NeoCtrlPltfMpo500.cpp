@@ -332,6 +332,7 @@ bool NeoCtrlPltfMpo500::resetPltf()
 	
 	for(unsigned int i = 0; i < m_vpMotor.size(); i++)
 	{
+		m_vpMotor[i]->stop();
 		bRetMotor = m_vpMotor[i]->start();
 		if (bRetMotor == false)
 		{

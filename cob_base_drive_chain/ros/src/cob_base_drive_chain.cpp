@@ -71,55 +71,57 @@
 class NodeClass
 {
 	public:
-		// create a handle for this node, initialize node
-		ros::NodeHandle n;
-		ros::Publisher topicPub_JointState;
-		ros::Publisher topicPub_Diagnostic;
-		ros::Subscriber topicSub_JointStateCmd;
+	// create a handle for this node, initialize node
+	ros::NodeHandle n;
+	ros::Publisher topicPub_JointState;
+	ros::Publisher topicPub_Diagnostic;
+	ros::Subscriber topicSub_JointStateCmd;
 
-		// service servers
-		ros::ServiceServer srvServer_Init;
-		ros::ServiceServer srvServer_Recover;
-		ros::ServiceServer srvServer_Shutdown;
+	// service servers
+	ros::ServiceServer srvServer_Init;
+	ros::ServiceServer srvServer_Recover;
+	ros::ServiceServer srvServer_Shutdown;
 
-		// global variables
-		// generate can-node handle
-		NeoCtrlPltfMpo500 *m_CanCtrlPltf;
-		bool m_bisInitialized;
-		//config parameters
-		bool autoInit;
-		bool m_bPubEffort;
-		bool m_bReadoutElmo;
+	// global variables
+	// generate can-node handle
+	NeoCtrlPltfMpo500 *m_CanCtrlPltf;
+	bool m_bisInitialized;
+	//config parameters
+	bool autoInit;
+	bool m_bPubEffort;
+	bool m_bReadoutElmo;
 
-		// Constructor
-		NodeClass();
+	// Constructor
+	NodeClass();
 
-		// Destructor
-		~NodeClass();
+	// Destructor
+	~NodeClass();
 
-		void sendVelCan();
-		void topicCallback_JointStateCmd(const trajectory_msgs::JointTrajectory::ConstPtr& msg);
-		bool can_init();
-		bool srv_can_init(cob_srvs::Trigger::Request& req, cob_srvs::Trigger::Response& res );
-		bool recover();
-		bool srv_recover(cob_srvs::Trigger::Request& req, cob_srvs::Trigger::Response& res );
-		bool shutdown();
-		bool srv_shutdown(cob_srvs::Trigger::Request& req, cob_srvs::Trigger::Response& res );
-		bool publish_JointStates();
-		bool initDrives();
+	void sendVelCan();
+	void topicCallback_JointStateCmd(const trajectory_msgs::JointTrajectory::ConstPtr& msg);
+	bool can_init();
+	bool srv_can_init(cob_srvs::Trigger::Request& req, cob_srvs::Trigger::Response& res );
+	bool recover();
+	bool srv_recover(cob_srvs::Trigger::Request& req, cob_srvs::Trigger::Response& res );
+	bool shutdown();
+	bool srv_shutdown(cob_srvs::Trigger::Request& req, cob_srvs::Trigger::Response& res );
+	bool publish_JointStates();
+	bool initDrives();
 
-		private:
-		std::vector<std::string> joint_names;
-		std::vector<double> max_drive_rates;
-		std::vector<int> control_type;
-		double *sendVel;
-		double *sendPos;
-		int* canIDs;
-		int m_iNumMotors;
-		bool bIsError;
-		ros::Duration timeOut, auto_recover_interval;
-		ros::Time last_cmd_time, last_recover_try;
-		bool checkJointNames;
+	private:
+	std::vector<std::string> joint_names;
+	std::vector<double> max_drive_rates;
+	std::vector<int> control_type;
+	double *sendVel;
+	double *sendPos;
+	int* canIDs;
+	int m_iNumMotors;
+	bool bIsError;
+	ros::Duration timeOut, auto_recover_interval;
+	ros::Time last_cmd_time, last_recover_try, next_cmd_time;
+	bool checkJointNames;
+	trajectory_msgs::JointTrajectory traj_;
+	int traj_point_;
 };
 
 //##################################
@@ -136,6 +138,8 @@ NodeClass::NodeClass() : auto_recover_interval(1.)
 	/// Parameters are set within the launch file
 	// Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
 
+	traj_point_ = 0;
+
 	n.param<bool>("PublishEffort", m_bPubEffort, true);
 	n.param<bool>("AutoInit",autoInit, true);
 	n.param<bool>("CheckJointNames",checkJointNames, false);
@@ -143,7 +147,7 @@ NodeClass::NodeClass() : auto_recover_interval(1.)
 	//stop all Drives if no new cmd_vel have been received within $errorStopTime seconds.
 	last_cmd_time = ros::Time::now();
 	double errorStopTime;
-	n.param<double>("TimeOut", errorStopTime, 3);
+	n.param<double>("TimeOut", errorStopTime, 5);
 	ros::Duration d(errorStopTime);
 	timeOut = d;
 	// get max Joint-Velocities (in rad/s) for Steer- and Drive-Joint
@@ -227,14 +231,79 @@ void  NodeClass::sendVelCan()
 {
 	if(m_bisInitialized == true && !bIsError)
 	{
-		if(timeOut > ros::Time::now() - last_cmd_time  )
+		if(traj_point_ < traj_.points.size()) //set next command
+		{
+			if(ros::Time::now() >= next_cmd_time)
+			{
+
+				last_cmd_time = ros::Time::now();
+				if(ros::Duration(0.) == traj_.points[traj_point_].time_from_start) 
+				{
+					next_cmd_time = ros::Time::now() + ros::Duration(1.);
+				}
+				else
+				{
+					next_cmd_time = ros::Time::now() + traj_.points[traj_point_].time_from_start;
+				}
+				if(checkJointNames)
+				{
+					for(int i = 0; i < m_iNumMotors; i++)
+					{	
+						int id = -1;
+						for(int j = 0; j < traj_.joint_names.size(); j++)
+						{
+							if(traj_.joint_names[j] == joint_names[i])
+							{
+								id = j;
+								break;
+							}
+						}
+						if(id == -1)
+						{
+							for(int j = 0; j<m_iNumMotors; j++) sendVel[j] = 0;
+							ROS_ERROR("cob_base_drive_chain: unknown joint names in trajectory cmd message");
+							return;
+						}
+						if(traj_.points[traj_point_].velocities.size() > id) sendVel[i] = traj_.points[traj_point_].velocities[id];
+						if(traj_.points[traj_point_].positions.size() > id) sendPos[i] = traj_.points[traj_point_].positions[id];
+						if (sendVel[i] > max_drive_rates[id]) 		//TODO 1: throw error
+												//TODO 2: are there better methods of handling these cases?
+						{
+							sendVel[i] = max_drive_rates[id];
+						}
+						if (sendVel[i] < -max_drive_rates[id])
+						{
+							sendVel[i] = -max_drive_rates[id];
+						}
+					}
+				}
+				else //assume fixed order
+				{
+					for(int i = 0; i < m_iNumMotors; i++)
+					{	
+						if(traj_.points[traj_point_].velocities.size() > i) sendVel[i] = traj_.points[traj_point_].velocities[i];
+						if(traj_.points[traj_point_].positions.size() > i) sendPos[i] = traj_.points[traj_point_].positions[i];
+						if (sendVel[i] > max_drive_rates[i])
+						{
+							sendVel[i] = max_drive_rates[i];
+						}
+						if (sendVel[i] < -max_drive_rates[i])
+						{
+							sendVel[i] = -max_drive_rates[i];
+						}
+					}
+
+				}
+				traj_point_++;
+			}
+		}
+		if(timeOut > ros::Time::now() - last_cmd_time  ) //send velocity/position
 		{
 			for(int i=0; i<m_iNumMotors; i++){
 				switch(control_type[i])
 				{
 					case 2: //velocity control:
 						m_CanCtrlPltf->setVelGearRadS(canIDs[i], sendVel[i]);
-						ROS_DEBUG("send velocity cmd to can: %i : %f", i, sendVel[i]);
 					break;
 					case 1: //position control:
 						m_CanCtrlPltf->setPosGearRad(canIDs[i], sendPos[i], sendVel[i]);
@@ -254,7 +323,7 @@ void  NodeClass::sendVelCan()
 						m_CanCtrlPltf->setVelGearRadS(canIDs[i], 0);
 						ROS_DEBUG("last velocity cmd timed out: set velocity to 0");
 					case 1: //pose control:
-						//TODO: what's the best thing? do nothing?
+						//TODO: what's the best thing to do? do nothing?
 					break;
 					case 0: //torque control: not supported yet.
 					break;					
@@ -279,56 +348,9 @@ void NodeClass::topicCallback_JointStateCmd(const trajectory_msgs::JointTrajecto
 	if(m_bisInitialized == true)
 	{
 		ROS_DEBUG("Topic Callback joint_command - Sending Commands to drives (initialized), nr of motors: %i", m_iNumMotors);
-		last_cmd_time = ros::Time::now();
-		if(checkJointNames)
-		{
-			for(int i = 0; i < m_iNumMotors; i++)
-			{	
-				int id = -1;
-				for(int j = 0; j < msg->joint_names.size(); j++)
-				{
-					if(msg->joint_names[j] == joint_names[i])
-					{
-						id = j;
-						break;
-					}
-				}
-				if(id == -1)
-				{
-					for(int j = 0; j<m_iNumMotors; j++) sendVel[j] = 0;
-					ROS_FATAL("cob_base_drive_chain: unknown joint names in trajectory cmd message");
-					return;
-				}
-				if(msg->points[0].velocities.size() > id) sendVel[i] = msg->points[0].velocities[id];
-				if(msg->points[0].positions.size() > id) sendPos[i] = msg->points[0].positions[id];
-				if (sendVel[i] > max_drive_rates[id]) 		//TODO 1: throw error
-										//TODO 2: are there better methods of handling these cases?
-				{
-					sendVel[i] = max_drive_rates[id];
-				}
-				if (sendVel[i] < -max_drive_rates[id])
-				{
-					sendVel[i] = -max_drive_rates[id];
-				}
-			}
-		}
-		else //assume fixed order
-		{
-			for(int i = 0; i < m_iNumMotors; i++)
-			{	
-				if(msg->points[0].velocities.size() > i) sendVel[i] = msg->points[0].velocities[i];
-				if(msg->points[0].positions.size() > i) sendPos[i] = msg->points[0].positions[i];
-				if (sendVel[i] > max_drive_rates[i])
-				{
-					sendVel[i] = max_drive_rates[i];
-				}
-				if (sendVel[i] < -max_drive_rates[i])
-				{
-					sendVel[i] = -max_drive_rates[i];
-				}
-			}
-
-		}
+		traj_ = *msg;
+		next_cmd_time = ros::Time::now();
+		traj_point_ = 0;
 	}
 }
 
@@ -360,6 +382,7 @@ bool NodeClass::can_init()
 
 		if(m_bisInitialized)
 		{
+			bIsError = false;
    			ROS_INFO("base initialized");
 		}
 		else
@@ -402,6 +425,7 @@ bool NodeClass::recover()
 		bool reset = m_CanCtrlPltf->resetPltf();
 		if (reset) {
 			ROS_INFO("base resetted");
+			bIsError = false;
 		} else {
 			ROS_DEBUG("Resetting base failed");
 		}

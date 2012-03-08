@@ -112,6 +112,7 @@ class NodeClass
 
 		private:
 		std::vector<std::string> joint_names;
+		std::vector<int> control_type;
 		double *sendVel;
 		double *sendAccel;
 		double *sendPose;
@@ -156,6 +157,7 @@ NodeClass::NodeClass() : auto_recover_interval(0.3)
 	
 	for(int i=0; i<m_iNumMotors; i++) sendVel[i] = 0;
 	joint_names.resize(m_iNumMotors);
+	control_type.resize(m_iNumMotors);
 	for(int i=0; i<m_iNumMotors; i++)
 	{
 		sendVel[i] = 0;
@@ -165,7 +167,7 @@ NodeClass::NodeClass() : auto_recover_interval(0.3)
 		stringstream<<"drive"<<i<<"/";
 		std::string pathName = stringstream.str();
 		n.getParam(pathName + "joint_name", joint_names[i]);
-
+		n.getParam(pathName + "control_type", control_type[i]);
 	}
 	
 	// implementation of topics
@@ -228,16 +230,18 @@ void NodeClass::topicCallback_JointStateCmd(const trajectory_msgs::JointTrajecto
 					ROS_FATAL("cob_base_drive_chain: unknown joint names in trajectory cmd message");
 					return;
 				}
-				sendVel[i] = msg->points[0].velocities[id];
-				//TODO: sendAccel[i] = msg->points[0].accelerations[id];
+				if(msg->points[0].positions.size() > id) sendPose[i] = msg->points[0].positions[id]; 
+				if(msg->points[0].velocities.size() > id) sendVel[i] = msg->points[0].velocities[id];
+				if(msg->points[0].accelerations.size() > id) sendAccel[i] = msg->points[0].accelerations[id];
 			}
 		}
 		else //assume fixed order
 		{
 			for(int i = 0; i < m_iNumMotors; i++)
 			{	
-				sendVel[i] = msg->points[0].velocities[i];
-				//TODO: sendAccel[i] = msg->points[0].accelerations[i];
+				if(msg->points[0].positions.size() > i) sendPose[i] = msg->points[0].positions[i]; 
+				if(msg->points[0].velocities.size() > i) sendVel[i] = msg->points[0].velocities[i];
+				if(msg->points[0].accelerations.size() > i) sendAccel[i] = msg->points[0].accelerations[i];
 			}
 
 		}
@@ -375,12 +379,23 @@ bool NodeClass::publish_JointStates()
 		// set data to jointstate
 		for(int i = 0; i<m_iNumMotors; i++)
 		{
-			sendPose[i] += sendVel[i] * dt + sendAccel[i] * dt2 / 2;
-			sendVel[i] += sendAccel[i] * dt;
-			jointstate.position[i] = sendPose[i];
-			jointstate.velocity[i] = sendVel[i];
-			jointstate.effort[i] = 0;
-			jointstate.name.push_back(joint_names[i]);
+			if(control_type[i] == 1) //position control:
+			{
+				jointstate.position[i] = sendPose[i];
+				jointstate.velocity[i] = 0;
+				jointstate.effort[i] = 0;
+				jointstate.name.push_back(joint_names[i]);
+			}
+			//if(control_type[i] == 2) velocity control:
+			else
+			{
+				sendPose[i] += sendVel[i] * dt + sendAccel[i] * dt2 / 2;
+				sendVel[i] += sendAccel[i] * dt;
+				jointstate.position[i] = sendPose[i];
+				jointstate.velocity[i] = sendVel[i];
+				jointstate.effort[i] = 0;
+				jointstate.name.push_back(joint_names[i]);
+			}
 		}
 		
 	}
