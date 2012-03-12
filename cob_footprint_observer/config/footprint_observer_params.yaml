@@ -1,0 +1,9 @@
+# node from which initial footprint is read
+footprint_source: /local_costmap_node/costmap
+
+# 
+robot_base_frame: /base_link
+# wait until tf from robot_base_frame to farthest_frame is available
+farthest_frame: /sdh_tip_link
+# frames to check for footprint adjustment
+frames_to_check: /sdh_tip_link /arm_6_link /arm_4_link 

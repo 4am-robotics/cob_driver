@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- include local costmap -->
+  <include file="$(find cob_collision_velocity_filter)/ros/launch/local_costmap.launch"/>
+
+  <!-- include footprint observer -->
+  <include file="$(find cob_footprint_observer)/launch/footprint_observer.launch"/>
+
+  <!-- start collision velocity filter node -->
+  <node pkg="cob_collision_velocity_filter" type="collision_velocity_filter" name="collision_velocity_filter" output="screen">
+    <!-- remap incoming variables -->
+    <remap from="obstacles" to="/local_costmap_node/costmap/obstacles" />
+    <remap from="teleop_twist" to="/cmd_vel" />
+    <!-- remap outgoing variables -->
+    <remap from="command" to="/base_controller/command" />
+    <remap from="relevant_obstacles" to="/collision_velocity_filter/relevant_obstacles" />
+    <!-- load parameter file -->
+    <rosparam file="$(find cob_collision_velocity_filter)/ros/config/collision_velocity_filter_params.yaml" command="load" />
+  </node>
+
+</launch>
