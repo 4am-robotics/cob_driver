@@ -156,6 +156,8 @@ void NeoCtrlPltfMpo500::readConfiguration()
 		n->getParam(pathName + "GearEfficiency",m_GearMotDrive[i].dGearEfficiency);
 		n->getParam(pathName + "Sign", m_GearMotDrive[i].iSign);
 		n->getParam(pathName + "Homing", m_GearMotDrive[i].bHoming);
+		n->param<int>(pathName + "HomeCoupleID", m_GearMotDrive[i].iHomeCoupleID, -1);
+		n->param<double>(pathName + "HomeCoupleVel", m_GearMotDrive[i].iHomeCoupleVel, 0.);
 		n->getParam(pathName + "HomePos", m_GearMotDrive[i].dHomePos);
 		n->getParam(pathName + "HomeVel", m_GearMotDrive[i].dHomeVel);
 		n->getParam(pathName + "HomeEvent", m_GearMotDrive[i].iHomeEvent);
@@ -168,7 +170,6 @@ void NeoCtrlPltfMpo500::readConfiguration()
 		n->getParam(pathName + "AccIncrS", m_GearMotDrive[i].dAccIncrS2);
 		n->getParam(pathName + "DecIncrS", m_GearMotDrive[i].dDecIncrS2);
 		n->getParam(pathName + "CANId", m_GearMotDrive[i].iCANId);
-
 		m_viMotorID[i] = m_GearMotDrive[i].iCANId;
 
 		DriveParamDriveMotor[i].set(	i,
@@ -294,33 +295,52 @@ bool NeoCtrlPltfMpo500::initPltf()
 		}
 	}
 	//homing:
-/*
+
 	for(int i=0; i < m_vpMotor.size(); i++)
 	{
 
 		if(m_vpMotor[i]->m_DriveParam.getHoming() )
 		{
-			// start translational (index i+1) wheel synchronously
+			// if HomeCoupleID != -1:
+			// start translational (index coupleID) wheel synchronously
 			// with homing drive (index i)
+			// else:
+			// home joint without any coupleing
 
-			//TODO: i+1
-			m_vpMotor[i+1]->setWheelVel(m_vpMotor[i+1]->m_DriveParam.getSign() * 0.2, false, true);
-
+			int coupleID = -1;
+			if (m_GearMotDrive[i].iHomeCoupleID != -1)
+			{
+				for(unsigned int j = 0; j < m_vpMotor.size(); j++)
+				{
+					if(m_GearMotDrive[i].iHomeCoupleID == m_viMotorID[j])
+					{
+						coupleID = j;
+					}
+				}
+			}
+			if(coupleID != -1)
+			{
+				m_vpMotor[coupleID]->setWheelVel(	m_vpMotor[coupleID]->m_DriveParam.getSign() * 
+									m_GearMotDrive[coupleID].iHomeCoupleVel, false, true);
+			}
 			m_vpMotor[i]->prepareHoming();
 			m_vpMotor[i]->initHoming();
 			m_vpMotor[i]->execHoming();
 			m_vpMotor[i]->isHomingFinished();
 			
-			// stop translational wheel
-			m_vpMotor[i+1]->setWheelVel(0.0, false, true);
-			
+			if(coupleID != -1)
+			{
+				// stop translational wheel
+				m_vpMotor[coupleID]->setWheelVel(0.0, false, true);
+			}
+
 			usleep(50000);
 			const double pi_ = 3.14159265;
-			m_vpMotor[i]->setModuloCount(-pi_, pi_);
+			m_vpMotor[i]->setModuloCount(-pi_, pi_); //TODO: is it always [-pi,pi]?
 		}
 
 	}
-*/
+
 	return true;
 }
 
@@ -514,7 +534,7 @@ int NeoCtrlPltfMpo500::getGearDeltaPosVelRadS(int iCanIdent, double* pdAngleGear
 		// check if Identifier fits to availlable hardware
 		if(iCanIdent == m_viMotorID[i])
 		{
-			//TODO : m_vpMotor[i]->getWheelDeltaPosVel(pdAngleGearRad, pdVelGearRadS);
+			m_vpMotor[i]->getWheelDltPosVel(pdAngleGearRad, pdVelGearRadS);
 		}
 	}
 

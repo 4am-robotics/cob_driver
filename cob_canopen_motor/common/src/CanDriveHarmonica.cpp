@@ -588,7 +588,7 @@ bool CanDriveHarmonica::execHoming()
 	{
 		return true;
 	}
-
+/*TODO: parameterers for HomeEvent: (1000 && 1001)
 	if ( m_DriveParam.getHomeEvent() == 1000 ) // homing with Neobotix variable block width ring
 	{
 		LOGINFO ( "block width ring homing started" );
@@ -649,14 +649,15 @@ bool CanDriveHarmonica::execHoming()
 	}
 	else
 	{
-		dHomeVel = m_DriveParam.getHomeVel();
+*/
+	dHomeVel = m_DriveParam.getHomeVel();
 
-		// set homing velocity
-		IntprtSetInt ( 8, 'J', 'V', 0, int ( dHomeVel ), true );
-		IntprtSetInt ( 4, 'B', 'G', 0, 0, true );
+	// set homing velocity
+	IntprtSetInt ( 8, 'J', 'V', 0, int ( dHomeVel ), true );
+	IntprtSetInt ( 4, 'B', 'G', 0, 0, true );
 
-		LOGINFO ( "drive " << m_DriveParam.getDriveIdent() << " homing started" );
-	}
+	LOGINFO ( "drive " << m_DriveParam.getDriveIdent() << " homing started" );
+//	}
 
 	return true;
 }

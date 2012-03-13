@@ -253,6 +253,8 @@ protected:
 		double dHomePos;
 		double dHomeVel;
 		int iHomeEvent;
+		int iHomeCoupleID;
+		double iHomeCoupleVel;
 		int iHomeDigIn;
 		int iHomeTimeOut;
 		bool bHomeDSCouple;
