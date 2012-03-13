@@ -85,9 +85,8 @@ class FootprintObserver
   public:
     ///
     /// @brief  constructor
-    /// @param  name - name of the node
     ///
-    FootprintObserver(std::string name);
+    FootprintObserver();
     ///
     /// @brief  destructor
     ///
