@@ -50,14 +50,17 @@
 #include <cob_collision_velocity_filter.h>
 
 // Constructor
-CollisionVelocityFilter::CollisionVelocityFilter(std::string name)
+CollisionVelocityFilter::CollisionVelocityFilter()
 {
+  // create node handle
+  nh_ = ros::NodeHandle("~");
+
   m_mutex = PTHREAD_MUTEX_INITIALIZER;
 
   // node handle to get footprint from parameter server
   std::string costmap_parameter_source;
-  if(!nh_.hasParam(name+"/costmap_parameter_source")) ROS_WARN("Checking global parameter server for costmap parameters");
-  nh_.param(name+"/costmap_parameter_source",costmap_parameter_source, std::string("/"));
+  if(!nh_.hasParam("costmap_parameter_source")) ROS_WARN("Checking default source [/local_costmap_node/costmap] for costmap parameters");
+  nh_.param("costmap_parameter_source",costmap_parameter_source, std::string("/local_costmap_node/costmap"));
 
   ros::NodeHandle local_costmap_nh_(costmap_parameter_source); 	
 
@@ -70,49 +73,55 @@ CollisionVelocityFilter::CollisionVelocityFilter(std::string name)
   // subscribe to the costmap to receive inflated cells
   obstacles_sub_ = nh_.subscribe<nav_msgs::GridCells>("obstacles", 1, boost::bind(&CollisionVelocityFilter::obstaclesCB, this, _1));
 
-  // advertise service
-  srv_set_footprint_ = nh_.advertiseService(name+"/set_footprint", &CollisionVelocityFilter::setFootprintCB, this);
+  // create service client
+  srv_client_get_footprint_ = nh_.serviceClient<cob_footprint_observer::GetFootprint>("/get_footprint");
+
+  // create Timer and call getFootprint Service periodically
+  double footprint_update_frequency;
+  if(!nh_.hasParam("footprint_update_frequency")) ROS_WARN("Used default parameter for footprint_update_frequency [1.0 Hz].");
+  nh_.param("footprint_update_frequency",footprint_update_frequency,1.0);
+  get_footprint_timer_ = nh_.createTimer(ros::Duration(1/footprint_update_frequency), boost::bind(&CollisionVelocityFilter::getFootprintServiceCB, this, _1));
 
   // read parameters from parameter server
   // parameters from costmap
-  if(!local_costmap_nh_.hasParam(costmap_parameter_source+"/global_frame")) ROS_WARN("Used default parameter for global_frame");
-  local_costmap_nh_.param(costmap_parameter_source+"/global_frame", global_frame_, std::string("/map"));
+  if(!local_costmap_nh_.hasParam(costmap_parameter_source+"/global_frame")) ROS_WARN("Used default parameter for global_frame [/base_link]");
+  local_costmap_nh_.param(costmap_parameter_source+"/global_frame", global_frame_, std::string("/base_link"));
 
-  if(!local_costmap_nh_.hasParam(costmap_parameter_source+"/robot_base_frame")) ROS_WARN("Used default parameter for robot_frame");
+  if(!local_costmap_nh_.hasParam(costmap_parameter_source+"/robot_base_frame")) ROS_WARN("Used default parameter for robot_frame [/base_link]");
   local_costmap_nh_.param(costmap_parameter_source+"/robot_base_frame", robot_frame_, std::string("/base_link"));
 
-  if(!nh_.hasParam(name+"/influence_radius")) ROS_WARN("Used default parameter for influence_radius");
-  nh_.param(name+"/influence_radius", influence_radius_, 1.5);
+  if(!nh_.hasParam("influence_radius")) ROS_WARN("Used default parameter for influence_radius [1.5 m]");
+  nh_.param("influence_radius", influence_radius_, 1.5);
   closest_obstacle_dist_ = influence_radius_;
   closest_obstacle_angle_ = 0.0;
 
   // parameters for obstacle avoidence and velocity adjustment
-  if(!nh_.hasParam(name+"/stop_threshold")) ROS_WARN("Used default parameter for stop_threshold");
-  nh_.param(name+"/stop_threshold", stop_threshold_, 0.10);
+  if(!nh_.hasParam("stop_threshold")) ROS_WARN("Used default parameter for stop_threshold [0.1 m]");
+  nh_.param("stop_threshold", stop_threshold_, 0.10);
 
-  if(!nh_.hasParam(name+"/obstacle_damping_dist")) ROS_WARN("Used default parameter for obstacle_damping_dist");
-  nh_.param(name+"/obstacle_damping_dist", obstacle_damping_dist_, 50.0);
+  if(!nh_.hasParam("obstacle_damping_dist")) ROS_WARN("Used default parameter for obstacle_damping_dist [5.0 m]");
+  nh_.param("obstacle_damping_dist", obstacle_damping_dist_, 5.0);
   if(obstacle_damping_dist_ < stop_threshold_) {
     ROS_WARN("obstacle_damping_dist < stop_threshold => robot will stop without decceleration!");
   }
 
-  if(!nh_.hasParam(name+"/use_circumscribed_threshold")) ROS_WARN("Used default parameter for use_circumscribed_threshold_");
-  nh_.param(name+"/use_circumscribed_threshold", use_circumscribed_threshold_, 0.20);
+  if(!nh_.hasParam("use_circumscribed_threshold")) ROS_WARN("Used default parameter for use_circumscribed_threshold_ [0.2 rad/s]");
+  nh_.param("use_circumscribed_threshold", use_circumscribed_threshold_, 0.20);
 
-  if(!nh_.hasParam(name+"/pot_ctrl_vmax")) ROS_WARN("Used default parameter for pot_ctrl_vmax");
-  nh_.param(name+"/pot_ctrl_vmax", v_max_, 0.6);
+  if(!nh_.hasParam("pot_ctrl_vmax")) ROS_WARN("Used default parameter for pot_ctrl_vmax [0.6]");
+  nh_.param("pot_ctrl_vmax", v_max_, 0.6);
 
-  if(!nh_.hasParam(name+"/pot_ctrl_vtheta_max")) ROS_WARN("Used default parameter for pot_ctrl_vtheta_max");
-  nh_.param(name+"/pot_ctrl_vtheta_max", vtheta_max_, 0.8);
+  if(!nh_.hasParam("pot_ctrl_vtheta_max")) ROS_WARN("Used default parameter for pot_ctrl_vtheta_max [0.8]");
+  nh_.param("pot_ctrl_vtheta_max", vtheta_max_, 0.8);
 
-  if(!nh_.hasParam(name+"/pot_ctrl_kv")) ROS_WARN("Used default parameter for pot_ctrl_kv");
-  nh_.param(name+"/pot_ctrl_kv", kv_, 1.0);
+  if(!nh_.hasParam("pot_ctrl_kv")) ROS_WARN("Used default parameter for pot_ctrl_kv [1.0]");
+  nh_.param("pot_ctrl_kv", kv_, 1.0);
 
-  if(!nh_.hasParam(name+"/pot_ctrl_kp")) ROS_WARN("Used default parameter for pot_ctrl_kp");
-  nh_.param(name+"/pot_ctrl_kp", kp_, 2.0);
+  if(!nh_.hasParam("pot_ctrl_kp")) ROS_WARN("Used default parameter for pot_ctrl_kp [2.0]");
+  nh_.param("pot_ctrl_kp", kp_, 2.0);
 
-  if(!nh_.hasParam(name+"/pot_ctrl_virt_mass")) ROS_WARN("Used default parameter for pot_ctrl_virt_mass");
-  nh_.param(name+"/pot_ctrl_virt_mass", virt_mass_, 0.8);
+  if(!nh_.hasParam("pot_ctrl_virt_mass")) ROS_WARN("Used default parameter for pot_ctrl_virt_mass [0.8]");
+  nh_.param("pot_ctrl_virt_mass", virt_mass_, 0.8);
 
   //load the robot footprint from the parameter server if its available in the local costmap namespace
   robot_footprint_ = loadRobotFootprint(local_costmap_nh_);
@@ -156,36 +165,46 @@ void CollisionVelocityFilter::obstaclesCB(const nav_msgs::GridCells::ConstPtr &o
   pthread_mutex_unlock(&m_mutex);
 }
 
-bool CollisionVelocityFilter::setFootprintCB(cob_footprint_observer::SetFootprint::Request &req, cob_footprint_observer::SetFootprint::Response &resp) {
-  geometry_msgs::PolygonStamped footprint_poly = req.footprint;
-  std::vector<geometry_msgs::Point> footprint;
-  geometry_msgs::Point pt;
+// timer callback for periodically checking footprint
+void CollisionVelocityFilter::getFootprintServiceCB(const ros::TimerEvent&) 
+{
+  cob_footprint_observer::GetFootprint srv = cob_footprint_observer::GetFootprint();
+  // check if service is reachable
+  if (srv_client_get_footprint_.call(srv))
+  {
+    // adjust footprint
+    geometry_msgs::PolygonStamped footprint_poly = srv.response.footprint;
+    std::vector<geometry_msgs::Point> footprint;
+    geometry_msgs::Point pt;
 
-  for(unsigned int i=0; i<footprint_poly.polygon.points.size(); ++i) {
-    pt.x = footprint_poly.polygon.points[i].x;
-    pt.y = footprint_poly.polygon.points[i].y;
-    pt.z = footprint_poly.polygon.points[i].z;
-    footprint.push_back(pt);
-  }
+    for(unsigned int i=0; i<footprint_poly.polygon.points.size(); ++i) {
+      pt.x = footprint_poly.polygon.points[i].x;
+      pt.y = footprint_poly.polygon.points[i].y;
+      pt.z = footprint_poly.polygon.points[i].z;
+      footprint.push_back(pt);
+    }
+
+    pthread_mutex_lock(&m_mutex);
+
+    footprint_front_ = footprint_front_initial_;
+    footprint_rear_ = footprint_rear_initial_;
+    footprint_left_ = footprint_left_initial_;
+    footprint_right_ = footprint_right_initial_;
+
+    robot_footprint_ = footprint;
+    for(unsigned int i=0; i<footprint.size(); i++) {
+      if(footprint[i].x > footprint_front_) footprint_front_ = footprint[i].x;
+      if(footprint[i].x < footprint_rear_) footprint_rear_ = footprint[i].x;
+      if(footprint[i].y > footprint_left_) footprint_left_ = footprint[i].y;
+      if(footprint[i].y < footprint_right_) footprint_right_ = footprint[i].y;
+    }
+
+    pthread_mutex_unlock(&m_mutex);
   
-  pthread_mutex_lock(&m_mutex);
-  
-  footprint_front_ = footprint_front_initial_;
-  footprint_rear_ = footprint_rear_initial_;
-  footprint_left_ = footprint_left_initial_;
-  footprint_right_ = footprint_right_initial_;
-
-  robot_footprint_ = footprint;
-  for(unsigned int i=0; i<footprint.size(); i++) {
-    if(footprint[i].x > footprint_front_) footprint_front_ = footprint[i].x;
-    if(footprint[i].x < footprint_rear_) footprint_rear_ = footprint[i].x;
-    if(footprint[i].y > footprint_left_) footprint_left_ = footprint[i].y;
-    if(footprint[i].y < footprint_right_) footprint_right_ = footprint[i].y;
+  } else {
+    ROS_WARN("Cannot reach service /get_footprint");
   }
 
-  pthread_mutex_unlock(&m_mutex);
-
-  return true;
 }
 
 // sets corrected velocity of joystick command
@@ -596,7 +615,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "cob_collision_velocity_filter");
 
   // create nodeClass
-  CollisionVelocityFilter collisionVelocityFilter("collision_velocity_filter");
+  CollisionVelocityFilter collisionVelocityFilter;
 
 
   ros::spin();

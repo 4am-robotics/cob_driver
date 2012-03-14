@@ -74,10 +74,10 @@
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include <cob_footprint_observer/SetFootprint.h>
+#include <cob_footprint_observer/GetFootprint.h>
 ///
 /// @class FootprintObserver
-/// @brief checks the footprint of care-o-bot
+/// @brief checks the footprint of care-o-bot and advertises a service to get the adjusted footprint
 /// 
 ///
 class FootprintObserver
@@ -97,9 +97,18 @@ class FootprintObserver
     ///
     void checkFootprint();
     
-    ros::ServiceClient srv_client_;
+    ///
+    /// @brief  callback for GetFootprint service
+    /// @param  req - request message to service
+    /// @param  resp - response message from service
+    /// @return service call successfull
+    ///
+    bool getFootprintCB(cob_footprint_observer::GetFootprint::Request &req, cob_footprint_observer::GetFootprint::Response &resp);
+
+    // public members
     ros::NodeHandle nh_;
     ros::Publisher topic_pub_footprint_;
+    ros::ServiceServer srv_get_footprint_;
 
   private:
     ///
@@ -110,9 +119,9 @@ class FootprintObserver
     std::vector<geometry_msgs::Point> loadRobotFootprint(ros::NodeHandle node);
 
     ///
-    /// @brief  calls the SetFootprint service and publishes the adjusted footprint
+    /// @brief  publishes the adjusted footprint as geometry_msgs::StampedPolygon message
     ///
-    void setFootprint();
+    void publishFootprint();
 
     ///
     /// @brief  computes the sign of x
@@ -121,6 +130,7 @@ class FootprintObserver
     ///
     double sign(double x);
 
+    // private members
     std::vector<geometry_msgs::Point> robot_footprint_;
     double footprint_front_initial_, footprint_rear_initial_, footprint_left_initial_, footprint_right_initial_;
     double footprint_front_, footprint_rear_, footprint_left_, footprint_right_;
