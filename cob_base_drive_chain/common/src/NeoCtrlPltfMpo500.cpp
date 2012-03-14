@@ -341,7 +341,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 					m_vpMotor[i]->execHoming();
 					m_vpMotor[i]->isHomingFinished();
 					m_vpMotor[i]->exitHoming(0.0 /*sleeptime: 0 ms*/, true); //keep driving after homing event
-					usleep(100000);
+					usleep(100000); //sleep 100 ms
 
 					// stop translational wheel and steeraxis.
 					m_vpMotor[coupleID[i]]->setWheelVel(0.0, false, true);

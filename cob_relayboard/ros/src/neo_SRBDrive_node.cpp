@@ -42,6 +42,7 @@
 #include <boost/thread.hpp>
 
 /*\brief SRBDriveNode is a wrapper class for converting the drive output of the SerialRelayBoard into ROS sensor_msgs;
+	It doesn't support jointrajectories with multiple points.
 */
 class SRBDriveNode
 {
