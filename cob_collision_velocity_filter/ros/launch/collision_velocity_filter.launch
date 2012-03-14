@@ -1,10 +1,15 @@
 <?xml version="1.0"?>
 <launch>
-  <!-- include local costmap -->
-  <include file="$(find cob_collision_velocity_filter)/ros/launch/local_costmap.launch"/>
+  <!-- start local costmap -->
+  <node name="local_costmap_node" pkg="costmap_2d" type="costmap_2d_node" output="screen">
+    <rosparam file="$(find cob_collision_velocity_filter)/ros/config/local_costmap_params.yaml" command="load" ns="costmap" />
+  </node>
 
-  <!-- include footprint observer -->
-  <include file="$(find cob_footprint_observer)/launch/footprint_observer.launch"/>
+  <!-- start footprint observer node -->
+  <node pkg="cob_footprint_observer" type="footprint_observer" name="footprint_observer" output="screen">
+    <!-- load parameter file -->
+    <rosparam file="$(find cob_collision_velocity_filter)/ros/config/footprint_observer_params.yaml" command="load" />
+  </node>
 
   <!-- start collision velocity filter node -->
   <node pkg="cob_collision_velocity_filter" type="collision_velocity_filter" name="collision_velocity_filter" output="screen">
