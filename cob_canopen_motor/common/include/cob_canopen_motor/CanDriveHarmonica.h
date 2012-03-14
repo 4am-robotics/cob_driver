@@ -165,7 +165,7 @@ public:
 	 * Initializes ElmoMC amplifier with homing parameters
 	 * Returns always true
 	 */
-	bool initHoming();
+	bool initHoming(bool keepDriving);
 
 	/**
 	 * home event = 1001: starts block width ring calibration run, returns true
@@ -183,7 +183,7 @@ public:
 	/**
 	 *
 	 */
-	void exitHoming(double t);
+	void exitHoming(double t, bool keepDriving);
 
 	/**
 	 *

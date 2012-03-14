@@ -141,7 +141,7 @@ void NeoCtrlPltfMpo500::readConfiguration()
 		std::cout << "Uses CanESD" << std::endl;
 	}
 
-	int control_type[m_iNumMotors];
+	control_type.resize(m_iNumMotors);
 	// "Drive Motor Type1" drive parameters
 	for(int i=0; i<m_iNumMotors; i++)
 	{
@@ -157,9 +157,9 @@ void NeoCtrlPltfMpo500::readConfiguration()
 		n->getParam(pathName + "Sign", m_GearMotDrive[i].iSign);
 		n->getParam(pathName + "Homing", m_GearMotDrive[i].bHoming);
 		n->param<int>(pathName + "HomeCoupleID", m_GearMotDrive[i].iHomeCoupleID, -1);
-		n->param<double>(pathName + "HomeCoupleVel", m_GearMotDrive[i].iHomeCoupleVel, 0.);
+		n->param<double>(pathName + "HomeCoupleVelRadS", m_GearMotDrive[i].iHomeCoupleVel, 0.2);
 		n->getParam(pathName + "HomePos", m_GearMotDrive[i].dHomePos);
-		n->getParam(pathName + "HomeVel", m_GearMotDrive[i].dHomeVel);
+		n->getParam(pathName + "HomeVelRadS", m_GearMotDrive[i].dHomeVel);
 		n->getParam(pathName + "HomeEvent", m_GearMotDrive[i].iHomeEvent);
 		n->getParam(pathName + "HomeDigIn", m_GearMotDrive[i].iHomeDigIn);
 		n->getParam(pathName + "HomeTimeOut", m_GearMotDrive[i].iHomeTimeOut);
@@ -172,13 +172,17 @@ void NeoCtrlPltfMpo500::readConfiguration()
 		n->getParam(pathName + "CANId", m_GearMotDrive[i].iCANId);
 		m_viMotorID[i] = m_GearMotDrive[i].iCANId;
 
+		double 	m_dRadToIncr = 	(m_GearMotDrive[i].iEncIncrPerRevMot * m_GearMotDrive[i].dGearRatio * m_GearMotDrive[i].dBeltRatio) 
+					/ (2. * 3.14159265);
+		double homeVelIncrS = m_GearMotDrive[i].dHomeVel * m_dRadToIncr / m_GearMotDrive[i].dVelMeasFrqHz;
+
 		DriveParamDriveMotor[i].set(	i,
 						m_GearMotDrive[i].iEncIncrPerRevMot,
 						m_GearMotDrive[i].dVelMeasFrqHz,
 						m_GearMotDrive[i].dBeltRatio, m_GearMotDrive[i].dGearRatio,
 						m_GearMotDrive[i].iSign,
 						m_GearMotDrive[i].bHoming, m_GearMotDrive[i].dHomePos,
-						m_GearMotDrive[i].dHomeVel, m_GearMotDrive[i].iHomeEvent,
+						homeVelIncrS, m_GearMotDrive[i].iHomeEvent,
 						m_GearMotDrive[i].iHomeDigIn, m_GearMotDrive[i].iHomeTimeOut,
 						m_GearMotDrive[i].dVelMaxEncIncrS, m_GearMotDrive[i].dVelPModeEncIncrS,
 						m_GearMotDrive[i].dAccIncrS2, m_GearMotDrive[i].dDecIncrS2,
@@ -280,7 +284,8 @@ bool NeoCtrlPltfMpo500::initPltf()
 
 	//start can open network
 	sendNetStartCanOpen();
-		
+	
+	bool bHomingOk = true;
 	//start motors
 	for(int i=0; i < m_vpMotor.size(); i++)
 	{
@@ -290,58 +295,134 @@ bool NeoCtrlPltfMpo500::initPltf()
 			if(m_vpMotor[i]->start())
 			{
 				ROS_INFO("motor started");
-				m_vpMotor[i]->initWatchdog();
+			}
+			else
+			{
+				ROS_ERROR("can't start motor with can id: %i", m_GearMotDrive[i].iCANId);
+				bHomingOk = false;
 			}
 		}
 	}
+
 	//homing:
-
-	for(int i=0; i < m_vpMotor.size(); i++)
+	if(bHomingOk)
 	{
-
-		if(m_vpMotor[i]->m_DriveParam.getHoming() )
+		int coupleID[m_vpMotor.size()];
+		for(int i=0; i < m_vpMotor.size(); i++) //home drives
 		{
-			// if HomeCoupleID != -1:
-			// start translational (index coupleID) wheel synchronously
-			// with homing drive (index i)
-			// else:
-			// home joint without any coupleing
-
-			int coupleID = -1;
-			if (m_GearMotDrive[i].iHomeCoupleID != -1)
+			coupleID[i] = -1;
+			if(m_vpMotor[i]->m_DriveParam.getHoming())
 			{
-				for(unsigned int j = 0; j < m_vpMotor.size(); j++)
+				// 1. set jogging velocity mode as control mode
+				m_vpMotor[i]->setTypeMotion(2);
+
+				// 2. if HomeCoupleID != -1:
+				//     start translational (index coupleID) wheel synchronously
+				//     with homing drive (index i)
+				//   else:
+				//     home joint without any coupleing
+				if (m_GearMotDrive[i].iHomeCoupleID != -1)
 				{
-					if(m_GearMotDrive[i].iHomeCoupleID == m_viMotorID[j])
+					for(unsigned int j = 0; j < m_vpMotor.size(); j++)
 					{
-						coupleID = j;
+						if(m_GearMotDrive[i].iHomeCoupleID == m_viMotorID[j])
+						{
+							coupleID[i] = j;
+							m_vpMotor[coupleID[i]]->setTypeMotion(2); //set jogging velocity as control type
+						}
+					}
+				}
+				if(coupleID[i] != -1) //steer-wheel-coupling
+				{
+					m_vpMotor[coupleID[i]]->setWheelVel(	m_vpMotor[coupleID[i]]->m_DriveParam.getSign() * 
+										m_GearMotDrive[coupleID[i]].iHomeCoupleVel, false, true);
+					m_vpMotor[i]->prepareHoming();
+					m_vpMotor[i]->initHoming(true); //keep driving after homing event
+					m_vpMotor[i]->execHoming();
+					m_vpMotor[i]->isHomingFinished();
+					m_vpMotor[i]->exitHoming(0.0 /*sleeptime: 0 ms*/, true); //keep driving after homing event
+					usleep(100000);
+
+					// stop translational wheel and steeraxis.
+					m_vpMotor[coupleID[i]]->setWheelVel(0.0, false, true);
+					m_vpMotor[i]->setWheelVel(0.0, false, true);
+				}
+				else
+				{
+					m_vpMotor[i]->prepareHoming();
+					m_vpMotor[i]->initHoming(); //stop after homing event
+					m_vpMotor[i]->execHoming();
+					m_vpMotor[i]->isHomingFinished();
+					m_vpMotor[i]->exitHoming(50 /*sleep 50 ms*/);
+					//don't use: m_vpMotor[i]->setModuloCount(m_GearMotDrive[i].dPosMinRad, m_GearMotDrive[i].dPosMaxRad); 
+					//           cause this will mess up velocity estimation using (pos[1]-pos[0])/deltaTime
+					//           if needed use something similar to PX = (PX - XM[1]) mod (XM[2] - XM[1]) + XM[1] 
+				}
+
+				usleep(50000);
+			}
+		}
+
+		// 3. drive motors to zero position
+		bool bAllDone;	
+		do
+		{
+			bAllDone = true;
+			double m_d0 = 1.5;
+			for(int i=0; i < m_vpMotor.size(); i++) 
+			{
+
+				if(m_vpMotor[i]->m_DriveParam.getHoming())
+				{
+					if(coupleID[i] != -1) //if coupled drives: use custom method to drive to zero position
+					{
+
+						// get current position of steer
+						double dCurrentPosRad, dCurrentVelRadS;
+						m_vpMotor[i]->getWheelPosVel(&dCurrentVelRadS, &dCurrentPosRad);
+						// P-Ctrl					
+						double dDeltaPhi = 0.0 - dCurrentPosRad; 
+						// check if steer is at pos zero
+						if (fabs(dDeltaPhi) < 0.03) // +/- 0.5° position error
+						{
+							dDeltaPhi = 0.0;
+						}
+						else
+						{
+							bAllDone = false;	
+						}
+						double dFactorVel = m_GearMotDrive[coupleID[i]].iHomeCoupleVel / m_GearMotDrive[i].dHomeVel;
+						double dVelCmd = m_d0 * dDeltaPhi;
+						// set Outputs
+						m_vpMotor[i]->setWheelVel(dVelCmd, false, true);
+						m_vpMotor[coupleID[i]]->setWheelVel(dVelCmd*dFactorVel, false, true);
+					}
+					else //use elmos function
+					{
+						//TODO
+						bAllDone = true;
 					}
 				}
 			}
-			if(coupleID != -1)
-			{
-				m_vpMotor[coupleID]->setWheelVel(	m_vpMotor[coupleID]->m_DriveParam.getSign() * 
-									m_GearMotDrive[coupleID].iHomeCoupleVel, false, true);
-			}
-			m_vpMotor[i]->prepareHoming();
-			m_vpMotor[i]->initHoming();
-			m_vpMotor[i]->execHoming();
-			m_vpMotor[i]->isHomingFinished();
-			
-			if(coupleID != -1)
-			{
-				// stop translational wheel
-				m_vpMotor[coupleID]->setWheelVel(0.0, false, true);
-			}
+			usleep(20000);
+			evalCanBuffer();
 
-			usleep(50000);
-			const double pi_ = 3.14159265;
-			m_vpMotor[i]->setModuloCount(-pi_, pi_); //TODO: is it always [-pi,pi]?
+		} while(!bAllDone);
+
+		for(int i=0; i < m_vpMotor.size(); i++)
+		{
+			// 4. reset control mode (see homing step 1)
+			m_vpMotor[i]->setTypeMotion(control_type[i]); //reset control type
 		}
-
 	}
 
-	return true;
+	//init the communication watchdogs
+	for(int i=0; i < m_vpMotor.size(); i++)
+	{
+		m_vpMotor[i]->initWatchdog();
+	}
+
+	return bHomingOk;
 }
 
 //-----------------------------------------------
@@ -580,7 +661,8 @@ void NeoCtrlPltfMpo500::getMotorTorque(int iCanIdent, double* pdTorqueNm)
 			piCurrentMeasPromille = 0; piStatus = 0; piTempCel = 0;
 			m_vpMotor[i]->getStatus(&piStatus, &piCurrentMeasPromille, &piTempCel);
 			double amps = m_GearMotDrive[i].dCurrentContLimit * ((double) piCurrentMeasPromille) / 1000;
-			*pdTorqueNm = m_GearMotDrive[i].iSign * amps * m_GearMotDrive[i].dCurrentToTorque * m_GearMotDrive[i].dGearRatio * m_GearMotDrive[i].dGearEfficiency;
+			*pdTorqueNm = 	m_GearMotDrive[i].iSign * amps * m_GearMotDrive[i].dCurrentToTorque * 
+					m_GearMotDrive[i].dGearRatio * m_GearMotDrive[i].dGearEfficiency;
 		}
 	}
 

@@ -146,10 +146,10 @@ public:
 	 * Used only in position mode.
 	 */
 	virtual bool prepareHoming() = 0;
-	virtual bool initHoming() = 0;
+	virtual bool initHoming(bool keepDriving = false) = 0;
 	virtual bool execHoming() = 0;
 	virtual bool isHomingFinished() = 0;
-	virtual void exitHoming(double t) = 0;
+	virtual void exitHoming(double t, bool keepDriving = false) = 0;
 
 	virtual void initWatchdog() = 0;
 

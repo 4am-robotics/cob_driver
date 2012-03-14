@@ -514,7 +514,7 @@ bool CanDriveHarmonica::prepareHoming()
 }
 
 //-----------------------------------------------
-bool CanDriveHarmonica::initHoming()
+bool CanDriveHarmonica::initHoming(bool keepDriving = false)
 {
 	int iHomeEvent;
 	double dHomePos;
@@ -533,8 +533,16 @@ bool CanDriveHarmonica::initHoming()
 	// see HomeEvent in header
 	IntprtSetInt ( 8, 'H', 'M', 3, iHomeEvent, true );
 
+	if(keepDriving)
+	{
+		// HM[4] = 2 : keep driving
+		IntprtSetInt(8, 'H', 'M', 4, 2);
+	}
+	else
+	{
 	// after event stop immediately
-	IntprtSetInt ( 8, 'H', 'M', 4, 0, true );
+		IntprtSetInt ( 8, 'H', 'M', 4, 0, true );
+	}
 
 	// absolute setting of position counter: PX = HM[2]
 	IntprtSetInt ( 8, 'H', 'M', 5, 0, true );
@@ -729,7 +737,7 @@ bool CanDriveHarmonica::isHomingFinished()
 }
 
 //-----------------------------------------------
-void CanDriveHarmonica::exitHoming ( double t )
+void CanDriveHarmonica::exitHoming ( double t, bool keepDriving)
 {
 	double dHomeVel;
 
@@ -746,8 +754,11 @@ void CanDriveHarmonica::exitHoming ( double t )
 
 	Sleep ( ( double ) t );
 
-	IntprtSetInt ( 8, 'J', 'V', 0, 0, true );
-	IntprtSetInt ( 4, 'B', 'G', 0, 0, true );
+	if(!keepDriving)
+	{
+		IntprtSetInt ( 8, 'J', 'V', 0, 0, true );
+		IntprtSetInt ( 4, 'B', 'G', 0, 0, true );
+	}
 }
 
 //-----------------------------------------------

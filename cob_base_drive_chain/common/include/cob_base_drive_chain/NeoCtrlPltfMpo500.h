@@ -206,6 +206,7 @@ public:
 
 protected:
 	ros::Time last, now;
+	std::vector<int> control_type;
 
 	//--------------------------------- internal functions
 	
