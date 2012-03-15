@@ -183,7 +183,7 @@ void RelaisBoardNode::sendEmergencyStopStates()
 		{
 			if (EM_signal == true)
 			{
-				ROS_INFO("Emergency stop was issued");
+				ROS_ERROR("Emergency stop was issued");
 				EM_stop_status_ = EM_msg.EMSTOP;
 			}
 			break;
@@ -202,7 +202,7 @@ void RelaisBoardNode::sendEmergencyStopStates()
 		{
 			if (EM_signal == true)
 			{
-				ROS_INFO("Emergency stop was issued");
+				ROS_ERROR("Emergency stop was issued");
 				EM_stop_status_ = EM_msg.EMSTOP;
 			}
 			else
@@ -315,7 +315,7 @@ void RelaisBoardNode::sendDriveStates()
 
 void RelaisBoardNode::getNewDriveStates(const cob_relayboard::DriveCommands& driveCommands)
 {
-	ROS_INFO("received drive command: %f   %f",driveCommands.angularVelocity[0],driveCommands.angularVelocity[1]);
+	//ROS_INFO("received drive command: %f   %f",driveCommands.angularVelocity[0],driveCommands.angularVelocity[1]);
 	if(!relayboard_available) return;
 	if(driveCommands.driveActive[0]){
 		//TODO: test disableBrake:
