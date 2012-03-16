@@ -188,7 +188,8 @@ class CollisionVelocityFilter
 
     //velocity
     geometry_msgs::Vector3 robot_twist_linear_, robot_twist_angular_;
-    double v_max_, vtheta_max_;  
+    double v_max_, vtheta_max_;
+    double ax_max_, ay_max_, atheta_max_;  
 
     //obstacle avoidence
     std::vector<geometry_msgs::Point> robot_footprint_;
@@ -202,7 +203,7 @@ class CollisionVelocityFilter
     // variables for slow down behaviour
     double last_time_;
     double kp_, kv_;
-    double vx_last_, vy_last_;
+    double vx_last_, vy_last_, vtheta_last_;
     double virt_mass_;
 
 }; //CollisionVelocityFilter

@@ -128,9 +128,24 @@ CollisionVelocityFilter::CollisionVelocityFilter()
   if(robot_footprint_.size() > 4) 
     ROS_WARN("You have set more than 4 points as robot_footprint, cob_collision_velocity_filter can deal only with rectangular footprints so far!");
 
+  // try to geht the max_acceleration values from the parameter server
+  if(!nh_.hasParam("max_acceleration")) ROS_WARN("Used default parameter for max_acceleration [0.5, 0.5, 0.7]");
+  XmlRpc::XmlRpcValue max_acc;
+  if(nh_.getParam("max_acceleration", max_acc)) {
+    ROS_ASSERT(max_acc.getType() == XmlRpc::XmlRpcValue::TypeArray);
+    ax_max_ = (double)max_acc[0];
+    ay_max_ = (double)max_acc[1];
+    atheta_max_ = (double)max_acc[2];
+  } else {
+    ax_max_ = 0.5;
+    ay_max_ = 0.5;
+    atheta_max_ = 0.7;
+  }
+
   last_time_ = ros::Time::now().toSec();
   vx_last_ = 0.0;
   vy_last_ = 0.0;
+  vtheta_last_ = 0.0;
 } 
 
 // Destructor
@@ -272,9 +287,36 @@ void CollisionVelocityFilter::performControllerStep() {
   if (fabs(cmd_vel.linear.y) > vy_max) cmd_vel.linear.y = sign(cmd_vel.linear.y) * vy_max;
   if (fabs(cmd_vel.angular.z) > vtheta_max_) cmd_vel.angular.z = sign(cmd_vel.angular.z) * vtheta_max_;
 
+  // limit acceleration:
+  // only acceleration (in terms of speeding up in any direction) is limited,
+  // deceleration (in terms of slowing down) is handeled either by cob_teleop or the potential field
+  // like slow-down behaviour above
+  if (fabs(cmd_vel.linear.x) > fabs(vx_last_))
+  {
+    if ((cmd_vel.linear.x - vx_last_)/dt > ax_max_)
+      cmd_vel.linear.x = vx_last_ + ax_max_ * dt;
+    else if((cmd_vel.linear.x - vx_last_)/dt < -ax_max_)
+      cmd_vel.linear.x = vx_last_ - ax_max_ * dt;
+  }
+  if (fabs(cmd_vel.linear.y) > fabs(vy_last_))
+  {
+    if ((cmd_vel.linear.y - vy_last_)/dt > ay_max_)
+      cmd_vel.linear.y = vy_last_ + ay_max_ * dt;
+    else if ((cmd_vel.linear.y - vy_last_)/dt < -ay_max_)
+      cmd_vel.linear.y = vy_last_ - ay_max_ * dt;
+  }
+  if (fabs(cmd_vel.angular.z) > fabs(vtheta_last_))
+  {
+    if ((cmd_vel.angular.z - vtheta_last_)/dt > atheta_max_)
+      cmd_vel.angular.z = vtheta_last_ + atheta_max_ * dt;
+    else if ((cmd_vel.angular.z - vtheta_last_)/dt < -atheta_max_)
+      cmd_vel.angular.z = vtheta_last_ - atheta_max_ * dt;
+  }
+
   pthread_mutex_lock(&m_mutex);
   vx_last_ = cmd_vel.linear.x;
   vy_last_ = cmd_vel.linear.y;
+  vtheta_last_ = cmd_vel.angular.z;
   pthread_mutex_unlock(&m_mutex);
 
   // publish adjusted velocity 
@@ -605,6 +647,7 @@ void CollisionVelocityFilter::stopMovement() {
   topic_pub_command_.publish(stop_twist);
   vx_last_ = 0.0;
   vy_last_ = 0.0;
+  vtheta_last_ = 0.0;
 }
 
 //#######################

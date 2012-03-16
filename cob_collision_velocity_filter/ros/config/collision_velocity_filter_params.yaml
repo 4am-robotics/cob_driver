@@ -10,6 +10,7 @@ pot_ctrl_vtheta_max: 0.6 #default: 0.8
 pot_ctrl_kv: 2.5 #damping default: 1.0
 pot_ctrl_kp: 3.0 #stiffness default: 2.0
 pot_ctrl_virt_mass: 0.5 #default: 0.8
+max_acceleration: [0.5, 0.5, 0.7]
 
 #Parameters specifying collision velocity filter 
 influence_radius: 2.0 #[m] distance from robot_center
