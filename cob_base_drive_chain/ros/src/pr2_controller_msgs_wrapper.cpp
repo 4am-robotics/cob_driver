@@ -101,7 +101,7 @@ int Pr2CrtlMsgsWrapper::init()
 	};
 
 
-	ROS_INFO("started relayboard drive wrapper");
+	ROS_INFO("started controller msgs wrapper");
 	return 0;
 }
 
@@ -175,7 +175,7 @@ Pr2CrtlMsgsWrapper::Pr2CrtlMsgsWrapper ()
 */
 int main (int argc, char** argv)
 {
-	ros::init(argc, argv, "neo_SRBDrive_node");
+	ros::init(argc, argv, "neo_controller_msgs_wrapper_node");
 	
 	Pr2CrtlMsgsWrapper  node;
 	if(node.init() != 0) return 1;
