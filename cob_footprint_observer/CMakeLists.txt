@@ -33,5 +33,3 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
 rosbuild_add_executable(footprint_observer src/cob_footprint_observer.cpp)
 
-# rostest
-rosbuild_add_roslaunch_check(launch)
