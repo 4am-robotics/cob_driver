@@ -12,7 +12,7 @@ If the robot moves closer to the relevant_obstacles, the robot slows down until 
 There the robot stops moving if there is a velocity component that would run it into the obstacle.
 Driving in directions not leading to collision is still possible.
 
-The cob_collision_velocity_filter node further provides a service for setting the footprint (which is initially read from the footprint parameter specified in the costmap node) during runtime thus accomodating for changes in the robot setup.
+The cob_collision_velocity_filter node further calls a service for getting the adjusted footprint (which is initially read from the footprint parameter specified in the costmap node) during runtime thus accomodating for changes in the robot setup.
 Note that cob_collision_velocity_filter is at the moment restriced to rectangular footprints.
 
 To launch the cob_collision_velocity_filter launch the collision_velocity_filter.launch file.

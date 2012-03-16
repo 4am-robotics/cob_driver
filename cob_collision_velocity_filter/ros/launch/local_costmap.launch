@@ -1,6 +1,0 @@
-<launch>
-  <!-- start local costmap -->
-  <node name="local_costmap_node" pkg="costmap_2d" type="costmap_2d_node" output="screen">
-    <rosparam file="$(find cob_collision_velocity_filter)/ros/config/local_costmap_params.yaml" command="load" ns="costmap" />
-    </node>
-</launch>

@@ -56,20 +56,22 @@
 #include <cob_footprint_observer.h>
 
 // Constructor
-FootprintObserver::FootprintObserver(std::string name)
+FootprintObserver::FootprintObserver()
 {
+  nh_ = ros::NodeHandle("~");
+
   m_mutex = PTHREAD_MUTEX_INITIALIZER;
 
   // publish footprint
-  topic_pub_footprint_ = nh_.advertise<geometry_msgs::PolygonStamped>(name+"/footprint",1);
+  topic_pub_footprint_ = nh_.advertise<geometry_msgs::PolygonStamped>("adjusted_footprint",1);
   
-  // create service client
-  srv_client_ = nh_.serviceClient<cob_footprint_observer::SetFootprint>("/collision_velocity_filter/set_footprint");
+  // advertise service
+  srv_get_footprint_ = nh_.advertiseService("/get_footprint", &FootprintObserver::getFootprintCB, this);
 
   // read footprint_source parameter
   std::string footprint_source; 
-  if(!nh_.hasParam(name+"/footprint_source")) ROS_WARN("Checking global parameter server for initial footprint");
-  nh_.param(name+"/footprint_source", footprint_source, std::string("~"));
+  if(!nh_.hasParam("footprint_source")) ROS_WARN("Checking default location (/local_costmap_node/costmap) for initial footprint parameter.");
+  nh_.param("footprint_source", footprint_source, std::string("/local_costmap_node/costmap"));
  
   // node handle to get footprint from parameter server
   ros::NodeHandle footprint_source_nh_(footprint_source); 	
@@ -80,14 +82,14 @@ FootprintObserver::FootprintObserver(std::string name)
     ROS_WARN("You have set more than 4 points as robot_footprint, cob_footprint_observer can deal only with rectangular footprints so far!");
   
   // get the frames for which to check the footprint
-  if(!nh_.hasParam(name+"/frames_to_check")) ROS_WARN("No frames to check for footprint observer. Only using initial footprint!");
-  nh_.param(name+"/frames_to_check", frames_to_check_, std::string(""));
+  if(!nh_.hasParam("frames_to_check")) ROS_WARN("No frames to check for footprint observer. Only using initial footprint!");
+  nh_.param("frames_to_check", frames_to_check_, std::string(""));
   
-  if(!nh_.hasParam(name+"/robot_base_frame")) ROS_WARN("No parameter robot_base_frame on parameter server. Using default [/base_link].");
-  nh_.param(name+"/robot_base_frame", robot_base_frame_, std::string("/base_link"));
+  if(!nh_.hasParam("robot_base_frame")) ROS_WARN("No parameter robot_base_frame on parameter server. Using default [/base_link].");
+  nh_.param("robot_base_frame", robot_base_frame_, std::string("/base_link"));
   
-  if(!nh_.hasParam(name+"/farthest_frame")) ROS_WARN("No parameter farthest_frame on parameter server. Using default [/base_link].");
-  nh_.param(name+"/farthest_frame", farthest_frame_, std::string("/base_link"));
+  if(!nh_.hasParam("farthest_frame")) ROS_WARN("No parameter farthest_frame on parameter server. Using default [/base_link].");
+  nh_.param("farthest_frame", farthest_frame_, std::string("/base_link"));
 
   // wait until transform to from robot_base_frame_ to farthest_frame_ is available
   ros::Time last_error = ros::Time::now();
@@ -104,6 +106,27 @@ FootprintObserver::FootprintObserver(std::string name)
 // Destructor
 FootprintObserver::~FootprintObserver()
 {}
+
+// GetFootprint Service callback
+bool FootprintObserver::getFootprintCB(cob_footprint_observer::GetFootprint::Request &req, cob_footprint_observer::GetFootprint::Response &resp)
+{
+  // create Polygon message for service call
+  geometry_msgs::PolygonStamped footprint_poly;
+  footprint_poly.header.frame_id = robot_base_frame_;
+  footprint_poly.header.stamp = ros::Time::now();
+  
+  footprint_poly.polygon.points.resize(robot_footprint_.size());
+  for(unsigned int i=0; i<robot_footprint_.size(); ++i) {
+    footprint_poly.polygon.points[i].x = robot_footprint_[i].x;
+    footprint_poly.polygon.points[i].y = robot_footprint_[i].y;
+    footprint_poly.polygon.points[i].z = robot_footprint_[i].z;   
+  }
+
+  resp.footprint = footprint_poly;
+  resp.success.data = true;
+
+  return true;
+}
 
 // load robot footprint from costmap_2d_ros to keep same footprint format
 std::vector<geometry_msgs::Point> FootprintObserver::loadRobotFootprint(ros::NodeHandle node){
@@ -316,13 +339,14 @@ void FootprintObserver::checkFootprint(){
   robot_footprint_ = points;
   pthread_mutex_unlock(&m_mutex);
 
-  setFootprint();
+  // publish the adjusted footprint
+  publishFootprint();
 }
 
-// calls the SetFootprint Service and publishes the footprint
-void FootprintObserver::setFootprint(){
+// publishes the adjusted footprint
+void FootprintObserver::publishFootprint(){
 
-  // create Polygon message for service call
+  // create Polygon message 
   geometry_msgs::PolygonStamped footprint_poly;
   footprint_poly.header.frame_id = robot_base_frame_;
   footprint_poly.header.stamp = ros::Time::now();
@@ -337,12 +361,6 @@ void FootprintObserver::setFootprint(){
   // publish adjusted footprint
   topic_pub_footprint_.publish(footprint_poly);
 
-  // call SetFootprint service
-  cob_footprint_observer::SetFootprint srv = cob_footprint_observer::SetFootprint();
-  srv.request.footprint = footprint_poly;
-  if(!srv_client_.call(srv)) {
-    ROS_WARN("Cannot reach service set_footprint");
-  }
 }
 
 // compute the sign of x
@@ -359,7 +377,7 @@ int main(int argc, char** argv)
   ros::init(argc,argv,"footprint_observer");
 
   // create observer
-  FootprintObserver footprintObserver("footprint_observer");
+  FootprintObserver footprintObserver;
 
   // run footprint observer periodically until node has been shut down
   ros::Rate loop_rate(1); // Hz

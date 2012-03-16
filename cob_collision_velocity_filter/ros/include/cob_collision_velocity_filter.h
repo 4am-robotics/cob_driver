@@ -73,7 +73,7 @@
 #include <boost/algorithm/string.hpp>
 
 // ROS service includes
-#include "cob_footprint_observer/SetFootprint.h"
+#include "cob_footprint_observer/GetFootprint.h"
 
 ///
 /// @class CollisionVelocityFilter
@@ -86,9 +86,8 @@ class CollisionVelocityFilter
 
     ///
     /// @brief  Constructor
-    /// @param  name - name of node
     ///
-    CollisionVelocityFilter(std::string name);
+    CollisionVelocityFilter();
 
     
     ///
@@ -109,11 +108,18 @@ class CollisionVelocityFilter
     ///
     void obstaclesCB(const nav_msgs::GridCells::ConstPtr &obstacles);
 
-    bool setFootprintCB(cob_footprint_observer::SetFootprint::Request &req, cob_footprint_observer::SetFootprint::Response &resp);
 
+    ///
+    /// @brief  Timer callback, calls GetFootprint Service and adjusts footprint
+    ///
+    void getFootprintServiceCB(const ros::TimerEvent&);
+    
     /// create a handle for this node, initialize node
     ros::NodeHandle nh_;
 
+    /// Timer for periodically calling GetFootprint Service
+    ros::Timer get_footprint_timer_;
+    
     /// declaration of publisher 
     ros::Publisher topic_pub_command_;
     ros::Publisher topic_pub_relevant_obstacles_;
@@ -121,8 +127,8 @@ class CollisionVelocityFilter
     /// declaration of subscriber
     ros::Subscriber joystick_velocity_sub_, obstacles_sub_;
 
-    /// declaration of service
-    ros::ServiceServer srv_set_footprint_;
+    /// declaration of service client
+    ros::ServiceClient srv_client_get_footprint_;
 
   private:
     /* core functions */
@@ -139,8 +145,9 @@ class CollisionVelocityFilter
     ///
     void obstacleHandler();
 
+
     /* helper functions */
-    
+
     ///
     /// @brief  loads the robot footprint published by the local costmap
     /// @param  node - NodeHandle to the local costmap
@@ -181,7 +188,8 @@ class CollisionVelocityFilter
 
     //velocity
     geometry_msgs::Vector3 robot_twist_linear_, robot_twist_angular_;
-    double v_max_, vtheta_max_;  
+    double v_max_, vtheta_max_;
+    double ax_max_, ay_max_, atheta_max_;  
 
     //obstacle avoidence
     std::vector<geometry_msgs::Point> robot_footprint_;
@@ -195,7 +203,7 @@ class CollisionVelocityFilter
     // variables for slow down behaviour
     double last_time_;
     double kp_, kv_;
-    double vx_last_, vy_last_;
+    double vx_last_, vy_last_, vtheta_last_;
     double virt_mass_;
 
 }; //CollisionVelocityFilter
