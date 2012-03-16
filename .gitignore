@@ -1,0 +1,37 @@
+#CMake:
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+#objects and libraries
+*.so
+*.a
+*.o
+*.lo
+*.la
+*.d
+*.pyc
+*.pyo
+#vi, emacs and gedit swap files
+*~
+*.swp
+.backup-*
+#generated directories:
+build/
+doc/
+bin/
+#generated messages/srvs
+msg_gen/
+srv_gen/
+#gitignores or/and logic is not advanced
+_*.py
+#testing output files:
+.build-version
+.rospack_cache
+*.out
+*.tar.gz
+#svn
+.svn/
+#codeblocks
+.cproject
+.project
+.pydevproject
