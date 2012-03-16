@@ -243,7 +243,7 @@ void  NodeClass::sendVelCan()
 				}
 				else
 				{
-					next_cmd_time = ros::Time::now() + traj_.points[traj_point_].time_from_start;
+					next_cmd_time = traj_.header.stamp + traj_.points[traj_point_].time_from_start;
 				}
 				if(checkJointNames)
 				{
