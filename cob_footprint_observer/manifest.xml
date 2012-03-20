@@ -1,7 +1,7 @@
 <package>
   <description brief="cob_footprint_observer">
 
-     cob_footprint_observer
+  The cob_footprint_observer package adjusts the footprint of the robot based on the setup (e.g. arm and/or tray).
 
   </description>
   <author>Matthias Gruhler</author>
