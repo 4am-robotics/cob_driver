@@ -79,9 +79,14 @@ private:
 	bool m_bInitialized;
 	IniFile m_IniFile;
 	bool m_bSimuEnabled;
+	int m_iBaudrateVal;
 
 	static const int c_iInterrupt;
 	static const int c_iPort;
+	
+	bool initCAN();
+	
+	void outputDetailedStatus();
 };
 //-----------------------------------------------
 #endif

@@ -63,6 +63,7 @@
 // ROS message includes
 #include <sensor_msgs/JointState.h>
 #include <pr2_controllers_msgs/JointTrajectoryAction.h>
+#include <diagnostic_msgs/DiagnosticArray.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -83,6 +84,7 @@ class NodeClass
 		
 	// declaration of topics to publish
 	ros::Publisher topicPub_JointState_;
+	ros::Publisher topicPub_Diagnostic_;
 	
 	// declaration of topics to subscribe, callback is called for new messages arriving
 	ros::Subscriber topicSub_JointCommand_;
@@ -124,19 +126,23 @@ class NodeClass
 	
 	std::string JointName_;
 	bool isInitialized_;
+	bool isError_;
 	bool finished_;
 	double ActualPos_;
 	double ActualVel_;
 	trajectory_msgs::JointTrajectory traj_;
 	trajectory_msgs::JointTrajectoryPoint traj_point_;
-	int traj_point_nr_;
+	unsigned int traj_point_nr_;
 
 	// Constructor
 	NodeClass(std::string name):
 		as_(n_, name, boost::bind(&NodeClass::executeCB, this, _1)),
 		action_name_(name)
 	{
+		n_ = ros::NodeHandle("~");
+	
 		isInitialized_ = false;
+		isError_ = false;
 		ActualPos_=0.0;
 		ActualVel_=0.0;
 
@@ -145,7 +151,9 @@ class NodeClass
 
 		// implementation of topics to publish
 		topicPub_JointState_ = n_.advertise<sensor_msgs::JointState>("/joint_states", 1);
-		
+		topicPub_Diagnostic_ = n_.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
+
+
 		// implementation of topics to subscribe
 		
 		// implementation of service servers
@@ -300,6 +308,7 @@ class NodeClass
 			// init powercubes 
 			if (CamAxis_->Init(CamAxisParams_))
 			{
+				CamAxis_->setGearPosVelRadS(0.0f, MaxVel_);
 				ROS_INFO("Initializing of camera axis succesful");
 				isInitialized_ = true;
 				res.success.data = true;
@@ -480,6 +489,33 @@ class NodeClass
 			// publish message
 			topicPub_JointState_.publish(msg);
 		}
+		// publishing diagnotic messages
+	    diagnostic_msgs::DiagnosticArray diagnostics;
+	    diagnostics.status.resize(1);
+	    // set data to diagnostics
+	    if(isError_)
+	    {
+	      diagnostics.status[0].level = 2;
+	      diagnostics.status[0].name = "schunk_powercube_chain";
+	      diagnostics.status[0].message = "one or more drives are in Error mode";
+	    }
+	    else
+	    {
+	      if (isInitialized_)
+	      {
+	        diagnostics.status[0].level = 0;
+	        diagnostics.status[0].name = n_.getNamespace(); //"schunk_powercube_chain";
+	        diagnostics.status[0].message = "head axis initialized and running";
+	      }
+	      else
+	      {
+	        diagnostics.status[0].level = 1;
+	        diagnostics.status[0].name = n_.getNamespace(); //"schunk_powercube_chain";
+	        diagnostics.status[0].message = "head axis not initialized";
+	      }
+	    }
+	    // publish diagnostic message
+	    topicPub_Diagnostic_.publish(diagnostics);
 	}
 
 }; //NodeClass
@@ -493,7 +529,7 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "cob_camera_axis");
 	
 	// create nodeClass
-	NodeClass nodeClass("joint_trajectory_action");
+	NodeClass nodeClass(ros::this_node::getName() + "/joint_trajectory_action");
  
 	// main loop
  	ros::Rate loop_rate(5); // Hz

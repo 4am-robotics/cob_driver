@@ -86,6 +86,14 @@ public:
 	int getDigIn();
 	bool isEMStop();
 	bool isScannerStop();
+	int getBatteryVoltage()
+	{
+		return m_iRelBoardBattVoltage;
+	}
+	int getChargeCurrent()
+	{
+		return m_iChargeCurrent;
+	}
 
 
 	enum RelBoardReturns

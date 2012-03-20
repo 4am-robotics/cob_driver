@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-
-	<group ns="stereo">	
-		<include file="$(find cob_camera_sensors)/ros/launch/$(env ROBOT)/left_$(env ROBOT).launch" />
-	</group>
-
-</launch>
