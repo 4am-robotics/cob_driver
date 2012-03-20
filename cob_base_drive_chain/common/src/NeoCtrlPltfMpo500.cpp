@@ -308,19 +308,21 @@ bool NeoCtrlPltfMpo500::initPltf()
 	if(bHomingOk)
 	{
 		int coupleID[m_vpMotor.size()];
+
 		for(int i=0; i < m_vpMotor.size(); i++) //home drives
 		{
 			coupleID[i] = -1;
 			if(m_vpMotor[i]->m_DriveParam.getHoming())
 			{
 				// 1. set jogging velocity mode as control mode
-				m_vpMotor[i]->setTypeMotion(2);
+//TODO:				m_vpMotor[i]->setTypeMotion(2);
 
 				// 2. if HomeCoupleID != -1:
 				//     start translational (index coupleID) wheel synchronously
 				//     with homing drive (index i)
 				//   else:
 				//     home joint without any coupleing
+ROS_INFO("homing");
 				if (m_GearMotDrive[i].iHomeCoupleID != -1)
 				{
 					for(unsigned int j = 0; j < m_vpMotor.size(); j++)
@@ -328,22 +330,21 @@ bool NeoCtrlPltfMpo500::initPltf()
 						if(m_GearMotDrive[i].iHomeCoupleID == m_viMotorID[j])
 						{
 							coupleID[i] = j;
-							m_vpMotor[coupleID[i]]->setTypeMotion(2); //set jogging velocity as control type
+//TODO: start/stop motors				m_vpMotor[coupleID[i]]->setTypeMotion(2); //set jogging velocity as control type
 						}
 					}
 				}
 				if(coupleID[i] != -1) //steer-wheel-coupling
 				{
-					m_vpMotor[coupleID[i]]->setWheelVel(	m_vpMotor[coupleID[i]]->m_DriveParam.getSign() * 
-										m_GearMotDrive[coupleID[i]].iHomeCoupleVel, false, true);
+					m_vpMotor[coupleID[i]]->setWheelVel(m_GearMotDrive[coupleID[i]].iHomeCoupleVel, false, true);
 					m_vpMotor[i]->prepareHoming();
 					m_vpMotor[i]->initHoming(true); //keep driving after homing event
 					m_vpMotor[i]->execHoming();
 					m_vpMotor[i]->isHomingFinished();
-					m_vpMotor[i]->exitHoming(0.0 /*sleeptime: 0 ms*/, true); //keep driving after homing event
-					usleep(100000); //sleep 100 ms
+					m_vpMotor[i]->exitHoming(0.0 , true); //TODO: keep driving after homing event
 
 					// stop translational wheel and steeraxis.
+					usleep(100000); //sleep 100 ms
 					m_vpMotor[coupleID[i]]->setWheelVel(0.0, false, true);
 					m_vpMotor[i]->setWheelVel(0.0, false, true);
 				}
@@ -353,20 +354,20 @@ bool NeoCtrlPltfMpo500::initPltf()
 					m_vpMotor[i]->initHoming(); //stop after homing event
 					m_vpMotor[i]->execHoming();
 					m_vpMotor[i]->isHomingFinished();
-					m_vpMotor[i]->exitHoming(50 /*sleep 50 ms*/);
+					m_vpMotor[i]->exitHoming(50);
 					//don't use: m_vpMotor[i]->setModuloCount(m_GearMotDrive[i].dPosMinRad, m_GearMotDrive[i].dPosMaxRad); 
 					//           cause this will mess up velocity estimation using (pos[1]-pos[0])/deltaTime
 					//           if needed use something similar to PX = (PX - XM[1]) mod (XM[2] - XM[1]) + XM[1] 
 				}
-
-				usleep(50000);
 			}
 		}
 
 		// 3. drive motors to zero position
-		bool bAllDone;	
+		bool bAllDone;
+	
 		do
 		{
+
 			bAllDone = true;
 			double m_d0 = 1.5;
 			for(int i=0; i < m_vpMotor.size(); i++) 
@@ -381,7 +382,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 						double dCurrentPosRad, dCurrentVelRadS;
 						m_vpMotor[i]->getWheelPosVel(&dCurrentVelRadS, &dCurrentPosRad);
 						// P-Ctrl					
-						double dDeltaPhi = 0.0 - dCurrentPosRad; 
+						double dDeltaPhi = 0.0 - dCurrentPosRad;
 						// check if steer is at pos zero
 						if (fabs(dDeltaPhi) < 0.03) // +/- 0.5° position error
 						{
@@ -399,8 +400,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 					}
 					else //use elmos function
 					{
-						//TODO
-						bAllDone = true;
+						//TODO: already done?
 					}
 				}
 			}
@@ -412,8 +412,9 @@ bool NeoCtrlPltfMpo500::initPltf()
 		for(int i=0; i < m_vpMotor.size(); i++)
 		{
 			// 4. reset control mode (see homing step 1)
-			m_vpMotor[i]->setTypeMotion(control_type[i]); //reset control type
+//			m_vpMotor[i]->setTypeMotion(control_type[i]); //reset control type
 		}
+
 	}
 
 	//init the communication watchdogs
@@ -492,7 +493,7 @@ bool NeoCtrlPltfMpo500::isPltfError()
 	{
 		dWatchTime = m_vpMotor[i]->getTimeToLastMsg();
 
-		if( (dWatchTime > 1) && (m_bWatchdogErr == false) )
+		if( (dWatchTime > 5) && (m_bWatchdogErr == false) )
 		{
 			ROS_ERROR("timeout CAN motor %i", i );
 			return true;

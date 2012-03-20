@@ -239,7 +239,7 @@ void  NodeClass::sendVelCan()
 				last_cmd_time = ros::Time::now();
 				if(ros::Duration(0.) == traj_.points[traj_point_].time_from_start) 
 				{
-					next_cmd_time = ros::Time::now() + ros::Duration(1.);
+					next_cmd_time = ros::Time::now() + ros::Duration(600.);
 				}
 				else
 				{
@@ -303,9 +303,11 @@ void  NodeClass::sendVelCan()
 				switch(control_type[i])
 				{
 					case 2: //velocity control:
+						ROS_DEBUG("canid: %i set velocity %f in velocity mode",canIDs[i], sendVel[i]);
 						m_CanCtrlPltf->setVelGearRadS(canIDs[i], sendVel[i]);
 					break;
 					case 1: //position control:
+						ROS_DEBUG("canid: %i set position %f in pos mode",canIDs[i], sendPos[i]);
 						m_CanCtrlPltf->setPosGearRad(canIDs[i], sendPos[i], sendVel[i]);
 					break;
 					case 0: //torque control: not supported yet.
@@ -314,13 +316,13 @@ void  NodeClass::sendVelCan()
 				}
 			}
 		}
-		else
+		else //TODO: get this working again!
 		{
 			for(int i=0; i<m_iNumMotors; i++){
 				switch(control_type[i])
 				{
 					case 2: //velocity control:
-						m_CanCtrlPltf->setVelGearRadS(canIDs[i], 0);
+						m_CanCtrlPltf->setVelGearRadS(canIDs[i], 0.0);
 						ROS_DEBUG("last velocity cmd timed out: set velocity to 0");
 					case 1: //pose control:
 						//TODO: what's the best thing to do? do nothing?
