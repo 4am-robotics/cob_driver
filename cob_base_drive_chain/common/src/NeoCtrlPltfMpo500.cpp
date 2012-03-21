@@ -339,7 +339,6 @@ bool NeoCtrlPltfMpo500::initPltf()
 				}
 				if(coupleID[i] != -1) //steer-wheel-coupling
 				{
-ROS_INFO("%i %i set vel %f",i,coupleID[i],m_GearMotDrive[i].iHomeCoupleVel);
 					m_vpMotor[coupleID[i]]->setWheelVel(m_GearMotDrive[i].iHomeCoupleVel, false, true);
 					m_vpMotor[i]->prepareHoming();
 					m_vpMotor[i]->initHoming(true); //keep driving after homing event
@@ -352,7 +351,7 @@ ROS_INFO("%i %i set vel %f",i,coupleID[i],m_GearMotDrive[i].iHomeCoupleVel);
 						usleep(100000); //sleep 100 ms
 						m_vpMotor[coupleID[i]]->setWheelVel(0.0, false, true);
 						m_vpMotor[i]->setWheelVel(0.0, false, true);
-						ROS_DEBUG("homing finished");
+						ROS_DEBUG("hit homing switch");
 					}
 
 				}
