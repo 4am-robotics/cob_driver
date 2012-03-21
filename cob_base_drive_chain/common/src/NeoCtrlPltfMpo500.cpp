@@ -54,6 +54,7 @@ NeoCtrlPltfMpo500::NeoCtrlPltfMpo500(ros::NodeHandle* node)
 
 	// ------------- init hardware-specific vectors and set default values
 	m_vpMotor.resize(m_iNumMotors);
+	bHomeAllAtOnce = false;
 
 	m_GearMotDrive = new GearMotorParamType[m_iNumMotors];
 	for(int i=0; i<m_iNumMotors; i++)
@@ -145,6 +146,7 @@ void NeoCtrlPltfMpo500::readConfiguration()
 	// "Drive Motor Type1" drive parameters
 	for(int i=0; i<m_iNumMotors; i++)
 	{
+		n->param<bool>("HomeAllAtOnce",bHomeAllAtOnce,false);
 		std::ostringstream stringstream;
 		stringstream<<"drive"<<i<<"/";
 		std::string pathName = stringstream.str();
@@ -322,7 +324,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 				//     with homing drive (index i)
 				//   else:
 				//     home joint without any coupleing
-ROS_INFO("homing");
+				ROS_DEBUG("homing");
 				if (m_GearMotDrive[i].iHomeCoupleID != -1)
 				{
 					for(unsigned int j = 0; j < m_vpMotor.size(); j++)
@@ -341,7 +343,7 @@ ROS_INFO("homing");
 					m_vpMotor[i]->initHoming(true); //keep driving after homing event
 					m_vpMotor[i]->execHoming();
 					m_vpMotor[i]->isHomingFinished();
-					m_vpMotor[i]->exitHoming(0.0 , true); //TODO: keep driving after homing event
+					m_vpMotor[i]->exitHoming(0.0 , true);
 
 					// stop translational wheel and steeraxis.
 					usleep(100000); //sleep 100 ms
@@ -353,11 +355,30 @@ ROS_INFO("homing");
 					m_vpMotor[i]->prepareHoming();
 					m_vpMotor[i]->initHoming(); //stop after homing event
 					m_vpMotor[i]->execHoming();
-					m_vpMotor[i]->isHomingFinished();
-					m_vpMotor[i]->exitHoming(50);
+					if(!bHomeAllAtOnce)
+					{
+						m_vpMotor[i]->isHomingFinished();
+						m_vpMotor[i]->exitHoming(50);
+						ROS_DEBUG("homing finished");
+					}
 					//don't use: m_vpMotor[i]->setModuloCount(m_GearMotDrive[i].dPosMinRad, m_GearMotDrive[i].dPosMaxRad); 
 					//           cause this will mess up velocity estimation using (pos[1]-pos[0])/deltaTime
 					//           if needed use something similar to PX = (PX - XM[1]) mod (XM[2] - XM[1]) + XM[1] 
+				}
+			}
+		}
+		for(int i=0; i < m_vpMotor.size(); i++) //finish homing drives
+		{
+			if(m_vpMotor[i]->m_DriveParam.getHoming())
+			{
+				if (m_GearMotDrive[i].iHomeCoupleID == -1)
+				{
+					if(bHomeAllAtOnce)
+					{
+						m_vpMotor[i]->isHomingFinished();
+						m_vpMotor[i]->exitHoming(50);
+						ROS_DEBUG("homing finished");
+					}
 				}
 			}
 		}
@@ -398,9 +419,26 @@ ROS_INFO("homing");
 						m_vpMotor[i]->setWheelVel(dVelCmd, false, true);
 						m_vpMotor[coupleID[i]]->setWheelVel(dVelCmd*dFactorVel, false, true);
 					}
-					else //use elmos function
+					else
 					{
 						//TODO: already done?
+						// get current position of drive
+						double dCurrentPosRad, dCurrentVelRadS;
+						m_vpMotor[i]->getWheelPosVel(&dCurrentVelRadS, &dCurrentPosRad);
+						// P-Ctrl					
+						double dDeltaPhi = 0.0 - dCurrentPosRad;
+						// check if drive is at pos zero
+						if (fabs(dDeltaPhi) < 0.03) // +/- 0.5° position error
+						{
+							dDeltaPhi = 0.0;
+						}
+						else
+						{
+							bAllDone = false;	
+						}
+						double dVelCmd = m_d0 * dDeltaPhi;
+						// set Outputs
+						m_vpMotor[i]->setWheelVel(dVelCmd, false, true);
 					}
 				}
 			}
@@ -412,7 +450,7 @@ ROS_INFO("homing");
 		for(int i=0; i < m_vpMotor.size(); i++)
 		{
 			// 4. reset control mode (see homing step 1)
-//			m_vpMotor[i]->setTypeMotion(control_type[i]); //reset control type
+//TODO: turn motor off/on	m_vpMotor[i]->setTypeMotion(control_type[i]); //reset control type
 		}
 
 	}

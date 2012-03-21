@@ -314,6 +314,7 @@ protected:
 	CanItf* m_pCanCtrl;
 
 	int m_iNumMotors;
+	bool bHomeAllAtOnce;
 
 	// Motor-Controllers
 /*	CanDriveItf* m_pW1DriveMotor;
