@@ -465,7 +465,6 @@ bool NeoCtrlPltfMpo500::initPltf()
 						// set Outputs
 						m_vpMotor[i]->setWheelVel(dVelCmd, false, true);
 					}
-					ROS_DEBUG("homing: all drives are at position zero");
 				}
 			}
 
