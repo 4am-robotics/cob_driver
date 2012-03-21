@@ -178,6 +178,7 @@ void NeoCtrlPltfMpo500::readConfiguration()
 					/ (2. * 3.14159265);
 		double homeVelIncrS = m_GearMotDrive[i].dHomeVel * m_dRadToIncr / m_GearMotDrive[i].dVelMeasFrqHz;
 
+
 		DriveParamDriveMotor[i].set(	i,
 						m_GearMotDrive[i].iEncIncrPerRevMot,
 						m_GearMotDrive[i].dVelMeasFrqHz,
@@ -338,17 +339,22 @@ bool NeoCtrlPltfMpo500::initPltf()
 				}
 				if(coupleID[i] != -1) //steer-wheel-coupling
 				{
-					m_vpMotor[coupleID[i]]->setWheelVel(m_GearMotDrive[coupleID[i]].iHomeCoupleVel, false, true);
+ROS_INFO("%i %i set vel %f",i,coupleID[i],m_GearMotDrive[i].iHomeCoupleVel);
+					m_vpMotor[coupleID[i]]->setWheelVel(m_GearMotDrive[i].iHomeCoupleVel, false, true);
 					m_vpMotor[i]->prepareHoming();
 					m_vpMotor[i]->initHoming(true); //keep driving after homing event
 					m_vpMotor[i]->execHoming();
-					m_vpMotor[i]->isHomingFinished();
-					m_vpMotor[i]->exitHoming(0.0 , true);
+					if(!bHomeAllAtOnce)
+					{
+						m_vpMotor[i]->isHomingFinished();
+						m_vpMotor[i]->exitHoming(0.0 , true);
+						// stop translational wheel and steeraxis.
+						usleep(100000); //sleep 100 ms
+						m_vpMotor[coupleID[i]]->setWheelVel(0.0, false, true);
+						m_vpMotor[i]->setWheelVel(0.0, false, true);
+						ROS_DEBUG("homing finished");
+					}
 
-					// stop translational wheel and steeraxis.
-					usleep(100000); //sleep 100 ms
-					m_vpMotor[coupleID[i]]->setWheelVel(0.0, false, true);
-					m_vpMotor[i]->setWheelVel(0.0, false, true);
 				}
 				else
 				{
@@ -380,6 +386,19 @@ bool NeoCtrlPltfMpo500::initPltf()
 						ROS_DEBUG("homing finished");
 					}
 				}
+				else
+				{
+					if(bHomeAllAtOnce)
+					{
+						m_vpMotor[i]->isHomingFinished();
+						m_vpMotor[i]->exitHoming(0.0 , true);
+						// stop translational wheel and steeraxis.
+						usleep(50000); //sleep 50 ms
+						m_vpMotor[coupleID[i]]->setWheelVel(0.0, false, true);
+						m_vpMotor[i]->setWheelVel(0.0, false, true);
+						ROS_DEBUG("hit homing switch");
+					}
+				}
 			}
 		}
 
@@ -390,12 +409,17 @@ bool NeoCtrlPltfMpo500::initPltf()
 		{
 
 			bAllDone = true;
-			double m_d0 = 1.5;
+			double m_d0 = 0.1;
+			sendSynch();
+			usleep(5000);
+			evalCanBuffer();
+			usleep(15000);
 			for(int i=0; i < m_vpMotor.size(); i++) 
 			{
 
 				if(m_vpMotor[i]->m_DriveParam.getHoming())
 				{
+					ROS_DEBUG("homing: drive to position zero");
 					if(coupleID[i] != -1) //if coupled drives: use custom method to drive to zero position
 					{
 
@@ -404,6 +428,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 						m_vpMotor[i]->getWheelPosVel(&dCurrentVelRadS, &dCurrentPosRad);
 						// P-Ctrl					
 						double dDeltaPhi = 0.0 - dCurrentPosRad;
+						ROS_DEBUG("driving to zero pose: delta phi: %f", dDeltaPhi);
 						// check if steer is at pos zero
 						if (fabs(dDeltaPhi) < 0.03) // +/- 0.5° position error
 						{
@@ -427,6 +452,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 						m_vpMotor[i]->getWheelPosVel(&dCurrentVelRadS, &dCurrentPosRad);
 						// P-Ctrl					
 						double dDeltaPhi = 0.0 - dCurrentPosRad;
+						ROS_DEBUG("driving to zero pose: delta phi: %f", dDeltaPhi);
 						// check if drive is at pos zero
 						if (fabs(dDeltaPhi) < 0.03) // +/- 0.5° position error
 						{
@@ -440,10 +466,10 @@ bool NeoCtrlPltfMpo500::initPltf()
 						// set Outputs
 						m_vpMotor[i]->setWheelVel(dVelCmd, false, true);
 					}
+					ROS_DEBUG("homing: all drives are at position zero");
 				}
 			}
-			usleep(20000);
-			evalCanBuffer();
+
 
 		} while(!bAllDone);
 
@@ -451,7 +477,9 @@ bool NeoCtrlPltfMpo500::initPltf()
 		{
 			// 4. reset control mode (see homing step 1)
 //TODO: turn motor off/on	m_vpMotor[i]->setTypeMotion(control_type[i]); //reset control type
+			ROS_DEBUG("homing: done");
 		}
+		usleep(500000);
 
 	}
 
@@ -578,7 +606,7 @@ int NeoCtrlPltfMpo500::setPosGearRad(int iCanIdent, double dPosGearRad, double d
 		if(iCanIdent == m_viMotorID[i])
 		{
 			ROS_DEBUG("can send vel %f", dVelGearRadS);
-			m_vpMotor[i]->setWheelPosVel(dPosGearRad, dVelGearRadS, true, true);
+			m_vpMotor[i]->setWheelPosVel(dPosGearRad, dVelGearRadS, false, true);
 		}
 	}
 	
