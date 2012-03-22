@@ -324,7 +324,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 				//     start translational (index coupleID) wheel synchronously
 				//     with homing drive (index i)
 				//   else:
-				//     home joint without any coupleing
+				//     home joint without any coupling
 				ROS_DEBUG("homing");
 				if (m_GearMotDrive[i].iHomeCoupleID != -1)
 				{
