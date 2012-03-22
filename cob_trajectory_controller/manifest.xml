@@ -1,7 +1,7 @@
 <package>
   <description brief="cob_trajectory_controller">
 
-     cob_trajectory_controller
+     This package provides a trajectory controller which controlls velocities for a chain of joints. This controller can be used e.g. with [[schunk_powercube_chain]].
 
   </description>
   <author>Alexander Bubeck</author>
