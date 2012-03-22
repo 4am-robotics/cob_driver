@@ -1,0 +1,11 @@
+/**
+\mainpage
+\htmlinclude manifest.html
+
+\b cob_footprint_observer is adjusting the footprint of cob_collision_velocity_filter based on current setup of the robot. 
+
+The cob_footprint_observer node reads an initial footprint from a source to be specified (needs to be the same as for cob_collision_velocity_filter).
+It observes the setup of the robot including arm and tray and inflates the footprint to contain the arm and the tray.
+It then provides a GetFootprint service and publishes the adjusted footprint to a topic.
+
+*/

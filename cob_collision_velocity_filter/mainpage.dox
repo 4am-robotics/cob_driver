@@ -1,0 +1,21 @@
+/**
+\mainpage
+\htmlinclude manifest.html
+
+\b cob_collision_velocity_filter is a package for collision avoidance using teleoperation.
+
+The cob_collision_velocity_filter node subscribes to a geometry_msgs::Twist topic published by the teleop device.
+It further subscribes to the obstacles topic of a local costmap and checks, if there are obstacles in the driving direction of the robot.
+Those relevant_obstacles are published as well.
+
+If the robot moves closer to the relevant_obstacles, the robot slows down until it reaches a stop_threshold.
+There the robot stops moving if there is a velocity component that would run it into the obstacle.
+Driving in directions not leading to collision is still possible.
+
+The cob_collision_velocity_filter node further calls a service for getting the adjusted footprint (which is initially read from the footprint parameter specified in the costmap node) during runtime thus accomodating for changes in the robot setup.
+Note that cob_collision_velocity_filter is at the moment restriced to rectangular footprints.
+
+To launch the cob_collision_velocity_filter launch the collision_velocity_filter.launch file.
+Make sure, that the geometry_msgs::Twist is maped to the collision_velocity_filter teleop_twist input.
+
+*/
