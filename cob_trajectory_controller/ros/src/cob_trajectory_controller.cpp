@@ -383,7 +383,18 @@ int main(int argc, char ** argv)
 {
     ros::init(argc, argv, "cob_trajectory_controller");
     cob_trajectory_controller_node tm;
-    ros::Rate loop_rate(HZ);
+    /// get main loop parameters
+    double frequency;
+    if (pc_node.n_.hasParam("frequency"))
+      {
+	pc_node.n_.getParam("frequency", frequency);	
+      }
+    else
+      {
+	frequency = 100; //Hz
+	ROS_WARN("Parameter frequency not available, setting to default value: %f Hz", frequency);
+      }
+    ros::Rate loop_rate(frequency);
     while (ros::ok())
     {
         tm.run();
