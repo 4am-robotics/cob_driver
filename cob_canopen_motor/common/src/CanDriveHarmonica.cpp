@@ -503,8 +503,8 @@ bool CanDriveHarmonica::prepareHoming()
 			else
 			{
 				// try to move out of homing switch
-				//IntprtSetInt ( 8, 'J', 'V', 0, int ( dHomeVel ), true );
-				//IntprtSetInt ( 4, 'B', 'G', 0, 0, true );
+				IntprtSetInt ( 8, 'J', 'V', 0, int ( - dHomeVel ), true );
+				IntprtSetInt ( 4, 'B', 'G', 0, 0, true );
 			}
 		}
 	}
@@ -540,15 +540,15 @@ bool CanDriveHarmonica::initHoming(bool keepDriving = false)
 	}
 	else
 	{
-	// after event stop immediately
+		// after event stop immediately
 		IntprtSetInt ( 8, 'H', 'M', 4, 0, true );
 	}
-
+	// arm homing process
+	IntprtSetInt ( 8, 'H', 'M', 1, 1, true );
 	// absolute setting of position counter: PX = HM[2]
 	IntprtSetInt ( 8, 'H', 'M', 5, 0, true );
 
-	// arm homing process
-	IntprtSetInt ( 8, 'H', 'M', 1, 1, true );
+
 
 	return true;
 }
@@ -765,6 +765,7 @@ void CanDriveHarmonica::exitHoming ( double t, bool keepDriving)
 void CanDriveHarmonica::initWatchdog()
 {
 	LOGINFO ( "drive " << m_DriveParam.getDriveIdent() << " init watchdog" );
+	m_dWatchdogTime = 0; //first reset watchdog on this program layer then start watchdogs on motor drivers
 
 	const int c_iHeartbeatTimeMS = 2000;
 	const int c_iNMTNodeID = 0x00;
