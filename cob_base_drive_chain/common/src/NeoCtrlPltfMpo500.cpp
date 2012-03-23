@@ -408,11 +408,10 @@ bool NeoCtrlPltfMpo500::initPltf()
 		{
 
 			bAllDone = true;
-			double m_d0 = 0.1;
+			double m_d0 = 1.5;
 			sendSynch();
 			usleep(5000);
 			evalCanBuffer();
-			usleep(15000);
 			for(int i=0; i < m_vpMotor.size(); i++) 
 			{
 
@@ -424,10 +423,10 @@ bool NeoCtrlPltfMpo500::initPltf()
 
 						// get current position of steer
 						double dCurrentPosRad, dCurrentVelRadS;
-						m_vpMotor[i]->getWheelPosVel(&dCurrentVelRadS, &dCurrentPosRad);
+						getGearPosVelRadS(m_viMotorID[i], &dCurrentPosRad, &dCurrentVelRadS);
 						// P-Ctrl					
 						double dDeltaPhi = 0.0 - dCurrentPosRad;
-						ROS_DEBUG("driving to zero pose: delta phi: %f", dDeltaPhi);
+						ROS_DEBUG("canid: %i: driving to zero pose: delta phi: %f",m_viMotorID[i], dDeltaPhi);
 						// check if steer is at pos zero
 						if (fabs(dDeltaPhi) < 0.03) // +/- 0.5° position error
 						{
@@ -439,6 +438,8 @@ bool NeoCtrlPltfMpo500::initPltf()
 						}
 						double dFactorVel = m_GearMotDrive[coupleID[i]].iHomeCoupleVel / m_GearMotDrive[i].dHomeVel;
 						double dVelCmd = m_d0 * dDeltaPhi;
+						if(dVelCmd > m_GearMotDrive[i].dHomeVel ) dVelCmd = m_GearMotDrive[i].dHomeVel;
+						if(dVelCmd < -m_GearMotDrive[i].dHomeVel ) dVelCmd = -m_GearMotDrive[i].dHomeVel;
 						// set Outputs
 						m_vpMotor[i]->setWheelVel(dVelCmd, false, true);
 						m_vpMotor[coupleID[i]]->setWheelVel(dVelCmd*dFactorVel, false, true);
@@ -448,7 +449,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 						//TODO: already done?
 						// get current position of drive
 						double dCurrentPosRad, dCurrentVelRadS;
-						m_vpMotor[i]->getWheelPosVel(&dCurrentVelRadS, &dCurrentPosRad);
+						getGearPosVelRadS(m_viMotorID[i], &dCurrentPosRad, &dCurrentVelRadS);
 						// P-Ctrl					
 						double dDeltaPhi = 0.0 - dCurrentPosRad;
 						ROS_DEBUG("driving to zero pose: delta phi: %f", dDeltaPhi);
@@ -462,11 +463,14 @@ bool NeoCtrlPltfMpo500::initPltf()
 							bAllDone = false;	
 						}
 						double dVelCmd = m_d0 * dDeltaPhi;
+						if(dVelCmd > m_GearMotDrive[i].dHomeVel ) dVelCmd = m_GearMotDrive[i].dHomeVel;
+						if(dVelCmd < -m_GearMotDrive[i].dHomeVel ) dVelCmd = -m_GearMotDrive[i].dHomeVel;
 						// set Outputs
 						m_vpMotor[i]->setWheelVel(dVelCmd, false, true);
 					}
 				}
 			}
+			usleep(15000);
 
 
 		} while(!bAllDone);
