@@ -1,0 +1,31 @@
+# global information
+global_frame: /base_link
+robot_base_frame: /base_footprint
+update_frequency: 5.0
+publish_frequency: 5.0
+map_type: costmap
+
+# local map settings
+static_map: false
+rolling_window: true
+width: 5.0
+height: 5.0
+resolution: 0.07
+
+# footprint and range 
+obstacle_range: 3.0 #[m]
+max_obstacle_height: 2.0 #[m]
+raytrace_range: 3.0 #3.0 #[m]
+footprint: [[0.43, 0.35], [0.43, -0.35], [-0.43, -0.35],[-0.43, 0.35]] #[m]
+footprint_padding: 0.02 #[m]
+inflation_radius: 0.55 #[m]
+
+# sensor setup
+observation_sources: laser_scan_sensor_front laser_scan_sensor_rear laser_scan_sensor_top #point_cloud_sensor_kinect
+laser_scan_sensor_front: {sensor_frame: base_laser_front_link, data_type: LaserScan, topic: scan_front, marking: true, clearing: true}
+
+laser_scan_sensor_rear: {sensor_frame: base_laser_rear_link, data_type: LaserScan, topic: scan_rear, marking: true, clearing: true}
+
+laser_scan_sensor_top: {sensor_frame: base_laser_top_link, data_type: LaserScan, topic: scan_top, marking: true, clearing: true}
+
+point_cloud_sensor_kinect: {sensor_frame: head_cam3d_frame, data_type: PointCloud, topic: cam3d/depth/points1, marking: true, clearing: true, max_obstacle_height: 2.0, min_obstacle_height: 0.05}

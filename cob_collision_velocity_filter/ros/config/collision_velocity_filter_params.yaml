@@ -1,0 +1,19 @@
+#where to look for costmap parameters
+costmap_parameter_source: "/local_costmap_node/costmap" #default "/local_costmap_node/costmap"
+
+#frequency at which the get_footprint service should be called
+footprint_update_frequency: 0.5
+
+#Parameters specifying slow down behaviour
+pot_ctrl_vmax: 0.6 #default: 0.6
+pot_ctrl_vtheta_max: 0.6 #default: 0.8
+pot_ctrl_kv: 2.5 #damping default: 1.0
+pot_ctrl_kp: 3.0 #stiffness default: 2.0
+pot_ctrl_virt_mass: 0.5 #default: 0.8
+max_acceleration: [0.5, 0.5, 0.7]
+
+#Parameters specifying collision velocity filter 
+influence_radius: 2.0 #[m] distance from robot_center
+obstacle_damping_dist: 1.0 # used as slow-down dist
+stop_threshold: 0.1 #[m]
+use_circumscribed_threshold: 0.2 #[rad/s] scan for obstacles in circumscribed radius of robot even when tube filter is enabled during fast rotations

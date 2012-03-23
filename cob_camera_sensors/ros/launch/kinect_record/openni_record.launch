@@ -1,9 +1,0 @@
-<launch>
-
-  <include file="$(find openni_camera_unstable)/launch_modular/include/openni_manager.launch"/>
-
-  <include file="$(find openni_camera_unstable)/launch_modular/include/openni_driver.launch"/>
-
-  <include file="$(find openni_camera_unstable)/launch_modular/include/openni_record_bag.launch"/>
-
-</launch>
