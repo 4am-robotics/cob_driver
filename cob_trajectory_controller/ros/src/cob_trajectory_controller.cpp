@@ -119,8 +119,8 @@ public:
         controller_state_ = n_.subscribe("state", 1, &cob_trajectory_controller_node::state_callback, this);
 		operation_mode_ = n_.subscribe("current_operationmode", 1, &cob_trajectory_controller_node::operationmode_callback, this);
 		srvServer_Stop_ = n_.advertiseService("stop", &cob_trajectory_controller_node::srvCallback_Stop, this);
-        srvServer_SetVel_ = n_.advertiseService("setVel", &cob_trajectory_controller_node::srvCallback_setVel, this);
-        srvServer_SetAcc_ = n_.advertiseService("setAcc", &cob_trajectory_controller_node::srvCallback_setAcc, this);
+        srvServer_SetVel_ = n_.advertiseService("set_joint_velocity", &cob_trajectory_controller_node::srvCallback_setVel, this);
+        srvServer_SetAcc_ = n_.advertiseService("set_joint_acceleration", &cob_trajectory_controller_node::srvCallback_setAcc, this);
 		srvClient_SetOperationMode = n_.serviceClient<cob_srvs::SetOperationMode>("set_operation_mode");
 		while(!srvClient_SetOperationMode.exists())
 		  {

@@ -1,0 +1,16 @@
+<package>
+  <description brief="cob_footprint_observer">
+
+  The cob_footprint_observer package adjusts the footprint of the robot based on the setup (e.g. arm and/or tray).
+
+  </description>
+  <author>Matthias Gruhler</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_footprint_observer</url>
+
+  <depend package="roscpp"/>
+  <depend package="tf"/>
+</package>
+
+
