@@ -311,20 +311,14 @@ bool NeoCtrlPltfMpo500::initPltf()
 	if(bHomingOk)
 	{
 		int coupleID[m_vpMotor.size()];
-
-		for(int i=0; i < m_vpMotor.size(); i++) //home drives
+		for(int i=0; i < m_vpMotor.size(); i++) coupleID[i] = -1;
+		
+		for(int i=0; i<  m_vpMotor.size(); i++) //prepare homing
 		{
-			coupleID[i] = -1;
+
 			if(m_vpMotor[i]->m_DriveParam.getHoming())
 			{
-				// 1. set jogging velocity mode as control mode
-//TODO:				m_vpMotor[i]->setTypeMotion(2);
 
-				// 2. if HomeCoupleID != -1:
-				//     start translational (index coupleID) wheel synchronously
-				//     with homing drive (index i)
-				//   else:
-				//     home joint without any coupling
 				ROS_DEBUG("homing");
 				if (m_GearMotDrive[i].iHomeCoupleID != -1)
 				{
@@ -337,11 +331,37 @@ bool NeoCtrlPltfMpo500::initPltf()
 						}
 					}
 				}
+
+				if(coupleID[i] != -1) //steer-wheel-coupling
+				{
+					m_vpMotor[i]->prepareHoming();
+					m_vpMotor[i]->initHoming(true); //keep driving after homing event
+				}
+				else
+				{
+					m_vpMotor[i]->prepareHoming();
+					m_vpMotor[i]->initHoming(); //stop after homing event
+				}
+			}
+		}
+
+		for(int i=0; i < m_vpMotor.size(); i++) //home drives
+		{
+
+			if(m_vpMotor[i]->m_DriveParam.getHoming())
+			{
+				// 1. set jogging velocity mode as control mode
+//TODO:				m_vpMotor[i]->setTypeMotion(2);
+
+				// 2. if HomeCoupleID != -1:
+				//     start translational (index coupleID) wheel synchronously
+				//     with homing drive (index i)
+				//   else:
+				//     home joint without any coupling
+
 				if(coupleID[i] != -1) //steer-wheel-coupling
 				{
 					m_vpMotor[coupleID[i]]->setWheelVel(m_GearMotDrive[i].iHomeCoupleVel, false, true);
-					m_vpMotor[i]->prepareHoming();
-					m_vpMotor[i]->initHoming(true); //keep driving after homing event
 					m_vpMotor[i]->execHoming();
 					if(!bHomeAllAtOnce)
 					{
@@ -357,8 +377,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 				}
 				else
 				{
-					m_vpMotor[i]->prepareHoming();
-					m_vpMotor[i]->initHoming(); //stop after homing event
+
 					m_vpMotor[i]->execHoming();
 					if(!bHomeAllAtOnce)
 					{
@@ -372,34 +391,51 @@ bool NeoCtrlPltfMpo500::initPltf()
 				}
 			}
 		}
-		for(int i=0; i < m_vpMotor.size(); i++) //finish homing drives
+		//finish homing drives if all drives home at once
+		bool homingIsFinished = true;
+		bool homedMotor[m_vpMotor.size()];
+		for(int i=0; i<m_vpMotor.size(); i++) homedMotor[i] = false;
+		//TODO: timeout
+		do
 		{
-			if(m_vpMotor[i]->m_DriveParam.getHoming())
+			homingIsFinished = true;
+			for(int i=0; i < m_vpMotor.size(); i++) 
 			{
-				if (m_GearMotDrive[i].iHomeCoupleID == -1)
+				if(m_vpMotor[i]->m_DriveParam.getHoming())
 				{
-					if(bHomeAllAtOnce)
+					if (m_GearMotDrive[i].iHomeCoupleID == -1)
 					{
-						m_vpMotor[i]->isHomingFinished();
-						m_vpMotor[i]->exitHoming(50);
-						ROS_DEBUG("homing finished");
+						if(bHomeAllAtOnce)
+						{
+							m_vpMotor[i]->isHomingFinished();
+							m_vpMotor[i]->exitHoming(50);
+							ROS_DEBUG("homing finished");
+							homingIsFinished = true;
+						}
 					}
-				}
-				else
-				{
-					if(bHomeAllAtOnce)
+					else
 					{
-						m_vpMotor[i]->isHomingFinished();
-						m_vpMotor[i]->exitHoming(0.0 , true);
-						// stop translational wheel and steeraxis.
-						usleep(50000); //sleep 50 ms
-						m_vpMotor[coupleID[i]]->setWheelVel(0.0, false, true);
-						m_vpMotor[i]->setWheelVel(0.0, false, true);
-						ROS_DEBUG("hit homing switch");
+						if(bHomeAllAtOnce )
+						{
+							if(!homedMotor[i] && m_vpMotor[i]->isHomingFinished(false))
+							{
+								homedMotor[i] = true;
+								m_vpMotor[i]->exitHoming(0.0 , true);
+								// stop translational wheel and steeraxis.
+								m_vpMotor[coupleID[i]]->setWheelVel(0.0, false, true);
+								m_vpMotor[i]->setWheelVel(0.0, false, true);
+								ROS_DEBUG("can id: %i hit homing switch", m_viMotorID[i]);
+
+							}
+							if(!homedMotor[i]) homingIsFinished = false;
+						}
+
+
 					}
 				}
 			}
 		}
+		while(!homingIsFinished);
 
 		// 3. drive motors to zero position
 		bool bAllDone;
