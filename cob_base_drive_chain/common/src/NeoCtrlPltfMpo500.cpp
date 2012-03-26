@@ -313,7 +313,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 		int coupleID[m_vpMotor.size()];
 		for(int i=0; i < m_vpMotor.size(); i++) coupleID[i] = -1;
 		
-		for(int i=0; i<  m_vpMotor.size(); i++) //prepare homing
+		for(int i=0; i<  m_vpMotor.size(); i++) //prepare homing...
 		{
 
 			if(m_vpMotor[i]->m_DriveParam.getHoming())
@@ -331,16 +331,18 @@ bool NeoCtrlPltfMpo500::initPltf()
 						}
 					}
 				}
-
-				if(coupleID[i] != -1) //steer-wheel-coupling
+				if(bHomeAllAtOnce) //...if all drives should home at the same time
 				{
-					m_vpMotor[i]->prepareHoming();
-					m_vpMotor[i]->initHoming(true); //keep driving after homing event
-				}
-				else
-				{
-					m_vpMotor[i]->prepareHoming();
-					m_vpMotor[i]->initHoming(); //stop after homing event
+					if(coupleID[i] != -1) //steer-wheel-coupling
+					{
+						m_vpMotor[i]->prepareHoming();
+						m_vpMotor[i]->initHoming(true); //keep driving after homing event
+					}
+					else
+					{
+						m_vpMotor[i]->prepareHoming();
+						m_vpMotor[i]->initHoming(); //stop after homing event
+					}
 				}
 			}
 		}
@@ -361,6 +363,11 @@ bool NeoCtrlPltfMpo500::initPltf()
 
 				if(coupleID[i] != -1) //steer-wheel-coupling
 				{
+					if(!bHomeAllAtOnce)
+					{
+						m_vpMotor[i]->prepareHoming();
+						m_vpMotor[i]->initHoming(true); //keep driving after homing event
+					}
 					m_vpMotor[coupleID[i]]->setWheelVel(m_GearMotDrive[i].iHomeCoupleVel, false, true);
 					m_vpMotor[i]->execHoming();
 					if(!bHomeAllAtOnce)
@@ -377,7 +384,11 @@ bool NeoCtrlPltfMpo500::initPltf()
 				}
 				else
 				{
-
+					if(!bHomeAllAtOnce)
+					{
+						m_vpMotor[i]->prepareHoming();
+						m_vpMotor[i]->initHoming(); //stop after homing event
+					}
 					m_vpMotor[i]->execHoming();
 					if(!bHomeAllAtOnce)
 					{
@@ -482,7 +493,6 @@ bool NeoCtrlPltfMpo500::initPltf()
 					}
 					else
 					{
-						//TODO: already done?
 						// get current position of drive
 						double dCurrentPosRad, dCurrentVelRadS;
 						getGearPosVelRadS(m_viMotorID[i], &dCurrentPosRad, &dCurrentVelRadS);
