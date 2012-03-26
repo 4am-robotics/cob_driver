@@ -80,6 +80,7 @@ class cob_trajectory_controller_node
 {
 private:
     ros::NodeHandle n_;
+
     ros::Publisher joint_pos_pub_;
     ros::Publisher joint_vel_pub_;
     ros::Subscriber controller_state_;
@@ -107,6 +108,8 @@ private:
     std::vector<double> q_current, startposition_, joint_distance_;
 
 public:
+
+
     cob_trajectory_controller_node():
     as_(n_, "joint_trajectory_action", boost::bind(&cob_trajectory_controller_node::executeTrajectory, this, _1), true),
     as_follow_(n_, "follow_joint_trajectory", boost::bind(&cob_trajectory_controller_node::executeFollowTrajectory, this, _1), true),
@@ -166,6 +169,22 @@ public:
 		ROS_INFO("starting controller with DOF: %d PTPvel: %f PTPAcc: %f maxError %f", DOF, PTPvel, PTPacc, maxError);
 		traj_generator_ = new genericArmCtrl(DOF, PTPvel, PTPacc, maxError);
 	}
+
+  double getFrequency()
+  {
+    double frequency;
+      if (n_.hasParam("frequency"))                                                                   
+      {                                                                                                     
+        n_.getParam("frequency", frequency);                                                              
+        ROS_INFO("Setting controller frequency to %f HZ", frequency);                                       
+      }                                                                                                     
+    else                                                                                                    
+      {                                                                                                     
+        frequency = 100; //Hz                                                                               
+        ROS_WARN("Parameter frequency not available, setting to default value: %f Hz", frequency);          
+        }
+      return frequency;
+  }
 
 	bool srvCallback_Stop(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res)
   	{
@@ -382,8 +401,14 @@ public:
 int main(int argc, char ** argv)
 {
     ros::init(argc, argv, "cob_trajectory_controller");
+
+    ROS_INFO("blub");
     cob_trajectory_controller_node tm;
-    ros::Rate loop_rate(HZ);
+
+    /// get main loop parameters
+    double frequency = tm.getFrequency();
+
+    ros::Rate loop_rate(frequency);
     while (ros::ok())
     {
         tm.run();
