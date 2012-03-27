@@ -56,7 +56,8 @@ CANPeakSysUSB::CANPeakSysUSB(int iBaudRate, std::string strDeviceName)
 		usleep(3000);
 		exit(0);
 	}
-	init(0);
+ROS_INFO("baudrate: %i", iBaudRate);
+	init(iBaudRate);
 }
 
 //-----------------------------------------------

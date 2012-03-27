@@ -58,7 +58,7 @@ CANPeakSysDongle::CANPeakSysDongle(int iBaudRate, std::string strDeviceName)
 		Sleep(3000);
 		exit(0);
 	}
-
+ROS_INFO("baudrate: %i", iBaudRate);
 	init(iBaudRate);
 }
 
@@ -122,6 +122,7 @@ bool CANPeakSysDongle::transmitMsg(CanMsg& CMsg)
 	{
 		TPCMsg.DATA[i] = CMsg.getAt(i);
 	}
+ROS_INFO("message: %c %c %c %c %c %c %c %c", TPCMsg.DATA[0], TPCMsg.DATA[1],TPCMsg.DATA[2],TPCMsg.DATA[3],TPCMsg.DATA[4],TPCMsg.DATA[5],TPCMsg.DATA[6],TPCMsg.DATA[7]);
 	
 	// write msg
 	bRet = true;
