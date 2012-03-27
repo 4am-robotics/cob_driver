@@ -541,7 +541,8 @@ bool NeoCtrlPltfMpo500::initPltf()
 			m_vpMotor[i]->start();
 			ROS_DEBUG("homing: done");
 		}
-		usleep(500000);
+		last = ros::Time::now();
+		usleep(50000);
 
 	}
 
