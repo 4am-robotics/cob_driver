@@ -102,6 +102,7 @@ void NeoCtrlPltfMpo500::readConfiguration()
 	int iBaudrateVal;
 	std::string sCanDevice;
 	n->getParam("BaudrateVal", iBaudrateVal);
+	ROS_DEBUG("initializing can node");
 	if (iTypeCan == 0)
 	{	
  		if( n->hasParam("devicePath") ){
@@ -141,6 +142,7 @@ void NeoCtrlPltfMpo500::readConfiguration()
 		else m_pCanCtrl = new CanESD(iBaudrateVal, 1);
 		std::cout << "Uses CanESD" << std::endl;
 	}
+	ROS_DEBUG("can node initialized");
 
 	control_type.resize(m_iNumMotors);
 	// "Drive Motor Type1" drive parameters
@@ -283,10 +285,14 @@ void NeoCtrlPltfMpo500::sendNetStartCanOpen()
 bool NeoCtrlPltfMpo500::initPltf()
 {	
 	// read Configuration parameters from yaml files
+	ROS_DEBUG("Reading Config");
 	readConfiguration();
+	ROS_DEBUG("Config Read");
 
 	//start can open network
+	ROS_DEBUG("Start Canopen network");
 	sendNetStartCanOpen();
+	ROS_DEBUG("network started");
 	
 	bool bHomingOk = true;
 	//start motors
@@ -320,6 +326,11 @@ bool NeoCtrlPltfMpo500::initPltf()
 			{
 
 				ROS_DEBUG("homing");
+
+				m_vpMotor[i]->stop();
+				m_vpMotor[i]->setTypeMotion(2); //set jogging velocity as control type
+				m_vpMotor[i]->start();
+
 				if (m_GearMotDrive[i].iHomeCoupleID != -1)
 				{
 					for(unsigned int j = 0; j < m_vpMotor.size(); j++)
@@ -327,7 +338,9 @@ bool NeoCtrlPltfMpo500::initPltf()
 						if(m_GearMotDrive[i].iHomeCoupleID == m_viMotorID[j])
 						{
 							coupleID[i] = j;
-//TODO: start/stop motors				m_vpMotor[coupleID[i]]->setTypeMotion(2); //set jogging velocity as control type
+							m_vpMotor[coupleID[i]]->stop();
+							m_vpMotor[coupleID[i]]->setTypeMotion(2); //set jogging velocity as control type
+							m_vpMotor[coupleID[i]]->start();
 						}
 					}
 				}
@@ -352,8 +365,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 
 			if(m_vpMotor[i]->m_DriveParam.getHoming())
 			{
-				// 1. set jogging velocity mode as control mode
-//TODO:				m_vpMotor[i]->setTypeMotion(2);
+
 
 				// 2. if HomeCoupleID != -1:
 				//     start translational (index coupleID) wheel synchronously
@@ -524,7 +536,9 @@ bool NeoCtrlPltfMpo500::initPltf()
 		for(int i=0; i < m_vpMotor.size(); i++)
 		{
 			// 4. reset control mode (see homing step 1)
-//TODO: turn motor off/on	m_vpMotor[i]->setTypeMotion(control_type[i]); //reset control type
+			m_vpMotor[i]->stop();
+			m_vpMotor[i]->setTypeMotion(control_type[i]); //set jogging velocity as control type
+			m_vpMotor[i]->start();
 			ROS_DEBUG("homing: done");
 		}
 		usleep(500000);
