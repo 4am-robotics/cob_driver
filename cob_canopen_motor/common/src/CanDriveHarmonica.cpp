@@ -509,7 +509,9 @@ bool CanDriveHarmonica::prepareHoming()
 		}
 	}
 	while ( bHomingSwitchActive );
-
+	// stop motor
+	IntprtSetInt ( 8, 'J', 'V', 0, 0, true );
+	IntprtSetInt ( 4, 'B', 'G', 0, 0, true );
 	return true;
 }
 
@@ -671,7 +673,7 @@ bool CanDriveHarmonica::execHoming()
 }
 
 //-----------------------------------------------
-bool CanDriveHarmonica::isHomingFinished()
+bool CanDriveHarmonica::isHomingFinished(bool waitTillHomed)
 {
 	bool bHomeTimeOut;
 	bool bLimSwRight;
@@ -717,20 +719,24 @@ bool CanDriveHarmonica::isHomingFinished()
 			bHomeTimeOut = false;
 		}
 	}
-	while ( !bLimSwRight && !bHomeTimeOut );
+	while ( !bLimSwRight && !bHomeTimeOut &&  waitTillHomed);
 
-	if ( !bHomeTimeOut )
+	if ( bLimSwRight )
 	{
 		LOGINFO ( "homing " << m_DriveParam.getDriveIdent() << " ok" );
 
 		return true;
 	}
-	else
+	else if(bHomeTimeOut)
 	{
 		LOGERROR ( "homing " << m_DriveParam.getDriveIdent() << " timeout" );
 		IntprtSetInt ( 8, 'J', 'V', 0, 0, true );
 		IntprtSetInt ( 4, 'B', 'G', 0, 0, true );
 
+		return false;
+	}
+	else
+	{
 		return false;
 	}
 

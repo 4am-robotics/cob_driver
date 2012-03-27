@@ -148,7 +148,7 @@ public:
 	virtual bool prepareHoming() = 0;
 	virtual bool initHoming(bool keepDriving = false) = 0;
 	virtual bool execHoming() = 0;
-	virtual bool isHomingFinished() = 0;
+	virtual bool isHomingFinished(bool waitTillHomed = true) = 0;
 	virtual void exitHoming(double t, bool keepDriving = false) = 0;
 
 	virtual void initWatchdog() = 0;

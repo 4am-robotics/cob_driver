@@ -178,7 +178,7 @@ public:
 	 * Waits until limit switch of homing is active.
 	 * Returns false on timeout.
 	 */
-	bool isHomingFinished();
+	bool isHomingFinished(bool waitTillHomed);
 
 	/**
 	 *
