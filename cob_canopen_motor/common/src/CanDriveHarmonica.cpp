@@ -510,6 +510,7 @@ bool CanDriveHarmonica::prepareHoming()
 	}
 	while ( bHomingSwitchActive );
 	// stop motor
+	usleep(100000); //wait some time to make sure that limit switch is inactive
 	IntprtSetInt ( 8, 'J', 'V', 0, 0, true );
 	IntprtSetInt ( 4, 'B', 'G', 0, 0, true );
 	return true;
@@ -554,6 +555,12 @@ bool CanDriveHarmonica::initHoming(bool keepDriving = false)
 
 	return true;
 }
+
+
+void  CanDriveHarmonica::setLastPosRad(int posrad)
+{
+	last_pose_incr =  m_DriveParam.convRadToIncr (posrad);
+};
 
 
 int getNearest(double num, double cmp[], int iSize, double* pdTol)
@@ -661,9 +668,10 @@ bool CanDriveHarmonica::execHoming()
 	{
 */
 	dHomeVel = m_DriveParam.getHomeVel();
+	int sign = m_DriveParam.getSign();
 
 	// set homing velocity
-	IntprtSetInt ( 8, 'J', 'V', 0, int ( dHomeVel ), true );
+	IntprtSetInt ( 8, 'J', 'V', 0, int ( dHomeVel * sign), true );
 	IntprtSetInt ( 4, 'B', 'G', 0, 0, true );
 
 	LOGINFO ( "drive " << m_DriveParam.getDriveIdent() << " homing started" );

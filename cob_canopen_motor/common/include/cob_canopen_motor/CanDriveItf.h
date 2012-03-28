@@ -101,6 +101,8 @@ public:
 
 	virtual void setCycleTime(double dt) = 0;
 
+	virtual void setLastPosRad(int pos) = 0;
+
 	/**
 	 * Sets the CAN interface.
 	 */

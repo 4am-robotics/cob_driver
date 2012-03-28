@@ -318,6 +318,10 @@ public:
 	*/
 	bool isCurrentLimit () { return m_bCurrentLimitOn; };
 
+
+       void setLastPosRad(int incr);
+
+
 private:
 	int last_pose_incr;
 	bool critical_state;
