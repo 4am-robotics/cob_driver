@@ -65,7 +65,7 @@
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 
 // definition of constants
-#define UNREASONABLE_HUGE_RANGE 10.0
+#define UNREASONABLY_HUGE_RANGE 1000.0
 
 //####################
 //#### node class ####
@@ -154,10 +154,10 @@ class NodeClass
 		sensor_msgs::LaserScan laserScan_clear;
 		laserScan_clear = laserScan;
 		// range_max needs to be higher than ranges, otherwise costmap does not use it
-		laserScan_clear.range_max = UNREASONABLE_HUGE_RANGE + 0.1;
+		laserScan_clear.range_max = UNREASONABLY_HUGE_RANGE + 0.1;
 		for(unsigned int i = 0; i < laserScan_clear.ranges.size(); i++)
 		{
-			if (laserScan_clear.ranges[i] == 0.0 ) laserScan_clear.ranges[i] = UNREASONABLE_HUGE_RANGE;
+			if (laserScan_clear.ranges[i] == 0.0 ) laserScan_clear.ranges[i] = UNREASONABLY_HUGE_RANGE;
 		}
 		for(int i = stop_left_scan+1; i < start_right_scan; i++)
 		{
