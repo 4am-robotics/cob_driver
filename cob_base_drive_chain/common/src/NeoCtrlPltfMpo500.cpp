@@ -380,7 +380,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 						m_vpMotor[i]->prepareHoming();
 						m_vpMotor[i]->initHoming(true); //keep driving after homing event
 					}
-					m_vpMotor[coupleID[i]]->setWheelVel(m_GearMotDrive[i].iHomeCoupleVel, false, true);
+					m_vpMotor[coupleID[i]]->setWheelVel(m_GearMotDrive[i].iHomeCoupleVel *  m_GearMotDrive[coupleID[i]].iSign * m_GearMotDrive[i].iSign * (-1.), false, true);
 					m_vpMotor[i]->execHoming();
 					if(!bHomeAllAtOnce)
 					{
@@ -485,7 +485,6 @@ bool NeoCtrlPltfMpo500::initPltf()
 						getGearPosVelRadS(m_viMotorID[i], &dCurrentPosRad, &dCurrentVelRadS);
 						// P-Ctrl					
 						double dDeltaPhi = 0.0 - dCurrentPosRad;
-						ROS_DEBUG("canid: %i: driving to zero pose: delta phi: %f",m_viMotorID[i], dDeltaPhi);
 						// check if steer is at pos zero
 						if (fabs(dDeltaPhi) < 0.03) // +/- 0.5° position error
 						{
@@ -495,8 +494,9 @@ bool NeoCtrlPltfMpo500::initPltf()
 						{
 							bAllDone = false;	
 						}
-						double dFactorVel = m_GearMotDrive[coupleID[i]].iHomeCoupleVel / m_GearMotDrive[i].dHomeVel;
+						double dFactorVel = m_GearMotDrive[i].iHomeCoupleVel / m_GearMotDrive[i].dHomeVel * m_GearMotDrive[coupleID[i]].iSign * m_GearMotDrive[i].iSign;
 						double dVelCmd = m_d0 * dDeltaPhi;
+						ROS_DEBUG("canid: %i: driving to zero pose: delta phi: %f, %f",m_viMotorID[i], dDeltaPhi, dFactorVel);
 						if(dVelCmd > m_GearMotDrive[i].dHomeVel ) dVelCmd = m_GearMotDrive[i].dHomeVel;
 						if(dVelCmd < -m_GearMotDrive[i].dHomeVel ) dVelCmd = -m_GearMotDrive[i].dHomeVel;
 						// set Outputs
@@ -535,6 +535,10 @@ bool NeoCtrlPltfMpo500::initPltf()
 
 		for(int i=0; i < m_vpMotor.size(); i++)
 		{
+
+			double dCurrentPosRad, dCurrentVelRadS;
+			getGearPosVelRadS(m_viMotorID[i], &dCurrentPosRad, &dCurrentVelRadS);
+			m_vpMotor[i]->setLastPosRad(dCurrentPosRad);
 			// 4. reset control mode (see homing step 1)
 			m_vpMotor[i]->stop();
 			m_vpMotor[i]->setTypeMotion(control_type[i]); //set jogging velocity as control type
