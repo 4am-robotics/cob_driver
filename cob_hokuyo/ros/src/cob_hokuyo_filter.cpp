@@ -64,6 +64,8 @@
 #include <sensor_msgs/LaserScan.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 
+// definition of constants
+#define UNREASONABLE_HUGE_RANGE 10.0
 
 //####################
 //#### node class ####
@@ -82,6 +84,7 @@ class NodeClass
 	ros::Subscriber topicSub_Tray;
     ros::Publisher topicPub_LaserScan;
 	ros::Publisher topicPub_LaserScan_self;
+	ros::Publisher topicPub_LaserScan_clear;
 
     NodeClass()
     {
@@ -97,6 +100,7 @@ class NodeClass
       // implementation of topics to publish
       topicPub_LaserScan = nodeHandle.advertise<sensor_msgs::LaserScan>("scan_top_filtered", 1);
       topicPub_LaserScan_self = nodeHandle.advertise<sensor_msgs::LaserScan>("scan_top_self_filtered", 1);
+      topicPub_LaserScan_clear = nodeHandle.advertise<sensor_msgs::LaserScan>("scan_top_clearing", 1);
       topicSub_LaserScan_raw = nodeHandle.subscribe("scan_top", 1, &NodeClass::scanCallback, this);
       topicSub_Tray = nodeHandle.subscribe("/tray_controller/state", 1, &NodeClass::trayCallback, this);
 	  bFilterTray_ = false;
@@ -131,6 +135,7 @@ class NodeClass
 		laserScan.ranges.resize(num_readings);
 		laserScan.intensities.resize(0);
 
+		// filter torso
 		for(int i = 0; i < (stop_left_scan - start_left_scan); i++)
 		{
 		    	laserScan.ranges[i] = msg->ranges[start_left_scan + i];
@@ -143,7 +148,23 @@ class NodeClass
 		{
 		    	laserScan.ranges[i] = msg->ranges[i];
 		}
-		        
+	
+		// TODO: 
+		// for test purposes: publish new topic for clearing of measurements
+		sensor_msgs::LaserScan laserScan_clear;
+		laserScan_clear = laserScan;
+		// range_max needs to be higher than ranges, otherwise costmap does not use it
+		laserScan_clear.range_max = UNREASONABLE_HUGE_RANGE + 0.1;
+		for(unsigned int i = 0; i < laserScan_clear.ranges.size(); i++)
+		{
+			if (laserScan_clear.ranges[i] == 0.0 ) laserScan_clear.ranges[i] = UNREASONABLE_HUGE_RANGE;
+		}
+		for(int i = stop_left_scan+1; i < start_right_scan; i++)
+		{
+		    	laserScan_clear.ranges[i] = 0.0;
+		}
+	
+		// filter tray	
 		sensor_msgs::LaserScan laserScan_self;
 		laserScan_self = laserScan;
 		if(bFilterTray_)
@@ -151,11 +172,15 @@ class NodeClass
 			for(int i = start_tray_filter; i < stop_tray_filter; i++)
 			{
 					laserScan_self.ranges[i] = 0.0;
+					laserScan_clear.ranges[i] = 0.0;
 			}
 		}
+		
+	
 		// publish message
 		topicPub_LaserScan.publish(laserScan);
 		topicPub_LaserScan_self.publish(laserScan_self);
+		topicPub_LaserScan_clear.publish(laserScan_clear);
       
     }
 };
