@@ -45,7 +45,7 @@
 #include <cob_utilities/IniFile.h>
 
 #include <cob_utilities/MathSup.h>
-#include <ros/ros.h>
+
 //-----------------------------------------------
 
 // ElmoMC values
@@ -318,8 +318,6 @@ public:
 	*/
 	bool isCurrentLimit () { return m_bCurrentLimitOn; };
 
-
-       void setLastPosRad(int incr);
 
 
 private:

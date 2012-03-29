@@ -110,6 +110,7 @@ class NodeClass
 	ros::Time last, now;
 
 	private:
+	void setBaseConfig();
 	std::vector<std::string> joint_names;
 	std::vector<double> max_drive_rates;
 	std::vector<int> control_type;
@@ -184,7 +185,8 @@ NodeClass::NodeClass() : auto_recover_interval(1.)
 		
 		ROS_DEBUG("motor nr: %i can id: %i, max_rad_per_s: %f",i, canIDs[i], max_drive_rates[i]);
 	}
-	m_CanCtrlPltf = new NeoCtrlPltfMpo500(&n);
+	m_CanCtrlPltf = new NeoCtrlPltfMpo500();
+	setBaseConfig(); //configures m_CanCtrlPltf
 	
 	// implementation of topics
 	// published topics
@@ -200,6 +202,102 @@ NodeClass::NodeClass() : auto_recover_interval(1.)
 		srvServer_Recover = n.advertiseService("recover", &NodeClass::srv_recover, this);
 		srvServer_Shutdown = n.advertiseService("shutdown", &NodeClass::srv_shutdown, this);
 	}
+}
+
+void NodeClass::setBaseConfig()
+{
+	////////////////////////
+	// Parameters:
+
+	//can device:
+	int iTypeCan;	
+	int iBaudrateVal;
+	std::string* sCanDevice = 0;
+	//loop rate
+	int rate;
+	//drives
+	std::vector<DriveParam> DriveParamDriveMotor;
+	std::vector<NeoCtrlPltfMpo500::GearMotorParamType> m_GearMotDrive;
+	bool bHomeAllAtOnce;
+	std::vector<int> control_type;
+	std::vector<int> m_viMotorID;
+
+	////////////////////////
+	// get parameters:
+
+	if( n.hasParam("devicePath") ){
+			sCanDevice = new(std::string);
+			n.getParam("devicePath", *sCanDevice);
+	}
+	// read Configuration of the Can-Network (CanCtrl.ini)
+	n.getParam("can", iTypeCan);
+	n.getParam("BaudrateVal", iBaudrateVal);
+	n.getParam("cycleRate", rate);
+	n.param<bool>("HomeAllAtOnce",bHomeAllAtOnce,false);
+	//can settings:
+	control_type.resize(m_iNumMotors);
+	m_viMotorID.resize(m_iNumMotors);
+	DriveParamDriveMotor.resize(m_iNumMotors);
+	m_GearMotDrive.resize(m_iNumMotors);
+	// "Drive Motor Type1" drive parameters
+	for(int i=0; i<m_iNumMotors; i++)
+	{
+
+		std::ostringstream stringstream;
+		stringstream<<"drive"<<i<<"/";
+		std::string pathName = stringstream.str();
+		n.getParam(pathName + "control_type", control_type[i]);
+		n.getParam(pathName + "EncIncrPerRevMot", m_GearMotDrive[i].iEncIncrPerRevMot);
+		n.getParam(pathName + "VelMeasFrqHz", m_GearMotDrive[i].dVelMeasFrqHz);
+		n.getParam(pathName + "BeltRatio", m_GearMotDrive[i].dBeltRatio);
+		n.getParam(pathName + "GearRatio", m_GearMotDrive[i].dGearRatio);
+		n.getParam(pathName + "GearEfficiency",m_GearMotDrive[i].dGearEfficiency);
+		n.getParam(pathName + "Sign", m_GearMotDrive[i].iSign);
+		n.getParam(pathName + "Homing", m_GearMotDrive[i].bHoming);
+		n.param<int>(pathName + "HomeCoupleID", m_GearMotDrive[i].iHomeCoupleID, -1);
+		n.param<double>(pathName + "HomeCoupleVelRadS", m_GearMotDrive[i].iHomeCoupleVel, 0.2);
+		n.getParam(pathName + "HomePos", m_GearMotDrive[i].dHomePos);
+		n.getParam(pathName + "HomeVelRadS", m_GearMotDrive[i].dHomeVel);
+		n.getParam(pathName + "HomeEvent", m_GearMotDrive[i].iHomeEvent);
+		n.getParam(pathName + "HomeDigIn", m_GearMotDrive[i].iHomeDigIn);
+		n.getParam(pathName + "HomeTimeOut", m_GearMotDrive[i].iHomeTimeOut);
+		n.getParam(pathName + "CurrentToTorque", m_GearMotDrive[i].dCurrentToTorque);
+		n.getParam(pathName + "CurrentContLimit", m_GearMotDrive[i].dCurrentContLimit);
+		n.getParam(pathName + "VelMaxEncIncrS", m_GearMotDrive[i].dVelMaxEncIncrS);
+		n.getParam(pathName + "VelPModeEncIncrS", m_GearMotDrive[i].dVelPModeEncIncrS);
+		n.getParam(pathName + "AccIncrS", m_GearMotDrive[i].dAccIncrS2);
+		n.getParam(pathName + "DecIncrS", m_GearMotDrive[i].dDecIncrS2);
+		n.getParam(pathName + "CANId", m_GearMotDrive[i].iCANId);
+		m_viMotorID[i] = m_GearMotDrive[i].iCANId;
+		double 	m_dRadToIncr = 	(m_GearMotDrive[i].iEncIncrPerRevMot * m_GearMotDrive[i].dGearRatio * m_GearMotDrive[i].dBeltRatio) 
+					/ (2. * 3.14159265);
+		double homeVelIncrS = m_GearMotDrive[i].dHomeVel * m_dRadToIncr / m_GearMotDrive[i].dVelMeasFrqHz;
+
+
+		DriveParamDriveMotor[i].set(	i,
+						m_GearMotDrive[i].iEncIncrPerRevMot,
+						m_GearMotDrive[i].dVelMeasFrqHz,
+						m_GearMotDrive[i].dBeltRatio, m_GearMotDrive[i].dGearRatio,
+						m_GearMotDrive[i].iSign,
+						m_GearMotDrive[i].bHoming, m_GearMotDrive[i].dHomePos,
+						homeVelIncrS, m_GearMotDrive[i].iHomeEvent,
+						m_GearMotDrive[i].iHomeDigIn, m_GearMotDrive[i].iHomeTimeOut,
+						m_GearMotDrive[i].dVelMaxEncIncrS, m_GearMotDrive[i].dVelPModeEncIncrS,
+						m_GearMotDrive[i].dAccIncrS2, m_GearMotDrive[i].dDecIncrS2,
+						DriveParam::ENCODER_INCREMENTAL,
+						m_GearMotDrive[i].iCANId,
+						false, true );
+
+
+
+	}
+
+ 	m_CanCtrlPltf->readConfiguration(		iTypeCan, iBaudrateVal,	sCanDevice, rate,
+							DriveParamDriveMotor, m_iNumMotors, m_GearMotDrive,
+							bHomeAllAtOnce, control_type, m_viMotorID
+	);
+
+	if(sCanDevice) delete sCanDevice;
 }
 
 bool NodeClass::initDrives()

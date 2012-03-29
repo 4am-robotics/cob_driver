@@ -37,6 +37,7 @@
 
 #include <ros/ros.h>
 #include <iostream>
+#include <stdio.h>
 
 //#define BYTE unsigned char
 
@@ -54,5 +55,19 @@ inline void Sleep (double t)
 {
 	usleep(t*1000);
 }
+
+/*
+#define OUTPUTDEBUG(...)
+#define OUTPUTINFO(...)
+#define OUTPUTERROR(...)
+#define OUTPUTFATAL(...)
+*/
+
+
+#define OUTPUTDEBUG ROS_DEBUG 
+#define OUTPUTINFO ROS_INFO
+#define OUTPUTERROR ROS_ERROR
+#define OUTPUTFATAL ROS_FATAL
+
 
 #endif

@@ -47,7 +47,6 @@
 // Headers provided by cob-packages which should be avoided/removed
 #include <cob_utilities/IniFile.h>
 #include <cob_utilities/Mutex.h>
-#include <ros/ros.h>
 
 // remove (not supported)
 //#include "stdafx.h"
@@ -67,7 +66,7 @@ public:
 	/** 
 	 * Default constructor.
 	 */
-	NeoCtrlPltfMpo500(ros::NodeHandle* node);
+	NeoCtrlPltfMpo500();
 
 	/**
 	 * Default destructor.
@@ -204,40 +203,6 @@ public:
 	void timeStep(double dt);
 
 
-protected:
-	std::vector<int> control_type;
-
-	//--------------------------------- internal functions
-	
-	/**
-	 * Reads configuration of can node and components from Inifile
-	 * (should be adapted to use ROS-Parameter file)
-	 */
-	std::string sIniDirectory;
-	std::string sComposed;
-	void readConfiguration();
-
-
-	//--------------------------------- Types
-	
-	/**
-	 * Parameters of the class NeoCtrlPltfMpo500.
-	 */
-	struct ParamType
-	{
-		// Platform config
-
-		int iHasWheel1DriveMotor;
-		int iHasWheel2DriveMotor;
-		int iHasWheel3DriveMotor;
-		int iHasWheel4DriveMotor;
-
-		int iRadiusWheelMM;
-		int iDistSteerAxisToDriveWheelMM;
-
-		double dCanTimeout;
-	};
-
 	/**
 	 * Parameters charaterising combination of gears and drives
 	 */
@@ -272,6 +237,50 @@ protected:
 		bool bUsePosMode;
 		bool bEnabled;
 	};
+	/**
+		sets the configuration of this class
+	*/
+	void readConfiguration(		int typeCan, int baudrateVal,	std::string* sCanDevice, int rate,
+					std::vector<DriveParam> driveParamDriveMotor, int iNumMotors,
+					std::vector<NeoCtrlPltfMpo500::GearMotorParamType> gearMotDrive,
+					bool homeAllAtOnce, std::vector<int> s_control_type, std::vector<int> viMotorID
+	);
+
+
+protected:
+	std::vector<int> control_type;
+
+	//--------------------------------- internal functions
+	
+	/**
+	 * Reads configuration of can node and components from Inifile
+	 * (should be adapted to use ROS-Parameter file)
+	 */
+	std::string sIniDirectory;
+	std::string sComposed;
+
+
+
+	//--------------------------------- Types
+	
+	/**
+	 * Parameters of the class NeoCtrlPltfMpo500.
+	 */
+	struct ParamType
+	{
+		// Platform config
+
+		int iHasWheel1DriveMotor;
+		int iHasWheel2DriveMotor;
+		int iHasWheel3DriveMotor;
+		int iHasWheel4DriveMotor;
+
+		int iRadiusWheelMM;
+		int iDistSteerAxisToDriveWheelMM;
+
+		double dCanTimeout;
+	};
+
 
 	/**
 	 * CAN IDs for Neobotix boards. (Default Values)
@@ -301,7 +310,7 @@ protected:
 //	CanNeoIDType m_CanNeoIDParam;
 
 	// Prms for all Motor/Gear combos
-	GearMotorParamType* m_GearMotDrive;
+	std::vector<GearMotorParamType> m_GearMotDrive;
 
 	//--------------------------------- Variables
 	CanMsg m_CanMsgRec;
@@ -329,7 +338,6 @@ protected:
 	// vector with enums (specifying hardware-structure) -> simplifies cmd-check
 	// this has to be adapted in c++ file to your hardware
 	std::vector<int> m_viMotorID;
-	ros::NodeHandle* n;
 
 	//can message evaluation
 	// other

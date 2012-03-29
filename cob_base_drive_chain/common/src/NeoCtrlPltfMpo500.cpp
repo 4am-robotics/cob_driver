@@ -44,30 +44,18 @@
 #include <sstream>
 
 
+
+
 //-----------------------------------------------
 
-NeoCtrlPltfMpo500::NeoCtrlPltfMpo500(ros::NodeHandle* node)
+NeoCtrlPltfMpo500::NeoCtrlPltfMpo500()
 {	
-	n = node;
-	n->getParam("numberOfMotors", m_iNumMotors);
 	m_pCanCtrl = NULL;
-
-	// ------------- init hardware-specific vectors and set default values
-	m_vpMotor.resize(m_iNumMotors);
-	bHomeAllAtOnce = false;
-
-	m_GearMotDrive = new GearMotorParamType[m_iNumMotors];
-	for(int i=0; i<m_iNumMotors; i++)
-	{
-		m_vpMotor[i] = NULL;
-	}
-	m_viMotorID.resize(m_iNumMotors);
 }
 
 //-----------------------------------------------
 NeoCtrlPltfMpo500::~NeoCtrlPltfMpo500()
 {
-	delete[] m_GearMotDrive;
 	if (m_pCanCtrl != NULL)
 	{
 		delete m_pCanCtrl;
@@ -84,28 +72,23 @@ NeoCtrlPltfMpo500::~NeoCtrlPltfMpo500()
 }
 
 //-----------------------------------------------
-void NeoCtrlPltfMpo500::readConfiguration()
+void NeoCtrlPltfMpo500::readConfiguration(	int iTypeCan, int iBaudrateVal,	std::string* sCanDevice, int rate,
+						std::vector<DriveParam> DriveParamDriveMotor, int numMotors,
+						std::vector<NeoCtrlPltfMpo500::GearMotorParamType> gearMotDrive,
+						bool homeAllAtOnce, std::vector<int> s_control_type, std::vector<int> viMotorID)
 {
-
-	int iTypeCan = 0;
-	int iMaxMessages = 0;
-
-	DriveParam DriveParamDriveMotor[m_iNumMotors];
-	
-
-	// read Configuration of the Can-Network (CanCtrl.ini)
-	n->getParam("can", iTypeCan);
+	m_iNumMotors = numMotors;
+	m_GearMotDrive = gearMotDrive;
+	m_viMotorID = viMotorID;
+	control_type = s_control_type;
+	bHomeAllAtOnce = homeAllAtOnce;
 	//can settings:
-	int iBaudrateVal;
-	std::string sCanDevice;
-	n->getParam("BaudrateVal", iBaudrateVal);
-	ROS_DEBUG("initializing can node");
+	OUTPUTDEBUG("initializing can network");
 	if (iTypeCan == 0)
 	{	
- 		if( n->hasParam("devicePath") ){
-			n->getParam("devicePath", sCanDevice);
-			ROS_INFO("set devicepath from config: %s %i",sCanDevice.c_str(), iBaudrateVal);
-			m_pCanCtrl = new CANPeakSysDongle(iBaudrateVal, sCanDevice);
+ 		if( sCanDevice ){
+			OUTPUTINFO("set devicepath from config: %s %i",(*sCanDevice).c_str(), iBaudrateVal);
+			m_pCanCtrl = new CANPeakSysDongle(iBaudrateVal, *sCanDevice);
 			
 		}
 		else m_pCanCtrl = new CANPeakSysDongle(iBaudrateVal);
@@ -113,97 +96,41 @@ void NeoCtrlPltfMpo500::readConfiguration()
 	}
 	else if (iTypeCan == 1)
 	{
- 		if( n->hasParam("devicePath") ){
-			n->getParam("devicePath", sCanDevice);
-			m_pCanCtrl = new CANPeakSysUSB(iBaudrateVal, sCanDevice);
+ 		if( sCanDevice ){
+			OUTPUTINFO("set devicepath from config: %s %i",(*sCanDevice).c_str(), iBaudrateVal);
+			m_pCanCtrl = new CANPeakSysUSB(iBaudrateVal, *sCanDevice);
 		}
 		else m_pCanCtrl = new CANPeakSysUSB(iBaudrateVal);
 		std::cout << "Uses CAN-Peak-Systems USB" << std::endl;
 	}
 	else if (iTypeCan == 2)
 	{
- 		if( n->hasParam("devicePath") ){
-			n->getParam("devicePath", sCanDevice);
-			m_pCanCtrl = new CANPeakSys2PCI(iBaudrateVal, sCanDevice);
+ 		if( sCanDevice ){
+			OUTPUTINFO("set devicepath from config: %s %i",(*sCanDevice).c_str(), iBaudrateVal);
+			m_pCanCtrl = new CANPeakSys2PCI(iBaudrateVal, *sCanDevice);
 		}
 		else m_pCanCtrl = new CANPeakSys2PCI(iBaudrateVal);
 		std::cout << "Uses CAN-Peak-Systems PCI" << std::endl;
 	}
 	else if (iTypeCan == 3)
 	{
- 		if( n->hasParam("iNrNet") ){
+ 		/*TODO: if( n->hasParam("iNrNet") ){
 			int iNrNet;
 			n->getParam("iNrNet", iNrNet);
 			m_pCanCtrl = new CanESD(iBaudrateVal, iNrNet);
 		}
-		else m_pCanCtrl = new CanESD(iBaudrateVal, 1);
+		else*/ m_pCanCtrl = new CanESD(iBaudrateVal, 1);
 		std::cout << "Uses CanESD" << std::endl;
 	}
-	ROS_DEBUG("can node initialized");
+	OUTPUTDEBUG("can network initialized");
 
-	control_type.resize(m_iNumMotors);
-	// "Drive Motor Type1" drive parameters
-	for(int i=0; i<m_iNumMotors; i++)
-	{
-		n->param<bool>("HomeAllAtOnce",bHomeAllAtOnce,false);
-		std::ostringstream stringstream;
-		stringstream<<"drive"<<i<<"/";
-		std::string pathName = stringstream.str();
-		n->getParam(pathName + "control_type", control_type[i]);
-		n->getParam(pathName + "EncIncrPerRevMot", m_GearMotDrive[i].iEncIncrPerRevMot);
-		n->getParam(pathName + "VelMeasFrqHz", m_GearMotDrive[i].dVelMeasFrqHz);
-		n->getParam(pathName + "BeltRatio", m_GearMotDrive[i].dBeltRatio);
-		n->getParam(pathName + "GearRatio", m_GearMotDrive[i].dGearRatio);
-		n->getParam(pathName + "GearEfficiency",m_GearMotDrive[i].dGearEfficiency);
-		n->getParam(pathName + "Sign", m_GearMotDrive[i].iSign);
-		n->getParam(pathName + "Homing", m_GearMotDrive[i].bHoming);
-		n->param<int>(pathName + "HomeCoupleID", m_GearMotDrive[i].iHomeCoupleID, -1);
-		n->param<double>(pathName + "HomeCoupleVelRadS", m_GearMotDrive[i].iHomeCoupleVel, 0.2);
-		n->getParam(pathName + "HomePos", m_GearMotDrive[i].dHomePos);
-		n->getParam(pathName + "HomeVelRadS", m_GearMotDrive[i].dHomeVel);
-		n->getParam(pathName + "HomeEvent", m_GearMotDrive[i].iHomeEvent);
-		n->getParam(pathName + "HomeDigIn", m_GearMotDrive[i].iHomeDigIn);
-		n->getParam(pathName + "HomeTimeOut", m_GearMotDrive[i].iHomeTimeOut);
-		n->getParam(pathName + "CurrentToTorque", m_GearMotDrive[i].dCurrentToTorque);
-		n->getParam(pathName + "CurrentContLimit", m_GearMotDrive[i].dCurrentContLimit);
-		n->getParam(pathName + "VelMaxEncIncrS", m_GearMotDrive[i].dVelMaxEncIncrS);
-		n->getParam(pathName + "VelPModeEncIncrS", m_GearMotDrive[i].dVelPModeEncIncrS);
-		n->getParam(pathName + "AccIncrS", m_GearMotDrive[i].dAccIncrS2);
-		n->getParam(pathName + "DecIncrS", m_GearMotDrive[i].dDecIncrS2);
-		n->getParam(pathName + "CANId", m_GearMotDrive[i].iCANId);
-		m_viMotorID[i] = m_GearMotDrive[i].iCANId;
-
-		double 	m_dRadToIncr = 	(m_GearMotDrive[i].iEncIncrPerRevMot * m_GearMotDrive[i].dGearRatio * m_GearMotDrive[i].dBeltRatio) 
-					/ (2. * 3.14159265);
-		double homeVelIncrS = m_GearMotDrive[i].dHomeVel * m_dRadToIncr / m_GearMotDrive[i].dVelMeasFrqHz;
-
-
-		DriveParamDriveMotor[i].set(	i,
-						m_GearMotDrive[i].iEncIncrPerRevMot,
-						m_GearMotDrive[i].dVelMeasFrqHz,
-						m_GearMotDrive[i].dBeltRatio, m_GearMotDrive[i].dGearRatio,
-						m_GearMotDrive[i].iSign,
-						m_GearMotDrive[i].bHoming, m_GearMotDrive[i].dHomePos,
-						homeVelIncrS, m_GearMotDrive[i].iHomeEvent,
-						m_GearMotDrive[i].iHomeDigIn, m_GearMotDrive[i].iHomeTimeOut,
-						m_GearMotDrive[i].dVelMaxEncIncrS, m_GearMotDrive[i].dVelPModeEncIncrS,
-						m_GearMotDrive[i].dAccIncrS2, m_GearMotDrive[i].dDecIncrS2,
-						DriveParam::ENCODER_INCREMENTAL,
-						m_GearMotDrive[i].iCANId,
-						false, true );
-
-
-
-	}
-
-	int rate;
-	n->getParam("cycleRate", rate);
 	double deltaT=1/( (double) rate);
 
+	m_vpMotor.resize(m_iNumMotors);
 	for(int i=0; i<m_iNumMotors; i++)
 	{
 		// Motor Harmonica
-		ROS_DEBUG("Wheel1DriveMotor available, can_id: %i , loop time: %f", m_GearMotDrive[i].iCANId, deltaT);
+		OUTPUTDEBUG("Wheel1DriveMotor available, can_id: %i , loop time: %f", m_GearMotDrive[i].iCANId, deltaT);
 		CanDriveHarmonica* harmonica = new CanDriveHarmonica();
 		harmonica->m_DriveParam = DriveParamDriveMotor[i];
 		harmonica->setCANId(m_GearMotDrive[i].iCANId);
@@ -212,9 +139,6 @@ void NeoCtrlPltfMpo500::readConfiguration()
 		harmonica->setTypeMotion(control_type[i]);
 		m_vpMotor[i]=harmonica;
 	}
-
-	n->getParam("GenericBufferLen", iMaxMessages);
-
 }
 
 //-----------------------------------------------
@@ -245,7 +169,7 @@ int NeoCtrlPltfMpo500::evalCanBuffer()
 		// check for every motor if message belongs to it
 		for (unsigned int i = 0; i < m_vpMotor.size(); i++)
 		{
-			//ROS_DEBUG("evaluating can buffer");
+			//OUTPUTDEBUG("evaluating can buffer");
 			// if message belongs to this motor write data (Pos, Vel, ...) to internal member vars
 			bRet |= m_vpMotor[i]->evalReceivedMsg(m_CanMsgRec);
 		}
@@ -253,7 +177,7 @@ int NeoCtrlPltfMpo500::evalCanBuffer()
 
 		if (bRet == false)
 		{
-			ROS_DEBUG("evalCanBuffer(): Received CAN_Message with unknown identifier or the message request was replied twice");
+			OUTPUTDEBUG("evalCanBuffer(): Received CAN_Message with unknown identifier or the message request was replied twice");
 		}
 	};
 
@@ -281,15 +205,11 @@ void NeoCtrlPltfMpo500::sendNetStartCanOpen()
 
 bool NeoCtrlPltfMpo500::initPltf()
 {	
-	// read Configuration parameters from yaml files
-	ROS_DEBUG("Reading Config");
-	readConfiguration();
-	ROS_DEBUG("Config Read");
 
 	//start can open network
-	ROS_DEBUG("Start Canopen network");
+	OUTPUTDEBUG("Start Canopen network");
 	sendNetStartCanOpen();
-	ROS_DEBUG("network started");
+	OUTPUTDEBUG("network started");
 	
 	bool bHomingOk = true;
 	//start motors
@@ -297,14 +217,14 @@ bool NeoCtrlPltfMpo500::initPltf()
 	{
 		if(m_vpMotor[i]->init(true))
 		{
-			ROS_INFO("starting motor: %i",i);
+			OUTPUTINFO("starting motor: %i",i);
 			if(m_vpMotor[i]->start())
 			{
-				ROS_INFO("motor started");
+				OUTPUTINFO("motor started");
 			}
 			else
 			{
-				ROS_ERROR("can't start motor with can id: %i", m_GearMotDrive[i].iCANId);
+				OUTPUTERROR("can't start motor with can id: %i", m_GearMotDrive[i].iCANId);
 				bHomingOk = false;
 			}
 		}
@@ -322,7 +242,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 			if(m_vpMotor[i]->m_DriveParam.getHoming())
 			{
 
-				ROS_DEBUG("homing");
+				OUTPUTDEBUG("homing");
 
 				m_vpMotor[i]->stop();
 				m_vpMotor[i]->setTypeMotion(2); //set jogging velocity as control type
@@ -387,7 +307,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 						usleep(100000); //sleep 100 ms
 						m_vpMotor[coupleID[i]]->setWheelVel(0.0, false, true);
 						m_vpMotor[i]->setWheelVel(0.0, false, true);
-						ROS_DEBUG("hit homing switch");
+						OUTPUTDEBUG("hit homing switch");
 					}
 
 				}
@@ -403,7 +323,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 					{
 						m_vpMotor[i]->isHomingFinished();
 						m_vpMotor[i]->exitHoming(50);
-						ROS_DEBUG("homing finished");
+						OUTPUTDEBUG("homing finished");
 					}
 					//don't use: m_vpMotor[i]->setModuloCount(m_GearMotDrive[i].dPosMinRad, m_GearMotDrive[i].dPosMaxRad); 
 					//           cause this will mess up velocity estimation using (pos[1]-pos[0])/deltaTime
@@ -429,7 +349,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 						{
 							m_vpMotor[i]->isHomingFinished();
 							m_vpMotor[i]->exitHoming(50);
-							ROS_DEBUG("homing finished");
+							OUTPUTDEBUG("homing finished");
 							homingIsFinished = true;
 						}
 					}
@@ -444,7 +364,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 								// stop translational wheel and steeraxis.
 								m_vpMotor[coupleID[i]]->setWheelVel(0.0, false, true);
 								m_vpMotor[i]->setWheelVel(0.0, false, true);
-								ROS_DEBUG("can id: %i hit homing switch", m_viMotorID[i]);
+								OUTPUTDEBUG("can id: %i hit homing switch", m_viMotorID[i]);
 
 							}
 							if(!homedMotor[i]) homingIsFinished = false;
@@ -473,7 +393,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 
 				if(m_vpMotor[i]->m_DriveParam.getHoming())
 				{
-					ROS_DEBUG("homing: drive to position zero");
+					OUTPUTDEBUG("homing: drive to position zero");
 					if(coupleID[i] != -1) //if coupled drives: use custom method to drive to zero position
 					{
 
@@ -493,7 +413,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 						}
 						double dFactorVel = m_GearMotDrive[i].iHomeCoupleVel / m_GearMotDrive[i].dHomeVel * m_GearMotDrive[coupleID[i]].iSign * m_GearMotDrive[i].iSign  * (-1.); //TODO: why * (-1.)
 						double dVelCmd = m_d0 * dDeltaPhi;
-						ROS_DEBUG("canid: %i: driving to zero pose: delta phi: %f, %f",m_viMotorID[i], dDeltaPhi, dFactorVel);
+						OUTPUTDEBUG("canid: %i: driving to zero pose: delta phi: %f, %f",m_viMotorID[i], dDeltaPhi, dFactorVel);
 						if(dVelCmd > m_GearMotDrive[i].dHomeVel ) dVelCmd = m_GearMotDrive[i].dHomeVel;
 						if(dVelCmd < -m_GearMotDrive[i].dHomeVel ) dVelCmd = -m_GearMotDrive[i].dHomeVel;
 						// set Outputs
@@ -507,7 +427,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 						getGearPosVelRadS(m_viMotorID[i], &dCurrentPosRad, &dCurrentVelRadS);
 						// P-Ctrl					
 						double dDeltaPhi = 0.0 - dCurrentPosRad;
-						ROS_DEBUG("driving to zero pose: delta phi: %f", dDeltaPhi);
+						OUTPUTDEBUG("driving to zero pose: delta phi: %f", dDeltaPhi);
 						// check if drive is at pos zero
 						if (fabs(dDeltaPhi) < 0.03) // +/- 0.5° position error
 						{
@@ -540,7 +460,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 			m_vpMotor[i]->stop();
 			m_vpMotor[i]->setTypeMotion(control_type[i]); //set jogging velocity as control type
 			m_vpMotor[i]->start();
-			ROS_DEBUG("homing: done");
+			OUTPUTDEBUG("homing: done");
 		}
 
 	}
@@ -566,7 +486,7 @@ bool NeoCtrlPltfMpo500::resetPltf()
 		bRetMotor = m_vpMotor[i]->start();
 		if (bRetMotor == false)
 		{
-			ROS_DEBUG("Resetting of Motor %i failed", i);
+			OUTPUTDEBUG("Resetting of Motor %i failed", i);
 		}
 
 		bRet &= bRetMotor;
@@ -623,7 +543,7 @@ bool NeoCtrlPltfMpo500::isPltfError()
 
 		if( (dWatchTime > 5) && (m_bWatchdogErr == false) )
 		{
-			ROS_ERROR("timeout CAN motor %i", i );
+			OUTPUTERROR("timeout CAN motor %i", i );
 			return true;
 		}
 	}
@@ -648,7 +568,7 @@ int NeoCtrlPltfMpo500::setVelGearRadS(int iCanIdent, double dVelGearRadS)
 		// check if Identifier fits to availlable hardware
 		if(iCanIdent == m_viMotorID[i])
 		{
-			ROS_DEBUG("can send vel %f", dVelGearRadS);
+			OUTPUTDEBUG("can send vel %f", dVelGearRadS);
 			m_vpMotor[i]->setWheelVel(dVelGearRadS, false, true);
 		}
 	}
@@ -667,7 +587,7 @@ int NeoCtrlPltfMpo500::setPosGearRad(int iCanIdent, double dPosGearRad, double d
 		// check if Identifier fits to availlable hardware
 		if(iCanIdent == m_viMotorID[i])
 		{
-			ROS_DEBUG("can send vel %f", dVelGearRadS);
+			OUTPUTDEBUG("can send vel %f", dVelGearRadS);
 			m_vpMotor[i]->setWheelPosVel(dPosGearRad, dVelGearRadS, false, true);
 		}
 	}
@@ -688,7 +608,7 @@ int NeoCtrlPltfMpo500::requestMotPosVel(int iCanIdent)
                 if(iCanIdent == m_viMotorID[i])
                 {
                  	m_vpMotor[i]->requestPosVel(); //sends synch to all motors
-                        ROS_DEBUG("can request vel measured, canid %i",  iCanIdent);
+                        OUTPUTDEBUG("can request vel measured, canid %i",  iCanIdent);
                 }
         }	
 	m_Mutex.unlock();
@@ -724,7 +644,7 @@ int NeoCtrlPltfMpo500::getGearPosVelRadS(int iCanIdent, double* pdAngleGearRad, 
 		{
 			m_vpMotor[i]->getWheelPosVel(pdAngleGearRad, pdVelGearRadS);
 
-			ROS_DEBUG("can received vel measured %f canid: %i ", *pdVelGearRadS, iCanIdent);
+			OUTPUTDEBUG("can received vel measured %f canid: %i ", *pdVelGearRadS, iCanIdent);
 		}
 	}
 	
