@@ -201,11 +201,10 @@ public:
 
 	//--------------------------------- Commands for other nodes
 
-	void timeStep();
+	void timeStep(double dt);
 
 
 protected:
-	ros::Time last, now;
 	std::vector<int> control_type;
 
 	//--------------------------------- internal functions

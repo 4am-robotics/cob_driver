@@ -62,9 +62,6 @@ NeoCtrlPltfMpo500::NeoCtrlPltfMpo500(ros::NodeHandle* node)
 		m_vpMotor[i] = NULL;
 	}
 	m_viMotorID.resize(m_iNumMotors);
-	now = ros::Time::now();
-	last = ros::Time::now();
-	usleep(100); //avoid short (now-last).toSec();
 }
 
 //-----------------------------------------------
@@ -206,7 +203,7 @@ void NeoCtrlPltfMpo500::readConfiguration()
 	for(int i=0; i<m_iNumMotors; i++)
 	{
 		// Motor Harmonica
-		ROS_INFO("Wheel1DriveMotor available, can_id: %i , cycle time: %f", m_GearMotDrive[i].iCANId, deltaT);
+		ROS_DEBUG("Wheel1DriveMotor available, can_id: %i , loop time: %f", m_GearMotDrive[i].iCANId, deltaT);
 		CanDriveHarmonica* harmonica = new CanDriveHarmonica();
 		harmonica->m_DriveParam = DriveParamDriveMotor[i];
 		harmonica->setCANId(m_GearMotDrive[i].iCANId);
@@ -380,7 +377,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 						m_vpMotor[i]->prepareHoming();
 						m_vpMotor[i]->initHoming(true); //keep driving after homing event
 					}
-					m_vpMotor[coupleID[i]]->setWheelVel(m_GearMotDrive[i].iHomeCoupleVel *  m_GearMotDrive[coupleID[i]].iSign * m_GearMotDrive[i].iSign * (-1.), false, true);
+					m_vpMotor[coupleID[i]]->setWheelVel(m_GearMotDrive[i].iHomeCoupleVel *  m_GearMotDrive[coupleID[i]].iSign * m_GearMotDrive[i].iSign * (-1.), false, true); // TODO: why * -1. 
 					m_vpMotor[i]->execHoming();
 					if(!bHomeAllAtOnce)
 					{
@@ -494,7 +491,7 @@ bool NeoCtrlPltfMpo500::initPltf()
 						{
 							bAllDone = false;	
 						}
-						double dFactorVel = m_GearMotDrive[i].iHomeCoupleVel / m_GearMotDrive[i].dHomeVel * m_GearMotDrive[coupleID[i]].iSign * m_GearMotDrive[i].iSign;
+						double dFactorVel = m_GearMotDrive[i].iHomeCoupleVel / m_GearMotDrive[i].dHomeVel * m_GearMotDrive[coupleID[i]].iSign * m_GearMotDrive[i].iSign  * (-1.); //TODO: why * (-1.)
 						double dVelCmd = m_d0 * dDeltaPhi;
 						ROS_DEBUG("canid: %i: driving to zero pose: delta phi: %f, %f",m_viMotorID[i], dDeltaPhi, dFactorVel);
 						if(dVelCmd > m_GearMotDrive[i].dHomeVel ) dVelCmd = m_GearMotDrive[i].dHomeVel;
@@ -536,17 +533,15 @@ bool NeoCtrlPltfMpo500::initPltf()
 		for(int i=0; i < m_vpMotor.size(); i++)
 		{
 
-			double dCurrentPosRad, dCurrentVelRadS;
-			getGearPosVelRadS(m_viMotorID[i], &dCurrentPosRad, &dCurrentVelRadS);
-			m_vpMotor[i]->setLastPosRad(dCurrentPosRad);
+			sendSynch();
+			usleep(5000);
+			evalCanBuffer(); //sets last measured pose for velocity estimation to actual motor pose
 			// 4. reset control mode (see homing step 1)
 			m_vpMotor[i]->stop();
 			m_vpMotor[i]->setTypeMotion(control_type[i]); //set jogging velocity as control type
 			m_vpMotor[i]->start();
 			ROS_DEBUG("homing: done");
 		}
-		last = ros::Time::now();
-		usleep(50000);
 
 	}
 
@@ -820,13 +815,11 @@ void NeoCtrlPltfMpo500::setMotorTorque(int iCanIdent, double dTorqueNm)
 
 
 
-void NeoCtrlPltfMpo500::timeStep()
+void NeoCtrlPltfMpo500::timeStep(double deltaTime)
 {
-	now = ros::Time::now();
 	for(int i=0; i<m_vpMotor.size(); i++)
 	{
-		m_vpMotor[i]->setCycleTime( (now-last).toSec());
+		m_vpMotor[i]->setCycleTime( deltaTime );
 	}
-	last = now;
 }
 

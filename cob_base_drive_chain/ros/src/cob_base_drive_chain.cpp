@@ -107,6 +107,7 @@ class NodeClass
 	bool srv_shutdown(cob_srvs::Trigger::Request& req, cob_srvs::Trigger::Response& res );
 	bool publish_JointStates();
 	bool initDrives();
+	ros::Time last, now;
 
 	private:
 	std::vector<std::string> joint_names;
@@ -147,7 +148,7 @@ NodeClass::NodeClass() : auto_recover_interval(1.)
 	//stop all Drives if no new cmd_vel have been received within $errorStopTime seconds.
 	last_cmd_time = ros::Time::now();
 	double errorStopTime;
-	n.param<double>("TimeOut", errorStopTime, 5);
+	n.param<double>("TimeOut", errorStopTime, 2);
 	ros::Duration d(errorStopTime);
 	timeOut = d;
 	// get max Joint-Velocities (in rad/s) for Steer- and Drive-Joint
@@ -239,7 +240,7 @@ void  NodeClass::sendVelCan()
 				last_cmd_time = ros::Time::now();
 				if(ros::Duration(0.) == traj_.points[traj_point_].time_from_start) 
 				{
-					next_cmd_time = ros::Time::now() + ros::Duration(600.);
+					next_cmd_time = ros::Time::now() + ros::Duration(600.); //some time far away in the future
 				}
 				else
 				{
@@ -380,6 +381,8 @@ bool NodeClass::can_init()
 	if(m_bisInitialized == false)
 	{
 		m_bisInitialized = initDrives();
+		last = ros::Time::now();
+		usleep(100000); //wait some time to ensure (now-last).toSec() isn't too small.
 		//ROS_INFO("...initializing can-nodes...");
 
 		if(m_bisInitialized)
@@ -679,7 +682,9 @@ int main(int argc, char** argv)
 	int rate;
 	nodeClass.n.getParam("cycleRate", rate);
  	ROS_INFO("set can querry rate to %i hz", rate);
-	ros::Rate loop_rate(rate); // Hz 
+	ros::Rate loop_rate(rate); // Hz
+	nodeClass.last = ros::Time::now();
+	nodeClass.now = ros::Time::now();
 	if(nodeClass.autoInit)
 	{
 		nodeClass.can_init();
@@ -691,8 +696,10 @@ int main(int argc, char** argv)
 		nodeClass.publish_JointStates();
 		nodeClass.sendVelCan();
 		loop_rate.sleep();
-		if(nodeClass.m_bisInitialized) nodeClass.m_CanCtrlPltf->timeStep();	
 		ros::spinOnce();
+		nodeClass.now = ros::Time::now();
+		if(nodeClass.m_bisInitialized) nodeClass.m_CanCtrlPltf->timeStep( (nodeClass.now - nodeClass.last).toSec() );
+		nodeClass.last = nodeClass.now;
 	}
 
 	return 0;
