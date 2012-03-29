@@ -1,7 +1,17 @@
 <?xml version="1.0"?>
 <launch>
-
+	<arg name="topicJointName" default="/joint_states"/>
+	<arg name="topicJointCmd" default="joint_command"/>
+	<arg name="topicOdom" default="odometry"/>
+	<arg name="topicCmdVel" default="command" />
+	<arg name="topicEmergencyState" default="/emergency_stop_state" />
 	<!-- start undercarriage ctrlr -->
-<node pkg="cob_undercarriage_ctrl" type="cob_undercarriage_ctrl_node" name="undercarriage_ctrl_node" respawn="false" output="screen"/>
+	<node pkg="cob_undercarriage_ctrl" type="cob_undercarriage_ctrl_node" name="undercarriage_ctrl_node" respawn="false" output="screen">
+		<remap from="state" to="$(arg topicJointName)"/>
+		<remap from="joint_command" to="$(arg topicJointCmd)"/>
+		<remap from="odometry" to="$(arg topicOdom)"/>
+		<remap from="command" to="$(arg topicCmdVel)"/>
+		<remap from="/emergency_stop_state" to="$(arg topicEmergencyState)"/>
+	</node>
 
 </launch>

@@ -1,78 +1,80 @@
-/****************************************************************
+/*********************************************************************
+ * Software License Agreement (BSD License)
  *
- * Copyright (c) 2010
+ *  Copyright (c) 2011, Neobotix GmbH
+ *  All rights reserved.
  *
- * Fraunhofer Institute for Manufacturing Engineering	
- * and Automation (IPA)
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
  *
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Neobotix nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
  *
- * Project name: care-o-bot
- * ROS stack name: cob_driver
- * ROS package name: cob_canopen_motor
- * Description:
- *								
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
- * Author: Christian Connette, email:christian.connette@ipa.fhg.de
- * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
- *
- * Date of creation: Feb 2009
- * ToDo: - Assign Adsress of digital input for homing switch "iHomeDigIn" via parameters (in evalReceived Message, Line 116).
- *       - Homing Event should be defined by a parameterfile and handed to CanDrive... e.g. via the DriveParam.h (in inithoming, Line 531).
- *		 - Check whether "requestStatus" can/should be done in the class implementing the component
- *
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
- *       Engineering and Automation (IPA) nor the names of its
- *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
- * License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
- * If not, see <http://www.gnu.org/licenses/>.
- *
- ****************************************************************/
-
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 #ifndef CANDRIVEHARMONICA_INCLUDEDEF_H
 #define CANDRIVEHARMONICA_INCLUDEDEF_H
 
 //-----------------------------------------------
+
 #include <cob_canopen_motor/CanDriveItf.h>
+#include <cob_generic_can/stdDef.h>
+
 #include <cob_utilities/TimeStamp.h>
 
-#include <cob_canopen_motor/SDOSegmented.h>
-#include <cob_canopen_motor/ElmoRecorder.h>
+#include <cob_utilities/IniFile.h>
+
+#include <cob_utilities/MathSup.h>
+
 //-----------------------------------------------
 
+// ElmoMC values
+
+// HomeEvent
+// 3 high transition of index pulse
+// 4 low transition of index pulse
+// 5/6 event according to defined FLS switch
+// 7/8 event according to defined RLS switch
+// 9/10 event according to defined DIN1 switch
+// 11/12 event according to defined DIN2 switch ...
+// 1000 homing with Neobotix variable block width ring
+// 1001 start calibration run for block width ring
+
+// InputPort
+// 0 - 5 general purpose input 0 - 5
+// 6 main home switch
+// 7 aux home switch
+// 10 (1024) Forward limit switch
+// 11 (2048) Reverse limit switch
+
 /**
- * Driver class for the motor drive of type Harmonica.
+ * Driver class for the motor drive of type Harmonica of ElmoMC.
  * \ingroup DriversCanModul	
  */
 class CanDriveHarmonica : public CanDriveItf
 {
 public:
-	// ------------------------- Types
+
 	/**
 	 * Internal parameters.
 	 */
@@ -80,71 +82,70 @@ public:
 	{
 		int iNumRetryOfSend;
 		int iDivForRequestStatus;
-		double dCanTimeout;	
-	};
-
-	/**
-	 * States of the drive.
-	 */
-	enum StateHarmonica
-	{
-		ST_PRE_INITIALIZED,
-		ST_OPERATION_ENABLED,
-		ST_OPERATION_DISABLED,
-		ST_MOTOR_FAILURE
+		double dCANTimeout;
+		double dCycleTime;
 	};
 
 	/**
 	 * Identifier of the CAN messages.
 	 */
-	struct ParamCanOpenType
+	struct ParamCANopenID
 	{
 		int iTxPDO1;
+		int iRxPDO1;
 		int iTxPDO2;
 		int iRxPDO2;
+		int iTxPDO3;
+		int iRxPDO3;
+		int iTxPDO4;
+		int iRxPDO4;
 		int iTxSDO;
 		int iRxSDO;
 	};
 
-	// ------------------------- Interface
+
+	/**
+	 *
+	 */
+	CanDriveHarmonica();
+
+	/**
+	 *
+	 */
+	~CanDriveHarmonica() { }
+
 	/**
 	 * Sets the CAN interface.
 	 */
 	void setCanItf(CanItf* pCanItf){ m_pCanCtrl = pCanItf; }
 
+	/*
+	 * Sets the control_type:
+	 */
+	bool setTypeMotion(int iType = 2);
+	/**
+	 * Sets the time between can calls
+	 */
+	void setCycleTime(double time);
 	/**
 	 * Initializes the driver.
 	 * Call this function once after construction.
 	 */
-	bool init();
+	bool init(bool bZeroPosCnt);
 
 	/**
-	 * Check if the driver is already initialized.
-	 * This is necessary if a drive gets switched off during runtime.
-	 * @return true if initialization occured already, false if not.
-	 */
-	bool isInitialized() { return m_bIsInitialized; }
-			
-	/**
 	 * Enables the motor.
-	 * After calling the drive accepts velocity and position commands.
 	 */
 	bool start();
 
 	/**
 	 * Disables the motor.
-	 * After calling the drive won't accepts velocity and position commands.
 	 */
-	bool stop();
-	/**
-	 * Resets the drive.
-	 * The drive changes into the state after initializaton.
-	 */
-	bool reset();
+	void stop();
 
 	/**
-	 * Shutdown the motor.
-	 */	 
+	 * Shuts down the motor.
+	 */
 	bool shutdown();
 
 	/**
@@ -153,43 +154,51 @@ public:
 	 * because brakes are released upon power on and
 	 * shut only at emergency stop.
 	 */
-	bool disableBrake(bool bDisabled);
+	bool disableBrake(bool bDisabled) { return true; }
 
 	/**
-	 * Inits homing procedure.
+	 * Starts homing procedure. Used only in position mode.
 	 */
-	bool initHoming();
+	bool prepareHoming();
 
 	/**
-	 * Performs homing procedure.
+	 * Initializes ElmoMC amplifier with homing parameters
+	 * Returns always true
+	 */
+	bool initHoming(bool keepDriving);
+
+	/**
+	 * home event = 1001: starts block width ring calibration run, returns true
+	 * home event = 1000: starts block width ring homing, returns false on timeout
+	 * hoem event other: starts limit switch homing, returns true
 	 */
 	bool execHoming();
-	
+
 	/**
-	 * Performs homing procedure
-	 * Drives wheel in neutral Position for Startup.
+	 * Waits until limit switch of homing is active.
+	 * Returns false on timeout.
 	 */
-	bool endHoming();
+	bool isHomingFinished(bool waitTillHomed);
+
+	/**
+	 *
+	 */
+	void exitHoming(double t, bool keepDriving);
+
+	/**
+	 *
+	 */
+	void initWatchdog();
+
+	/**
+	 *
+	 */
+	void setModuloCount(double min, double max);
 
 	/**
 	 * Returns the elapsed time since the last received message.
 	 */
 	double getTimeToLastMsg();
-
-	/**
-	 * Returns the status of the limit switch needed for homing.
-	 * true = limit switch is reached; false = not reached
-	 */
-	bool getStatusLimitSwitch();
-
-	/**
-	 * Starts the watchdog.
-	 * The Harmonica provides watchdog functionality which means the drive stops if the watchdog
-	 * becomes active. To keep the watchdog inactive a heartbeat message has to be sent
-	 * periodically. The update rate is set to 1s.
-	 * The update is done in function setGearVelRadS().
-	 */
-	bool startWatchdog(bool bStarted);
 
 	/**
 	 * Evals a received message.
@@ -199,61 +208,37 @@ public:
 	bool evalReceivedMsg(CanMsg& msg);
 
 	/**
-	 * Evals received messages in OBJECT mode.
-	 * @todo To be implemented!
-	 */
-	bool evalReceivedMsg() { return true; }
-
-
-	/**
 	 * Sets required position and veolocity.
 	 * Use this function only in position mode.
 	 */
-	void setGearPosVelRadS(double dPosRad, double dVelRadS);
+	bool setWheelPosVel(double dPos, double dVel, bool bBeginMotion, bool bUsePosMode);
 
 	/**
 	 * Sets the velocity.
 	 * By calling the function the status is requested, too.
 	 */
-	void setGearVelRadS(double dVelEncRadS);
-
-	/**
-	 * Sets the motion type drive.
-	 */
-	bool setTypeMotion(int iType);
+	bool setWheelVel(double dVel, bool bQuickStop, bool bBeginMotion);
 
 	/**
 	 * Returns the position and the velocity of the drive.
 	 */
-	void getGearPosVelRadS(double* pdAngleGearRad, double* pdVelGearRadS);
+	void getWheelPosVel(double* pdAngWheel, double* pdVelWheel);
 
 	/**
 	 * Returns the change of the position and the velocity.
 	 * The given delta position is given since the last call of this function.
 	 */
-	void getGearDeltaPosVelRadS(double* pdDeltaAngleGearRad, double* pdVelGearRadS);
+	void getWheelDltPosVel(	double* pdDltAngWheel, double* pdVelWheel);
 
 	/**
 	 * Returns the current position.
 	 */
-	void getGearPosRad(double* pdPosGearRad);
-
-	/**
-	 * Sets the drive parameter.
-	 */
-	void setDriveParam(DriveParam driveParam) { m_DriveParam = driveParam; }
+	void getWheelPos(double* pdPosWheel);
 
 	/**
 	 * Returns true if an error has been detected.
 	 */
-	bool isError();
-	
-	/**
-	 * Return a bitfield containing information about the pending errors.
-	 */
-	unsigned int getError() { return 0; }
-
-	// ------ Dummy implementations for completing the interface
+	bool isError(int* piDigIn);
 
 	/**
 	 * Dummy implementation for completing CanDriveItf.
@@ -261,125 +246,65 @@ public:
 	void requestPosVel();
 
 	/**
-	 * Requests status :) checks whether motor is operational, switched off or in error state.
-	 * If motor is in which error state it checks which error occured
+	 * Dummy implementation for completing CanDriveItf.
 	 */
 	void requestStatus();
 
 	/**
-	 * Dummy implementation for completing CanDriveItf.
+	 * Returns position, velocity and status
 	 */
-	void getStatus(int* piStatus, int* piTempCel) { *piStatus = 0; *piTempCel = 0; }
-
-
-	// ------------------------- Interface: Harmonica specific
-	/**
-	 * Default constructor.
-	 */
-	CanDriveHarmonica();
+	void getData(	double* pdPosWheelRad, double* pdVelWheelRadS,
+					int* piTorqueCtrl, int* piStatus);
 
 	/**
-	 * Returns some received values from the drive.
-	 * @deprecated use the other functions instead.
-	 * @param pdPosGearRad position of the drive
-	 * @param pdVelGearRadS velocity of the drive
-	 * @param piTorqueCtrl torque 
-	 * @param piStatusCtrl
+	 * Returns the drives status
 	 */
-	void getData(double* pdPosGearRad, double* pdVelGearRadS,
-		int* piTorqueCtrl, int* piStatusCtrl);
+	void getStatus(	int* piStatus, 
+					int* piCurrentMeasPromille,
+					int* piTempCel);
 
 	/**
-	 * Sets the CAN identifiers of the drive node.
-	 * @param iTxPDO1 first transmit process data object
-	 * @param iTxPDO2 second transmit process data object
-	 * @param iRxPDO2 second receive process data object
-	 * @param iTxSDO transmit service data object
-	 * @param iRxSDO receive service data object
+	 * @param level			0 = low, 1 = high
+	 * @param iNumDigIn		bit number pow 2 of digital input: 1, 2, 4, ...
 	 */
-	void setCanOpenParam( int iTxPDO1, int iTxPDO2, int iRxPDO2, int iTxSDO, int iRxSDO);
+	bool waitOnDigIn(int iLevel, int iNumDigIn, double dTimeOutS);
+
+	/**
+	 * Sets the CAN identifiers of process and service
+	 * data objects
+	 */
+	void setCANId(int iID);
 	
 	/**
 	 * Sends an integer value to the Harmonica using the built in interpreter.
 	 */
-	void IntprtSetInt(int iDataLen, char cCmdChar1, char cCmdChar2, int iIndex, int iData);
-	
-	/**
-	 * Sends a heartbeat to the CAN-network to keep all listening watchdogs sleeping
-	 */
-	void sendHeartbeat();
-	
+	void IntprtSetInt(	int iDataLen,
+						char cCmdChar1, char cCmdChar2,
+						int iIndex,
+						int iData,
+						bool bDelay = false);
 
-	bool setEMStop() {
-		std::cout << "The function setEMStop() is not implemented!!!" << std::endl;
-		return false;
-	}
-	
-	bool resetEMStop() {
-		std::cout << "The function resetEMStop() is not implemented!!!" << std::endl;
-		return false;
-	}
-
-    /**
-	 * Sets MotorTorque in Nm
-	 * By sending this command the status is requested, too
-	 */	
-	void setMotorTorque(double dTorqueNm);
-
-	/**
-	 * Sends Requests for "active current" to motor via CAN
-     *  To read Motor current perform the following:
-     *  1.) request motor current
-     *          m_pW1DriveMotor->requestMotorTorque();
-     *  2.) evaluate Can buffer to read motor current and decode it
-	 *		    evalCanBuffer();
-	 */
-	void requestMotorTorque();
-	
-	/**
-	 * Return member variable m_MotorCurrent
-	 * To update this value call requestMotorCurrent at first
-	 */
-	void getMotorTorque(double* dTorqueNm);
-
-	/**
-	 * Provides several functions for drive information recording purposes using the built in ElmoRecorder, which allows to record drive information at a high frequency. 
-	 * @param iFlag To keep the interface slight, use iParam to command the recorder:
-	 * 0: Configure the Recorder to record the sources Main Speed(1), Main position(2), Active current(10), Speed command(16). With iParam = iRecordingGap you specify every which time quantum (4*90usec) a new data point (of 1024 points in total) is recorded; 
-	 * 1: Query Upload of recorded source (1=Main Speed, 2=Main position, 10=Active Current, 16=Speed command) with iParam and log data to file sParam = file prefix. Filename is extended with _MotorNumber_RecordedSource.log
-	 * 2: Request status of ongoing readout process
-	 * 99: Abort and clear current SDO readout process
-	 * @return 0: Success, 1: Recorder hasn't been configured yet, 2: data collection still in progress
-	 *
-	*/
-	int setRecorder(int iFlag, int iParam = 0, std::string sParam = "/home/MyLog_");
-	
-	
-	//--------------------------
-	//CanDriveHarmonica specific functions (not from CanDriveItf)
-	//--------------------------
 	/**
 	 * Sends a float value to the Harmonica using the built in interpreter.
 	 */
-	void IntprtSetFloat(int iDataLen, char cCmdChar1, char cCmdChar2, int iIndex, float fData);
+	void IntprtSetFloat(int iDataLen,
+						char cCmdChar1, char cCmdChar2,
+						int iIndex,
+						float fData,
+						bool bDelay = false);
 
 	/**
-	 * CANopen: Uploads a service data object (device to master). (in expedited transfer mode, means in only one message)
+	 * Uploads a service data object.
 	 */
 	void sendSDOUpload(int iObjIndex, int iObjSub);
-	
-    /**
-	 * CANopen: This protocol cancels an active segmented transmission due to the given Error Code
-	 */
-    void sendSDOAbort(int iObjIndex, int iObjSubIndex, unsigned int iErrorCode);
 
 	/**
-	 * CANopen: Downloads a service data object (master to device). (in expedited transfer mode, means in only one message)
+	 * Downloads a service data object.
 	 */
-	void sendSDODownload(int iObjIndex, int iObjSub, int iData);
+	void sendSDODownload(int iObjIndex, int iObjSub, int iData, bool bDelay = false);
 	
 	/**
-	 * CANopen: Evaluates a service data object and gives back object and sub-object ID
+	 * Evaluats a service data object.
 	 */
 	void evalSDO(CanMsg& CMsg, int* pIndex, int* pSubindex);
 	
@@ -387,116 +312,63 @@ public:
 	 * Internal use.
 	 */
 	int getSDODataInt32(CanMsg& CMsg);
-	
-    
-protected:
-	// ------------------------- Parameters
-	ParamCanOpenType m_ParamCanOpen;
-	DriveParam m_DriveParam;
-	bool m_bLimitSwitchEnabled;
+
+	/**
+	*	true: informs that the motor current limit is reached
+	*/
+	bool isCurrentLimit () { return m_bCurrentLimitOn; };
+
+
+
+private:
+	int last_pose_incr;
+	bool critical_state;
+
+	ParamCANopenID m_ParamCANopen;
 	ParamType m_Param;
 
-	// ------------------------- Variables
 	CanItf* m_pCanCtrl;
 	CanMsg m_CanMsgLast;
 
-	ElmoRecorder* ElmoRec;
-
-	int m_iTypeMotion;
 	int m_iStatusCtrl;
-	int	m_iTorqueCtrl;
+	int m_iDigIn;
 
-	TimeStamp m_CurrentTime;
-	TimeStamp m_WatchdogTime;
-	TimeStamp m_VelCalcTime;
-	TimeStamp m_FailureStartTime;
+	double m_dWatchdogTime;
 	TimeStamp m_SendTime;
-	TimeStamp m_StartTime;
 
-	double m_dAngleGearRadMem;
-	double m_dVelGearMeasRadS;
-	double m_dPosGearMeasRad;
-
-	bool m_bLimSwLeft;
-	bool m_bLimSwRight;
-
-	double m_dOldPos;
-
-	std::string m_sErrorMessage;
+	double m_dAngleWheelRadMem;
+	double m_dPosWheelMeasRad;
+	double m_dLastPos;
+	double m_dLastVel;
+	double m_dVelWheelMeasRadS;
+	int m_iCurrentMeasPromille; // units are promille of rated current
 
 	int m_iMotorState;
 	int m_iNewMotorState;
-
-	int m_iCountRequestDiv;
+	int m_iCommState;
 
 	bool m_bCurrentLimitOn;
 
-	int m_iNumAttempsRecFail;
-
-	bool m_bOutputOfFailure;
-
-	bool m_bIsInitialized;
-
-	double m_dMotorCurr;
-
-	bool m_bWatchdogActive;
-
-	segData seg_Data;
-
-
-	// ------------------------- Member functions
-	double estimVel(double dPos);
-
+	/**
+	 *
+	 */
 	bool evalStatusRegister(int iStatus);
-	void evalMotorFailure(int iFailure);
-	
-	int m_iPartnerDriveRatio;
-	int m_iDistSteerAxisToDriveWheelMM;
-
-	bool isBitSet(int iVal, int iNrBit)
-	{
-		if( (iVal & (1 << iNrBit)) == 0)
-			return false;
-		else
-			return true;
-	}
 
 	/**
-	 * CANopen: Answer a data mesage during a segmented SDO transfer including a toggling bit. Current toggle bit is stored in the SDOSegmented container.
-	 * Function is called, when any SDO transfer segment is received (by receivedSDODataSegment)
+	 * If a motor error occured the member variable m_iStatusCtrl is set and a error
+	 * is printed. The error enumeration is defined in CanDriveItf.h.
 	 */
-	void sendSDOUploadSegmentConfirmation(bool toggleBit);
-    
-    /**
-	 * CANopen: Segment data is stored to the SDOSegmented container.
-	 * Function is called, when a segment during a segmented SDO transfer is received (by evalReceivedMsg). It analyzes the SDO transfer header to see, if the transfer is finished. If it's not finished, sendSDOUploadSegmentConfirmation is called to confirm the receive of the current segment and request the next one. 
-	 * -Currently only used for Elmo Recorder read-out
-	 * @see evalReceivedMsg()
-	 * @see sendSDOUploadSegmentConfirmation()
-	 * @see finishedSDOSegmentedTransfer()
-	 */
-	int receivedSDODataSegment(CanMsg& msg);
+	void printMotorFailure(int iFailure);
 
 	/**
-	 * CANopen: Evaluates a service data object and gives back object and sub-object ID.
-	 * Function is called, when a SDO initialize transfer segment is received (by evalReceivedMsg)
-	 * @see evalReceivedMsg()
+	 *
 	 */
-	int receivedSDOSegmentedInitiation(CanMsg& msg);
-    
-    /**
-	 * CANopen: Function is called by evalReceivedMsg when the current segmented SDO transfer is cancelled with an error code.
-	 * @see evalReceivedMsg()
-	 */
-	void receivedSDOTransferAbort(unsigned int iErrorCode);
-    
-    /**
-	 * CANopen: Give the collected data of a finished segmented SDO transfer to an appropriate (depending on the current object ID) processing function.
-	 * Function is called by receivedSDODataSegment, when the transfer is finished. 
-	 * Currently, only Elmo Recorder data is uploaded segmented and is processed here.
-	 * @see receivedSDODataSegment()
-	 */
-	void finishedSDOSegmentedTransfer();
+	bool execBlockWidthMeas();
+
+	//LogFile m_LogCAN;
+	//LogFile m_LogCANMsg;
+
+	int m_iDivStatus;
 
 };
 //-----------------------------------------------

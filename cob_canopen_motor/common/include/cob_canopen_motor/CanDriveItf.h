@@ -1,55 +1,36 @@
-/****************************************************************
+/*********************************************************************
+ * Software License Agreement (BSD License)
  *
- * Copyright (c) 2010
+ *  Copyright (c) 2011, Neobotix GmbH
+ *  All rights reserved.
  *
- * Fraunhofer Institute for Manufacturing Engineering	
- * and Automation (IPA)
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
  *
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Neobotix nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
  *
- * Project name: care-o-bot
- * ROS stack name: cob_driver
- * ROS package name: cob_canopen_motor
- * Description:
- *								
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
- * Author: Christian Connette, email:christian.connette@ipa.fhg.de
- * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
- *
- * Date of creation: Feb 2009
- * ToDo:
- *
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
- *       Engineering and Automation (IPA) nor the names of its
- *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
- * License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
- * If not, see <http://www.gnu.org/licenses/>.
- *
- ****************************************************************/
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 
 #ifndef CANDRIVEITF_INCLUDEDEF_H
@@ -58,7 +39,7 @@
 //-----------------------------------------------
 #include <cob_generic_can/CanItf.h>
 #include <cob_canopen_motor/DriveParam.h>
-#include <cob_canopen_motor/SDOSegmented.h>
+#include <cob_generic_can/stdDef.h>
 //-----------------------------------------------
 
 /**
@@ -68,15 +49,58 @@
 class CanDriveItf
 {
 public:
+
+	enum DriveErrors
+	{
+		DRIVE_NO_ERROR = 0x00000000,
+		DRIVE_FEEDBACK_LOSS = 0x00000001,
+		DRIVE_PEAK_CURRENT_EXCEEDED = 0x00000002,
+		DRIVE_INHIBIT = 0x00000004,
+		DRIVE_HALL_ERROR = 0x00000008,
+		DRIVE_SPEED_TRACK_ERROR = 0x00000010,
+		DRIVE_POS_TRACK_ERROR = 0x00000020,
+		DRIVE_INCONS_DATABASE = 0x00000040,
+		DRIVE_HEARTBEAT_FAIL = 0x00000080,
+		ELOMC_SERVO_DRIVE_FAULT = 0x00000100,
+		DRIVE_UNDER_VOLTAGE = 0x00000200,
+		DRIVE_OVER_VOLTAGE = 0x00000400,
+		DRIVE_SHORT_CIRCUIT = 0x00000800,
+		DRIVE_OVER_TEMP = 0x00001000,
+		DRIVE_ELECTRICAL_ZERO_NOT_FOUND = 0x00002000,
+		DRIVE_SPEED_LIMIT_EXCEEDED = 0x00004000,
+		DRIVE_MOTOR_STUCK = 0x00008000,
+		DRIVE_POS_LIMIT_EXCEEDED = 0x00010000
+	};
+
+	/**
+	 * States of the drive.
+	 */
+	enum StateDrive
+	{
+		ST_PRE_INITIALIZED,
+		ST_OPERATION_ENABLED,
+		ST_OPERATION_DISABLED,
+		ST_MOTOR_FAILURE
+	};
+
 	/**
 	 * Motion type of the controller.
 	 */
 	enum MotionType
 	{
 		MOTIONTYPE_VELCTRL,
-        MOTIONTYPE_TORQUECTRL,
 		MOTIONTYPE_POSCTRL
 	};
+
+	enum StopType
+	{
+		NORMAL_STOP = false,
+		QUICK_STOP = true
+	};
+
+
+	virtual void setCycleTime(double dt) = 0;
+
 
 	/**
 	 * Sets the CAN interface.
@@ -87,14 +111,7 @@ public:
 	 * Initializes the driver.
 	 * Call this function once after construction.
 	 */
-	virtual bool init() = 0;
-	
-	/**
-	 * Check if the driver is already initialized.
-	 * This is necessary if a drive gets switched off during runtime.
-	 * @return true if initialization occured already, false if not.
-	 */
-	virtual bool isInitialized() = 0;
+	virtual bool init(bool bZeroPosCnt) = 0;
 
 	/**
 	 * Enables the motor.
@@ -103,16 +120,14 @@ public:
 	virtual bool start() = 0;
 
 	/**
-	 * Disables the motor.
-	 * After calling the drive won't accepts velocity and position commands.
+	 * Stops the motor after ramping down.
 	 */
-	virtual bool stop() = 0;
+	virtual void stop() { }
 
 	/**
-	 * Resets the drive.
-	 * The drive changes into the state after initializaton.
+	 * Sends halt to drive - hard stop e.g. after error
 	 */
-	virtual bool reset() = 0;
+	virtual void halt() { }
 
 	/**
 	 * Shutdowns the motor.
@@ -128,36 +143,23 @@ public:
 	virtual bool disableBrake(bool bDisabled) = 0;
 
 	/**
-	 * Inits homing procedure.
+	 * Starts homing procedure.
 	 * Used only in position mode.
 	 */
-	virtual bool initHoming() = 0;
-
-	/**
-	 * Performs homing procedure.
-	 * Used only in position mode.
-	 */
+	virtual bool prepareHoming() = 0;
+	virtual bool initHoming(bool keepDriving = false) = 0;
 	virtual bool execHoming() = 0;
+	virtual bool isHomingFinished(bool waitTillHomed = true) = 0;
+	virtual void exitHoming(double t, bool keepDriving = false) = 0;
+
+	virtual void initWatchdog() = 0;
+
+	virtual void setModuloCount(double min, double max) { }
 
 	/**
 	 * Returns the elapsed time since the last received message.
 	 */
 	virtual double getTimeToLastMsg() = 0;
-
-	/**
-	 * Returns the status of the limit switch needed for homing.
-	 * true = limit switch is reached; false = not reached
-	 */
-	virtual bool getStatusLimitSwitch() = 0;
-
-	/**
-	 * Starts the watchdog.
-	 * The Harmonica provides watchdog functionality which means the drive stops if the watchdog
-	 * becomes active. To keep the watchdog inactive a heartbeat message has to be sent
-	 * periodically. The update rate is set to 1s.
-	 * The update is is done in function setGearVelRadS().
-	 */
-	virtual bool startWatchdog(bool bStarted) = 0;
 
 	/**
 	 * Evals a received message.
@@ -167,24 +169,28 @@ public:
 	virtual bool evalReceivedMsg(CanMsg& msg) = 0;
 
 	/**
-	 * Evals received messages in OBJECT mode.
-	 * The CAN drives have to implement which identifiers they are interested in.
-	 * @return true on success, false on failure.
+	 * Sets the drives position and veolocity.
+	 * If using ElmoMC amplifier and dVel = 0 and the drive is in user mode 5 (position control)
+	 * the amplifier will use its own trajectory generator to reach dPos.
+	 * If dVel != 0 only the velocity is set.
+	 * By calling the function the status is requested, too.
+	 * @param dPos				commanded position
+	 * @param dVel				commanded velocity
+	 * @param bBeginMotion		set true if motion should start instantly else use group ID
+	 *							of all drives to start motion
+	 * @param bUsePosMode		use position mode of amplifier of velocity command = 0
 	 */
-	virtual bool evalReceivedMsg() = 0;
+	virtual bool setWheelPosVel(double dPos, double dVel, bool bBeginMotion, bool bUsePosMode) = 0;
 
 	/**
-	 * Sets required position and veolocity.
-	 * Use this function only in position mode.
-	 * By calling the function the status is requested, too.
+	 * Sets the drives velocity.
+	 * By calling the function the status is also requested.
+	 * @param dVel				velocity in [rad/s]
+	 * @param bQuickStop		set true if a quick stop is commanded
+	 * @param bBeginMotion		set true if motion should start instantly else use group ID
+	 *							of all drives to start motion
 	 */
-	virtual void setGearPosVelRadS(double dPosRad, double dVelRadS) = 0;
-
-	/**
-	 * Sets the velocity.
-	 * By calling the function the status is requested, too.
-	 */
-	virtual void setGearVelRadS(double dVelRadS) = 0;
+	virtual bool setWheelVel(double dVel, bool bQuickStop, bool bBeginMotion) = 0;
 
 	/**
 	 * Sets the motion type drive.
@@ -194,35 +200,28 @@ public:
 	virtual bool setTypeMotion(int iType) = 0;
 
 	/**
-	 * Returns the position and the velocity of the drive.
+	 * Returns the angle and the velocity of the drive.
+	 * Rotation directions are defined as follows:
+	 * Positive wheel angle and velocity is set according to the right hand rule.
+	 * The right hands thumb is aligned to the axis from motor to wheel.
 	 */
-	virtual void getGearPosVelRadS(double* pdAngleGearRad, double* pdVelGearRadS) = 0;
+	virtual void getWheelPosVel(double* pdAngWheel, double* pdVelWheel) = 0;
 
 	/**
 	 * Returns the change of the position and the velocity.
 	 * The given delta position is given since the last call of this function.
 	 */
-	virtual void getGearDeltaPosVelRadS(double* pdDeltaAngleGearRad, double* pdVelGearRadS) = 0;
+	virtual void getWheelDltPosVel(	double* pdDltAngleWheel, double* pdVelWheel) = 0;
 
 	/**
-	 * Returns the current position.
+	 * Returns the current wheel position.
 	 */
-	virtual void getGearPosRad(double* pdPosGearRad) = 0;
-
-	/**
-	 * Sets the drive parameter.
-	 */
-	virtual void setDriveParam(DriveParam driveParam) = 0;
+	virtual void getWheelPos(double* pdPosWheel) = 0;
 
 	/**
 	 * Returns true if an error has been detected.
 	 */
-	virtual bool isError() = 0;
-	
-	/**
-	 * Return a bitfield containing information about the pending errors.
-	 */
-	virtual unsigned int getError() = 0;
+	virtual bool isError(int* piDigIn) = 0;
 
 	/**
 	 * Requests position and velocity.
@@ -237,47 +236,25 @@ public:
 	/**
 	 * Returns the measured temperature. 
 	 */
-	virtual void getStatus(int* piStatus, int* piTempCel) = 0;
+	virtual void getStatus(	int* piStatus,
+							int* piCurrentMeasPromille,
+							int* piTempCel) = 0;
 
 	/**
-	 * Enable the emergency stop.
+	 *
 	 */
-	virtual bool setEMStop() = 0;
+	virtual bool waitOnDigIn(int iLevel, int iDigIn, double timeout) { return true; }
 
-	/**
-	 * Disable the emergency stop.
-	 */
-	virtual bool resetEMStop() = 0;
+	/*
+	*	if true: motor has reached the current limit
+	*/
+	virtual bool isCurrentLimit() { return false; }
 
-	/**
-	 * Sends an integer value to the Harmonica using the built in interpreter. cpc-kischa
-	 */
-	virtual void IntprtSetInt(int iDataLen, char cCmdChar1, char cCmdChar2, int iIndex, int iData) = 0;
+public:
 
-    /**
-     *Provides several functions for drive information recording purposes. By now, only implemented for the Elmo-recorder. cpc-pk
-     */
-    virtual	int setRecorder(int iFlag, int iParam = 0, std::string sParam = "/home/MyLog") = 0;
+	DriveParam m_DriveParam;
 
-	/**
-	 * Sends Requests for "active current" to motor via CAN
-	 */
-	virtual void requestMotorTorque() = 0;
-	
-	/**
-	 * Returns member variable m_MotorCurrent
-	 * To update this value call requestMotorCurrent before
-	 * and evaluate CAN buffer, or wait one cycle
-	 */
-	virtual void getMotorTorque(double* dTorqueNm) = 0;
-    
-    /**
-     * Sends command for motor Torque (in Nm)
-     */
-    virtual void setMotorTorque(double dTorqueNm) = 0;
 };
-
 
 //-----------------------------------------------
 #endif
-

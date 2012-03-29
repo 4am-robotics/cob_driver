@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="wrap_type" default="0" /> 
+	<param name="wrap_type" value="$(arg wrap_type)" /> 
+	<arg name="topic_from" default="from" /> 
+	<arg name="topic_to" default="to" /> 
+	<!-- start relayboard node -->
+	<node pkg="cob_base_drive_chain" type="pr2_controller_msgs_wrapper_node" name="msg_wrapper" respawn="false" output="screen">
+		<remap from="from" to="$(arg topic_from)"/>
+		<remap from="to" to="$(arg topic_to)"/>
+	</node>
+
+</launch>
+
+
+

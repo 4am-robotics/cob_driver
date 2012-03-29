@@ -1,28 +1,23 @@
 <package>
   <description brief="cob_base_drive_chain">
 
-     This package contains classes that are able to control the platform of the Care-O-Bot. This means to establish a CAN communication to drive and steering motors of the platform and later send motion commands and receive motor information.
+     cob_base_drive_chain
 
   </description>
-  <author>Christian Connette</author>
-  <license>LGPL</license>
+  <author>Christian Connette, Ulrich Reiser, Timo Hackel</author>
+  <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_base_drive_chain</url>
-
-  <!-- Dependencies from other packages or external libs-->
+  <depend package="cob_canopen_motor"/>
   <depend package="roscpp"/>
   <depend package="sensor_msgs"/>
   <depend package="diagnostic_msgs"/>
   <depend package="pr2_controllers_msgs"/>
+  <depend package="trajectory_msgs"/>
   <depend package="cob_srvs"/>
-  <depend package="cob_generic_can"/>
-  <depend package="cob_canopen_motor"/>
-  <depend package="cob_utilities"/>
-  <depend package="libpcan"/>
-
-  <!-- As we deviate from the standard ROS Repository-Structure we have to tell ROS where to find header and lib -->
   <export>
-    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_base_drive_chain"/>
+    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lcob_base_drive_chain"/>
   </export>
-
 </package>
+
+
