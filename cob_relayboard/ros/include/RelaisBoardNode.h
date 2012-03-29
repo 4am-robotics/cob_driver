@@ -120,6 +120,7 @@ class RelaisBoardNode
 		int init();
 		int requestBoardStatus();
 		double getRequestRate();
+		void readConfig(int protocol_version_);
 
 	private:
 		int activeModule[6]; //are the modules available (else ther won't be any datastreaming);

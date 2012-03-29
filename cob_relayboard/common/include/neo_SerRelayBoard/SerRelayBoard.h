@@ -39,8 +39,6 @@
 //-----------------------------------------------
 
 
-#include <ros/ros.h>
-
 #include <neo_SerRelayBoard/SerialIO.h>
 #include <neo_SerRelayBoard/Mutex.h>
 #include <neo_SerRelayBoard/StrUtil.h>
@@ -48,7 +46,8 @@
 #include <neo_SerRelayBoard/CanMsg.h>
 #include <neo_SerRelayBoard/CmdRelaisBoard.h>
 //#include <neo_SerRelayBoard/IniFile.h>
-
+#include <vector>
+#include <boost/array.hpp>
 
 //-----------------------------------------------
 
@@ -59,7 +58,7 @@
 class SerRelayBoard
 {
 public:
-	SerRelayBoard(int iTypeLCD, ros::NodeHandle* n);
+	SerRelayBoard();
 	//SerRelayBoard(int iTypeLCD, std::string pathToConf="../depreciatedConfig/"); //Deprecated
 	~SerRelayBoard();
 
@@ -72,6 +71,10 @@ public:
 	bool isDriveError();
 	bool isEMStop();
 	bool isScannerStop();
+	void readConfig(	int iTypeLCD,std::string pathToConf, std::string sNumComPort, 	int hasMotorRight, 
+				int hasMotorLeft, int hasIOBoard, int hasUSBoard, int hasRadarBoard, int hasGyroBoard, 
+				double quickfix1, double quickfix2, DriveParam driveParamLeft, DriveParam driveParamRight
+	);
 	//new Syntax: 
 	int sendRequest(); //sends collected data and requests response (in the Old version this was done by: setWheelVel() or setWheelPosVel();
 
@@ -212,8 +215,6 @@ public:
 	};
 
 protected:
-	ros::Time m_CurrTime, m_LastTime;
-	
 	std::string m_sNumComPort;
 
 	DriveParam m_DriveParamLeft, m_DriveParamRight;
@@ -320,8 +321,6 @@ protected:
 	 */
 	bool convRecMsgToData(unsigned char cMsg[]);
 private:
-	void setStartValues(int lcdType, std::string pathToConf="");
-	ros::NodeHandle* node;
 	bool autoSendRequest;
 	double quickFix[2]; //TODO: quick and dirty odometry fix (rostopic echo /odom)
 };
