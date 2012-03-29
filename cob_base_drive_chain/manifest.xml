@@ -4,7 +4,7 @@
      cob_base_drive_chain
 
   </description>
-  <author>Timo Hackel</author>
+  <author>Christian Connette, Ulrich Reiser, Timo Hackel</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_base_drive_chain</url>

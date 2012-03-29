@@ -59,12 +59,12 @@
 #define NEO_PI 3.14159265358979323846
 #define DEG2RAD(x) NEO_PI/180 * x
 
-SerRelayBoard::SerRelayBoard(int iTypeLCD, ros::NodeHandle* n)
-{
-	node = n;
-	autoSendRequest = false;	//requests are being send when calling sendRequest();
-	setStartValues(iTypeLCD);
 
+#define OUTPUTERROR(...)
+
+SerRelayBoard::SerRelayBoard()
+{
+	autoSendRequest = false;	//requests are being send when calling sendRequest();
 }
 
 /*SerRelayBoard::SerRelayBoard(int iTypeLCD, std::string pathToConf)
@@ -74,20 +74,14 @@ SerRelayBoard::SerRelayBoard(int iTypeLCD, ros::NodeHandle* n)
 }
 */
 
-void SerRelayBoard::setStartValues(int iTypeLCD,std::string pathToConf)
+void SerRelayBoard::readConfig(	int iTypeLCD,std::string pathToConf, std::string sNumComPort, 	int hasMotorRight, 
+				int hasMotorLeft, int hasIOBoard, int hasUSBoard, int hasRadarBoard, int hasGyroBoard, 
+				double quickfix1, double quickfix2, DriveParam driveParamLeft, DriveParam driveParamRight
+			)
 {
 	int i, iHasBoard, iHasMotorRight, iHasMotorLeft;
 	m_bComInit = false;
-	int iEncIncrPerRevMot;
-	double dVelMeasFrqHz;
-	double dGearRatio, dBeltRatio;
-	int iSign;
-	bool bHoming;
-	double dHomePos, dHomeVel;
-	int iHomeEvent, iHomeDigIn, iHomeTimeOut;
-	double dVelMaxEncIncrS, dVelPModeEncIncrS;
-	double dAccIncrS2, dDecIncrS2;
-	int iCANId;
+
 
 	//RelayBoard
 	iHasBoard = 0;
@@ -105,35 +99,35 @@ void SerRelayBoard::setStartValues(int iTypeLCD,std::string pathToConf)
 		m_iNumBytesSend = NUM_BYTE_SEND_60CHAR_LCD;
 	}
 
-	node->getParam("ComPort", m_sNumComPort);
+	m_sNumComPort = sNumComPort;
 
-	node->getParam("hasMotorRight", iHasMotorRight);
-	node->getParam("hasMotorLeft", iHasMotorLeft);
+	iHasMotorRight = hasMotorRight;
+	iHasMotorLeft = hasMotorLeft;
 	if( (iHasMotorRight != 0) || (iHasMotorLeft != 0) )
 	{
 		m_iConfigRelayBoard |= CONFIG_HAS_DRIVES;
 	}
 	
-	node->getParam("hasIOBoard", iHasBoard);
+	iHasBoard = hasIOBoard;
 	if(iHasBoard == 1)
 	{
 		m_iConfigRelayBoard |= CONFIG_HAS_IOBOARD;
 	}
 
-	node->getParam("hasUSBoard", iHasBoard);
+	iHasBoard = hasUSBoard;
 	if(iHasBoard == 1)
 	{
 		m_iConfigRelayBoard |= CONFIG_HAS_USBOARD;
 	}
 	
-	node->getParam("hasRadarBoard", iHasBoard);
+	iHasBoard = hasRadarBoard;
 	if(iHasBoard == 1)
 	{
 		m_iConfigRelayBoard |= CONFIG_HAS_RADARBOARD1;
 		m_iConfigRelayBoard |= CONFIG_HAS_RADARBOARD2;
 	}
 
-	node->getParam("hasGyroBoard", iHasBoard);
+	iHasBoard = hasGyroBoard;
 	if(iHasBoard == 1)
 	{
 		m_iConfigRelayBoard |= CONFIG_HAS_GYROBOARD;
@@ -148,71 +142,13 @@ void SerRelayBoard::setStartValues(int iTypeLCD,std::string pathToConf)
 	m_iIOBoardDigOut = 0;
 	for(i = 0; i < 8; i++) { m_iIOBoardAnalogIn[i] = 0; }
 
-	if(node->hasParam("drive1/quickFix")) node->getParam("drive1/quickFix", quickFix[0]);
-	else quickFix[0] = 1;
-	if(node->hasParam("drive2/quickFix")) node->getParam("drive2/quickFix", quickFix[1]);
-	else quickFix[1] = 1;
+	quickFix[0] = quickfix1;
+	quickFix[1] = quickfix2;
 
 	// drive parameters
-	node->getParam("drive1/EncIncrPerRevMot", iEncIncrPerRevMot);
-	node->getParam("drive1/VelMeasFrqHz", dVelMeasFrqHz);
-	node->getParam("drive1/BeltRatio", dBeltRatio);
-	node->getParam("drive1/GearRatio", dGearRatio);
-	node->getParam("drive1/Sign", iSign);
-	node->getParam("drive1/Homing", bHoming);
-	node->getParam("drive1/HomePos", dHomePos);
-	node->getParam("drive1/HomeVel", dHomeVel);
-	node->getParam("drive1/HomeEvent", iHomeEvent);
-	node->getParam("drive1/HomeDigIn", iHomeDigIn);
-	node->getParam("drive1/HomeTimeOut", iHomeTimeOut);
-	node->getParam("drive1/VelMaxEncIncrS", dVelMaxEncIncrS);
-	node->getParam("drive1/VelPModeEncIncrS", dVelPModeEncIncrS);
-	node->getParam("drive1/AccIncrS", dAccIncrS2);
-	node->getParam("drive1/DecIncrS", dDecIncrS2);
-	node->getParam("drive1/CANId", iCANId);
-
-ROS_INFO("CanId %i", iCANId);
-	m_DriveParamLeft.set(	0,
-							iEncIncrPerRevMot,
-							dVelMeasFrqHz,
-							dBeltRatio, dGearRatio,
-							iSign,
-							bHoming, dHomePos, dHomeVel, iHomeEvent, iHomeDigIn, iHomeTimeOut,
-							dVelMaxEncIncrS, dVelPModeEncIncrS,
-							dAccIncrS2, dDecIncrS2,
-							DriveParam::ENCODER_INCREMENTAL,
-							iCANId,
-							false, true );
-						
-	node->getParam("drive2/EncIncrPerRevMot", iEncIncrPerRevMot);
-	node->getParam("drive2/VelMeasFrqHz", dVelMeasFrqHz);
-	node->getParam("drive2/BeltRatio", dBeltRatio);
-	node->getParam("drive2/GearRatio", dGearRatio);
-	node->getParam("drive2/Sign", iSign);
-	node->getParam("drive2/Homing", bHoming);
-	node->getParam("drive2/HomePos", dHomePos);
-	node->getParam("drive2/HomeVel", dHomeVel);
-	node->getParam("drive2/HomeEvent", iHomeEvent);
-	node->getParam("drive2/HomeDigIn", iHomeDigIn);
-	node->getParam("drive2/HomeTimeOut", iHomeTimeOut);
-	node->getParam("drive2/VelMaxEncIncrS", dVelMaxEncIncrS);
-	node->getParam("drive2/VelPModeEncIncrS", dVelPModeEncIncrS);
-	node->getParam("drive2/AccIncrS", dAccIncrS2);
-	node->getParam("drive2/DecIncrS", dDecIncrS2);
-	node->getParam("drive2/CANId", iCANId);
-
-ROS_INFO("CanId %i", iCANId);
-	m_DriveParamRight.set(	1,
-							iEncIncrPerRevMot,
-							dVelMeasFrqHz,
-							dBeltRatio, dGearRatio,
-							iSign,
-							bHoming, dHomePos, dHomeVel, iHomeEvent, iHomeDigIn, iHomeTimeOut,
-							dVelMaxEncIncrS, dVelPModeEncIncrS,
-							dAccIncrS2, dDecIncrS2,
-							DriveParam::ENCODER_INCREMENTAL,
-							iCANId,
-							false, true );
+	
+	m_DriveParamLeft = driveParamLeft;
+	m_DriveParamRight = driveParamRight;
 
 	//
 	m_iVelCmdMotRightEncS = 0;
@@ -440,7 +376,7 @@ int SerRelayBoard::sendRequest()
 		m_Mutex.unlock();
 		return errorFlag;
 	} else {
-		ROS_ERROR("You are running the depreced mode for backward compability, that's why sendRequest is being handled by setWheelVel()");
+		OUTPUTERROR("You are running the depreced mode for backward compability, that's why sendRequest is being handled by setWheelVel()");
 	}
 };
 
@@ -1263,7 +1199,7 @@ bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 
 	if( iCnt >= NUM_BYTE_REC_MAX )
 	{
-		ROS_ERROR("msg size too small");
+		OUTPUTERROR("msg size too small");
 	}
 
 	return true;

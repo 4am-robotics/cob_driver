@@ -60,7 +60,8 @@ int RelaisBoardNode::init()
 
 	current_voltage = 0;
 
-	m_SerRelayBoard = new SerRelayBoard(protocol_version_, &n);
+	m_SerRelayBoard = new SerRelayBoard();
+	readConfig(protocol_version_); //sets config params for the serrelayboard
 	m_SerRelayBoard->init();
 	ROS_INFO("Opened Relayboard at ComPort = %s", sComPort.c_str());
 
@@ -121,6 +122,112 @@ int RelaisBoardNode::init()
 	duration_for_EM_free_ = ros::Duration(1);
 	return 0;
 }
+
+void RelaisBoardNode::readConfig(int protocol_version_)
+{
+	std::string pathToConf = "";
+	int iTypeLCD = protocol_version_;
+	std::string sNumComPort; 	
+	int hasMotorRight;
+	int hasMotorLeft;
+	int hasIOBoard;
+
+	int hasUSBoard;
+	int hasRadarBoard;
+	int hasGyroBoard;
+	double quickfix1;
+	double quickfix2;
+	DriveParam driveParamLeft;
+	DriveParam driveParamRight;
+
+
+	n.getParam("ComPort", sNumComPort);
+	n.getParam("hasMotorRight", hasMotorRight);
+	n.getParam("hasMotorLeft", hasMotorLeft);
+	n.getParam("hasIOBoard", hasIOBoard);
+	n.getParam("hasUSBoard", hasUSBoard);
+	n.getParam("hasRadarBoard", hasRadarBoard);
+	n.getParam("hasGyroBoard", hasGyroBoard);
+
+
+	if(n.hasParam("drive1/quickFix")) n.getParam("drive1/quickFix", quickfix1);
+	else quickfix1 = 1;
+	if(n.hasParam("drive2/quickFix")) n.getParam("drive2/quickFix", quickfix2);
+	else quickfix2 = 1;
+
+
+	int iEncIncrPerRevMot;
+	double dVelMeasFrqHz;
+	double dGearRatio, dBeltRatio;
+	int iSign;
+	bool bHoming;
+	double dHomePos, dHomeVel;
+	int iHomeEvent, iHomeDigIn, iHomeTimeOut;
+	double dVelMaxEncIncrS, dVelPModeEncIncrS;
+	double dAccIncrS2, dDecIncrS2;
+	int iCANId;
+	// drive parameters
+	n.getParam("drive1/EncIncrPerRevMot", iEncIncrPerRevMot);
+	n.getParam("drive1/VelMeasFrqHz", dVelMeasFrqHz);
+	n.getParam("drive1/BeltRatio", dBeltRatio);
+	n.getParam("drive1/GearRatio", dGearRatio);
+	n.getParam("drive1/Sign", iSign);
+	n.getParam("drive1/Homing", bHoming);
+	n.getParam("drive1/HomePos", dHomePos);
+	n.getParam("drive1/HomeVel", dHomeVel);
+	n.getParam("drive1/HomeEvent", iHomeEvent);
+	n.getParam("drive1/HomeDigIn", iHomeDigIn);
+	n.getParam("drive1/HomeTimeOut", iHomeTimeOut);
+	n.getParam("drive1/VelMaxEncIncrS", dVelMaxEncIncrS);
+	n.getParam("drive1/VelPModeEncIncrS", dVelPModeEncIncrS);
+	n.getParam("drive1/AccIncrS", dAccIncrS2);
+	n.getParam("drive1/DecIncrS", dDecIncrS2);
+	n.getParam("drive1/CANId", iCANId);
+	driveParamLeft.set(	0,
+							iEncIncrPerRevMot,
+							dVelMeasFrqHz,
+							dBeltRatio, dGearRatio,
+							iSign,
+							bHoming, dHomePos, dHomeVel, iHomeEvent, iHomeDigIn, iHomeTimeOut,
+							dVelMaxEncIncrS, dVelPModeEncIncrS,
+							dAccIncrS2, dDecIncrS2,
+							DriveParam::ENCODER_INCREMENTAL,
+							iCANId,
+							false, true );
+						
+	n.getParam("drive2/EncIncrPerRevMot", iEncIncrPerRevMot);
+	n.getParam("drive2/VelMeasFrqHz", dVelMeasFrqHz);
+	n.getParam("drive2/BeltRatio", dBeltRatio);
+	n.getParam("drive2/GearRatio", dGearRatio);
+	n.getParam("drive2/Sign", iSign);
+	n.getParam("drive2/Homing", bHoming);
+	n.getParam("drive2/HomePos", dHomePos);
+	n.getParam("drive2/HomeVel", dHomeVel);
+	n.getParam("drive2/HomeEvent", iHomeEvent);
+	n.getParam("drive2/HomeDigIn", iHomeDigIn);
+	n.getParam("drive2/HomeTimeOut", iHomeTimeOut);
+	n.getParam("drive2/VelMaxEncIncrS", dVelMaxEncIncrS);
+	n.getParam("drive2/VelPModeEncIncrS", dVelPModeEncIncrS);
+	n.getParam("drive2/AccIncrS", dAccIncrS2);
+	n.getParam("drive2/DecIncrS", dDecIncrS2);
+	n.getParam("drive2/CANId", iCANId);
+	driveParamRight.set(	1,
+							iEncIncrPerRevMot,
+							dVelMeasFrqHz,
+							dBeltRatio, dGearRatio,
+							iSign,
+							bHoming, dHomePos, dHomeVel, iHomeEvent, iHomeDigIn, iHomeTimeOut,
+							dVelMaxEncIncrS, dVelPModeEncIncrS,
+							dAccIncrS2, dDecIncrS2,
+							DriveParam::ENCODER_INCREMENTAL,
+							iCANId,
+							false, true );
+
+	m_SerRelayBoard->readConfig(	iTypeLCD, pathToConf, sNumComPort, 	hasMotorRight, 
+					hasMotorLeft, hasIOBoard, hasUSBoard, hasRadarBoard, hasGyroBoard, 
+					quickfix1, quickfix2, driveParamLeft, driveParamRight
+			);
+};
 
 int RelaisBoardNode::requestBoardStatus() {
 	int ret;	

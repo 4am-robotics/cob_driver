@@ -45,7 +45,7 @@
 #include <cob_utilities/IniFile.h>
 
 #include <cob_utilities/MathSup.h>
-#include <ros/ros.h>
+
 //-----------------------------------------------
 
 // ElmoMC values
@@ -178,7 +178,7 @@ public:
 	 * Waits until limit switch of homing is active.
 	 * Returns false on timeout.
 	 */
-	bool isHomingFinished();
+	bool isHomingFinished(bool waitTillHomed);
 
 	/**
 	 *
@@ -317,6 +317,8 @@ public:
 	*	true: informs that the motor current limit is reached
 	*/
 	bool isCurrentLimit () { return m_bCurrentLimitOn; };
+
+
 
 private:
 	int last_pose_incr;

@@ -153,7 +153,7 @@ bool CanDriveHarmonica::evalReceivedMsg ( CanMsg& msg )
 		double velComp = ( m_dPosWheelMeasRad - m_dLastPos ) / m_Param.dCycleTime;
 		m_dLastPos = m_dPosWheelMeasRad;
 		m_dVelWheelMeasRadS = m_DriveParam.getSign() * m_DriveParam.convIncrPerPeriodToRadS ( iTemp2 );
-		ROS_DEBUG("vel: %f %f itemp2: %i  %u, canid: %i type: %i, msg %i %i %i %i",m_dVelWheelMeasRadS, velComp ,iTemp2, iTemp2,
+		OUTPUTDEBUG("vel: %f %f itemp2: %i  %u, canid: %i type: %i, msg %i %i %i %i",m_dVelWheelMeasRadS, velComp ,iTemp2, iTemp2,
 			m_DriveParam.getCANId(), msg.m_iType, (unsigned int)  msg.getAt ( 7 ), (unsigned int) msg.getAt ( 6 ), 
 			(unsigned int) msg.getAt ( 5 ) , (unsigned int) msg.getAt ( 4 ));
 		m_iCurrentMeasPromille = 0;
@@ -163,13 +163,14 @@ bool CanDriveHarmonica::evalReceivedMsg ( CanMsg& msg )
 		m_iCurrentMeasPromille = ( ( char ) msg.getAt ( 5 ) << 8 ) | msg.getAt ( 4 );
 		m_iCurrentMeasPromille = abs ( m_iCurrentMeasPromille );
 
+
 		m_dVelWheelMeasRadS = ( m_dPosWheelMeasRad - m_dLastPos ) / m_Param.dCycleTime;
 		m_dLastPos = m_dPosWheelMeasRad;
 
 
 		if( iTemp1 - last_pose_incr > 900000000 || iTemp1 - last_pose_incr < -900000000)  //measurment error due to pos counter overflow
 		{
-			ROS_ERROR("cob_canopen_motor: position counter overflow, size: %i", iTemp1);
+			OUTPUTERROR("cob_canopen_motor: position counter overflow, size: %i", iTemp1);
 			m_dVelWheelMeasRadS = m_dLastVel;
 
 		}
@@ -177,7 +178,7 @@ bool CanDriveHarmonica::evalReceivedMsg ( CanMsg& msg )
 		last_pose_incr = iTemp1;
 
 
-		ROS_DEBUG("vel: %f itemp1: %i, canid: %i type: %i",m_dVelWheelMeasRadS, iTemp1,
+		OUTPUTDEBUG("vel: %f itemp1: %i, canid: %i type: %i",m_dVelWheelMeasRadS, iTemp1,
 			m_DriveParam.getCANId(), msg.m_iType);
 //#endif
 
@@ -243,11 +244,11 @@ bool CanDriveHarmonica::evalReceivedMsg ( CanMsg& msg )
 			                | ( msg.getAt ( 5 ) << 8 ) | ( msg.getAt ( 4 ) );
 
 			printMotorFailure ( iMotorFailure );
-			ROS_DEBUG("motor failure %i ",iMotorFailure);
+			OUTPUTDEBUG("motor failure %i ",iMotorFailure);
 		}
 		else
 		{
-			ROS_DEBUG("unhandeled can-msg of type: %c %c", msg.getAt ( 0 ), msg.getAt ( 1 ));
+			OUTPUTDEBUG("unhandeled can-msg of type: %c %c", msg.getAt ( 0 ), msg.getAt ( 1 ));
 		}
 
 		m_dWatchdogTime = 0;
@@ -256,10 +257,13 @@ bool CanDriveHarmonica::evalReceivedMsg ( CanMsg& msg )
 	// eval answer from SDO
 	else if ( msg.m_iID == m_ParamCANopen.iTxSDO )
 	{
+/*
+TODO: This function overwrites m_dLastPos with wrong value after homing procedure
 		iPosCnt = m_DriveParam.getSign() * getSDODataInt32 ( msg );
 		m_dPosWheelMeasRad = m_DriveParam.convIncrToRad ( iPosCnt );
 		m_dVelWheelMeasRadS = ( m_dPosWheelMeasRad - m_dLastPos ) / m_Param.dCycleTime;
 		m_dLastPos = m_dPosWheelMeasRad;
+*/
 
 		LOGINFO("CanDriveHarmonica: " << m_ParamCANopen.iTxPDO2 << ": pos = " << m_dPosWheelMeasRad);
 
@@ -502,14 +506,18 @@ bool CanDriveHarmonica::prepareHoming()
 			}
 			else
 			{
+				int sign = m_DriveParam.getSign();
 				// try to move out of homing switch
-				//IntprtSetInt ( 8, 'J', 'V', 0, int ( dHomeVel ), true );
-				//IntprtSetInt ( 4, 'B', 'G', 0, 0, true );
+				IntprtSetInt ( 8, 'J', 'V', 0, int ( - dHomeVel ) * sign, true );
+				IntprtSetInt ( 4, 'B', 'G', 0, 0, true );
 			}
 		}
 	}
 	while ( bHomingSwitchActive );
-
+	// stop motor
+	usleep(100000); //wait some time to make sure that limit switch is inactive
+	IntprtSetInt ( 8, 'J', 'V', 0, 0, true );
+	IntprtSetInt ( 4, 'B', 'G', 0, 0, true );
 	return true;
 }
 
@@ -540,18 +548,19 @@ bool CanDriveHarmonica::initHoming(bool keepDriving = false)
 	}
 	else
 	{
-	// after event stop immediately
+		// after event stop immediately
 		IntprtSetInt ( 8, 'H', 'M', 4, 0, true );
 	}
-
+	// arm homing process
+	IntprtSetInt ( 8, 'H', 'M', 1, 1, true );
 	// absolute setting of position counter: PX = HM[2]
 	IntprtSetInt ( 8, 'H', 'M', 5, 0, true );
 
-	// arm homing process
-	IntprtSetInt ( 8, 'H', 'M', 1, 1, true );
+
 
 	return true;
 }
+
 
 
 int getNearest(double num, double cmp[], int iSize, double* pdTol)
@@ -659,9 +668,10 @@ bool CanDriveHarmonica::execHoming()
 	{
 */
 	dHomeVel = m_DriveParam.getHomeVel();
+	int sign = m_DriveParam.getSign();
 
 	// set homing velocity
-	IntprtSetInt ( 8, 'J', 'V', 0, int ( dHomeVel ), true );
+	IntprtSetInt ( 8, 'J', 'V', 0, int ( dHomeVel * sign), true );
 	IntprtSetInt ( 4, 'B', 'G', 0, 0, true );
 
 	LOGINFO ( "drive " << m_DriveParam.getDriveIdent() << " homing started" );
@@ -671,7 +681,7 @@ bool CanDriveHarmonica::execHoming()
 }
 
 //-----------------------------------------------
-bool CanDriveHarmonica::isHomingFinished()
+bool CanDriveHarmonica::isHomingFinished(bool waitTillHomed)
 {
 	bool bHomeTimeOut;
 	bool bLimSwRight;
@@ -717,20 +727,24 @@ bool CanDriveHarmonica::isHomingFinished()
 			bHomeTimeOut = false;
 		}
 	}
-	while ( !bLimSwRight && !bHomeTimeOut );
+	while ( !bLimSwRight && !bHomeTimeOut &&  waitTillHomed);
 
-	if ( !bHomeTimeOut )
+	if ( bLimSwRight )
 	{
 		LOGINFO ( "homing " << m_DriveParam.getDriveIdent() << " ok" );
 
 		return true;
 	}
-	else
+	else if(bHomeTimeOut)
 	{
 		LOGERROR ( "homing " << m_DriveParam.getDriveIdent() << " timeout" );
 		IntprtSetInt ( 8, 'J', 'V', 0, 0, true );
 		IntprtSetInt ( 4, 'B', 'G', 0, 0, true );
 
+		return false;
+	}
+	else
+	{
 		return false;
 	}
 
@@ -765,6 +779,7 @@ void CanDriveHarmonica::exitHoming ( double t, bool keepDriving)
 void CanDriveHarmonica::initWatchdog()
 {
 	LOGINFO ( "drive " << m_DriveParam.getDriveIdent() << " init watchdog" );
+	m_dWatchdogTime = 0; //first reset watchdog on this program layer then start watchdogs on motor drivers
 
 	const int c_iHeartbeatTimeMS = 2000;
 	const int c_iNMTNodeID = 0x00;
@@ -1157,28 +1172,28 @@ bool CanDriveHarmonica::evalStatusRegister ( int iStatus )
 	{
 		if ( ( ( iStatus & 0x0E ) == 2 ) && !MathSup::isBitSet ( m_iStatusCtrl, 18 ) )
 		{
-			ROS_ERROR(" SR-under voltage %i", iNumDrive);
+			OUTPUTERROR(" SR-under voltage %i", iNumDrive);
 			m_iStatusCtrl |= 0x00020000;
 			//critical_state = true;
 		}
 
 		if ( ( ( iStatus & 0x0E ) == 4 ) && !MathSup::isBitSet ( m_iStatusCtrl, 19 ) )
 		{
-			ROS_ERROR( " SR-over voltage %i", iNumDrive );
+			OUTPUTERROR( " SR-over voltage %i", iNumDrive );
 			m_iStatusCtrl |= 0x00040000;
 			critical_state = true;
 		}
 
 		if ( ( ( iStatus & 0x0E ) == 10 ) && !MathSup::isBitSet ( m_iStatusCtrl, 20 ) )
 		{
-			ROS_ERROR( " SR-short circuit %i ", iNumDrive );
+			OUTPUTERROR( " SR-short circuit %i ", iNumDrive );
 			m_iStatusCtrl |= 0x00080000;
 			critical_state = true;
 		}
 
 		if ( ( ( iStatus & 0x0E ) == 12 ) && !MathSup::isBitSet ( m_iStatusCtrl, 21 ) )
 		{
-			ROS_ERROR(" SR-overheating %i", iNumDrive );
+			OUTPUTERROR(" SR-overheating %i", iNumDrive );
 			m_iStatusCtrl |= 0x00100000;
 			critical_state = true;
 		}
@@ -1199,7 +1214,7 @@ bool CanDriveHarmonica::evalStatusRegister ( int iStatus )
 		{
 			if ( m_iMotorState != ST_OPERATION_ENABLED )
 			{
-				ROS_DEBUG ( " operation enabled %i", iNumDrive );
+				OUTPUTDEBUG ( " operation enabled %i", iNumDrive );
 			}
 
 			m_iNewMotorState = ST_OPERATION_ENABLED;
@@ -1210,7 +1225,7 @@ bool CanDriveHarmonica::evalStatusRegister ( int iStatus )
 		{
 			if ( m_iMotorState != ST_OPERATION_DISABLED )
 			{
-				ROS_DEBUG ( " operation disabled %i", iNumDrive );
+				OUTPUTDEBUG ( " operation disabled %i", iNumDrive );
 			}
 
 			m_iNewMotorState = ST_OPERATION_DISABLED;
@@ -1221,7 +1236,7 @@ bool CanDriveHarmonica::evalStatusRegister ( int iStatus )
 		{
 			if ( m_bCurrentLimitOn == false )
 			{
-				ROS_ERROR ( " current limit on %i", iNumDrive);
+				OUTPUTERROR ( " current limit on %i", iNumDrive);
 			}
 
 			m_bCurrentLimitOn = true;
