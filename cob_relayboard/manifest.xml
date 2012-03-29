@@ -4,7 +4,7 @@
      cob_relayboard
 
   </description>
-  <author>Timo Hackel</author>
+  <author>Christian Connette, Timo Hackel</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_relayboard</url>
