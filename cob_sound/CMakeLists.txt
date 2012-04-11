@@ -9,6 +9,9 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
 #set(ROS_BUILD_TYPE RelWithDebInfo)
 
+# Put this line before the executable or library:
+rosbuild_add_boost_directories()
+
 rosbuild_find_ros_package(actionlib_msgs)
 include(${actionlib_msgs_PACKAGE_PATH}/cmake/actionbuild.cmake)
 genaction()
@@ -34,6 +37,8 @@ rosbuild_gensrv()
 #target_link_libraries(example ${PROJECT_NAME})
 
 rosbuild_add_executable(sound ros/src/sound.cpp)
+
+rosbuild_link_boost(sound thread)
 
 # rostest
 rosbuild_add_roslaunch_check(ros/launch/sound.launch)

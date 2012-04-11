@@ -13,5 +13,6 @@
   <depend package="roscpp"/>
   <depend package="sound_play"/>
   <depend package="actionlib"/>
+  <depend package="std_msgs"/>
 
 </package>
