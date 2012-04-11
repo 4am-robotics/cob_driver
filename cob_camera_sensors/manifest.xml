@@ -24,7 +24,6 @@
   <depend package="pcl"/>
   <depend package="pcl_ros"/>
   <depend package="image_proc"/>
-  <depend package="point_cloud_converter"/>
   <depend package="openni_launch"/>
 
 
