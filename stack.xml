@@ -26,7 +26,6 @@
   <depend stack="openni_kinect" /> <!-- openni_launch, openni_camera -->
   <depend stack="orocos_kinematics_dynamics" /> <!-- kdl -->
   <depend stack="perception_pcl" /> <!-- pcl, pcl_ros -->
-  <depend stack="point_cloud_perception" /> <!-- point_cloud_converter -->
   <depend stack="pr2_common" /> <!-- pr2_msgs -->
   <depend stack="pr2_controllers" /> <!-- pr2_controllers_msgs -->
   <depend stack="robot_model" /> <!-- urdf -->
