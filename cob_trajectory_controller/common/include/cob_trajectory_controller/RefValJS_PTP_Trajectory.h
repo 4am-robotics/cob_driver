@@ -6,11 +6,12 @@
  
 #ifndef _REFVALJS_PTP_TRAJECTORY_H_
 #define _REFVALJS_PTP_TRAJECTORY_H_
-
+#include <ros/console.h>
 #include <cob_trajectory_controller/RefVal_JS.h>
 #include <vector>
 #include <cob_trajectory_controller/BSplineND.h>
 #include <trajectory_msgs/JointTrajectory.h>
+
 
 class RefValJS_PTP_Trajectory : public RefVal_JS
 {

@@ -10,6 +10,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #set(ROS_BUILD_TYPE RelWithDebInfo)
 
 rosbuild_init()
+rosbuild_add_boost_directories()
 
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/bin)
@@ -36,4 +37,5 @@ rosbuild_add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp common/
 #rosbuild_add_executable(${PROJECT_NAME}_test ros/src/${PROJECT_NAME}_test.cpp)
 
 target_link_libraries(${PROJECT_NAME}_node pcan)
+rosbuild_link_boost(${PROJECT_NAME}_node thread)
 #target_link_libraries(${PROJECT_NAME}_node ntcan)

@@ -10,6 +10,8 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #set(ROS_BUILD_TYPE RelWithDebInfo)
 
 rosbuild_init()
+# Put this line before the executable or library:
+rosbuild_add_boost_directories()
 
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/bin)
@@ -34,4 +36,4 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 rosbuild_add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp common/src/ScannerSickS300.cpp common/src/SerialIO.cpp)
 rosbuild_add_executable(cob_scan_filter ros/src/cob_scan_filter.cpp)
-rosbuild_add_executable(cob_unified_scan_publisher ros/src/cob_unified_scan_publisher.cpp)
+
