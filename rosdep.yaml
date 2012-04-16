@@ -1,5 +1,5 @@
-libdc1394:
+libdc1394-dev:
   ubuntu: libdc1394-22-dev
 
-libusb-0.1:
+libusb-dev:
   ubuntu: libusb-0.1-4

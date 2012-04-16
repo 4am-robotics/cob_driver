@@ -34,8 +34,8 @@
   </export>
 
   <rosdep name="tinyxml"/>
-  <rosdep name="libdc1394"/>
+  <rosdep name="libdc1394-dev"/>
   <rosdep name="glut"/>
-  <rosdep name="libusb-0.1"/>
+  <rosdep name="libusb-dev"/>
 
 </package>
