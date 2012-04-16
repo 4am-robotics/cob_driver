@@ -1,5 +1,2 @@
 libdc1394-dev:
   ubuntu: libdc1394-22-dev
-
-libusb-dev:
-  ubuntu: libusb-0.1-4
