@@ -19,7 +19,7 @@
   <depend package="cv_bridge"/>
   <depend package="cob_vision_utils"/>
   <depend package="libmesasr"/>
-  <depend package="nodelet"/>
+  <!--depend package="nodelet"/-->
   <depend package="pcl"/>
   <depend package="pcl_ros"/>
   <depend package="image_proc"/>
