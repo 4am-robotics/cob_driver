@@ -16,7 +16,6 @@
   <depend package="image_transport"/>
   <depend package="polled_camera"/>
   <depend package="prosilica_camera"/>
-  <depend package="openni_camera"/>
   <depend package="cv_bridge"/>
   <depend package="cob_vision_utils"/>
   <depend package="libmesasr"/>
@@ -24,7 +23,6 @@
   <depend package="pcl"/>
   <depend package="pcl_ros"/>
   <depend package="image_proc"/>
-  <depend package="openni_launch"/>
 
 
   <export>
@@ -33,8 +31,8 @@
   </export>
 
   <rosdep name="tinyxml"/>
-  <rosdep name="libdc1394"/>
+  <rosdep name="libdc1394-dev"/>
   <rosdep name="glut"/>
-  <rosdep name="libusb-0.1"/>
+  <rosdep name="libusb-dev"/>
 
 </package>
