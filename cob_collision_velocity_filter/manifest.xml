@@ -1,0 +1,21 @@
+<package>
+  <description brief="cob_collision_velocity_filter">
+
+  The cob_collision_velocity_filter package is a package for collision avoidance using teleoperation.
+
+  </description>
+  <author>Matthias Gruhler</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_collision_velocity_filter</url>
+
+  <depend package="roscpp"/>
+  <depend package="move_base_msgs"/>
+  <depend package="nav_msgs"/>
+  <depend package="tf"/>
+  <depend package="costmap_2d"/>
+  <depend package="cob_footprint_observer"/>
+
+</package>
+
+

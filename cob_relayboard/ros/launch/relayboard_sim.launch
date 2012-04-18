@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <launch>
 
-
 	<!-- start relayboard node -->
 	<node pkg="cob_relayboard" type="relayboard_sim.py" ns="relayboard" name="relayboard_node" respawn="false" output="screen"/>
 

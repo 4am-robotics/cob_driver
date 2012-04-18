@@ -1,6 +1,0 @@
-<launch>
-  <node pkg="pr2_arm_kinematics" type="pr2_arm_kinematics_node" name="cob3_arm_kinematics" output="screen">
-   <param name="tip_name" value="arm_7_link" />
-   <param name="root_name" value="base_link" />
-  </node>
-</launch>

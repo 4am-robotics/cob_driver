@@ -1,7 +1,0 @@
-can_module: PCAN
-can_device: /dev/pcan1
-can_baudrate: 500
-modul_ids: [16,15]
-joint_names: [head_pan_joint, head_tilt_joint]
-max_accelerations: [0.8,0.8]
-frequency: 5

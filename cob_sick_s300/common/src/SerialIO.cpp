@@ -313,7 +313,7 @@ int SerialIO::open()
 	}
 
 	// set buffer sizes
-//	SetupComm(m_Device, m_ReadBufSize, m_WriteBufSize);
+	// SetupComm(m_Device, m_ReadBufSize, m_WriteBufSize);
 
 	// set timeout
 	setTimeout(m_Timeout);
@@ -393,7 +393,7 @@ int SerialIO::readNonBlocking(char *Buffer, int Length)
 
 
 	BytesRead = ::read(m_Device, Buffer, iBytesToRead);
-	
+
 
 	// Debug
 //	printf("%2d Bytes read:", BytesRead);
