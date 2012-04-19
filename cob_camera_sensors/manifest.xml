@@ -10,29 +10,24 @@
   <url>http://ros.org/wiki/cob_camera_sensors</url>
 
   <depend package="roscpp"/>
-  <depend package="rostest"/>
+  <!--depend package="rostest"/-->
   <depend package="sensor_msgs"/>
-  <depend package="opencv2"/>
-  <depend package="image_transport"/>
-  <depend package="polled_camera"/>
-  <depend package="prosilica_camera"/>
-  <depend package="cv_bridge"/>
-  <depend package="cob_vision_utils"/>
-  <depend package="libmesasr"/>
-  <depend package="nodelet"/>
-  <depend package="pcl"/>
-  <depend package="pcl_ros"/>
-  <depend package="image_proc"/>
+  <!--depend package="opencv2"/-->
+  <!--depend package="image_transport"/-->
+  <!--depend package="polled_camera"/-->
+  <!--depend package="prosilica_camera"/-->
+  <!--depend package="cv_bridge"/-->
+  <!--depend package="cob_vision_utils"/-->
+  <!--depend package="libmesasr"/-->
+  <!--depend package="nodelet"/-->
+  <!--depend package="pcl"/-->
+  <!--depend package="pcl_ros"/-->
+  <!--depend package="image_proc"/-->
 
 
-  <export>
-    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/ros/lib -lcob_kinect_image_flip"/>
-    <nodelet plugin="${prefix}/nodelet_plugins.xml" />
-  </export>
-
-  <rosdep name="tinyxml"/>
-  <rosdep name="libdc1394-dev"/>
-  <rosdep name="glut"/>
-  <rosdep name="libusb-dev"/>
+  <!--rosdep name="tinyxml"/-->
+  <!--rosdep name="libdc1394-dev"/-->
+  <!--rosdep name="glut"/-->
+  <!--rosdep name="libusb-dev"/-->
 
 </package>
