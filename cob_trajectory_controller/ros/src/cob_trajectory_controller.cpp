@@ -402,7 +402,6 @@ int main(int argc, char ** argv)
 {
     ros::init(argc, argv, "cob_trajectory_controller");
 
-    ROS_INFO("blub");
     cob_trajectory_controller_node tm;
 
     /// get main loop parameters
