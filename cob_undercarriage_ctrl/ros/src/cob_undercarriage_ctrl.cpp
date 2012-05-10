@@ -655,7 +655,7 @@ void NodeClass::UpdateOdometry()
 	geometry_msgs::TransformStamped odom_tf;
 	// compose header
 	odom_tf.header.stamp = joint_state_odom_stamp_;
-	odom_tf.header.frame_id = "/wheelodom";
+	odom_tf.header.frame_id = "/odom_combined";
 	odom_tf.child_frame_id = "/base_footprint";
 	// compose data container
 	odom_tf.transform.translation.x = x_rob_m_;
@@ -697,7 +697,7 @@ void NodeClass::UpdateOdometry()
 	}
 
 	// publish the transform (for debugging, conflicts with robot-pose-ekf)
-	// tf_broadcast_odometry_.sendTransform(odom_tf);
+	tf_broadcast_odometry_.sendTransform(odom_tf);
 	
 	// publish odometry msg
 	topic_pub_odometry_.publish(odom_top);
