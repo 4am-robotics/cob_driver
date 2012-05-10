@@ -380,7 +380,7 @@ int main(int argc, char** argv)
   FootprintObserver footprintObserver;
 
   // run footprint observer periodically until node has been shut down
-  ros::Rate loop_rate(1); // Hz
+  ros::Rate loop_rate(30); // Hz
   while(footprintObserver.nh_.ok()){
     footprintObserver.checkFootprint();
     ros::spinOnce();
