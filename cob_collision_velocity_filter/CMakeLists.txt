@@ -34,4 +34,3 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/ros/include)
 rosbuild_add_executable(collision_velocity_filter ros/src/cob_collision_velocity_filter.cpp)
 
 # rostest
-rosbuild_add_roslaunch_check(ros/launch)

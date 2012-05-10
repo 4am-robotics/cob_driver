@@ -13,7 +13,6 @@
   <depend package="move_base_msgs"/>
   <depend package="nav_msgs"/>
   <depend package="tf"/>
-  <depend package="costmap_2d"/>
   <depend package="cob_footprint_observer"/>
 
 </package>

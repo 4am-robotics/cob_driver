@@ -18,12 +18,12 @@
   <depend stack="geometry" /> <!-- tf -->
   <depend stack="laser_drivers" /> <!-- hokuyo_node -->
   <depend stack="laser_pipeline" /> <!-- laser_geometry -->
-  <depend stack="navigation" /> <!-- move_base_msgs, costmap_2d -->
+  <depend stack="navigation" /> <!-- move_base_msgs -->
   <depend stack="orocos_kinematics_dynamics" /> <!-- kdl -->
   <depend stack="pr2_common" /> <!-- pr2_msgs -->
   <depend stack="pr2_controllers" /> <!-- pr2_controllers_msgs -->
   <depend stack="robot_model" /> <!-- urdf -->
   <depend stack="ros" />
-  <depend stack="ros_comm" /> <!-- std_msgs, rostest, rospy, roscpp, message_filters -->
+  <depend stack="ros_comm" /> <!-- rospy, rostest, std_msgs, roscpp, message_filters -->
 
 </stack>
