@@ -246,8 +246,8 @@ void NodeClass::sendBatteryVoltage()
 	pr2_msgs::PowerState ps;
 	ps.header.stamp = ros::Time::now();
 	ps.power_consumption = 0.0;
-	ps.time_remaining = ros::Duration(1000);
-	ps.relative_capacity = percentage;
+	ps.time_remaining = ros::Duration(1000); //TODO: Needs to be calculated based on battery type (plumb or lithion-ion), maybe specify charging characteristics in table in .yaml file
+	ps.relative_capacity = percentage; // TODO: Needs to be calculated based on battery type (plumb or lithion-ion), maybe specify charging characteristics in table in .yaml file
 	topicPub_PowerState.publish(ps);
 }
 
