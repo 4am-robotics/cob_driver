@@ -55,6 +55,7 @@ import roslib;
 roslib.load_manifest('cob_light')
 import rospy
 from cob_light.msg import Light
+from visualization_msgs.msg import Marker
 
 import serial
 import sys
@@ -62,25 +63,32 @@ import sys
 class LightControl:
 	def __init__(self):
 		self.ns_global_prefix = "/light_controller"
+		self.pub_marker = rospy.Publisher("marker", Marker)
+		
+		self.sim_mode = False
 		
 		# get parameter from parameter server
-		if not rospy.has_param(self.ns_global_prefix + "/devicestring"):
-			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",self.ns_global_prefix + "/devicestring")
-			sys.exit()
-		devicestring_param = rospy.get_param(self.ns_global_prefix + "/devicestring")
-		if not rospy.has_param(self.ns_global_prefix + "/baudrate"):
-			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",self.ns_global_prefix + "/baudrate")
-			sys.exit()
-		baudrate_param = rospy.get_param(self.ns_global_prefix + "/baudrate")
+		if not self.sim_mode:
+			if not rospy.has_param(self.ns_global_prefix + "/devicestring"):
+				rospy.logwarn("parameter %s does not exist on ROS Parameter Server, aborting... (running in simulated mode)",self.ns_global_prefix + "/devicestring")
+				self.sim_mode = True
+			devicestring_param = rospy.get_param(self.ns_global_prefix + "/devicestring")
 		
-		# open serial communication
-		rospy.loginfo("trying to initializing serial connection")
-		try:
-			self.ser = serial.Serial(devicestring_param, baudrate_param)
-		except serial.serialutil.SerialException:
-			rospy.logerr("Could not initialize serial connection on %s, aborting...",devicestring_param)
-			sys.exit()
-		rospy.loginfo("serial connection initialized successfully")
+		if not self.sim_mode:
+			if not rospy.has_param(self.ns_global_prefix + "/baudrate"):
+				rospy.logwarn("parameter %s does not exist on ROS Parameter Server, aborting... (running in simulated mode)",self.ns_global_prefix + "/baudrate")
+				self.sim_mode = True
+			baudrate_param = rospy.get_param(self.ns_global_prefix + "/baudrate")
+		
+		if not self.sim_mode:
+			# open serial communication
+			rospy.loginfo("trying to initializing serial connection")
+			try:
+				self.ser = serial.Serial(devicestring_param, baudrate_param)
+			except serial.serialutil.SerialException:
+				rospy.logwarn("Could not initialize serial connection on %s, aborting... (running in simulated mode)",devicestring_param)
+				self.sim_mode = True
+			rospy.loginfo("serial connection initialized successfully")
 
 	def setRGB(self, red, green, blue):
 		#color in rgb color space ranging from 0 to 999
@@ -88,14 +96,42 @@ class LightControl:
 		if(red <= 999 and green <= 999 and blue <= 999):
 			self.ser.write(str(red)+ " " + str(green)+ " " + str(blue)+"\n\r")
 
+	def publish_marker(self, red, green, blue):
+		marker = Marker()
+		marker.header.frame_id = "/base_link"
+		marker.header.stamp = rospy.Time.now()
+		marker.ns = "lights"
+		marker.id = 0
+		marker.type = 2 # SPHERE
+		marker.action = 0 # ADD
+		marker.pose.position.x = 0
+		marker.pose.position.y = 0
+		marker.pose.position.z = 1.5
+		marker.pose.orientation.x = 0.0
+		marker.pose.orientation.y = 0.0
+		marker.pose.orientation.z = 0.0
+		marker.pose.orientation.w = 1.0
+		marker.scale.x = 0.1
+		marker.scale.y = 0.1
+		marker.scale.z = 0.1
+		marker.color.a = 1.0 #Transparency
+		marker.color.r = red/1000.0
+		marker.color.g = green/1000.0
+		marker.color.b = blue/1000.0
+		self.pub_marker.publish(marker)
+
 	def LightCallback(self,light):
-		rospy.loginfo("Received new color: rgb = [%d, %d, %d]",light.r,light.g,light.b)
-		print light.name.data
-		self.setRGB(light.r,light.g,light.b)
+		rospy.logdebug("Received new color: rgb = [%d, %d, %d]",light.r,light.g,light.b)
+		self.publish_marker(light.r,light.g,light.b)
+		if not self.sim_mode:
+			self.setRGB(light.r,light.g,light.b)
 
 if __name__ == '__main__':
 	rospy.init_node('light_controller')
 	lc = LightControl()
 	rospy.Subscriber("command", Light, lc.LightCallback)
-	rospy.loginfo(rospy.get_name() + " running")
+	if not lc.sim_mode:
+		rospy.loginfo(rospy.get_name() + " running")
+	else:
+		rospy.loginfo(rospy.get_name() + " running in simulated mode")
 	rospy.spin()
