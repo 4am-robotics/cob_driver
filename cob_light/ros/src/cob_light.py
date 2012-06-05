@@ -54,7 +54,7 @@
 import roslib; 
 roslib.load_manifest('cob_light')
 import rospy
-from cob_light.msg import Light
+from std_msgs.msg import ColorRGBA
 from visualization_msgs.msg import Marker
 
 import serial
@@ -90,17 +90,25 @@ class LightControl:
 				self.sim_mode = True
 			rospy.loginfo("serial connection initialized successfully")
 
-	def setRGB(self, red, green, blue):
+	def setRGB(self, light):
 		#color in rgb color space ranging from 0 to 999
-		#print "setRGB", red, green, blue
+
+		#scale from 0 to 999
+		red = light.r*999
+		green = light.g*999
+		blue = light.b*999
+
+		# check range and send to serial bus
 		if(red <= 999 and green <= 999 and blue <= 999):
 			self.ser.write(str(red)+ " " + str(green)+ " " + str(blue)+"\n\r")
+		else:
+			rospy.logwarn("Color not in range 0...900 color: rgb = [%d, %d, %d] a = [%d]", str(red), str(green), str(blue))
 
-	def publish_marker(self, red, green, blue):
+	def publish_marker(self, light):
 		marker = Marker()
 		marker.header.frame_id = "/base_link"
 		marker.header.stamp = rospy.Time.now()
-		marker.ns = "lights"
+		marker.ns = "light"
 		marker.id = 0
 		marker.type = 2 # SPHERE
 		marker.action = 0 # ADD
@@ -114,22 +122,23 @@ class LightControl:
 		marker.scale.x = 0.1
 		marker.scale.y = 0.1
 		marker.scale.z = 0.1
-		marker.color.a = 1.0 #Transparency
-		marker.color.r = red/1000.0
-		marker.color.g = green/1000.0
-		marker.color.b = blue/1000.0
+		marker.color.a = light.a #Transparency
+		marker.color.r = light.r
+		marker.color.g = light.g
+		marker.color.b = light.b
+
 		self.pub_marker.publish(marker)
 
 	def LightCallback(self,light):
-		rospy.logdebug("Received new color: rgb = [%d, %d, %d]",light.r,light.g,light.b)
-		self.publish_marker(light.r,light.g,light.b)
+		rospy.logdebug("Received new color: rgb = [%d, %d, %d] a = [%d]",light.r,light.g,light.b,light.a)
+		self.publish_marker(light)
 		if not self.sim_mode:
-			self.setRGB(light.r,light.g,light.b)
+			self.setRGB(light)
 
 if __name__ == '__main__':
 	rospy.init_node('light_controller')
 	lc = LightControl()
-	rospy.Subscriber("command", Light, lc.LightCallback)
+	rospy.Subscriber("command", ColorRGBA, lc.LightCallback)
 	if not lc.sim_mode:
 		rospy.loginfo(rospy.get_name() + " running")
 	else:
