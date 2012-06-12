@@ -122,7 +122,6 @@ bool CANPeakSysDongle::transmitMsg(CanMsg& CMsg)
 	{
 		TPCMsg.DATA[i] = CMsg.getAt(i);
 	}
-OUTPUTINFO("message: %c %c %c %c %c %c %c %c", TPCMsg.DATA[0], TPCMsg.DATA[1],TPCMsg.DATA[2],TPCMsg.DATA[3],TPCMsg.DATA[4],TPCMsg.DATA[5],TPCMsg.DATA[6],TPCMsg.DATA[7]);
 	
 	// write msg
 	bRet = true;
