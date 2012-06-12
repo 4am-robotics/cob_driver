@@ -44,6 +44,8 @@
 
 #define NUM_BYTE_SEND_20CHAR_LCD 50
 #define NUM_BYTE_SEND_60CHAR_LCD 79
+#define NUM_BYTE_SEND_RELAYBOARD_14 88
+#define NUM_BYTE_REC_RELAYBOARD_14 124
 
 #define RS422_BAUDRATE 420000
 #define RS422_RX_BUFFERSIZE 1024
@@ -76,7 +78,9 @@ SerRelayBoard::SerRelayBoard()
 
 void SerRelayBoard::readConfig(	int iTypeLCD,std::string pathToConf, std::string sNumComPort, 	int hasMotorRight, 
 				int hasMotorLeft, int hasIOBoard, int hasUSBoard, int hasRadarBoard, int hasGyroBoard, 
-				double quickfix1, double quickfix2, DriveParam driveParamLeft, DriveParam driveParamRight
+				double quickfix1, double quickfix2, double quickfix3, double quickfix4, 
+				DriveParam driveParamLeft, DriveParam driveParamRight,
+				DriveParam driveParamRearLeft, DriveParam driveParamRearRight
 			)
 {
 	int i, iHasBoard, iHasMotorRight, iHasMotorLeft;
@@ -84,6 +88,8 @@ void SerRelayBoard::readConfig(	int iTypeLCD,std::string pathToConf, std::string
 
 
 	//RelayBoard
+	m_cSoftEMStop = 0;
+	resetEMStop();
 	iHasBoard = 0;
 	m_iRelBoardBattVoltage = 0;
 	m_iConfigRelayBoard = 0;
@@ -94,9 +100,13 @@ void SerRelayBoard::readConfig(	int iTypeLCD,std::string pathToConf, std::string
 	{
 		m_iNumBytesSend = NUM_BYTE_SEND_20CHAR_LCD;
 	}
-	else
+	else if (m_iTypeLCD == LCD_60CHAR_TEXT)
 	{
 		m_iNumBytesSend = NUM_BYTE_SEND_60CHAR_LCD;
+	}
+	else if (m_iTypeLCD == RELAY_BOARD_1_4)
+	{
+		m_iNumBytesSend = NUM_BYTE_SEND_RELAYBOARD_14;
 	}
 
 	m_sNumComPort = sNumComPort;
@@ -144,11 +154,15 @@ void SerRelayBoard::readConfig(	int iTypeLCD,std::string pathToConf, std::string
 
 	quickFix[0] = quickfix1;
 	quickFix[1] = quickfix2;
+	quickFix[2] = quickfix3;
+	quickFix[3] = quickfix4;
 
 	// drive parameters
 	
 	m_DriveParamLeft = driveParamLeft;
 	m_DriveParamRight = driveParamRight;
+	m_DriveParamRearLeft = driveParamRearLeft;
+	m_DriveParamRearRight = driveParamRearRight;
 
 	//
 	m_iVelCmdMotRightEncS = 0;
@@ -202,7 +216,13 @@ int SerRelayBoard::evalRxBuffer()
 
 	double dDltT;
 	
-	const int c_iNrBytesMin = NUM_BYTE_REC_HEADER + NUM_BYTE_REC + NUM_BYTE_REC_CHECKSUM;
+	int iNumByteRec = NUM_BYTE_REC;
+	if(m_iTypeLCD == RELAY_BOARD_1_4)
+	{
+		iNumByteRec = NUM_BYTE_REC_RELAYBOARD_14;
+	}
+
+	const int c_iNrBytesMin = NUM_BYTE_REC_HEADER + iNumByteRec + NUM_BYTE_REC_CHECKSUM;
 	const int c_iSizeBuffer = 4096;
 
 	int i;
@@ -396,11 +416,21 @@ int SerRelayBoard::setWheelVel(int iCanIdent, double dVelWheel, bool bQuickStop)
 {		
 	static bool bDataMotRight = false;
 	static bool bDataMotLeft = false;
+	static bool bDataMotRearRight = false;
+	static bool bDataMotRearLeft = false;
 
 	bool bVelLimited = false;
 	int iNrBytesWritten;
 
-	unsigned char cMsg[NUM_BYTE_SEND_60CHAR_LCD];
+	unsigned char cMsg[NUM_BYTE_SEND_RELAYBOARD_14];
+
+	if(m_iTypeLCD != RELAY_BOARD_1_4)
+	{
+		//set rear data available for 2-drive-robot
+		bDataMotRearRight = true;
+		bDataMotRearLeft = true;
+
+	}
 	
 	m_Mutex.lock();
 	
@@ -434,9 +464,35 @@ int SerRelayBoard::setWheelVel(int iCanIdent, double dVelWheel, bool bQuickStop)
 		bDataMotLeft = true;
 	}
 
-	if(autoSendRequest && bDataMotRight && bDataMotLeft)
+	if(iCanIdent == CANNODE_MOTORREARRIGHT)
 	{
-		bDataMotRight = bDataMotLeft = false;
+		m_iVelCmdMotRearRightEncS = (int)(m_DriveParamRearRight.getSign()	*
+			m_DriveParamRearRight.convRadSToIncrPerPeriod(dVelWheel));
+
+/*		if(MathSup::limit(&m_iVelCmdMotRearRightEncS, (int)m_DriveParamRearRight.getVelMax()) != 0)
+		{
+			LOGALERT("vel rearright limited");
+		}
+*/
+		bDataMotRearRight = true;
+	}
+
+	if(iCanIdent == CANNODE_MOTORREARLEFT)
+	{
+		m_iVelCmdMotRearLeftEncS = (int)(m_DriveParamRearLeft.getSign()	*
+			m_DriveParamRearLeft.convRadSToIncrPerPeriod(dVelWheel));
+
+/*		if(MathSup::limit(&m_iVelCmdMotRearLeftEncS, (int)m_DriveParamRearLeft.getVelMax()) != 0)
+		{
+			LOGALERT("vel rearleft limited");
+		}
+*/	
+		bDataMotRearLeft = true;
+	}
+
+	if(bDataMotRight && bDataMotLeft && bDataMotRearLeft && bDataMotRearRight) 
+	{
+		bDataMotRight = bDataMotLeft = bDataMotRearRight = bDataMotRearLeft = false; 
 
 		if(bQuickStop)
 		{
@@ -446,7 +502,7 @@ int SerRelayBoard::setWheelVel(int iCanIdent, double dVelWheel, bool bQuickStop)
 		{
 			m_iCmdRelayBoard &= ~CMD_QUICK_STOP;
 		}
-		
+	
 		convDataToSendMsg(cMsg);
 
 		m_SerIO.purgeTx();
@@ -455,11 +511,12 @@ int SerRelayBoard::setWheelVel(int iCanIdent, double dVelWheel, bool bQuickStop)
 		iNrBytesWritten = m_SerIO.write((char*)cMsg, m_iNumBytesSend);
 		if(iNrBytesWritten < m_iNumBytesSend)
 		{
-			//std::cerr << "only " << iNrBytesWritten << " bytes written" << std::endl;
+			//LOGALERT("only " << iNrBytesWritten << " bytes written to socket");
 		}
-
-		//m_LastTime = ros::Time::now();
+	
+		//m_LastTime.SetNow();
 	}
+
 
 	m_Mutex.unlock();
 
@@ -499,6 +556,17 @@ int SerRelayBoard::getWheelPosVel(	int iCanIdent, double* pdAngWheel, double* pd
 		*pdAngWheel = m_DriveParamLeft.getSign() * m_DriveParamLeft.convIncrToRad(m_iPosMeasMotLeftEnc) * quickFix[1];	
 		*pdVelWheel = m_DriveParamLeft.getSign() * m_DriveParamLeft.convIncrPerPeriodToRadS(m_iVelMeasMotLeftEncS) * quickFix[1];
 	}
+	if(iCanIdent == CANNODE_MOTORREARRIGHT)
+	{
+		*pdAngWheel = m_DriveParamRearRight.getSign() * m_DriveParamRearRight.convIncrToRad(m_iPosMeasMotRearRightEnc);	
+		*pdVelWheel = m_DriveParamRearRight.getSign() * m_DriveParamRearRight.convIncrPerPeriodToRadS(m_iVelMeasMotRearRightEncS);
+	}
+
+	if(iCanIdent == CANNODE_MOTORREARLEFT)
+	{
+		*pdAngWheel = m_DriveParamRearLeft.getSign() * m_DriveParamRearLeft.convIncrToRad(m_iPosMeasMotRearLeftEnc);	
+		*pdVelWheel = m_DriveParamRearLeft.getSign() * m_DriveParamRearLeft.convIncrPerPeriodToRadS(m_iVelMeasMotRearLeftEncS);
+	}
 
 	m_Mutex.unlock();
 
@@ -532,6 +600,26 @@ int SerRelayBoard::getWheelDltPosVel(	int iCanIdent, double* pdDltAng, double* p
 		*pdVelWheel = m_DriveParamLeft.getSign() * m_DriveParamLeft.convIncrPerPeriodToRadS(m_iVelMeasMotLeftEncS) * quickFix[1];
 	}
 
+	if(iCanIdent == CANNODE_MOTORREARRIGHT)
+	{
+		dCurrPos = m_DriveParamRearRight.getSign() * m_DriveParamRearRight.convIncrToRad(m_iPosMeasMotRearRightEnc) * quickFix[2];
+		
+		*pdDltAng = dCurrPos - m_dLastPosRearRight;
+		m_dLastPosRearRight = dCurrPos;	
+
+		*pdVelWheel = m_DriveParamRearRight.getSign() * m_DriveParamRearRight.convIncrPerPeriodToRadS(m_iVelMeasMotRearRightEncS) * quickFix[2];
+	}
+
+	if(iCanIdent == CANNODE_MOTORREARLEFT)
+	{
+		dCurrPos = m_DriveParamRearLeft.getSign() * m_DriveParamRearLeft.convIncrToRad(m_iPosMeasMotRearLeftEnc) * quickFix[3];	
+
+		*pdDltAng = dCurrPos - m_dLastPosRearLeft;
+		m_dLastPosRearLeft = dCurrPos;
+
+		*pdVelWheel = m_DriveParamRearLeft.getSign() * m_DriveParamRearLeft.convIncrPerPeriodToRadS(m_iVelMeasMotRearLeftEncS) *  quickFix[3];
+	}
+
 	m_Mutex.unlock();
 
 	return 0;
@@ -540,13 +628,23 @@ int SerRelayBoard::getWheelDltPosVel(	int iCanIdent, double* pdDltAng, double* p
 //-----------------------------------------------
 void SerRelayBoard::getStatus(int iCanIdent, int* piStatus, int* piTempCel)
 {
-	if(iCanIdent == CANNODE_MOTORLEFT)
+	switch(iCanIdent)
 	{
+	case CANNODE_MOTORLEFT:
 		*piStatus = m_iMotLeftStatus;
-	}
-	else
-	{
+		break;
+	case CANNODE_MOTORRIGHT:
 		*piStatus = m_iMotRightStatus;
+		break;
+	case CANNODE_MOTORREARLEFT:
+		*piStatus = m_iMotRearLeftStatus;
+		break;
+	case CANNODE_MOTORREARRIGHT:
+		*piStatus = m_iMotRearRightStatus;
+		break;
+	default:
+		std::cout<<"Canident of drive unknown: " << iCanIdent<<std::endl;
+
 	}
 
 	*piTempCel = 0;
@@ -744,6 +842,7 @@ void SerRelayBoard::writeIOBoardLCD(int iLine, int iColumn, const std::string& s
 
 	iSize = sText.size();
 
+	protocol_version = m_iTypeLCD;
 	if(m_iTypeLCD == LCD_20CHAR_TEXT)
 	{
 		for(i = 0; i < 20; i++)
@@ -974,13 +1073,47 @@ void SerRelayBoard::sendGenericCANMessage(CanMsg& message)
 {
 }
 
+//-----------------------------------------------
+void SerRelayBoard::setEMStop()
+{		
+	if (m_cSoftEMStop & 0x01)
+	{
+		m_cSoftEMStop &= 0xFE;
+		//LOGINFO ("Emergency Stop INAKTIVE");
+	}
+	else if ((m_cSoftEMStop == 0) || (m_cSoftEMStop & 0x02))
+	{
+		m_cSoftEMStop |= 0x01;
+		//LOGINFO("Emergency Stop AKTIVE");
+	}
+}
+
+//-----------------------------------------------
+void SerRelayBoard::resetEMStop()
+{	
+	m_cSoftEMStop |= 0x02;
+}
 
 //-----------------------------------------------
 void SerRelayBoard::convDataToSendMsg(unsigned char cMsg[])
 {
 	int i;
+	static int j = 0;
 	int iCnt = 0;
 	int iChkSum = 0;
+
+	if (m_cSoftEMStop & 0x02)
+	{
+		if (j == 1)
+		{
+			m_cSoftEMStop &= 0xFD;
+			j = 0;
+		}
+		else if (j == 0)
+		{
+			j = 1;
+		}
+	}
 
 	cMsg[iCnt++] = CMD_RELAISBOARD_GET_DATA;
 
@@ -989,10 +1122,10 @@ void SerRelayBoard::convDataToSendMsg(unsigned char cMsg[])
 
 	cMsg[iCnt++] = m_iCmdRelayBoard >> 8;
 	cMsg[iCnt++] = m_iCmdRelayBoard;
-	
+
 	cMsg[iCnt++] = m_iIOBoardDigOut >> 8;
 	cMsg[iCnt++] = m_iIOBoardDigOut;
-	
+
 	cMsg[iCnt++] = m_iVelCmdMotRightEncS >> 24;
 	cMsg[iCnt++] = m_iVelCmdMotRightEncS >> 16;
 	cMsg[iCnt++] = m_iVelCmdMotRightEncS >> 8;
@@ -1002,6 +1135,20 @@ void SerRelayBoard::convDataToSendMsg(unsigned char cMsg[])
 	cMsg[iCnt++] = m_iVelCmdMotLeftEncS >> 16;
 	cMsg[iCnt++] = m_iVelCmdMotLeftEncS >> 8;
 	cMsg[iCnt++] = m_iVelCmdMotLeftEncS;
+
+	if(m_iTypeLCD == RELAY_BOARD_1_4)
+	{
+		cMsg[iCnt++] = m_iVelCmdMotRearRightEncS >> 24;
+		cMsg[iCnt++] = m_iVelCmdMotRearRightEncS >> 16;
+		cMsg[iCnt++] = m_iVelCmdMotRearRightEncS >> 8;
+		cMsg[iCnt++] = m_iVelCmdMotRearRightEncS;
+
+		cMsg[iCnt++] = m_iVelCmdMotRearLeftEncS >> 24;
+		cMsg[iCnt++] = m_iVelCmdMotRearLeftEncS >> 16;
+		cMsg[iCnt++] = m_iVelCmdMotRearLeftEncS >> 8;
+		cMsg[iCnt++] = m_iVelCmdMotRearLeftEncS;
+	}
+
 
 	cMsg[iCnt++] = m_iUSBoardSensorActive >> 8;
 	cMsg[iCnt++] = m_iUSBoardSensorActive;
@@ -1028,9 +1175,16 @@ void SerRelayBoard::convDataToSendMsg(unsigned char cMsg[])
 		}
 	}
 
+	if(m_iTypeLCD == RELAY_BOARD_1_4)
+	{
+
+		cMsg[iCnt++] = m_cSoftEMStop;
+	}
+
 	// calc checksum
 	for(i = 0; i < (m_iNumBytesSend - 2); i++)
 	{
+		iChkSum %= 0xFF00;
 		iChkSum += cMsg[i];
 	}
 
@@ -1044,8 +1198,16 @@ void SerRelayBoard::convDataToSendMsg(unsigned char cMsg[])
 //-----------------------------------------------
 bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 {
-	const int c_iStartCheckSum = NUM_BYTE_REC;
-	
+
+	int iNumByteRec = NUM_BYTE_REC;
+
+	if(m_iTypeLCD == RELAY_BOARD_1_4)
+	{
+		iNumByteRec = NUM_BYTE_REC_RELAYBOARD_14;
+	}
+
+	const int c_iStartCheckSum = iNumByteRec;
+
 	int i;
 	unsigned int iTxCheckSum;
 	unsigned int iCheckSum;
@@ -1054,10 +1216,11 @@ bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 
 	// test checksum
 	iTxCheckSum = (cMsg[c_iStartCheckSum + 1] << 8) | cMsg[c_iStartCheckSum];
-	
+
 	iCheckSum = 0;
 	for(i = 0; i < c_iStartCheckSum; i++)
 	{
+		iCheckSum %= 0xFF00;
 		iCheckSum += cMsg[i];
 	}
 
@@ -1070,17 +1233,17 @@ bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 	int iCnt = 0;
 
 	// RelayBoard
-	
+
 	m_iRelBoardStatus = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
 	iCnt += 2;
-	
+
 	m_iChargeCurrent = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
 
 	iCnt += 2;
 
 	m_iRelBoardBattVoltage = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
 	iCnt += 2;
-	
+
 	m_iRelBoardKeyPad = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
 	iCnt += 2;
 
@@ -1092,9 +1255,9 @@ bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 
 	m_iRelBoardTempSensor = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
 	iCnt += 2;
-	
+
 	// IOBoard
-	
+
 	m_iIOBoardDigIn = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
 	iCnt += 2;
 
@@ -1108,7 +1271,7 @@ bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 	iCnt += 2;
 
 	// Motion control boards
-	
+
 	m_iPosMeasMotRightEnc =	cMsg[iCnt] |
 							(cMsg[iCnt + 1] << 8) |
 							(cMsg[iCnt + 2] << 16) |
@@ -1126,7 +1289,7 @@ bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 							(cMsg[iCnt + 2] << 16) |
 							(cMsg[iCnt + 3] << 24);
 	iCnt += 4;
-	
+
 	m_iPosMeasMotLeftEnc =	cMsg[iCnt] |
 							(cMsg[iCnt + 1] << 8) |
 							(cMsg[iCnt + 2] << 16) |
@@ -1151,8 +1314,55 @@ bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 	m_iMotLeftStatus = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
 	iCnt += 2;
 
-	// GyroBoard
+
+	if(m_iTypeLCD == RELAY_BOARD_1_4)
+	{
+		m_iPosMeasMotRearRightEnc =	cMsg[iCnt] |
+									(cMsg[iCnt + 1] << 8) |
+									(cMsg[iCnt + 2] << 16) |
+									(cMsg[iCnt + 3] << 24);
+		
+		m_cDebugRearRight[0] = cMsg[iCnt];
+		m_cDebugRearRight[1] = cMsg[iCnt + 1];
+		m_cDebugRearRight[2] = cMsg[iCnt + 2];
+		m_cDebugRearRight[3] = cMsg[iCnt + 3];
+
+		iCnt += 4;
+
+		m_iVelMeasMotRearRightEncS =cMsg[iCnt] |
+									(cMsg[iCnt + 1] << 8) |
+									(cMsg[iCnt + 2] << 16) |
+									(cMsg[iCnt + 3] << 24);
 	
+		iCnt += 4;
+
+		m_iPosMeasMotRearLeftEnc =	cMsg[iCnt] |
+									(cMsg[iCnt + 1] << 8) |
+									(cMsg[iCnt + 2] << 16) |
+									(cMsg[iCnt + 3] << 24);
+		
+		m_cDebugRearLeft[0] = cMsg[iCnt];
+		m_cDebugRearLeft[1] = cMsg[iCnt + 1];
+		m_cDebugRearLeft[2] = cMsg[iCnt + 2];
+		m_cDebugRearLeft[3] = cMsg[iCnt + 3];
+
+		iCnt += 4;
+
+		m_iVelMeasMotRearLeftEncS = cMsg[iCnt] |
+									(cMsg[iCnt + 1] << 8) |
+									(cMsg[iCnt + 2] << 16) |
+									(cMsg[iCnt + 3] << 24);		
+		iCnt += 4;
+
+		m_iMotRearRightStatus = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
+		iCnt += 2;	
+
+		m_iMotRearLeftStatus = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
+		iCnt += 2;
+	}
+
+	// GyroBoard
+
 	m_iGyroBoardAng =	(cMsg[iCnt] << 24) |
 						(cMsg[iCnt + 1] << 16) |
 						(cMsg[iCnt + 2] << 8) |
@@ -1169,7 +1379,7 @@ bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 	iCnt += 2;
 
 	// RadarBoard
-	
+
 	for(i = 0; i < 3; i++)
 	{
 		m_iRadarBoardVel[i] = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
@@ -1178,14 +1388,14 @@ bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 
 	m_iRadarBoardStatus = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
 	iCnt += 2;
-	
+
 	// USBoard
-	
+
 	for(i = 0; i < 16; i++)
 	{
 		m_iUSBoardSensorData[i] = (cMsg[iCnt++]);
 	}
-	
+
 	for(i = 0; i < 4; i++)
 	{
 		m_iUSBoardAnalogData[i] = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
@@ -1194,7 +1404,7 @@ bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 
 	m_iUSBoardStatus = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
 	iCnt += 2;
-	
+
 	m_Mutex.unlock();
 
 	if( iCnt >= NUM_BYTE_REC_MAX )

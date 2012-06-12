@@ -67,12 +67,18 @@ int RelaisBoardNode::init()
 
 	n.getParam("drive1/CANId", motorCanIdent[0]);
 	n.getParam("drive2/CANId", motorCanIdent[1]);
+	n.getParam("drive3/CANId", motorCanIdent[2]);
+	n.getParam("drive4/CANId", motorCanIdent[3]);
 	n.getParam("drive1/joint_name", joint_names[0]);
 	n.getParam("drive2/joint_name", joint_names[1]);
+	n.getParam("drive3/joint_name", joint_names[2]);
+	n.getParam("drive4/joint_name", joint_names[3]);
 	//topics, which get published if the module is available
 	n.getParam("hasMotorRight",activeModule[DRIVE1]);
 	n.getParam("hasMotorLeft",activeModule[DRIVE2]);
-	if(activeModule[DRIVE1] == 1 || activeModule[DRIVE2] == 1)
+	n.getParam("hasMotorRearRight",activeModule[DRIVE3]);
+	n.getParam("hasMotorRearLeft",activeModule[DRIVE4]);
+	if(activeModule[DRIVE1] == 1 || activeModule[DRIVE2] == 1 || activeModule[DRIVE3] == 1 || activeModule[DRIVE4] == 1)
 	{
 		topicPub_drives = n.advertise<cob_relayboard::DriveStates>("/drive_states",1);
 		topicSub_drives = n.subscribe("/cmd_drives",1,&RelaisBoardNode::getNewDriveStates, this);
@@ -135,10 +141,8 @@ void RelaisBoardNode::readConfig(int protocol_version_)
 	int hasUSBoard;
 	int hasRadarBoard;
 	int hasGyroBoard;
-	double quickfix1;
-	double quickfix2;
-	DriveParam driveParamLeft;
-	DriveParam driveParamRight;
+	double quickfix1, quickfix2, quickfix3, quickfix4;
+	DriveParam driveParamLeft, driveParamRight, driveParamRearLeft, driveParamRearRight;
 
 
 	n.getParam("ComPort", sNumComPort);
@@ -154,6 +158,10 @@ void RelaisBoardNode::readConfig(int protocol_version_)
 	else quickfix1 = 1;
 	if(n.hasParam("drive2/quickFix")) n.getParam("drive2/quickFix", quickfix2);
 	else quickfix2 = 1;
+	if(n.hasParam("drive3/quickFix")) n.getParam("drive3/quickFix", quickfix3);
+	else quickfix3 = 1;
+	if(n.hasParam("drive4/quickFix")) n.getParam("drive4/quickFix", quickfix4);
+	else quickfix4 = 1;
 
 
 	int iEncIncrPerRevMot;
@@ -223,9 +231,69 @@ void RelaisBoardNode::readConfig(int protocol_version_)
 							iCANId,
 							false, true );
 
+
+	n.getParam("drive3/EncIncrPerRevMot", iEncIncrPerRevMot);
+	n.getParam("drive3/VelMeasFrqHz", dVelMeasFrqHz);
+	n.getParam("drive3/BeltRatio", dBeltRatio);
+	n.getParam("drive3/GearRatio", dGearRatio);
+	n.getParam("drive3/Sign", iSign);
+	n.getParam("drive3/Homing", bHoming);
+	n.getParam("drive3/HomePos", dHomePos);
+	n.getParam("drive3/HomeVel", dHomeVel);
+	n.getParam("drive3/HomeEvent", iHomeEvent);
+	n.getParam("drive3/HomeDigIn", iHomeDigIn);
+	n.getParam("drive3/HomeTimeOut", iHomeTimeOut);
+	n.getParam("drive3/VelMaxEncIncrS", dVelMaxEncIncrS);
+	n.getParam("drive3/VelPModeEncIncrS", dVelPModeEncIncrS);
+	n.getParam("drive3/AccIncrS", dAccIncrS2);
+	n.getParam("drive3/DecIncrS", dDecIncrS2);
+	n.getParam("drive3/CANId", iCANId);
+	driveParamRearLeft.set(	1,
+							iEncIncrPerRevMot,
+							dVelMeasFrqHz,
+							dBeltRatio, dGearRatio,
+							iSign,
+							bHoming, dHomePos, dHomeVel, iHomeEvent, iHomeDigIn, iHomeTimeOut,
+							dVelMaxEncIncrS, dVelPModeEncIncrS,
+							dAccIncrS2, dDecIncrS2,
+							DriveParam::ENCODER_INCREMENTAL,
+							iCANId,
+							false, true );
+
+
+	n.getParam("drive4/EncIncrPerRevMot", iEncIncrPerRevMot);
+	n.getParam("drive4/VelMeasFrqHz", dVelMeasFrqHz);
+	n.getParam("drive4/BeltRatio", dBeltRatio);
+	n.getParam("drive4/GearRatio", dGearRatio);
+	n.getParam("drive4/Sign", iSign);
+	n.getParam("drive4/Homing", bHoming);
+	n.getParam("drive4/HomePos", dHomePos);
+	n.getParam("drive4/HomeVel", dHomeVel);
+	n.getParam("drive4/HomeEvent", iHomeEvent);
+	n.getParam("drive4/HomeDigIn", iHomeDigIn);
+	n.getParam("drive4/HomeTimeOut", iHomeTimeOut);
+	n.getParam("drive4/VelMaxEncIncrS", dVelMaxEncIncrS);
+	n.getParam("drive4/VelPModeEncIncrS", dVelPModeEncIncrS);
+	n.getParam("drive4/AccIncrS", dAccIncrS2);
+	n.getParam("drive4/DecIncrS", dDecIncrS2);
+	n.getParam("drive4/CANId", iCANId);
+	driveParamRearRight.set(	1,
+							iEncIncrPerRevMot,
+							dVelMeasFrqHz,
+							dBeltRatio, dGearRatio,
+							iSign,
+							bHoming, dHomePos, dHomeVel, iHomeEvent, iHomeDigIn, iHomeTimeOut,
+							dVelMaxEncIncrS, dVelPModeEncIncrS,
+							dAccIncrS2, dDecIncrS2,
+							DriveParam::ENCODER_INCREMENTAL,
+							iCANId,
+							false, true );
+
+
 	m_SerRelayBoard->readConfig(	iTypeLCD, pathToConf, sNumComPort, 	hasMotorRight, 
 					hasMotorLeft, hasIOBoard, hasUSBoard, hasRadarBoard, hasGyroBoard, 
-					quickfix1, quickfix2, driveParamLeft, driveParamRight
+					quickfix1, quickfix2, quickfix3, quickfix4, driveParamLeft, driveParamRight,
+					driveParamRearLeft, driveParamRearRight
 			);
 };
 
@@ -396,28 +464,35 @@ void RelaisBoardNode::sendDriveStates()
 {
 	if(!relayboard_available) return;
 	cob_relayboard::DriveStates state;
-	for(int i = 0; i<2; i++)  state.joint_names[i] = joint_names[i];
+	for(int i = 0; i<4; i++)  state.joint_names[i] = joint_names[i];
 	int temp;
-	if(activeModule[DRIVE1] == 1 && activeModule[DRIVE2] == 1)
-	{	
-		m_SerRelayBoard->getWheelPosVel(motorCanIdent[0],&(state.angularPosition[0]), &(state.angularVelocity[0]));
-		m_SerRelayBoard->getWheelPosVel(motorCanIdent[1],&(state.angularPosition[1]), &(state.angularVelocity[1]));
-		m_SerRelayBoard->getStatus(motorCanIdent[0], &(state.motorState[0]), &temp);
-		m_SerRelayBoard->getStatus(motorCanIdent[1], &(state.motorState[1]), &temp);
-		topicPub_drives.publish(state);
-	} 
-	else if (activeModule[DRIVE1] == 1)
+
+	if (activeModule[DRIVE1] == 1)
 	{
 		m_SerRelayBoard->getWheelPosVel(motorCanIdent[0],&(state.angularPosition[0]), &(state.angularVelocity[0]));
 		m_SerRelayBoard->getStatus(motorCanIdent[0], &(state.motorState[0]), &temp);
-		topicPub_drives.publish(state);
 	} 
-	else if (activeModule[DRIVE2] == 1)
+	if (activeModule[DRIVE2] == 1)
 	{
 		m_SerRelayBoard->getWheelPosVel(motorCanIdent[1],&(state.angularPosition[1]), &(state.angularVelocity[1]));
 		m_SerRelayBoard->getStatus(motorCanIdent[1], &(state.motorState[1]), &temp);
-		topicPub_drives.publish(state);
+
 	}
+	if (activeModule[DRIVE3] == 1)
+	{
+		m_SerRelayBoard->getWheelPosVel(motorCanIdent[2],&(state.angularPosition[2]), &(state.angularVelocity[2]));
+		m_SerRelayBoard->getStatus(motorCanIdent[2], &(state.motorState[2]), &temp);
+	} 
+	if (activeModule[DRIVE4] == 1)
+	{
+		m_SerRelayBoard->getWheelPosVel(motorCanIdent[3],&(state.angularPosition[3]), &(state.angularVelocity[3]));
+		m_SerRelayBoard->getStatus(motorCanIdent[3], &(state.motorState[3]), &temp);
+
+	}
+	if(activeModule[DRIVE1] == 1 || activeModule[DRIVE2] == 1 || activeModule[DRIVE3] == 1 || activeModule[DRIVE4] == 1)
+	{	
+		topicPub_drives.publish(state);
+	} 
 }
 
 void RelaisBoardNode::getNewDriveStates(const cob_relayboard::DriveCommands& driveCommands)
@@ -425,14 +500,20 @@ void RelaisBoardNode::getNewDriveStates(const cob_relayboard::DriveCommands& dri
 	//ROS_INFO("received drive command: %f   %f",driveCommands.angularVelocity[0],driveCommands.angularVelocity[1]);
 	if(!relayboard_available) return;
 	if(driveCommands.driveActive[0]){
-		//TODO: test disableBrake:
 		m_SerRelayBoard->disableBrake(motorCanIdent[0],driveCommands.disableBrake[0]);
 		m_SerRelayBoard->setWheelVel(motorCanIdent[0], driveCommands.angularVelocity[0], driveCommands.quickStop[0]);
 	}
 	if(driveCommands.driveActive[1]){
-		//TODO: test disableBrake:
 		m_SerRelayBoard->disableBrake(motorCanIdent[1],driveCommands.disableBrake[1]);
 		m_SerRelayBoard->setWheelVel(motorCanIdent[1], driveCommands.angularVelocity[1], driveCommands.quickStop[1]);
+	}
+	if(driveCommands.driveActive[2]){
+		m_SerRelayBoard->disableBrake(motorCanIdent[2],driveCommands.disableBrake[2]);
+		m_SerRelayBoard->setWheelVel(motorCanIdent[2], driveCommands.angularVelocity[2], driveCommands.quickStop[2]);
+	}
+	if(driveCommands.driveActive[3]){
+		m_SerRelayBoard->disableBrake(motorCanIdent[3],driveCommands.disableBrake[3]);
+		m_SerRelayBoard->setWheelVel(motorCanIdent[3], driveCommands.angularVelocity[3], driveCommands.quickStop[3]);
 	}
 }
 

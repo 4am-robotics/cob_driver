@@ -52,7 +52,9 @@ class RelaisBoardNode
 			US_BOARD=2,
 			RADAR_BOARD=3,
 			IO_BOARD=4,
-			GYRO_BOARD=5
+			GYRO_BOARD=5,
+			DRIVE3=6,
+			DRIVE4=7
 		};
 		//drives:
 		ros::Publisher topicPub_drives;			//both motors are connected: motor callback
@@ -123,7 +125,7 @@ class RelaisBoardNode
 		void readConfig(int protocol_version_);
 
 	private:
-		int activeModule[6]; //are the modules available (else ther won't be any datastreaming);
+		int activeModule[8]; //are the modules available (else ther won't be any datastreaming);
 		std::string sComPort;
 		SerRelayBoard * m_SerRelayBoard;
 
@@ -145,8 +147,8 @@ class RelaisBoardNode
 			ST_EM_ACTIVE = 1,
 			ST_EM_CONFIRMED = 2
 		};
-		int motorCanIdent[2];
-		std::string joint_names[2];
+		int motorCanIdent[4];
+		std::string joint_names[4];
 		int hasKeyPad, hasIRSensors, hasLCDOut;
 		double voltage_min_, voltage_max_, charge_nominal_, voltage_nominal_, current_voltage;
 };
