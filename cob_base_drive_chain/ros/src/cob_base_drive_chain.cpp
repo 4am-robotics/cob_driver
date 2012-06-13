@@ -133,6 +133,11 @@ class NodeClass
 // Constructor
 NodeClass::NodeClass() : auto_recover_interval(1.)
 {
+	//
+	bool terminate;
+	n.param<bool>("terminateAtStart", terminate, false);
+	if(terminate) exit(0);
+
 	// initialization of variables
 	m_bisInitialized = false;
 
