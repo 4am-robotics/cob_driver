@@ -77,7 +77,8 @@ SerRelayBoard::SerRelayBoard()
 */
 
 void SerRelayBoard::readConfig(	int iTypeLCD,std::string pathToConf, std::string sNumComPort, 	int hasMotorRight, 
-				int hasMotorLeft, int hasIOBoard, int hasUSBoard, int hasRadarBoard, int hasGyroBoard, 
+				int hasMotorLeft, int hasMotorRearRight, int hasMotorRearLeft, 
+				int hasIOBoard, int hasUSBoard, int hasRadarBoard, int hasGyroBoard, 
 				double quickfix1, double quickfix2, double quickfix3, double quickfix4, 
 				DriveParam driveParamLeft, DriveParam driveParamRight,
 				DriveParam driveParamRearLeft, DriveParam driveParamRearRight
@@ -85,7 +86,6 @@ void SerRelayBoard::readConfig(	int iTypeLCD,std::string pathToConf, std::string
 {
 	int i, iHasBoard, iHasMotorRight, iHasMotorLeft;
 	m_bComInit = false;
-
 
 	//RelayBoard
 	m_cSoftEMStop = 0;
@@ -113,11 +113,20 @@ void SerRelayBoard::readConfig(	int iTypeLCD,std::string pathToConf, std::string
 
 	iHasMotorRight = hasMotorRight;
 	iHasMotorLeft = hasMotorLeft;
-	if( (iHasMotorRight != 0) || (iHasMotorLeft != 0) )
+	int iHasMotorRearRight = hasMotorRearRight;
+	int iHasMotorRearLeft = hasMotorRearLeft;
+	if( 	(iHasMotorRight != 0) || (iHasMotorLeft != 0) && 
+		(iHasMotorRearRight == 0) && (iHasMotorRearLeft == 0))
 	{
 		m_iConfigRelayBoard |= CONFIG_HAS_DRIVES;
 	}
-	
+
+	if( (iHasMotorRight != 0) && (iHasMotorLeft != 0) && 
+		(iHasMotorRearRight != 0) && (iHasMotorRearLeft != 0))
+	{
+		m_iConfigRelayBoard |= CONFIG_HAS_4_DRIVES;
+	}	
+
 	iHasBoard = hasIOBoard;
 	if(iHasBoard == 1)
 	{
@@ -152,10 +161,7 @@ void SerRelayBoard::readConfig(	int iTypeLCD,std::string pathToConf, std::string
 	m_iIOBoardDigOut = 0;
 	for(i = 0; i < 8; i++) { m_iIOBoardAnalogIn[i] = 0; }
 
-	quickFix[0] = quickfix1;
-	quickFix[1] = quickfix2;
-	quickFix[2] = quickfix3;
-	quickFix[3] = quickfix4;
+
 
 	// drive parameters
 	
@@ -171,6 +177,19 @@ void SerRelayBoard::readConfig(	int iTypeLCD,std::string pathToConf, std::string
 	m_iVelMeasMotRightEncS = 0;
 	m_iPosMeasMotLeftEnc = 0;
 	m_iVelMeasMotLeftEncS = 0;
+
+
+	m_iVelCmdMotRearRightEncS = 0;
+	m_iVelCmdMotRearLeftEncS = 0;
+	m_iPosMeasMotRearRightEnc = 0;
+	m_iVelMeasMotRearRightEncS = 0;
+	m_iPosMeasMotRearLeftEnc = 0;
+	m_iVelMeasMotRearLeftEncS = 0;
+
+	quickFix[0] = quickfix1;
+	quickFix[1] = quickfix2;
+	quickFix[2] = quickfix3;
+	quickFix[3] = quickfix4;
 
 	// GyroBoard
 	m_bGyroBoardZeroGyro = false;
@@ -558,14 +577,14 @@ int SerRelayBoard::getWheelPosVel(	int iCanIdent, double* pdAngWheel, double* pd
 	}
 	if(iCanIdent == CANNODE_MOTORREARRIGHT)
 	{
-		*pdAngWheel = m_DriveParamRearRight.getSign() * m_DriveParamRearRight.convIncrToRad(m_iPosMeasMotRearRightEnc);	
-		*pdVelWheel = m_DriveParamRearRight.getSign() * m_DriveParamRearRight.convIncrPerPeriodToRadS(m_iVelMeasMotRearRightEncS);
+		*pdAngWheel = m_DriveParamRearRight.getSign() * m_DriveParamRearRight.convIncrToRad(m_iPosMeasMotRearRightEnc) * quickFix[2];	
+		*pdVelWheel = m_DriveParamRearRight.getSign() * m_DriveParamRearRight.convIncrPerPeriodToRadS(m_iVelMeasMotRearRightEncS) * quickFix[2];
 	}
 
 	if(iCanIdent == CANNODE_MOTORREARLEFT)
 	{
-		*pdAngWheel = m_DriveParamRearLeft.getSign() * m_DriveParamRearLeft.convIncrToRad(m_iPosMeasMotRearLeftEnc);	
-		*pdVelWheel = m_DriveParamRearLeft.getSign() * m_DriveParamRearLeft.convIncrPerPeriodToRadS(m_iVelMeasMotRearLeftEncS);
+		*pdAngWheel = m_DriveParamRearLeft.getSign() * m_DriveParamRearLeft.convIncrToRad(m_iPosMeasMotRearLeftEnc) * quickFix[3];	
+		*pdVelWheel = m_DriveParamRearLeft.getSign() * m_DriveParamRearLeft.convIncrPerPeriodToRadS(m_iVelMeasMotRearLeftEncS) * quickFix[3];
 	}
 
 	m_Mutex.unlock();

@@ -66,6 +66,10 @@ class SRBDriveNode
 
 int SRBDriveNode::init()
 {
+	bool terminate;
+	n.param<bool>("terminateSRBDriveAtStart", terminate, false);
+	if(terminate) exit(0);
+
 	topicSub_SRBdrives = n.subscribe("/drive_states",1,&SRBDriveNode::sendJointState, this);
 	topicPub_drives = n.advertise<sensor_msgs::JointState>("/joint_states",1);
 
@@ -80,7 +84,7 @@ void SRBDriveNode::sendJointState(const cob_relayboard::DriveStates& srsState)
 	//ROS_INFO("wrap srs velocity cmd: %f %f",srsState.angularVelocity[0],srsState.angularVelocity[1]);
 	sensor_msgs::JointState state;
 	state.header.stamp = ros::Time::now();
-	for(int i=0; i<2; i++)
+	for(int i=0; i<4; i++)
 	{
 		state.position.push_back(srsState.angularPosition[i]); 
 		state.velocity.push_back(srsState.angularVelocity[i]);
@@ -95,7 +99,7 @@ void SRBDriveNode::sendDriveCommands(const trajectory_msgs::JointTrajectory& new
 {
 	//ROS_INFO("wrap velocity cmd: %f %f",newState.velocities[0],newState.velocities[1]);
 	cob_relayboard::DriveCommands cmd;
-	for(int i=0; i<2; i++)
+	for(int i=0; i<4; i++)
 	{
 		cmd.angularVelocity[i] = newState.points[0].velocities[i];
 		cmd.driveActive[i] = true;

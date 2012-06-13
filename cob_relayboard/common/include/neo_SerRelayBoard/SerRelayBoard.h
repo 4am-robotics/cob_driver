@@ -72,7 +72,8 @@ public:
 	bool isEMStop();
 	bool isScannerStop();
 	void readConfig(	int iTypeLCD,std::string pathToConf, std::string sNumComPort, 	int hasMotorRight, 
-				int hasMotorLeft, int hasIOBoard, int hasUSBoard, int hasRadarBoard, int hasGyroBoard, 
+				int hasMotorLeft, int hasMotorRearRight, int hasMotorRearLeft,
+				int hasIOBoard, int hasUSBoard, int hasRadarBoard, int hasGyroBoard, 
 				double quickfix1, double quickfix2, double quickfix3, double quickfix4, 
 				DriveParam driveParamLeft, DriveParam driveParamRight,
 				DriveParam driveParamRearLeft, DriveParam driveParamRearRight
@@ -189,6 +190,7 @@ public:
 		CONFIG_HAS_RADARBOARD1 = 8,
 		CONFIG_HAS_RADARBOARD2 = 16,
 		CONFIG_HAS_DRIVES = 32,
+		CONFIG_HAS_4_DRIVES = 64
 
 	};
 
@@ -203,6 +205,7 @@ public:
 		CANNODE_USBOARD,
 		CANNODE_MOTORREARRIGHT,
 		CANNODE_MOTORREARLEFT
+
 	};
 
 	/**

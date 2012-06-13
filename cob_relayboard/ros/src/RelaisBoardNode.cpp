@@ -134,8 +134,7 @@ void RelaisBoardNode::readConfig(int protocol_version_)
 	std::string pathToConf = "";
 	int iTypeLCD = protocol_version_;
 	std::string sNumComPort; 	
-	int hasMotorRight;
-	int hasMotorLeft;
+	int hasMotorRight, hasMotorLeft, hasMotorRearRight, hasMotorRearLeft;
 	int hasIOBoard;
 
 	int hasUSBoard;
@@ -148,6 +147,8 @@ void RelaisBoardNode::readConfig(int protocol_version_)
 	n.getParam("ComPort", sNumComPort);
 	n.getParam("hasMotorRight", hasMotorRight);
 	n.getParam("hasMotorLeft", hasMotorLeft);
+	n.getParam("hasMotorRight", hasMotorRearRight);
+	n.getParam("hasMotorLeft", hasMotorRearLeft);
 	n.getParam("hasIOBoard", hasIOBoard);
 	n.getParam("hasUSBoard", hasUSBoard);
 	n.getParam("hasRadarBoard", hasRadarBoard);
@@ -290,8 +291,9 @@ void RelaisBoardNode::readConfig(int protocol_version_)
 							false, true );
 
 
-	m_SerRelayBoard->readConfig(	iTypeLCD, pathToConf, sNumComPort, 	hasMotorRight, 
-					hasMotorLeft, hasIOBoard, hasUSBoard, hasRadarBoard, hasGyroBoard, 
+	m_SerRelayBoard->readConfig(	iTypeLCD, pathToConf, sNumComPort, hasMotorRight, 
+					hasMotorLeft, hasMotorRearRight, hasMotorRearLeft,
+					hasIOBoard, hasUSBoard, hasRadarBoard, hasGyroBoard, 
 					quickfix1, quickfix2, quickfix3, quickfix4, driveParamLeft, driveParamRight,
 					driveParamRearLeft, driveParamRearRight
 			);
@@ -497,23 +499,15 @@ void RelaisBoardNode::sendDriveStates()
 
 void RelaisBoardNode::getNewDriveStates(const cob_relayboard::DriveCommands& driveCommands)
 {
-	//ROS_INFO("received drive command: %f   %f",driveCommands.angularVelocity[0],driveCommands.angularVelocity[1]);
+
 	if(!relayboard_available) return;
-	if(driveCommands.driveActive[0]){
-		m_SerRelayBoard->disableBrake(motorCanIdent[0],driveCommands.disableBrake[0]);
-		m_SerRelayBoard->setWheelVel(motorCanIdent[0], driveCommands.angularVelocity[0], driveCommands.quickStop[0]);
-	}
-	if(driveCommands.driveActive[1]){
-		m_SerRelayBoard->disableBrake(motorCanIdent[1],driveCommands.disableBrake[1]);
-		m_SerRelayBoard->setWheelVel(motorCanIdent[1], driveCommands.angularVelocity[1], driveCommands.quickStop[1]);
-	}
-	if(driveCommands.driveActive[2]){
-		m_SerRelayBoard->disableBrake(motorCanIdent[2],driveCommands.disableBrake[2]);
-		m_SerRelayBoard->setWheelVel(motorCanIdent[2], driveCommands.angularVelocity[2], driveCommands.quickStop[2]);
-	}
-	if(driveCommands.driveActive[3]){
-		m_SerRelayBoard->disableBrake(motorCanIdent[3],driveCommands.disableBrake[3]);
-		m_SerRelayBoard->setWheelVel(motorCanIdent[3], driveCommands.angularVelocity[3], driveCommands.quickStop[3]);
+	for(int i=0; i<4; i++)
+	{	
+		if(driveCommands.driveActive[i]){
+			ROS_DEBUG("%i : received drive command: %f   %f",motorCanIdent[i],driveCommands.angularVelocity[i],driveCommands.angularVelocity[i]);
+			m_SerRelayBoard->disableBrake(motorCanIdent[i],driveCommands.disableBrake[i]);
+			m_SerRelayBoard->setWheelVel(motorCanIdent[i], driveCommands.angularVelocity[i], driveCommands.quickStop[i]);
+		}
 	}
 }
 

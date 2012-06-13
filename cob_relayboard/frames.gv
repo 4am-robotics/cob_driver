@@ -1,0 +1,7 @@
+digraph G {
+"/odom" -> "/base_link"[label="Broadcaster: /mecanum_node/mecanum_node\nAverage rate: 17.994 Hz\nMost recent transform: 0.123 sec old \nBuffer length: 0.333 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1339587179.610"[ shape=plaintext ] ;
+ }->"/odom";
+}
