@@ -221,6 +221,7 @@ void NodeClass::setBaseConfig()
 	bool bHomeAllAtOnce;
 	std::vector<int> control_type;
 	std::vector<int> m_viMotorID;
+	int iHomeTimeOut;
 
 	////////////////////////
 	// get parameters:
@@ -234,6 +235,7 @@ void NodeClass::setBaseConfig()
 	n.getParam("BaudrateVal", iBaudrateVal);
 	n.getParam("cycleRate", rate);
 	n.param<bool>("HomeAllAtOnce",bHomeAllAtOnce,false);
+	n.param<int>("HomeTimeOut",iHomeTimeOut,7000);
 	//can settings:
 	control_type.resize(m_iNumMotors);
 	m_viMotorID.resize(m_iNumMotors);
@@ -291,10 +293,9 @@ void NodeClass::setBaseConfig()
 
 
 	}
-
  	m_CanCtrlPltf->readConfiguration(		iTypeCan, iBaudrateVal,	sCanDevice, rate,
 							DriveParamDriveMotor, m_iNumMotors, m_GearMotDrive,
-							bHomeAllAtOnce, control_type, m_viMotorID
+							bHomeAllAtOnce, iHomeTimeOut, control_type, m_viMotorID
 	);
 
 	if(sCanDevice) delete sCanDevice;

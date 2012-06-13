@@ -243,7 +243,7 @@ public:
 	void readConfiguration(		int typeCan, int baudrateVal,	std::string* sCanDevice, int rate,
 					std::vector<DriveParam> driveParamDriveMotor, int iNumMotors,
 					std::vector<NeoCtrlPltfMpo500::GearMotorParamType> gearMotDrive,
-					bool homeAllAtOnce, std::vector<int> s_control_type, std::vector<int> viMotorID
+					bool homeAllAtOnce, int homeTimeOut, std::vector<int> s_control_type, std::vector<int> viMotorID
 	);
 
 
@@ -323,6 +323,7 @@ protected:
 
 	int m_iNumMotors;
 	bool bHomeAllAtOnce;
+	int iHomeTimeOut;
 
 	// Motor-Controllers
 /*	CanDriveItf* m_pW1DriveMotor;

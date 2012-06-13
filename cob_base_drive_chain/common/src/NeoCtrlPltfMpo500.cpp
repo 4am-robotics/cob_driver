@@ -42,6 +42,7 @@
 #include <cob_generic_can/CANPeakSysUSB.h>
 #include <cob_base_drive_chain/NeoCtrlPltfMpo500.h>
 #include <sstream>
+#include <sys/time.h>
 
 
 
@@ -75,13 +76,14 @@ NeoCtrlPltfMpo500::~NeoCtrlPltfMpo500()
 void NeoCtrlPltfMpo500::readConfiguration(	int iTypeCan, int iBaudrateVal,	std::string* sCanDevice, int rate,
 						std::vector<DriveParam> DriveParamDriveMotor, int numMotors,
 						std::vector<NeoCtrlPltfMpo500::GearMotorParamType> gearMotDrive,
-						bool homeAllAtOnce, std::vector<int> s_control_type, std::vector<int> viMotorID)
+						bool homeAllAtOnce, int homeTimeOut, std::vector<int> s_control_type, std::vector<int> viMotorID)
 {
 	m_iNumMotors = numMotors;
 	m_GearMotDrive = gearMotDrive;
 	m_viMotorID = viMotorID;
 	control_type = s_control_type;
 	bHomeAllAtOnce = homeAllAtOnce;
+	iHomeTimeOut = homeTimeOut;
 	//can settings:
 	OUTPUTDEBUG("initializing can network");
 	if (iTypeCan == 0)
@@ -89,7 +91,7 @@ void NeoCtrlPltfMpo500::readConfiguration(	int iTypeCan, int iBaudrateVal,	std::
  		if( sCanDevice ){
 			OUTPUTINFO("set devicepath from config: %s %i",(*sCanDevice).c_str(), iBaudrateVal);
 			m_pCanCtrl = new CANPeakSysDongle(iBaudrateVal, *sCanDevice);
-			
+		
 		}
 		else m_pCanCtrl = new CANPeakSysDongle(iBaudrateVal);
 		std::cout << "Uses CAN-Peak-Systems dongle" << std::endl;
@@ -335,7 +337,11 @@ bool NeoCtrlPltfMpo500::initPltf()
 		bool homingIsFinished = true;
 		bool homedMotor[m_vpMotor.size()];
 		for(int i=0; i<m_vpMotor.size(); i++) homedMotor[i] = false;
+
 		//TODO: timeout
+		struct timeval start, end;
+		gettimeofday(&start, NULL);
+
 		do
 		{
 			homingIsFinished = true;
@@ -374,12 +380,22 @@ bool NeoCtrlPltfMpo500::initPltf()
 					}
 				}
 			}
+			gettimeofday(&end, NULL);
+			double msec = ((end.tv_sec  - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec)/1000.0);
+			if( msec > iHomeTimeOut )
+			{
+				shutdownPltf();
+				OUTPUTINFO("homing timed out");
+				return false;
+			}
 		}
 		while(!homingIsFinished);
 
 		// 3. drive motors to zero position
 		bool bAllDone;
 	
+
+                gettimeofday(&start, NULL);
 		do
 		{
 
@@ -446,6 +462,16 @@ bool NeoCtrlPltfMpo500::initPltf()
 				}
 			}
 			usleep(15000);
+
+
+                        gettimeofday(&end, NULL);
+                        double msec = ((end.tv_sec  - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec)/1000.0);
+                        if( msec > iHomeTimeOut )
+                        {
+                                shutdownPltf();
+                                OUTPUTINFO("homing timed out");
+                                return false;
+                        }
 
 
 		} while(!bAllDone);
