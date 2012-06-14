@@ -13,33 +13,31 @@ class GazeboVirtualRangeSensor():
 		rospy.logdebug("subscribed to bumper states topic: %s", topic_name)
 		self.pub = rospy.Publisher(topic_name, Range)
 		rospy.loginfo("topic '" + topic_name + "' advertised")
-		self.range = Range()
 
 	def laser_callback(self, msg):
+		sensor_range = Range()
+	
 		# set header
-		self.range.header = msg.header
+		sensor_range.header = msg.header
 		
 		# set range from average out of laser message
 		if len(msg.ranges) > 0:
-			self.range.range = sum(msg.ranges)/len(msg.ranges)
+			sensor_range.range = sum(msg.ranges)/len(msg.ranges)
 		else:
-			self.range.range = 0
+			sensor_range.range = 0
 		
 		# set min and max range
-		self.range.min_range = msg.range_min
-		self.range.max_range = msg.range_max
+		sensor_range.min_range = msg.range_min
+		sensor_range.max_range = msg.range_max
 		
 		# set field of view
-		self.range.field_of_view = msg.angle_max - msg.angle_min
+		sensor_range.field_of_view = msg.angle_max - msg.angle_min
 		
 		# set radiation type to IR (=1)
-		self.range.radiation_type = 1
-
-	'''
-	Publish the current state of the simulated sensors.
-	'''
-	def publish(self):
-		self.pub.publish(self.range)
+		sensor_range.radiation_type = 1
+		
+		# publish range
+		self.pub.publish(sensor_range)
 
 if __name__ == "__main__":
 	rospy.init_node('tactile_sensors')
@@ -49,11 +47,5 @@ if __name__ == "__main__":
 	sensor2 = GazeboVirtualRangeSensor(2, "range_2_sim", "range_2")
 	sensor3 = GazeboVirtualRangeSensor(3, "range_3_sim", "range_3")
 	sensor4 = GazeboVirtualRangeSensor(4, "range_4_sim", "range_4")
-	
-	r = rospy.Rate(10) # 10hz
-	while not rospy.is_shutdown():
-		sensor1.publish()
-		sensor2.publish()
-		sensor3.publish()
-		sensor4.publish()
-		r.sleep()
+
+	rospy.spin()
