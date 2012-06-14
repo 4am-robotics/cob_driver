@@ -12,7 +12,7 @@
   <depend stack="cob_common" /> <!-- cob_srvs, brics_actuator -->
   <depend stack="cob_extern" /> <!-- libpcan, libphidgets, libntcan -->
   <depend stack="common" /> <!-- actionlib -->
-  <depend stack="common_msgs" /> <!-- nav_msgs, geometry_msgs, sensor_msgs, diagnostic_msgs -->
+  <depend stack="common_msgs" /> <!-- nav_msgs, geometry_msgs, sensor_msgs, diagnostic_msgs, visualization_msgs -->
   <depend stack="control" /> <!-- control_msgs -->
   <depend stack="diagnostics" /> <!-- diagnostic_updater -->
   <depend stack="geometry" /> <!-- tf -->
