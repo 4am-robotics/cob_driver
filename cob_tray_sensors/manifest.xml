@@ -10,10 +10,10 @@
   <url>http://ros.org/wiki/cob_tray_sensors</url>
 
   <depend package="roscpp"/>
+  <depend package="rospy"/>
   <depend package="libphidgets"/>
   <depend package="std_msgs"/>
-
+  <depend package="sensor_msgs"/>
+  <depend package="gazebo_msgs"/>
 
 </package>
-
-

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+
+	<node ns="tray_sensors" pkg="cob_tray_sensors" type="simulated_tray_sensors.py" name="tray_sensor_node_sim" output="screen" />
+
+</launch>
+
