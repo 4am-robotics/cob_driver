@@ -2,7 +2,6 @@
 import roslib; roslib.load_manifest('cob_tray_sensors')
 import rospy
 import math
-from gazebo_msgs.msg import *
 from geometry_msgs.msg import *
 from sensor_msgs.msg import *
 
