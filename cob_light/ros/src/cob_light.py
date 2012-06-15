@@ -64,7 +64,12 @@ class LightControl:
 	def __init__(self):
 		self.ns_global_prefix = "/light_controller"
 		self.pub_marker = rospy.Publisher("marker", Marker)
-		
+		# set default color to green rgba = [0,1,0,1]
+		self.color = ColorRGBA()
+		self.color.r = 0
+		self.color.g = 1
+		self.color.b = 0
+		self.color.a = 1
 		self.sim_mode = False
 		
 		# get parameter from parameter server
@@ -90,13 +95,13 @@ class LightControl:
 				self.sim_mode = True
 			rospy.loginfo("serial connection initialized successfully")
 
-	def setRGB(self, light):
+	def setRGB(self, color):
 		#color in rgb color space ranging from 0 to 999
 
 		#scale from 0 to 999
-		red = light.r*999
-		green = light.g*999
-		blue = light.b*999
+		red = color.r*999
+		green = color.g*999
+		blue = color.b*999
 
 		# check range and send to serial bus
 		if(red <= 999 and green <= 999 and blue <= 999):
@@ -104,11 +109,12 @@ class LightControl:
 		else:
 			rospy.logwarn("Color not in range 0...900 color: rgb = [%d, %d, %d] a = [%d]", str(red), str(green), str(blue))
 
-	def publish_marker(self, light):
+	def publish_marker(self):
+		# create marker
 		marker = Marker()
 		marker.header.frame_id = "/base_link"
 		marker.header.stamp = rospy.Time.now()
-		marker.ns = "light"
+		marker.ns = "color"
 		marker.id = 0
 		marker.type = 2 # SPHERE
 		marker.action = 0 # ADD
@@ -122,18 +128,18 @@ class LightControl:
 		marker.scale.x = 0.1
 		marker.scale.y = 0.1
 		marker.scale.z = 0.1
-		marker.color.a = light.a #Transparency
-		marker.color.r = light.r
-		marker.color.g = light.g
-		marker.color.b = light.b
-
+		marker.color.a = self.color.a #Transparency
+		marker.color.r = self.color.r
+		marker.color.g = self.color.g
+		marker.color.b = self.color.b
+		# publish marker
 		self.pub_marker.publish(marker)
 
-	def LightCallback(self,light):
-		rospy.logdebug("Received new color: rgb = [%d, %d, %d] a = [%d]",light.r,light.g,light.b,light.a)
-		self.publish_marker(light)
+	def LightCallback(self,color):
+		rospy.logdebug("Received new color: rgb = [%d, %d, %d] a = [%d]",color.r,color.g,color.b,color.a)
+		self.color = color
 		if not self.sim_mode:
-			self.setRGB(light)
+			self.setRGB(color)
 
 if __name__ == '__main__':
 	rospy.init_node('light_controller')
@@ -143,4 +149,8 @@ if __name__ == '__main__':
 		rospy.loginfo(rospy.get_name() + " running")
 	else:
 		rospy.loginfo(rospy.get_name() + " running in simulated mode")
-	rospy.spin()
+		
+	r = rospy.Rate(10)
+	while not rospy.is_shutdown():
+		lc.publish_marker()
+		r.sleep()
