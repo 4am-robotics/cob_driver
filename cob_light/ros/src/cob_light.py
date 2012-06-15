@@ -97,17 +97,16 @@ class LightControl:
 
 	def setRGB(self, color):
 		#color in rgb color space ranging from 0 to 999
-
-		#scale from 0 to 999
-		red = color.r*999
-		green = color.g*999
-		blue = color.b*999
-
 		# check range and send to serial bus
-		if(red <= 999 and green <= 999 and blue <= 999):
-			self.ser.write(str(red)+ " " + str(green)+ " " + str(blue)+"\n\r")
+		if(color.r <= 1 and color.g <= 1 and color.b <= 1):
+			#scale from 0 to 999
+			red = color.r*999.0
+			green = color.g*999.0
+			blue = color.b*999.0
+			rospy.logdebug("send color to microcontroller: rgb = [%d, %d, %d]", red, green, blue)
+			self.ser.write(str(int(red))+ " " + str(int(green))+ " " + str(int(blue))+"\n\r")
 		else:
-			rospy.logwarn("Color not in range 0...900 color: rgb = [%d, %d, %d] a = [%d]", str(red), str(green), str(blue))
+			rospy.logwarn("Color not in range 0...1 color: rgb = [%d, %d, %d] a = [%d]", color.r, color.g, color.b, color.a)
 
 	def publish_marker(self):
 		# create marker
@@ -136,7 +135,7 @@ class LightControl:
 		self.pub_marker.publish(marker)
 
 	def LightCallback(self,color):
-		rospy.logdebug("Received new color: rgb = [%d, %d, %d] a = [%d]",color.r,color.g,color.b,color.a)
+		rospy.loginfo("Received new color: rgb = [%d, %d, %d] a = [%d]", color.r, color.g, color.b, color.a)
 		self.color = color
 		if not self.sim_mode:
 			self.setRGB(color)
