@@ -1,6 +1,11 @@
+// see http://www.phidgets.com/products.php?category=2&product_id=3520_0
+// distance calculation: Distance (cm) = 2076/(SensorValue - 11)             (the formula is only valid for a SensorValue between 80 to 530)
+// TODO: separate into two packages: cob_phidgets_driver (publishing only raw values as sensor_msgs/Range message) and cob_tray_status (evaluating the Range messages to decide if tray is occupied or not, eventually also at which position it is occupied) 
+
+
 #include "ros/ros.h"
 #include "std_msgs/Bool.h"
-#include "cob_tray_sensors/CheckOccupied.h"
+#include "sensor_msgs/Range.h"
 
 #include <libphidgets/phidget21.h>
 #include <sstream>
@@ -10,6 +15,7 @@ int wert[100];
 int i;
 
 bool bOccupied_;
+sensor_msgs::Range range1, range2, range3, range4;
 
 void display_generic_properties(CPhidgetHandle phid)
 {
@@ -64,18 +70,12 @@ int IFK_SensorChangeHandler(CPhidgetInterfaceKitHandle IFK, void *userptr, int I
 		wert[96] = ((wert[2] + wert[12]+wert[22]+wert[32]+wert[42]+wert[52]+wert[62]+wert[72]+wert[82]+wert[92]) / 10);
 		wert[97] = ((wert[3] + wert[13]+wert[23]+wert[33]+wert[43]+wert[53]+wert[63]+wert[73]+wert[83]+wert[93]) / 10);
 
-		if ((wert[94] < 200) && (wert[95] <200) && (wert[96] < 200) && (wert[97] < 200))  
-		{
-			ROS_DEBUG("Sensor0123 manually are %d %d %d %d ; ", wert[94],wert[95],wert[96],wert[97]);
-			ROS_DEBUG("tablet empty");
-			bOccupied_ = false;
-		}
-		else 	
-		{
-			ROS_DEBUG("Sensor0123 manually are %d %d %d %d ;", wert[94],wert[95],wert[96],wert[97]);
-			ROS_DEBUG("tablet NOT empty!");
-			bOccupied_ = true;
-		}
+		ROS_DEBUG("Sensor0123 values are: %d %d %d %d", wert[94],wert[95],wert[96],wert[97]);
+
+		range1.range = wert[94];
+		range2.range = wert[95];
+		range3.range = wert[96];
+		range4.range = wert[97];
 
 		for( i = 0; i < 100; i++)
 			wert[i]=0;
@@ -86,25 +86,16 @@ int IFK_SensorChangeHandler(CPhidgetInterfaceKitHandle IFK, void *userptr, int I
 	return 0;
 }
 
-
-bool check_occupied(cob_tray_sensors::CheckOccupied::Request  &req,
-         cob_tray_sensors::CheckOccupied::Response &res )
-{
-  res.occupied.data = bOccupied_;
-  return true;
-}
-
-
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "cob_tray_sensors");
+	ros::init(argc, argv, "cob_phidgets");
 	ros::NodeHandle n;
-	ros::Publisher occupied_pub = n.advertise<std_msgs::Bool>("/tray/occupied", 0);
-	ros::ServiceServer service = n.advertiseService("/tray/check_occupied", check_occupied);
+	ros::Publisher pub_range1 = n.advertise<sensor_msgs::Range>("range_1", 0);
+	ros::Publisher pub_range2 = n.advertise<sensor_msgs::Range>("range_2", 0);
+	ros::Publisher pub_range3 = n.advertise<sensor_msgs::Range>("range_3", 0);
+	ros::Publisher pub_range4 = n.advertise<sensor_msgs::Range>("range_4", 0);
 
 	ros::Rate loop_rate(10);
-
-	bOccupied_ = false;
 
 	//init and open phidget
 	int numInputs, numOutputs, numSensors;
@@ -119,6 +110,7 @@ int main(int argc, char **argv)
 	CPhidget_open((CPhidgetHandle)IFK, -1);
 
 	//wait 5 seconds for attachment
+	ROS_INFO("waiting for phidgets attachement...");
 	if((err = CPhidget_waitForAttachment((CPhidgetHandle)IFK, 0)) != EPHIDGET_OK )
 	{
 		const char *errStr;
@@ -126,6 +118,7 @@ int main(int argc, char **argv)
 		ROS_ERROR("Error waiting for attachment: (%d): %s",err,errStr);
 		goto exit;
 	}
+	ROS_INFO("... attached");
 
 	display_generic_properties((CPhidgetHandle)IFK);
 	CPhidgetInterfaceKit_getOutputCount((CPhidgetInterfaceKitHandle)IFK, &numOutputs);
@@ -137,9 +130,10 @@ int main(int argc, char **argv)
 
 	while (ros::ok())
 	{
-		std_msgs::Bool occupied;
-		occupied.data = bOccupied_;
-		occupied_pub.publish(occupied);
+		pub_range1.publish(range1);
+		pub_range2.publish(range2);
+		pub_range3.publish(range3);
+		pub_range4.publish(range4);
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
