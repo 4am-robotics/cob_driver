@@ -146,6 +146,10 @@ CollisionVelocityFilter::CollisionVelocityFilter()
   vx_last_ = 0.0;
   vy_last_ = 0.0;
   vtheta_last_ = 0.0;
+
+  // dynamic reconfigure
+  dynCB_ = boost::bind(&CollisionVelocityFilter::dynamicReconfigureCB, this, _1, _2);
+  dyn_server_.setCallback(dynCB_);
 } 
 
 // Destructor
@@ -220,6 +224,31 @@ void CollisionVelocityFilter::getFootprintServiceCB(const ros::TimerEvent&)
     ROS_WARN("Cannot reach service /get_footprint");
   }
 
+}
+
+void
+CollisionVelocityFilter::dynamicReconfigureCB(const cob_collision_velocity_filter::CollisionVelocityFilterConfig &config,
+                                              const uint32_t level)
+{
+  pthread_mutex_lock(&m_mutex);
+
+  stop_threshold_ = config.stop_threshold;
+  obstacle_damping_dist_ = config.obstacle_damping_dist;
+  if(obstacle_damping_dist_ < stop_threshold_)
+  {
+    ROS_WARN("obstacle_damping_dist < stop_threshold => robot will stop without decceleration!");
+  }
+
+  if(obstacle_damping_dist_ > config.influence_radius || stop_threshold_ > config.influence_radius)
+  {
+    ROS_WARN("Not changing influence_radius since obstacle_damping_dist and/or stop_threshold is bigger!");
+  } else {
+    influence_radius_ = config.influence_radius;
+  }
+
+  if (stop_threshold_ <= 0.0 || influence_radius_ <=0.0)
+    ROS_WARN("Turned off obstacle avoidance!");
+  pthread_mutex_unlock(&m_mutex);
 }
 
 // sets corrected velocity of joystick command

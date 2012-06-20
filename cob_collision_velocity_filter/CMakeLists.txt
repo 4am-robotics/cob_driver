@@ -33,4 +33,9 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
 rosbuild_add_executable(collision_velocity_filter src/cob_collision_velocity_filter.cpp)
 
+# add dynamic reconfigure api
+rosbuild_find_ros_package(dynamic_reconfigure)
+include(${dynamic_reconfigure_PACKAGE_PATH}/cmake/cfgbuild.cmake)
+gencfg()
+
 # rostest
