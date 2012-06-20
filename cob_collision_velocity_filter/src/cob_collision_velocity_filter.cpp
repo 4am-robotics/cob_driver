@@ -101,8 +101,9 @@ CollisionVelocityFilter::CollisionVelocityFilter()
 
   if(!nh_.hasParam("obstacle_damping_dist")) ROS_WARN("Used default parameter for obstacle_damping_dist [5.0 m]");
   nh_.param("obstacle_damping_dist", obstacle_damping_dist_, 5.0);
-  if(obstacle_damping_dist_ < stop_threshold_) {
-    ROS_WARN("obstacle_damping_dist < stop_threshold => robot will stop without decceleration!");
+  if(obstacle_damping_dist_ <= stop_threshold_) {
+    obstacle_damping_dist_ = stop_threshold_ + 0.01; // set to stop_threshold_+0.01 to avoid divide by zero error
+    ROS_WARN("obstacle_damping_dist <= stop_threshold -> robot will stop without decceleration!");
   }
 
   if(!nh_.hasParam("use_circumscribed_threshold")) ROS_WARN("Used default parameter for use_circumscribed_threshold_ [0.2 rad/s]");
@@ -234,9 +235,9 @@ CollisionVelocityFilter::dynamicReconfigureCB(const cob_collision_velocity_filte
 
   stop_threshold_ = config.stop_threshold;
   obstacle_damping_dist_ = config.obstacle_damping_dist;
-  if(obstacle_damping_dist_ < stop_threshold_)
-  {
-    ROS_WARN("obstacle_damping_dist < stop_threshold => robot will stop without decceleration!");
+  if(obstacle_damping_dist_ <= stop_threshold_) {
+    obstacle_damping_dist_ = stop_threshold_ + 0.01; // set to stop_threshold_+0.01 to avoid divide by zero error
+    ROS_WARN("obstacle_damping_dist <= stop_threshold -> robot will stop without decceleration!");
   }
 
   if(obstacle_damping_dist_ > config.influence_radius || stop_threshold_ > config.influence_radius)
