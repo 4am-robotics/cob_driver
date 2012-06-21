@@ -136,9 +136,11 @@ class FootprintObserver
     double footprint_front_, footprint_rear_, footprint_left_, footprint_right_;
     tf::TransformListener tf_listener_;
     std::string frames_to_check_;
-    std::string robot_base_frame_, farthest_frame_;
+    std::string robot_base_frame_;
 
     pthread_mutex_t m_mutex;
+
+    ros::Time last_tf_missing_;
 };
 
 #endif

@@ -87,20 +87,8 @@ FootprintObserver::FootprintObserver()
   
   if(!nh_.hasParam("robot_base_frame")) ROS_WARN("No parameter robot_base_frame on parameter server. Using default [/base_link].");
   nh_.param("robot_base_frame", robot_base_frame_, std::string("/base_link"));
-  
-  if(!nh_.hasParam("farthest_frame")) ROS_WARN("No parameter farthest_frame on parameter server. Using default [/base_link].");
-  nh_.param("farthest_frame", farthest_frame_, std::string("/base_link"));
 
-  // wait until transform to from robot_base_frame_ to farthest_frame_ is available
-  ros::Time last_error = ros::Time::now();
-  std::string tf_error;
-  while(!tf_listener_.waitForTransform(robot_base_frame_, farthest_frame_, ros::Time(), ros::Duration(0.1), ros::Duration(0.01), &tf_error)) {
-    ros::spinOnce();
-    if(last_error + ros::Duration(5.0) < ros::Time::now()){
-      ROS_WARN("Waiting on transform from %s to %s to become available before running cob_footprint_observer, tf errror: %s", robot_base_frame_.c_str(), farthest_frame_.c_str(), tf_error.c_str());
-      last_error = ros::Time::now();
-    }
-  }
+  last_tf_missing_ = ros::Time::now();
 }
 
 // Destructor
@@ -295,7 +283,8 @@ void FootprintObserver::checkFootprint(){
   x_rear = footprint_rear_initial_;
   y_left = footprint_left_initial_;
   y_right = footprint_right_initial_;
- 
+
+  bool missing_frame_exists = false;
   while(ss >> frame){
     // get transform between robot base frame and frame
     if(tf_listener_.canTransform(robot_base_frame_, frame, ros::Time(0))) {
@@ -309,8 +298,14 @@ void FootprintObserver::checkFootprint(){
       if(frame_position.x() < x_rear) x_rear = frame_position.x();
       if(frame_position.y() > y_left) y_left = frame_position.y();
       if(frame_position.y() < y_right) y_right = frame_position.y();
+    } else if ( (ros::Time::now() - last_tf_missing_).toSec() > 5.0) {
+      missing_frame_exists = true;
+      ROS_WARN("Footprint Observer: Transformation for %s not available! Frame %s not considered in adjusted footprint!",
+               frame.c_str(), frame.c_str());
     }
   }
+  if (missing_frame_exists)
+    last_tf_missing_ = ros::Time::now();
   
   pthread_mutex_lock(&m_mutex);
   // adjust footprint
