@@ -64,9 +64,9 @@ using namespace std;
 /****************************************************************
  * the ros navigation doesn't run very smoothly because acceleration is too high
  * --> cob has strong base motors and therefore reacts with shaking behavior 
- * (PR2 has much more meachnical damping)
+ * (PR2 has much more mechanical damping)
  * solution: the additional node cob_base_velocity_smoother smooths the velocities
- * comming from ROS-navigation, by calculating the mean values of a certain number 
+ * comming from ROS-navigation or teleoperation, by calculating the mean values of a certain number 
  * of past messages and limiting the acceleration under a given threshold. 
  * cob_base_velocity_smoother subsribes (input) and publishes (output) geometry_msgs::Twist.
  ****************************************************************/
@@ -107,6 +107,9 @@ public:
 	//false otherwise
 	bool CircBuffOutOfDate(ros::Time now);
 
+	//help-function that returns the signum of a double variable
+	int signum(double var);
+
 	//functions to calculate the mean values for each direction
 	double meanValueX();
 	double meanValueY();
@@ -146,8 +149,7 @@ cob_base_velocity_smoother::cob_base_velocity_smoother()
 
 	if(n.hasParam("thresh_max_acc"))
 	{
-		//n.getParam("thresh_max_acc",thresh);
-		thresh = 2;
+		n.getParam("thresh_max_acc",thresh);
 	}
 
 	else
@@ -206,6 +208,16 @@ bool cob_base_velocity_smoother::CircBuffOutOfDate(ros::Time now)
 
 };
 
+int cob_base_velocity_smoother::signum(double var)
+{
+	if(var < 0){
+		return -1;
+	}
+	else{
+		return 1;
+	}
+};
+
 //functions to calculate the mean values for linear/x
 double cob_base_velocity_smoother::meanValueX()
 {
@@ -219,8 +231,10 @@ double cob_base_velocity_smoother::meanValueX()
 
 	}
 	result = result / size;
-
+	
 	if(size > 1){
+
+		double help_result = 0;
 		double max = cb[0].linear.x;
 		long unsigned int max_ind = 0;
 		for(long unsigned int i=0; i<size; i++){
@@ -236,10 +250,10 @@ double cob_base_velocity_smoother::meanValueX()
 		for(long unsigned int i=0; i<size; i++){
 		
 			if(i != max_ind){
-				result = result + cb[i].linear.x;
+				help_result = help_result + cb[i].linear.x;
 			}
 		}
-		result = result / (size - 1);
+		result = help_result / (size - 1);
 	}
 	
 	return result;
@@ -259,9 +273,10 @@ double cob_base_velocity_smoother::meanValueY()
 
 	}
 	result = result / size;
-
+	
 	if(size > 1){
-
+		
+		double help_result = 0;
 		double max = cb[0].linear.y;
 		long unsigned int max_ind = 0;
 		for(long unsigned int i=0; i<size; i++){
@@ -277,10 +292,10 @@ double cob_base_velocity_smoother::meanValueY()
 		for(long unsigned int i=0; i<size; i++){
 		
 			if(i != max_ind){
-				result = result + cb[i].linear.y;
+				help_result = help_result + cb[i].linear.y;
 			}
 		}
-		result = result / (size - 1);
+		result = help_result / (size - 1);
 	}
 
 	return result;
@@ -300,9 +315,10 @@ double cob_base_velocity_smoother::meanValueZ()
 
 	}
 	result = result / size;
-
+	
 	if(size > 1){
-
+		
+		double help_result = 0;
 		double max = cb[0].angular.z;
 		long unsigned int max_ind = 0;
 		for(long unsigned int i=0; i<size; i++){
@@ -318,10 +334,10 @@ double cob_base_velocity_smoother::meanValueZ()
 		for(long unsigned int i=0; i<size; i++){
 		
 			if(i != max_ind){
-				result = result + cb[i].angular.z;
+				help_result = help_result + cb[i].angular.z;
 			}
 		}
-		result = result / (size - 1);
+		result = help_result / (size - 1);
 
 	}
 
@@ -333,7 +349,8 @@ double cob_base_velocity_smoother::meanValueZ()
 void cob_base_velocity_smoother::reviseCircBuff(ros::Time now, geometry_msgs::Twist cmd_vel)
 {
 	if(this->CircBuffOutOfDate(now) == true){
-
+		
+		cout << "CircBuffOutOfDate == true " << endl;
 		//clear buffers
 		cb.clear();
 		cb_time.clear();
@@ -357,7 +374,7 @@ void cob_base_velocity_smoother::reviseCircBuff(ros::Time now, geometry_msgs::Tw
 		double delay=(now.toSec() - cb_time.back().toSec());
 
 		while( delay >= store_delay ){
-			cout << "reviseCircBuff -> while" << endl;
+			cout << "reviseCircBuff -> while... delay = " << delay << " and store_delay = " << store_delay << "." <<endl;
 			//remove out-dated messages
 			cb.pop_back();
 			cb_time.pop_back();
@@ -403,7 +420,7 @@ geometry_msgs::Twist cob_base_velocity_smoother::setOutput(ros::Time now, geomet
 
 	cout << "cb_time[2]: " << cb_time[2] << endl;
 
-	cout << "diff: "<< now - cb_time[2] << "and in seconds:" << now.toSec() - cb_time[2].toSec()  <<endl;
+	cout << "diff: "<< now - cb_time[2] << " and in seconds:" << now.toSec() - cb_time[2].toSec()  <<endl;
 
 	//limit the acceleration under thresh
 	// only if cob_base_velocity_smoother has published a message yet
@@ -420,24 +437,30 @@ geometry_msgs::Twist cob_base_velocity_smoother::setOutput(ros::Time now, geomet
 			//set delta velocity and acceleration values
 			double deltaX = result.linear.x - cb_out.front().linear.x;
 			double accX = deltaX / deltaTime;
-			cout << "acceleration X: " << accX <<endl;
-
+		
 			double deltaY = result.linear.y - cb_out.front().linear.y;
 			double accY = deltaY / deltaTime;
-			cout << "acceleration Y: " << accY <<endl;
-
-			double deltaZ = result.angular.z - cb_out.front().linear.y;
+		
+			double deltaZ = result.angular.z - cb_out.front().angular.z;
 			double accZ = deltaZ / deltaTime;
-			cout << "acceleration Z: " << accZ <<endl;
 
 			if( abs(accX) > thresh){
-				result.linear.x = cb_out.front().linear.x + ( thresh * deltaTime );
+
+				cout << "acceleration X: " << accX << " > " << thresh << endl;
+				result.linear.x = cb_out.front().linear.x + ( this->signum(accX) * thresh * deltaTime );
+
 			}
 			if( abs(accY) > thresh){
-				result.linear.y = cb_out.front().linear.y + ( thresh * deltaTime );
+
+				cout << "acceleration Y: " << accY << " > " << thresh << endl;
+				result.linear.y = cb_out.front().linear.y + ( this->signum(accY) * thresh * deltaTime );
+
 			}
 			if( abs(accZ) > thresh){
-				result.angular.z = cb_out.front().angular.z + ( thresh * deltaTime );
+
+				cout << "acceleration Z: " << accZ << " > " << thresh << endl;
+				result.angular.z = cb_out.front().angular.z + ( this->signum(accZ) * thresh * deltaTime );
+
 			}
 		}
 	}
