@@ -153,15 +153,15 @@ cob_base_velocity_smoother::cob_base_velocity_smoother()
 	if(n.hasParam("thresh_max_acc"))
 	{
 		//n.getParam("thresh_max_acc",thresh);
-		thresh = 0.2;
-		ROS_WARN("Used default parameter for maximal allowed acceleration in m per s [0.2]");
+		thresh = 1;
+		ROS_WARN("Used default parameter for maximal allowed acceleration in m per s [1]");
 
 	}
 
 	else
 	{
-		thresh = 0.2;
-		ROS_WARN("Used default parameter for maximal allowed acceleration in m per s [0.2]");
+		thresh = 1;
+		ROS_WARN("Used default parameter for maximal allowed acceleration in m per s [1]");
  	}
 
 	//set a geometry message containing zero-values
@@ -409,7 +409,7 @@ void cob_base_velocity_smoother::reviseCircBuff(ros::Time now, geometry_msgs::Tw
 		}
 		if(this->IsZeroMsg(cmd_vel)){
 
-			long unsigned int size = floor( cb.size() / 2 );
+			long unsigned int size = floor( cb.size() / 3 );
 
 			//to stop the robot faster, fill the circular buffer with more than one, in fact floor (cb.size() /2 ), zero messages
 			for(long unsigned int i=0; i< size; i++){
