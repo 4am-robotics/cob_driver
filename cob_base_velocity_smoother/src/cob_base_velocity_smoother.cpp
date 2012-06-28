@@ -107,6 +107,9 @@ public:
 	//false otherwise
 	bool CircBuffOutOfDate(ros::Time now);
 
+	//boolean function that returns true if the input msg cmd_vel equals zero_values, false otherwise
+	bool IsZeroMsg(geometry_msgs::Twist cmd_vel);
+
 	//help-function that returns the signum of a double variable
 	int signum(double var);
 
@@ -149,13 +152,16 @@ cob_base_velocity_smoother::cob_base_velocity_smoother()
 
 	if(n.hasParam("thresh_max_acc"))
 	{
-		n.getParam("thresh_max_acc",thresh);
+		//n.getParam("thresh_max_acc",thresh);
+		thresh = 0.2;
+		ROS_WARN("Used default parameter for maximal allowed acceleration in m per s [0.2]");
+
 	}
 
 	else
 	{
-		thresh = 0.02;
-		ROS_WARN("Used default parameter for maximal allowed acceleration in m per s [0.02]");
+		thresh = 0.2;
+		ROS_WARN("Used default parameter for maximal allowed acceleration in m per s [0.2]");
  	}
 
 	//set a geometry message containing zero-values
@@ -206,6 +212,17 @@ bool cob_base_velocity_smoother::CircBuffOutOfDate(ros::Time now)
 
 	return result;
 
+};
+
+//returns true if the input msg cmd_vel equals zero_values, false otherwise
+bool cob_base_velocity_smoother::IsZeroMsg(geometry_msgs::Twist cmd_vel)
+{
+	bool result = true;
+	if( (cmd_vel.linear.x) != 0 || (cmd_vel.linear.y != 0) || (cmd_vel.angular.z != 0) ){
+		result = false;
+	}
+
+	return result;
 };
 
 int cob_base_velocity_smoother::signum(double var)
@@ -381,7 +398,7 @@ void cob_base_velocity_smoother::reviseCircBuff(ros::Time now, geometry_msgs::Tw
 	
 			delay=(now.toSec() - cb_time.back().toSec());
 		}
-
+		//if the circular buffer is empty now, refill with zero values
 		if(cb.empty() == true){
 			while(cb.full() == false){
 	
@@ -390,10 +407,27 @@ void cob_base_velocity_smoother::reviseCircBuff(ros::Time now, geometry_msgs::Tw
 
 			}
 		}
-		//add new command velocity message to circular buffer
-		cb.push_front(cmd_vel);
-		//add new timestamp for subscribed command velocity message
-		cb_time.push_front(now);
+		if(this->IsZeroMsg(cmd_vel)){
+
+			long unsigned int size = floor( cb.size() / 2 );
+
+			//to stop the robot faster, fill the circular buffer with more than one, in fact floor (cb.size() /2 ), zero messages
+			for(long unsigned int i=0; i< size; i++){
+				//add new command velocity message to circular buffer
+				cb.push_front(cmd_vel);
+				//add new timestamp for subscribed command velocity message
+				cb_time.push_front(now);
+			}
+
+		}
+		else{
+
+			//add new command velocity message to circular buffer
+			cb.push_front(cmd_vel);
+			//add new timestamp for subscribed command velocity message
+			cb_time.push_front(now);
+
+		}
 
 	}
 };
@@ -476,7 +510,7 @@ void cob_base_velocity_smoother::geometryCallback(const geometry_msgs::Twist& cm
 {
 
 	//ROS_INFO("%s","I heard something, so here's the callBack-Function!");
-	//cout << "subscribed-message: " << cmd_vel << endl;
+	cout << "Callback-Function -> subscribed-message: " << cmd_vel << endl;
 
 	//set actual ros::Time
 	ros::Time now=ros::Time::now();
