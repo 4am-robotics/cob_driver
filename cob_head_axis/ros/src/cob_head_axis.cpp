@@ -63,6 +63,7 @@
 // ROS message includes
 #include <sensor_msgs/JointState.h>
 #include <pr2_controllers_msgs/JointTrajectoryAction.h>
+#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
 
 // ROS service includes
@@ -84,6 +85,7 @@ class NodeClass
 		
 	// declaration of topics to publish
 	ros::Publisher topicPub_JointState_;
+	ros::Publisher topicPub_ControllerState_;
 	ros::Publisher topicPub_Diagnostic_;
 	
 	// declaration of topics to subscribe, callback is called for new messages arriving
@@ -151,6 +153,7 @@ class NodeClass
 
 		// implementation of topics to publish
 		topicPub_JointState_ = n_.advertise<sensor_msgs::JointState>("/joint_states", 1);
+		topicPub_ControllerState_ = n_.advertise<pr2_controllers_msgs::JointTrajectoryControllerState>("state", 1);
 		topicPub_Diagnostic_ = n_.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 
 
@@ -488,6 +491,30 @@ class NodeClass
 				
 			// publish message
 			topicPub_JointState_.publish(msg);
+
+			// publish controller state message
+			pr2_controllers_msgs::JointTrajectoryControllerState controllermsg;
+			controllermsg.header = msg.header;
+			controllermsg.joint_names.resize(DOF);
+			controllermsg.desired.positions.resize(DOF);
+			controllermsg.desired.velocities.resize(DOF);
+			controllermsg.actual.positions.resize(DOF);
+			controllermsg.actual.velocities.resize(DOF);
+			controllermsg.error.positions.resize(DOF);
+			controllermsg.error.velocities.resize(DOF);
+			
+			controllermsg.joint_names = msg.name;
+			controllermsg.desired.positions = msg.position;
+			controllermsg.desired.velocities = msg.velocity;
+			controllermsg.actual.positions = msg.position;
+			controllermsg.actual.velocities = msg.velocity;
+			// error, calculated out of desired and actual values
+			for (int i = 0; i<DOF; i++ )
+			{
+				controllermsg.error.positions[i] = controllermsg.desired.positions[i] - controllermsg.actual.positions[i];
+				controllermsg.error.velocities[i] = controllermsg.desired.velocities[i] - controllermsg.actual.velocities[i];
+			}
+			topicPub_ControllerState_.publish(controllermsg);
 		}
 		// publishing diagnotic messages
 	    diagnostic_msgs::DiagnosticArray diagnostics;
