@@ -153,15 +153,15 @@ cob_base_velocity_smoother::cob_base_velocity_smoother()
 	if(n.hasParam("thresh_max_acc"))
 	{
 		//n.getParam("thresh_max_acc",thresh);
-		thresh = 1;
-		ROS_WARN("Used default parameter for maximal allowed acceleration in m per s [1]");
+		thresh = 0.3;
+		ROS_WARN("Used default parameter for maximal allowed acceleration in m per s [0.3]");
 
 	}
 
 	else
 	{
-		thresh = 1;
-		ROS_WARN("Used default parameter for maximal allowed acceleration in m per s [1]");
+		thresh = 0.3;
+		ROS_WARN("Used default parameter for maximal allowed acceleration in m per s [0.3]");
  	}
 
 	//set a geometry message containing zero-values
@@ -408,13 +408,20 @@ void cob_base_velocity_smoother::reviseCircBuff(ros::Time now, geometry_msgs::Tw
 			}
 		}
 		if(this->IsZeroMsg(cmd_vel)){
+			
+			geometry_msgs::Twist result = zero_values;
+
 
 			long unsigned int size = floor( cb.size() / 3 );
 
-			//to stop the robot faster, fill the circular buffer with more than one, in fact floor (cb.size() /2 ), zero messages
+			//to stop the robot faster, fill the circular buffer with more than one, in fact floor (cb.size() / 3 ), zero messages
 			for(long unsigned int i=0; i< size; i++){
+
+				result.linear.x = 0 + (size - (i+1))/10;
+				result.linear.y = 0 + (size - (i+1))/10;
+				result.angular.z = 0 + (size - (i+1))/10;
 				//add new command velocity message to circular buffer
-				cb.push_front(cmd_vel);
+				cb.push_front(result);
 				//add new timestamp for subscribed command velocity message
 				cb_time.push_front(now);
 			}
