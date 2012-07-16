@@ -102,6 +102,8 @@ public:
 	void geometryCallback(const geometry_msgs::Twist& cmd_vel);
 	//function that updates the circular buffer after receiving a new geometry message
 	void reviseCircBuff(ros::Time now, geometry_msgs::Twist cmd_vel);
+	//function to limit the acceleration under the given threshhold thresh
+	void limitAcceleration(ros::Time now, geometry_msgs::Twist& cmd_vel);
 	
 	//boolean function that returns true if all messages stored in the circular buffer are older than store_delay,
 	//false otherwise
@@ -367,7 +369,7 @@ void cob_base_velocity_smoother::reviseCircBuff(ros::Time now, geometry_msgs::Tw
 {
 	if(this->CircBuffOutOfDate(now) == true){
 		
-		cout << "CircBuffOutOfDate == true " << endl;
+		//cout << "CircBuffOutOfDate == true " << endl;
 		//clear buffers
 		cb.clear();
 		cb_time.clear();
@@ -391,7 +393,7 @@ void cob_base_velocity_smoother::reviseCircBuff(ros::Time now, geometry_msgs::Tw
 		double delay=(now.toSec() - cb_time.back().toSec());
 
 		while( delay >= store_delay ){
-			cout << "reviseCircBuff -> while... delay = " << delay << " and store_delay = " << store_delay << "." <<endl;
+			//cout << "reviseCircBuff -> while... delay = " << delay << " and store_delay = " << store_delay << "." <<endl;
 			//remove out-dated messages
 			cb.pop_back();
 			cb_time.pop_back();
@@ -408,20 +410,14 @@ void cob_base_velocity_smoother::reviseCircBuff(ros::Time now, geometry_msgs::Tw
 			}
 		}
 		if(this->IsZeroMsg(cmd_vel)){
-			
-			geometry_msgs::Twist result = zero_values;
-
 
 			long unsigned int size = floor( cb.size() / 3 );
 
 			//to stop the robot faster, fill the circular buffer with more than one, in fact floor (cb.size() / 3 ), zero messages
 			for(long unsigned int i=0; i< size; i++){
 
-				result.linear.x = 0 + (size - (i+1))/10;
-				result.linear.y = 0 + (size - (i+1))/10;
-				result.angular.z = 0 + (size - (i+1))/10;
 				//add new command velocity message to circular buffer
-				cb.push_front(result);
+				cb.push_front(cmd_vel);
 				//add new timestamp for subscribed command velocity message
 				cb_time.push_front(now);
 			}
@@ -437,6 +433,57 @@ void cob_base_velocity_smoother::reviseCircBuff(ros::Time now, geometry_msgs::Tw
 		}
 
 	}
+};
+
+//function to limit the acceleration under the given threshhold thresh
+void cob_base_velocity_smoother::limitAcceleration(ros::Time now, geometry_msgs::Twist& result){
+
+	//limit the acceleration under thresh
+	// only if cob_base_velocity_smoother has published a message yet
+	
+	double deltaTime = 0;	
+
+	if(cb_time.size() > 1){
+		deltaTime = now.toSec() - cb_time[2].toSec();
+	}
+	
+	if( cb_out.size() > 0){
+		
+		if(deltaTime > 0){
+			//set delta velocity and acceleration values
+			double deltaX = result.linear.x - cb_out.front().linear.x;
+			double accX = deltaX / deltaTime;
+		
+			double deltaY = result.linear.y - cb_out.front().linear.y;
+			double accY = deltaY / deltaTime;
+		
+			double deltaZ = result.angular.z - cb_out.front().angular.z;
+			double accZ = deltaZ / deltaTime;
+
+			/**********************************************************************************************************************************************************************
+			*  TOBEDONE: maybe do not limit negative acceleration to stop the robot faster (try out)                                                                              *
+			**********************************************************************************************************************************************************************/
+			if( abs(accX) > thresh){
+
+				cout << "acceleration X: " << accX << " > " << thresh << endl;
+				result.linear.x = cb_out.front().linear.x + ( this->signum(accX) * thresh * deltaTime );
+
+			}
+			if( abs(accY) > thresh){
+
+				cout << "acceleration Y: " << accY << " > " << thresh << endl;
+				result.linear.y = cb_out.front().linear.y + ( this->signum(accY) * thresh * deltaTime );
+
+			}
+			if( abs(accZ) > thresh){
+
+				cout << "acceleration Z: " << accZ << " > " << thresh << endl;
+				result.angular.z = cb_out.front().angular.z + ( this->signum(accZ) * thresh * deltaTime );
+
+			}
+		}
+	}
+
 };
 
 
@@ -463,48 +510,9 @@ geometry_msgs::Twist cob_base_velocity_smoother::setOutput(ros::Time now, geomet
 
 	cout << "diff: "<< now - cb_time[2] << " and in seconds:" << now.toSec() - cb_time[2].toSec()  <<endl;
 
-	//limit the acceleration under thresh
-	// only if cob_base_velocity_smoother has published a message yet
-	
-	double deltaTime = 0;	
+	//limit acceleration
+	this->limitAcceleration(now, result);
 
-	if(cb_time.size() > 1){
-		deltaTime = now.toSec() - cb_time[2].toSec();
-	}
-	
-	if( cb_out.size() > 0){
-		
-		if(deltaTime > 0){
-			//set delta velocity and acceleration values
-			double deltaX = result.linear.x - cb_out.front().linear.x;
-			double accX = deltaX / deltaTime;
-		
-			double deltaY = result.linear.y - cb_out.front().linear.y;
-			double accY = deltaY / deltaTime;
-		
-			double deltaZ = result.angular.z - cb_out.front().angular.z;
-			double accZ = deltaZ / deltaTime;
-
-			if( abs(accX) > thresh){
-
-				cout << "acceleration X: " << accX << " > " << thresh << endl;
-				result.linear.x = cb_out.front().linear.x + ( this->signum(accX) * thresh * deltaTime );
-
-			}
-			if( abs(accY) > thresh){
-
-				cout << "acceleration Y: " << accY << " > " << thresh << endl;
-				result.linear.y = cb_out.front().linear.y + ( this->signum(accY) * thresh * deltaTime );
-
-			}
-			if( abs(accZ) > thresh){
-
-				cout << "acceleration Z: " << accZ << " > " << thresh << endl;
-				result.angular.z = cb_out.front().angular.z + ( this->signum(accZ) * thresh * deltaTime );
-
-			}
-		}
-	}
 	cout << "result-after: " << result << endl;
 	cb_out.push_front(result);
 
@@ -517,12 +525,12 @@ void cob_base_velocity_smoother::geometryCallback(const geometry_msgs::Twist& cm
 {
 
 	//ROS_INFO("%s","I heard something, so here's the callBack-Function!");
-	cout << "Callback-Function -> subscribed-message: " << cmd_vel << endl;
+	//cout << "Callback-Function -> subscribed-message: " << cmd_vel << endl;
 
 	//set actual ros::Time
-	ros::Time now=ros::Time::now();
+	ros::Time now = ros::Time::now();
 
-	cout << "Callback-Function -> now: " << now << endl;
+	//cout << "Callback-Function -> now: " << now << endl;
 
 	//generate Output messages
 	geometry_msgs::Twist result = this->setOutput(now, cmd_vel);
@@ -542,7 +550,7 @@ int main(int argc, char **argv)
 	
 	cob_base_velocity_smoother my_cvi = cob_base_velocity_smoother();
 
-	ros::Subscriber sub=my_cvi.n.subscribe("input", 1, &cob_base_velocity_smoother::geometryCallback, &my_cvi);
+	ros::Subscriber sub = my_cvi.n.subscribe("input", 1, &cob_base_velocity_smoother::geometryCallback, &my_cvi);
 	
 	ros::spin();
 
