@@ -10,12 +10,61 @@
 #include <libphidgets/phidget21.h>
 #include <sstream>
 
+class Sensor
+{
+	ros::NodeHandle n_;
+	ros::Publisher pub_range_;
+	int id_, filter_size_;
+	std::list<int> vals_;
+	std::string frame_id_;
+public:
 
-int wert[100];
+Sensor(const std::string &fr_id, const int id, const int filter_size=10):id_(id),filter_size_(filter_size),frame_id_(fr_id) {
+	char buffer[256];
+	sprintf(buffer,"range_%d",id);
+	pub_range_ = n_.advertise<sensor_msgs::Range>(buffer, 0);
+}
+
+void publish()
+{
+	pub_range_.publish((sensor_msgs::Range)*this);
+}
+
+operator sensor_msgs::Range() const
+{
+	sensor_msgs::Range msg;
+	msg.header.stamp = ros::Time::now();
+	msg.header.frame_id = frame_id_;
+	msg.radiation_type = sensor_msgs::Range::INFRARED;
+	msg.min_range = 0.04;
+	msg.max_range = 0.3;
+	msg.field_of_view = 0; //not given!
+
+	int sum=0, num=0;
+	for(std::list<int>::const_iterator it=vals_.begin(); it!=vals_.end(); it++)
+	{
+		sum+=*it;
+		++num;
+	}
+	msg.range = 20.76/(sum/(double)num - 11.);
+
+	return msg;
+}
+
+int getId() const {return id_;}
+
+void update(const int v)
+{
+	if(vals_.size()<filter_size_) vals_.push_back(v);
+	else {vals_.push_back(v); vals_.pop_front();}
+}
+
+};
+
 int i;
 
 bool bOccupied_;
-sensor_msgs::Range range1, range2, range3, range4;
+std::vector<Sensor> g_sensors;
 
 void display_generic_properties(CPhidgetHandle phid)
 {
@@ -43,57 +92,39 @@ int IFK_AttachHandler(CPhidgetHandle IFK, void *userptr)
 int IFK_SensorChangeHandler(CPhidgetInterfaceKitHandle IFK, void *userptr, int Index, int Value)
 {
 
-	//printf("Sensor %d is %d\n", Index, Value);
-	if (i <10)
-	{
-		CPhidgetInterfaceKit_getSensorValue(IFK,0, &wert[0+(10*i)]);
-		//printf("Sensor0 manually is %d\n", wert[0]);
-		CPhidgetInterfaceKit_getSensorValue(IFK,1, &wert[1+(10*i)]);
-		//printf("Sensor0 manually is %d\n", wert[0]);
-		CPhidgetInterfaceKit_getSensorValue(IFK,2, &wert[2+(10*i)]);
-		//printf("Sensor0 manually is %d\n", wert[0]);
-		CPhidgetInterfaceKit_getSensorValue(IFK,3, &wert[3+(10*i)]);
-		//printf("Sensor0 manually is %d\n", wert[0]);
-	}
-
-	else 
-	{
-
-		//CPhidgetInterfaceKit_getSensorValue(IFK,1, &wert[1]);
-		//printf("Sensor1 manually is %d\n", wert[1]);
-		//CPhidgetInterfaceKit_getSensorValue(IFK,2, &wert[2]);
-		//printf("Sensor2 manually is %d\n", wert[2]);
-		//CPhidgetInterfaceKit_getSensorValue(IFK,3, &wert[3]);
-		//printf("Sensor0123 manually are %d %d %d %d ; \n", wert[0],wert[1],wert[2],wert[3]);
-		wert[94] = ((wert[0] + wert[10]+wert[20]+wert[30]+wert[40]+wert[50]+wert[60]+wert[70]+wert[80]+wert[90]) / 10);
-		wert[95] = ((wert[1] + wert[11]+wert[21]+wert[31]+wert[41]+wert[51]+wert[61]+wert[71]+wert[81]+wert[91]) / 10);
-		wert[96] = ((wert[2] + wert[12]+wert[22]+wert[32]+wert[42]+wert[52]+wert[62]+wert[72]+wert[82]+wert[92]) / 10);
-		wert[97] = ((wert[3] + wert[13]+wert[23]+wert[33]+wert[43]+wert[53]+wert[63]+wert[73]+wert[83]+wert[93]) / 10);
-
-		ROS_DEBUG("Sensor0123 values are: %d %d %d %d", wert[94],wert[95],wert[96],wert[97]);
-
-		range1.range = wert[94];
-		range2.range = wert[95];
-		range3.range = wert[96];
-		range4.range = wert[97];
-
-		for( i = 0; i < 100; i++)
-			wert[i]=0;
-		i =0;
-	}
-	i++;
-	//printf("i is %d \n",i);
+	for(size_t i=0; i<g_sensors.size(); i++)
+		if(g_sensors[i].getId()==Index) g_sensors[i].update(Value);
 	return 0;
 }
 
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "cob_phidgets");
-	ros::NodeHandle n;
-	ros::Publisher pub_range1 = n.advertise<sensor_msgs::Range>("range_1", 0);
-	ros::Publisher pub_range2 = n.advertise<sensor_msgs::Range>("range_2", 0);
-	ros::Publisher pub_range3 = n.advertise<sensor_msgs::Range>("range_3", 0);
-	ros::Publisher pub_range4 = n.advertise<sensor_msgs::Range>("range_4", 0);
+
+	ros::NodeHandle nh_("~");
+
+			if (nh_.hasParam("sensors"))
+			{
+	XmlRpc::XmlRpcValue v;
+    nh_.param("sensors", v, v);
+    for(int i =0; i < v.size(); i++)
+    {
+	ROS_ASSERT(v[i].size()>=2);
+
+	int id = v[i][0];
+	std::string fr_id = v[i][1];
+	int filter = v.size()>2?(int)v[i][2]:10;
+
+	g_sensors.push_back(Sensor(fr_id,id,filter));
+    }
+			}
+			else
+			{
+				ROS_ERROR("Parameter sensors not set, shutting down node...");
+				nh_.shutdown();
+				return false;
+			}
+
 
 	ros::Rate loop_rate(10);
 
@@ -111,7 +142,7 @@ int main(int argc, char **argv)
 
 	//wait 5 seconds for attachment
 	ROS_INFO("waiting for phidgets attachement...");
-	if((err = CPhidget_waitForAttachment((CPhidgetHandle)IFK, 0)) != EPHIDGET_OK )
+	if((err = CPhidget_waitForAttachment((CPhidgetHandle)IFK, 10000)) != EPHIDGET_OK )
 	{
 		const char *errStr;
 		CPhidget_getErrorDescription(err, &errStr);
@@ -124,16 +155,13 @@ int main(int argc, char **argv)
 	CPhidgetInterfaceKit_getOutputCount((CPhidgetInterfaceKitHandle)IFK, &numOutputs);
 	CPhidgetInterfaceKit_getInputCount((CPhidgetInterfaceKitHandle)IFK, &numInputs);
 	CPhidgetInterfaceKit_getSensorCount((CPhidgetInterfaceKitHandle)IFK, &numSensors);
-	CPhidgetInterfaceKit_setOutputState((CPhidgetInterfaceKitHandle)IFK, 0, 1);
+	//CPhidgetInterfaceKit_setOutputState((CPhidgetInterfaceKitHandle)IFK, 0, 1);
 
 	ROS_INFO("Sensors:%d Inputs:%d Outputs:%d", numSensors, numInputs, numOutputs);
 
 	while (ros::ok())
 	{
-		pub_range1.publish(range1);
-		pub_range2.publish(range2);
-		pub_range3.publish(range3);
-		pub_range4.publish(range4);
+		for(size_t i=0; i<g_sensors.size(); i++) g_sensors[i].publish();
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
