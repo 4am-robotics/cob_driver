@@ -225,7 +225,7 @@ public:
       q_current[i] = positions[i];
     }
   }
-  void executeTrajectory(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal)
+  void executeTrajectory(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal) // TODO: can't we swap the main part out to a separate function which will be used by executeFollowTrajectory and executeTrajectory so that code is not duplicated?
   {
         ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
         if(!executing_)
@@ -238,6 +238,7 @@ public:
 	    {
 	      ROS_INFO("waiting for arm to go to velocity mode");
 	      usleep(100000);
+	      //TODO: add timeout and set action to rejected
 	    }
             traj_ = goal->trajectory;
             if(traj_.points.size() == 1)
@@ -276,9 +277,10 @@ public:
 			sleep(1);
 		}
 		as_.setSucceeded();
+        // TODO: only set to succeeded if component could reach position. this is currently not the care for e.g. by emergency stop, hardware error or exceeds limit.
     }
 
-     void executeFollowTrajectory(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal)
+     void executeFollowTrajectory(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal) // TODO: can't we swap the main part out to a separate function which will be used by executeFollowTrajectory and executeTrajectory so that code is not duplicated?
   {
         ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
         if(!executing_)
@@ -289,8 +291,9 @@ public:
 	  	srvClient_SetOperationMode.call(opmode);
 	  	while(current_operation_mode_ != "velocity")
 	    {
-	      ROS_INFO("waiting for arm to go to velocity mode");
+	      ROS_INFO("waiting for velocity mode");
 	      usleep(100000);
+	      //TODO: add timeout and set action to rejected
 	    }
         traj_ = goal->trajectory;
         if(traj_.points.size() == 1)
@@ -329,6 +332,7 @@ public:
 			sleep(1);
 		}
 		as_follow_.setSucceeded();
+        // TODO: only set to succeeded if component could reach position. this is currently not the care for e.g. by emergency stop, hardware error or exceeds limit.
     }
     
     void run()
