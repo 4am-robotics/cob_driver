@@ -51,10 +51,10 @@ operator sensor_msgs::Range() const
 	return msg;
 }
 
-void update(CPhidgetInterfaceKitHandle &IFK)
+int getId() const {return id_;}
+
+void update(const int v)
 {
-	int v;
-	CPhidgetInterfaceKit_getSensorValue(IFK,id_, &v);
 	if(vals_.size()<filter_size_) vals_.push_back(v);
 	else {vals_.push_back(v); vals_.pop_front();}
 }
@@ -93,7 +93,7 @@ int IFK_SensorChangeHandler(CPhidgetInterfaceKitHandle IFK, void *userptr, int I
 {
 
 	for(size_t i=0; i<g_sensors.size(); i++)
-		g_sensors[i].update(IFK);
+		if(g_sensors[i].getId()==Index) g_sensors[i].update(Value);
 	return 0;
 }
 
@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 
 	//wait 5 seconds for attachment
 	ROS_INFO("waiting for phidgets attachement...");
-	if((err = CPhidget_waitForAttachment((CPhidgetHandle)IFK, 0)) != EPHIDGET_OK )
+	if((err = CPhidget_waitForAttachment((CPhidgetHandle)IFK, 10000)) != EPHIDGET_OK )
 	{
 		const char *errStr;
 		CPhidget_getErrorDescription(err, &errStr);
@@ -155,7 +155,7 @@ int main(int argc, char **argv)
 	CPhidgetInterfaceKit_getOutputCount((CPhidgetInterfaceKitHandle)IFK, &numOutputs);
 	CPhidgetInterfaceKit_getInputCount((CPhidgetInterfaceKitHandle)IFK, &numInputs);
 	CPhidgetInterfaceKit_getSensorCount((CPhidgetInterfaceKitHandle)IFK, &numSensors);
-	CPhidgetInterfaceKit_setOutputState((CPhidgetInterfaceKitHandle)IFK, 0, 1);
+	//CPhidgetInterfaceKit_setOutputState((CPhidgetInterfaceKitHandle)IFK, 0, 1);
 
 	ROS_INFO("Sensors:%d Inputs:%d Outputs:%d", numSensors, numInputs, numOutputs);
 
