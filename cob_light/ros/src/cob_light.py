@@ -54,7 +54,8 @@
 import roslib; 
 roslib.load_manifest('cob_light')
 import rospy
-from cob_light.msg import Light
+from std_msgs.msg import ColorRGBA
+from visualization_msgs.msg import Marker
 
 import serial
 import sys
@@ -62,40 +63,93 @@ import sys
 class LightControl:
 	def __init__(self):
 		self.ns_global_prefix = "/light_controller"
+		self.pub_marker = rospy.Publisher("marker", Marker)
+		# set default color to green rgba = [0,1,0,1]
+		self.color = ColorRGBA()
+		self.color.r = 0
+		self.color.g = 1
+		self.color.b = 0
+		self.color.a = 1
+		self.sim_mode = False
 		
 		# get parameter from parameter server
-		if not rospy.has_param(self.ns_global_prefix + "/devicestring"):
-			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",self.ns_global_prefix + "/devicestring")
-			sys.exit()
-		devicestring_param = rospy.get_param(self.ns_global_prefix + "/devicestring")
-		if not rospy.has_param(self.ns_global_prefix + "/baudrate"):
-			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",self.ns_global_prefix + "/baudrate")
-			sys.exit()
-		baudrate_param = rospy.get_param(self.ns_global_prefix + "/baudrate")
+		if not self.sim_mode:
+			if not rospy.has_param(self.ns_global_prefix + "/devicestring"):
+				rospy.logwarn("parameter %s does not exist on ROS Parameter Server, aborting... (running in simulated mode)",self.ns_global_prefix + "/devicestring")
+				self.sim_mode = True
+			devicestring_param = rospy.get_param(self.ns_global_prefix + "/devicestring")
 		
-		# open serial communication
-		rospy.loginfo("trying to initializing serial connection")
-		try:
-			self.ser = serial.Serial(devicestring_param, baudrate_param)
-		except serial.serialutil.SerialException:
-			rospy.logerr("Could not initialize serial connection on %s, aborting...",devicestring_param)
-			sys.exit()
-		rospy.loginfo("serial connection initialized successfully")
+		if not self.sim_mode:
+			if not rospy.has_param(self.ns_global_prefix + "/baudrate"):
+				rospy.logwarn("parameter %s does not exist on ROS Parameter Server, aborting... (running in simulated mode)",self.ns_global_prefix + "/baudrate")
+				self.sim_mode = True
+			baudrate_param = rospy.get_param(self.ns_global_prefix + "/baudrate")
+		
+		if not self.sim_mode:
+			# open serial communication
+			rospy.loginfo("trying to initializing serial connection")
+			try:
+				self.ser = serial.Serial(devicestring_param, baudrate_param)
+			except serial.serialutil.SerialException:
+				rospy.logwarn("Could not initialize serial connection on %s, aborting... (running in simulated mode)",devicestring_param)
+				self.sim_mode = True
+			rospy.loginfo("serial connection initialized successfully")
 
-	def setRGB(self, red, green, blue):
+	def setRGB(self, color):
 		#color in rgb color space ranging from 0 to 999
-		#print "setRGB", red, green, blue
-		if(red <= 999 and green <= 999 and blue <= 999):
-			self.ser.write(str(red)+ " " + str(green)+ " " + str(blue)+"\n\r")
+		# check range and send to serial bus
+		if(color.r <= 1 and color.g <= 1 and color.b <= 1):
+			#scale from 0 to 999
+			red = color.r*999.0
+			green = color.g*999.0
+			blue = color.b*999.0
+			rospy.logdebug("send color to microcontroller: rgb = [%d, %d, %d]", red, green, blue)
+			self.ser.write(str(int(red))+ " " + str(int(green))+ " " + str(int(blue))+"\n\r")
+		else:
+			rospy.logwarn("Color not in range 0...1 color: rgb = [%d, %d, %d] a = [%d]", color.r, color.g, color.b, color.a)
 
-	def LightCallback(self,light):
-		rospy.loginfo("Received new color: rgb = [%d, %d, %d]",light.r,light.g,light.b)
-		print light.name.data
-		self.setRGB(light.r,light.g,light.b)
+	def publish_marker(self):
+		# create marker
+		marker = Marker()
+		marker.header.frame_id = "/base_link"
+		marker.header.stamp = rospy.Time.now()
+		marker.ns = "color"
+		marker.id = 0
+		marker.type = 2 # SPHERE
+		marker.action = 0 # ADD
+		marker.pose.position.x = 0
+		marker.pose.position.y = 0
+		marker.pose.position.z = 1.5
+		marker.pose.orientation.x = 0.0
+		marker.pose.orientation.y = 0.0
+		marker.pose.orientation.z = 0.0
+		marker.pose.orientation.w = 1.0
+		marker.scale.x = 0.1
+		marker.scale.y = 0.1
+		marker.scale.z = 0.1
+		marker.color.a = self.color.a #Transparency
+		marker.color.r = self.color.r
+		marker.color.g = self.color.g
+		marker.color.b = self.color.b
+		# publish marker
+		self.pub_marker.publish(marker)
+
+	def LightCallback(self,color):
+		rospy.loginfo("Received new color: rgb = [%d, %d, %d] a = [%d]", color.r, color.g, color.b, color.a)
+		self.color = color
+		if not self.sim_mode:
+			self.setRGB(color)
 
 if __name__ == '__main__':
 	rospy.init_node('light_controller')
 	lc = LightControl()
-	rospy.Subscriber("command", Light, lc.LightCallback)
-	rospy.loginfo(rospy.get_name() + " running")
-	rospy.spin()
+	rospy.Subscriber("command", ColorRGBA, lc.LightCallback)
+	if not lc.sim_mode:
+		rospy.loginfo(rospy.get_name() + " running")
+	else:
+		rospy.loginfo(rospy.get_name() + " running in simulated mode")
+		
+	r = rospy.Rate(10)
+	while not rospy.is_shutdown():
+		lc.publish_marker()
+		r.sleep()

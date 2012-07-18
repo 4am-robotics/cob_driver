@@ -75,6 +75,10 @@
 // ROS service includes
 #include "cob_footprint_observer/GetFootprint.h"
 
+// dynamic reconfigure includes
+#include <dynamic_reconfigure/server.h>
+#include <cob_collision_velocity_filter/CollisionVelocityFilterConfig.h>
+
 ///
 /// @class CollisionVelocityFilter
 /// @brief checks for obstacles in driving direction and stops the robot
@@ -113,7 +117,16 @@ class CollisionVelocityFilter
     /// @brief  Timer callback, calls GetFootprint Service and adjusts footprint
     ///
     void getFootprintServiceCB(const ros::TimerEvent&);
-    
+
+    ///
+    /// @brief  Dynamic reconfigure callback
+    /// @param  config - configuration file with dynamic reconfigureable parameters
+    /// @param  level - the result of ORing together all level values of the parameters that have changed, for now unnecessary
+    ///
+    void dynamicReconfigureCB(const cob_collision_velocity_filter::CollisionVelocityFilterConfig &config,
+                              const uint32_t level);
+
+  
     /// create a handle for this node, initialize node
     ros::NodeHandle nh_;
 
@@ -130,6 +143,10 @@ class CollisionVelocityFilter
     /// declaration of service client
     ros::ServiceClient srv_client_get_footprint_;
 
+    /// dynamic reconfigure
+    dynamic_reconfigure::Server<cob_collision_velocity_filter::CollisionVelocityFilterConfig> dyn_server_;
+    dynamic_reconfigure::Server<cob_collision_velocity_filter::CollisionVelocityFilterConfig>::CallbackType dynCB_;
+  
   private:
     /* core functions */
     

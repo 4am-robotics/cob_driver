@@ -1,19 +1,18 @@
 <package>
-  <description brief="cob_tray_sensors">
+  <description brief="cob_phidgets">
 
-     cob_tray_sensors
+     cob_phidgets
 
   </description>
-  <author>Alexander Bubeck</author>
+  <author>Florian Weisshardt</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/cob_tray_sensors</url>
+  <url>http://ros.org/wiki/cob_phidgets</url>
 
   <depend package="roscpp"/>
+  <depend package="rospy"/>
   <depend package="libphidgets"/>
   <depend package="std_msgs"/>
-
+  <depend package="sensor_msgs"/>
 
 </package>
-
-
