@@ -281,7 +281,7 @@ public:
             }
         else //suspend current movement and start new one
         {
-       
+            
         }
         while(executing_)
         {
@@ -339,6 +339,7 @@ public:
 				executing_ = false;
 				traj_generator_->isMoving = false;
 				//as_.setPreempted();
+                failure_ = true;
 				ROS_INFO("Preempted trajectory action");
 				return;
 			}
