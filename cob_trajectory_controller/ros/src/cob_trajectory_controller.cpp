@@ -100,7 +100,10 @@ private:
     XmlRpc::XmlRpcValue JointNames_param_;
     std::vector<std::string> JointNames_;
     bool executing_;
+    bool failure_;
+    bool rejected_;
     int DOF;
+    double velocity_timeout_;
 
   	int watchdog_counter;
     genericArmCtrl* traj_generator_;
@@ -131,11 +134,14 @@ public:
 		      sleep(1);
 		  }
         executing_ = false;
+        failure_ = false;
+        rejected_ = false;
 		watchdog_counter = 0;
 		current_operation_mode_ = "undefined";
 		double PTPvel = 0.7;
 		double PTPacc = 0.2;
 		double maxError = 0.7;
+        velocity_timeout_ = 2.0;
 		DOF = 7;
 		// get JointNames from parameter server
                 ROS_INFO("getting JointNames from parameter server");
@@ -225,117 +231,106 @@ public:
       q_current[i] = positions[i];
     }
   }
-  void executeTrajectory(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal)
+
+  void spawnTrajector(trajectory_msgs::JointTrajectory trajectory)
   {
-        ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
-        if(!executing_)
+    if(!executing_)
         {
-	  //set arm to velocity mode
-	  cob_srvs::SetOperationMode opmode;
-	  opmode.request.operation_mode.data = "velocity";
-	  srvClient_SetOperationMode.call(opmode);
-	  while(current_operation_mode_ != "velocity")
-	    {
-	      ROS_INFO("waiting for arm to go to velocity mode");
-	      usleep(100000);
-	    }
-            traj_ = goal->trajectory;
+           //set arm to velocity mode
+          cob_srvs::SetOperationMode opmode;
+          opmode.request.operation_mode.data = "velocity";
+          srvClient_SetOperationMode.call(opmode);
+          ros::Time begin = ros::Time::now();
+          while(current_operation_mode_ != "velocity")
+          {
+             ROS_INFO("waiting for arm to go to velocity mode");
+             usleep(100000);
+             //add timeout and set action to rejected
+             if(begin.toSec() > velocity_timeout_)
+               rejected_ = true;
+               return;  
+            }
+            traj_ = trajectory;
             if(traj_.points.size() == 1)
             {
-            	traj_generator_->moveThetas(traj_.points[0].positions, q_current);
+                traj_generator_->moveThetas(traj_.points[0].positions, q_current);
             }
             else
             {
-            	//Insert the current point as first point of trajectory, then generate SPLINE trajectory
-            	trajectory_msgs::JointTrajectoryPoint p;
-            	p.positions.resize(DOF);
-            	p.velocities.resize(DOF);
-            	p.accelerations.resize(DOF);
-            	for(int i = 0; i<DOF; i++)
-            	{
-            		p.positions.at(i) = q_current.at(i);
-            		p.velocities.at(i) = 0.0;
-            		p.accelerations.at(i) = 0.0;
-            	}
-            	std::vector<trajectory_msgs::JointTrajectoryPoint>::iterator it;
-            	it = traj_.points.begin();
-            	traj_.points.insert(it,p);
-            	traj_generator_->moveTrajectory(traj_, q_current);
+                //Insert the current point as first point of trajectory, then generate SPLINE trajectory
+                trajectory_msgs::JointTrajectoryPoint p;
+                p.positions.resize(DOF);
+                p.velocities.resize(DOF);
+                p.accelerations.resize(DOF);
+                for(int i = 0; i<DOF; i++)
+                {
+                    p.positions.at(i) = q_current.at(i);
+                    p.velocities.at(i) = 0.0;
+                    p.accelerations.at(i) = 0.0;
+                }
+                std::vector<trajectory_msgs::JointTrajectoryPoint>::iterator it;
+                it = traj_.points.begin();
+                traj_.points.insert(it,p);
+                traj_generator_->moveTrajectory(traj_, q_current);
             }
             executing_ = true;
             startposition_ = q_current;
 
             //TODO: std::cout << "Trajectory time: " << traj_end_time_ << " Trajectory step: " << traj_step_ << "\n";
-		    }
-	    else //suspend current movement and start new one
-	    {
-	   
-	    }
-		while(executing_)
-		{
-			sleep(1);
-		}
-		as_.setSucceeded();
-    }
-
-     void executeFollowTrajectory(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal)
-  {
-        ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
-        if(!executing_)
+            }
+        else //suspend current movement and start new one
         {
-	  	//set arm to velocity mode
-	  	cob_srvs::SetOperationMode opmode;
-	  	opmode.request.operation_mode.data = "velocity";
-	  	srvClient_SetOperationMode.call(opmode);
-	  	while(current_operation_mode_ != "velocity")
-	    {
-	      ROS_INFO("waiting for arm to go to velocity mode");
-	      usleep(100000);
-	    }
-        traj_ = goal->trajectory;
-        if(traj_.points.size() == 1)
-        {
-        	traj_generator_->moveThetas(traj_.points[0].positions, q_current);
+       
         }
+        while(executing_)
+        {
+            sleep(1);
+        }
+        
+  }
+
+// swaped the main part out to a separate function which will be used by executeFollowTrajectory and executeTrajectory so that code is not duplicated?
+  void executeTrajectory(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal) {
+        ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
+        spawnTrajector(goal->trajectory);
+        // only set to succeeded if component could reach position. this is currently not the care for e.g. by emergency stop, hardware error or exceeds limit.
+        if(rejected_)
+            as_.setAborted(); //setRejected not implemented in simpleactionserver ?
         else
         {
-        	//Insert the current point as first point of trajectory, then generate SPLINE trajectory
-        	trajectory_msgs::JointTrajectoryPoint p;
-        	p.positions.resize(DOF);
-        	p.velocities.resize(DOF);
-        	p.accelerations.resize(DOF);
-        	for(int i = 0; i<DOF; i++)
-        	{
-        		p.positions.at(i) = q_current.at(i);
-        		p.velocities.at(i) = 0.0;
-        		p.accelerations.at(i) = 0.0;
-        	}
-        	std::vector<trajectory_msgs::JointTrajectoryPoint>::iterator it;
-        	it = traj_.points.begin();
-        	traj_.points.insert(it,p);
-        	traj_generator_->moveTrajectory(traj_, q_current);
+            if(failure_)
+                as_.setAborted();
+            else
+                as_.setSucceeded();
         }
-        executing_ = true;
-        startposition_ = q_current;
+        rejected_ = false;
+        failure_ = false;
+  }
 
-        //TODO: std::cout << "Trajectory time: " << traj_end_time_ << " Trajectory step: " << traj_step_ << "\n";
-	    }
-	    else //suspend current movement and start new one
-	    {
-	   
-	    }
-		while(executing_)
-		{
-			sleep(1);
-		}
-		as_follow_.setSucceeded();
+     void executeFollowTrajectory(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal) 
+  {
+        ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
+        spawnTrajector(goal->trajectory);
+        // only set to succeeded if component could reach position. this is currently not the care for e.g. by emergency stop, hardware error or exceeds limit.
+        if(rejected_)
+            as_follow_.setAborted(); //setRejected not implemented in simpleactionserver ?
+        else
+        {
+            if(failure_)
+                as_follow_.setAborted();
+            else
+                as_follow_.setSucceeded();
+        }
+        rejected_ = false;
+        failure_ = false;     
     }
     
     void run()
     {
         if(executing_)
         {
-	  watchdog_counter = 0;
+            failure_ = false;
+	        watchdog_counter = 0;
 			if (as_.isPreemptRequested() || !ros::ok() || current_operation_mode_ != "velocity")
 			{
 				
@@ -369,6 +364,7 @@ public:
         	else
         	{
         		ROS_INFO("An controller error occured!");
+                failure_ = true;
         		executing_ = false;
         	}
         }
