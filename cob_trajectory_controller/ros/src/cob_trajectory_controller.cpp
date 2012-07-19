@@ -243,12 +243,14 @@ public:
           ros::Time begin = ros::Time::now();
           while(current_operation_mode_ != "velocity")
           {
-             ROS_INFO("waiting for arm to go to velocity mode");
+             ROS_INFO("waiting for component to go to velocity mode");
              usleep(100000);
              //add timeout and set action to rejected
-             if(begin.toSec() > velocity_timeout_)
+             if((ros::Time::now() - begin).toSec() > velocity_timeout_)
+				{
                rejected_ = true;
-               return;  
+               return;
+				}  
             }
             traj_ = trajectory;
             if(traj_.points.size() == 1)
@@ -276,7 +278,6 @@ public:
             executing_ = true;
             startposition_ = q_current;
 
-            //TODO: std::cout << "Trajectory time: " << traj_end_time_ << " Trajectory step: " << traj_step_ << "\n";
             }
         else //suspend current movement and start new one
         {
