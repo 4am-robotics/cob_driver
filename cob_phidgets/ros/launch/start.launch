@@ -1,0 +1,7 @@
+<launch>
+
+<node pkg="cob_phidgets" type="range_sensors" name="range_sensors">
+  <rosparam file="$(find cob_phidgets)/ros/config/sensors.yaml" command="load" />
+</node>
+
+</launch>
