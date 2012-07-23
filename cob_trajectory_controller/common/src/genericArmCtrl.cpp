@@ -104,7 +104,7 @@ void genericArmCtrl::SetPTPacc(double acc)
  *                   PTP (Joint Space) Motion:                      *
  ********************************************************************/
 
-/// @brief Will move the arm to a goal configuration in Joint Space
+/// @brief Will move the component to a goal configuration in Joint Space
 bool genericArmCtrl::moveThetas(std::vector<double> conf_goal, std::vector<double> conf_current)
 {
 	/* Prüfen ob Arm noch in Bewegung & Prüfen ob alte Sollwerte gelöscht werden müssen: */

@@ -236,7 +236,7 @@ public:
   {
     if(!executing_)
         {
-           //set arm to velocity mode
+           //set component to velocity mode
           cob_srvs::SetOperationMode opmode;
           opmode.request.operation_mode.data = "velocity";
           srvClient_SetOperationMode.call(opmode);
