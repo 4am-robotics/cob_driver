@@ -422,7 +422,7 @@ class NodeClass
 			    if (operationMode_ == "position")
 			    {
 				    ROS_DEBUG("moving head_axis in position mode");
-			    	if (ActualVel_ < 0.002)
+			    	if (fabs(ActualVel_) < 0.02)
 			    	{
 				    	//feedback_.isMoving = false;
 				    	
@@ -560,7 +560,7 @@ int main(int argc, char** argv)
 	NodeClass nodeClass(ros::this_node::getName() + "/joint_trajectory_action");
  
 	// main loop
- 	ros::Rate loop_rate(5); // Hz
+ 	ros::Rate loop_rate(10); // Hz
 	while(nodeClass.n_.ok()) {
 	  
 		// publish JointState
