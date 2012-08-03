@@ -64,7 +64,10 @@ public:
     {
   		command = "echo " + text + " | text2wave | aplay -q";
   	}
-    system(command.c_str());
+    if (system(command.c_str()) != 0)
+    {
+    	ROS_ERROR("Could not play sound");
+    }
   }
 
 
