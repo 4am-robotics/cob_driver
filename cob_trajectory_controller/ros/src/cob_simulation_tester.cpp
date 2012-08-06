@@ -90,6 +90,7 @@ JntArray parseJointStates(std::vector<std::string> names, std::vector<double> po
 bool resetCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response)
 {
 	started = false;
+	return true;
 }
 
 
