@@ -274,9 +274,9 @@ class NodeClass
 				as_.setPreempted();
 			}
 			
-			usleep(2000000); // needed sleep until powercubes starts to change status from idle to moving
+			usleep(2000000); // needed sleep until drive starts to change status from idle to moving
 			
-			while(finished_ == false)
+			while (not finished_)
 			{
 				if (as_.isNewGoalAvailable())
 				{
@@ -308,20 +308,20 @@ class NodeClass
 	{
 		if (isInitialized_ == false) {
 			ROS_INFO("...initializing camera axis...");
-			// init powercubes 
+			// init axis 
 			if (CamAxis_->Init(CamAxisParams_))
 			{
 				CamAxis_->setGearPosVelRadS(0.0f, MaxVel_);
-				ROS_INFO("Initializing of camera axis succesful");
+				ROS_INFO("Initializing of camera axis successfully");
 				isInitialized_ = true;
 				res.success.data = true;
-				res.error_message.data = "initializing camera axis successfull";
+				res.error_message.data = "initializing camera axis successfully";
 			}
 			else
 			{
-				ROS_ERROR("Initializing camera axis not succesful \n");
+				ROS_ERROR("Initializing camera axis not successfully \n");
 				res.success.data = false;
-				res.error_message.data = "initializing camera axis not successfull";
+				res.error_message.data = "initializing camera axis not successfully";
 			}
 			}
 			else
@@ -342,14 +342,14 @@ class NodeClass
 		{
 			// stopping all movements
 			if (CamAxis_->Stop()) {
-				ROS_INFO("Stopping camera axis successful");
+				ROS_INFO("Stopping camera axis successfully");
 				res.success.data = true;
 				res.error_message.data = "camera axis stopped successfully";
 			}
 			else {
-				ROS_ERROR("Stopping camera axis not succesful. error");
+				ROS_ERROR("Stopping camera axis not successfully. error");
 				res.success.data = false;
-				res.error_message.data = "stopping camera axis not successful";
+				res.error_message.data = "stopping camera axis not successfully";
 			}
 		}
 		return true;
@@ -363,11 +363,11 @@ class NodeClass
 			
 			// stopping all arm movements
 			if (CamAxis_->RecoverAfterEmergencyStop()) {
-				ROS_INFO("Recovering camera axis succesful");
+				ROS_INFO("Recovering camera axis successfully");
 				res.success.data = true;
 				res.error_message.data = "camera axis successfully recovered";
 			} else {
-				ROS_ERROR("Recovering camera axis not succesful. error");
+				ROS_ERROR("Recovering camera axis not successfully. error");
 				res.success.data = false;
 				res.error_message.data = "recovering camera axis failed";
 			}
@@ -422,7 +422,7 @@ class NodeClass
 			    if (operationMode_ == "position")
 			    {
 				    ROS_DEBUG("moving head_axis in position mode");
-			    	if (ActualVel_ < 0.002)
+			    	if (fabs(ActualVel_) < 0.02)
 			    	{
 				    	//feedback_.isMoving = false;
 				    	
@@ -443,8 +443,8 @@ class NodeClass
 					    }
 					    else
 					    {
-					    	ROS_DEBUG("...reached end of trajectory");
-					    	finished_ = true;
+				    		ROS_DEBUG("...reached end of trajectory");
+				    		finished_ = true;
 					    }
 					}
 					else
@@ -524,7 +524,7 @@ class NodeClass
 	    if(isError_)
 	    {
 	      diagnostics.status[0].level = 2;
-	      diagnostics.status[0].name = "schunk_powercube_chain";
+	      diagnostics.status[0].name = "head_axis";
 	      diagnostics.status[0].message = "one or more drives are in Error mode";
 	    }
 	    else
@@ -532,13 +532,13 @@ class NodeClass
 	      if (isInitialized_)
 	      {
 	        diagnostics.status[0].level = 0;
-	        diagnostics.status[0].name = n_.getNamespace(); //"schunk_powercube_chain";
+	        diagnostics.status[0].name = n_.getNamespace();
 	        diagnostics.status[0].message = "head axis initialized and running";
 	      }
 	      else
 	      {
 	        diagnostics.status[0].level = 1;
-	        diagnostics.status[0].name = n_.getNamespace(); //"schunk_powercube_chain";
+	        diagnostics.status[0].name = n_.getNamespace();
 	        diagnostics.status[0].message = "head axis not initialized";
 	      }
 	    }
@@ -560,7 +560,7 @@ int main(int argc, char** argv)
 	NodeClass nodeClass(ros::this_node::getName() + "/joint_trajectory_action");
  
 	// main loop
- 	ros::Rate loop_rate(5); // Hz
+ 	ros::Rate loop_rate(10); // Hz
 	while(nodeClass.n_.ok()) {
 	  
 		// publish JointState
