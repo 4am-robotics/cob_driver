@@ -337,27 +337,28 @@ class NodeClass
 	bool srvCallback_Stop(cob_srvs::Trigger::Request &req,
 				  cob_srvs::Trigger::Response &res )
 	{
-	ROS_INFO("Stopping camera axis");
-	
-	// stopping all arm movements
-	if (CamAxis_->Stop()) {
-		ROS_INFO("Stopping camera axis successful");
-		res.success.data = true;
-		res.error_message.data = "camera axis stopped successfully";
-	}
-	else {
-		ROS_ERROR("Stopping camera axis not succesful. error");
-		res.success.data = false;
-		res.error_message.data = "stopping camera axis not successful";
-	}
-
-	return true;
+		ROS_INFO("Stopping camera axis");
+		if(isInitialized_)
+		{
+			// stopping all movements
+			if (CamAxis_->Stop()) {
+				ROS_INFO("Stopping camera axis successful");
+				res.success.data = true;
+				res.error_message.data = "camera axis stopped successfully";
+			}
+			else {
+				ROS_ERROR("Stopping camera axis not succesful. error");
+				res.success.data = false;
+				res.error_message.data = "stopping camera axis not successful";
+			}
+		}
+		return true;
 	}
 	
 	bool srvCallback_Recover(cob_srvs::Trigger::Request &req,
 				  	 cob_srvs::Trigger::Response &res )
 	{
-		if (isInitialized_ == true) {
+		if (isInitialized_) {
 			ROS_INFO("Recovering camera axis");
 			
 			// stopping all arm movements
