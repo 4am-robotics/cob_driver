@@ -93,7 +93,8 @@ class LightControl:
 			except serial.serialutil.SerialException:
 				rospy.logwarn("Could not initialize serial connection on %s, aborting... (running in simulated mode)",devicestring_param)
 				self.sim_mode = True
-			rospy.loginfo("serial connection initialized successfully")
+			if not self.sim_mode:
+				rospy.loginfo("serial connection on %s initialized successfully", devicestring_param)
 
 	def setRGB(self, color):
 		#color in rgb color space ranging from 0 to 999
