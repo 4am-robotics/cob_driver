@@ -62,7 +62,8 @@
 
 // ROS message includes
 #include <sensor_msgs/JointState.h>
-#include <pr2_controllers_msgs/JointTrajectoryAction.h>
+//#include <pr2_controllers_msgs/JointTrajectoryAction.h>
+#include <control_msgs/FollowJointTrajectoryAction.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
 
@@ -102,10 +103,14 @@ class NodeClass
 	//--
 
 	// action lib server
-	actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
+	//actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
+	//std::string action_name_;
+	//pr2_controllers_msgs::JointTrajectoryFeedback feedback_;
+	//pr2_controllers_msgs::JointTrajectoryResult result_;
+	actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> as_;
 	std::string action_name_;
-	pr2_controllers_msgs::JointTrajectoryFeedback feedback_;
-	pr2_controllers_msgs::JointTrajectoryResult result_;
+	control_msgs::FollowJointTrajectoryFeedback feedback_;
+	control_msgs::FollowJointTrajectoryResult result_;
 	
 	// global variables
 	ElmoCtrl * CamAxis_;
@@ -255,7 +260,8 @@ class NodeClass
 		delete CamAxis_;
 	}
 
-	void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal) {
+	//void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal) {
+	void executeCB(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal) {	
 		if(isInitialized_) {	
 			ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
 			// saving goal into local variables
@@ -564,7 +570,8 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "cob_camera_axis");
 	
 	// create nodeClass
-	NodeClass nodeClass(ros::this_node::getName() + "/joint_trajectory_action");
+	//NodeClass nodeClass(ros::this_node::getName() + "/joint_trajectory_action");
+	NodeClass nodeClass(ros::this_node::getName() + "/follow_joint_trajectory");
  
 	// main loop
  	ros::Rate loop_rate(10); // Hz
