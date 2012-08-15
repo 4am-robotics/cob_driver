@@ -16,6 +16,7 @@
 #			
 # Author: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
 # Supervised by: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
+# Modified by: Benjamin Maidel, email:benjamin.maidel@ipa.fhg.de
 #
 # Date of creation: June 2010
 # ToDo:
@@ -55,10 +56,15 @@ import roslib;
 roslib.load_manifest('cob_light')
 import rospy
 from std_msgs.msg import ColorRGBA
+from cob_light.srv import *
 from visualization_msgs.msg import Marker
 
 import serial
 import sys
+import math
+
+class LedMode:
+	(STATIC, BREATH, FLASH) = range(0,3)
 
 class LightControl:
 	def __init__(self):
@@ -71,7 +77,11 @@ class LightControl:
 		self.color.b = 0
 		self.color.a = 1
 		self.sim_mode = False
-		
+        
+		self.ser = None
+		self.handle_timer = None
+		self.inc_timer = 0.0
+
 		# get parameter from parameter server
 		if not self.sim_mode:
 			if not rospy.has_param(self.ns_global_prefix + "/devicestring"):
@@ -97,6 +107,10 @@ class LightControl:
 				rospy.loginfo("serial connection on %s initialized successfully", devicestring_param)
 
 	def setRGB(self, color):
+		#check if timer function is running
+		if self.handle_timer is not None:
+			self.handle_timer.shutdown()
+			self.handle_timer = None
 		#color in rgb color space ranging from 0 to 999
 		# check range and send to serial bus
 		if(color.r <= 1 and color.g <= 1 and color.b <= 1):
@@ -108,6 +122,49 @@ class LightControl:
 			self.ser.write(str(int(red))+ " " + str(int(green))+ " " + str(int(blue))+"\n\r")
 		else:
 			rospy.logwarn("Color not in range 0...1 color: rgb = [%d, %d, %d] a = [%d]", color.r, color.g, color.b, color.a)
+
+	def ModeCallback(self, req):
+		res = LightModeResponse()
+		self.color = req.color
+		self.setRGB(self.color)
+		if req.mode == LedMode.BREATH:
+			if self.handle_timer is not None:
+				self.handle_timer.shutdown()
+			self.inc_timer = 0.0
+			self.handle_timer = rospy.Timer(rospy.Duration(0.05), self.BreathTimerEvent)
+			res.error_type = 0
+			res.error_msg = ""
+		elif req.mode == LedMode.STATIC:
+			if self.handle_timer is not None:
+				self.handle_timer.shutdown()
+				self.handle_timer = None
+				res.error_type = 0
+				res.error_msg=""
+		elif req.mode == LedMode.FLASH:
+			if self.handle_timer is not None:
+				self.handle_timer.shutdown()
+				self.handle_timer = None
+				res.error_type = 0
+				res.error_msg = ""
+		else:
+			rospy.logwarn("Unsupported Led Mode: %d",mode)
+			res.error_type = -1
+			res.error_msg = "Unsupported Led Mode requested"
+		return res
+
+	def BreathTimerEvent(self, event):
+		fV = math.sin(self.timer_inc)
+		#breathing function simple: e^sin(x) and then from 0 to 1
+		fV = (math.exp(math.sin(self.timer_inc))-1.0/math.e)*1.0/(math.e-1.0/math.e)
+		self.inc_timer += 0.025
+		red = math.fabs((self.color.r * fV)*999.0)
+		green = math.fabs((self.color.g * fV)*999.0)
+		blue = math.fabs((self.color.b * fV)*999.0)
+		if self.ser is not None:
+			self.ser.write(str(int(red))+ " " + str(int(green)) + " " + str(int(blue))+"\n\r")
+		else:
+			rospy.loginfo("Setting color to: rgb [%d, %d, %d]", red, green, blue)
+	
 
 	def publish_marker(self):
 		# create marker
@@ -145,6 +202,7 @@ if __name__ == '__main__':
 	rospy.init_node('light_controller')
 	lc = LightControl()
 	rospy.Subscriber("command", ColorRGBA, lc.LightCallback)
+	rospy.Service('mode', LightMode, lc.ModeCallback)
 	if not lc.sim_mode:
 		rospy.loginfo(rospy.get_name() + " running")
 	else:
