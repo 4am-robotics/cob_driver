@@ -132,6 +132,7 @@ class NodeClass
 	bool finished_;
 	double ActualPos_;
 	double ActualVel_;
+	double GoalPos_;
 	trajectory_msgs::JointTrajectory traj_;
 	trajectory_msgs::JointTrajectoryPoint traj_point_;
 	unsigned int traj_point_nr_;
@@ -261,6 +262,7 @@ class NodeClass
 			traj_ = goal->trajectory;
 			traj_point_nr_ = 0;
 			traj_point_ = traj_.points[traj_point_nr_];
+			GoalPos_ = traj_point_.positions[0];
 			finished_ = false;
 			
 			// stoping axis to prepare for new trajectory
@@ -419,47 +421,52 @@ class NodeClass
 		{
 			if (isInitialized_ == true)
 			{
-			    if (operationMode_ == "position")
-			    {
-				    ROS_DEBUG("moving head_axis in position mode");
-			    	if (fabs(ActualVel_) < 0.02)
-			    	{
-				    	//feedback_.isMoving = false;
-				    	
-				    	ROS_DEBUG("next point is %d from %d",traj_point_nr_,traj_.points.size());
-				    	
-				    	if (traj_point_nr_ < traj_.points.size())
-				    	{
-				    		// if axis is not moving and not reached last point of trajectory, then send new target point
-				    		ROS_INFO("...moving to trajectory point[%d], %f",traj_point_nr_,traj_.points[traj_point_nr_].positions[0]);
-					    	traj_point_ = traj_.points[traj_point_nr_];
-					    	CamAxis_->setGearPosVelRadS(traj_point_.positions[0], MaxVel_);
-					    	usleep(900000);
-					    	CamAxis_->m_Joint->requestPosVel();
-				    		traj_point_nr_++;
-					    	//feedback_.isMoving = true;
-					    	//feedback_.pointNr = traj_point_nr;
-	    					//as_.publishFeedback(feedback_);
-					    }
-					    else
-					    {
-				    		ROS_DEBUG("...reached end of trajectory");
-				    		finished_ = true;
-					    }
+				if (operationMode_ == "position")
+				{
+					ROS_DEBUG("moving head_axis in position mode");
+
+					if (fabs(ActualVel_) < 0.02)
+					{
+						//feedback_.isMoving = false;
+				
+						ROS_DEBUG("next point is %d from %d",traj_point_nr_,traj_.points.size());
+					
+						if (traj_point_nr_ < traj_.points.size())
+						{
+							// if axis is not moving and not reached last point of trajectory, then send new target point
+							ROS_INFO("...moving to trajectory point[%d], %f",traj_point_nr_,traj_.points[traj_point_nr_].positions[0]);
+							traj_point_ = traj_.points[traj_point_nr_];
+							CamAxis_->setGearPosVelRadS(traj_point_.positions[0], MaxVel_);
+							usleep(900000);
+							CamAxis_->m_Joint->requestPosVel();
+							traj_point_nr_++;
+							//feedback_.isMoving = true;
+							//feedback_.pointNr = traj_point_nr;
+							//as_.publishFeedback(feedback_);
+						}
+						else if ( fabs( ActualPos_ - GoalPos_ ) < 0.5*M_PI/180.0 && !finished_ )
+						{
+							ROS_DEBUG("...reached end of trajectory");
+							finished_ = true;
+						}
+						else
+						{
+							//do nothing until GoalPos_ is reached
+						}
 					}
 					else
 					{
 						ROS_INFO("...axis still moving to point[%d]",traj_point_nr_);
 					}
-			    }
-			    else if (operationMode_ == "velocity")
-			    {
-			        ROS_WARN("Moving in velocity mode currently disabled");
-			    }
-			    else
-			    {
-			        ROS_ERROR("axis neither in position nor in velocity mode. OperationMode = [%s]", operationMode_.c_str());
-			    }
+				}
+				else if (operationMode_ == "velocity")
+				{
+					ROS_WARN("Moving in velocity mode currently disabled");
+				}
+				else
+				{
+					ROS_ERROR("axis neither in position nor in velocity mode. OperationMode = [%s]", operationMode_.c_str());
+				}
 			}
 			else
 			{
