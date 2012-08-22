@@ -81,7 +81,6 @@ class cob_trajectory_controller_node
 private:
     ros::NodeHandle n_;
 
-    ros::Publisher joint_pos_pub_;
     ros::Publisher joint_vel_pub_;
     ros::Subscriber controller_state_;
  	ros::Subscriber operation_mode_;
@@ -120,7 +119,6 @@ public:
     action_name_follow_("follow_joint_trajectory")
  
     {
-        joint_pos_pub_ = n_.advertise<sensor_msgs::JointState>("target_joint_pos", 1);
 		joint_vel_pub_ = n_.advertise<brics_actuator::JointVelocities>("command_vel", 1);
         controller_state_ = n_.subscribe("state", 1, &cob_trajectory_controller_node::state_callback, this);
 		operation_mode_ = n_.subscribe("current_operationmode", 1, &cob_trajectory_controller_node::operationmode_callback, this);
@@ -375,19 +373,15 @@ public:
 		{	//WATCHDOG TODO: don't always send
 		  if(watchdog_counter < 10)
 		    {
-			sensor_msgs::JointState target_joint_position;
-			target_joint_position.position.resize(DOF);
 			brics_actuator::JointVelocities target_joint_vel;
 			target_joint_vel.velocities.resize(DOF);
 			for (int i = 0; i < DOF; i += 1)
 			{
 				target_joint_vel.velocities[i].joint_uri = JointNames_[i].c_str();
-				target_joint_position.position[i] = 0;
 				target_joint_vel.velocities[i].unit = "rad";
 				target_joint_vel.velocities[i].value = 0;
 			}
 				joint_vel_pub_.publish(target_joint_vel);
-				joint_pos_pub_.publish(target_joint_position);
 			}
 		  watchdog_counter++;
 		}
