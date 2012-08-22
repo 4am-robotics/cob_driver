@@ -73,6 +73,8 @@
 #include <termios.h>
 #include <time.h>
 
+#include <beatcontroller.h>
+
 class SerialCom
 {
 public:
@@ -151,13 +153,39 @@ class LedController
 			if(_bPubMarker)
 				_timerMarker = _nh.createTimer(ros::Duration(0.5),
 						&LedController::markerCallback, this);
+
+			_beatController = new mybeat::BeatController(4096,44100,192);
+			_beatController->addCustomBeat(600);
+			_beatController->addCustomBeat(12000);
+			//_beatController->signalProcessingDone()->connect(boost::bind(&LedController::beatProcessDone,this));
+			_beatController->signalBeatSnare()->connect(boost::bind(&LedController::beatSnareCallback,this));
+			_beatController->signalBeatDrum()->connect(boost::bind(&LedController::beatDrumCallback,this));
+			_beatController->start();
 		}
+
 		~LedController()
 		{
+			_beatController->stop();
+			delete _beatController;
 		}
 		
 		enum LedMode{ STATIC = 0, BREATH = 1, BREATH_COLOR = 2, FLASH = 3, SOUND = 4 };
 		
+		void beatProcessDoneCallback()
+		{
+			ROS_INFO_NAMED("LedController","Processing Done");
+		}
+
+		void beatSnareCallback()
+		{
+			ROS_INFO_NAMED("LedController","beat Snare");
+		}
+
+		void beatDrumCallback()
+		{
+			ROS_INFO_NAMED("LedController","beat Drum");
+		}
+
 		void setRGB(std_msgs::ColorRGBA color)
 		{
 			if(color.r <= 1.0 && color.g <=1.0 && color.b <= 1.0)
@@ -190,6 +218,8 @@ class LedController
 		float _timer_inc;
 		std_msgs::ColorRGBA _color;
 
+		mybeat::BeatController *_beatController;
+
 		speed_t getBaudFromInt(int baud)
 		{
 			speed_t ret;
@@ -215,6 +245,7 @@ class LedController
 				case 230400: ret=B230400; break;
 				default: ret=B230400; break;
 			}
+			return ret;
 		}
 		
 		bool modeCallback(cob_light::LightMode::Request &req, cob_light::LightMode::Response &res)

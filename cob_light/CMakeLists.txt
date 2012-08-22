@@ -29,13 +29,15 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #uncomment if you have defined services
 rosbuild_gensrv()
 
+include_directories(${PROJECT_SOURCE_DIR}/ros/include)
+
 #common commands for building c++ executables and libraries
 #rospack_add_library(${PROJECT_NAME} src/example.cpp)
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rospack_add_boost_directories()
-#rospack_link_boost(${PROJECT_NAME} thread)
-rosbuild_add_executable(cob_light_node ros/src/cob_light.cpp)
-#target_link_libraries(example ${PROJECT_NAME})
+rosbuild_add_executable(cob_light_node ros/src/cob_light.cpp ros/src/alsarecorder.cpp ros/src/beatanalyser.cpp ros/src/beatcontroller.cpp ros/src/fft.cpp ros/src/soundbuffer.cpp ros/src/soundrecorder.cpp ros/src/subband.cpp)
+rosbuild_link_boost(cob_light_node thread)
+target_link_libraries(cob_light_node fftw3 asound )
 
 # rostest
 #rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-1)
