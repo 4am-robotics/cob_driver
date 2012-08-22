@@ -136,7 +136,7 @@ class LedController
 {
 	public:
 		LedController() :
-		 _timer_inc(0.0)
+		 _timer_inc(0.0), _sound_magnitude(0.0)
 		{
 			_nh = ros::NodeHandle("~");
 			_nh.param<std::string>("/light_controller/devicestring",_deviceString,"/dev/ttyUSB");
@@ -160,7 +160,6 @@ class LedController
 			//_beatController->signalProcessingDone()->connect(boost::bind(&LedController::beatProcessDone,this));
 			_beatController->signalBeatSnare()->connect(boost::bind(&LedController::beatSnareCallback,this));
 			_beatController->signalBeatDrum()->connect(boost::bind(&LedController::beatDrumCallback,this));
-			_beatController->start();
 		}
 
 		~LedController()
@@ -191,7 +190,9 @@ class LedController
 			if(color.r <= 1.0 && color.g <=1.0 && color.b <= 1.0)
 			{
 				_color = color;
-				color.r *= 999.0; color.g *= 999.0; color.b *= 999.0;
+				color.r = (1-color.r) * 999.0;
+				color.g = (1-color.g) * 999.0;
+				color.b = (1-color.b) * 999.0;
 				_ssOut << (int)color.r << " " 
 						<< (int)color.g << " "
 						<< (int)color.b << "\n\r";
@@ -219,6 +220,7 @@ class LedController
 		std_msgs::ColorRGBA _color;
 
 		mybeat::BeatController *_beatController;
+		float _sound_magnitude;
 
 		speed_t getBaudFromInt(int baud)
 		{
@@ -252,6 +254,11 @@ class LedController
 		{
 			if(_timerMode.isValid())
 				_timerMode.stop();
+
+			if(_beatController->getEnabled())
+			{
+						_beatController->stop();
+			}
 			
 			switch(req.mode)
 			{
@@ -268,6 +275,15 @@ class LedController
 				case FLASH:
 					setRGB(req.color);
 				break;
+
+				case SOUND:
+					_beatController->start();
+					_timerMode = _nh.createTimer(ros::Duration(0.05),
+						&LedController::soundCallback, this);
+				break;
+
+				default:
+					ROS_WARN_NAMED("LedController","Unsupported Mode: %d", req.mode);
 			}
 			res.error_type = 0;
 			res.error_msg = "";
@@ -281,13 +297,13 @@ class LedController
 			//(exp(sin(_timer_inc))-1.0/M_E)*(999.0/(M_E-1.0/M_E));
 			double fV = (exp(sin(_timer_inc*M_PI)-0.36787944)*425.0336050555);
 			
-			_timer_inc += 0.025;
-			if(_timer_inc > 2)
-				_timer_inc = 0;
+			_timer_inc += 0.01;
+			if(_timer_inc >= 2.0)
+				_timer_inc = 0.0;
 			
-			int red = _color.r * fV;
-			int green = _color.g * fV;
-			int blue = _color.b * fV;
+			int red = 999 - fabs(_color.r * fV);
+			int green = 999 - fabs(_color.g * fV);
+			int blue = 999 - fabs(_color.b * fV);
 			
 			_ssOut << red << " " 
 					<< green << " "
@@ -301,6 +317,17 @@ class LedController
 		void flashCallback(const ros::TimerEvent &event)
 		{
 			// todo: add functionality
+		}
+
+		void soundCallback(const ros::TimerEvent &event)
+		{
+			int red = 999 * (1-(_color.r * _sound_magnitude));
+			int green = 999 * (1-(_color.g * _sound_magnitude));
+			int blue = 999 * (1-(_color.b * _sound_magnitude));
+			_ssOut << red << " " << green << " " << blue << "\n\r";
+			_serialCom.sendData(_ssOut.str());
+			_ssOut.clear();
+			_ssOut.str("");
 		}
 
 		// creates and publishes an visualization marker 
