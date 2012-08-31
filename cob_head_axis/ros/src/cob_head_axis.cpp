@@ -208,7 +208,6 @@ class NodeClass
 		ROS_DEBUG("%s content\n%s", full_param_name.c_str(), xml_string.c_str());
 		
 		// extract limits and velocitys from urdf model
-		// The urdf model can be found in torso_cob3-1.urdf -> joint_head_eyes
 		urdf::Model model;
 		if (!model.initString(xml_string))
 		{
