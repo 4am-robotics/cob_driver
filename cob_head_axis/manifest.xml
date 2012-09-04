@@ -21,5 +21,6 @@
   <depend package="libntcan"/>
   <depend package="diagnostic_msgs"/>
   <depend package="pr2_controllers_msgs"/>
+  <depend package="control_msgs"/>
 
 </package>

@@ -63,7 +63,7 @@
 #include <sensor_msgs/JointState.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 #include <actionlib/server/simple_action_server.h>
-#include <pr2_controllers_msgs/JointTrajectoryAction.h>
+//#include <pr2_controllers_msgs/JointTrajectoryAction.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
 
 #include <brics_actuator/JointVelocities.h>
@@ -81,7 +81,6 @@ class cob_trajectory_controller_node
 private:
     ros::NodeHandle n_;
 
-    ros::Publisher joint_pos_pub_;
     ros::Publisher joint_vel_pub_;
     ros::Subscriber controller_state_;
  	ros::Subscriber operation_mode_;
@@ -90,11 +89,11 @@ private:
     ros::ServiceServer srvServer_SetAcc_;
  	ros::ServiceClient srvClient_SetOperationMode;
 
-    actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
+    //actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
     actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> as_follow_;
  
   
-    std::string action_name_;
+    //std::string action_name_;
     std::string action_name_follow_;	
     std::string current_operation_mode_;
     XmlRpc::XmlRpcValue JointNames_param_;
@@ -114,13 +113,12 @@ public:
 
 
     cob_trajectory_controller_node():
-    as_(n_, "joint_trajectory_action", boost::bind(&cob_trajectory_controller_node::executeTrajectory, this, _1), true),
+    //as_(n_, "joint_trajectory_action", boost::bind(&cob_trajectory_controller_node::executeTrajectory, this, _1), true),
     as_follow_(n_, "follow_joint_trajectory", boost::bind(&cob_trajectory_controller_node::executeFollowTrajectory, this, _1), true),
-    action_name_("joint_trajectory_action"),
+    //action_name_("joint_trajectory_action"),
     action_name_follow_("follow_joint_trajectory")
  
     {
-        joint_pos_pub_ = n_.advertise<sensor_msgs::JointState>("target_joint_pos", 1);
 		joint_vel_pub_ = n_.advertise<brics_actuator::JointVelocities>("command_vel", 1);
         controller_state_ = n_.subscribe("state", 1, &cob_trajectory_controller_node::state_callback, this);
 		operation_mode_ = n_.subscribe("current_operationmode", 1, &cob_trajectory_controller_node::operationmode_callback, this);
@@ -291,7 +289,7 @@ public:
   }
 
 // swaped the main part out to a separate function which will be used by executeFollowTrajectory and executeTrajectory so that code is not duplicated?
-  void executeTrajectory(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal) {
+/*  void executeTrajectory(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal) {
         ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
         spawnTrajector(goal->trajectory);
         // only set to succeeded if component could reach position. this is currently not the care for e.g. by emergency stop, hardware error or exceeds limit.
@@ -307,6 +305,7 @@ public:
         rejected_ = false;
         failure_ = false;
   }
+*/
 
      void executeFollowTrajectory(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal) 
   {
@@ -332,7 +331,7 @@ public:
         {
             failure_ = false;
 	        watchdog_counter = 0;
-			if (as_.isPreemptRequested() || !ros::ok() || current_operation_mode_ != "velocity")
+			if (as_follow_.isPreemptRequested() || !ros::ok() || current_operation_mode_ != "velocity")
 			{
 				
 				// set the action state to preempted
@@ -374,19 +373,15 @@ public:
 		{	//WATCHDOG TODO: don't always send
 		  if(watchdog_counter < 10)
 		    {
-			sensor_msgs::JointState target_joint_position;
-			target_joint_position.position.resize(DOF);
 			brics_actuator::JointVelocities target_joint_vel;
 			target_joint_vel.velocities.resize(DOF);
 			for (int i = 0; i < DOF; i += 1)
 			{
 				target_joint_vel.velocities[i].joint_uri = JointNames_[i].c_str();
-				target_joint_position.position[i] = 0;
 				target_joint_vel.velocities[i].unit = "rad";
 				target_joint_vel.velocities[i].value = 0;
 			}
 				joint_vel_pub_.publish(target_joint_vel);
-				joint_pos_pub_.publish(target_joint_position);
 			}
 		  watchdog_counter++;
 		}
