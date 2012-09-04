@@ -75,6 +75,9 @@
 
 #include <beatcontroller.h>
 
+//gui stuff
+#include <gtkmm.h>
+
 class SerialCom
 {
 public:
@@ -136,8 +139,12 @@ class LedController
 {
 	public:
 		LedController() :
-		 _timer_inc(0.0), _sound_magnitude(0.0)
+		 _timer_inc(0.0), _sound_magnitude(0.0), _invertMask(0)
 		{
+			char *robot_env;
+			robot_env = getenv("ROBOT");
+			_invertMask = (std::strcmp("raw3-1",robot_env) == 0) ? 1:0;
+
 			_nh = ros::NodeHandle("~");
 			_nh.param<std::string>("/light_controller/devicestring",_deviceString,"/dev/ttyUSB");
 			_nh.param<int>("/light_controller/baudrate",_baudrate,230400);
@@ -154,12 +161,13 @@ class LedController
 				_timerMarker = _nh.createTimer(ros::Duration(0.5),
 						&LedController::markerCallback, this);
 
-			_beatController = new mybeat::BeatController(4096,44100,192);
+			_beatController = new mybeat::BeatController(2048,44100,192);
 			_beatController->addCustomBeat(600);
 			_beatController->addCustomBeat(12000);
-			//_beatController->signalProcessingDone()->connect(boost::bind(&LedController::beatProcessDone,this));
-			_beatController->signalBeatSnare()->connect(boost::bind(&LedController::beatSnareCallback,this));
-			_beatController->signalBeatDrum()->connect(boost::bind(&LedController::beatDrumCallback,this));
+			//_beatController->signalProcessingDone()->connect(boost::bind(&LedController::beatProcessDoneCallback,this));
+			//_beatController->signalBeatSnare()->connect(boost::bind(&LedController::beatSnareCallback,this));
+			//_beatController->signalBeatDrum()->connect(boost::bind(&LedController::beatDrumCallback,this));
+			_beatController->start();
 		}
 
 		~LedController()
@@ -167,6 +175,8 @@ class LedController
 			_beatController->stop();
 			delete _beatController;
 		}
+
+		mybeat::BeatController* getBeatController(){return _beatController;}
 		
 		enum LedMode{ STATIC = 0, BREATH = 1, BREATH_COLOR = 2, FLASH = 3, SOUND = 4 };
 		
@@ -190,12 +200,13 @@ class LedController
 			if(color.r <= 1.0 && color.g <=1.0 && color.b <= 1.0)
 			{
 				_color = color;
-				color.r = (1-color.r) * 999.0;
-				color.g = (1-color.g) * 999.0;
-				color.b = (1-color.b) * 999.0;
+				color.r = fabs(_invertMask-color.r) * 999.0;
+				color.g = fabs(_invertMask-color.g) * 999.0;
+				color.b = fabs(_invertMask-color.b) * 999.0;
 				_ssOut << (int)color.r << " " 
 						<< (int)color.g << " "
 						<< (int)color.b << "\n\r";
+				ROS_INFO("setRGB: sending %s", _ssOut.str().c_str());
 				_serialCom.sendData(_ssOut.str());
 				_ssOut.clear();
 				_ssOut.str("");
@@ -211,6 +222,8 @@ class LedController
 		ros::NodeHandle _nh;
 		ros::ServiceServer _srvServer;
 		ros::Publisher _pubMarker;
+
+		int _invertMask;
 
 		bool _bPubMarker;
 
@@ -301,13 +314,12 @@ class LedController
 			if(_timer_inc >= 2.0)
 				_timer_inc = 0.0;
 			
-			int red = 999 - fabs(_color.r * fV);
-			int green = 999 - fabs(_color.g * fV);
-			int blue = 999 - fabs(_color.b * fV);
+			int red = (_invertMask * 999) - fabs(_color.r * fV);
+			int green = (_invertMask * 999) - fabs(_color.g * fV);
+			int blue = (_invertMask * 999) - fabs(_color.b * fV);
 			
-			_ssOut << red << " " 
-					<< green << " "
-					<< blue << "\n\r";
+			_ssOut << red << " " << green << " " << blue << "\n\r";
+			ROS_INFO("breathCallback: sending %s", _ssOut.str().c_str());
 			_serialCom.sendData(_ssOut.str());
 			_ssOut.clear();
 			_ssOut.str("");
@@ -321,10 +333,12 @@ class LedController
 
 		void soundCallback(const ros::TimerEvent &event)
 		{
-			int red = 999 * (1-(_color.r * _sound_magnitude));
-			int green = 999 * (1-(_color.g * _sound_magnitude));
-			int blue = 999 * (1-(_color.b * _sound_magnitude));
+			int red = 999 * fabs(_invertMask-(_color.r * _sound_magnitude));
+			int green = 999 * fabs(_invertMask-(_color.g * _sound_magnitude));
+			int blue = 999 * fabs(_invertMask-(_color.b * _sound_magnitude));
+
 			_ssOut << red << " " << green << " " << blue << "\n\r";
+			ROS_INFO("breathCallback: sending %s", _ssOut.str().c_str());
 			_serialCom.sendData(_ssOut.str());
 			_ssOut.clear();
 			_ssOut.str("");
@@ -358,12 +372,102 @@ class LedController
 		}
 };
 
+class SoundViz : public Gtk::DrawingArea
+{
+	public:
+		SoundViz(mybeat::BeatController* beatController)
+		{
+			_beatController = beatController;
+			signal_draw().connect(sigc::mem_fun(*this, &SoundViz::on_draw), false);
+			_beatController->signalProcessingDone()->connect(boost::bind(&SoundViz::soundProcessingDone,this));
+		}
+		virtual ~SoundViz(){;}
+
+	protected:
+  		//Override default signal handler:
+  		virtual bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
+  		{
+  			Gtk::Allocation allocation = get_allocation();
+			const int width = allocation.get_width();
+			const int height = allocation.get_height();
+
+			// scale to unit square and translate (0, 0) to be (0.5, 0.5), i.e.
+			// the center of the window
+			cr->set_line_width(1);
+			//cr->set_source_rgba(0.337, 0.612, 0.117, 1);   // green
+			cr->set_source_rgba(0.423, 0.482, 0.545, 0.8);   // green
+
+			// cr->move_to(0,0);
+			// cr->line_to(0, height/2);
+
+			// cr->move_to(width,0);
+			// cr->line_to(width, height/2);
+
+			for(uint16_t i=0;i<1024;i++)
+			{
+				//Draw the function itself
+				cr->move_to((double)i/1024.0*(double)width,height);
+				cr->line_to((double)i/1024.0*(double)width,(double)height- (_beatController->getFFT()->get_magnitude(i)/_beatController->getFFT()->get_magnitude_max())*(double)height);
+				//cr->line_to((double)i/2048.0*(double)width,(double)height-0.4*(double)height);
+				//cr->move_to((double)i/4096*width,height-_beatController->getFFT()->get_magnitude(i)/_beatController->getFFT()->get_magnitude_max()*height);
+				//cr->line_to((double)i/4096*width,height);
+				cr->stroke();
+			}
+			uint16_t bands=_beatController->getAnalyser()->getBands();
+			cr->set_source_rgba(1, 0, 0, 0.8);
+			cr->move_to(0,((double)height-(_beatController->getAnalyser()->getBand(0)->getAllTimeMaximumRaw()/_beatController->getFFT()->get_magnitude_max())*(double)height));
+        	for(uint16_t i=1;i<bands;i++)
+        	{
+				cr->line_to((double)i/bands*(double)width,(double)height-(_beatController->getAnalyser()->getBand(i)->getAllTimeMaximumRaw()/_beatController->getFFT()->get_magnitude_max())*(double)height);
+			}
+			cr->stroke();
+			return true;
+  		}
+
+  		void soundProcessingDone()
+  		{
+  			// force our program to redraw the entire clock.
+			Glib::RefPtr<Gdk::Window> win = get_window();
+			if (win)
+			{
+				Gdk::Rectangle r(0, 0, get_allocation().get_width(),
+				        get_allocation().get_height());
+				win->invalidate_rect(r, false);
+			}
+  		}
+
+  		mybeat::BeatController* _beatController;
+};
+
 int main(int argc, char** argv)
 {
+	if(!Glib::thread_supported())
+		Glib::thread_init(); 
 	// init node
 	ros::init(argc, argv, "light_controller");
 	// create ledcontroller instance
 	LedController ledController;
+
+	Gtk::Main kit(argc, argv);
+
+ 	Gtk::Window win;
+ 	win.set_title("SoundViz");
+
+ 	SoundViz viz(ledController.getBeatController());
+
+ 	win.add(viz);
+ 	viz.show();
+ 	win.show_all();
+ 	win.set_size_request(480,120);
+
+	ros::Rate r(20); //Cycle-Rate: Frequency of publishing EMStopStates
+	while(ros::ok())
+	{        
+		while( Gtk::Main::events_pending() )
+			Gtk::Main::iteration();
+		ros::spinOnce();
+		r.sleep();
+	}
 	ros::spin();
 
 	return 0;

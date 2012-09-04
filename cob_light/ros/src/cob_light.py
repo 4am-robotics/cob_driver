@@ -118,7 +118,7 @@ class LightControl:
 			red = color.r*999.0
 			green = color.g*999.0
 			blue = color.b*999.0
-			rospy.logdebug("send color to microcontroller: rgb = [%d, %d, %d]", red, green, blue)
+			rospy.logdebug("send color to microcontroller: %s", (str(int(red))+ " " + str(int(green))+ " " + str(int(blue))+"\n\r"))
 			self.ser.write(str(int(red))+ " " + str(int(green))+ " " + str(int(blue))+"\n\r")
 		else:
 			rospy.logwarn("Color not in range 0...1 color: rgb = [%d, %d, %d] a = [%d]", color.r, color.g, color.b, color.a)
