@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.4.6)
 include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+include($ENV{ROS_ROOT}/core/rosbuild/FindPkgConfig.cmake)
 
 # Set the build type.  Options are:
 #  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
@@ -29,7 +30,11 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #uncomment if you have defined services
 rosbuild_gensrv()
 
-include_directories(${PROJECT_SOURCE_DIR}/ros/include)
+pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
+pkg_check_modules(GTHREAD REQUIRED gthread-2.0)
+
+include_directories(${PROJECT_SOURCE_DIR}/ros/include ${GTKMM_INCLUDE_DIRS} ${GTHREAD_INCLUDE_DIRS})
+link_directories(${GTKMM_LIBRARY_DIRS} ${GTHREAD_LIBRARY_DIRS})
 
 #common commands for building c++ executables and libraries
 #rospack_add_library(${PROJECT_NAME} src/example.cpp)
@@ -37,7 +42,8 @@ include_directories(${PROJECT_SOURCE_DIR}/ros/include)
 #rospack_add_boost_directories()
 rosbuild_add_executable(cob_light_node ros/src/cob_light.cpp ros/src/alsarecorder.cpp ros/src/beatanalyser.cpp ros/src/beatcontroller.cpp ros/src/fft.cpp ros/src/soundbuffer.cpp ros/src/soundrecorder.cpp ros/src/subband.cpp)
 rosbuild_link_boost(cob_light_node thread)
-target_link_libraries(cob_light_node fftw3 asound )
+target_link_libraries(cob_light_node fftw3 asound ${GTKMM_LIBRARIES} ${GTHREAD_LIBRARIES})
+
 
 # rostest
 #rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-1)

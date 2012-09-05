@@ -6,7 +6,7 @@ namespace mybeat
 SoundBuffer::SoundBuffer(uint16_t size)
 {
     this->m_size=size;
-    m_Buffer.resize(size);
+    m_Buffer.resize(size,0);
 }
 
 int16_t SoundBuffer::average()

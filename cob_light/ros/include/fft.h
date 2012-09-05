@@ -16,7 +16,7 @@
     the Hanning window will be used when filling the input array ( http://en.wikipedia.org/wiki/Window_function#Hann_window )
 */
 
-#define USE_HANNING
+#define USE_NO_WINDOW
 
 /*! \def CLEAR_NOISE
     the FFT results can be misleading for the frequency band 0-30Hz) - this define will just set this to 0
