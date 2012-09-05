@@ -393,15 +393,26 @@ class SoundViz : public Gtk::DrawingArea
 		SoundViz(mybeat::BeatController* beatController)
 		{
 			_beatController = beatController;
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 4)
+			signal_expose_event().connect(sigc::mem_fun(*this, &SoundViz::on_expose_event), false);
+#elif (GTKMM_MAJOR_VERSION == 3)
 			signal_draw().connect(sigc::mem_fun(*this, &SoundViz::on_draw), false);
+#endif
 			_beatController->signalProcessingDone()->connect(boost::bind(&SoundViz::soundProcessingDone,this));
 		}
 		virtual ~SoundViz(){;}
 
 	protected:
   		//Override default signal handler:
-  		virtual bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
-  		{
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 4)
+  		virtual bool on_expose_event(GdkEventExpose* event)
+		{
+			Glib::RefPtr<Gdk::Window> window = get_window();
+			Cairo::RefPtr<Cairo::Context> cr = window->create_cairo_context();
+#elif (GTKMM_MAJOR_VERSION == 3)
+		virtual bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
+		{
+#endif
   			Gtk::Allocation allocation = get_allocation();
 			const int width = allocation.get_width();
 			const int height = allocation.get_height();
