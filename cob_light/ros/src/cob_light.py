@@ -99,7 +99,7 @@ class LightControl:
 			# open serial communication
 			rospy.loginfo("trying to initializing serial connection")
 			try:
-				self.ser = serial.Serial(devicestring_param, baudrate_param)
+				self.ser = serial.Serial("/dev/ttyUSB0", baudrate_param)
 			except serial.serialutil.SerialException:
 				rospy.logwarn("Could not initialize serial connection on %s, aborting... (running in simulated mode)",devicestring_param)
 				self.sim_mode = True
@@ -115,10 +115,10 @@ class LightControl:
 		# check range and send to serial bus
 		if(color.r <= 1 and color.g <= 1 and color.b <= 1):
 			#scale from 0 to 999
-			red = color.r*999.0
-			green = color.g*999.0
-			blue = color.b*999.0
-			rospy.logdebug("send color to microcontroller: rgb = [%d, %d, %d]", red, green, blue)
+			red = (1-color.r)*999.0
+			green = (1-color.g)*999.0
+			blue = (1-color.b)*999.0
+			rospy.loginfo("send color to microcontroller: rgb = [%d, %d, %d]", red, green, blue)
 			self.ser.write(str(int(red))+ " " + str(int(green))+ " " + str(int(blue))+"\n\r")
 		else:
 			rospy.logwarn("Color not in range 0...1 color: rgb = [%d, %d, %d] a = [%d]", color.r, color.g, color.b, color.a)
@@ -128,6 +128,7 @@ class LightControl:
 		self.color = req.color
 		self.setRGB(self.color)
 		if req.mode == LedMode.BREATH:
+			rospy.loginfo("Set mode to Breath")
 			if self.handle_timer is not None:
 				self.handle_timer.shutdown()
 			self.inc_timer = 0.0
@@ -135,12 +136,14 @@ class LightControl:
 			res.error_type = 0
 			res.error_msg = ""
 		elif req.mode == LedMode.STATIC:
+			rospy.loginfo("Set mode to Static")
 			if self.handle_timer is not None:
 				self.handle_timer.shutdown()
 				self.handle_timer = None
 				res.error_type = 0
 				res.error_msg=""
 		elif req.mode == LedMode.FLASH:
+			rospy.loginfo("Set mode to Flash")
 			if self.handle_timer is not None:
 				self.handle_timer.shutdown()
 				self.handle_timer = None
@@ -153,13 +156,19 @@ class LightControl:
 		return res
 
 	def BreathTimerEvent(self, event):
-		fV = math.sin(self.timer_inc)
+		fV = math.sin(self.inc_timer)
 		#breathing function simple: e^sin(x) and then from 0 to 1
-		fV = (math.exp(math.sin(self.timer_inc))-1.0/math.e)*1.0/(math.e-1.0/math.e)
-		self.inc_timer += 0.025
-		red = math.fabs((self.color.r * fV)*999.0)
-		green = math.fabs((self.color.g * fV)*999.0)
-		blue = math.fabs((self.color.b * fV)*999.0)
+		#fkt: (exp(sin(x))-1/e)*(999/(e-1/e))
+		fV = (math.exp(math.sin(self.inc_timer*math.pi))-0.36787944)*425.03360505
+		self.inc_timer += 0.01
+		if self.inc_timer >= 2.0:
+			self.inc_timer = 0.0
+		red = math.fabs((self.color.r * fV))#*999.0)
+		green = math.fabs((self.color.g * fV))#*999.0)
+		blue = math.fabs((self.color.b * fV))#*999.0)
+		red = 999.0 - red
+		green = 999.0 - green
+		blue = 999.0 - blue
 		if self.ser is not None:
 			self.ser.write(str(int(red))+ " " + str(int(green)) + " " + str(int(blue))+"\n\r")
 		else:

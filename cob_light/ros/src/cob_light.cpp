@@ -89,7 +89,8 @@ public:
 	int openPort(std::string devicestring, speed_t baudrate)
 	{
 		ROS_DEBUG_NAMED("SerialCom","Open Port on %s",devicestring.c_str());
-		fd = open(devicestring.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+		//TODO: use devicestring
+		fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
 		if(fd != -1)
 		{
 			ROS_INFO_NAMED("SerialCom","Serial connection on %s succeeded.", devicestring.c_str());
@@ -105,14 +106,24 @@ public:
 	}
 	int sendData(std::string value)
 	{
+		char buffer[32];
 		size_t wrote = -1;
+		size_t rec = -1;
 		if(fd != -1)
 		{
 			wrote = write(fd, value.c_str(), sizeof(value.c_str()));
+			rec = read(fd, buffer, sizeof(value.c_str()));
+			if(strcmp(buffer, value.c_str()) != 0)
+				ROS_ERROR_NAMED("SerialCom","Did not received the same");
+			ROS_INFO_NAMED("SerialCom","Wrote [%s] with %i bytes", value.c_str(), (int)wrote);
+			ROS_INFO_NAMED("SerialCom","Received [%s] with %i bytes", buffer, (int)wrote);
 			if(wrote != sizeof(value.c_str()))
 				ROS_ERROR_NAMED("SerialCom", "Could not write all data. Left: %i", wrote);
 		}
-		ROS_WARN_NAMED("SerialCom","Can not write to serial port. Port closed!");
+		else
+		{
+			ROS_WARN_NAMED("SerialCom","Can not write to serial port. Port closed!");
+		}
 		return wrote;
 	}
 
@@ -139,7 +150,7 @@ class LedController
 		 _timer_inc(0.0), _sound_magnitude(0.0)
 		{
 			_nh = ros::NodeHandle("~");
-			_nh.param<std::string>("/light_controller/devicestring",_deviceString,"/dev/ttyUSB");
+			_nh.param<std::string>("/light_controller/devicestring",_deviceString,"/dev/ttyUSB1");
 			_nh.param<int>("/light_controller/baudrate",_baudrate,230400);
 			_nh.param<bool>("/light_controller/pubmarker",_bPubMarker,false);
 			
@@ -263,20 +274,24 @@ class LedController
 			switch(req.mode)
 			{
 				case STATIC:
+					ROS_INFO_NAMED("LedController","Set Mode to Static");
 					setRGB(req.color);
 				break;
 				
 				case BREATH:
+					ROS_INFO_NAMED("LedController","Set Mode to Breath");
 					setRGB(req.color);
-					_timerMode = _nh.createTimer(ros::Duration(0.05),
+					_timerMode = _nh.createTimer(ros::Duration(0.04),
 						&LedController::breathCallback, this);
 				break;
 				
 				case FLASH:
+				ROS_INFO_NAMED("LedController","Set Mode to Flash");
 					setRGB(req.color);
 				break;
 
 				case SOUND:
+					ROS_INFO_NAMED("LedController","Set Mode to Sound");
 					_beatController->start();
 					_timerMode = _nh.createTimer(ros::Duration(0.05),
 						&LedController::soundCallback, this);
@@ -297,7 +312,7 @@ class LedController
 			//(exp(sin(_timer_inc))-1.0/M_E)*(999.0/(M_E-1.0/M_E));
 			double fV = (exp(sin(_timer_inc*M_PI)-0.36787944)*425.0336050555);
 			
-			_timer_inc += 0.01;
+			_timer_inc += 0.025;
 			if(_timer_inc >= 2.0)
 				_timer_inc = 0.0;
 			
