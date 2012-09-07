@@ -33,7 +33,7 @@ class cob_voltage_control_ros
 
         void configure()
         {
-
+            component_implementation_.configure();
         }
 
         void update()
@@ -51,6 +51,7 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "cob_voltage_control");
 
 	cob_voltage_control_ros node;
+    ROS_INFO("blub");
     node.configure();
 
  	ros::Rate loop_rate(100); // Hz // if cycle time == 0 do a spin() here without calling node.update() 

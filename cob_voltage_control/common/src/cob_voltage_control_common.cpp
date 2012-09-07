@@ -39,7 +39,7 @@ public:
     void configure() 
     {
         //user specific code
-
+    	ROS_INFO("blubblub");
     	//init and open phidget
     	int numInputs, numOutputs, numSensors, numAnalog;
     	int err;
@@ -49,13 +49,19 @@ public:
 		CPhidgetInterfaceKit_create(&IFK);
 
 		//CPhidgetInterfaceKit_set_OnSensorChange_Handler(IFK, IFK_SensorChangeHandler, NULL);
-		//CPhidget_set_OnAttach_Handler((CPhidgetHandle)IFK, IFK_AttachHandler, NULL);
+		
+		/*CPhidgetInterfaceKit_set_OnInputChange_Handler(IFK, IFK_InputChangeHandler, NULL);
+		CPhidgetInterfaceKit_set_OnOutputChange_Handler(IFK, IFK_OutputChangeHandler, NULL);
+		CPhidgetInterfaceKit_set_OnSensorChange_Handler(IFK, IFK_SensorChangeHandler, NULL);
+		CPhidget_set_OnAttach_Handler((CPhidgetHandle)IFK, IFK_AttachHandler, NULL);
+		CPhidget_set_OnDetach_Handler((CPhidgetHandle)IFK, IFK_DetachHandler, NULL);
+		CPhidget_set_OnError_Handler((CPhidgetHandle)IFK, IFK_ErrorHandler, NULL);*/
 
 		//opening phidget
 		CPhidget_open((CPhidgetHandle)IFK, -1);
 
 		//wait 5 seconds for attachment
-		ROS_DEBUG("waiting for phidgets attachement...");
+		ROS_INFO("waiting for phidgets attachement...");
 		if((err = CPhidget_waitForAttachment((CPhidgetHandle)IFK, 10000)) != EPHIDGET_OK )
 		{
 			const char *errStr;
@@ -63,7 +69,7 @@ public:
 			ROS_ERROR("Error waiting for attachment: (%d): %s",err,errStr);
 			return;
 		}
-		ROS_DEBUG("... attached");
+		ROS_INFO("... attached");
 
 		int sernum, version;
 		const char *deviceptr, *label;
@@ -72,15 +78,14 @@ public:
 		CPhidget_getDeviceVersion((CPhidgetHandle)IFK, &version);
 		CPhidget_getDeviceLabel((CPhidgetHandle)IFK, &label);
 
-		ROS_DEBUG("%s", deviceptr);
-		ROS_DEBUG("Version: %8d SerialNumber: %10d", version, sernum);
-		ROS_DEBUG("Label: %s", label);
+		ROS_INFO("%s", deviceptr);
+		ROS_INFO("Version: %8d SerialNumber: %10d", version, sernum);
+		ROS_INFO("Label: %s", label);
 		CPhidgetInterfaceKit_getOutputCount((CPhidgetInterfaceKitHandle)IFK, &numOutputs);
 		CPhidgetInterfaceKit_getInputCount((CPhidgetInterfaceKitHandle)IFK, &numInputs);
 		CPhidgetInterfaceKit_getSensorCount((CPhidgetInterfaceKitHandle)IFK, &numSensors);
-		//CPhidgetAnalog_getOutputCount((CPhidgetAnalogHandle)IFK, &numAnalog);
 
-		ROS_DEBUG("Sensors:%d Inputs:%d Outputs:%d", numSensors, numInputs, numOutputs);
+		ROS_INFO("Sensors:%d Inputs:%d Outputs:%d", numSensors, numInputs, numOutputs);
 
 
     }
@@ -88,17 +93,17 @@ public:
     {
         //user specific code
     	int index = 0;
-    	int inputState = -1;
+    	int inputState, inputState2 = -1;
 
     	//Check for EM Stop
     	index = 0;
     	inputState = -1;
+    	inputState2 = -1;
     	CPhidgetInterfaceKit_getInputState ((CPhidgetInterfaceKitHandle)IFK, index, &inputState);
-    	if(inputState == 0)
-    		ROS_DEBUG("EMStop %d", inputState);
-		if(inputState == 1)
-			ROS_DEBUG("EMStop %d", inputState);
-
+    	index = 1;
+    	CPhidgetInterfaceKit_getInputState ((CPhidgetInterfaceKitHandle)IFK, index, &inputState2);
+    	ROS_INFO("DIO: %d %d", inputState, inputState2);
+    	
 		data.out_pub_em_stop_state_.header.stamp = ros::Time::now();
 		// pr2 power_board_state
 		data.out_pub_em_stop_state_.run_stop = false;
@@ -107,13 +112,16 @@ public:
 
 
     	//Get Battery Voltage
-		index = 1;
+		index = 0;
 		inputState = -1;
-		CPhidgetInterfaceKit_getInputState ((CPhidgetInterfaceKitHandle)IFK, index, &inputState);
+		CPhidgetInterfaceKit_getSensorValue((CPhidgetInterfaceKitHandle)IFK, index, &inputState);
+		index = 1;
+		CPhidgetInterfaceKit_getSensorValue((CPhidgetInterfaceKitHandle)IFK, index, &inputState2);
+		ROS_INFO("Sensor: %d %d", inputState, inputState2);
 		data.out_pub_powerstate_.header.stamp = ros::Time::now();
 		data.out_pub_powerstate_.power_consumption = 0.0;
 		data.out_pub_powerstate_.time_remaining = ros::Duration(1000);
-		data.out_pub_powerstate_.relative_capacity = 40; //percentage;
+		data.out_pub_powerstate_.relative_capacity = inputState/10; //percentage;
 
     }
     
