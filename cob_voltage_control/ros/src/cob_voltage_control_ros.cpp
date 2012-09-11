@@ -20,6 +20,7 @@ class cob_voltage_control_ros
         
  
         cob_voltage_control_data component_data_;
+	cob_voltage_control_config component_config_;
         cob_voltage_control_impl component_implementation_;
 
         cob_voltage_control_ros()
@@ -28,7 +29,14 @@ class cob_voltage_control_ros
         	pub_em_stop_state__ = n_.advertise<pr2_msgs::PowerBoardState>("pub_em_stop_state_", 1);
         	pub_powerstate__ = n_.advertise<pr2_msgs::PowerState>("pub_powerstate_", 1);
 			
-            
+		n_.param("battery_max_voltage", component_config_.max_voltage, 50.0);
+		n_.param("battery_min_voltage", component_config_.min_voltage, 44.0);
+		n_.param("robot_max_voltage", component_config_.max_voltage_res, 70.0);
+		n_.param("voltage_analog_port", component_config_.num_voltage_port, 1);
+		n_.param("em_stop_dio_port", component_config_.num_em_stop_port, 0); 
+		n_.param("scanner_stop_dio_port", component_config_.num_scanner_em_port, 1);            
+		
+
         }
 
         void configure()
@@ -38,7 +46,7 @@ class cob_voltage_control_ros
 
         void update()
         {
-            component_implementation_.update(component_data_);
+            component_implementation_.update(component_data_, component_config_);
             pub_em_stop_state__.publish(component_data_.out_pub_em_stop_state_);
             pub_powerstate__.publish(component_data_.out_pub_powerstate_);
     
