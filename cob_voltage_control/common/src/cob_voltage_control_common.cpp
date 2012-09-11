@@ -114,14 +114,24 @@ public:
     	//Get Battery Voltage
 		index = 0;
 		inputState = -1;
-		CPhidgetInterfaceKit_getSensorValue((CPhidgetInterfaceKitHandle)IFK, index, &inputState);
+		inputState2 = -1;
+		CPhidgetInterfaceKit_getSensorValue((CPhidgetInterfaceKitHandle)IFK, 0, &inputState);
 		index = 1;
-		CPhidgetInterfaceKit_getSensorValue((CPhidgetInterfaceKitHandle)IFK, index, &inputState2);
+		CPhidgetInterfaceKit_getSensorValue((CPhidgetInterfaceKitHandle)IFK, 1, &inputState2);
 		ROS_INFO("Sensor: %d %d", inputState, inputState2);
+
+		//Calculation of real voltage 
+		//max_voltage = 70V ; max_counts = 999
+		double max_voltage = 70.0; // V
+		double max_counts = 999.0; // see phidgit analog io docu
+		double voltage = inputState2 * max_voltage/max_counts;
+		
+
+
 		data.out_pub_powerstate_.header.stamp = ros::Time::now();
 		data.out_pub_powerstate_.power_consumption = 0.0;
 		data.out_pub_powerstate_.time_remaining = ros::Duration(1000);
-		data.out_pub_powerstate_.relative_capacity = inputState/10; //percentage;
+		data.out_pub_powerstate_.relative_capacity = voltage; //percentage;
 
     }
     
