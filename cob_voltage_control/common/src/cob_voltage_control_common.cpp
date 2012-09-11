@@ -2,6 +2,7 @@
 #include "ros/ros.h"
 #include <pr2_msgs/PowerBoardState.h>
 #include <pr2_msgs/PowerState.h>
+#include <cob_relayboard/EmergencyStopState.h>
 
 #include <libphidgets/phidget21.h>
 
@@ -29,7 +30,7 @@ public:
 //output data
 	pr2_msgs::PowerBoardState out_pub_em_stop_state_;
 	pr2_msgs::PowerState out_pub_powerstate_;
-
+  cob_relayboard::EmergencyStopState out_pub_relayboard_state;
 };
 
 //document how this class has to look
@@ -119,17 +120,28 @@ public:
 	{
 		data.out_pub_em_stop_state_.run_stop = true;
 		//for cob the wireless stop field is misused as laser stop field
+		data.out_pub_relayboard_state.emergency_state = 2;
 		if(scanner_stop_State == 1)
                 	data.out_pub_em_stop_state_.wireless_stop = true;
         	else
+		  {
                 	data.out_pub_em_stop_state_.wireless_stop = false;
+			data.out_pub_relayboard_state.emergency_state = 1;
+		  }
 
 	}	
 	else
 	{
 		data.out_pub_em_stop_state_.run_stop = false;
 		data.out_pub_em_stop_state_.wireless_stop = true;
+		data.out_pub_relayboard_state.emergency_state = 1;
 	}
+	
+	data.out_pub_relayboard_state.emergency_button_stop = data.out_pub_em_stop_state_.run_stop;
+	data.out_pub_relayboard_state.scanner_stop = data.out_pub_em_stop_state_.wireless_stop;
+	
+
+
 
     	//Get Battery Voltage
 		int voltageState = -1;

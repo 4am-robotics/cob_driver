@@ -13,6 +13,7 @@
   <depend package="rostest"/>
   <depend package="pr2_msgs"/>
   <depend package="libphidgets"/>
+  <depend package="cob_relayboard"/>
   <depend package="rospy"/>
   <depend package="dynamic_reconfigure"/>
 

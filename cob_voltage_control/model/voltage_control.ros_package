@@ -3,6 +3,7 @@
   <node name="cob_voltage_control">
     <publisher name="pub_em_stop_state_"/>
     <publisher name="pub_powerstate_"/>
+    <publisher name="pub_relayboard_state_"/>
     <parameter name="scanner_em_input" value="0" type="int"/>
     <parameter name="voltage_level_input" value="0" type="int"/>
     <parameter name="global_em_input" value="1" type="int"/>

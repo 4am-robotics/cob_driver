@@ -4,6 +4,7 @@
 // ROS message includes
 #include <pr2_msgs/PowerBoardState.h>
 #include <pr2_msgs/PowerState.h>
+#include <cob_relayboard/EmergencyStopState.h>
 
 #include <cob_voltage_control_common.cpp>
 
@@ -15,6 +16,7 @@ class cob_voltage_control_ros
 
 		ros::Publisher pub_em_stop_state__;
 		ros::Publisher pub_powerstate__;
+		ros::Publisher pub_relayboard_state__;
 		
 
         
@@ -28,6 +30,7 @@ class cob_voltage_control_ros
 
         	pub_em_stop_state__ = n_.advertise<pr2_msgs::PowerBoardState>("pub_em_stop_state_", 1);
         	pub_powerstate__ = n_.advertise<pr2_msgs::PowerState>("pub_powerstate_", 1);
+	        pub_relayboard_state__ = n_.advertise<cob_relayboard::EmergencyStopState>("pub_relayboard_state_", 1);
 			
 		n_.param("battery_max_voltage", component_config_.max_voltage, 50.0);
 		n_.param("battery_min_voltage", component_config_.min_voltage, 44.0);
@@ -49,7 +52,7 @@ class cob_voltage_control_ros
             component_implementation_.update(component_data_, component_config_);
             pub_em_stop_state__.publish(component_data_.out_pub_em_stop_state_);
             pub_powerstate__.publish(component_data_.out_pub_powerstate_);
-    
+	    pub_relayboard_state__.publish(component_data_.out_pub_relayboard_state);
         }
 };
 
