@@ -115,16 +115,21 @@ public:
     	
 	data.out_pub_em_stop_state_.header.stamp = ros::Time::now();
 	// pr2 power_board_state
-	if(em_stop_State == 0 && scanner_stop_State == 0)
+	if(em_stop_State == 1)
+	{
 		data.out_pub_em_stop_state_.run_stop = true;
-	else
-		data.out_pub_em_stop_state_.run_stop = false;
-	//for cob the wireless stop field is misused as laser stop field
-	if(scanner_stop_State == 0)
-		data.out_pub_em_stop_state_.wireless_stop = true;
-	else
-		data.out_pub_em_stop_state_.wireless_stop = false;
+		//for cob the wireless stop field is misused as laser stop field
+		if(scanner_stop_State == 1)
+                	data.out_pub_em_stop_state_.wireless_stop = true;
+        	else
+                	data.out_pub_em_stop_state_.wireless_stop = false;
 
+	}	
+	else
+	{
+		data.out_pub_em_stop_state_.run_stop = false;
+		data.out_pub_em_stop_state_.wireless_stop = true;
+	}
 
     	//Get Battery Voltage
 		int voltageState = -1;
