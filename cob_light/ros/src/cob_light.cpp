@@ -216,6 +216,9 @@ class LightControl
 			if(_bPubMarker)
 				_timerMarker = _nh.createTimer(ros::Duration(0.5),
 						&LightControl::markerCallback, this);
+
+			//turn off leds
+			setRGB(_color);
 		}
 
 		~LightControl()
