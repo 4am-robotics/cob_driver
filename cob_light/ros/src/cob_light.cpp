@@ -63,7 +63,6 @@
 
 // ros message includes
 #include <std_msgs/ColorRGBA.h>
-#include <cob_light/LightMode.h>
 #include <visualization_msgs/Marker.h>
 
 // serial connection includes
@@ -73,154 +72,179 @@
 #include <termios.h>
 #include <time.h>
 
-#include <beatcontroller.h>
-
-//gui stuff
-#include <gtkmm.h>
+#define SIMULATION_ENABLED
 
 class SerialCom
 {
 public:
 	SerialCom() :
-	 fd(-1)
+	 _fd(-1), m_simulation(false)
 	{
 	}
 	~SerialCom()
 	{
 		closePort();
 	}
-	int openPort(std::string devicestring, speed_t baudrate)
+	int openPort(std::string devicestring, int baudrate)
 	{
-		ROS_DEBUG_NAMED("SerialCom","Open Port on %s",devicestring.c_str());
-		//TODO: use devicestring
-		fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
-		if(fd != -1)
+		if(_fd != -1) return _fd;
+
+		ROS_DEBUG("Open Port on %s",devicestring.c_str());
+		_fd = open(devicestring.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+		if(_fd != -1)
 		{
-			ROS_INFO_NAMED("SerialCom","Serial connection on %s succeeded.", devicestring.c_str());
-			fcntl(fd, F_SETFL, 0);
-			tcgetattr(fd, &port_settings);
+			speed_t baud = getBaudFromInt(baudrate);
+			fcntl(_fd, F_SETFL, 0);
+			tcgetattr(_fd, &port_settings);
+			port_settings.c_cflag = baud | CRTSCTS | CS8 | CLOCAL | CREAD;
+			port_settings.c_iflag = IGNPAR;
 			cfsetispeed(&port_settings, baudrate);
 			cfsetospeed(&port_settings, baudrate);
-			tcsetattr(fd, TCSANOW, &port_settings);
+			tcsetattr(_fd, TCSANOW, &port_settings);
+			ROS_INFO("Serial connection on %s succeeded.", devicestring.c_str());
 		}
 		else
-			ROS_ERROR_NAMED("SerialCom","Serial connection on %s failed.", devicestring.c_str());
-		return fd;
+		{
+			ROS_ERROR("Serial connection on %s failed.", devicestring.c_str());
+			#ifdef SIMULATION_ENABLED
+			m_simulation = true;
+			ROS_INFO("Simulation mode enabled");
+			#endif
+		}
+		return _fd;
 	}
 	int sendData(std::string value)
 	{
-		char buffer[32];
 		size_t wrote = -1;
-		size_t rec = -1;
-		if(fd != -1)
+		if(m_simulation)
 		{
-			wrote = write(fd, value.c_str(), sizeof(value.c_str()));
-			rec = read(fd, buffer, sizeof(value.c_str()));
-			if(strcmp(buffer, value.c_str()) != 0)
-				ROS_ERROR_NAMED("SerialCom","Did not received the same");
-			ROS_INFO_NAMED("SerialCom","Wrote [%s] with %i bytes", value.c_str(), (int)wrote);
-			ROS_INFO_NAMED("SerialCom","Received [%s] with %i bytes", buffer, (int)wrote);
-			if(wrote != sizeof(value.c_str()))
-				ROS_ERROR_NAMED("SerialCom", "Could not write all data. Left: %i", wrote);
+			ROS_DEBUG("Simulation Mode: Sending  [%s]",value.c_str());
 		}
 		else
 		{
-			ROS_WARN_NAMED("SerialCom","Can not write to serial port. Port closed!");
+			if(_fd != -1)
+			{
+				wrote = write(_fd, value.c_str(), sizeof(value.c_str()));
+				ROS_DEBUG("Wrote [%s] with %i bytes from %i bytes", value.c_str(), (int)wrote, sizeof(value.c_str()));
+			}
+			else
+			{
+				ROS_WARN("Can not write to serial port. Port closed!");
+			}
 		}
 		return wrote;
 	}
 
+	int readData(std::string &value, size_t nBytes)
+	{
+		char buffer[32];
+		size_t rec = -1;
+		rec = read(_fd, buffer, nBytes);
+		value = std::string(buffer);
+		return rec;
+	}
+
 	bool isOpen()
 	{
-		return (fd != -1);
+		return (_fd != -1);
 	}
 
 	void closePort()
 	{
-		if(fd != -1)
-			close(fd);
+		if(_fd != -1)
+			close(_fd);
 	}
 
 private:
-	int fd;
+	int _fd;
 	struct termios port_settings;
+	bool m_simulation;
+
+	speed_t getBaudFromInt(int baud)
+	{
+		speed_t ret;
+		switch(baud)
+		{
+			case 0: 	ret=B0;		break;
+			case 50: 	ret=B50; 	break;
+			case 75: 	ret=B75; 	break;
+			case 110: 	ret=B110;	break;
+			case 134: 	ret=B134;	break;
+			case 150: 	ret=B150;	break;
+			case 200: 	ret=B200;	break;
+			case 300: 	ret=B300;	break;
+			case 1200: 	ret=B1200; 	break;
+			case 1800: 	ret=B1800; 	break;
+			case 2400: 	ret=B2400; 	break;
+			case 4800: 	ret=B4800; 	break;
+			case 9600: 	ret=B9600; 	break;
+			case 19200: ret=B19200; break;
+			case 38400: ret=B38400;	break;
+			case 57600: ret=B57600; break;
+			case 115200: ret=B115200; break;
+			case 230400: ret=B230400; break;
+			default:
+				ROS_WARN("Unsupported Baudrate [%i]. Using default [230400]", baud);
+				ret=B230400;
+				break;
+		}
+		return ret;
+	}
 };
 
-class LedController
+class LightControl
 {
 	public:
-		LedController() :
-		 _timer_inc(0.0), _sound_magnitude(0.0), _invertMask(0)
+		LightControl() :
+		 _invertMask(0)
 		{
 			char *robot_env;
 			robot_env = getenv("ROBOT");
 			_invertMask = (std::strcmp("raw3-1",robot_env) == 0) ? 1:0;
 
 			_nh = ros::NodeHandle("~");
-			_nh.param<std::string>("/light_controller/devicestring",_deviceString,"/dev/ttyUSB1");
-			_nh.param<int>("/light_controller/baudrate",_baudrate,230400);
-			_nh.param<bool>("/light_controller/pubmarker",_bPubMarker,false);
+			_nh.param<std::string>("devicestring",_deviceString,"/dev/ttyUSB1");
+			_nh.param<int>("baudrate",_baudrate,230400);
+			_nh.param<bool>("pubmarker",_bPubMarker,false);
 			
+			_sub = _nh.subscribe("command", 1, &LightControl::setRGB, this);
+
 			_pubMarker = _nh.advertise<visualization_msgs::Marker>("marker",1);
 
-			_serialCom.openPort(_deviceString, getBaudFromInt(_baudrate));
+			_serialCom.openPort(_deviceString, _baudrate);
 				
-			_srvServer = 
-				_nh.advertiseService("/mode", &LedController::modeCallback, this);
-
 			if(_bPubMarker)
 				_timerMarker = _nh.createTimer(ros::Duration(0.5),
-						&LedController::markerCallback, this);
-
-			_beatController = new mybeat::BeatController(2048,44100,192);
-			_beatController->addCustomBeat(600);
-			_beatController->addCustomBeat(12000);
-			//_beatController->signalProcessingDone()->connect(boost::bind(&LedController::beatProcessDoneCallback,this));
-			//_beatController->signalBeatSnare()->connect(boost::bind(&LedController::beatSnareCallback,this));
-			//_beatController->signalBeatDrum()->connect(boost::bind(&LedController::beatDrumCallback,this));
-			_beatController->start();
+						&LightControl::markerCallback, this);
 		}
 
-		~LedController()
+		~LightControl()
 		{
-			_beatController->stop();
-			delete _beatController;
 		}
 
-		mybeat::BeatController* getBeatController(){return _beatController;}
-		
 		enum LedMode{ STATIC = 0, BREATH = 1, BREATH_COLOR = 2, FLASH = 3, SOUND = 4 };
 		
-		void beatProcessDoneCallback()
-		{
-			ROS_INFO_NAMED("LedController","Processing Done");
-		}
-
-		void beatSnareCallback()
-		{
-			ROS_INFO_NAMED("LedController","beat Snare");
-		}
-
-		void beatDrumCallback()
-		{
-			ROS_INFO_NAMED("LedController","beat Drum");
-		}
-
 		void setRGB(std_msgs::ColorRGBA color)
 		{
 			if(color.r <= 1.0 && color.g <=1.0 && color.b <= 1.0)
 			{
 				_color = color;
-				color.r = fabs(_invertMask-color.r) * 999.0;
-				color.g = fabs(_invertMask-color.g) * 999.0;
-				color.b = fabs(_invertMask-color.b) * 999.0;
-				_ssOut << (int)color.r << " " 
-						<< (int)color.g << " "
-						<< (int)color.b << "\n\r";
-				ROS_INFO("setRGB: sending %s", _ssOut.str().c_str());
-				_serialCom.sendData(_ssOut.str());
+				//calculate rgb spektrum for spezific alpha value, because
+				//led board is not supporting alpha values
+				color.r *= color.a;
+				color.g *= color.a;
+				color.b *= color.a;
+				//led board value spektrum is from 0 - 999.
+				//at r@w's led strip, 0 means fully lighted and 999 light off(_invertMask)
+				color.r = (fabs(_invertMask-color.r) * 999.0);
+				color.g = (fabs(_invertMask-color.g) * 999.0);
+				color.b = (fabs(_invertMask-color.b) * 999.0);
+
 				_ssOut.clear();
 				_ssOut.str("");
+				_ssOut << (int)color.r << " " << (int)color.g << " " << (int)color.b << "\n\r";
+
+				_serialCom.sendData(_ssOut.str());
 			}
 		}
 		
@@ -231,8 +255,8 @@ class LedController
 
 		std::stringstream _ssOut;
 		ros::NodeHandle _nh;
-		ros::ServiceServer _srvServer;
 		ros::Publisher _pubMarker;
+		ros::Subscriber _sub;
 
 		int _invertMask;
 
@@ -240,125 +264,8 @@ class LedController
 
 		ros::Timer _timerMode;
 		ros::Timer _timerMarker;
-		float _timer_inc;
 		std_msgs::ColorRGBA _color;
-
-		mybeat::BeatController *_beatController;
-		float _sound_magnitude;
-
-		speed_t getBaudFromInt(int baud)
-		{
-			speed_t ret;
-			switch(baud)
-			{
-				case 0: 	ret=B0;		break;
-				case 50: 	ret=B50; 	break;
-				case 75: 	ret=B75; 	break;
-				case 110: 	ret=B110;	break;
-				case 134: 	ret=B134;	break;
-				case 150: 	ret=B150;	break;
-				case 200: 	ret=B200;	break;
-				case 300: 	ret=B300;	break;
-				case 1200: 	ret=B1200; 	break;
-				case 1800: 	ret=B1800; 	break;
-				case 2400: 	ret=B2400; 	break;
-				case 4800: 	ret=B4800; 	break;
-				case 9600: 	ret=B9600; 	break;
-				case 19200: ret=B19200; break;
-				case 38400: ret=B38400;	break;
-				case 57600: ret=B57600; break;
-				case 115200: ret=B115200; break;
-				case 230400: ret=B230400; break;
-				default: ret=B230400; break;
-			}
-			return ret;
-		}
 		
-		bool modeCallback(cob_light::LightMode::Request &req, cob_light::LightMode::Response &res)
-		{
-			if(_timerMode.isValid())
-				_timerMode.stop();
-
-			if(_beatController->getEnabled())
-			{
-						_beatController->stop();
-			}
-			
-			switch(req.mode)
-			{
-				case STATIC:
-					ROS_INFO_NAMED("LedController","Set Mode to Static");
-					setRGB(req.color);
-				break;
-				
-				case BREATH:
-					ROS_INFO_NAMED("LedController","Set Mode to Breath");
-					setRGB(req.color);
-					_timerMode = _nh.createTimer(ros::Duration(0.04),
-						&LedController::breathCallback, this);
-				break;
-				
-				case FLASH:
-				ROS_INFO_NAMED("LedController","Set Mode to Flash");
-					setRGB(req.color);
-				break;
-
-				case SOUND:
-					ROS_INFO_NAMED("LedController","Set Mode to Sound");
-					_beatController->start();
-					_timerMode = _nh.createTimer(ros::Duration(0.05),
-						&LedController::soundCallback, this);
-				break;
-
-				default:
-					ROS_WARN_NAMED("LedController","Unsupported Mode: %d", req.mode);
-			}
-			res.error_type = 0;
-			res.error_msg = "";
-			return true;
-		}
-		
-		// cyclic called callback if mode is breath
-		// fades leds brightness
-		void breathCallback(const ros::TimerEvent &event)
-		{
-			//(exp(sin(_timer_inc))-1.0/M_E)*(999.0/(M_E-1.0/M_E));
-			double fV = (exp(sin(_timer_inc*M_PI)-0.36787944)*425.0336050555);
-			
-			_timer_inc += 0.025;
-			if(_timer_inc >= 2.0)
-				_timer_inc = 0.0;
-			
-			int red = (_invertMask * 999) - fabs(_color.r * fV);
-			int green = (_invertMask * 999) - fabs(_color.g * fV);
-			int blue = (_invertMask * 999) - fabs(_color.b * fV);
-			
-			_ssOut << red << " " << green << " " << blue << "\n\r";
-			ROS_INFO("breathCallback: sending %s", _ssOut.str().c_str());
-			_serialCom.sendData(_ssOut.str());
-			_ssOut.clear();
-			_ssOut.str("");
-			
-		}
-
-		void flashCallback(const ros::TimerEvent &event)
-		{
-			// todo: add functionality
-		}
-
-		void soundCallback(const ros::TimerEvent &event)
-		{
-			int red = 999 * fabs(_invertMask-(_color.r * _sound_magnitude));
-			int green = 999 * fabs(_invertMask-(_color.g * _sound_magnitude));
-			int blue = 999 * fabs(_invertMask-(_color.b * _sound_magnitude));
-
-			_ssOut << red << " " << green << " " << blue << "\n\r";
-			ROS_INFO("breathCallback: sending %s", _ssOut.str().c_str());
-			_serialCom.sendData(_ssOut.str());
-			_ssOut.clear();
-			_ssOut.str("");
-		}
-
 		// creates and publishes an visualization marker 
 		void markerCallback(const ros::TimerEvent &event)
 		{
@@ -387,113 +294,13 @@ class LedController
 		}
 };
 
-class SoundViz : public Gtk::DrawingArea
-{
-	public:
-		SoundViz(mybeat::BeatController* beatController)
-		{
-			_beatController = beatController;
-#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 4)
-			signal_expose_event().connect(sigc::mem_fun(*this, &SoundViz::on_expose_event), false);
-#elif (GTKMM_MAJOR_VERSION == 3)
-			signal_draw().connect(sigc::mem_fun(*this, &SoundViz::on_draw), false);
-#endif
-			_beatController->signalProcessingDone()->connect(boost::bind(&SoundViz::soundProcessingDone,this));
-		}
-		virtual ~SoundViz(){;}
-
-	protected:
-  		//Override default signal handler:
-#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 4)
-  		virtual bool on_expose_event(GdkEventExpose* event)
-		{
-			Glib::RefPtr<Gdk::Window> window = get_window();
-			Cairo::RefPtr<Cairo::Context> cr = window->create_cairo_context();
-#elif (GTKMM_MAJOR_VERSION == 3)
-		virtual bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
-		{
-#endif
-  			Gtk::Allocation allocation = get_allocation();
-			const int width = allocation.get_width();
-			const int height = allocation.get_height();
-
-			// scale to unit square and translate (0, 0) to be (0.5, 0.5), i.e.
-			// the center of the window
-			cr->set_line_width(1);
-			//cr->set_source_rgba(0.337, 0.612, 0.117, 1);   // green
-			cr->set_source_rgba(0.423, 0.482, 0.545, 0.8);   // green
-
-			// cr->move_to(0,0);
-			// cr->line_to(0, height/2);
-
-			// cr->move_to(width,0);
-			// cr->line_to(width, height/2);
-
-			for(uint16_t i=0;i<1024;i++)
-			{
-				//Draw the function itself
-				cr->move_to((double)i/1024.0*(double)width,height);
-				cr->line_to((double)i/1024.0*(double)width,(double)height- (_beatController->getFFT()->get_magnitude(i)/_beatController->getFFT()->get_magnitude_max())*(double)height);
-				//cr->line_to((double)i/2048.0*(double)width,(double)height-0.4*(double)height);
-				//cr->move_to((double)i/4096*width,height-_beatController->getFFT()->get_magnitude(i)/_beatController->getFFT()->get_magnitude_max()*height);
-				//cr->line_to((double)i/4096*width,height);
-				cr->stroke();
-			}
-			uint16_t bands=_beatController->getAnalyser()->getBands();
-			cr->set_source_rgba(1, 0, 0, 0.8);
-			cr->move_to(0,((double)height-(_beatController->getAnalyser()->getBand(0)->getAllTimeMaximumRaw()/_beatController->getFFT()->get_magnitude_max())*(double)height));
-        	for(uint16_t i=1;i<bands;i++)
-        	{
-				cr->line_to((double)i/bands*(double)width,(double)height-(_beatController->getAnalyser()->getBand(i)->getAllTimeMaximumRaw()/_beatController->getFFT()->get_magnitude_max())*(double)height);
-			}
-			cr->stroke();
-			return true;
-  		}
-
-  		void soundProcessingDone()
-  		{
-  			// force our program to redraw the entire clock.
-			Glib::RefPtr<Gdk::Window> win = get_window();
-			if (win)
-			{
-				Gdk::Rectangle r(0, 0, get_allocation().get_width(),
-				        get_allocation().get_height());
-				win->invalidate_rect(r, false);
-			}
-  		}
-
-  		mybeat::BeatController* _beatController;
-};
-
 int main(int argc, char** argv)
 {
-	if(!Glib::thread_supported())
-		Glib::thread_init(); 
 	// init node
 	ros::init(argc, argv, "light_controller");
-	// create ledcontroller instance
-	LedController ledController;
+	// create LightControl instance
+	LightControl LightControl;
 
-	Gtk::Main kit(argc, argv);
-
- 	Gtk::Window win;
- 	win.set_title("SoundViz");
-
- 	SoundViz viz(ledController.getBeatController());
-
- 	win.add(viz);
- 	viz.show();
- 	win.show_all();
- 	win.set_size_request(480,120);
-
-	ros::Rate r(20); //Cycle-Rate: Frequency of publishing EMStopStates
-	while(ros::ok())
-	{        
-		while( Gtk::Main::events_pending() )
-			Gtk::Main::iteration();
-		ros::spinOnce();
-		r.sleep();
-	}
 	ros::spin();
 
 	return 0;

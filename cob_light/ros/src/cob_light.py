@@ -87,13 +87,15 @@ class LightControl:
 			if not rospy.has_param(self.ns_global_prefix + "/devicestring"):
 				rospy.logwarn("parameter %s does not exist on ROS Parameter Server, aborting... (running in simulated mode)",self.ns_global_prefix + "/devicestring")
 				self.sim_mode = True
-			devicestring_param = rospy.get_param(self.ns_global_prefix + "/devicestring")
+			else:
+				devicestring_param = rospy.get_param(self.ns_global_prefix + "/devicestring")
 		
 		if not self.sim_mode:
 			if not rospy.has_param(self.ns_global_prefix + "/baudrate"):
 				rospy.logwarn("parameter %s does not exist on ROS Parameter Server, aborting... (running in simulated mode)",self.ns_global_prefix + "/baudrate")
 				self.sim_mode = True
-			baudrate_param = rospy.get_param(self.ns_global_prefix + "/baudrate")
+			else:
+				baudrate_param = rospy.get_param(self.ns_global_prefix + "/baudrate")
 		
 		if not self.sim_mode:
 			# open serial communication
@@ -119,7 +121,11 @@ class LightControl:
 			green = (1-color.g)*999.0
 			blue = (1-color.b)*999.0
 			rospy.loginfo("send color to microcontroller: rgb = [%d, %d, %d]", red, green, blue)
-			self.ser.write(str(int(red))+ " " + str(int(green))+ " " + str(int(blue))+"\n\r")
+			if self.ser is not None:
+				self.ser.write(str(int(red))+ " " + str(int(green))+ " " + str(int(blue))+"\n\r")
+			else:
+				rospy.loginfo("sending: [%s]", str(int(red))+ " " + str(int(green))+ " " + str(int(blue))+"\n\r")
+
 		else:
 			rospy.logwarn("Color not in range 0...1 color: rgb = [%d, %d, %d] a = [%d]", color.r, color.g, color.b, color.a)
 
@@ -172,7 +178,7 @@ class LightControl:
 		if self.ser is not None:
 			self.ser.write(str(int(red))+ " " + str(int(green)) + " " + str(int(blue))+"\n\r")
 		else:
-			rospy.loginfo("Setting color to: rgb [%d, %d, %d]", red, green, blue)
+			rospy.loginfo("sending: [%s]", str(int(red))+ " " + str(int(green))+ " " + str(int(blue))+"\n\r")
 	
 
 	def publish_marker(self):

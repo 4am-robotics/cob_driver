@@ -28,22 +28,18 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #uncomment if you have defined messages
 #rosbuild_genmsg()
 #uncomment if you have defined services
-rosbuild_gensrv()
+#rosbuild_gensrv()
 
-pkg_check_modules(GTKMM REQUIRED gtkmm-2.4)
-pkg_check_modules(GTHREAD REQUIRED gthread-2.0)
+#pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
+#pkg_check_modules(GTHREAD REQUIRED gthread-2.0)
 
-include_directories(${PROJECT_SOURCE_DIR}/ros/include ${GTKMM_INCLUDE_DIRS} ${GTHREAD_INCLUDE_DIRS})
-link_directories(${GTKMM_LIBRARY_DIRS} ${GTHREAD_LIBRARY_DIRS})
+include_directories(${PROJECT_SOURCE_DIR}/ros/include)
 
 #common commands for building c++ executables and libraries
 #rospack_add_library(${PROJECT_NAME} src/example.cpp)
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rospack_add_boost_directories()
-rosbuild_add_executable(cob_light_node ros/src/cob_light.cpp ros/src/alsarecorder.cpp ros/src/beatanalyser.cpp ros/src/beatcontroller.cpp ros/src/fft.cpp ros/src/soundbuffer.cpp ros/src/soundrecorder.cpp ros/src/subband.cpp)
-rosbuild_link_boost(cob_light_node thread)
-target_link_libraries(cob_light_node fftw3 asound ${GTKMM_LIBRARIES} ${GTHREAD_LIBRARIES})
-
+rosbuild_add_executable(cob_light_node ros/src/cob_light.cpp)
 
 # rostest
 #rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-1)
