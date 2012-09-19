@@ -89,17 +89,20 @@ public:
 	{
 		if(_fd != -1) return _fd;
 
-		ROS_DEBUG("Open Port on %s",devicestring.c_str());
+		ROS_INFO("Open Port on %s",devicestring.c_str());
 		_fd = open(devicestring.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
 		if(_fd != -1)
 		{
 			speed_t baud = getBaudFromInt(baudrate);
 			fcntl(_fd, F_SETFL, 0);
 			tcgetattr(_fd, &port_settings);
-			port_settings.c_cflag = baud | CRTSCTS | CS8 | CLOCAL | CREAD;
+			port_settings.c_cflag &= ~PARENB;
+			port_settings.c_cflag &= ~CSTOPB;
+			port_settings.c_cflag &= ~CSIZE;
+			port_settings.c_cflag = baud | CS8 | CLOCAL | CREAD;
 			port_settings.c_iflag = IGNPAR;
-			cfsetispeed(&port_settings, baudrate);
-			cfsetospeed(&port_settings, baudrate);
+//			cfsetispeed(&port_settings, baudrate);
+//			cfsetospeed(&port_settings, baudrate);
 			tcsetattr(_fd, TCSANOW, &port_settings);
 			ROS_INFO("Serial connection on %s succeeded.", devicestring.c_str());
 		}
@@ -124,8 +127,8 @@ public:
 		{
 			if(_fd != -1)
 			{
-				wrote = write(_fd, value.c_str(), sizeof(value.c_str()));
-				ROS_DEBUG("Wrote [%s] with %i bytes from %i bytes", value.c_str(), (int)wrote, sizeof(value.c_str()));
+				wrote = write(_fd, value.c_str(), value.length());
+				ROS_DEBUG("Wrote [%s] with %i bytes from %i bytes", value.c_str(), (int)wrote, value.length());
 			}
 			else
 			{
@@ -202,7 +205,7 @@ class LightControl
 			robot_env = getenv("ROBOT");
 			_invertMask = (std::strcmp("raw3-1",robot_env) == 0) ? 1:0;
 
-			_nh = ros::NodeHandle("~");
+//			_nh = ros::NodeHandle("~");
 			_nh.param<std::string>("devicestring",_deviceString,"/dev/ttyUSB1");
 			_nh.param<int>("baudrate",_baudrate,230400);
 			_nh.param<bool>("pubmarker",_bPubMarker,false);
@@ -218,6 +221,7 @@ class LightControl
 						&LightControl::markerCallback, this);
 
 			//turn off leds
+			_color.a=0;
 			setRGB(_color);
 		}
 
@@ -225,8 +229,6 @@ class LightControl
 		{
 		}
 
-		enum LedMode{ STATIC = 0, BREATH = 1, BREATH_COLOR = 2, FLASH = 3, SOUND = 4 };
-		
 		void setRGB(std_msgs::ColorRGBA color)
 		{
 			if(color.r <= 1.0 && color.g <=1.0 && color.b <= 1.0)

@@ -61,6 +61,7 @@ from visualization_msgs.msg import Marker
 import serial
 import sys
 import math
+import os
 
 class LightControl:
 	def __init__(self):
@@ -76,6 +77,10 @@ class LightControl:
 		self.mask = 0
         
 		self.ser = None
+
+		if os.environ['ROBOT'] == "raw3-1":
+			self.mask = 1
+			rospy.loginfo("setting mask to 1 for raw")
 
 		# get parameter from parameter server
 		if not self.sim_mode:
@@ -113,13 +118,13 @@ class LightControl:
 			color.g *= color.a
 			color.b *= color.a
 			#scale from 0 to 999
-			color.r = fabs(self.mask-color.r)*999.0
-			color.g = fabs(self.mask-color.g)*999.0
-			color.b = fabs(self.mask-color.b)*999.0
+			color.r = math.fabs(self.mask-color.r)*999.0
+			color.g = math.fabs(self.mask-color.g)*999.0
+			color.b = math.fabs(self.mask-color.b)*999.0
 
 			if self.ser is not None:
-				self.ser.write(str(int(red))+ " " + str(int(green))+ " " + str(int(blue))+"\n\r")
-				rospy.logdebug("sending color to microcontroller: [%s]", str(int(red))+ " " + str(int(green))+ " " + str(int(blue))+"\n\r")
+				self.ser.write(str(int(color.r))+ " " + str(int(color.g))+ " " + str(int(color.b))+"\n\r")
+				rospy.loginfo("sending color to microcontroller: [%s]", str(int(color.r))+ " " + str(int(color.g))+ " " + str(int(color.b))+"\n\r")
 			else:
 				rospy.logdebug("Simulation Mode: Sending [%s]", str(int(red))+ " " + str(int(green))+ " " + str(int(blue))+"\n\r")
 

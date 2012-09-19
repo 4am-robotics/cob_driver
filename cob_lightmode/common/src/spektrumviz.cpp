@@ -53,6 +53,7 @@
  ****************************************************************/
 
 #include <spektrumviz.h>
+#include <iomanip>
 
 SpektrumViz::SpektrumViz(mybeat::BeatController* beatController)
 {

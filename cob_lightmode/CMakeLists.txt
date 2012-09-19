@@ -30,7 +30,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #uncomment if you have defined services
 rosbuild_gensrv()
 
-pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
+pkg_check_modules(GTKMM REQUIRED gtkmm-2.4)
 pkg_check_modules(GTHREAD REQUIRED gthread-2.0)
 
 include_directories(${PROJECT_SOURCE_DIR}/ros/include ${PROJECT_SOURCE_DIR}/common/include ${GTKMM_INCLUDE_DIRS} ${GTHREAD_INCLUDE_DIRS})
