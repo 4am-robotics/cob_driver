@@ -143,7 +143,7 @@ bool genericArmCtrl::moveTrajectory(trajectory_msgs::JointTrajectory pfad, std::
 	}
 	for(unsigned int i = 0; i < pfad.points.front().positions.size(); i++ )
 	{
-		if((pfad.points.front().positions.at(i) - conf_current.at(i)) > 0.15)
+		if((pfad.points.front().positions.at(i) - conf_current.at(i)) > 0.25)
 		{
 			ROS_ERROR("Cannot start trajectory motion, manipulator not in trajectory start position.");
 			return false;
@@ -214,9 +214,22 @@ bool genericArmCtrl::step(std::vector<double> current_pos, std::vector<double> &
 		std::vector<double> m_qsoll = m_pRefVals->r_t( t );
 		std::vector<double> m_vsoll = m_pRefVals->dr_dt(t);
 
-		if(t < TotalTime_ - overlap_time)
+		if(t < TotalTime_)
 		{
-		    last_q = m_qsoll;
+			if(t < overlap_time)
+			{
+				last_q = m_pRefVals->r_t( 0.0 );
+				last_q1 = m_pRefVals->r_t( 0.0 );
+				last_q2 = m_pRefVals->r_t( 0.0 );
+				last_q3 = m_pRefVals->r_t( 0.0 );
+			}
+			else
+			{
+				last_q = m_pRefVals->r_t( t - overlap_time );
+				last_q1 = m_pRefVals->r_t( t - (3.0*overlap_time/4.0) );
+				last_q2 = m_pRefVals->r_t( t - (overlap_time/2.0) );
+				last_q3 = m_pRefVals->r_t( t - (overlap_time/4.0) );
+			}
 		}
 		
 		double len = 0;

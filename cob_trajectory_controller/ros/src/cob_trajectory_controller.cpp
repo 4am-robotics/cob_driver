@@ -241,7 +241,6 @@ public:
 
   void spawnTrajector(trajectory_msgs::JointTrajectory trajectory)
   {
-    ROS_INFO("spawnTrajector function");
     if(!executing_ || preemted_)
         {
            //set component to velocity mode
@@ -261,44 +260,94 @@ public:
 				}  
             }
 
-	  ROS_INFO("calculating new Trajectory");
 	  std::vector<double> traj_start;
-	  if(preemted_ == true)
+	  if(preemted_ == true) //Calculate trajectory for runtime modification of trajectories
 	    {
 	      ROS_INFO("There is a old trajectory currently running");
 	      traj_start = traj_generator_->last_q;
+	      trajectory_msgs::JointTrajectory temp_traj;
+		  temp_traj = trajectory;
+		  //Insert the saved point as first point of trajectory, then generate SPLINE trajectory
+		  trajectory_msgs::JointTrajectoryPoint p;
+		  p.positions.resize(DOF);
+		  p.velocities.resize(DOF);
+		  p.accelerations.resize(DOF);
+		  for(int i = 0; i<DOF; i++)
+		  {
+			  p.positions.at(i) = traj_start.at(i);
+			  p.velocities.at(i) = 0.0;
+			  p.accelerations.at(i) = 0.0;
+		  }
+		  std::vector<trajectory_msgs::JointTrajectoryPoint>::iterator it;
+		  it = temp_traj.points.begin();
+		  temp_traj.points.insert(it,p);
+		  //Now insert the current as first point of trajectory, then generate SPLINE trajectory
+		  for(int i = 0; i<DOF; i++)
+		  {
+			  p.positions.at(i) = traj_generator_->last_q1.at(i);
+			  p.velocities.at(i) = 0.0;
+			  p.accelerations.at(i) = 0.0;
+		  }
+		  it = temp_traj.points.begin();
+		  temp_traj.points.insert(it,p);
+		  for(int i = 0; i<DOF; i++)
+		  {
+			  p.positions.at(i) = traj_generator_->last_q2.at(i);
+			  p.velocities.at(i) = 0.0;
+			  p.accelerations.at(i) = 0.0;
+		  }
+		  it = temp_traj.points.begin();
+		  temp_traj.points.insert(it,p);
+		  for(int i = 0; i<DOF; i++)
+		  {
+			  p.positions.at(i) = traj_generator_->last_q3.at(i);
+			  p.velocities.at(i) = 0.0;
+			  p.accelerations.at(i) = 0.0;
+		  }
+		  it = temp_traj.points.begin();
+		  temp_traj.points.insert(it,p);
+		  for(int i = 0; i<DOF; i++)
+		  {
+			  p.positions.at(i) = q_current.at(i);
+			  p.velocities.at(i) = 0.0;
+			  p.accelerations.at(i) = 0.0;
+		  }
+		  it = temp_traj.points.begin();
+		  temp_traj.points.insert(it,p);
+		  traj_generator_->isMoving = false ;
+		  traj_generator_->moveTrajectory(temp_traj, traj_start);
 	    }
-	  else
+	  else //Normal calculation of trajectories
 	    {
 	      traj_start = q_current;
+	      trajectory_msgs::JointTrajectory temp_traj;
+		  temp_traj = trajectory;
+		  if(temp_traj.points.size() == 1)
+		  {
+			  traj_generator_->isMoving = false ;
+			  traj_generator_->moveThetas(temp_traj.points[0].positions, traj_start);
+		  }
+		  else
+		  {
+			  //Insert the current point as first point of trajectory, then generate SPLINE trajectory
+			  trajectory_msgs::JointTrajectoryPoint p;
+			  p.positions.resize(DOF);
+			  p.velocities.resize(DOF);
+			  p.accelerations.resize(DOF);
+			  for(int i = 0; i<DOF; i++)
+			  {
+				  p.positions.at(i) = traj_start.at(i);
+				  p.velocities.at(i) = 0.0;
+				  p.accelerations.at(i) = 0.0;
+			  }
+			  std::vector<trajectory_msgs::JointTrajectoryPoint>::iterator it;
+			  it = temp_traj.points.begin();
+			  temp_traj.points.insert(it,p);
+			  traj_generator_->isMoving = false ;
+			  traj_generator_->moveTrajectory(temp_traj, traj_start);
+		  }
 	    }
-	  trajectory_msgs::JointTrajectory temp_traj;
-            temp_traj = trajectory;
-            if(temp_traj.points.size() == 1)
-            {
-	      ROS_INFO("Calc for point %f", temp_traj.points[0].positions[0]);
-	      traj_generator_->isMoving = false ;
-	      traj_generator_->moveThetas(temp_traj.points[0].positions, traj_start);
-            }
-            else
-            {
-                //Insert the current point as first point of trajectory, then generate SPLINE trajectory
-                trajectory_msgs::JointTrajectoryPoint p;
-                p.positions.resize(DOF);
-                p.velocities.resize(DOF);
-                p.accelerations.resize(DOF);
-                for(int i = 0; i<DOF; i++)
-                {
-                    p.positions.at(i) = q_current.at(i);
-                    p.velocities.at(i) = 0.0;
-                    p.accelerations.at(i) = 0.0;
-                }
-                std::vector<trajectory_msgs::JointTrajectoryPoint>::iterator it;
-                it = temp_traj.points.begin();
-                temp_traj.points.insert(it,p);
-		traj_generator_->isMoving = false ;
-                traj_generator_->moveTrajectory(temp_traj, traj_start);
-            }
+
 	    executing_ = true;
             startposition_ = q_current;
 	    preemted_ = false;
@@ -314,8 +363,7 @@ public:
             usleep(1000);
 	    }
 	  else{
-	    ROS_INFO("Exiting loop");
-	    return;
+		  return;
 	  }
         }
 
@@ -357,7 +405,6 @@ public:
         }
         rejected_ = false;
         failure_ = false;
-	ROS_INFO("Exiting callback for point %f", goal->trajectory.points[0].positions[0]);
     }
     
     void run()

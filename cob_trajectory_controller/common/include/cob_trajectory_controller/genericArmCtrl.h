@@ -43,6 +43,9 @@ class genericArmCtrl
 		
 		std::vector<double> m_vel_js;
 		std::vector<double> last_q;
+		std::vector<double> last_q1;
+		std::vector<double> last_q2;
+		std::vector<double> last_q3;
 		std::vector<double> m_acc_js;
 		bool isMoving;
 
