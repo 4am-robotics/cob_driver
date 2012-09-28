@@ -57,7 +57,7 @@ genericArmCtrl::genericArmCtrl(int DOF, double PTPvel, double PTPacc, double max
 	m_AllowedError = maxError;//0.5;//0.25; // rad
 	m_CurrentError = 0.0; // rad
 	m_TargetError = 0.02; // rad;
-
+	overlap_time = 0.4;
 	m_ExtraTime = 3;	// s
 	
 }
@@ -214,6 +214,11 @@ bool genericArmCtrl::step(std::vector<double> current_pos, std::vector<double> &
 		std::vector<double> m_qsoll = m_pRefVals->r_t( t );
 		std::vector<double> m_vsoll = m_pRefVals->dr_dt(t);
 
+		if(t < TotalTime_ - overlap_time)
+		{
+		    last_q = m_qsoll;
+		}
+		
 		double len = 0;
 		for(int i = 0; i < m_DOF; i++)
 		{

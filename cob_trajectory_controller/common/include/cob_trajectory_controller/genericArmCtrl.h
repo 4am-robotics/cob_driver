@@ -24,6 +24,8 @@ class genericArmCtrl
 		std::vector<double> GetPTPacc() const;
 		void SetPTPvel(double vel);
 		void SetPTPacc(double acc);
+
+		double overlap_time;
 	
 		// void stop(); --> TODO: better reset
 
@@ -40,6 +42,7 @@ class genericArmCtrl
 		RefVal_JS* m_pRefVals;
 		
 		std::vector<double> m_vel_js;
+		std::vector<double> last_q;
 		std::vector<double> m_acc_js;
 		bool isMoving;
 
