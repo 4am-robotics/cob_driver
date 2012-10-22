@@ -74,7 +74,7 @@
 #define DEFAULT_SUBBAND_SIZE 64
 #define DEFAULT_CHANNELS 2
 
-#define ENABLE_GUI
+//#define ENABLE_GUI
 
 class LightMode
 {
