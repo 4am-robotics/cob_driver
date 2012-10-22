@@ -205,8 +205,8 @@ class LightControl
 			robot_env = getenv("ROBOT");
 			_invertMask = (std::strcmp("raw3-1",robot_env) == 0) ? 1:0;
 
-//			_nh = ros::NodeHandle("~");
-			_nh.param<std::string>("devicestring",_deviceString,"/dev/ttyUSB1");
+			//_nh = ros::NodeHandle("~");
+			_nh.param<std::string>("devicestring",_deviceString,"/dev/ttyLed");
 			_nh.param<int>("baudrate",_baudrate,230400);
 			_nh.param<bool>("pubmarker",_bPubMarker,false);
 			

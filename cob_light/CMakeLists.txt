@@ -14,10 +14,6 @@ include($ENV{ROS_ROOT}/core/rosbuild/FindPkgConfig.cmake)
 #include(${actionlib_msgs_PACKAGE_PATH}/cmake/actionbuild.cmake)
 #genaction()
 
-rosbuild_find_ros_package(actionlib_msgs)
-include(${actionlib_msgs_PACKAGE_PATH}/cmake/actionbuild.cmake)
-genaction()
-
 rosbuild_init()
 
 #set the default path for built executables to the "bin" directory
@@ -39,7 +35,7 @@ include_directories(${PROJECT_SOURCE_DIR}/ros/include)
 #rospack_add_library(${PROJECT_NAME} src/example.cpp)
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rospack_add_boost_directories()
-rosbuild_add_executable(cob_light_node ros/src/cob_light.cpp)
+rosbuild_add_executable(cob_light ros/src/cob_light.cpp)
 
 # rostest
 #rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-1)
