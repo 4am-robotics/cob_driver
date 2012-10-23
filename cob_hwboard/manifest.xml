@@ -5,9 +5,10 @@
 
   </description>
   <author>Eduard Herkel</author>
-  <license>BSD</license>
+  <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_hwboard</url>
+
   <depend package="rospy"/>
   <depend package="std_msgs"/>
   <depend package="diagnostic_msgs"/>
