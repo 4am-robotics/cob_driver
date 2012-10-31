@@ -31,8 +31,16 @@ public:
 
   void as_cb(const cob_sound::SayGoalConstPtr &goal)
   {
-	say(goal->text.data);
-    as_.setSucceeded();
+    bool ret = say(goal->text.data);
+    if (ret)
+    {
+        as_.setSucceeded();
+    }
+    else
+    {
+        as_.setAborted();
+    }
+
   }
   
 	bool service_cb(cob_sound::SayText::Request &req,
@@ -48,7 +56,7 @@ public:
 	}
 
   
-  void say(std::string text)
+  bool say(std::string text)
   {
     ROS_INFO("Saying: %s", text.c_str());
     std::string mode;
@@ -64,7 +72,12 @@ public:
     {
   		command = "echo " + text + " | text2wave | aplay -q";
   	}
-    system(command.c_str());
+    if (system(command.c_str()) != 0)
+    {
+    	ROS_ERROR("Could not play sound");
+    	return false;
+    }
+    return true;
   }
 
 

@@ -10,6 +10,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #set(ROS_BUILD_TYPE RelWithDebInfo)
 
 rosbuild_init()
+rosbuild_add_boost_directories()
 
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/bin)
@@ -30,4 +31,6 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 rosbuild_add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp common/src/genericArmCtrl.cpp common/src/RefValJS_PTP.cpp common/src/RefValJS_PTP_Trajectory.cpp common/src/TimeStamp.cpp)
 rosbuild_add_executable(cob_simulation_tester ros/src/cob_simulation_tester.cpp)
+
+rosbuild_link_boost(${PROJECT_NAME} thread)
 #target_link_libraries(example ${PROJECT_NAME})

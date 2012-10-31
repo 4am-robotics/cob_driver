@@ -1,0 +1,22 @@
+<package>
+  <description brief="cob_voltage_control">
+
+     Interface to IO board that manages emergency stop and battery voltage on rob@work 3
+
+  </description>
+  <author>Alexander Bubeck</author>
+  <license></license>
+  <review status="unreviewed" notes=""/>
+  <url></url>
+
+  <depend package="roscpp"/>
+  <depend package="rostest"/>
+  <depend package="pr2_msgs"/>
+  <depend package="libphidgets"/>
+  <depend package="cob_relayboard"/>
+  <depend package="rospy"/>
+  <depend package="dynamic_reconfigure"/>
+
+  
+
+</package>

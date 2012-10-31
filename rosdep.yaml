@@ -1,5 +1,12 @@
-libdc1394:
+libusb-dev:
+  ubuntu: libusb-dev
+libdc1394-dev:
   ubuntu: libdc1394-22-dev
-
-libusb-0.1:
-  ubuntu: libusb-0.1-4
+libgtkmm-dev:
+  ubuntu: libgtkmm-2.4-dev
+libfftw3-dev:
+  ubuntu: libfftw3-dev
+libasound2-dev:
+  ubuntu: libasound2-dev
+libpulse-dev:
+  ubuntu: libpulse-dev
