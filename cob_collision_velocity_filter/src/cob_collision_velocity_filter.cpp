@@ -49,6 +49,8 @@
  ****************************************************************/
 #include <cob_collision_velocity_filter.h>
 
+#include <visualization_msgs/Marker.h>
+
 // Constructor
 CollisionVelocityFilter::CollisionVelocityFilter()
 {
@@ -151,7 +153,7 @@ CollisionVelocityFilter::CollisionVelocityFilter()
   // dynamic reconfigure
   dynCB_ = boost::bind(&CollisionVelocityFilter::dynamicReconfigureCB, this, _1, _2);
   dyn_server_.setCallback(dynCB_);
-} 
+}
 
 // Destructor
 CollisionVelocityFilter::~CollisionVelocityFilter(){}
@@ -257,18 +259,15 @@ void CollisionVelocityFilter::performControllerStep() {
 
   double dt;
   double vx_max, vy_max;
-  geometry_msgs::Twist cmd_vel;
+  geometry_msgs::Twist cmd_vel,cmd_vel_in;
+
+  cmd_vel_in.linear = robot_twist_linear_;
+  cmd_vel_in.angular = robot_twist_angular_;
 
   cmd_vel.linear = robot_twist_linear_;
   cmd_vel.angular = robot_twist_angular_;
   dt = ros::Time::now().toSec() - last_time_;
   last_time_ = ros::Time::now().toSec();
-
-  // if closest obstacle is within stop_threshold, then do not move
-  if( closest_obstacle_dist_ < stop_threshold_ ) {
-    stopMovement();
-    return;
-  }
 
   double vel_angle = atan2(cmd_vel.linear.y,cmd_vel.linear.x);
   vx_max = v_max_ * fabs(cos(vel_angle));
@@ -349,8 +348,17 @@ void CollisionVelocityFilter::performControllerStep() {
   vtheta_last_ = cmd_vel.angular.z;
   pthread_mutex_unlock(&m_mutex);
 
-  // publish adjusted velocity 
-  topic_pub_command_.publish(cmd_vel);  
+  velocity_limited_marker_.publishMarkers(cmd_vel_in.linear.x, cmd_vel.linear.x, cmd_vel_in.linear.y, cmd_vel.linear.y, cmd_vel_in.angular.z, cmd_vel.angular.z);
+
+  // if closest obstacle is within stop_threshold, then do not move
+  if( closest_obstacle_dist_ < stop_threshold_ ) {
+    stopMovement();
+  }
+  else
+  {
+    // publish adjusted velocity 
+    topic_pub_command_.publish(cmd_vel);  
+  }
   return;
 }
 

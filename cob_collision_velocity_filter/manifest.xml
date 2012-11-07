@@ -17,6 +17,9 @@
   <depend package="tf"/>
   <depend package="cob_footprint_observer"/>
 
+  <!-- BUT: velocity limited marker -->
+  <depend package="visualization_msgs"/>
+
 </package>
 
 
