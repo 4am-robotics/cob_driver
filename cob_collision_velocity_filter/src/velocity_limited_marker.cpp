@@ -187,7 +187,6 @@ void VelocityLimitedMarker::publishMarkers( double vel_x_desired,
     vtheta_last_ = vel_theta_actual;
 
     // for x-axis
-    ROS_INFO("vx_desired = %f, vx_actual = %f, ax = %f",vel_x_desired,vel_x_actual,ax);
     if( fabs(vel_x_desired - vel_x_actual) >= epsilon )
     {
         if (vel_x_desired >= 0.0 && ax <= 0.0)
