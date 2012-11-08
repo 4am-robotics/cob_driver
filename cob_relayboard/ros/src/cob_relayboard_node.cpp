@@ -253,6 +253,7 @@ void NodeClass::sendBatteryVoltage()
   topicPub_PowerState.publish(ps);
 
   std_msgs::Float64 voltage;
+  std::cout << m_SerRelayBoard->getBatteryVoltage() << std::endl;
   voltage.data = m_SerRelayBoard->getBatteryVoltage();
   topicPub_Voltage.publish(voltage);
 
