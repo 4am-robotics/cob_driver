@@ -203,7 +203,11 @@ class LightControl
 		{
 			char *robot_env;
 			robot_env = getenv("ROBOT");
-			_invertMask = (std::strcmp("raw3-1",robot_env) == 0) ? 1:0;
+			
+			if(robot_env == NULL)
+				ROS_ERROR("Could not get robot environment variable. Is ROBOT env set?");
+			else
+				_invertMask = (std::strcmp("raw3-1",robot_env) == 0) ? 1:0;
 
 			//_nh = ros::NodeHandle("~");
 			_nh.param<std::string>("devicestring",_deviceString,"/dev/ttyLed");
