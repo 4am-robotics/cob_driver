@@ -59,41 +59,43 @@ from diagnostic_msgs.msg import KeyValue
 class HwBoard:
 	def __init__(self):
 
+		rospy.init_node('hwboard')
+
 		# get parameters from parameter server
-		if not rospy.has_param("devicestring"):
+		if not rospy.has_param("~devicestring"):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...","devicestring")
 			sys.exit()
-		devicestring_param = rospy.get_param("devicestring")
+		devicestring_param = rospy.get_param("~devicestring")
 
-		if not rospy.has_param("head_sensor"):
+		if not rospy.has_param("~head_sensor"):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...","head_sensor")
 			sys.exit()
-		self.head_sensor_param = rospy.get_param("head_sensor")
+		self.head_sensor_param = rospy.get_param("~head_sensor")
 
-		if not rospy.has_param("eye_sensor"):
+		if not rospy.has_param("~eye_sensor"):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...","eye_sensor")
 			sys.exit()
-		self.eye_sensor_param = rospy.get_param("eye_sensor")
+		self.eye_sensor_param = rospy.get_param("~eye_sensor")
 
-		if not rospy.has_param("torso_module_sensor"):
+		if not rospy.has_param("~torso_module_sensor"):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...","torso_module_sensor")
 			sys.exit()
-		self.torso_module_sensor_param = rospy.get_param("torso_module_sensor")
+		self.torso_module_sensor_param = rospy.get_param("~torso_module_sensor")
 
-		if not rospy.has_param("torso_sensor"):
+		if not rospy.has_param("~torso_sensor"):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...","torso_sensor")
 			sys.exit()
-		self.torso_sensor_param = rospy.get_param("torso_sensor")
+		self.torso_sensor_param = rospy.get_param("~torso_sensor")
 
-		if not rospy.has_param("pc_sensor"):
+		if not rospy.has_param("~pc_sensor"):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...","pc_sensor")
 			sys.exit()
-		self.pc_sensor_param = rospy.get_param("pc_sensor")
+		self.pc_sensor_param = rospy.get_param("~pc_sensor")
 
-		if not rospy.has_param("engine_sensor"):
+		if not rospy.has_param("~engine_sensor"):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...","engine_sensor")
 			sys.exit()
-		self.engine_sensor_param = rospy.get_param("engine_sensor")
+		self.engine_sensor_param = rospy.get_param("~engine_sensor")
 	
 		# open serial connection
 		rospy.loginfo("trying to initializing serial connection")
@@ -234,8 +236,7 @@ class HwBoard:
 
 		# init ros-node
 		pub = rospy.Publisher('diagnostics',DiagnosticArray)
-		rospy.init_node('hwboard')
-
+		
 		while not rospy.is_shutdown():
 
 			# init publisher message
