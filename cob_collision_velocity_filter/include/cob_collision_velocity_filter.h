@@ -79,6 +79,9 @@
 #include <dynamic_reconfigure/server.h>
 #include <cob_collision_velocity_filter/CollisionVelocityFilterConfig.h>
 
+// BUT velocity limited marker
+#include "velocity_limited_marker.h"
+
 ///
 /// @class CollisionVelocityFilter
 /// @brief checks for obstacles in driving direction and stops the robot
@@ -223,6 +226,10 @@ class CollisionVelocityFilter
     double vx_last_, vy_last_, vtheta_last_;
     double virt_mass_;
 
+    // BUT velocity limited marker
+    cob_collision_velocity_filter::VelocityLimitedMarker velocity_limited_marker_;
+
 }; //CollisionVelocityFilter
 
 #endif
+

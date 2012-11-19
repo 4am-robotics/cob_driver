@@ -62,7 +62,8 @@
 
 // ROS message includes
 #include <sensor_msgs/JointState.h>
-#include <pr2_controllers_msgs/JointTrajectoryAction.h>
+//#include <pr2_controllers_msgs/JointTrajectoryAction.h>
+#include <control_msgs/FollowJointTrajectoryAction.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
 
@@ -102,10 +103,14 @@ class NodeClass
 	//--
 
 	// action lib server
-	actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
+	//actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
+	//std::string action_name_;
+	//pr2_controllers_msgs::JointTrajectoryFeedback feedback_;
+	//pr2_controllers_msgs::JointTrajectoryResult result_;
+	actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> as_;
 	std::string action_name_;
-	pr2_controllers_msgs::JointTrajectoryFeedback feedback_;
-	pr2_controllers_msgs::JointTrajectoryResult result_;
+	control_msgs::FollowJointTrajectoryFeedback feedback_;
+	control_msgs::FollowJointTrajectoryResult result_;
 	
 	// global variables
 	ElmoCtrl * CamAxis_;
@@ -132,6 +137,7 @@ class NodeClass
 	bool finished_;
 	double ActualPos_;
 	double ActualVel_;
+	double GoalPos_;
 	trajectory_msgs::JointTrajectory traj_;
 	trajectory_msgs::JointTrajectoryPoint traj_point_;
 	unsigned int traj_point_nr_;
@@ -202,7 +208,6 @@ class NodeClass
 		ROS_DEBUG("%s content\n%s", full_param_name.c_str(), xml_string.c_str());
 		
 		// extract limits and velocitys from urdf model
-		// The urdf model can be found in torso_cob3-1.urdf -> joint_head_eyes
 		urdf::Model model;
 		if (!model.initString(xml_string))
 		{
@@ -254,13 +259,15 @@ class NodeClass
 		delete CamAxis_;
 	}
 
-	void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal) {
+	//void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal) {
+	void executeCB(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal) {	
 		if(isInitialized_) {	
 			ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
 			// saving goal into local variables
 			traj_ = goal->trajectory;
 			traj_point_nr_ = 0;
 			traj_point_ = traj_.points[traj_point_nr_];
+			GoalPos_ = traj_point_.positions[0];
 			finished_ = false;
 			
 			// stoping axis to prepare for new trajectory
@@ -274,9 +281,9 @@ class NodeClass
 				as_.setPreempted();
 			}
 			
-			usleep(2000000); // needed sleep until powercubes starts to change status from idle to moving
+			usleep(2000000); // needed sleep until drive starts to change status from idle to moving
 			
-			while(finished_ == false)
+			while (not finished_)
 			{
 				if (as_.isNewGoalAvailable())
 				{
@@ -308,20 +315,20 @@ class NodeClass
 	{
 		if (isInitialized_ == false) {
 			ROS_INFO("...initializing camera axis...");
-			// init powercubes 
+			// init axis 
 			if (CamAxis_->Init(CamAxisParams_))
 			{
 				CamAxis_->setGearPosVelRadS(0.0f, MaxVel_);
-				ROS_INFO("Initializing of camera axis succesful");
+				ROS_INFO("Initializing of camera axis successfully");
 				isInitialized_ = true;
 				res.success.data = true;
-				res.error_message.data = "initializing camera axis successfull";
+				res.error_message.data = "initializing camera axis successfully";
 			}
 			else
 			{
-				ROS_ERROR("Initializing camera axis not succesful \n");
+				ROS_ERROR("Initializing camera axis not successfully \n");
 				res.success.data = false;
-				res.error_message.data = "initializing camera axis not successfull";
+				res.error_message.data = "initializing camera axis not successfully";
 			}
 			}
 			else
@@ -337,36 +344,37 @@ class NodeClass
 	bool srvCallback_Stop(cob_srvs::Trigger::Request &req,
 				  cob_srvs::Trigger::Response &res )
 	{
-	ROS_INFO("Stopping camera axis");
-	
-	// stopping all arm movements
-	if (CamAxis_->Stop()) {
-		ROS_INFO("Stopping camera axis successful");
-		res.success.data = true;
-		res.error_message.data = "camera axis stopped successfully";
-	}
-	else {
-		ROS_ERROR("Stopping camera axis not succesful. error");
-		res.success.data = false;
-		res.error_message.data = "stopping camera axis not successful";
-	}
-
-	return true;
+		ROS_INFO("Stopping camera axis");
+		if(isInitialized_)
+		{
+			// stopping all movements
+			if (CamAxis_->Stop()) {
+				ROS_INFO("Stopping camera axis successfully");
+				res.success.data = true;
+				res.error_message.data = "camera axis stopped successfully";
+			}
+			else {
+				ROS_ERROR("Stopping camera axis not successfully. error");
+				res.success.data = false;
+				res.error_message.data = "stopping camera axis not successfully";
+			}
+		}
+		return true;
 	}
 	
 	bool srvCallback_Recover(cob_srvs::Trigger::Request &req,
 				  	 cob_srvs::Trigger::Response &res )
 	{
-		if (isInitialized_ == true) {
+		if (isInitialized_) {
 			ROS_INFO("Recovering camera axis");
 			
 			// stopping all arm movements
 			if (CamAxis_->RecoverAfterEmergencyStop()) {
-				ROS_INFO("Recovering camera axis succesful");
+				ROS_INFO("Recovering camera axis successfully");
 				res.success.data = true;
 				res.error_message.data = "camera axis successfully recovered";
 			} else {
-				ROS_ERROR("Recovering camera axis not succesful. error");
+				ROS_ERROR("Recovering camera axis not successfully. error");
 				res.success.data = false;
 				res.error_message.data = "recovering camera axis failed";
 			}
@@ -418,47 +426,52 @@ class NodeClass
 		{
 			if (isInitialized_ == true)
 			{
-			    if (operationMode_ == "position")
-			    {
-				    ROS_DEBUG("moving head_axis in position mode");
-			    	if (ActualVel_ < 0.002)
-			    	{
-				    	//feedback_.isMoving = false;
-				    	
-				    	ROS_DEBUG("next point is %d from %d",traj_point_nr_,traj_.points.size());
-				    	
-				    	if (traj_point_nr_ < traj_.points.size())
-				    	{
-				    		// if axis is not moving and not reached last point of trajectory, then send new target point
-				    		ROS_INFO("...moving to trajectory point[%d], %f",traj_point_nr_,traj_.points[traj_point_nr_].positions[0]);
-					    	traj_point_ = traj_.points[traj_point_nr_];
-					    	CamAxis_->setGearPosVelRadS(traj_point_.positions[0], MaxVel_);
-					    	usleep(900000);
-					    	CamAxis_->m_Joint->requestPosVel();
-				    		traj_point_nr_++;
-					    	//feedback_.isMoving = true;
-					    	//feedback_.pointNr = traj_point_nr;
-	    					//as_.publishFeedback(feedback_);
-					    }
-					    else
-					    {
-					    	ROS_DEBUG("...reached end of trajectory");
-					    	finished_ = true;
-					    }
+				if (operationMode_ == "position")
+				{
+					ROS_DEBUG("moving head_axis in position mode");
+
+					if (fabs(ActualVel_) < 0.02)
+					{
+						//feedback_.isMoving = false;
+				
+						ROS_DEBUG("next point is %d from %d",traj_point_nr_,traj_.points.size());
+					
+						if (traj_point_nr_ < traj_.points.size())
+						{
+							// if axis is not moving and not reached last point of trajectory, then send new target point
+							ROS_INFO("...moving to trajectory point[%d], %f",traj_point_nr_,traj_.points[traj_point_nr_].positions[0]);
+							traj_point_ = traj_.points[traj_point_nr_];
+							CamAxis_->setGearPosVelRadS(traj_point_.positions[0], MaxVel_);
+							usleep(900000);
+							CamAxis_->m_Joint->requestPosVel();
+							traj_point_nr_++;
+							//feedback_.isMoving = true;
+							//feedback_.pointNr = traj_point_nr;
+							//as_.publishFeedback(feedback_);
+						}
+						else if ( fabs( ActualPos_ - GoalPos_ ) < 0.5*M_PI/180.0 && !finished_ )
+						{
+							ROS_DEBUG("...reached end of trajectory");
+							finished_ = true;
+						}
+						else
+						{
+							//do nothing until GoalPos_ is reached
+						}
 					}
 					else
 					{
 						ROS_INFO("...axis still moving to point[%d]",traj_point_nr_);
 					}
-			    }
-			    else if (operationMode_ == "velocity")
-			    {
-			        ROS_WARN("Moving in velocity mode currently disabled");
-			    }
-			    else
-			    {
-			        ROS_ERROR("axis neither in position nor in velocity mode. OperationMode = [%s]", operationMode_.c_str());
-			    }
+				}
+				else if (operationMode_ == "velocity")
+				{
+					ROS_WARN("Moving in velocity mode currently disabled");
+				}
+				else
+				{
+					ROS_ERROR("axis neither in position nor in velocity mode. OperationMode = [%s]", operationMode_.c_str());
+				}
 			}
 			else
 			{
@@ -523,7 +536,7 @@ class NodeClass
 	    if(isError_)
 	    {
 	      diagnostics.status[0].level = 2;
-	      diagnostics.status[0].name = "schunk_powercube_chain";
+	      diagnostics.status[0].name = "head_axis";
 	      diagnostics.status[0].message = "one or more drives are in Error mode";
 	    }
 	    else
@@ -531,13 +544,13 @@ class NodeClass
 	      if (isInitialized_)
 	      {
 	        diagnostics.status[0].level = 0;
-	        diagnostics.status[0].name = n_.getNamespace(); //"schunk_powercube_chain";
+	        diagnostics.status[0].name = n_.getNamespace();
 	        diagnostics.status[0].message = "head axis initialized and running";
 	      }
 	      else
 	      {
 	        diagnostics.status[0].level = 1;
-	        diagnostics.status[0].name = n_.getNamespace(); //"schunk_powercube_chain";
+	        diagnostics.status[0].name = n_.getNamespace();
 	        diagnostics.status[0].message = "head axis not initialized";
 	      }
 	    }
@@ -556,10 +569,11 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "cob_camera_axis");
 	
 	// create nodeClass
-	NodeClass nodeClass(ros::this_node::getName() + "/joint_trajectory_action");
+	//NodeClass nodeClass(ros::this_node::getName() + "/joint_trajectory_action");
+	NodeClass nodeClass(ros::this_node::getName() + "/follow_joint_trajectory");
  
 	// main loop
- 	ros::Rate loop_rate(5); // Hz
+ 	ros::Rate loop_rate(10); // Hz
 	while(nodeClass.n_.ok()) {
 	  
 		// publish JointState

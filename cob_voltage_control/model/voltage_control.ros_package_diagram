@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<notation:Diagram xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:notation="http://www.eclipse.org/gmf/runtime/1.0.2/notation" xmlns:ros="http://ros/1.0" xmi:id="_l8p_0ff-EeGyObm9hAx9UQ" type="RosPackage" name="voltage_control.ros_package_diagram" measurementUnit="Pixel">
+  <children xmi:type="notation:Shape" xmi:id="_m24zcPf-EeGyObm9hAx9UQ" type="2001" fontName="Ubuntu">
+    <children xmi:type="notation:DecorationNode" xmi:id="_m26BkPf-EeGyObm9hAx9UQ" type="5008"/>
+    <children xmi:type="notation:BasicCompartment" xmi:id="_m27PsPf-EeGyObm9hAx9UQ" type="7001">
+      <children xmi:type="notation:Node" xmi:id="_pahN0Pf-EeGyObm9hAx9UQ" type="3001">
+        <element xmi:type="ros:Parameter" href="voltage_control.ros_package#//@node.0/@parameter.0"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_pah04Pf-EeGyObm9hAx9UQ"/>
+      </children>
+      <children xmi:type="notation:Node" xmi:id="_s4g-sPf-EeGyObm9hAx9UQ" type="3001">
+        <element xmi:type="ros:Parameter" href="voltage_control.ros_package#//@node.0/@parameter.1"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_s4g-sff-EeGyObm9hAx9UQ"/>
+      </children>
+      <children xmi:type="notation:Node" xmi:id="_w1DswPf-EeGyObm9hAx9UQ" type="3001">
+        <element xmi:type="ros:Parameter" href="voltage_control.ros_package#//@node.0/@parameter.2"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_w1Dswff-EeGyObm9hAx9UQ"/>
+      </children>
+      <styles xmi:type="notation:TitleStyle" xmi:id="_m27Psff-EeGyObm9hAx9UQ" showTitle="true"/>
+      <styles xmi:type="notation:SortingStyle" xmi:id="_m27Psvf-EeGyObm9hAx9UQ"/>
+      <styles xmi:type="notation:FilteringStyle" xmi:id="_m27Ps_f-EeGyObm9hAx9UQ"/>
+    </children>
+    <children xmi:type="notation:Node" xmi:id="_ALrRcPf_EeGyObm9hAx9UQ" type="3004">
+      <children xmi:type="notation:DecorationNode" xmi:id="_ALrRdff_EeGyObm9hAx9UQ" type="5004"/>
+      <styles xmi:type="notation:DescriptionStyle" xmi:id="_ALrRcff_EeGyObm9hAx9UQ"/>
+      <styles xmi:type="notation:FontStyle" xmi:id="_ALrRcvf_EeGyObm9hAx9UQ" fontName="Ubuntu"/>
+      <styles xmi:type="notation:LineStyle" xmi:id="_ALrRc_f_EeGyObm9hAx9UQ"/>
+      <element xmi:type="ros:Publisher" href="voltage_control.ros_package#//@node.0/@publisher.0"/>
+      <layoutConstraint xmi:type="notation:Bounds" xmi:id="_ALrRdPf_EeGyObm9hAx9UQ" x="239" y="45"/>
+    </children>
+    <children xmi:type="notation:Node" xmi:id="_CfpfMPf_EeGyObm9hAx9UQ" type="3004">
+      <children xmi:type="notation:DecorationNode" xmi:id="_CfqGQPf_EeGyObm9hAx9UQ" type="5004"/>
+      <styles xmi:type="notation:DescriptionStyle" xmi:id="_CfpfMff_EeGyObm9hAx9UQ"/>
+      <styles xmi:type="notation:FontStyle" xmi:id="_CfpfMvf_EeGyObm9hAx9UQ" fontName="Ubuntu"/>
+      <styles xmi:type="notation:LineStyle" xmi:id="_CfpfM_f_EeGyObm9hAx9UQ"/>
+      <element xmi:type="ros:Publisher" href="voltage_control.ros_package#//@node.0/@publisher.1"/>
+      <layoutConstraint xmi:type="notation:Bounds" xmi:id="_CfpfNPf_EeGyObm9hAx9UQ"/>
+    </children>
+    <element xmi:type="ros:Node" href="voltage_control.ros_package#//@node.0"/>
+    <layoutConstraint xmi:type="notation:Bounds" xmi:id="_m24zcff-EeGyObm9hAx9UQ" x="410" y="210"/>
+  </children>
+  <styles xmi:type="notation:DiagramStyle" xmi:id="_l8qm4Pf-EeGyObm9hAx9UQ"/>
+  <element xmi:type="ros:Package" href="voltage_control.ros_package#/"/>
+</notation:Diagram>
