@@ -31,4 +31,8 @@
   <!--rosdep name="glut"/-->
   <!--rosdep name="libusb-dev"/-->
 
+  <export>
+    <nodelet plugin="${prefix}/nodelet_plugins.xml" />
+  </export>
+
 </package>
