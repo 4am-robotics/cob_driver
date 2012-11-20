@@ -131,6 +131,6 @@ private:
 };
 
 
-PLUGINLIB_DECLARE_CLASS(srs_env_model, Cam3DThrottle, cob_camera_sensors::Cam3DThrottle, nodelet::Nodelet);
+PLUGINLIB_DECLARE_CLASS(cob_camera_sensors, Cam3DThrottle, cob_camera_sensors::Cam3DThrottle, nodelet::Nodelet);
 }
 
