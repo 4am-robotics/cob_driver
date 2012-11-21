@@ -14,7 +14,7 @@ rosbuild_init()
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/bin)
 #set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/lib)
+set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 #uncomment if you have defined messages
 #rosbuild_genmsg()
@@ -39,12 +39,13 @@ rosbuild_gensrv()
 #rosbuild_add_library(cob_kinect_image_flip ros/src/kinect_image_flip.cpp)
 #add_custom_command(TARGET cob_kinect_image_flip POST_BUILD COMMAND mkdir -p ${PROJECT_SOURCE_DIR}/ros/lib/)
 #add_custom_command(TARGET cob_kinect_image_flip POST_BUILD COMMAND mv ${LIBRARY_OUTPUT_PATH}/libcob_kinect_image_flip.so ${PROJECT_SOURCE_DIR}/ros/lib/)
-									
+
 # add include search paths
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 
 # add project executable
+rosbuild_add_library(cam3d_throttle ros/src/cam3d_throttle.cpp)
 #rosbuild_add_executable(tof_camera ros/src/tof_camera.cpp)
 #rosbuild_add_executable(tof_camera_viewer ros/src/tof_camera_viewer.cpp)
 #rosbuild_add_executable(color_camera ros/src/color_camera.cpp)
