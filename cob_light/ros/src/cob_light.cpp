@@ -101,8 +101,6 @@ public:
 			port_settings.c_cflag &= ~CSIZE;
 			port_settings.c_cflag = baud | CS8 | CLOCAL | CREAD;
 			port_settings.c_iflag = IGNPAR;
-//			cfsetispeed(&port_settings, baudrate);
-//			cfsetospeed(&port_settings, baudrate);
 			tcsetattr(_fd, TCSANOW, &port_settings);
 			ROS_INFO("Serial connection on %s succeeded.", devicestring.c_str());
 		}
@@ -201,15 +199,12 @@ class LightControl
 		LightControl() :
 		 _invertMask(0)
 		{
-			char *robot_env;
-			robot_env = getenv("ROBOT");
-			
-			if(robot_env == NULL)
-				ROS_ERROR("Could not get robot environment variable. Is ROBOT env set?");
-			else
-				_invertMask = (std::strcmp("raw3-1",robot_env) == 0) ? 1:0;
+			bool invert_output;
 
 			//_nh = ros::NodeHandle("~");
+			_nh.param<bool>("invert_output", invert_output, false);
+			_invertMask = (int)invert_output;
+
 			_nh.param<std::string>("devicestring",_deviceString,"/dev/ttyLed");
 			_nh.param<int>("baudrate",_baudrate,230400);
 			_nh.param<bool>("pubmarker",_bPubMarker,false);
