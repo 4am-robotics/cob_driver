@@ -59,41 +59,43 @@ from diagnostic_msgs.msg import KeyValue
 class HwBoard:
 	def __init__(self):
 
+		rospy.init_node('hwboard')
+
 		# get parameters from parameter server
-		if not rospy.has_param("devicestring"):
+		if not rospy.has_param("~devicestring"):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...","devicestring")
 			sys.exit()
-		devicestring_param = rospy.get_param("devicestring")
+		devicestring_param = rospy.get_param("~devicestring")
 
-		if not rospy.has_param("head_sensor"):
+		if not rospy.has_param("~head_sensor"):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...","head_sensor")
 			sys.exit()
-		self.head_sensor_param = rospy.get_param("head_sensor")
+		self.head_sensor_param = rospy.get_param("~head_sensor")
 
-		if not rospy.has_param("eye_sensor"):
+		if not rospy.has_param("~eye_sensor"):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...","eye_sensor")
 			sys.exit()
-		self.eye_sensor_param = rospy.get_param("eye_sensor")
+		self.eye_sensor_param = rospy.get_param("~eye_sensor")
 
-		if not rospy.has_param("torso_module_sensor"):
+		if not rospy.has_param("~torso_module_sensor"):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...","torso_module_sensor")
 			sys.exit()
-		self.torso_module_sensor_param = rospy.get_param("torso_module_sensor")
+		self.torso_module_sensor_param = rospy.get_param("~torso_module_sensor")
 
-		if not rospy.has_param("torso_sensor"):
+		if not rospy.has_param("~torso_sensor"):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...","torso_sensor")
 			sys.exit()
-		self.torso_sensor_param = rospy.get_param("torso_sensor")
+		self.torso_sensor_param = rospy.get_param("~torso_sensor")
 
-		if not rospy.has_param("pc_sensor"):
+		if not rospy.has_param("~pc_sensor"):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...","pc_sensor")
 			sys.exit()
-		self.pc_sensor_param = rospy.get_param("pc_sensor")
+		self.pc_sensor_param = rospy.get_param("~pc_sensor")
 
-		if not rospy.has_param("engine_sensor"):
+		if not rospy.has_param("~engine_sensor"):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...","engine_sensor")
 			sys.exit()
-		self.engine_sensor_param = rospy.get_param("engine_sensor")
+		self.engine_sensor_param = rospy.get_param("~engine_sensor")
 	
 		# open serial connection
 		rospy.loginfo("trying to initializing serial connection")
@@ -234,8 +236,7 @@ class HwBoard:
 
 		# init ros-node
 		pub = rospy.Publisher('diagnostics',DiagnosticArray)
-		rospy.init_node('hwboard')
-
+		
 		while not rospy.is_shutdown():
 
 			# init publisher message
@@ -442,22 +443,22 @@ class HwBoard:
 						# mapping for temperature sensors
 						if read_id == self.head_sensor_param:
 							status_object.name = "Head Temperature"
-							status_object.hardware_id = "hcboard_channel " + str(send_channel)
+							status_object.hardware_id = "hwboard_channel " + str(send_channel)
 						elif read_id == self.eye_sensor_param:
 							status_object.name = "Eye Camera Temperature"
-							status_object.hardware_id = "hcboard_channel = " + str(send_channel)
+							status_object.hardware_id = "hwboard_channel = " + str(send_channel)
 						elif read_id == self.torso_module_sensor_param:
 							status_object.name = "Torso Module Temperature"
-							status_object.hardware_id = "hcboard_channel =" + str(send_channel)
+							status_object.hardware_id = "hwboard_channel =" + str(send_channel)
 						elif read_id == self.torso_sensor_param:
 							status_object.name = "Torso Temperature"
-							status_object.hardware_id = "hcboard_channel =" + str(send_channel)
+							status_object.hardware_id = "hwboard_channel =" + str(send_channel)
 						elif read_id == self.pc_sensor_param:	
 							status_object.name = "PC Temperature"
-							status_object.hardware_id = "hcboard_channel =" + str(send_channel)
+							status_object.hardware_id = "hwboard_channel =" + str(send_channel)
 						elif read_id == self.engine_sensor_param:
 							status_object.name = "Engine Temperature"
-							status_object.hardware_id = "hcboard_channel = " + str(send_channel)
+							status_object.hardware_id = "hwboard_channel = " + str(send_channel)
 						else:
 							level = 1
 							status_object.message = "cannot map if from yaml file to temperature sensor"
@@ -500,22 +501,22 @@ class HwBoard:
 
 						if send_channel == 0:
 							status_object.name = "Akku Voltage"						
-							status_object.hardware_id = "hcboard_channel = 0"
+							status_object.hardware_id = "hwboard_channel = 0"
 						elif send_channel == 1:
 							status_object.name = "Torso Engine Voltage"						
-							status_object.hardware_id = "hcboard_channel = 1"
+							status_object.hardware_id = "hwboard_channel = 1"
 						elif send_channel == 2:
 							status_object.name = "Torso Logic Voltage"						
-							status_object.hardware_id = "hcboard_channel = 2"
+							status_object.hardware_id = "hwboard_channel = 2"
 						elif send_channel == 3:
 							status_object.name = "Tray Logic Voltage"						
-							status_object.hardware_id = "hcboard_channel = 3"
+							status_object.hardware_id = "hwboard_channel = 3"
 						elif send_channel == 6:
 							status_object.name = "Arm Engine Voltage"						
-							status_object.hardware_id = "hcboard_channel = 6"
+							status_object.hardware_id = "hwboard_channel = 6"
 						elif send_channel == 7:
 							status_object.name = "Tray Engine Voltage"						
-							status_object.hardware_id = "hcboard_channel = 7"
+							status_object.hardware_id = "hwboard_channel = 7"
 
 					# set values for current parameters
 					else:
@@ -534,24 +535,24 @@ class HwBoard:
 
 						if send_channel == 1:
 							status_object.name = "Torso Engine Current"						
-							status_object.hardware_id = "hcboard_channel = 1"
+							status_object.hardware_id = "hwboard_channel = 1"
 						elif send_channel == 2:
 							status_object.name = "Torso Logic Current"						
-							status_object.hardware_id = "hcboard_channel = 2"
+							status_object.hardware_id = "hwboard_channel = 2"
 						elif send_channel == 3:
 							status_object.name = "Tray Logic Current"						
-							status_object.hardware_id = "hcboard_channel = 3"
+							status_object.hardware_id = "hwboard_channel = 3"
 						elif send_channel == 6:
 							status_object.name = "Arm Engine Current"						
-							status_object.hardware_id = "hcboard_channel = 6"
+							status_object.hardware_id = "hwboard_channel = 6"
 						elif send_channel == 7:
 							status_object.name = "Tray Engine Current"						
-							status_object.hardware_id = "hcboard_channel = 7"
+							status_object.hardware_id = "hwboard_channel = 7"
 
 					# evaluate error detection
 					if error_while_reading == 1:
 						level = 1
-						status_object.message = "detected error while receiving answer from hardware control board"
+						status_object.message = "detected error while receiving answer from hardware"
 
 					# append status object to publishing message
 
