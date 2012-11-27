@@ -72,19 +72,29 @@
 #include <termios.h>
 #include <time.h>
 
+// if defined and connection to serial port fails
+// debug values will be logged
 #define SIMULATION_ENABLED
+
+// define this if you like to turn off the light
+// when this node comes up
+#define TURN_OFF_LIGHT_ON_STARTUP
 
 class SerialCom
 {
 public:
+	// Constructor
 	SerialCom() :
 	 _fd(-1), m_simulation(false)
 	{
 	}
+	// Destructor
 	~SerialCom()
 	{
 		closePort();
 	}
+
+	// Open Serial Port
 	int openPort(std::string devicestring, int baudrate)
 	{
 		if(_fd != -1) return _fd;
@@ -101,8 +111,6 @@ public:
 			port_settings.c_cflag &= ~CSIZE;
 			port_settings.c_cflag = baud | CS8 | CLOCAL | CREAD;
 			port_settings.c_iflag = IGNPAR;
-//			cfsetispeed(&port_settings, baudrate);
-//			cfsetospeed(&port_settings, baudrate);
 			tcsetattr(_fd, TCSANOW, &port_settings);
 			ROS_INFO("Serial connection on %s succeeded.", devicestring.c_str());
 		}
@@ -110,19 +118,19 @@ public:
 		{
 			ROS_ERROR("Serial connection on %s failed.", devicestring.c_str());
 			#ifdef SIMULATION_ENABLED
-			m_simulation = true;
-			ROS_INFO("Simulation mode enabled");
+				m_simulation = true;
+				ROS_INFO("Simulation mode enabled");
 			#endif
 		}
 		return _fd;
 	}
+
+	// Send Data to Serial Port
 	int sendData(std::string value)
 	{
 		size_t wrote = -1;
 		if(m_simulation)
-		{
 			ROS_DEBUG("Simulation Mode: Sending  [%s]",value.c_str());
-		}
 		else
 		{
 			if(_fd != -1)
@@ -131,13 +139,12 @@ public:
 				ROS_DEBUG("Wrote [%s] with %i bytes from %i bytes", value.c_str(), (int)wrote, value.length());
 			}
 			else
-			{
 				ROS_WARN("Can not write to serial port. Port closed!");
-			}
 		}
 		return wrote;
 	}
 
+	// Read Data from Serial Port
 	int readData(std::string &value, size_t nBytes)
 	{
 		char buffer[32];
@@ -147,11 +154,13 @@ public:
 		return rec;
 	}
 
+	// Check if Serial Port is opened
 	bool isOpen()
 	{
 		return (_fd != -1);
 	}
 
+	// Close Serial Port
 	void closePort()
 	{
 		if(_fd != -1)
@@ -159,7 +168,9 @@ public:
 	}
 
 private:
+	// filedescriptor
 	int _fd;
+	// serial port settings
 	struct termios port_settings;
 	bool m_simulation;
 
@@ -201,11 +212,12 @@ class LightControl
 		LightControl() :
 		 _invertMask(0)
 		{
-			char *robot_env;
-			robot_env = getenv("ROBOT");
-			_invertMask = (std::strcmp("raw3-1",robot_env) == 0) ? 1:0;
+			bool invert_output;
 
 			//_nh = ros::NodeHandle("~");
+			_nh.param<bool>("invert_output", invert_output, false);
+			_invertMask = (int)invert_output;
+
 			_nh.param<std::string>("devicestring",_deviceString,"/dev/ttyLed");
 			_nh.param<int>("baudrate",_baudrate,230400);
 			_nh.param<bool>("pubmarker",_bPubMarker,false);
@@ -214,15 +226,19 @@ class LightControl
 
 			_pubMarker = _nh.advertise<visualization_msgs::Marker>("marker",1);
 
+			//open serial port
 			_serialCom.openPort(_deviceString, _baudrate);
 				
+			//if pubmarker is set create timer to pub marker
 			if(_bPubMarker)
 				_timerMarker = _nh.createTimer(ros::Duration(0.5),
 						&LightControl::markerCallback, this);
 
-			//turn off leds
-			_color.a=0;
-			setRGB(_color);
+			//initial turn off leds
+			#ifdef TURN_OFF_LIGHT_ON_STARTUP
+				_color.a=0;
+				setRGB(_color);
+			#endif
 		}
 
 		~LightControl()
@@ -251,24 +267,25 @@ class LightControl
 
 				_serialCom.sendData(_ssOut.str());
 			}
+			else
+				ROS_ERROR("Unsupported Color format. rgba values range is 0.0 - 1.0");
 		}
 		
 	private:
 		SerialCom _serialCom;
+
 		std::string _deviceString;
 		int _baudrate;
+		int _invertMask;
+		bool _bPubMarker;
 
 		std::stringstream _ssOut;
+
 		ros::NodeHandle _nh;
 		ros::Publisher _pubMarker;
 		ros::Subscriber _sub;
-
-		int _invertMask;
-
-		bool _bPubMarker;
-
-		ros::Timer _timerMode;
 		ros::Timer _timerMarker;
+
 		std_msgs::ColorRGBA _color;
 		
 		// creates and publishes an visualization marker 
@@ -304,9 +321,8 @@ int main(int argc, char** argv)
 	// init node
 	ros::init(argc, argv, "light_controller");
 	// create LightControl instance
-	LightControl LightControl;
+	LightControl lightControl;
 
 	ros::spin();
-
 	return 0;
 }
