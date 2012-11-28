@@ -44,6 +44,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
+
 #include <velocity_limited_marker.h>
 
 #include <tf/tf.h>
@@ -52,8 +53,20 @@
 namespace cob_collision_velocity_filter
 {
 
-const double MARKER_RADIUS = 0.1;
-const double MARKER_WIDTH = 13.0;
+const double DEFAULT_LIFETIME      = 1.0;
+const double DEFAULT_Z_POSITION    = 0.25;
+
+const double MARKER_SCALE_DIR      = 1.0;
+const double MARKER_RADIUS_DIR     = 0.5;
+const double MARKER_WIDTH_DIR      = 0.2;
+
+const double MARKER_SCALE_ROT      = 1.0;
+const double MARKER_RADIUS_ROT     = 0.6;
+//const double MARKER_WIDTH_ROT      = 0.065;
+const double MARKER_WIDTH_ROT      = 0.15;
+
+const double MAX_VELOCITY          = 0.5;
+const double VELOCITY_COEFF        = 1.0 / MAX_VELOCITY;
 
 
 VelocityLimitedMarker::VelocityLimitedMarker()
@@ -64,7 +77,8 @@ VelocityLimitedMarker::VelocityLimitedMarker()
     // read parameters from parameter server
     nh_.param("marker_frame", base_frame_, std::string("/base_link"));
     nh_.param("marker_topic_name", topic_name_, std::string("velocity_limited_marker"));
-    nh_.param("marker_lifetime", lifetime_, 1.0);
+    nh_.param("marker_lifetime", lifetime_, DEFAULT_LIFETIME);
+    nh_.param("z_pos", z_pos_, DEFAULT_Z_POSITION);
     nh_.param("marker_disabled", disabled_, false);
 
     // Create the publisher
@@ -75,7 +89,8 @@ VelocityLimitedMarker::VelocityLimitedMarker()
     vtheta_last_ = 0.0;
 
     // Create the markers
-    createMarkers();
+    createDirectionalMarkers();
+    createRotationalMarkers();
 }
 
 
@@ -84,7 +99,7 @@ VelocityLimitedMarker::~VelocityLimitedMarker()
 }
 
 
-void VelocityLimitedMarker::createMarkers()
+void VelocityLimitedMarker::createDirectionalMarkers()
 {
     // Message template
     visualization_msgs::Marker marker;
@@ -101,10 +116,10 @@ void VelocityLimitedMarker::createMarkers()
     marker.pose.orientation.w = 1;
     marker.pose.position.x = 0;
     marker.pose.position.y = 0;
-    marker.pose.position.z = 0;
-    marker.scale.x = MARKER_RADIUS;
-    marker.scale.y = MARKER_RADIUS;
-    marker.scale.z = MARKER_RADIUS;
+    marker.pose.position.z = z_pos_;
+    marker.scale.x = MARKER_SCALE_DIR;
+    marker.scale.y = MARKER_SCALE_DIR;
+    marker.scale.z = 1.0;
     marker.color.r = 1.0;
     marker.color.g = 0.0;
     marker.color.b = 0.0;
@@ -120,18 +135,20 @@ void VelocityLimitedMarker::createMarkers()
     for( int i = FIRST; i <= LAST; ++i )
     {
         float a = float(i) / float(STEPS) * M_PI * 2.0;
-        
-        v1.x = 0.5 * cos(a);
-        v1.y = 0.5 * sin(a);
-        v2.x = (1 + MARKER_WIDTH) * v1.x;
-        v2.y = (1 + MARKER_WIDTH) * v1.y;
+        float cosa = cos(a);
+        float sina = sin(a);
+
+        v1.x = MARKER_RADIUS_DIR * cosa;
+        v1.y = MARKER_RADIUS_DIR * sina;
+        v2.x = (MARKER_RADIUS_DIR + MARKER_WIDTH_DIR) * cosa;
+        v2.y = (MARKER_RADIUS_DIR + MARKER_WIDTH_DIR) * sina;
 
         circle1.push_back(v1);
         circle2.push_back(v2);
     }
 
     marker.points.clear();
-    for( std::size_t i = 0; i < circle1.size(); ++i )
+    for( std::size_t i = 0; i < (circle1.size() - 1); ++i )
     {
         std::size_t i1 = i;
         std::size_t i2 = (i + 1) % circle1.size();
@@ -139,9 +156,10 @@ void VelocityLimitedMarker::createMarkers()
         marker.points.push_back(circle1[i1]);
         marker.points.push_back(circle2[i1]);
         marker.points.push_back(circle1[i2]);
-        marker.points.push_back(circle2[i1]); 
-        marker.points.push_back(circle2[i2]);
+
         marker.points.push_back(circle1[i2]);
+        marker.points.push_back(circle2[i2]);
+        marker.points.push_back(circle2[i1]);
     }
 
     // Particular messages for each axis
@@ -162,11 +180,88 @@ void VelocityLimitedMarker::createMarkers()
     y_neg_marker_.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0, 0, -0.5 * M_PI);
 }
 
+
+void VelocityLimitedMarker::createRotationalMarkers()
+{
+    // Message template
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = base_frame_;
+    marker.header.stamp = ros::Time::now();
+    marker.ns = "cob_velocity_limited_marker";
+    marker.id = 0;
+    marker.type = visualization_msgs::Marker::TRIANGLE_LIST;
+    marker.action = visualization_msgs::Marker::ADD;
+    marker.lifetime = ros::Duration(lifetime_);
+    marker.pose.orientation.x = 0;
+    marker.pose.orientation.y = 0;
+    marker.pose.orientation.z = 0;
+    marker.pose.orientation.w = 1;
+    marker.pose.position.x = 0;
+    marker.pose.position.y = 0;
+    marker.pose.position.z = z_pos_;
+    marker.scale.x = MARKER_SCALE_ROT;
+    marker.scale.y = MARKER_SCALE_ROT;
+    marker.scale.z = 1.0;
+    marker.color.r = 1.0;
+    marker.color.g = 0.0;
+    marker.color.b = 0.0;
+    marker.color.a = 0.5; // adjust according to the velocity?
+
+    // Create the disc like geometry for the markers
+    std::vector<geometry_msgs::Point> circle1, circle2, circle3;
+    geometry_msgs::Point v1, v2, v3;
+
+    static const int STEPS = 48;
+    static const int FIRST = 0;
+    static const int LAST = 23;
+    for( int i = FIRST; i <= LAST; ++i )
+    {
+        float a = float(2*i) / float(STEPS) * M_PI * 2.0;
+        float cosa = cos(a);
+        float sina = sin(a);
+
+        v1.x = MARKER_RADIUS_ROT * cosa;
+        v1.y = MARKER_RADIUS_ROT * sina;
+        v2.x = (MARKER_RADIUS_ROT + MARKER_WIDTH_ROT) * cosa;
+        v2.y = (MARKER_RADIUS_ROT + MARKER_WIDTH_ROT) * sina;
+
+        circle1.push_back(v1);
+        circle2.push_back(v2);
+
+        a = float(2*i+1) / float(STEPS) * M_PI * 2.0;
+        cosa = cos(a);
+        sina = sin(a);
+
+        v3.x = (MARKER_RADIUS_ROT + 0.5 * MARKER_WIDTH_ROT) * cosa;
+        v3.y = (MARKER_RADIUS_ROT + 0.5 * MARKER_WIDTH_ROT) * sina;
+
+        circle3.push_back(v3);
+    }
+
+    marker.points.clear();
+    for( std::size_t i = 0; i < circle1.size(); ++i )
+    {
+        marker.points.push_back(circle1[i]);
+        marker.points.push_back(circle2[i]);
+        marker.points.push_back(circle3[i]);
+    }
+
+    // Particular messages for each axis
+    theta_pos_marker_ = marker;
+    theta_pos_marker_.id = 4;
+    theta_pos_marker_.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0, 0, 0);
+
+    theta_neg_marker_ = marker;
+    theta_neg_marker_.id = 5;
+    theta_neg_marker_.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(M_PI, 0, 0);
+}
+
+
 void VelocityLimitedMarker::publishMarkers( double vel_x_desired, 
                                             double vel_x_actual, 
                                             double vel_y_desired, 
                                             double vel_y_actual, 
-                                            double vel_thetha_desired, 
+                                            double vel_theta_desired,
                                             double vel_theta_actual)
 {
     if( disabled_ )
@@ -187,51 +282,61 @@ void VelocityLimitedMarker::publishMarkers( double vel_x_desired,
     vtheta_last_ = vel_theta_actual;
 
     // for x-axis
-    if( fabs(vel_x_desired - vel_x_actual) >= epsilon )
+    double x_vel_diff = fabs(vel_x_desired - vel_x_actual);
+    if( x_vel_diff >= epsilon )
     {
+        double alpha = x_vel_diff * VELOCITY_COEFF;
         if (vel_x_desired >= 0.0 && ax <= 0.0)
         {
             x_pos_marker_.header.stamp = ros::Time::now();
+            x_pos_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
         	marker_pub_.publish(x_pos_marker_);            
         }
         else if (vel_x_desired <= 0.0 && ax >= 0.0)
         {
             x_neg_marker_.header.stamp = ros::Time::now();
+            x_neg_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
     	    marker_pub_.publish(x_neg_marker_);
         }
     }
 
     // for y-axis
-    if( fabs(vel_y_desired - vel_y_actual) >= epsilon )
+    double y_vel_diff = fabs(vel_y_desired - vel_y_actual);
+    if( y_vel_diff >= epsilon )
     {
+        double alpha = y_vel_diff * VELOCITY_COEFF;
         if (vel_y_desired >= 0.0 && ay <= 0.0)
         {
             y_pos_marker_.header.stamp = ros::Time::now();
+            y_pos_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
         	marker_pub_.publish(y_pos_marker_);            
         }
         else if (vel_y_desired <= 0.0 && ay >= 0.0)
         {
             y_neg_marker_.header.stamp = ros::Time::now();
+            y_neg_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
     	    marker_pub_.publish(y_neg_marker_);
         }
     }
 
-/*
     // for theta-axis
-    if( fabs(vel_theta_desired - vel_that_actual) >= epsilon )
+    double theta_vel_diff = fabs(vel_theta_desired - vel_theta_actual);
+    if( theta_vel_diff >= epsilon )
     {
-        if (vel_theta_desired >= 0.0)
+        double alpha = theta_vel_diff * VELOCITY_COEFF;
+        if (vel_theta_desired >= 0.0  && atheta <= 0.0)
         {
             theta_pos_marker_.header.stamp = ros::Time::now();
+            theta_pos_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
         	marker_pub_.publish(theta_pos_marker_);            
         }
-        else
+        else if (vel_theta_desired <= 0.0  && atheta >= 0.0)
         {
             theta_neg_marker_.header.stamp = ros::Time::now();
+            theta_neg_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
     	    marker_pub_.publish(theta_neg_marker_);
         }
     }
-*/
 }
 
 

@@ -76,9 +76,14 @@ public:
     ~VelocityLimitedMarker();
 
     ///
-    /// @brief  Creates all the markers, the method is called from the constructor.
+    /// @brief  Creates all directional markers, the method is called from the constructor.
     ///
-    void createMarkers();
+    void createDirectionalMarkers();
+
+    ///
+    /// @brief  Creates all rotational markers, the method is called from the constructor.
+    ///
+    void createRotationalMarkers();
 
     ///
     /// @brief  Creates all the markers, the method is called from the constructor.
@@ -87,12 +92,13 @@ public:
                     double vel_x_actual, 
                     double vel_y_desired, 
                     double vel_y_actual, 
-                    double vel_thetha_desired, 
+                    double vel_theta_desired,
                     double vel_theta_actual);
 
 protected:
     // Velocity limited markers
     visualization_msgs::Marker x_pos_marker_, x_neg_marker_, y_pos_marker_, y_neg_marker_;
+    visualization_msgs::Marker theta_pos_marker_, theta_neg_marker_;
 
     // a handle for this node
     ros::NodeHandle nh_;
@@ -111,6 +117,9 @@ protected:
 
     // Marker lifetime
     double lifetime_;
+
+    // Marker z-position
+    double z_pos_;
 
     // last velocities
     double vx_last_, vy_last_, vtheta_last_;
