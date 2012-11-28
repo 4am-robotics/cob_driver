@@ -4,7 +4,7 @@
   The cob_collision_velocity_filter package is a package for collision avoidance using teleoperation.
 
   </description>
-  <author>Matthias Gruhler</author>
+  <author>Matthias Gruhler, Michal Spanel (spanel@fit.vutbr.cz, vel. limited marker)</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_collision_velocity_filter</url>
