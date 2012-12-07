@@ -494,10 +494,12 @@ class NodeClass
 			msg.name.resize(DOF);
 			msg.position.resize(DOF);
 			msg.velocity.resize(DOF);
+			msg.effort.resize(DOF);
 			
 			msg.name[0] = JointName_;
 			msg.position[0] = ActualPos_;
 			msg.velocity[0] = ActualVel_;
+			msg.effort[0] = 0.0;
 
 
 			//std::cout << "Joint " << msg.name[0] <<": pos="<<  msg.position[0] << " vel=" << msg.velocity[0] << std::endl;
