@@ -65,7 +65,7 @@ const double MARKER_RADIUS_ROT     = 0.6;
 //const double MARKER_WIDTH_ROT      = 0.065;
 const double MARKER_WIDTH_ROT      = 0.15;
 
-const double MAX_VELOCITY          = 0.5;
+const double MAX_VELOCITY          = 0.3;
 const double VELOCITY_COEFF        = 1.0 / MAX_VELOCITY;
 
 
