@@ -96,11 +96,11 @@ private:
 
     private_nh.getParam("max_rate", max_update_rate_);
 
-    rgb_cloud_pub_ = nh_.advertise<tPointCloud>("rgb_cloud_out", 10, boost::bind(&Cam3DThrottle::connectCB, this, _1), boost::bind(&Cam3DThrottle::disconnectCB, this, _1));
-    rgb_image_pub_ = nh_.advertise<tImage>("rgb_image_out", 10, boost::bind(&Cam3DThrottle::connectCB, this, _1), boost::bind(&Cam3DThrottle::disconnectCB, this, _1));
-    rgb_caminfo_pub_ = nh_.advertise<tCameraInfo>("rgb_caminfo_out", 10, boost::bind(&Cam3DThrottle::connectCB, this, _1), boost::bind(&Cam3DThrottle::disconnectCB, this, _1));
-    depth_image_pub_ = nh_.advertise<tImage>("depth_image_out", 10, boost::bind(&Cam3DThrottle::connectCB, this, _1), boost::bind(&Cam3DThrottle::disconnectCB, this, _1));
-    cloud_pub_ = nh_.advertise<tPointCloud>("cloud_out", 10, boost::bind(&Cam3DThrottle::connectCB, this, _1), boost::bind(&Cam3DThrottle::disconnectCB, this, _1));
+    rgb_cloud_pub_ = nh_.advertise<tPointCloud>("rgb_cloud_out", 1, boost::bind(&Cam3DThrottle::connectCB, this, _1), boost::bind(&Cam3DThrottle::disconnectCB, this, _1));
+    rgb_image_pub_ = nh_.advertise<tImage>("rgb_image_out", 1, boost::bind(&Cam3DThrottle::connectCB, this, _1), boost::bind(&Cam3DThrottle::disconnectCB, this, _1));
+    rgb_caminfo_pub_ = nh_.advertise<tCameraInfo>("rgb_caminfo_out", 1, boost::bind(&Cam3DThrottle::connectCB, this, _1), boost::bind(&Cam3DThrottle::disconnectCB, this, _1));
+    depth_image_pub_ = nh_.advertise<tImage>("depth_image_out", 1, boost::bind(&Cam3DThrottle::connectCB, this, _1), boost::bind(&Cam3DThrottle::disconnectCB, this, _1));
+    cloud_pub_ = nh_.advertise<tPointCloud>("cloud_out", 1, boost::bind(&Cam3DThrottle::connectCB, this, _1), boost::bind(&Cam3DThrottle::disconnectCB, this, _1));
 
     sync_.connectInput(rgb_cloud_sub_, rgb_image_sub_, rgb_caminfo_sub_, depth_image_sub_, cloud_sub_);
     sync_.registerCallback(boost::bind(&Cam3DThrottle::callback, this, _1, _2, _3, _4, _5));
@@ -138,11 +138,11 @@ private:
     if(sub_counter_ == 1)
     {
       ROS_DEBUG("connecting");
-      rgb_cloud_sub_.subscribe(nh_, "rgb_cloud_in", 10);
-      rgb_image_sub_.subscribe(nh_, "rgb_image_in", 10);
-      rgb_caminfo_sub_.subscribe(nh_, "rgb_caminfo_in", 10);
-      depth_image_sub_.subscribe(nh_, "depth_image_in", 10);
-      cloud_sub_.subscribe(nh_, "cloud_in", 10);
+      rgb_cloud_sub_.subscribe(nh_, "rgb_cloud_in", 1);
+      rgb_image_sub_.subscribe(nh_, "rgb_image_in", 1);
+      rgb_caminfo_sub_.subscribe(nh_, "rgb_caminfo_in", 1);
+      depth_image_sub_.subscribe(nh_, "depth_image_in", 1);
+      cloud_sub_.subscribe(nh_, "cloud_in", 1);
     }
   }
 
