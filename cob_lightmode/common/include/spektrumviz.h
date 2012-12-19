@@ -55,7 +55,7 @@
 #ifndef SPEKTRUMVIZ_H
 #define SPEKTRUMVIZ_H
 
-#include <gtkmm.h>
+#include <gtkmm-2.4/gtkmm.h>
 #include <beatcontroller.h>
 
 class SpektrumViz : public Gtk::DrawingArea
