@@ -436,8 +436,6 @@ class NodeClass
 				
 						ROS_DEBUG("next point is %d from %d",traj_point_nr_,traj_.points.size());
 						
-						std::cout << fabs( fabs(ActualPos_) - fabs(GoalPos_) ) << std::endl;
-						
 						if (traj_point_nr_ < traj_.points.size())
 						{
 							// if axis is not moving and not reached last point of trajectory, then send new target point
