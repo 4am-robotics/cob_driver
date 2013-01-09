@@ -23,7 +23,7 @@ def record():
 	global f
 	global writer
 	filename = rospy.get_param("/recording_filename")
-	f = open(filename, 'wt')
+	f = open(filename, 'wt', 1)
 	writer = csv.writer(f)
 
 	rospy.Subscriber("/power_board/voltage", Float64, callback)
