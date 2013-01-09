@@ -10,7 +10,10 @@ A[,2] <- A[,2] / 1000.0
 A$group = cut(A$time, breaks = seq(0, max(A$time), by=10))
 
 A.split <- split(A, A$group)
-A.split <- lapply(A.split, function(X) data.frame(time=mean(X$time), median.voltage=median(X$voltage), mean.voltage=mean(X$voltage)))
+A.split <- lapply(A.split, function(X) {
+  if (nrow(X)==0) data.frame(time=c(), median.voltage=c(), mean.voltage=c())
+  else data.frame(time=mean(X$time), median.voltage=median(X$voltage), mean.voltage=mean(X$voltage))
+                })
 B <- do.call(rbind, A.split)
 
 m <- svm(median.voltage ~ time, data = B)

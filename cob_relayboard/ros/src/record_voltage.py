@@ -22,7 +22,8 @@ def record():
 
 	global f
 	global writer
-	f = open('desire_LIB_01.csv', 'wt')
+	filename = rospy.get_param("/recording_filename")
+	f = open(filename, 'wt')
 	writer = csv.writer(f)
 
 	rospy.Subscriber("/power_board/voltage", Float64, callback)
