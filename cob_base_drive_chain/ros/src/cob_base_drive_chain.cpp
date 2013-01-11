@@ -70,7 +70,6 @@
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
-#include <cob_base_drive_chain/GetJointState.h>
 #include <cob_base_drive_chain/ElmoRecorderReadout.h>
 #include <cob_base_drive_chain/ElmoRecorderConfig.h>
 
@@ -93,7 +92,7 @@ class NodeClass
 
 		// topics to publish
 		/**
-		* On this topic "JointState" of type sensor_msgs::JointState the node publishes joint states when they are requested over the appropriate service srvServer_GetJointState.
+		* On this topic "JointState" of type sensor_msgs::JointState the node publishes joint states
 		*/
 		ros::Publisher topicPub_JointState;
 
@@ -130,11 +129,6 @@ class NodeClass
 		ros::ServiceServer srvServer_Shutdown;
 
 		ros::ServiceServer srvServer_SetMotionType;
-
-		/**
-		* Service requests cob_base_drive_chain::GetJointState. It reads out the latest joint information from the CAN buffer and gives it back. It also publishes the informaion on the topic "JointState"
-		*/
-		//ros::ServiceServer srvServer_GetJointState;
 
 		/**
 		* Service requests cob_base_drive_chain::ElmoRecorderSetup. It is used to configure the Elmo Recorder to record predefined sources. 
