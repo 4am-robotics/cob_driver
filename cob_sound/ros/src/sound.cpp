@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <std_msgs/String.h>
+#include <cob_srvs/Trigger.h>
 #include <cob_sound/SayAction.h>
 #include <cob_sound/SayText.h>
 
@@ -11,8 +12,11 @@ protected:
   ros::NodeHandle nh_;
   actionlib::SimpleActionServer<cob_sound::SayAction> as_;
   ros::ServiceServer srvServer_;
-  ros::Subscriber sub;
+  ros::ServiceServer srvServer_mute_;
+  ros::ServiceServer srvServer_unmute_;
+  ros::Subscriber sub_;
   std::string action_name_;
+  bool mute_;
 
 public:
 
@@ -22,7 +26,10 @@ public:
   {
     as_.start();
     srvServer_ = nh_.advertiseService("/say", &SayAction::service_cb, this);
-    sub = nh_.subscribe("/say", 1000, &SayAction::topic_cb, this);
+    srvServer_mute_ = nh_.advertiseService("mute", &SayAction::service_cb_mute, this);
+    srvServer_unmute_ = nh_.advertiseService("unmute", &SayAction::service_cb_unmute, this);
+    sub_ = nh_.subscribe("/say", 1000, &SayAction::topic_cb, this);
+    mute_ = false;
   }
 
   ~SayAction(void)
@@ -55,9 +62,30 @@ public:
 	  say(msg->data.c_str());
 	}
 
+	bool service_cb_mute(cob_srvs::Trigger::Request &req,
+					cob_srvs::Trigger::Response &res )
+	{
+        mute_ = true;
+        res.success.data = true;
+        return true;
+	}
+
+	bool service_cb_unmute(cob_srvs::Trigger::Request &req,
+					cob_srvs::Trigger::Response &res )
+	{
+        mute_ = false;
+        res.success.data = true;
+        return true;
+	}
   
   bool say(std::string text)
   {
+    if (mute_)
+    {
+        ROS_WARN("Sound is set to mute. You will hear nothing.");
+        return true;
+    }
+
     ROS_INFO("Saying: %s", text.c_str());
     std::string mode;
     std::string command;
