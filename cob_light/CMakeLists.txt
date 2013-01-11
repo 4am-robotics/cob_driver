@@ -35,10 +35,6 @@ include_directories(${PROJECT_SOURCE_DIR}/ros/include)
 #rospack_add_library(${PROJECT_NAME} src/example.cpp)
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rospack_add_boost_directories()
-rosbuild_add_executable(cob_light ros/src/cob_light.cpp)
-
-# rostest
-#rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-1)
-#rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-2)
-#rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-3)
-#rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-4)
+rosbuild_add_executable(${PROJECT_NAME} ros/src/cob_light.cpp)
+rosbuild_add_executable(${PROJECT_NAME}_sim ros/src/cob_light.cpp)
+rosbuild_add_compile_flags(${PROJECT_NAME}_sim -D__SIM__)
