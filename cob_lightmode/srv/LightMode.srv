@@ -1,5 +1,0 @@
-int32 mode
-std_msgs/ColorRGBA color
----
-int32 error_type
-string error_msg
