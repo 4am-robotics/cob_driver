@@ -1,0 +1,17 @@
+<package>
+  <description brief="cob_wireless_imu">
+
+     cob_wireless_imu
+
+  </description>
+  <author>Joshua Hampp</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_wireless_imu</url>
+  <depend package="rospy"/>
+
+  <depend package="tf"/>
+  <depend package="sensor_msgs"/>
+</package>
+
+
