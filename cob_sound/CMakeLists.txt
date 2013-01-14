@@ -38,7 +38,7 @@ rosbuild_gensrv()
 
 rosbuild_add_executable(sound ros/src/sound.cpp)
 
-rosbuild_link_boost(sound thread)
+rosbuild_link_boost(sound thread system)
 
 # rostest
 rosbuild_add_roslaunch_check(ros/launch/sound.launch)
