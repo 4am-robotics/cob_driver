@@ -326,7 +326,7 @@ int main(int argc, char** argv)
 		ROS_DEBUG("...publishing LaserScan message");
 		nodeClass.publishLaserScan(vdDistM, vdAngRAD, vdIntensAU, iSickTimeStamp, iSickNow);
 	} else {
-		ROS_WARN("...no Scan available");
+		ROS_DEBUG("...no Scan available");
 	}
 	// sleep and waiting for messages, callbacks	
 	ros::spinOnce();
