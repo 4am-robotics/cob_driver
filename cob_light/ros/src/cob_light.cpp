@@ -74,7 +74,7 @@
 
 // if defined and connection to serial port fails
 // debug values will be logged
-#define SIMULATION_ENABLED
+//#define __SIM__
 
 // define this if you like to turn off the light
 // when this node comes up
@@ -117,10 +117,6 @@ public:
 		else
 		{
 			ROS_ERROR("Serial connection on %s failed.", devicestring.c_str());
-			#ifdef SIMULATION_ENABLED
-				m_simulation = true;
-				ROS_INFO("Simulation mode enabled");
-			#endif
 		}
 		return _fd;
 	}
@@ -129,18 +125,14 @@ public:
 	int sendData(std::string value)
 	{
 		size_t wrote = -1;
-		if(m_simulation)
-			ROS_DEBUG("Simulation Mode: Sending  [%s]",value.c_str());
-		else
+		if(_fd != -1)
 		{
-			if(_fd != -1)
-			{
-				wrote = write(_fd, value.c_str(), value.length());
-				ROS_DEBUG("Wrote [%s] with %i bytes from %i bytes", value.c_str(), (int)wrote, value.length());
-			}
-			else
-				ROS_WARN("Can not write to serial port. Port closed!");
+			wrote = write(_fd, value.c_str(), value.length());
+			ROS_DEBUG("Wrote [%s] with %i bytes from %i bytes", value.c_str(), (int)wrote, value.length());
 		}
+		else
+			ROS_WARN("Can not write to serial port. Port closed! Check if LED board is attached and device is opened correctly.");
+
 		return wrote;
 	}
 
@@ -212,6 +204,7 @@ class LightControl
 		LightControl() :
 		 _invertMask(0)
 		{
+
 			bool invert_output;
 
 			//_nh = ros::NodeHandle("~");
@@ -220,14 +213,16 @@ class LightControl
 
 			_nh.param<std::string>("devicestring",_deviceString,"/dev/ttyLed");
 			_nh.param<int>("baudrate",_baudrate,230400);
-			_nh.param<bool>("pubmarker",_bPubMarker,false);
+			_nh.param<bool>("pubmarker",_bPubMarker,true);
 			
 			_sub = _nh.subscribe("command", 1, &LightControl::setRGB, this);
 
 			_pubMarker = _nh.advertise<visualization_msgs::Marker>("marker",1);
 
+#ifndef __SIM__
 			//open serial port
 			_serialCom.openPort(_deviceString, _baudrate);
+#endif
 				
 			//if pubmarker is set create timer to pub marker
 			if(_bPubMarker)
@@ -265,7 +260,10 @@ class LightControl
 				_ssOut.str("");
 				_ssOut << (int)color.r << " " << (int)color.g << " " << (int)color.b << "\n\r";
 
+#ifndef __SIM__
 				_serialCom.sendData(_ssOut.str());
+#endif
+
 			}
 			else
 				ROS_ERROR("Unsupported Color format. rgba values range is 0.0 - 1.0");

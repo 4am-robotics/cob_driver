@@ -489,6 +489,10 @@ class NodeClass
 			CamAxis_->getGearPosVelRadS(&ActualPos_,&ActualVel_);
 			CamAxis_->m_Joint->requestPosVel();
 
+			// really bad hack
+			ActualPos_ = HomingDir_ * ActualPos_;
+			ActualVel_ = HomingDir_ * ActualVel_;
+
 			sensor_msgs::JointState msg;
 			msg.header.stamp = ros::Time::now();
 			msg.name.resize(DOF);
