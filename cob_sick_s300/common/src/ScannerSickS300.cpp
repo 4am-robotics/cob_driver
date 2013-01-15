@@ -116,6 +116,8 @@ ScannerSickS300::ScannerSickS300()
 	// init scan with zeros
 	m_viScanRaw.assign(541, 0);
 	m_iPosReadBuf2 = 0;
+	
+	m_actualBufferSize = 0;
 
 }
 
@@ -194,9 +196,8 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 {
 	bool bRet = false;
 	int i,j;
-  static int actualBufferSize = 0;
 	int iNumRead = 0;
-  int iNumRead2 = 0;
+	int iNumRead2 = 0;
 	int iNumData;
 	int iFirstByteOfHeader;
 	int iFirstByteOfData;
@@ -206,10 +207,10 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 	std::vector<ScanPolarType> vecScanPolar;
 	vecScanPolar.resize(m_Param.iNumScanPoints);
 
-	iNumRead2 = m_SerialIO.readNonBlocking((char*)m_ReadBuf+actualBufferSize, SCANNER_S300_READ_BUF_SIZE-2-actualBufferSize);
+	iNumRead2 = m_SerialIO.readNonBlocking((char*)m_ReadBuf+m_actualBufferSize, SCANNER_S300_READ_BUF_SIZE-2-m_actualBufferSize);
 
-  iNumRead = actualBufferSize + iNumRead2;
-  actualBufferSize = actualBufferSize + iNumRead2;
+	iNumRead = m_actualBufferSize + iNumRead2;
+	m_actualBufferSize = m_actualBufferSize + iNumRead2;
 
 	if( iNumRead < m_Param.iDataLength )
 	{
@@ -280,7 +281,7 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 				}
 				// Scan was succesfully read from buffer
 				bRet = true;
-        actualBufferSize = 0;
+				m_actualBufferSize = 0;
 				break;
 			}
 		}
