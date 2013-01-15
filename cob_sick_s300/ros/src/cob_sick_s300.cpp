@@ -274,8 +274,6 @@ int main(int argc, char** argv)
 
 	brics_oodl::LaserScannerConfiguration config;
 
-	//(brics_oodl::Logger::getInstance()).init();
-
 	config.devicePath = nodeClass.port.c_str(); // Device path of the Sick S300
 	config.scannerID = nodeClass.scan_id;
 
