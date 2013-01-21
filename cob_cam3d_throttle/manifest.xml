@@ -1,0 +1,24 @@
+<package>
+  <description brief="cob_cam3d_throttle">
+
+     cob_cam3d_throttle: only for Trottel
+
+  </description>
+  <author>Georg Arbeiter</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_cam3d_throttle</url>
+
+  <depend package="roscpp"/>
+  <depend package="sensor_msgs"/>
+  <depend package="pluginlib"/>
+  <depend package="message_filters"/>
+  <depend package="nodelet"/>
+
+  <export>
+    <nodelet plugin="${prefix}/nodelet_plugins.xml" />
+  </export>
+
+</package>
+
+
