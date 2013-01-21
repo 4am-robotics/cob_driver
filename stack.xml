@@ -5,7 +5,7 @@
 
   </description>
   <author>Maintained by Florian Weisshardt</author>
-  <license>,LGPL</license>  
+  <license>LGPL</license>  
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_driver</url>
   <depend stack="audio_common" /> <!-- sound_play -->
