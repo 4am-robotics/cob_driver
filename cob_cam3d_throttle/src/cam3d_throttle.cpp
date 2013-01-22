@@ -70,7 +70,7 @@
 #include <message_filters/sync_policies/approximate_time.h>
 
 
-namespace cob_camera_sensors
+namespace cob_cam3d_throttle
 {
 typedef sensor_msgs::PointCloud2 tPointCloud;
 typedef sensor_msgs::Image tImage;
@@ -179,6 +179,6 @@ private:
 };
 
 
-PLUGINLIB_DECLARE_CLASS(cob_cam3d_throttle, Cam3DThrottle, cob_camera_sensors::Cam3DThrottle, nodelet::Nodelet);
+PLUGINLIB_DECLARE_CLASS(cob_cam3d_throttle, Cam3DThrottle, cob_cam3d_throttle::Cam3DThrottle, nodelet::Nodelet);
 }
 
