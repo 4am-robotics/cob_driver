@@ -60,6 +60,9 @@ from std_msgs.msg import ColorRGBA
 def changeColor():
 	pub = rospy.Publisher('light_controller/command', ColorRGBA)
 	rospy.init_node('light_test')
+	
+	rospy.sleep(1)
+	
 	#color in rgb color space ranging from 0 to 1
 	red = ColorRGBA()
 	red.r = 1
@@ -89,10 +92,10 @@ def changeColor():
 	white.r = 0.3
 	white.g = 1
 	white.b = 0.3
-	white.g = 1
+	white.a = 1
 	
 	for color in [red,yellow,green,white,blue,green]:
-		rospy.loginfo("Setting rgb to %s [%d, %d, %d]",color.r,color.g,color.b,color.a)
+		rospy.loginfo("Setting rgb to [%lf, %lf, %lf] with a [%lf]",color.r,color.g,color.b,color.a)
 		pub.publish(color)
 		time.sleep(3)
 
