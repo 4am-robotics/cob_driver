@@ -102,7 +102,7 @@ class LightControl
 
 			_nh.param<std::string>("devicestring",_deviceString,"/dev/ttyLed");
 			_nh.param<int>("baudrate",_baudrate,230400);
-			_nh.param<bool>("pubmarker",_bPubMarker,true);
+			_nh.param<bool>("pubmarker",_bPubMarker,false);
 			
 			_sub = _nh.subscribe("command", 1, &LightControl::commandCallback, this);
 

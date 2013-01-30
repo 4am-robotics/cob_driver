@@ -58,7 +58,7 @@
 ColorOSim::ColorOSim(ros::NodeHandle* nh) 
 {
 	p_nh = nh;
-	_pubSimulation = p_nh->advertise<std_msgs::ColorRGBA>("simulation",2);
+	_pubSimulation = p_nh->advertise<std_msgs::ColorRGBA>("debug",2);
 }
 
 ColorOSim::~ColorOSim()
