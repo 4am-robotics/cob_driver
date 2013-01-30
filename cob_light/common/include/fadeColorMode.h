@@ -108,6 +108,8 @@ public:
 		m_sigColorReady(col);
 	}
 
+	std::string getModeName(){ return std::string("FadeColorMode"); }
+
 private:
 	bool doOnce;
 	float h;

@@ -83,7 +83,7 @@ void ModeExecutor::execute(cob_light::LightMode requestedMode)
 				_activeMode = mode;
 				_activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1));
 				_thread_ptr.reset(new boost::thread(boost::lambda::bind(&ModeExecutor::run, this)));
-				ROS_INFO("Executing new mode");
+				ROS_INFO("Executing new mode: %s",_activeMode->getModeName().c_str() );
 				ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %i pulses: %i ",
 					requestedMode.mode, requestedMode.priority, requestedMode.frequency, requestedMode.timeout, requestedMode.pulses);
 			}
@@ -100,7 +100,7 @@ void ModeExecutor::execute(cob_light::LightMode requestedMode)
 			_activeMode = mode;
 			_activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1));
 			_thread_ptr.reset(new boost::thread(boost::lambda::bind(&ModeExecutor::run, this)));
-			ROS_INFO("Executing new mode");
+			ROS_INFO("Executing new mode: %s",_activeMode->getModeName().c_str() );
 			ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %i pulses: %i ",
 					requestedMode.mode, requestedMode.priority, requestedMode.frequency, requestedMode.timeout, requestedMode.pulses);
 		}

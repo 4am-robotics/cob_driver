@@ -85,6 +85,8 @@ public:
 		m_sigColorReady(col);
 	}
 
+	std::string getModeName(){ return std::string("FlashMode"); }
+
 private:
 	bool _toggle;
 };

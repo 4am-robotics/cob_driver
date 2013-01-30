@@ -68,6 +68,8 @@ public:
 
 	virtual void execute() = 0;
 
+	virtual std::string getModeName() = 0;
+
 	bool finished(){ return _finished; }
 
 	void setPriority(int priority){ _priority = priority; }
