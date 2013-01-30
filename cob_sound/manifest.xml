@@ -14,5 +14,6 @@
   <depend package="sound_play"/>
   <depend package="actionlib"/>
   <depend package="std_msgs"/>
+  <depend package="cob_srvs"/>
 
 </package>
