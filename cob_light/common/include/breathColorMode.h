@@ -97,7 +97,7 @@ public:
 		m_sigColorReady(col);
 	}
 
-	std::string getModeName(){ return std::string("BreathColorMode"); }
+	std::string getName(){ return std::string("BreathColorMode"); }
 
 private:
 	double _timer_inc;

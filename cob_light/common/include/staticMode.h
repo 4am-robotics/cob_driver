@@ -74,7 +74,7 @@ public:
 		m_sigColorReady(_color);
 	}
 
-	std::string getModeName(){ return std::string("StaticMode"); }
+	std::string getName(){ return std::string("StaticMode"); }
 
 private:
 };

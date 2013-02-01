@@ -63,12 +63,12 @@ class Mode
 public:
 	Mode(int priority = 0, double freq = 0, int pulses = 0, double timeout = 0)
 		: _priority(priority), _freq(freq), _pulses(pulses), _timeout(timeout),
-		  _finished(false), _pulsed(0.0){}
+		  _finished(false), _pulsed(0){}
 	virtual ~Mode(){}
 
 	virtual void execute() = 0;
 
-	virtual std::string getModeName() = 0;
+	virtual std::string getName() = 0;
 
 	bool finished(){ return _finished; }
 
@@ -89,17 +89,16 @@ public:
 	void setColor(color::rgba color){ _color = color; }
 	color::rgba getColor(){ return _color; }
 
-
 	boost::signals2::signal<void (color::rgba color)>* signalColorReady(){ return &m_sigColorReady; }
 
 protected:
 	int _priority;
-	double _timeout;
 	double _freq;
 	int _pulses;
-	int _pulsed;
-
+	double _timeout;
+	
 	bool _finished;
+	int _pulsed;
 
 	color::rgba _color;
 
