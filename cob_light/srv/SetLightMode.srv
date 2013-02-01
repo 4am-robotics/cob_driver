@@ -1,4 +1,4 @@
 cob_light/LightMode mode
 ---
-int32 error_type
-string error_msg
+uint8 active_mode
+uint8 active_priority

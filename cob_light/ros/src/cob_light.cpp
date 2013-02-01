@@ -177,27 +177,32 @@ class LightControl
 
 		bool modeCallback(cob_light::SetLightMode::Request &req, cob_light::SetLightMode::Response &res)
 		{
-			res.error_type = 0;
-			res.error_msg = "";
+			bool ret = false;
 
 			if(req.mode.color.r > 1.0 || req.mode.color.g > 1.0 || req.mode.color.b > 1.0 || req.mode.color.a > 1.0)
 			{
-				res.error_type = 2;
-				res.error_msg = "Unsupported Color format. rgba values range is between 0.0 - 1.0";
-				ROS_ERROR("%s", res.error_msg.c_str());
+				res.active_mode = p_modeExecutor->getExecutingMode();
+				res.active_priority = p_modeExecutor->getExecutingPriority();
+				ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
 			}
 			else if(req.mode.mode == cob_light::LightMode::NONE)
 			{
 				p_modeExecutor->stop();
 				_color.a = 0;
 				p_colorO->setColor(_color);
+				res.active_mode = p_modeExecutor->getExecutingMode();
+				res.active_priority = p_modeExecutor->getExecutingPriority();
+				ret = true;
 			}
 			else
 			{
 				p_modeExecutor->execute(req.mode);
+				res.active_mode = p_modeExecutor->getExecutingMode();
+				res.active_priority = p_modeExecutor->getExecutingPriority();
+				ret = true;
 			}
 			
-			return true;
+			return ret;
 		}
 
 		void actionCallback(const cob_light::SetLightModeGoalConstPtr &goal)
