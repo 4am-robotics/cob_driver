@@ -85,10 +85,20 @@ private:
   int buffer_capacity_;
   //maximal time-delay in seconds for stored messages in Circular Buffer (to be loaded from parameter server, otherwise set to default value 4)
   double store_delay_;
+  // maximal time-delay in seconds to wait until filling the circular buffer with zero messages when the subscriber doesn't hear anything
+  double stop_delay_after_no_sub_;
   //threshhold for maximal allowed acceleration (to be loaded from parameter server, otherwise set to default value 0.02)
-  double thresh_;
+  double acc_limit_;
+  // ros loop rate (to be loaded from parameter server, otherwise set to default value 30)
+  double loop_rate_;
   //geometry message filled with zero values
   geometry_msgs::Twist zero_values_;
+  // subscribed geometry message
+  geometry_msgs::Twist sub_msg_;
+  // first time no incoming messages
+  ros::Time first_time_no_sub_;
+  // bool to check if it is the first time for first_time_no_sub_ to be set
+  bool no_sub_time_set_;
 
 public:
 
@@ -101,7 +111,7 @@ public:
   //create node handle
   ros::NodeHandle nh_, pnh_;
 
-  //circular buffers for velocity, acceleration and time
+  //circular buffers for velocity, output and time
   boost::circular_buffer<geometry_msgs::Twist> cb_;
   boost::circular_buffer<geometry_msgs::Twist> cb_out_;
   boost::circular_buffer<ros::Time> cb_time_;
@@ -112,16 +122,19 @@ public:
   // decalaration of ros publishers
   ros::Publisher pub_;
 
-  //callback function to subsribe to the geometry messages cmd_vel and publish to base_controller/command
+  //callback function to subsribe to the geometry messages
   void geometryCallback(const geometry_msgs::Twist::ConstPtr &cmd_vel);
+  //calculation function called periodically in main
+  void calculationStep();
   //function that updates the circular buffer after receiving a new geometry message
   void reviseCircBuff(ros::Time now, geometry_msgs::Twist cmd_vel);
   //function to limit the acceleration under the given threshhold thresh
   void limitAcceleration(ros::Time now, geometry_msgs::Twist& cmd_vel);
 
-  //boolean function that returns true if all messages stored in the circular buffer are older than store_delay,
-  //false otherwise
+  //boolean function that returns true if all messages stored in the circular buffer are older than store_delay, false otherwise
   bool circBuffOutOfDate(ros::Time now);
+  // function to compare two geometry messages
+  bool IsEqual(geometry_msgs::Twist msg1, geometry_msgs::Twist msg2);
 
   //boolean function that returns true if the input msg cmd_vel equals zero_values, false otherwise
   bool IsZeroMsg(geometry_msgs::Twist cmd_vel);
@@ -133,6 +146,9 @@ public:
   double meanValueX();
   double meanValueY();
   double meanValueZ();
+
+  // function to make the loop rate available outside the class
+  double getLoopRate();
 
   //function for the actual computation
   //calls the reviseCircBuff and the meanValue-functions and limits the acceleration under thresh
