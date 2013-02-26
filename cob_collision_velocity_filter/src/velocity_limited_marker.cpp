@@ -53,20 +53,25 @@
 namespace cob_collision_velocity_filter
 {
 
-const double DEFAULT_LIFETIME      = 1.0;
-const double DEFAULT_Z_POSITION    = 0.25;
+const double DEFAULT_LIFETIME   = 1.0;
+const double DEFAULT_Z_POSITION = 0.25;
 
-const double MARKER_SCALE_DIR      = 1.0;
-const double MARKER_RADIUS_DIR     = 0.5;
-const double MARKER_WIDTH_DIR      = 0.2;
+const double MARKER_SCALE_DIR   = 1.0;
+const double MARKER_RADIUS_DIR  = 0.5;
+const double MARKER_WIDTH_DIR   = 0.2;
 
-const double MARKER_SCALE_ROT      = 1.0;
-const double MARKER_RADIUS_ROT     = 0.6;
-//const double MARKER_WIDTH_ROT      = 0.065;
-const double MARKER_WIDTH_ROT      = 0.15;
+const double MARKER_SCALE_ROT   = 1.0;
+const double MARKER_RADIUS_ROT  = 0.6;
+//const double MARKER_WIDTH_ROT   = 0.065;
+const double MARKER_WIDTH_ROT   = 0.15;
 
-const double MAX_VELOCITY          = 0.2;
-const double VELOCITY_COEFF        = 1.0 / MAX_VELOCITY;
+//const double MAX_VELOCITY       = 0.2;
+const double MAX_VELOCITY       = 0.25;
+const double MIN_VELOCITY       = 0.01;
+const double VELOCITY_COEFF     = 1.0 / (MAX_VELOCITY - MIN_VELOCITY);
+
+const float MAX_COLOR[4]        = { 1.0f, 0.0f, 0.0f, 1.0f };
+const float MIN_COLOR[4]        = { 1.0f, 0.8f, 0.0f, 0.2f };
 
 
 VelocityLimitedMarker::VelocityLimitedMarker()
@@ -257,6 +262,24 @@ void VelocityLimitedMarker::createRotationalMarkers()
 }
 
 
+void VelocityLimitedMarker::interpolateColor(double velocity, std_msgs::ColorRGBA& color)
+{
+	if( velocity < MIN_VELOCITY )
+	{
+		color.r = color.g = color.b = color.a = 0.0f;
+		return;
+	}
+
+    float alpha = float((velocity - MIN_VELOCITY) * VELOCITY_COEFF);
+    alpha = (alpha > 1.0f) ? 1.0f : alpha;
+
+    color.r = (1.0f - alpha) * MIN_COLOR[0] + alpha * MAX_COLOR[0];
+    color.g = (1.0f - alpha) * MIN_COLOR[1] + alpha * MAX_COLOR[1];
+    color.b = (1.0f - alpha) * MIN_COLOR[2] + alpha * MAX_COLOR[2];
+    color.a = (1.0f - alpha) * MIN_COLOR[3] + alpha * MAX_COLOR[3];
+}
+
+
 void VelocityLimitedMarker::publishMarkers( double vel_x_desired, 
                                             double vel_x_actual, 
                                             double vel_y_desired, 
@@ -285,17 +308,19 @@ void VelocityLimitedMarker::publishMarkers( double vel_x_desired,
     double x_vel_diff = fabs(vel_x_desired - vel_x_actual);
     if( x_vel_diff >= epsilon )
     {
-        double alpha = x_vel_diff * VELOCITY_COEFF;
+//        double alpha = x_vel_diff * VELOCITY_COEFF;
         if (vel_x_desired >= 0.0 && ax <= 0.0)
         {
             x_pos_marker_.header.stamp = ros::Time::now();
-            x_pos_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
+            interpolateColor(x_vel_diff, x_pos_marker_.color);
+//            x_pos_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
         	marker_pub_.publish(x_pos_marker_);            
         }
         else if (vel_x_desired <= 0.0 && ax >= 0.0)
         {
             x_neg_marker_.header.stamp = ros::Time::now();
-            x_neg_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
+            interpolateColor(x_vel_diff, x_neg_marker_.color);
+//            x_neg_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
     	    marker_pub_.publish(x_neg_marker_);
         }
     }
@@ -304,17 +329,19 @@ void VelocityLimitedMarker::publishMarkers( double vel_x_desired,
     double y_vel_diff = fabs(vel_y_desired - vel_y_actual);
     if( y_vel_diff >= epsilon )
     {
-        double alpha = y_vel_diff * VELOCITY_COEFF;
+//        double alpha = y_vel_diff * VELOCITY_COEFF;
         if (vel_y_desired >= 0.0 && ay <= 0.0)
         {
             y_pos_marker_.header.stamp = ros::Time::now();
-            y_pos_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
+            interpolateColor(y_vel_diff, y_pos_marker_.color);
+//            y_pos_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
         	marker_pub_.publish(y_pos_marker_);            
         }
         else if (vel_y_desired <= 0.0 && ay >= 0.0)
         {
             y_neg_marker_.header.stamp = ros::Time::now();
-            y_neg_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
+            interpolateColor(y_vel_diff, y_neg_marker_.color);
+//            y_neg_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
     	    marker_pub_.publish(y_neg_marker_);
         }
     }
@@ -323,17 +350,19 @@ void VelocityLimitedMarker::publishMarkers( double vel_x_desired,
     double theta_vel_diff = fabs(vel_theta_desired - vel_theta_actual);
     if( theta_vel_diff >= epsilon )
     {
-        double alpha = theta_vel_diff * VELOCITY_COEFF;
+//        double alpha = theta_vel_diff * VELOCITY_COEFF;
         if (vel_theta_desired >= 0.0  && atheta <= 0.0)
         {
             theta_pos_marker_.header.stamp = ros::Time::now();
-            theta_pos_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
+            interpolateColor(theta_vel_diff, theta_pos_marker_.color);
+//            theta_pos_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
         	marker_pub_.publish(theta_pos_marker_);            
         }
         else if (vel_theta_desired <= 0.0  && atheta >= 0.0)
         {
             theta_neg_marker_.header.stamp = ros::Time::now();
-            theta_neg_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
+            interpolateColor(theta_vel_diff, theta_neg_marker_.color);
+//            theta_neg_marker_.color.a = (alpha > 1.0) ? 1.0 : alpha;
     	    marker_pub_.publish(theta_neg_marker_);
         }
     }
