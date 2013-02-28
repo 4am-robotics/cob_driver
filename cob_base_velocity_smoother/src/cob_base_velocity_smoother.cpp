@@ -85,7 +85,9 @@ cob_base_velocity_smoother::cob_base_velocity_smoother()
   {
     ROS_WARN("No parameter maximal_time_delay on parameter server. Using default [4 in s]");
   }
-   if( !pnh_.hasParam("maximal_time_delay_to_stop") )
+  pnh_.param("maximal_time_delay", store_delay_, 4.0);
+
+  if( !pnh_.hasParam("maximal_time_delay_to_stop") )
   {
     ROS_WARN("No parameter maximal_time_delay_to_stop on parameter server. Using default [0.1 in s]");
   }
@@ -285,7 +287,6 @@ bool cob_base_velocity_smoother::circBuffOutOfDate(ros::Time now)
   while( (count < cb_.size()) && (result == true) ){
 		
     double delay=(now.toSec() - cb_time_[count].toSec());
-
     if(delay < store_delay_){
       result = false;
     }
