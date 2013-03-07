@@ -96,12 +96,16 @@ class LightControl
 
 			bool invert_output;
 
-			//_nh = ros::NodeHandle("~");
+			_nh = ros::NodeHandle("~");
+			if(!_nh.hasParam("invert_output")) ROS_WARN("Parameter 'invert_output' is missing on ParameterServer. Using default Value");
 			_nh.param<bool>("invert_output", invert_output, false);
 			_invertMask = (int)invert_output;
 
+			if(!_nh.hasParam("devicestring")) ROS_WARN("Parameter 'devicestring' is missing on ParameterServer. Using default Value");
 			_nh.param<std::string>("devicestring",_deviceString,"/dev/ttyLed");
+			if(!_nh.hasParam("baudrate")) ROS_WARN("Parameter 'baudrate' is missing on ParameterServer. Using default Value");
 			_nh.param<int>("baudrate",_baudrate,230400);
+			if(!_nh.hasParam("pubmarker")) ROS_WARN("Parameter 'pubmarker' is missing on ParameterServer. Using default Value");
 			_nh.param<bool>("pubmarker",_bPubMarker,false);
 			
 			_sub = _nh.subscribe("command", 1, &LightControl::commandCallback, this);
