@@ -47,19 +47,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
-#include <ros/ros.h>
-#include <XmlRpc.h>
-#include <pthread.h>
-#include <std_msgs/String.h>
-#include <geometry_msgs/Twist.h>
-#include <ros/console.h>
-#include <deque>
-#include <sstream>
-#include <iostream>
-#include <boost/circular_buffer.hpp>
-#include <boost/bind.hpp>
 
-using namespace std;
+#include <cob_base_velocity_smoother.h>
 
 /****************************************************************
  * the ros navigation doesn't run very smoothly because acceleration is too high
@@ -70,462 +59,470 @@ using namespace std;
  * of past messages and limiting the acceleration under a given threshold. 
  * cob_base_velocity_smoother subsribes (input) and publishes (output) geometry_msgs::Twist.
  ****************************************************************/
-class cob_base_velocity_smoother
-{
-private:
-	//capacity for circular buffers (to be loaded from parameter server, otherwise set to default value 12)
-	int buffer_capacity;
-	//maximal time-delay in seconds for stored messages in Circular Buffer (to be loaded from parameter server, otherwise set to default value 4)
-	double store_delay;
-	//threshhold for maximal allowed acceleration (to be loaded from parameter server, otherwise set to default value 0.02)
-	double thresh;
-	//geometry message filled with zero values
-	geometry_msgs::Twist zero_values;
 
-public:
-	
-	//constructor
-	cob_base_velocity_smoother();
-
-	//create node handle
-	ros::NodeHandle n;
-
-	//circular buffers for velocity, acceleration and time
-	boost::circular_buffer<geometry_msgs::Twist> cb;
-	boost::circular_buffer<geometry_msgs::Twist> cb_out;
-	boost::circular_buffer<ros::Time> cb_time;
-
-	//ros publisher
-	ros::Publisher pub;
-
-	//callback function to subsribe to the geometry messages cmd_vel and publish to base_controller/command
-	void geometryCallback(const geometry_msgs::Twist& cmd_vel);
-	//function that updates the circular buffer after receiving a new geometry message
-	void reviseCircBuff(ros::Time now, geometry_msgs::Twist cmd_vel);
-	//function to limit the acceleration under the given threshhold thresh
-	void limitAcceleration(ros::Time now, geometry_msgs::Twist& cmd_vel);
-	
-	//boolean function that returns true if all messages stored in the circular buffer are older than store_delay,
-	//false otherwise
-	bool CircBuffOutOfDate(ros::Time now);
-
-	//boolean function that returns true if the input msg cmd_vel equals zero_values, false otherwise
-	bool IsZeroMsg(geometry_msgs::Twist cmd_vel);
-
-	//help-function that returns the signum of a double variable
-	int signum(double var);
-
-	//functions to calculate the mean values for each direction
-	double meanValueX();
-	double meanValueY();
-	double meanValueZ();
-
-	//function for the actual computation
-	//calls the reviseCircBuff and the meanValue-functions and limits the acceleration under thresh
-	//returns the resulting geometry message to be published to the base_controller
-	geometry_msgs::Twist setOutput(ros::Time now, geometry_msgs::Twist cmd_vel);
-
-};
-
-//constructor
+// constructor
 cob_base_velocity_smoother::cob_base_velocity_smoother()
 {
-	
-	//get parameters from parameter server if possible or take default values
-	if(n.hasParam("circular_buffer_capacity"))
-	{
-		n.getParam("circular_buffer_capacity",buffer_capacity);
-	}
-	else
-	{
-		buffer_capacity = 12;
-		ROS_WARN("Used default parameter for circular buffer capacity [12]");
- 	}
 
-	if(n.hasParam("maximal_time_delay"))
-	{
-		n.getParam("maximal_time_delay",store_delay);
-	}
-	else
-	{
-		store_delay = 4;
-		ROS_WARN("Used default parameter for maximal time delay in seconds for saved messages [4]");
- 	}
+  // create node handles
+  nh_ = ros::NodeHandle();
+  pnh_ = ros::NodeHandle("~");
 
-	if(n.hasParam("thresh_max_acc"))
-	{
-		n.getParam("thresh_max_acc",thresh);	
-	}
+  // publisher
+  pub_ = nh_.advertise<geometry_msgs::Twist>("output", 1);
 
-	else
-	{
-		thresh = 0.3;
-		ROS_WARN("Used default parameter for maximal allowed acceleration in m per s [0.3]");
- 	}
+  // subscriber
+  geometry_msgs_sub_ = nh_.subscribe<geometry_msgs::Twist>("input", 1, boost::bind(&cob_base_velocity_smoother::geometryCallback, this, _1));
+ 
+  // get parameters from parameter server if possible or write default values to variables
+  if( !pnh_.hasParam("circular_buffer_capacity") )
+  {
+     ROS_WARN("No parameter circular_buffer_capacity on parameter server. Using default [12]");
+  }
+  pnh_.param("circular_buffer_capacity", buffer_capacity_, 12);
 
-	//set a geometry message containing zero-values
-	zero_values.linear.x=0;
-	zero_values.linear.y=0;
-	zero_values.linear.z=0;
+  if( !pnh_.hasParam("maximal_time_delay") )
+  {
+    ROS_WARN("No parameter maximal_time_delay on parameter server. Using default [4 in s]");
+  }
+  pnh_.param("maximal_time_delay", store_delay_, 4.0);
 
-	zero_values.angular.x=0;
-	zero_values.angular.y=0;
-	zero_values.angular.z=0;
+  if( !pnh_.hasParam("maximal_time_delay_to_stop") )
+  {
+    ROS_WARN("No parameter maximal_time_delay_to_stop on parameter server. Using default [0.1 in s]");
+  }
+  pnh_.param("maximal_time_delay_to_stop", stop_delay_after_no_sub_, 0.1);
+  
+  if( !pnh_.hasParam("thresh_max_acc") )
+  {
+    ROS_WARN("No parameter thresh_max_acc on parameter server. Using default [0.3 in m/s]");
+  }
+  pnh_.param("thresh_max_acc", acc_limit_, 0.3);
 
-	//initialize circular buffers
-	cb.set_capacity(buffer_capacity);
-	cb_out.set_capacity(buffer_capacity);
-	cb_time.set_capacity(buffer_capacity);
-	
-	//set actual ros::Time
-	ros::Time now=ros::Time::now();
+  if( !pnh_.hasParam("loop_rate") )
+  {
+    ROS_WARN("No parameter loop_rate on parameter server. Using default [30 in Hz]");
+  }
+  pnh_.param("loop_rate", loop_rate_, 30.0);
 
-	//fill circular buffer with zero values
-	while(cb.full() == false){
+  // set a geometry message containing zero-values
+  zero_values_.linear.x=0;
+  zero_values_.linear.y=0;
+  zero_values_.linear.z=0;
 
-		cb.push_front(zero_values);
-		cb_time.push_front(now);
+  zero_values_.angular.x=0;
+  zero_values_.angular.y=0;
+  zero_values_.angular.z=0;
 
-	}
+  // initialize circular buffers
+  cb_.set_capacity(buffer_capacity_);
+  cb_out_.set_capacity(buffer_capacity_);
+  cb_time_.set_capacity(buffer_capacity_);
 
-	pub = n.advertise<geometry_msgs::Twist>("output", 1);
-	
+  // set actual ros::Time
+  ros::Time now = ros::Time::now();
+
+  // initialize variables for first time no incoming messages
+  first_time_no_sub_ = now;
+  no_sub_time_set_ = false;
+
+  // fill circular buffer with zero values
+  while(cb_.full() == false){
+
+    cb_.push_front(zero_values_);
+    cb_time_.push_front(now);
+
+  }	
 };
 
-//returns true if all messages in cb are out of date in consideration of store_delay
-bool cob_base_velocity_smoother::CircBuffOutOfDate(ros::Time now)
+// destructor
+cob_base_velocity_smoother::~cob_base_velocity_smoother(){}
+
+// callback function to subsribe to the geometry messages cmd_vel and save them in a member variable
+void cob_base_velocity_smoother::geometryCallback(const geometry_msgs::Twist::ConstPtr &cmd_vel)
+{   
+ 
+  sub_msg_ = *cmd_vel;
+ 
+}
+
+// calculation function called periodically in main
+void cob_base_velocity_smoother::calculationStep(){
+
+  // set actual ros::Time
+  ros::Time now = ros::Time::now();
+
+  // remember first time the subsrciber doesn't hear anything
+  if(geometry_msgs_sub_.getNumPublishers() == 0){
+    if(no_sub_time_set_ == false){
+      first_time_no_sub_ = now;
+      no_sub_time_set_ = true;
+    }
+  }else{
+    no_sub_time_set_ = false;
+  }
+
+  // generate Output messages
+  geometry_msgs::Twist result = this->setOutput(now, sub_msg_);
+  
+  // publish result
+  pub_.publish(result);
+
+}
+
+// function for the actual computation
+// calls the reviseCircBuff and the meanValue-functions and limits the acceleration under thresh
+// returns the resulting geometry message to be published to the base_controller
+geometry_msgs::Twist cob_base_velocity_smoother::setOutput(ros::Time now, geometry_msgs::Twist cmd_vel)
 {
-	bool result=true;
+  geometry_msgs::Twist result = zero_values_;
 
-	long unsigned int count=0;
+  // update the circular buffers
+  this->reviseCircBuff(now, cmd_vel);
 
-	while( (count < cb.size()) && (result == true) ){
+  // calculate the mean values for each direction
+  result.linear.x = meanValueX();
+  result.linear.y = meanValueY();
+  result.angular.z = meanValueZ();
+
+  // limit acceleration
+  this->limitAcceleration(now, result);
+
+  // insert the result-message into the circular-buffer storing the output
+  cb_out_.push_front(result);
+
+  return result;
+
+}
+
+// function that updates the circular buffer after receiving a new geometry message
+void cob_base_velocity_smoother::reviseCircBuff(ros::Time now, geometry_msgs::Twist cmd_vel)
+{
+  if(this->circBuffOutOfDate(now) == true){
+    // the circular buffer is out of date, so clear and refill with zero messages before adding the new command
+
+    // clear buffers
+    cb_.clear();
+    cb_time_.clear();
+
+    // fill circular buffer with zero_values_ and time buffer with actual time-stamp
+    while(cb_.full() == false){
+
+      cb_.push_front(zero_values_);
+      cb_time_.push_front(now);
+
+    }
+
+    // add new command velocity message to circular buffer
+    cb_.push_front(cmd_vel);
+    // add new timestamp for subscribed command velocity message
+    cb_time_.push_front(now);
+
+  }
+  else{
+    // only some elements of the circular buffer are out of date, so only delete those
+    double delay=(now.toSec() - cb_time_.back().toSec());
+
+    while( delay >= store_delay_ ){
+      // remove out-dated messages
+      cb_.pop_back();
+      cb_time_.pop_back();
+
+      delay=(now.toSec() - cb_time_.back().toSec());
+    }
+    // if the circular buffer is empty now, refill with zero values
+    if(cb_.empty() == true){
+      while(cb_.full() == false){
+
+        cb_.push_front(zero_values_);
+        cb_time_.push_front(now);
+
+      }
+    }
+    if(this->IsZeroMsg(cmd_vel)){
+      // here we subscribed  a zero message, so we want to stop the robot
+      long unsigned int size = floor( cb_.size() / 3 );
+
+      // to stop the robot faster, fill the circular buffer with more than one, in fact floor (cb_.size() / 3 ), zero messages
+      for(long unsigned int i=0; i< size; i++){
+
+        // add new command velocity message to circular buffer
+        cb_.push_front(cmd_vel);
+        // add new timestamp for subscribed command velocity message
+        cb_time_.push_front(now);
+      }
+
+    }
+    else{
+      if( (geometry_msgs_sub_.getNumPublishers() == 0) && (now.toSec() - first_time_no_sub_.toSec()> stop_delay_after_no_sub_) ){
+        // here the subscriber did'n hear anything for some time, so we want to stop the robot
+        long unsigned int size = floor( cb_.size() / 2 );
+
+        // to stop the robot faster, fill the circular buffer with more than one, in fact floor (cb_.size() / 2 ), zero messages
+        for(long unsigned int i=0; i< size; i++){
+
+          // add new command velocity message to circular buffer
+          cb_.push_front(zero_values_);
+          // add new timestamp for subscribed command velocity message
+          cb_time_.push_front(now);
+        }
+      }
+      else{
+        // add new command velocity message to circular buffer
+        cb_.push_front(cmd_vel);
+        // add new timestamp for subscribed command velocity message
+        cb_time_.push_front(now);
+      }
+    }
+  }
+};
+
+// returns true if all messages in cb are out of date in consideration of store_delay
+bool cob_base_velocity_smoother::circBuffOutOfDate(ros::Time now)
+{
+  bool result=true;
+
+  long unsigned int count=0;
+
+  while( (count < cb_.size()) && (result == true) ){
 		
-		double delay=(now.toSec() - cb_time[count].toSec());
+    double delay=(now.toSec() - cb_time_[count].toSec());
+    if(delay < store_delay_){
+      result = false;
+    }
+    count++;
+  }
 
-		if(delay < store_delay){
-			result = false;
-		}
-		count++;
-	}
-
-	return result;
+  return result;
 
 };
 
-//returns true if the input msg cmd_vel equals zero_values, false otherwise
+// returns true if the input msg cmd_vel equals zero_values_, false otherwise
 bool cob_base_velocity_smoother::IsZeroMsg(geometry_msgs::Twist cmd_vel)
 {
-	bool result = true;
-	if( (cmd_vel.linear.x) != 0 || (cmd_vel.linear.y != 0) || (cmd_vel.angular.z != 0) ){
-		result = false;
-	}
+  bool result = true;
+  if( (cmd_vel.linear.x) != 0 || (cmd_vel.linear.y != 0) || (cmd_vel.angular.z != 0) ){
+    result = false;
+  }
 
-	return result;
+  return result;
 };
 
 int cob_base_velocity_smoother::signum(double var)
 {
-	if(var < 0){
-		return -1;
-	}
-	else{
-		return 1;
-	}
+  if(var < 0){
+    return -1;
+  }
+  else{
+    return 1;
+  }
 };
 
-//functions to calculate the mean values for linear/x
+// functions to calculate the mean values for linear/x
 double cob_base_velocity_smoother::meanValueX()
 {
-	double result = 0;
-	long unsigned int size = cb.size();
+  double result = 0;
+  long unsigned int size = cb_.size();
 
-	//calculate sum
-	for(long unsigned int i=0; i<size; i++){
+  // calculate sum
+  for(long unsigned int i=0; i<size; i++){
 
-		result = result + cb[i].linear.x;
+    result += cb_[i].linear.x;
 
-	}
-	result = result / size;
+  }
+  result /= size;
 	
-	if(size > 1){
+  if(size > 1){
 
-		double help_result = 0;
-		double max = cb[0].linear.x;
-		long unsigned int max_ind = 0;
-		for(long unsigned int i=0; i<size; i++){
+    double help_result = 0;
+    double max = cb_[0].linear.x;
+    long unsigned int max_ind = 0;
+    for(long unsigned int i=0; i<size; i++){
 
-			if(abs(result-cb[i].linear.x) > abs(result-max)){
-				max = cb[i].linear.x;
-				max_ind = i;
-			}
+      if(abs(result-cb_[i].linear.x) > abs(result-max)){
+        max = cb_[i].linear.x;
+        max_ind = i;
+      }
 
-		}
+    }
 
-		//calculate sum
-		for(long unsigned int i=0; i<size; i++){
+    // calculate sum
+    for(long unsigned int i=0; i<size; i++){
 		
-			if(i != max_ind){
-				help_result = help_result + cb[i].linear.x;
-			}
-		}
-		result = help_result / (size - 1);
-	}
-	
-	return result;
+      if(i != max_ind){
+        help_result += cb_[i].linear.x;
+      }
+    }
+    result = help_result / (size - 1);
+  }
+
+  return result;
 	
 };
 
-//functions to calculate the mean values for linear/y
+// functions to calculate the mean values for linear/y
 double cob_base_velocity_smoother::meanValueY()
 {
-	double result = 0;
-	long unsigned int size = cb.size();
+  double result = 0;
+  long unsigned int size = cb_.size();
 
-	//calculate sum
-	for(long unsigned int i=0; i<size; i++){
+  // calculate sum
+  for(long unsigned int i=0; i<size; i++){
 
-		result = result + cb[i].linear.y;
+    result += cb_[i].linear.y;
 
-	}
-	result = result / size;
-	
-	if(size > 1){
+  }
+  result /= size;
+
+  if(size > 1){
+
+    double help_result = 0;
+    double max = cb_[0].linear.y;
+    long unsigned int max_ind = 0;
+    for(long unsigned int i=0; i<size; i++){
+
+      if(abs(result-cb_[i].linear.y) > abs(result-max)){
+        max = cb_[i].linear.y;
+        max_ind = i;
+      }
+
+    }
+
+    // calculate sum
+    for(long unsigned int i=0; i<size; i++){
 		
-		double help_result = 0;
-		double max = cb[0].linear.y;
-		long unsigned int max_ind = 0;
-		for(long unsigned int i=0; i<size; i++){
+      if(i != max_ind){
+        help_result += cb_[i].linear.y;
+      }
+    }
+    result = help_result / (size - 1);
+  }
 
-			if(abs(result-cb[i].linear.y) > abs(result-max)){
-				max = cb[i].linear.y;
-				max_ind = i;
-			}
-
-		}
-
-		//calculate sum
-		for(long unsigned int i=0; i<size; i++){
-		
-			if(i != max_ind){
-				help_result = help_result + cb[i].linear.y;
-			}
-		}
-		result = help_result / (size - 1);
-	}
-
-	return result;
+  return result;
 	
 };
 
-//functions to calculate the mean values for angular/z
+// functions to calculate the mean values for angular/z
 double cob_base_velocity_smoother::meanValueZ()
 {
-	double result = 0;
-	long unsigned int size = cb.size();
+  double result = 0;
+  long unsigned int size = cb_.size();
 
-	//calculate sum
-	for(long unsigned int i=0; i<size; i++){
+  // calculate sum
+  for(long unsigned int i=0; i<size; i++){
 
-		result = result + cb[i].angular.z;
+  result += cb_[i].angular.z;
 
-	}
-	result = result / size;
+  }
+  result /= size;
 	
-	if(size > 1){
+  if(size > 1){
 		
-		double help_result = 0;
-		double max = cb[0].angular.z;
-		long unsigned int max_ind = 0;
-		for(long unsigned int i=0; i<size; i++){
+    double help_result = 0;
+    double max = cb_[0].angular.z;
+    long unsigned int max_ind = 0;
+    for(long unsigned int i=0; i<size; i++){
 
-			if(abs(result-cb[i].angular.z) > abs(result-max)){
-				max = cb[i].angular.z;
-				max_ind = i;
-			}
+      if(abs(result-cb_[i].angular.z) > abs(result-max)){
+        max = cb_[i].angular.z;
+        max_ind = i;
+      }
 
-		}
+    }
 
-		//calculate sum
-		for(long unsigned int i=0; i<size; i++){
-		
-			if(i != max_ind){
-				help_result = help_result + cb[i].angular.z;
-			}
-		}
-		result = help_result / (size - 1);
+    // calculate sum
+    for(long unsigned int i=0; i<size; i++){
 
-	}
+      if(i != max_ind){
+        help_result += cb_[i].angular.z;
+      }
+    }
+    result = help_result / (size - 1);
+  }
 
-	return result;
+  return result;
 	
 };
 
-//function that updates the circular buffer after receiving a new geometry message
-void cob_base_velocity_smoother::reviseCircBuff(ros::Time now, geometry_msgs::Twist cmd_vel)
-{
-	if(this->CircBuffOutOfDate(now) == true){
-		
-		//clear buffers
-		cb.clear();
-		cb_time.clear();
+// function to make the loop rate availabe outside the class
+double cob_base_velocity_smoother::getLoopRate(){
 
-		//fill circular buffer with zero_values and time buffer with actual time-stamp
-		while(cb.full() == false){
+  return loop_rate_;
 
-			cb.push_front(zero_values);
-			cb_time.push_front(now);
+}
 
-		}
+// function to compare two geometry messages
+bool cob_base_velocity_smoother::IsEqual(geometry_msgs::Twist msg1, geometry_msgs::Twist msg2){
 
-		//add new command velocity message to circular buffer
-		cb.push_front(cmd_vel);
-		//add new timestamp for subscribed command velocity message
-		cb_time.push_front(now);
+  if( (msg1.linear.x == msg2.linear.x) && (msg1.linear.y == msg2.linear.y) && (msg1.angular.z == msg2.angular.z)){
+    return true;
+  }else
+  {
+    return false;
+  }
 
-	}
-	else{
-		double delay=(now.toSec() - cb_time.back().toSec());
-
-		while( delay >= store_delay ){
-			//remove out-dated messages
-			cb.pop_back();
-			cb_time.pop_back();
-	
-			delay=(now.toSec() - cb_time.back().toSec());
-		}
-		//if the circular buffer is empty now, refill with zero values
-		if(cb.empty() == true){
-			while(cb.full() == false){
-	
-				cb.push_front(zero_values);
-				cb_time.push_front(now);
-
-			}
-		}
-		if(this->IsZeroMsg(cmd_vel)){
-
-			long unsigned int size = floor( cb.size() / 3 );
-
-			//to stop the robot faster, fill the circular buffer with more than one, in fact floor (cb.size() / 3 ), zero messages
-			for(long unsigned int i=0; i< size; i++){
-
-				//add new command velocity message to circular buffer
-				cb.push_front(cmd_vel);
-				//add new timestamp for subscribed command velocity message
-				cb_time.push_front(now);
-			}
-
-		}
-		else{
-
-			//add new command velocity message to circular buffer
-			cb.push_front(cmd_vel);
-			//add new timestamp for subscribed command velocity message
-			cb_time.push_front(now);
-
-		}
-
-	}
-};
+}
 
 //function to limit the acceleration under the given threshhold thresh
 void cob_base_velocity_smoother::limitAcceleration(ros::Time now, geometry_msgs::Twist& result){
 
-	//limit the acceleration under thresh
-	// only if cob_base_velocity_smoother has published a message yet
+  // limit the acceleration under thresh
+  // only if cob_base_velocity_smoother has published a message yet
 	
-	double deltaTime = 0;	
+  double deltaTime = 0;	
 
-	if(cb_time.size() > 1){
-		deltaTime = now.toSec() - cb_time[2].toSec();
-	}
-	
-	if( cb_out.size() > 0){
+  if(cb_time_.size() > 1){
+    deltaTime = now.toSec() - cb_time_[2].toSec();
+  }
+
+  if( cb_out_.size() > 0){
+
+    if(deltaTime > 0){
+      // set delta velocity and acceleration values
+      double deltaX = result.linear.x - cb_out_.front().linear.x;
+
+      double deltaY = result.linear.y - cb_out_.front().linear.y;
 		
-		if(deltaTime > 0){
-			//set delta velocity and acceleration values
-			double deltaX = result.linear.x - cb_out.front().linear.x;
-			double accX = deltaX / deltaTime;
-		
-			double deltaY = result.linear.y - cb_out.front().linear.y;
-			double accY = deltaY / deltaTime;
-		
-			double deltaZ = result.angular.z - cb_out.front().angular.z;
-			double accZ = deltaZ / deltaTime;
+      double deltaZ = result.angular.z - cb_out_.front().angular.z;
 
-			if( abs(accX) > thresh){
+      if( abs(deltaX) > acc_limit_){
 
-				result.linear.x = cb_out.front().linear.x + ( this->signum(accX) * thresh * deltaTime );
+        result.linear.x = cb_out_.front().linear.x + this->signum(deltaX) * acc_limit_;
 
-			}
-			if( abs(accY) > thresh){
+      }
+      if( abs(deltaY) > acc_limit_){
 
-				result.linear.y = cb_out.front().linear.y + ( this->signum(accY) * thresh * deltaTime );
+        result.linear.y = cb_out_.front().linear.y + this->signum(deltaY) * acc_limit_;
 
-			}
-			if( abs(accZ) > thresh){
+      }
+      if( abs(deltaZ) > acc_limit_){
 
-				result.angular.z = cb_out.front().angular.z + ( this->signum(accZ) * thresh * deltaTime );
+        result.angular.z = cb_out_.front().angular.z + this->signum(deltaZ) * acc_limit_;
 
-			}
-		}
-	}
-
+      }
+    }
+  }
 };
 
-
-//function for the actual computation
-//calls the reviseCircBuff and the meanValue-functions and limits the acceleration under thresh
-//returns the resulting geometry message to be published to the base_controller
-geometry_msgs::Twist cob_base_velocity_smoother::setOutput(ros::Time now, geometry_msgs::Twist cmd_vel)
-{
-	geometry_msgs::Twist result = zero_values;
-	
-	//update the circular buffers
-	this->reviseCircBuff(now, cmd_vel);
-
-	//calculate the mean values for each direction
-	result.linear.x = meanValueX();
-	result.linear.y = meanValueY();
-	result.angular.z = meanValueZ();
-	
-	//limit acceleration
-	this->limitAcceleration(now, result);
-
-	//insert the result-message into the circular-buffer storing the output
-	cb_out.push_front(result);
-
-	return result;
-
-}
-
-//callback function to subsribe to the geometry messages cmd_vel and publish to base_controller/command
-void cob_base_velocity_smoother::geometryCallback(const geometry_msgs::Twist& cmd_vel)
-{
-
-	//set actual ros::Time
-	ros::Time now = ros::Time::now();
-
-	//generate Output messages
-	geometry_msgs::Twist result = this->setOutput(now, cmd_vel);
-
-	//publish result
-	pub.publish(result);
-
-};
 
 int main(int argc, char **argv)
 {
+  // initialize ros and specifiy node name
+  ros::init(argc, argv, "cob_base_velocity_smoother");
 
-	ros::init(argc, argv, "cob_base_velocity_smoother");
-	
-	cob_base_velocity_smoother my_cvi = cob_base_velocity_smoother();
+  // create Node Class
+  cob_base_velocity_smoother my_velocity_smoother;
+  // get loop rate from class member
+  ros::Rate rate(my_velocity_smoother.getLoopRate());
+  // actual calculation step with given frequency
+  while(my_velocity_smoother.nh_.ok()){
 
-	ros::Subscriber sub = my_cvi.n.subscribe("input", 1, &cob_base_velocity_smoother::geometryCallback, &my_cvi);
-	
-	ros::spin();
+    my_velocity_smoother.calculationStep();
 
-	return 0;
+    ros::spinOnce();
+    rate.sleep();
+
+  }
+
+  return 0;
 }
-

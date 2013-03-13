@@ -1,8 +1,8 @@
 <package>
   <description brief="cob_camera_sensors">
-  
+
 	For more information read the readme.htm file located in <i>cob_driver/cob_camera_sensors</i>.
-	
+
   </description>
   <author>Jan Fischer</author>
   <license>LGPL</license>
@@ -12,6 +12,8 @@
   <depend package="roscpp"/>
   <!--depend package="rostest"/-->
   <depend package="sensor_msgs"/>
+  <depend package="pluginlib"/>
+  <depend package="message_filters"/>
   <!--depend package="opencv2"/-->
   <!--depend package="image_transport"/-->
   <!--depend package="polled_camera"/-->
@@ -19,7 +21,7 @@
   <!--depend package="cv_bridge"/-->
   <!--depend package="cob_vision_utils"/-->
   <!--depend package="libmesasr"/-->
-  <!--depend package="nodelet"/-->
+  <depend package="nodelet"/>
   <!--depend package="pcl"/-->
   <!--depend package="pcl_ros"/-->
   <!--depend package="image_proc"/-->
@@ -29,5 +31,9 @@
   <!--rosdep name="libdc1394-dev"/-->
   <!--rosdep name="glut"/-->
   <!--rosdep name="libusb-dev"/-->
+
+  <!--export>
+    <nodelet plugin="${prefix}/nodelet_plugins.xml" />
+  </export-->
 
 </package>

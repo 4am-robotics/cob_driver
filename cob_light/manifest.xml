@@ -4,13 +4,15 @@
      This package contains scripts to operate the LED lights on Care-O-bot.
 
   </description>
-  <author>Florian Weisshardt</author>
+  <author>Benjamin Maidel</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_light</url>
   
   <depend package="rospy"/>
+  <depend package="roscpp"/>
   <depend package="std_msgs"/>
   <depend package="visualization_msgs"/>
+  <depend package="actionlib"/>
 
 </package>
