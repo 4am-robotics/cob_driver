@@ -60,234 +60,186 @@
 
 // ros includes
 #include <ros/ros.h>
+#include <actionlib/server/simple_action_server.h>
 
 // ros message includes
 #include <std_msgs/ColorRGBA.h>
 #include <visualization_msgs/Marker.h>
+#include <cob_light/LightMode.h>
+#include <cob_light/SetLightMode.h>
+#include <cob_light/SetLightModeAction.h>
+#include <cob_light/SetLightModeActionGoal.h>
+#include <cob_light/SetLightModeActionResult.h>
 
 // serial connection includes
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <termios.h>
-#include <time.h>
+ #include <serialIO.h>
 
-// if defined and connection to serial port fails
-// debug values will be logged
-//#define __SIM__
+// additional includes
+#include <colorUtils.h>
+#include <modeExecutor.h>
+#include <colorO.h>
+#include <colorOSim.h>
 
+#define SIMULATION_ENABLED
 // define this if you like to turn off the light
 // when this node comes up
 #define TURN_OFF_LIGHT_ON_STARTUP
-
-class SerialCom
-{
-public:
-	// Constructor
-	SerialCom() :
-	 _fd(-1), m_simulation(false)
-	{
-	}
-	// Destructor
-	~SerialCom()
-	{
-		closePort();
-	}
-
-	// Open Serial Port
-	int openPort(std::string devicestring, int baudrate)
-	{
-		if(_fd != -1) return _fd;
-
-		ROS_INFO("Open Port on %s",devicestring.c_str());
-		_fd = open(devicestring.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
-		if(_fd != -1)
-		{
-			speed_t baud = getBaudFromInt(baudrate);
-			fcntl(_fd, F_SETFL, 0);
-			tcgetattr(_fd, &port_settings);
-			port_settings.c_cflag &= ~PARENB;
-			port_settings.c_cflag &= ~CSTOPB;
-			port_settings.c_cflag &= ~CSIZE;
-			port_settings.c_cflag = baud | CS8 | CLOCAL | CREAD;
-			port_settings.c_iflag = IGNPAR;
-			tcsetattr(_fd, TCSANOW, &port_settings);
-			ROS_INFO("Serial connection on %s succeeded.", devicestring.c_str());
-		}
-		else
-		{
-			ROS_ERROR("Serial connection on %s failed.", devicestring.c_str());
-		}
-		return _fd;
-	}
-
-	// Send Data to Serial Port
-	int sendData(std::string value)
-	{
-		size_t wrote = -1;
-		if(_fd != -1)
-		{
-			wrote = write(_fd, value.c_str(), value.length());
-			ROS_DEBUG("Wrote [%s] with %i bytes from %i bytes", value.c_str(), (int)wrote, value.length());
-		}
-		else
-			ROS_WARN("Can not write to serial port. Port closed! Check if LED board is attached and device is opened correctly.");
-
-		return wrote;
-	}
-
-	// Read Data from Serial Port
-	int readData(std::string &value, size_t nBytes)
-	{
-		char buffer[32];
-		size_t rec = -1;
-		rec = read(_fd, buffer, nBytes);
-		value = std::string(buffer);
-		return rec;
-	}
-
-	// Check if Serial Port is opened
-	bool isOpen()
-	{
-		return (_fd != -1);
-	}
-
-	// Close Serial Port
-	void closePort()
-	{
-		if(_fd != -1)
-			close(_fd);
-	}
-
-private:
-	// filedescriptor
-	int _fd;
-	// serial port settings
-	struct termios port_settings;
-	bool m_simulation;
-
-	speed_t getBaudFromInt(int baud)
-	{
-		speed_t ret;
-		switch(baud)
-		{
-			case 0: 	ret=B0;		break;
-			case 50: 	ret=B50; 	break;
-			case 75: 	ret=B75; 	break;
-			case 110: 	ret=B110;	break;
-			case 134: 	ret=B134;	break;
-			case 150: 	ret=B150;	break;
-			case 200: 	ret=B200;	break;
-			case 300: 	ret=B300;	break;
-			case 1200: 	ret=B1200; 	break;
-			case 1800: 	ret=B1800; 	break;
-			case 2400: 	ret=B2400; 	break;
-			case 4800: 	ret=B4800; 	break;
-			case 9600: 	ret=B9600; 	break;
-			case 19200: ret=B19200; break;
-			case 38400: ret=B38400;	break;
-			case 57600: ret=B57600; break;
-			case 115200: ret=B115200; break;
-			case 230400: ret=B230400; break;
-			default:
-				ROS_WARN("Unsupported Baudrate [%i]. Using default [230400]", baud);
-				ret=B230400;
-				break;
-		}
-		return ret;
-	}
-};
 
 class LightControl
 {
 	public:
 		LightControl() :
-		 _invertMask(0)
+		 _invertMask(0), _topic_priority(0)
 		{
+			p_colorO = NULL;
+			p_modeExecutor = NULL;
 
 			bool invert_output;
 
-			//_nh = ros::NodeHandle("~");
+			_nh = ros::NodeHandle("~");
+			if(!_nh.hasParam("invert_output")) ROS_WARN("Parameter 'invert_output' is missing on ParameterServer. Using default Value");
 			_nh.param<bool>("invert_output", invert_output, false);
 			_invertMask = (int)invert_output;
 
+			if(!_nh.hasParam("devicestring")) ROS_WARN("Parameter 'devicestring' is missing on ParameterServer. Using default Value");
 			_nh.param<std::string>("devicestring",_deviceString,"/dev/ttyLed");
+			if(!_nh.hasParam("baudrate")) ROS_WARN("Parameter 'baudrate' is missing on ParameterServer. Using default Value");
 			_nh.param<int>("baudrate",_baudrate,230400);
-			_nh.param<bool>("pubmarker",_bPubMarker,true);
+			if(!_nh.hasParam("pubmarker")) ROS_WARN("Parameter 'pubmarker' is missing on ParameterServer. Using default Value");
+			_nh.param<bool>("pubmarker",_bPubMarker,false);
 			
-			_sub = _nh.subscribe("command", 1, &LightControl::setRGB, this);
+			_sub = _nh.subscribe("command", 1, &LightControl::commandCallback, this);
 
-			_pubMarker = _nh.advertise<visualization_msgs::Marker>("marker",1);
+			_srvServer = 
+				_nh.advertiseService("mode", &LightControl::modeCallback, this);
 
-#ifndef __SIM__
+			_as = new ActionServer(_nh, "set_lightmode", boost::bind(&LightControl::actionCallback, this, _1), false);
+			_as->start();
+
+			_pubMarker = 
+				_nh.advertise<visualization_msgs::Marker>("marker",1);
+
 			//open serial port
-			_serialCom.openPort(_deviceString, _baudrate);
-#endif
-				
-			//if pubmarker is set create timer to pub marker
-			if(_bPubMarker)
-				_timerMarker = _nh.createTimer(ros::Duration(0.5),
-						&LightControl::markerCallback, this);
+			ROS_INFO("Open Port on %s",_deviceString.c_str());
+			if(_serialIO.openPort(_deviceString, _baudrate) != -1)
+			{
+				ROS_INFO("Serial connection on %s succeeded.", _deviceString.c_str());
+				p_colorO = new ColorO(&_serialIO);
+				p_colorO->setMask(_invertMask);
+			}
+			else
+			{
+				ROS_ERROR("Serial connection on %s failed.", _deviceString.c_str());
+				#ifdef SIMULATION_ENABLED
+				ROS_INFO("Simulation Mode Enabled");
+				p_colorO = new ColorOSim(&_nh);
+				#endif
+			}
 
+			if(_bPubMarker)
+				p_colorO->signalColorSet()->connect(boost::bind(&LightControl::markerCallback, this, _1));
+				
 			//initial turn off leds
 			#ifdef TURN_OFF_LIGHT_ON_STARTUP
 				_color.a=0;
-				setRGB(_color);
+				p_colorO->setColor(_color);
 			#endif
+
+			p_modeExecutor = new ModeExecutor(p_colorO);
 		}
 
 		~LightControl()
 		{
+			if(p_modeExecutor != NULL)
+			{
+				p_modeExecutor->stop();
+				delete p_modeExecutor;
+			}
+			if(p_colorO != NULL)
+			{
+				delete p_colorO;
+			}
 		}
 
-		void setRGB(std_msgs::ColorRGBA color)
+		void commandCallback(std_msgs::ColorRGBA color)
 		{
 			if(color.r <= 1.0 && color.g <=1.0 && color.b <= 1.0)
 			{
-				_color = color;
-				//calculate rgb spektrum for spezific alpha value, because
-				//led board is not supporting alpha values
-				color.r *= color.a;
-				color.g *= color.a;
-				color.b *= color.a;
-				//led board value spektrum is from 0 - 999.
-				//at r@w's led strip, 0 means fully lighted and 999 light off(_invertMask)
-				color.r = (fabs(_invertMask-color.r) * 999.0);
-				color.g = (fabs(_invertMask-color.g) * 999.0);
-				color.b = (fabs(_invertMask-color.b) * 999.0);
-
-				_ssOut.clear();
-				_ssOut.str("");
-				_ssOut << (int)color.r << " " << (int)color.g << " " << (int)color.b << "\n\r";
-
-#ifndef __SIM__
-				_serialCom.sendData(_ssOut.str());
-#endif
-
+				if(p_modeExecutor->getExecutingPriority() <= _topic_priority)
+				{
+					p_modeExecutor->stop();
+					_color.r = color.r;
+					_color.g = color.g;
+					_color.b = color.b;
+					_color.a = color.a;
+					p_colorO->setColor(_color);
+				}
 			}
 			else
-				ROS_ERROR("Unsupported Color format. rgba values range is 0.0 - 1.0");
+				ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
 		}
-		
-	private:
-		SerialCom _serialCom;
 
-		std::string _deviceString;
-		int _baudrate;
-		int _invertMask;
-		bool _bPubMarker;
+		bool modeCallback(cob_light::SetLightMode::Request &req, cob_light::SetLightMode::Response &res)
+		{
+			bool ret = false;
 
-		std::stringstream _ssOut;
+			if(req.mode.color.r > 1.0 || req.mode.color.g > 1.0 || req.mode.color.b > 1.0 || req.mode.color.a > 1.0)
+			{
+				res.active_mode = p_modeExecutor->getExecutingMode();
+				res.active_priority = p_modeExecutor->getExecutingPriority();
+				ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
+			}
+			else if(req.mode.mode == cob_light::LightMode::NONE)
+			{
+				p_modeExecutor->stop();
+				_color.a = 0;
+				p_colorO->setColor(_color);
+				res.active_mode = p_modeExecutor->getExecutingMode();
+				res.active_priority = p_modeExecutor->getExecutingPriority();
+				ret = true;
+			}
+			else
+			{
+				p_modeExecutor->execute(req.mode);
+				res.active_mode = p_modeExecutor->getExecutingMode();
+				res.active_priority = p_modeExecutor->getExecutingPriority();
+				ret = true;
+			}
+			
+			return ret;
+		}
 
-		ros::NodeHandle _nh;
-		ros::Publisher _pubMarker;
-		ros::Subscriber _sub;
-		ros::Timer _timerMarker;
+		void actionCallback(const cob_light::SetLightModeGoalConstPtr &goal)
+		{
+			cob_light::SetLightModeResult result;
+			if(goal->mode.color.r > 1.0 || goal->mode.color.g > 1.0 || goal->mode.color.b > 1.0 || goal->mode.color.a > 1.0)
+			{
+				result.active_mode = p_modeExecutor->getExecutingMode();
+				result.active_priority = p_modeExecutor->getExecutingPriority();
+				_as->setAborted(result, "Unsupported Color format. rgba values range is between 0.0 - 1.0");
+				
+				ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
+			}
+			else if(goal->mode.mode == cob_light::LightMode::NONE)
+			{
+				p_modeExecutor->stop();
+				_color.a = 0;
+				p_colorO->setColor(_color);
 
-		std_msgs::ColorRGBA _color;
-		
-		// creates and publishes an visualization marker 
-		void markerCallback(const ros::TimerEvent &event)
+				result.active_mode = p_modeExecutor->getExecutingMode();
+				result.active_priority = p_modeExecutor->getExecutingPriority();
+				_as->setSucceeded(result, "Mode switched");
+			}
+			else
+			{
+				p_modeExecutor->execute(goal->mode);
+				result.active_mode = p_modeExecutor->getExecutingMode();
+				result.active_priority = p_modeExecutor->getExecutingPriority();
+				_as->setSucceeded(result, "Mode switched");
+			}
+		}
+
+		void markerCallback(color::rgba color)
 		{
 			visualization_msgs::Marker marker;
 			marker.header.frame_id = "/base_link";
@@ -306,12 +258,34 @@ class LightControl
 			marker.scale.x = 0.1;
 			marker.scale.y = 0.1;
 			marker.scale.z = 0.1;
-			marker.color.a = _color.a;
-			marker.color.r = _color.r;
-			marker.color.g = _color.g;
-			marker.color.b = _color.b;
+			marker.color.a = color.a;
+			marker.color.r = color.r;
+			marker.color.g = color.g;
+			marker.color.b = color.b;
 			_pubMarker.publish(marker);
 		}
+		
+	private:
+		std::string _deviceString;
+		int _baudrate;
+		int _invertMask;
+		bool _bPubMarker;
+
+		int _topic_priority;
+
+		ros::NodeHandle _nh;
+		ros::Subscriber _sub;
+		ros::Publisher _pubMarker;
+		ros::ServiceServer _srvServer;
+
+		typedef actionlib::SimpleActionServer<cob_light::SetLightModeAction> ActionServer;
+		ActionServer *_as;
+
+		color::rgba _color;
+		
+		IColorO* p_colorO;
+		SerialIO _serialIO;
+		ModeExecutor* p_modeExecutor;
 };
 
 int main(int argc, char** argv)

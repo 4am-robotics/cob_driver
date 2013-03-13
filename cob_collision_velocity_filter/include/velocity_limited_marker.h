@@ -95,6 +95,12 @@ public:
                     double vel_theta_desired,
                     double vel_theta_actual);
 
+    ///
+    /// @brief  Calculates the color for the marker
+    ////        based on the absolute difference of velocities.
+    ///
+    void interpolateColor(double velocity, std_msgs::ColorRGBA& color);
+
 protected:
     // Velocity limited markers
     visualization_msgs::Marker x_pos_marker_, x_neg_marker_, y_pos_marker_, y_neg_marker_;
