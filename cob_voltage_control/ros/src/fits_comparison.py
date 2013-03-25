@@ -120,6 +120,14 @@ def main(argv):
         fit_res = volt_values - z_fit
         pylab.plot(time_values, fit_res)
     
+    pylab.ylabel("Residuals(mV)")
+    pylab.xlabel("Time elapsed(seconds)")
+    pylab.title("Residuals x Time,file="+ filename.replace('.csv',''))
+    
+    
+    pylab.legend(('1','1','1','1','1','1','1','1','1'))
+    
+    pylab.grid()
     pylab.savefig("fits_"+ filename.replace('.csv',''), format="pdf")
     pylab.show()
 

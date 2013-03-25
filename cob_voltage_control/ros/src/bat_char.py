@@ -139,9 +139,9 @@ def main(argv):
     
     pylab.plot(xp, p1(xp), 'r-', xp, p2(xp), 'g-', xp, p3(xp), 'm-')
 
-    pylab.text(5000, 49000, 'p1=' + p1.__str__(), bbox=dict(facecolor='red', alpha=0.5))
-    pylab.text(5000, 48000, 'p2=' + p2.__str__(), bbox=dict(facecolor='green', alpha=0.5))
-    pylab.text(5000, 47000, 'p3=' + p3.__str__(), bbox=dict(facecolor='magenta', alpha=0.5))
+    pylab.text(5000, 47000, 'p1=' + p1.__str__(), bbox=dict(facecolor='red', alpha=0.5))
+    pylab.text(5000, 46000, 'p2=' + p2.__str__(), bbox=dict(facecolor='green', alpha=0.5))
+    pylab.text(5000, 45000, 'p3=' + p3.__str__(), bbox=dict(facecolor='magenta', alpha=0.5))
     
     pylab.savefig(filename.replace('.csv',''), format="pdf")
     #pylab.show()
