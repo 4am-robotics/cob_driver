@@ -294,11 +294,12 @@ def main(argv):
     
     poly_vals = np.polyval([4.202e-8,-0.005494,241.7,-3.579e6], values_filt)
     
-    theta = -0.04 #-0.07
+    theta = -0.07
     new_x = values_filt*cos(theta) - poly_vals*sin(theta)
     new_y = values_filt*sin(theta) + poly_vals*cos(theta)
     
-    new_y= new_y + 3200 #4000
+    off_y = 4000
+    new_y= new_y + off_y
     
     pylab.plot(values_filt, poly_vals, values_filt, time_values, new_x, new_y)
 

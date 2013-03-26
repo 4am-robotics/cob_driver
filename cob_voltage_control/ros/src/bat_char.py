@@ -63,12 +63,20 @@ import pylab
 import sys
 import getopt
 
+import savitzky
+
 import numpy as np
+
+from numpy import *
+from math import *
+from scipy import *
 
 def main(argv):
 
     volt_values=[]
     time_values=[]
+    
+    sg = savitzky.savitzky_golay(window_size=901, order=3)
 
 ####################
 # Parameters for the Python script
@@ -174,6 +182,100 @@ def main(argv):
     
     pylab.savefig(filename.replace('.csv','')+'_res', format="pdf")
     
+###################
+# Savitzky Golay Filter Applied to the Battery Voltage
+###################
+    
+    values_filt = sg.filter(voltArray)
+    
+    pylab.figure(3)
+    
+    pylab.subplot(211)
+    
+    pylab.plot(time_values, voltArray)
+    
+    pylab.grid(True)
+    pylab.title('Comparison between real and filtered data')
+    pylab.ylabel('Real Values(mV)')
+    
+    pylab.subplot(212)
+    
+    pylab.plot(time_values, values_filt)
+    
+    pylab.grid(True)
+    pylab.ylabel('Filtered Values(mV)')
+    pylab.xlabel('Time(s)')
+    
+#####    
+
+###################
+# Filtered fits
+###################
+    pylab.figure(4)
+
+    pylab.plot(time_values, values_filt)
+    pylab.ylabel("Voltage(mV)")
+    pylab.xlabel("Time elapsed(seconds)")
+    pylab.title("Volt x Time,file="+ filename.replace('.csv',''))
+    pylab.grid(True)
+    
+    secArray = np.asarray(time_values)
+    
+    # Polyfit for the voltage values
+    z1 = np.polyfit(secArray,values_filt,1)
+    z2 = np.polyfit(secArray,values_filt,2)
+    z3 = np.polyfit(secArray,values_filt,3)
+    
+    # Linear space for better visualization
+    xp = np.linspace(0, 12000, 100)
+    
+    # Generating the polynomial function from the fit
+    p1 = np.poly1d(z1)
+    p2 = np.poly1d(z2)
+    p3 = np.poly1d(z3)
+    
+    pylab.plot(xp, p1(xp), 'r-', xp, p2(xp), 'g-', xp, p3(xp), 'm-')
+
+    pylab.text(5000, 47000, 'p1=' + p1.__str__(), bbox=dict(facecolor='red', alpha=0.5))
+    pylab.text(5000, 46000, 'p2=' + p2.__str__(), bbox=dict(facecolor='green', alpha=0.5))
+    pylab.text(5000, 45000, 'p3=' + p3.__str__(), bbox=dict(facecolor='magenta', alpha=0.5))
+
+####################
+# Residuals Analysis for the filtered Signal
+####################
+
+    pylab.figure(5)
+    
+    pylab.ylabel("Residuals(mV)")
+    pylab.xlabel("Time elapsed(seconds)")
+    pylab.title("Residuals x Time,file="+ filename.replace('.csv',''))
+    
+    #Evaluating the polynomial through all the time values
+    z1_val = np.polyval(z1, time_values)
+    z2_val = np.polyval(z2, time_values)
+    z3_val = np.polyval(z3, time_values)
+    
+   # Getting the residuals from the fit functions compared to the real values
+    z1_res = values_filt - z1_val
+    z2_res = values_filt - z2_val
+    z3_res = values_filt - z3_val
+    
+    pylab.plot(time_values, z1_res, time_values, z2_res, time_values, z3_res)
+    
+    pylab.grid()
+    
+    pylab.legend(('Residuals 1st order', 'Residuals 2nd order', 'Residuals 3rd order'))
+    
+####################
+# Polynomial Evaluation for the filtered signal and the function from the non-moving case
+####################
+
+    pylab.figure(6)
+    
+    poly_vals = np.polyval([-1.55e-10,-5.709e-6,-0.1862,4.825e4], time_values)
+    
+    pylab.plot(time_values, poly_vals, time_values, values_filt)
+      
     pylab.show()
    
 if __name__=="__main__":
