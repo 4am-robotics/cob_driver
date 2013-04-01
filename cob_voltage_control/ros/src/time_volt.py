@@ -108,13 +108,11 @@ def main(argv):
         for row in csvreader:
             row = row[0].split(',')
             volt_v = (float)(row[1])
-            if(volt_v <= 48000):
+            if(volt_v < 48000 and volt_v > 44000):
                 time_values.append((float)(row[0]))
                 volt_values.append((float)(row[1]))
 
-    df = diff(time_values)
-    time_values = time_values[1:] + df
-    time_values = np.hstack((0, time_values))
+    time_values[:] = [x - time_values[0] for x in time_values]
     time_values = time_values[::-1]
     
 ####################
@@ -276,8 +274,13 @@ def main(argv):
 ####################
 
     pylab.figure(6)
-    
-    poly_vals = np.polyval([4.202e-8,-0.005494,241.7,-3.579e6], values_filt)
+
+    if(robot_name == "cob3-3"):
+        poly_vals = np.polyval([4.446e-8,-0.005834,257.5,-3.822e6], values_filt)
+    elif(robot_name == "cob3-5"):
+        poly_vals = np.polyval([-2.772e-8,0.004256,-212.2,3.459e6], values_filt)
+    else:
+        poly_vals = np.polyval([4.446e-8,-0.005834,257.5,-3.822e6], values_filt)
     
     pylab.plot(values_filt, poly_vals, values_filt, time_values)
 
@@ -291,22 +294,78 @@ def main(argv):
     pylab.xlabel("Voltage(mV)")
     pylab.title("Time x Volt,file="+ filename.replace('.csv',''))
     pylab.grid(True)
-    
-    poly_vals = np.polyval([4.202e-8,-0.005494,241.7,-3.579e6], values_filt)
-    
-    theta = -0.07
+
+    if(robot_name == "cob3-3"):
+        poly_vals = np.polyval([4.446e-8,-0.005834,257.5,-3.822e6], values_filt)
+    elif(robot_name == "cob3-5"):
+        poly_vals = np.polyval([-2.772e-8,0.004256,-212.2,3.459e6], values_filt)
+    else:
+        poly_vals = np.polyval([4.446e-8,-0.005834,257.5,-3.822e6], values_filt)
+
+    ss = lambda y1, y2: ((y1-y2)**2).sum()
+
+
+
+    #theta = -0.07
+    #new_x = values_filt*cos(theta) - poly_vals*sin(theta)
+    #new_y = values_filt*sin(theta) + poly_vals*cos(theta)
+
+    theta = -0.2
+    theta_values = []
+    cost_values = []
+    off_values = []
+
+    while theta < 0.2:
+        theta +=0.01
+        new_x = values_filt*cos(theta) - poly_vals*sin(theta)
+        new_y = values_filt*sin(theta) + poly_vals*cos(theta)
+
+
+        off_y = -6000
+
+        cost_values_i =[]
+        off_y_values_i=[]
+
+        while off_y < 6000:
+            off_y +=200
+            new_y_temp = new_y
+            new_y_temp = new_y_temp + off_y
+
+            ss1=ss(time_values,new_y_temp)
+            print ss1, off_y
+
+            cost_values_i.append(ss1)
+            off_y_values_i.append(off_y)
+
+        #ss1=ss(time_values,new_y)
+        #print ss1, theta
+        #cost_values.append(ss1)
+        theta_values.append(theta)
+        cost_min = min(cost_values_i)
+        cost_min_index = cost_values_i.index(cost_min)
+        cost_values.append(cost_values_i[cost_min_index])
+        off_values.append(off_y_values_i[cost_min_index])
+
+    cost_min = min(cost_values)
+    cost_min_index = cost_values.index(cost_min)
+
+    theta = theta_values[cost_min_index]
+    off_y = off_values[cost_min_index]
+
     new_x = values_filt*cos(theta) - poly_vals*sin(theta)
     new_y = values_filt*sin(theta) + poly_vals*cos(theta)
-    
-    off_y = 4000
-    new_y= new_y + off_y
-    
-    pylab.plot(values_filt, poly_vals, values_filt, time_values, new_x, new_y)
+
+    new_y = new_y + off_y
+
+    print theta, off_y
+
+    pylab.plot(values_filt, poly_vals, values_filt, time_values, values_filt, new_y)
 
     pylab.legend(('Poly not moving', 'Real', 'Shifted Fit'))
-    
-    
+
     pylab.show()
+
+
    
 if __name__=="__main__":
     main(sys.argv[1:])
