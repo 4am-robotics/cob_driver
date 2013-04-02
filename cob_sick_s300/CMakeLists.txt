@@ -34,6 +34,18 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/lib)
 # add include search paths
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
-rosbuild_add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp common/src/ScannerSickS300.cpp common/src/SerialIO.cpp)
+SET(OODL_SickS300_SRC
+  ${PROJECT_SOURCE_DIR}/common/src/Errors.cpp
+  ${PROJECT_SOURCE_DIR}/common/src/Logger.cpp
+ # ${PROJECT_SOURCE_DIR}/common/src/LaserScannerData.cpp
+  ${PROJECT_SOURCE_DIR}/common/src/LaserScannerConfiguration.cpp
+ # ${PROJECT_SOURCE_DIR}/common/src/LaserScannerDataWithIntensities.cpp
+  ${PROJECT_SOURCE_DIR}/common/src/SickS300.cpp
+  ${PROJECT_SOURCE_DIR}/common/src/ScannerSickS300.cpp
+  ${PROJECT_SOURCE_DIR}/common/src/SerialIO.cpp
+)
+
+rosbuild_add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp ${OODL_SickS300_SRC})
 rosbuild_add_executable(cob_scan_filter ros/src/cob_scan_filter.cpp)
 
+rosbuild_link_boost(${PROJECT_NAME} thread date_time)
