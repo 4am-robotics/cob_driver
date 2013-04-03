@@ -95,7 +95,7 @@ def main(argv):
     yaml_file = open("csv_processing.yaml", "w")
     yl = {}
     
-    if(mode=="consumer"):
+    if(mode=="update"):
         abcd = rosparam.get_param("/csv_proc/abcd")
     
     try:
@@ -239,7 +239,7 @@ def main(argv):
     z2 = np.polyfit(values_filt, secArray,2)
     z3 = np.polyfit(values_filt, secArray,3)
 
-    if (mode=="factory"):
+    if (mode=="without_moving"):
         z3_l = []
         
         for el in z3:
@@ -294,7 +294,7 @@ def main(argv):
 # Polynomial Evaluation for the filtered signal and the function from the non-moving case
 ####################
 
-    if(mode == "consumer"):
+    if(mode == "update"):
         pylab.figure(6)
 
         
