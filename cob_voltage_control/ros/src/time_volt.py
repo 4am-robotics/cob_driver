@@ -71,8 +71,15 @@ from numpy import *
 from math import *
 from scipy import *
 
-def main(argv):
+import roslib; roslib.load_manifest('cob_bringup')
+import rospy
+import rosparam
 
+import yaml
+
+def main(argv):
+    rospy.init_node('csv_proc')
+    
     volt_values=[]
     time_values=[]
     
@@ -82,8 +89,15 @@ def main(argv):
 # Parameters for the Python script
 ####################
 
-    filename = ''
-    robot_name = ''
+    filename = rosparam.get_param("/csv_proc/file_name")
+    robot_name = rosparam.get_param("/csv_proc/robot_name")
+    mode = rosparam.get_param("/csv_proc/mode")
+    yaml_file = open("csv_processing.yaml", "w")
+    yl = {}
+    
+    if(mode=="consumer"):
+        abcd = rosparam.get_param("/csv_proc/abcd")
+    
     try:
         opts, args = getopt.getopt(argv,"hf:r:",["ifile=", "irobot="])
     except getopt.GetoptError:
@@ -97,6 +111,7 @@ def main(argv):
             filename = arg
         elif opt in ("-r", "--irobot"):
             robot_name = arg
+            
 
 ####################
 # Opening the csv file and getting the values for time and voltage
@@ -134,11 +149,6 @@ def main(argv):
     z1 = np.polyfit(voltArray, secArray,1)
     z2 = np.polyfit(voltArray, secArray,2)
     z3 = np.polyfit(voltArray, secArray,3)
-  
-  
-    pickle.dump( z1, open( "fits_"+robot_name+".pkl", "a" ) )
-    pickle.dump( z2, open( "fits_"+robot_name+".pkl", "a" ) )
-    pickle.dump( z3, open( "fits_"+robot_name+".pkl", "a" ) )
     
     # Linear space for better visualization
     xp = np.linspace(49000, 43000, 100)
@@ -228,6 +238,17 @@ def main(argv):
     z1 = np.polyfit(values_filt, secArray,1)
     z2 = np.polyfit(values_filt, secArray,2)
     z3 = np.polyfit(values_filt, secArray,3)
+
+    if (mode=="factory"):
+        z3_l = []
+        
+        for el in z3:
+            z3_l.append((float)(el))
+            
+        abcd = z3_l    
+        yl["abcd"] = z3_l
+        yl["theta"] = 0.
+        yl["off_y"] = 0.  
     
     # Linear space for better visualization
     xp = np.linspace(49000, 43000, 100)
@@ -273,97 +294,94 @@ def main(argv):
 # Polynomial Evaluation for the filtered signal and the function from the non-moving case
 ####################
 
-    pylab.figure(6)
+    if(mode == "consumer"):
+        pylab.figure(6)
 
-    if(robot_name == "cob3-3"):
-        poly_vals = np.polyval([4.446e-8,-0.005834,257.5,-3.822e6], values_filt)
-    elif(robot_name == "cob3-5"):
-        poly_vals = np.polyval([-2.772e-8,0.004256,-212.2,3.459e6], values_filt)
-    else:
-        poly_vals = np.polyval([4.446e-8,-0.005834,257.5,-3.822e6], values_filt)
-    
-    pylab.plot(values_filt, poly_vals, values_filt, time_values)
+        
+        poly_vals = np.polyval(abcd, values_filt)
+       
+        
+        pylab.plot(values_filt, poly_vals, values_filt, time_values)
 
-    pylab.legend(('Polynomial', 'Real'))
-    
-    pylab.grid()
-    #####
-    pylab.figure(7)
-    
-    pylab.ylabel("Time available(seconds)")
-    pylab.xlabel("Voltage(mV)")
-    pylab.title("Time x Volt,file="+ filename.replace('.csv',''))
-    pylab.grid(True)
+        pylab.legend(('Polynomial', 'Real'))
+        
+        pylab.grid()
+        #####
+        pylab.figure(7)
+        
+        pylab.ylabel("Time available(seconds)")
+        pylab.xlabel("Voltage(mV)")
+        pylab.title("Time x Volt,file="+ filename.replace('.csv',''))
+        pylab.grid(True)
 
-    if(robot_name == "cob3-3"):
-        poly_vals = np.polyval([4.446e-8,-0.005834,257.5,-3.822e6], values_filt)
-    elif(robot_name == "cob3-5"):
-        poly_vals = np.polyval([-2.772e-8,0.004256,-212.2,3.459e6], values_filt)
-    else:
-        poly_vals = np.polyval([4.446e-8,-0.005834,257.5,-3.822e6], values_filt)
+        poly_vals = np.polyval(abcd, values_filt)
+        
+        ss = lambda y1, y2: ((y1-y2)**2).sum()
 
-    ss = lambda y1, y2: ((y1-y2)**2).sum()
+        #theta = -0.07
+        #new_x = values_filt*cos(theta) - poly_vals*sin(theta)
+        #new_y = values_filt*sin(theta) + poly_vals*cos(theta)
+
+        theta = -0.2
+        theta_values = []
+        cost_values = []
+        off_values = []
+
+        while theta < 0.2:
+            theta +=0.01
+            new_x = values_filt*cos(theta) - poly_vals*sin(theta)
+            new_y = values_filt*sin(theta) + poly_vals*cos(theta)
 
 
+            off_y = -6000
 
-    #theta = -0.07
-    #new_x = values_filt*cos(theta) - poly_vals*sin(theta)
-    #new_y = values_filt*sin(theta) + poly_vals*cos(theta)
+            cost_values_i =[]
+            off_y_values_i=[]
 
-    theta = -0.2
-    theta_values = []
-    cost_values = []
-    off_values = []
+            while off_y < 6000:
+                off_y +=200
+                new_y_temp = new_y
+                new_y_temp = new_y_temp + off_y
 
-    while theta < 0.2:
-        theta +=0.01
+                ss1=ss(time_values,new_y_temp)
+                print ss1, off_y
+
+                cost_values_i.append(ss1)
+                off_y_values_i.append(off_y)
+
+            #ss1=ss(time_values,new_y)
+            #print ss1, theta
+            #cost_values.append(ss1)
+            theta_values.append(theta)
+            cost_min = min(cost_values_i)
+            cost_min_index = cost_values_i.index(cost_min)
+            cost_values.append(cost_values_i[cost_min_index])
+            off_values.append(off_y_values_i[cost_min_index])
+
+        cost_min = min(cost_values)
+        cost_min_index = cost_values.index(cost_min)
+
+        theta = theta_values[cost_min_index]
+        off_y = off_values[cost_min_index]
+
         new_x = values_filt*cos(theta) - poly_vals*sin(theta)
         new_y = values_filt*sin(theta) + poly_vals*cos(theta)
 
+        new_y = new_y + off_y
+        
+        yl["abcd"] = abcd
+        yl["theta"] = theta
+        yl["off_y"] = off_y  
 
-        off_y = -6000
+        pylab.plot(poly_vals, values_filt, time_values, values_filt, new_y, values_filt)
 
-        cost_values_i =[]
-        off_y_values_i=[]
+        pylab.legend(('Poly not moving', 'Real', 'Shifted Fit'))
+    
+    yaml.safe_dump(yl, yaml_file,default_flow_style=False)
+    
+    yaml_file.close()
 
-        while off_y < 6000:
-            off_y +=200
-            new_y_temp = new_y
-            new_y_temp = new_y_temp + off_y
-
-            ss1=ss(time_values,new_y_temp)
-            print ss1, off_y
-
-            cost_values_i.append(ss1)
-            off_y_values_i.append(off_y)
-
-        #ss1=ss(time_values,new_y)
-        #print ss1, theta
-        #cost_values.append(ss1)
-        theta_values.append(theta)
-        cost_min = min(cost_values_i)
-        cost_min_index = cost_values_i.index(cost_min)
-        cost_values.append(cost_values_i[cost_min_index])
-        off_values.append(off_y_values_i[cost_min_index])
-
-    cost_min = min(cost_values)
-    cost_min_index = cost_values.index(cost_min)
-
-    theta = theta_values[cost_min_index]
-    off_y = off_values[cost_min_index]
-
-    new_x = values_filt*cos(theta) - poly_vals*sin(theta)
-    new_y = values_filt*sin(theta) + poly_vals*cos(theta)
-
-    new_y = new_y + off_y
-
-    print theta, off_y
-
-    pylab.plot(values_filt, poly_vals, values_filt, time_values, values_filt, new_y)
-
-    pylab.legend(('Poly not moving', 'Real', 'Shifted Fit'))
-
-    pylab.show()
+    #pylab.show()
 
 
    
