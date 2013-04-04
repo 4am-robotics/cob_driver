@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
+#include <diagnostic_msgs/DiagnosticArray.h>
 #include <std_msgs/String.h>
 #include <cob_srvs/Trigger.h>
 #include <cob_sound/SayAction.h>
@@ -19,6 +20,8 @@ protected:
   bool mute_;
 
 public:
+  diagnostic_msgs::DiagnosticArray diagnostics_;
+  ros::Publisher topicPub_Diagnostic_;
 
   SayAction(std::string name) :
     as_(nh_, name, boost::bind(&SayAction::as_cb, this, _1), false),
@@ -29,7 +32,9 @@ public:
     srvServer_mute_ = nh_.advertiseService("mute", &SayAction::service_cb_mute, this);
     srvServer_unmute_ = nh_.advertiseService("unmute", &SayAction::service_cb_unmute, this);
     sub_ = nh_.subscribe("/say", 1000, &SayAction::topic_cb, this);
+    topicPub_Diagnostic_ = nh_.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
     mute_ = false;
+    diagnostics_.header.stamp = ros::Time::now() - ros::Duration(30);
   }
 
   ~SayAction(void)
@@ -47,43 +52,42 @@ public:
     {
         as_.setAborted();
     }
-
   }
-  
-	bool service_cb(cob_sound::SayText::Request &req,
-					cob_sound::SayText::Response &res )
-	{
-		say(req.text);
-		return true;
-	}
-  
-    void topic_cb(const std_msgs::String::ConstPtr& msg)
-	{
-	  say(msg->data.c_str());
-	}
 
-	bool service_cb_mute(cob_srvs::Trigger::Request &req,
-					cob_srvs::Trigger::Response &res )
-	{
-        mute_ = true;
-        res.success.data = true;
-        return true;
-	}
+  bool service_cb(cob_sound::SayText::Request &req,
+                  cob_sound::SayText::Response &res )
+  {
+    say(req.text);
+    return true;
+  }
 
-	bool service_cb_unmute(cob_srvs::Trigger::Request &req,
-					cob_srvs::Trigger::Response &res )
-	{
-        mute_ = false;
-        res.success.data = true;
-        return true;
-	}
-  
+  void topic_cb(const std_msgs::String::ConstPtr& msg)
+  {
+    say(msg->data.c_str());
+  }
+
+  bool service_cb_mute(cob_srvs::Trigger::Request &req,
+                       cob_srvs::Trigger::Response &res )
+  {
+    mute_ = true;
+    res.success.data = true;
+    return true;
+  }
+
+  bool service_cb_unmute(cob_srvs::Trigger::Request &req,
+                         cob_srvs::Trigger::Response &res )
+  {
+    mute_ = false;
+    res.success.data = true;
+    return true;
+  }
+
   bool say(std::string text)
   {
     if (mute_)
     {
-        ROS_WARN("Sound is set to mute. You will hear nothing.");
-        return true;
+      ROS_WARN("Sound is set to mute. You will hear nothing.");
+      return true;
     }
 
     ROS_INFO("Saying: %s", text.c_str());
@@ -94,17 +98,28 @@ public:
     nh_.param<std::string>("/sound_controller/cepstral_settings",cepstral_conf,"\"speech/rate=170\"");
     if (mode == "cepstral")
     {
-    	command = "/opt/swift/bin/swift -p " + cepstral_conf + " " + text;
+      command = "/opt/swift/bin/swift -p " + cepstral_conf + " " + text;
     }
     else
     {
-  		command = "echo " + text + " | text2wave | aplay -q";
-  	}
+      command = "echo " + text + " | text2wave | aplay -q";
+    }
     if (system(command.c_str()) != 0)
     {
-    	ROS_ERROR("Could not play sound");
-    	return false;
+      ROS_ERROR("Could not play sound");
+      // publishing diagnotic error if output fails
+      diagnostic_msgs::DiagnosticStatus status;
+      status.level = 2;
+      status.name = "sound";
+      status.message = "command say failed to play sound using mode " + mode;
+      diagnostics_.status.push_back(status);
+      diagnostics_.header.stamp = ros::Time::now();
+      topicPub_Diagnostic_.publish(diagnostics_);
+      diagnostics_.status.resize(0);
+      return false;
     }
+
+    diagnostics_.header.stamp = ros::Time::now() - ros::Duration(30);
     return true;
   }
 
@@ -117,8 +132,29 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "cob_sound");
 
   SayAction say("say");
-  ros::spin();
 
+  // HACK: wait for publishers to be ready
+  ros::Duration(0.5).sleep();
+  
+  ros::Rate r(10);
+  while (ros::ok())
+  {
+    if (ros::Time::now() - say.diagnostics_.header.stamp >= ros::Duration(10))
+    {
+      // publishing diagnotic messages
+      diagnostic_msgs::DiagnosticStatus status;
+      status.level = 0;
+      status.name = "sound";
+      status.message = "sound controller running";
+      say.diagnostics_.status.push_back(status);
+      say.diagnostics_.header.stamp = ros::Time::now();
+      say.topicPub_Diagnostic_.publish(say.diagnostics_);
+      say.diagnostics_.status.resize(0);
+    }
+
+    ros::spinOnce();  
+    r.sleep();
+  }
   return 0;
 }
 
