@@ -61,6 +61,7 @@
 // ros includes
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
+#include <diagnostic_msgs/DiagnosticArray.h>
 
 // ros message includes
 #include <std_msgs/ColorRGBA.h>
@@ -80,10 +81,6 @@
 #include <colorO.h>
 #include <colorOSim.h>
 
-// define this if you like to turn off the light
-// when this node comes up
-#define TURN_OFF_LIGHT_ON_STARTUP
-
 class LightControl
 {
 	public:
@@ -95,6 +92,13 @@ class LightControl
 			std::string startup_mode;
 			p_colorO = NULL;
 			p_modeExecutor = NULL;
+
+			//diagnostics
+			_pubDiagnostic = _nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
+
+			diagnostic_msgs::DiagnosticStatus status;
+      		status.name = "light";
+      		
 
 			//Get Parameter from Parameter Server
 			_nh = ros::NodeHandle("~");
@@ -162,19 +166,32 @@ class LightControl
 					ROS_INFO("Serial connection on %s succeeded.", _deviceString.c_str());
 					p_colorO = new ColorO(&_serialIO);
 					p_colorO->setMask(_invertMask);
+
+					status.level = 0;
+					status.message = "light controller running";
 				}
 				else
 				{
 					ROS_ERROR("Serial connection on %s failed.", _deviceString.c_str());
 					ROS_INFO("Simulation Mode Enabled");
 					p_colorO = new ColorOSim(&_nh);
+
+					status.level = 2;
+					status.message = "Serial connection failed. Running in simulation mode";
 				}
 			}
 			else
 			{
 				ROS_INFO("Simulation Mode Enabled");
 				p_colorO = new ColorOSim(&_nh);
+				status.level = 0;
+				status.message = "light controller running in simulation";
 			}
+     		
+      		_diagnostics.status.push_back(status);
+      		_diagnostics.header.stamp = ros::Time::now();
+      		_pubDiagnostic.publish(_diagnostics);
+      		_diagnostics.status.resize(0);
 
 			if(_bPubMarker)
 				p_colorO->signalColorSet()->connect(boost::bind(&LightControl::markerCallback, this, _1));
@@ -318,6 +335,9 @@ class LightControl
 		ros::Subscriber _sub;
 		ros::Publisher _pubMarker;
 		ros::ServiceServer _srvServer;
+
+		diagnostic_msgs::DiagnosticArray _diagnostics;
+  		ros::Publisher _pubDiagnostic;
 
 		typedef actionlib::SimpleActionServer<cob_light::SetLightModeAction> ActionServer;
 		ActionServer *_as;
