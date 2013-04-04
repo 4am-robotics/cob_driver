@@ -91,6 +91,8 @@ class LightControl
 		 _invertMask(0), _topic_priority(0)
 		{
 			bool invert_output;
+			XmlRpc::XmlRpcValue param_list;
+			std::string startup_mode;
 			p_colorO = NULL;
 			p_modeExecutor = NULL;
 
@@ -116,6 +118,27 @@ class LightControl
 			if(!_nh.hasParam("sim_enabled"))
 				ROS_WARN("Parameter 'sim_enabled' is missing. Using default Value: false");
 			_nh.param<bool>("sim_enabled", _bSimEnabled, false);
+
+			if(!_nh.hasParam("startup_color"))
+			{
+				ROS_WARN("Parameter 'startup_color' is missing. Using default Value: off");
+				_color.r=0;_color.g=0;_color.b=0;_color.a=0;
+			}
+			else
+			{
+				_nh.getParam("startup_color", param_list);
+				ROS_ASSERT(param_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
+				ROS_ASSERT(param_list.size() == 4);
+
+				_color.r = static_cast<double>(param_list[0]);
+				_color.g = static_cast<double>(param_list[1]);
+				_color.b = static_cast<double>(param_list[2]);
+				_color.a = static_cast<double>(param_list[3]);
+			}
+
+			if(!_nh.hasParam("startup_mode"))
+				ROS_WARN("Parameter 'startup_mode' is missing. Using default Value: None");
+			_nh.param<std::string>("startup_mode", startup_mode, "None");
 
 			//Subscribe to LightController Command Topic
 			_sub = _nh.subscribe("command", 1, &LightControl::commandCallback, this);
@@ -155,15 +178,14 @@ class LightControl
 
 			if(_bPubMarker)
 				p_colorO->signalColorSet()->connect(boost::bind(&LightControl::markerCallback, this, _1));
-				
-			//initial turn off leds
-			#ifdef TURN_OFF_LIGHT_ON_STARTUP
-				_color.a=0;
-				p_colorO->setColor(_color);
-			#endif
-
 
 			p_modeExecutor = new ModeExecutor(p_colorO);
+
+			Mode * mode = ModeFactory::create(startup_mode, _color);
+			if(mode == NULL)
+				p_colorO->setColor(_color);
+			else
+				p_modeExecutor->execute(mode);
 		}
 
 		~LightControl()

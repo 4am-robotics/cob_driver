@@ -110,6 +110,40 @@ Mode* ModeFactory::create(cob_light::LightMode requestMode)
 	return mode;
 }
 
+Mode* ModeFactory::create(std::string requestMode, color::rgba color)
+{
+	Mode* mode = NULL;
+
+	if(requestMode == "Static" || requestMode == "static" || requestMode == "STATIC")
+	{
+			mode = new StaticMode(color);
+	}
+	else if(requestMode == "Flash" || requestMode == "flash" || requestMode == "FLASH")
+	{
+			mode = new FlashMode(color);
+	}
+	else if(requestMode == "Breath" || requestMode == "breath" || requestMode == "BREATH")
+	{
+			mode = new BreathMode(color);
+	}
+	else if(requestMode == "BreathColor" || requestMode == "BreathColor" || requestMode == "BreathColor" ||
+		requestMode == "Breath_Color" || requestMode == "breath_color" || requestMode == "BREATH_COLOR")
+	{
+			mode = new BreathColorMode(color);
+	}
+	else if(requestMode == "FadeColor" || requestMode == "fadecolor" || requestMode == "FADECOLOR" ||
+		requestMode == "Fade_Color" || requestMode == "fade_color" || requestMode == "FADE_COLOR")
+	{
+			mode = new FadeColorMode(color);
+	}
+	else
+	{
+		mode = NULL;
+	}
+
+	return mode;
+}
+
 int ModeFactory::type(Mode *mode)
 {
 	int ret;
