@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ros:Package xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ros="http://ros/1.0" name="cob_voltage_control" author="Alexander Bubeck" description="Interface to IO board that manages emergency stop and battery voltage on rob@work 3">
+  <node name="cob_voltage_control">
+    <publisher name="pub_em_stop_state_"/>
+    <publisher name="pub_powerstate_"/>
+    <publisher name="pub_relayboard_state_"/>
+    <parameter name="scanner_em_input" value="0" type="int"/>
+    <parameter name="voltage_level_input" value="0" type="int"/>
+    <parameter name="global_em_input" value="1" type="int"/>
+  </node>
+</ros:Package>

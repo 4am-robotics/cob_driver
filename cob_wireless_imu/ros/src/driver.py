@@ -118,7 +118,7 @@ def driver():
 			data.angular_velocity.y = y
 			data.angular_velocity.z = z
 		elif msgid==5:
-			print orientation
+			#print orientation
 			data.orientation.x, data.orientation.y, data.orientation.z, data.orientation.w = orientation
         	i+=4
 	data.header.stamp = rospy.Time.now()

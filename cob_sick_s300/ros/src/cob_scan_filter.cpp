@@ -160,13 +160,13 @@ bool compareIntervals(std::vector<double> a, std::vector<double> b) {
 }
 
 std::vector<std::vector<double> > NodeClass::loadScanRanges() {
-	std::string scan_intervals_param;
+	std::string scan_intervals_param = "scan_intervals";
 	std::vector<std::vector<double> > vd_interval_set;
 	std::vector<double> vd_interval;
 
 	//grab the range-list from the parameter server if possible
 	XmlRpc::XmlRpcValue intervals_list;
-	if(nh.searchParam("scan_intervals", scan_intervals_param)){
+	if(nh.hasParam(scan_intervals_param)){
 		nh.getParam(scan_intervals_param, intervals_list);
 		//make sure we have a list of lists
 		if(!(intervals_list.getType() == XmlRpc::XmlRpcValue::TypeArray)){
