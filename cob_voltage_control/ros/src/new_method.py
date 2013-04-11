@@ -54,6 +54,9 @@ class volts_filter():
         self.t_est = vfilt[self.wsize]*sin(self.theta) + self.t_est*cos(self.theta)
 
         self.t_est = self.t_est + self.off_y
+        
+        if(self.t_est <0):
+            self.t_est = 0
 
         rospy.loginfo(self.t_est/3600)
         
