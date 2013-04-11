@@ -75,7 +75,8 @@ namespace cob_cam3d_throttle
 typedef sensor_msgs::PointCloud2 tPointCloud;
 typedef sensor_msgs::Image tImage;
 typedef sensor_msgs::CameraInfo tCameraInfo;
-typedef message_filters::sync_policies::ApproximateTime<tPointCloud, tImage, tCameraInfo, tImage, tPointCloud> tSyncPolicy;
+//typedef message_filters::sync_policies::ApproximateTime<tPointCloud, tImage, tCameraInfo, tImage, tPointCloud> tSyncPolicy;
+typedef message_filters::sync_policies::ApproximateTime<tPointCloud, tImage, tCameraInfo> tSyncPolicy;
 
 class Cam3DThrottle : public nodelet::Nodelet
 {
@@ -84,7 +85,7 @@ public:
   Cam3DThrottle() :
     max_update_rate_(0),
     sub_counter_(0),
-    sync_(tSyncPolicy(5))
+    sync_(tSyncPolicy(3))
   {
   };
 
@@ -102,11 +103,14 @@ private:
     depth_image_pub_ = nh_.advertise<tImage>("depth_image_out", 1, boost::bind(&Cam3DThrottle::connectCB, this, _1), boost::bind(&Cam3DThrottle::disconnectCB, this, _1));
     cloud_pub_ = nh_.advertise<tPointCloud>("cloud_out", 1, boost::bind(&Cam3DThrottle::connectCB, this, _1), boost::bind(&Cam3DThrottle::disconnectCB, this, _1));
 
-    sync_.connectInput(rgb_cloud_sub_, rgb_image_sub_, rgb_caminfo_sub_, depth_image_sub_, cloud_sub_);
-    sync_.registerCallback(boost::bind(&Cam3DThrottle::callback, this, _1, _2, _3, _4, _5));
+    last_update_ = ros::Time::now();
+    //sync_.connectInput(rgb_cloud_sub_, rgb_image_sub_, rgb_caminfo_sub_, depth_image_sub_, cloud_sub_);
+    //sync_.registerCallback(boost::bind(&Cam3DThrottle::callback, this, _1, _2, _3, _4, _5));
+    sync_.connectInput(rgb_cloud_sub_, rgb_image_sub_, rgb_caminfo_sub_);
+    sync_.registerCallback(boost::bind(&Cam3DThrottle::callback, this, _1, _2, _3));
   };
 
-  void callback(const tPointCloud::ConstPtr& rgb_cloud,
+/*  void callback(const tPointCloud::ConstPtr& rgb_cloud,
                 const tImage::ConstPtr& rgb_image,
                 const tCameraInfo::ConstPtr& rgb_caminfo,
                 const tImage::ConstPtr& depth_image,
@@ -130,19 +134,48 @@ private:
     rgb_caminfo_pub_.publish(rgb_caminfo);
     depth_image_pub_.publish(depth_image);
     cloud_pub_.publish(cloud);
+  }*/
+  
+  void callback(const tPointCloud::ConstPtr& rgb_cloud,
+                const tImage::ConstPtr& rgb_image,
+                const tCameraInfo::ConstPtr& rgb_caminfo
+                )
+  {
+    
+    if (max_update_rate_ > 0.0)
+    {
+      NODELET_DEBUG("update set to %f", max_update_rate_);
+      //std::cout << "update rate: " << max_update_rate_ << std::endl;
+      if ( last_update_ + ros::Duration(1.0/max_update_rate_) > ros::Time::now())
+      {
+      	//std::cout << "last_update[s] " << last_update_.toSec() << std::endl;
+        NODELET_DEBUG("throttle last update at %f skipping", last_update_.toSec());
+        return;
+      }
+    }
+    else
+    {
+      NODELET_DEBUG("update_rate unset continuing");
+    }
+    //std::cout << "publishing" << std::endl;
+    last_update_ = ros::Time::now();
+    rgb_cloud_pub_.publish(rgb_cloud);
+    rgb_image_pub_.publish(rgb_image);
+    rgb_caminfo_pub_.publish(rgb_caminfo);
   }
 
   void connectCB(const ros::SingleSubscriberPublisher& pub)
   {
     sub_counter_++;
+    //std::cout << "connectCB: "<<  sub_counter_ << std::endl;
     if(sub_counter_ == 1)
     {
       ROS_DEBUG("connecting");
       rgb_cloud_sub_.subscribe(nh_, "rgb_cloud_in", 1);
       rgb_image_sub_.subscribe(nh_, "rgb_image_in", 1);
       rgb_caminfo_sub_.subscribe(nh_, "rgb_caminfo_in", 1);
-      depth_image_sub_.subscribe(nh_, "depth_image_in", 1);
-      cloud_sub_.subscribe(nh_, "cloud_in", 1);
+//      depth_image_sub_.subscribe(nh_, "depth_image_in", 1);
+//      cloud_sub_.subscribe(nh_, "cloud_in", 1);
     }
   }
 
@@ -155,8 +188,8 @@ private:
       rgb_cloud_sub_.unsubscribe();
       rgb_image_sub_.unsubscribe();
       rgb_caminfo_sub_.unsubscribe();
-      depth_image_sub_.unsubscribe();
-      cloud_sub_.unsubscribe();
+//      depth_image_sub_.unsubscribe();
+//      cloud_sub_.unsubscribe();
     }
   }
 
