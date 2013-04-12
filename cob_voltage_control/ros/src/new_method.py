@@ -62,8 +62,8 @@ class volts_filter():
         
         self.msg_power.header.stamp = rospy.Time.now()
         self.msg_power.time_remaining.secs = self.t_est
-        self.msg_power.prediction_method = 'thiago_test'
-        self.msg_power.relative_capacity = (self.t_est/13500) * 100
+        self.msg_power.prediction_method = '3rd_order_polynom'
+        self.msg_power.relative_capacity = (self.t_est/11748) * 100
         
         rospy.loginfo(self.volt_filt)
         
