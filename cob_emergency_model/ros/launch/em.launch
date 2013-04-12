@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="robot" default="cob3-3"/>
+
+	<node name="em_model" pkg="cob_emergency_model" type="emergency_model.py" output="screen">
+		<rosparam file="$(find cob_emergency_model)/ros/config/points.yaml" command="load" />
+	</node>
+
+</launch>
