@@ -69,41 +69,39 @@ ModeExecutor::~ModeExecutor()
 
 void ModeExecutor::execute(cob_light::LightMode requestedMode)
 {
+	Mode* mode = ModeFactory::create(requestedMode);
+	// check if mode was correctly created
+	if(mode != NULL)
+		execute(mode);
+}
+
+void ModeExecutor::execute(Mode* mode)
+{
 	// check if a mode is already executed
 	if(_activeMode != NULL)
 	{
 		// check if priority from requested mode is higher or the same
-		if(_activeMode->getPriority() <= requestedMode.priority)
+		if(_activeMode->getPriority() <= mode->getPriority())
 		{
-			Mode* mode = _modeFactory.create(requestedMode);
-			// check if mode was correctly created
-			if(mode != NULL)
-			{
-				stop();
-				_activeMode = mode;
-				_activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1));
-				_thread_ptr.reset(new boost::thread(boost::lambda::bind(&ModeExecutor::run, this)));
-				ROS_INFO("Executing new mode: %s",_activeMode->getName().c_str() );
-				ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %i pulses: %i ",
-					requestedMode.mode, requestedMode.priority, requestedMode.frequency, requestedMode.timeout, requestedMode.pulses);
-			}
+			stop();
+			_activeMode = mode;
+			_activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1));
+			_thread_ptr.reset(new boost::thread(boost::lambda::bind(&ModeExecutor::run, this)));
+			ROS_INFO("Executing new mode: %s",_activeMode->getName().c_str() );
+			ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %i pulses: %i ",
+				ModeFactory::type(mode), mode->getPriority(), mode->getFrequency(), mode->getTimeout(), mode->getPulses());
 		}
 		else
 			ROS_DEBUG("Mode with higher priority is allready executing");
 	}
 	else
 	{
-		Mode* mode = _modeFactory.create(requestedMode);
-		// check if mode was correctly created
-		if(mode != NULL)
-		{
-			_activeMode = mode;
-			_activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1));
-			_thread_ptr.reset(new boost::thread(boost::lambda::bind(&ModeExecutor::run, this)));
-			ROS_INFO("Executing new mode: %s",_activeMode->getName().c_str() );
-			ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %i pulses: %i ",
-					requestedMode.mode, requestedMode.priority, requestedMode.frequency, requestedMode.timeout, requestedMode.pulses);
-		}
+		_activeMode = mode;
+		_activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1));
+		_thread_ptr.reset(new boost::thread(boost::lambda::bind(&ModeExecutor::run, this)));
+		ROS_INFO("Executing new mode: %s",_activeMode->getName().c_str() );
+		ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %i pulses: %i ",
+				ModeFactory::type(mode), mode->getPriority(), mode->getFrequency(), mode->getTimeout(), mode->getPulses());
 	}
 
 }
@@ -161,7 +159,7 @@ bool ModeExecutor::isStopRequested()
 
 int ModeExecutor::getExecutingMode()
 {
-	return _modeFactory.type(_activeMode);
+	return ModeFactory::type(_activeMode);
 }
 
 int ModeExecutor::getExecutingPriority()
