@@ -239,7 +239,7 @@ def main(argv):
     z2 = np.polyfit(values_filt, secArray,2)
     z3 = np.polyfit(values_filt, secArray,3)
 
-    if (mode=="without_moving"):
+    if (mode=="initial"):
         z3_l = []
         
         for el in z3:
