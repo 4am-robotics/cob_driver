@@ -1,9 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-
-    <arg name="robot" default="cob3-3"/>
-    <arg name="file" default="cob3-3.csv"/>
-
 	<node name="record_voltage" pkg="cob_relayboard" type="record_voltage.py" output="screen">
 		<param name="robot" value="$(arg robot)" />
 		<param name="filename" value="$(arg file)" />
