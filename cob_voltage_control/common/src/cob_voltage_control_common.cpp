@@ -110,8 +110,10 @@ public:
     	//Check for EM Stop
     	int em_stop_State = -1;
     	int scanner_stop_State = -1;
-    	CPhidgetInterfaceKit_getInputState ((CPhidgetInterfaceKitHandle)IFK, config.num_em_stop_port, &em_stop_State);
-    	CPhidgetInterfaceKit_getInputState ((CPhidgetInterfaceKitHandle)IFK, config.num_scanner_em_port, &scanner_stop_State);
+      //CPhidgetInterfaceKit_getInputState ((CPhidgetInterfaceKitHandle)IFK, config.num_em_stop_port, &em_stop_State);
+    	CPhidgetInterfaceKit_getInputState ((CPhidgetInterfaceKitHandle)IFK, 1, &em_stop_State);
+    	//CPhidgetInterfaceKit_getInputState ((CPhidgetInterfaceKitHandle)IFK, config.num_scanner_em_port, &scanner_stop_State);
+    	CPhidgetInterfaceKit_getInputState ((CPhidgetInterfaceKitHandle)IFK, 1, &scanner_stop_State);
     	ROS_DEBUG("DIO: %d %d", em_stop_State, scanner_stop_State);
     	
 	data.out_pub_em_stop_state_.header.stamp = ros::Time::now();
@@ -122,8 +124,11 @@ public:
 		//for cob the wireless stop field is misused as laser stop field
 		data.out_pub_relayboard_state.emergency_state = 2;
 		if(scanner_stop_State == 1)
+    {
                 	data.out_pub_em_stop_state_.wireless_stop = true;
-        	else
+		    data.out_pub_relayboard_state.emergency_state = 0;
+    }
+        else
 		  {
                 	data.out_pub_em_stop_state_.wireless_stop = false;
 			data.out_pub_relayboard_state.emergency_state = 1;
