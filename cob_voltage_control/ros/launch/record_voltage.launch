@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+	<node name="record_voltage" pkg="cob_relayboard" type="record_voltage.py" output="screen">
+		<param name="robot" value="$(arg robot)" />
+		<param name="filename" value="$(arg file)" />
+	</node>
+
+</launch>

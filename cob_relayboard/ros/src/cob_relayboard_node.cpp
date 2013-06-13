@@ -240,7 +240,7 @@ int NodeClass::requestBoardStatus() {
 
 void NodeClass::sendBatteryVoltage()
 {
-  ROS_DEBUG("Current Battery Voltage: %f", (m_SerRelayBoard->getBatteryVoltage()/1000.0) + voltage_offset_);
+  /*ROS_DEBUG("Current Battery Voltage: %f", (m_SerRelayBoard->getBatteryVoltage()/1000.0) + voltage_offset_);
   double percentage = ((m_SerRelayBoard->getBatteryVoltage()/1000.0) + voltage_offset_ - voltage_min_) * 100/(voltage_max_ - voltage_min_);
   //Not supported by relayboard
   //ROS_INFO("Current Charge current: %d", m_SerRelayBoard->getChargeCurrent());
@@ -251,7 +251,7 @@ void NodeClass::sendBatteryVoltage()
   ps.time_remaining = ros::Duration(1000); //TODO: Needs to be calculated based on battery type (plumb or lithion-ion), maybe specify charging characteristics in table in .yaml file
   ps.relative_capacity = percentage; // TODO: Needs to be calculated based on battery type (plumb or lithion-ion), maybe specify charging characteristics in table in .yaml file
   topicPub_PowerState.publish(ps);
-
+*/
   std_msgs::Float64 voltage;
   // std::cout << m_SerRelayBoard->getBatteryVoltage() << std::endl;
   voltage.data = m_SerRelayBoard->getBatteryVoltage();

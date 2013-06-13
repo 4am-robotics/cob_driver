@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="mode" default="update"/>
+
+	<node name="csv_proc" pkg="cob_voltage_control" type="time_volt.py" output="screen">
+		<rosparam file="$(find cob_voltage_control)/ros/config/csv_processing.yaml" command="load" />
+		<param name="robot_name" value="$(arg robot)" />
+		<param name="file_name" value="$(arg file)" />
+		<param name="mode" value="$(arg mode)" />
+	</node>
+
+</launch>
