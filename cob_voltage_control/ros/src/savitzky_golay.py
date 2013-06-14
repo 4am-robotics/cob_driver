@@ -73,9 +73,10 @@ class volts_filter():
         self.volts = 0.
         self.wsize = 61
         self.filter_order = 3
-        self.theta = rospy.get_param("/volts_filt/theta")
-        self.off_y = rospy.get_param("/volts_filt/off_y")
-        self.abcd = rospy.get_param("/volts_filt/abcd")
+        self.theta = rospy.get_param("~theta")
+        self.off_y = rospy.get_param("~off_y")
+        self.abcd = rospy.get_param("~abcd")
+        self.maximum_time = rospy.get_param("~maximum_time")
         self.sg = savitzky.savitzky_golay(window_size=self.wsize, order=self.filter_order)
         size = 2*self.wsize+1
         self.volt_filt = 48000*np.ones(size)
@@ -118,7 +119,7 @@ class volts_filter():
         self.msg_power.header.stamp = rospy.Time.now()
         self.msg_power.time_remaining.secs = self.t_est
         self.msg_power.prediction_method = '3rd_order_polynom'
-        self.msg_power.relative_capacity = (self.t_est/11748) * 100
+        self.msg_power.relative_capacity = (self.t_est/self.maximum_time) * 100
         
         self.pub_power.publish(self.msg_power)
             

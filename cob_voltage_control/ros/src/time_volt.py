@@ -92,7 +92,7 @@ def main(argv):
     filename = rosparam.get_param("/csv_proc/file_name")
     robot_name = rosparam.get_param("/csv_proc/robot_name")
     mode = rosparam.get_param("/csv_proc/mode")
-    yaml_file = open("csv_processing.yaml", "w")
+    yaml_file = open("voltage_filter.yaml", "w")
     yl = {}
     
     if(mode=="update"):
@@ -371,7 +371,8 @@ def main(argv):
         
         yl["abcd"] = abcd
         yl["theta"] = theta
-        yl["off_y"] = off_y  
+        yl["off_y"] = off_y
+        yl["maximum_time"] = (float)(new_y[0])
 
         pylab.plot(poly_vals, values_filt, time_values, values_filt, new_y, values_filt)
 
@@ -381,7 +382,7 @@ def main(argv):
     
     yaml_file.close()
 
-    #pylab.show()
+    pylab.show()
 
 
    
