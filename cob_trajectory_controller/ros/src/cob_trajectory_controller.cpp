@@ -101,12 +101,14 @@ private:
     bool executing_;
     bool failure_;
     bool rejected_;
+  bool preemted_;
     int DOF;
     double velocity_timeout_;
 
   	int watchdog_counter;
     genericArmCtrl* traj_generator_;
     trajectory_msgs::JointTrajectory traj_;
+    trajectory_msgs::JointTrajectory traj_2_;
     std::vector<double> q_current, startposition_, joint_distance_;
 
 public:
@@ -134,11 +136,13 @@ public:
         executing_ = false;
         failure_ = false;
         rejected_ = false;
+	preemted_ = false;
 		watchdog_counter = 0;
 		current_operation_mode_ = "undefined";
 		double PTPvel = 0.7;
 		double PTPacc = 0.2;
 		double maxError = 0.7;
+		double overlap_time = 0.4;
         velocity_timeout_ = 2.0;
 		DOF = 7;
 		// get JointNames from parameter server
@@ -169,9 +173,14 @@ public:
 		{
 			n_.getParam("max_error", maxError);
 		}
+		if (n_.hasParam("overlap_time"))
+		  {
+		    n_.getParam("overlap_time", overlap_time);
+		  }
 		q_current.resize(DOF);
 		ROS_INFO("starting controller with DOF: %d PTPvel: %f PTPAcc: %f maxError %f", DOF, PTPvel, PTPacc, maxError);
 		traj_generator_ = new genericArmCtrl(DOF, PTPvel, PTPacc, maxError);
+		traj_generator_->overlap_time = overlap_time;
 	}
 
   double getFrequency()
@@ -232,7 +241,7 @@ public:
 
   void spawnTrajector(trajectory_msgs::JointTrajectory trajectory)
   {
-    if(!executing_)
+    if(!executing_ || preemted_)
         {
            //set component to velocity mode
           cob_srvs::SetOperationMode opmode;
@@ -250,41 +259,114 @@ public:
                return;
 				}  
             }
-            traj_ = trajectory;
-            if(traj_.points.size() == 1)
-            {
-                traj_generator_->moveThetas(traj_.points[0].positions, q_current);
-            }
-            else
-            {
-                //Insert the current point as first point of trajectory, then generate SPLINE trajectory
-                trajectory_msgs::JointTrajectoryPoint p;
-                p.positions.resize(DOF);
-                p.velocities.resize(DOF);
-                p.accelerations.resize(DOF);
-                for(int i = 0; i<DOF; i++)
-                {
-                    p.positions.at(i) = q_current.at(i);
-                    p.velocities.at(i) = 0.0;
-                    p.accelerations.at(i) = 0.0;
-                }
-                std::vector<trajectory_msgs::JointTrajectoryPoint>::iterator it;
-                it = traj_.points.begin();
-                traj_.points.insert(it,p);
-                traj_generator_->moveTrajectory(traj_, q_current);
-            }
-            executing_ = true;
+
+	  std::vector<double> traj_start;
+	  if(preemted_ == true) //Calculate trajectory for runtime modification of trajectories
+	    {
+	      ROS_INFO("There is a old trajectory currently running");
+	      traj_start = traj_generator_->last_q;
+	      trajectory_msgs::JointTrajectory temp_traj;
+		  temp_traj = trajectory;
+		  //Insert the saved point as first point of trajectory, then generate SPLINE trajectory
+		  trajectory_msgs::JointTrajectoryPoint p;
+		  p.positions.resize(DOF);
+		  p.velocities.resize(DOF);
+		  p.accelerations.resize(DOF);
+		  for(int i = 0; i<DOF; i++)
+		  {
+			  p.positions.at(i) = traj_start.at(i);
+			  p.velocities.at(i) = 0.0;
+			  p.accelerations.at(i) = 0.0;
+		  }
+		  std::vector<trajectory_msgs::JointTrajectoryPoint>::iterator it;
+		  it = temp_traj.points.begin();
+		  temp_traj.points.insert(it,p);
+		  //Now insert the current as first point of trajectory, then generate SPLINE trajectory
+		  for(int i = 0; i<DOF; i++)
+		  {
+			  p.positions.at(i) = traj_generator_->last_q1.at(i);
+			  p.velocities.at(i) = 0.0;
+			  p.accelerations.at(i) = 0.0;
+		  }
+		  it = temp_traj.points.begin();
+		  temp_traj.points.insert(it,p);
+		  for(int i = 0; i<DOF; i++)
+		  {
+			  p.positions.at(i) = traj_generator_->last_q2.at(i);
+			  p.velocities.at(i) = 0.0;
+			  p.accelerations.at(i) = 0.0;
+		  }
+		  it = temp_traj.points.begin();
+		  temp_traj.points.insert(it,p);
+		  for(int i = 0; i<DOF; i++)
+		  {
+			  p.positions.at(i) = traj_generator_->last_q3.at(i);
+			  p.velocities.at(i) = 0.0;
+			  p.accelerations.at(i) = 0.0;
+		  }
+		  it = temp_traj.points.begin();
+		  temp_traj.points.insert(it,p);
+		  for(int i = 0; i<DOF; i++)
+		  {
+			  p.positions.at(i) = q_current.at(i);
+			  p.velocities.at(i) = 0.0;
+			  p.accelerations.at(i) = 0.0;
+		  }
+		  it = temp_traj.points.begin();
+		  temp_traj.points.insert(it,p);
+		  traj_generator_->isMoving = false ;
+		  traj_generator_->moveTrajectory(temp_traj, traj_start);
+	    }
+	  else //Normal calculation of trajectories
+	    {
+	      traj_start = q_current;
+	      trajectory_msgs::JointTrajectory temp_traj;
+		  temp_traj = trajectory;
+		  if(temp_traj.points.size() == 1)
+		  {
+			  traj_generator_->isMoving = false ;
+			  traj_generator_->moveThetas(temp_traj.points[0].positions, traj_start);
+		  }
+		  else
+		  {
+			  //Insert the current point as first point of trajectory, then generate SPLINE trajectory
+			  trajectory_msgs::JointTrajectoryPoint p;
+			  p.positions.resize(DOF);
+			  p.velocities.resize(DOF);
+			  p.accelerations.resize(DOF);
+			  for(int i = 0; i<DOF; i++)
+			  {
+				  p.positions.at(i) = traj_start.at(i);
+				  p.velocities.at(i) = 0.0;
+				  p.accelerations.at(i) = 0.0;
+			  }
+			  std::vector<trajectory_msgs::JointTrajectoryPoint>::iterator it;
+			  it = temp_traj.points.begin();
+			  temp_traj.points.insert(it,p);
+			  traj_generator_->isMoving = false ;
+			  traj_generator_->moveTrajectory(temp_traj, traj_start);
+		  }
+	    }
+
+	    executing_ = true;
             startposition_ = q_current;
+	    preemted_ = false;
 
             }
         else //suspend current movement and start new one
         {
-            
         }
         while(executing_)
         {
-            sleep(1);
+	  if(!preemted_)
+	    {
+            usleep(1000);
+	    }
+	  else{
+		  return;
+	  }
         }
+
         
   }
 
@@ -322,7 +404,7 @@ public:
                 as_follow_.setSucceeded();
         }
         rejected_ = false;
-        failure_ = false;     
+        failure_ = false;
     }
     
     void run()
@@ -331,7 +413,8 @@ public:
         {
             failure_ = false;
 	        watchdog_counter = 0;
-			if (as_follow_.isPreemptRequested() || !ros::ok() || current_operation_mode_ != "velocity")
+		//if (as_follow_.isPreemptRequested() || !ros::ok() || current_operation_mode_ != "velocity")
+			if (!ros::ok() || current_operation_mode_ != "velocity")
 			{
 				
 				// set the action state to preempted
@@ -339,15 +422,24 @@ public:
 				traj_generator_->isMoving = false;
 				//as_.setPreempted();
                 failure_ = true;
-				ROS_INFO("Preempted trajectory action");
-				return;
+		return;
 			}
+			if (as_follow_.isPreemptRequested())
+			  {
+			    
+			    //as_follow_.setAborted()
+			    failure_ = true;
+			    preemted_ = true;
+			    ROS_INFO("Preempted trajectory action");
+			    return;
+			  }
         	std::vector<double> des_vel;
         	if(traj_generator_->step(q_current, des_vel))
         	{
         		if(!traj_generator_->isMoving) //Finished trajectory
         		{
         			executing_ = false;
+				preemted_ = false;
         		}
 				brics_actuator::JointVelocities target_joint_vel;
 				target_joint_vel.velocities.resize(DOF);

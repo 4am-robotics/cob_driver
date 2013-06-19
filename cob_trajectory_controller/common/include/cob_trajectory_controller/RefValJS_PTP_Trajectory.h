@@ -35,6 +35,7 @@ class RefValJS_PTP_Trajectory : public RefVal_JS
 		
 		double getTotalTime() const { return m_T1 + m_T2 + m_T3; }
 		
+
 		std::vector<double> getLengthParts() const { return m_length_parts; }
 		
 	protected:

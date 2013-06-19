@@ -1,0 +1,29 @@
+<package>
+  <name>cob_base_velocity_smoother</name>
+  <version>0.5.0</version>
+  <description>The 'cob_base_velocity_smoother' reads velocity messages and publishes messages of the same type for "smoothed" velocity to avoid shaking behavior.</description>
+  <!--  -->
+
+  <license>LGPL</license>
+
+  <url type="website">http://ros.org/wiki/cob_base_velocity_smoother</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <maintainer email="frm@ipa.fhg.de">Florian Mirus</maintainer>
+  <author email="frm@ipa.fhg.de">Florian Mirus</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <!-- <test_depend>std_msgs</test_depend> -->
+  <!-- <test_depend>roscpp</test_depend> -->
+  <!-- <test_depend>geometry_msgs</test_depend> -->
+
+  <export>
+
+  </export>
+</package>

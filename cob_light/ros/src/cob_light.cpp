@@ -61,6 +61,7 @@
 // ros includes
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
+#include <diagnostic_msgs/DiagnosticArray.h>
 
 // ros message includes
 #include <std_msgs/ColorRGBA.h>
@@ -80,72 +81,128 @@
 #include <colorO.h>
 #include <colorOSim.h>
 
-#define SIMULATION_ENABLED
-// define this if you like to turn off the light
-// when this node comes up
-#define TURN_OFF_LIGHT_ON_STARTUP
-
 class LightControl
 {
 	public:
 		LightControl() :
 		 _invertMask(0), _topic_priority(0)
 		{
+			bool invert_output;
+			XmlRpc::XmlRpcValue param_list;
+			std::string startup_mode;
 			p_colorO = NULL;
 			p_modeExecutor = NULL;
 
-			bool invert_output;
+			//diagnostics
+			_pubDiagnostic = _nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 
+			diagnostic_msgs::DiagnosticStatus status;
+      		status.name = "light";
+      		
+
+			//Get Parameter from Parameter Server
 			_nh = ros::NodeHandle("~");
-			if(!_nh.hasParam("invert_output")) ROS_WARN("Parameter 'invert_output' is missing on ParameterServer. Using default Value");
+			if(!_nh.hasParam("invert_output"))
+				ROS_WARN("Parameter 'invert_output' is missing. Using default Value: false");
 			_nh.param<bool>("invert_output", invert_output, false);
 			_invertMask = (int)invert_output;
 
-			if(!_nh.hasParam("devicestring")) ROS_WARN("Parameter 'devicestring' is missing on ParameterServer. Using default Value");
+			if(!_nh.hasParam("devicestring"))
+				ROS_WARN("Parameter 'devicestring' is missing. Using default Value: /dev/ttyLed");
 			_nh.param<std::string>("devicestring",_deviceString,"/dev/ttyLed");
-			if(!_nh.hasParam("baudrate")) ROS_WARN("Parameter 'baudrate' is missing on ParameterServer. Using default Value");
+
+			if(!_nh.hasParam("baudrate"))
+				ROS_WARN("Parameter 'baudrate' is missing. Using default Value: 230400");
 			_nh.param<int>("baudrate",_baudrate,230400);
-			if(!_nh.hasParam("pubmarker")) ROS_WARN("Parameter 'pubmarker' is missing on ParameterServer. Using default Value");
-			_nh.param<bool>("pubmarker",_bPubMarker,false);
-			
-			_sub = _nh.subscribe("command", 1, &LightControl::commandCallback, this);
 
-			_srvServer = 
-				_nh.advertiseService("mode", &LightControl::modeCallback, this);
+			if(!_nh.hasParam("pubmarker"))
+				ROS_WARN("Parameter 'pubmarker' is missing. Using default Value: true");
+			_nh.param<bool>("pubmarker",_bPubMarker,true);
 
-			_as = new ActionServer(_nh, "set_lightmode", boost::bind(&LightControl::actionCallback, this, _1), false);
-			_as->start();
+			if(!_nh.hasParam("sim_enabled"))
+				ROS_WARN("Parameter 'sim_enabled' is missing. Using default Value: false");
+			_nh.param<bool>("sim_enabled", _bSimEnabled, false);
 
-			_pubMarker = 
-				_nh.advertise<visualization_msgs::Marker>("marker",1);
-
-			//open serial port
-			ROS_INFO("Open Port on %s",_deviceString.c_str());
-			if(_serialIO.openPort(_deviceString, _baudrate) != -1)
+			if(!_nh.hasParam("startup_color"))
 			{
-				ROS_INFO("Serial connection on %s succeeded.", _deviceString.c_str());
-				p_colorO = new ColorO(&_serialIO);
-				p_colorO->setMask(_invertMask);
+				ROS_WARN("Parameter 'startup_color' is missing. Using default Value: off");
+				_color.r=0;_color.g=0;_color.b=0;_color.a=0;
 			}
 			else
 			{
-				ROS_ERROR("Serial connection on %s failed.", _deviceString.c_str());
-				#ifdef SIMULATION_ENABLED
+				_nh.getParam("startup_color", param_list);
+				ROS_ASSERT(param_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
+				ROS_ASSERT(param_list.size() == 4);
+
+				_color.r = static_cast<double>(param_list[0]);
+				_color.g = static_cast<double>(param_list[1]);
+				_color.b = static_cast<double>(param_list[2]);
+				_color.a = static_cast<double>(param_list[3]);
+			}
+
+			if(!_nh.hasParam("startup_mode"))
+				ROS_WARN("Parameter 'startup_mode' is missing. Using default Value: None");
+			_nh.param<std::string>("startup_mode", startup_mode, "None");
+
+			//Subscribe to LightController Command Topic
+			_sub = _nh.subscribe("command", 1, &LightControl::commandCallback, this);
+
+			//Advertise light mode Service
+			_srvServer = _nh.advertiseService("mode", &LightControl::modeCallback, this);
+
+			//Start light mode Action Server
+			_as = new ActionServer(_nh, "set_lightmode", boost::bind(&LightControl::actionCallback, this, _1), false);
+			_as->start();
+
+			//Advertise visualization marker topic
+			_pubMarker = _nh.advertise<visualization_msgs::Marker>("marker",1);
+
+			if(!_bSimEnabled)
+			{
+				//open serial port
+				ROS_INFO("Open Port on %s",_deviceString.c_str());
+				if(_serialIO.openPort(_deviceString, _baudrate) != -1)
+				{
+					ROS_INFO("Serial connection on %s succeeded.", _deviceString.c_str());
+					p_colorO = new ColorO(&_serialIO);
+					p_colorO->setMask(_invertMask);
+
+					status.level = 0;
+					status.message = "light controller running";
+				}
+				else
+				{
+					ROS_ERROR("Serial connection on %s failed.", _deviceString.c_str());
+					ROS_INFO("Simulation Mode Enabled");
+					p_colorO = new ColorOSim(&_nh);
+
+					status.level = 2;
+					status.message = "Serial connection failed. Running in simulation mode";
+				}
+			}
+			else
+			{
 				ROS_INFO("Simulation Mode Enabled");
 				p_colorO = new ColorOSim(&_nh);
-				#endif
+				status.level = 0;
+				status.message = "light controller running in simulation";
 			}
+     		
+      		_diagnostics.status.push_back(status);
+      		_diagnostics.header.stamp = ros::Time::now();
+      		_pubDiagnostic.publish(_diagnostics);
+      		_diagnostics.status.resize(0);
 
 			if(_bPubMarker)
 				p_colorO->signalColorSet()->connect(boost::bind(&LightControl::markerCallback, this, _1));
-				
-			//initial turn off leds
-			#ifdef TURN_OFF_LIGHT_ON_STARTUP
-				_color.a=0;
-				p_colorO->setColor(_color);
-			#endif
 
 			p_modeExecutor = new ModeExecutor(p_colorO);
+
+			Mode * mode = ModeFactory::create(startup_mode, _color);
+			if(mode == NULL)
+				p_colorO->setColor(_color);
+			else
+				p_modeExecutor->execute(mode);
 		}
 
 		~LightControl()
@@ -270,6 +327,7 @@ class LightControl
 		int _baudrate;
 		int _invertMask;
 		bool _bPubMarker;
+		bool _bSimEnabled;
 
 		int _topic_priority;
 
@@ -277,6 +335,9 @@ class LightControl
 		ros::Subscriber _sub;
 		ros::Publisher _pubMarker;
 		ros::ServiceServer _srvServer;
+
+		diagnostic_msgs::DiagnosticArray _diagnostics;
+  		ros::Publisher _pubDiagnostic;
 
 		typedef actionlib::SimpleActionServer<cob_light::SetLightModeAction> ActionServer;
 		ActionServer *_as;
