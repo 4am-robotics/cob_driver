@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_trajectory_controller)
 
-find_package(catkin REQUIRED COMPONENTS roscpp cob_srvs brics_actuator sensor_msgs pr2_controllers_msgs actionlib control_msgs orocos_kdl)
+find_package(catkin REQUIRED COMPONENTS roscpp cob_srvs brics_actuator sensor_msgs actionlib control_msgs orocos_kdl)
 
 
 
@@ -14,8 +14,6 @@ add_service_files(
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp common/src/genericArmCtrl.cpp common/src/RefValJS_PTP.cpp common/src/RefValJS_PTP_Trajectory.cpp common/src/TimeStamp.cpp)
 add_executable(cob_simulation_tester ros/src/cob_simulation_tester.cpp)
 

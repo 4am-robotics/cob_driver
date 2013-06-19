@@ -5,8 +5,6 @@ project(cob_sick_s300)
 find_package(catkin REQUIRED COMPONENTS roscpp rostest sensor_msgs message_filters diagnostic_msgs tf laser_geometry)
 
 
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 

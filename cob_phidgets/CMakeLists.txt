@@ -4,8 +4,6 @@ project(cob_phidgets)
 find_package(catkin REQUIRED COMPONENTS roscpp rospy libphidgets std_msgs sensor_msgs)
 
 
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 add_executable(range_sensors ros/src/phidgets_range_sensors.cpp)
 
 target_link_libraries(range_sensors phidget21)

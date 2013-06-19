@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_base_drive_chain)
 
-find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs diagnostic_msgs pr2_controllers_msgs cob_srvs cob_generic_can cob_canopen_motor cob_utilities libpcan)
+find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs diagnostic_msgs cob_srvs cob_generic_can cob_canopen_motor cob_utilities libpcan)
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/common/lib)
 
@@ -11,8 +11,6 @@ add_service_files(
   ElmoRecorderReadout.srv 
 )
 
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 
 
 # add include search paths

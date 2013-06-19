@@ -10,9 +10,6 @@ add_service_files(
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
-
 add_executable(footprint_observer src/cob_footprint_observer.cpp)
 
 ## Generate added messages and services with any dependencies listed here
