@@ -3,9 +3,6 @@ project(cob_generic_can)
 
 find_package(catkin REQUIRED COMPONENTS roscpp cob_utilities libpcan libntcan)
 
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
-
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 # add project libs

@@ -1,19 +1,15 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_head_axis)
 
-find_package(catkin REQUIRED COMPONENTS roscpp rostest sensor_msgs cob_srvs actionlib cob_generic_can cob_canopen_motor cob_utilities urdf libntcan diagnostic_msgs pr2_controllers_msgs control_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs cob_srvs actionlib cob_generic_can cob_canopen_motor cob_utilities urdf libntcan diagnostic_msgs control_msgs)
 
 
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp common/src/ElmoCtrl.cpp)
 
-target_link_libraries(${PROJECT_NAME}_node pcan)
-target_link_libraries(${PROJECT_NAME}_node ${Boost_LIBRARIES})
 
 
 # TODO: fill in what other packages will need to use this package

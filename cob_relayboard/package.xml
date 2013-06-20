@@ -16,7 +16,6 @@
   <build_depend>rostest</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>cob_utilities</build_depend>
-  <build_depend>pr2_msgs</build_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rostest</run_depend>
   <run_depend>std_msgs</run_depend>

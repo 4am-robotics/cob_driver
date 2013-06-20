@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_relayboard)
 
-find_package(catkin REQUIRED COMPONENTS roscpp rostest std_msgs cob_utilities pr2_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rostest std_msgs cob_utilities)
 
 
 add_message_files(
@@ -10,8 +10,6 @@ add_message_files(
   EmergencyStopState.msg
 )
 
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
@@ -24,7 +22,7 @@ add_executable(cob_relayboard_node ros/src/cob_relayboard_node.cpp)
 target_link_libraries(cob_relayboard_node ${PROJECT_NAME})
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
-  DEPENDENCIES geometry_msgs std_msgs
+  DEPENDENCIES std_msgs
 )
 # TODO: fill in what other packages will need to use this package
 ## DEPENDS: system dependencies of this project that dependent projects also need

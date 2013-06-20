@@ -4,8 +4,6 @@ project(cob_hwboard)
 find_package(catkin REQUIRED COMPONENTS rospy std_msgs diagnostic_msgs)
 
 
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 
 
 # TODO: fill in what other packages will need to use this package

@@ -23,7 +23,6 @@
   <build_depend>urdf</build_depend>
   <build_depend>libntcan</build_depend>
   <build_depend>diagnostic_msgs</build_depend>
-  <build_depend>pr2_controllers_msgs</build_depend>
   <build_depend>control_msgs</build_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
