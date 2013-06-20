@@ -2,12 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(cob_light)
 
 
-find_package(catkin REQUIRED COMPONENTS rospy roscpp std_msgs visualization_msgs actionlib diagnostic_msgs)
-
-
-rosbuild_find_ros_package(actionlib_msgs)
-include(${actionlib_msgs_PACKAGE_PATH}/cmake/actionbuild.cmake)
-genaction()
+find_package(catkin REQUIRED COMPONENTS rospy roscpp std_msgs visualization_msgs actionlib actionlib_msgs diagnostic_msgs)
 
 
 add_message_files(
@@ -42,7 +37,7 @@ target_link_libraries(cob_light ${Boost_LIBRARIES})
 #rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-4)
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
-  DEPENDENCIES geometry_msgs std_msgs
+  DEPENDENCIES actionlib_msgs geometry_msgs std_msgs
 )
 
 # TODO: fill in what other packages will need to use this package

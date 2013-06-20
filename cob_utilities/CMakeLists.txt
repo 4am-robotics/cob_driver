@@ -5,19 +5,11 @@ project(cob_utilities)
 find_package(catkin REQUIRED COMPONENTS roscpp)
 
 
-
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
-
 # add include search paths
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 # add project libs
-add_library(${PROJECT_NAME} common/src/IniFile.cpp)
-add_library(${PROJECT_NAME} common/src/MathSup.cpp)
-add_library(${PROJECT_NAME} common/src/StrUtil.cpp)
-add_library(${PROJECT_NAME} common/src/TimeStamp.cpp)
-
+add_library(${PROJECT_NAME} common/src/IniFile.cpp common/src/MathSup.cpp common/src/StrUtil.cpp common/src/TimeStamp.cpp)
 
 # TODO: fill in what other packages will need to use this package
 ## DEPENDS: system dependencies of this project that dependent projects also need

@@ -4,8 +4,6 @@ project(cob_canopen_motor)
 find_package(catkin REQUIRED COMPONENTS roscpp cob_generic_can cob_utilities)
 
 
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 
 # add include search paths
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)

@@ -15,7 +15,6 @@
   <build_depend>roscpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>diagnostic_msgs</build_depend>
-  <build_depend>pr2_controllers_msgs</build_depend>
   <build_depend>cob_srvs</build_depend>
   <build_depend>cob_generic_can</build_depend>
   <build_depend>cob_canopen_motor</build_depend>

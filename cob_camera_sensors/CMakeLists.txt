@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_camera_sensors)
 
-find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs pluginlib message_filters nodelet)
+find_package(catkin REQUIRED COMPONENTS roscpp pluginlib message_filters sensor_msgs nodelet)
 
 add_service_files(
   FILES
@@ -60,7 +60,7 @@ add_service_files(
 ## Generate added messages and services with any dependencies listed here
 
 generate_messages(
-   DEPENDENCIES geometry_msgs std_msgs
+   DEPENDENCIES std_msgs sensor_msgs
 )
 
 # TODO: fill in what other packages will need to use this package
@@ -69,7 +69,7 @@ generate_messages(
 ## INCLUDE_DIRS: 
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 catkin_package(
-    DEPENDS roscpp sensor_msgs pluginlib message_filters nodelet
+    DEPENDS roscpp pluginlib message_filters nodelet
     CATKIN_DEPENDS # TODO
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO

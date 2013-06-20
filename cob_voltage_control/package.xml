@@ -14,8 +14,6 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>roscpp</build_depend>
-  <build_depend>rostest</build_depend>
-  <build_depend>pr2_msgs</build_depend>
   <build_depend>libphidgets</build_depend>
   <build_depend>cob_relayboard</build_depend>
   <build_depend>rospy</build_depend>

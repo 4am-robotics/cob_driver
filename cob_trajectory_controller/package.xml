@@ -18,7 +18,6 @@
   <build_depend>cob_srvs</build_depend>
   <build_depend>brics_actuator</build_depend>
   <build_depend>sensor_msgs</build_depend>
-  <build_depend>pr2_controllers_msgs</build_depend>
   <build_depend>actionlib</build_depend>
   <build_depend>control_msgs</build_depend>
   <build_depend>orocos_kdl</build_depend>
