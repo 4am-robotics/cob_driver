@@ -24,6 +24,6 @@ target_link_libraries(${PROJECT_NAME}_esd ntcan cob_utilities)
 catkin_package(
     DEPENDS roscpp cob_utilities libpcan libntcan
     CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS # TODO include
-    LIBRARIES # TODO
+    INCLUDE_DIRS common/include
+    LIBRARIES ${PROJECT_NAME}_peaksysusb ${PROJECT_NAME}_peaksys ${PROJECT_NAME}_esd
 )

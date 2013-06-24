@@ -29,6 +29,7 @@ add_executable(cob_light ros/src/cob_light.cpp ros/src/colorO.cpp ros/src/colorO
 find_package(Boost REQUIRED COMPONENTS thread)
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(cob_light ${Boost_LIBRARIES})
+target_link_libraries(cob_light ${catkin_LIBRARIES})
 
 # rostest
 #rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-1)

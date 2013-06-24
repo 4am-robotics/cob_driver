@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs cob_srvs actionlib co
 
 
 
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
+include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp common/src/ElmoCtrl.cpp)
 

@@ -15,6 +15,7 @@ add_action_files(
    Say.action 	
 )
 
+include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 add_executable(sound ros/src/sound.cpp)
 
 target_link_libraries(sound ${Boost_LIBRARIES})

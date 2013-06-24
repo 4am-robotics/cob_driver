@@ -14,7 +14,8 @@ add_service_files(
 
 
 # add include search paths
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
+include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+
 
 # add project libs
 add_library(${PROJECT_NAME} common/src/CanCtrlPltfCOb3.cpp)
@@ -37,6 +38,6 @@ generate_messages(
 catkin_package(
     DEPENDS roscpp sensor_msgs diagnostic_msgs pr2_controllers_msgs cob_srvs cob_generic_can cob_canopen_motor cob_utilities libpcan
     CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS # TODO include
-    LIBRARIES # TODO
+    INCLUDE_DIRS common/include
+    LIBRARIES ${PROJECT_NAME}
 )

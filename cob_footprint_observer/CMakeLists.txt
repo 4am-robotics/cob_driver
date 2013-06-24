@@ -8,7 +8,7 @@ add_service_files(
   GetFootprint.srv 
 )
 
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
+include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_executable(footprint_observer src/cob_footprint_observer.cpp)
 

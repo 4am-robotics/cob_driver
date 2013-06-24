@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp cob_generic_can cob_utilities)
 
 
 # add include search paths
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
+include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 # add project libs
 add_library(${PROJECT_NAME}_harmonica common/src/CanDriveHarmonica.cpp common/src/ElmoRecorder.cpp)
@@ -19,6 +19,6 @@ add_library(${PROJECT_NAME}_harmonica common/src/CanDriveHarmonica.cpp common/sr
 catkin_package(
     DEPENDS roscpp cob_generic_can cob_utilities
     CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS # TODO include
-    LIBRARIES # TODO
+    INCLUDE_DIRS common/include
+    LIBRARIES ${PROJECT_NAME}_harmonica
 )

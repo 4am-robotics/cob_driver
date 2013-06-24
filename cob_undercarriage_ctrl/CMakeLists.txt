@@ -7,14 +7,16 @@ find_package(catkin REQUIRED COMPONENTS roscpp nav_msgs sensor_msgs geometry_msg
 
 
 # add include search paths
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
+include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 # add project libs
 add_library(${PROJECT_NAME} common/src/UndercarriageCtrlGeom.cpp)
 # add executable
 add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp)
 # link libraries
-target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME})
-
+target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+)
 #Geom Controller for one-wheel-COB3_5
 #add_library(${PROJECT_NAME}_Trike common/src/UndercarriageCtrlGeomTrike.cpp)
 #add_executable(${PROJECT_NAME}_Trike_node ros/src/${PROJECT_NAME}.cpp)
