@@ -68,7 +68,13 @@
 //--
 
 // external includes
+#include "cob_sick_s300/SickS300.hpp"
 #include <cob_sick_s300/ScannerSickS300.h>
+
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/thread/thread.hpp>
+
+#define ROS_LOG_FOUND
 
 //####################
 //#### node class ####
@@ -93,7 +99,7 @@ class NodeClass
 		
 		// global variables
 		std::string port;
-		int baud, scan_id;
+		int baud, scan_id, publish_frequency;
 		bool inverted;
 		double scan_duration, scan_cycle_time;
 		std::string frame_id;
@@ -127,7 +133,10 @@ class NodeClass
 			
 			if(!nh.hasParam("scan_cycle_time")) ROS_WARN("Used default parameter for scan_cycle_time");
 			nh.param("scan_cycle_time", scan_cycle_time, 0.040); //SICK-docu says S300 scans every 40ms
-			
+
+			if (!nh.hasParam("publish_frequency")) ROS_WARN("Used default parameter for publish_frequency");
+			nh.param("publish_frequency", publish_frequency, 12); //Hz
+
 			syncedSICKStamp = 0;
 			syncedROSTime = ros::Time::now();
 			syncedTimeReady = false;
@@ -162,7 +171,7 @@ class NodeClass
 			// fill message
 			int start_scan, stop_scan;
 			int num_readings = vdDistM.size(); // initialize with max scan size
-	  		start_scan = 0;
+			start_scan = 0;
 			stop_scan = vdDistM.size();
 			
 			// Sync handling: find out exact scan time by using the syncTime-syncStamp pair:
@@ -233,17 +242,17 @@ class NodeClass
 			diagnostics.status[0].level = 0;
 			diagnostics.status[0].name = nh.getNamespace();
 			diagnostics.status[0].message = "sick scanner running";
-			topicPub_Diagnostic_.publish(diagnostics); 
-		}
+			topicPub_Diagnostic_.publish(diagnostics);
+			}
 
-		void publishError(std::string error_str) {
-			diagnostic_msgs::DiagnosticArray diagnostics;
-			diagnostics.status.resize(1);
-			diagnostics.status[0].level = 2;
-			diagnostics.status[0].name = nh.getNamespace();
-			diagnostics.status[0].message = error_str;
-			topicPub_Diagnostic_.publish(diagnostics);     
-		}
+				void publishError(std::string error_str) {
+					diagnostic_msgs::DiagnosticArray diagnostics;
+					diagnostics.status.resize(1);
+					diagnostics.status[0].level = 2;
+					diagnostics.status[0].name = nh.getNamespace();
+					diagnostics.status[0].message = error_str;
+					topicPub_Diagnostic_.publish(diagnostics);     
+				}
 };
 
 //#######################
@@ -254,54 +263,74 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "sick_s300");
 	
 	NodeClass nodeClass;
-	ScannerSickS300 SickS300;
+	brics_oodl::SickS300 sickS300;
+	brics_oodl::Errors errors;
 
-	int iBaudRate = nodeClass.baud;
-	int iScanId = nodeClass.scan_id;
-	bool bOpenScan = false, bRecScan = false;
+	bool bOpenScan = false;
 	bool firstTry = true;
 	
-	unsigned int iSickTimeStamp, iSickNow;
+	unsigned int iSickTimeStamp = 0, iSickNow = 0;
 	std::vector<double> vdDistM, vdAngRAD, vdIntensAU;
-		
- 	while (!bOpenScan)
- 	{
- 		ROS_INFO("Opening scanner... (port:%s)",nodeClass.port.c_str());
-		bOpenScan = SickS300.open(nodeClass.port.c_str(), iBaudRate, iScanId);
-		
-		// check, if it is the first try to open scanner
-	 	if(!bOpenScan)
-		{
-			ROS_ERROR("...scanner not available on port %s. Will retry every second.",nodeClass.port.c_str());
-			nodeClass.publishError("...scanner not available on port");
-			firstTry = false;
-		}
-		sleep(1); // wait for scan to get ready if successfull, or wait befor retrying
-	}
-	ROS_INFO("...scanner opened successfully on port %s",nodeClass.port.c_str());
-	
-	// main loop
-	ros::Rate loop_rate(5); // Hz
-	while(nodeClass.nh.ok())
-	{
-		// read scan
-		ROS_DEBUG("Reading scanner...");
-		bRecScan = SickS300.getScan(vdDistM, vdAngRAD, vdIntensAU, iSickTimeStamp, iSickNow);
-		ROS_DEBUG("...read %d points from scanner successfully",(int)vdDistM.size());
-		// publish LaserScan
-		if(bRecScan)
-		{
-			ROS_DEBUG("...publishing LaserScan message");
-			nodeClass.publishLaserScan(vdDistM, vdAngRAD, vdIntensAU, iSickTimeStamp, iSickNow);
-		}
-		else
-		{
-			ROS_WARN("...no Scan available");
-		}
 
-		// sleep and waiting for messages, callbacks	
-		ros::spinOnce();
-		loop_rate.sleep();
+	brics_oodl::LaserScannerConfiguration config;
+
+	config.devicePath = nodeClass.port.c_str(); // Device path of the Sick S300
+	config.scannerID = nodeClass.scan_id;
+
+	switch (nodeClass.baud) {
+	case 9600:
+		config.baud = brics_oodl::BAUD_9600;
+		break;
+	case 38400:
+		config.baud = brics_oodl::BAUD_38400;
+		break;
+	case 115200:
+		config.baud = brics_oodl::BAUD_115200;
+		break;
+		break;
+	case 500000:
+		config.baud = brics_oodl::BAUD_500K;
+		break;
+	default:
+		config.baud = brics_oodl::BAUD_UNKNOWN;
+		break;
+	}
+
+	if (!sickS300.setConfiguration(config, errors)) {
+		errors.printErrorsToConsole();
+	}
+
+	while (!bOpenScan) {
+	ROS_INFO("Opening scanner... (port:%s)", nodeClass.port.c_str());
+	//bOpenScan = SickS300.open(nodeClass.port.c_str(), iBaudRate, iScanId);
+	bOpenScan = sickS300.open(errors);
+	// check, if it is the first try to open scanner
+	if (!bOpenScan) {
+		ROS_ERROR("...scanner not available on port %s. Will retry every second.", nodeClass.port.c_str());
+		nodeClass.publishError("...scanner not available on port");
+		firstTry = false;
+	}
+	sleep(1); // wait for scan to get ready if successfull, or wait befor retrying
+	}
+	ROS_INFO("...scanner opened successfully on port %s", nodeClass.port.c_str());
+
+	// main loop
+	ros::Rate loop_rate(nodeClass.publish_frequency); // Hz
+	while (nodeClass.nh.ok()) {
+	// read scan
+	ROS_DEBUG("Reading scanner...");
+	/* Acquire the most recent scan from the Sick */
+	if (sickS300.getData(vdDistM, vdAngRAD, vdIntensAU, iSickTimeStamp, iSickNow, errors)) {
+		ROS_DEBUG("...read LaserScan from scanner successfully");
+		// publish LaserScan
+		ROS_DEBUG("...publishing LaserScan message");
+		nodeClass.publishLaserScan(vdDistM, vdAngRAD, vdIntensAU, iSickTimeStamp, iSickNow);
+	} else {
+		ROS_DEBUG("...no Scan available");
+	}
+	// sleep and waiting for messages, callbacks	
+	ros::spinOnce();
+	loop_rate.sleep();
 	}
 	return 0;
 }
