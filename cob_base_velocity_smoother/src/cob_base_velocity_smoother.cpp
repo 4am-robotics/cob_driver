@@ -60,9 +60,29 @@
  * cob_base_velocity_smoother subsribes (input) and publishes (output) geometry_msgs::Twist.
  ****************************************************************/
 
+// function for checking wether a new msg has been received, triggering publishers accordingly
+void cob_base_velocity_smoother::set_new_msg_received(bool received)
+{
+  pthread_mutex_lock(&m_mutex);
+  new_msg_received_ = received;
+  pthread_mutex_unlock(&m_mutex);
+}
+
+bool cob_base_velocity_smoother::get_new_msg_received()
+{
+  pthread_mutex_lock(&m_mutex);
+  bool ret_val = new_msg_received_;
+  pthread_mutex_unlock(&m_mutex);
+  return ret_val;
+}
+
 // constructor
 cob_base_velocity_smoother::cob_base_velocity_smoother()
 {
+
+  // 
+  m_mutex = PTHREAD_MUTEX_INITIALIZER;
+  new_msg_received_ = false;
 
   // create node handles
   nh_ = ros::NodeHandle();
@@ -122,10 +142,6 @@ cob_base_velocity_smoother::cob_base_velocity_smoother()
   // set actual ros::Time
   ros::Time now = ros::Time::now();
 
-  // initialize variables for first time no incoming messages
-  first_time_no_sub_ = now;
-  no_sub_time_set_ = false;
-
   // fill circular buffer with zero values
   while(cb_.full() == false){
 
@@ -143,36 +159,38 @@ void cob_base_velocity_smoother::geometryCallback(const geometry_msgs::Twist::Co
 {   
  
   sub_msg_ = *cmd_vel;
+  set_new_msg_received(true);
  
 }
 
 // calculation function called periodically in main
 void cob_base_velocity_smoother::calculationStep(){
 
-  // set actual ros::Time
+  // set current ros::Time
   ros::Time now = ros::Time::now();
+  static ros::Time last = now;
 
-  // remember first time the subsrciber doesn't hear anything
-  if(geometry_msgs_sub_.getNumPublishers() == 0){
-    if(no_sub_time_set_ == false){
-      first_time_no_sub_ = now;
-      no_sub_time_set_ = true;
-    }
-  }else{
-    no_sub_time_set_ = false;
+  // only publish command if we received a msg
+  if (get_new_msg_received())
+  {
+    // generate Output messages
+    geometry_msgs::Twist result = this->setOutput(now, sub_msg_);
+
+    // publish result
+    pub_.publish(result);
+    
+    last = now;
+    set_new_msg_received(false);
   }
-
-  // generate Output messages
-  geometry_msgs::Twist result = this->setOutput(now, sub_msg_);
-  
-  // publish result
-  pub_.publish(result);
+  // start writing in zeros if we did not receive a new msg within a certain amount of time
+  else if ( fabs((last - now).toSec()) > 1.0 )
+    geometry_msgs::Twist result = this->setOutput(now, geometry_msgs::Twist());
 
 }
 
 // function for the actual computation
 // calls the reviseCircBuff and the meanValue-functions and limits the acceleration under thresh
-// returns the resulting geometry message to be published to the base_controller
+// returns the resulting geomtry message to be published to the base_controller
 geometry_msgs::Twist cob_base_velocity_smoother::setOutput(ros::Time now, geometry_msgs::Twist cmd_vel)
 {
   geometry_msgs::Twist result = zero_values_;
@@ -254,25 +272,10 @@ void cob_base_velocity_smoother::reviseCircBuff(ros::Time now, geometry_msgs::Tw
 
     }
     else{
-      if( (geometry_msgs_sub_.getNumPublishers() == 0) && (now.toSec() - first_time_no_sub_.toSec()> stop_delay_after_no_sub_) ){
-        // here the subscriber did'n hear anything for some time, so we want to stop the robot
-        long unsigned int size = floor( cb_.size() / 2 );
-
-        // to stop the robot faster, fill the circular buffer with more than one, in fact floor (cb_.size() / 2 ), zero messages
-        for(long unsigned int i=0; i< size; i++){
-
-          // add new command velocity message to circular buffer
-          cb_.push_front(zero_values_);
-          // add new timestamp for subscribed command velocity message
-          cb_time_.push_front(now);
-        }
-      }
-      else{
-        // add new command velocity message to circular buffer
-        cb_.push_front(cmd_vel);
-        // add new timestamp for subscribed command velocity message
-        cb_time_.push_front(now);
-      }
+      // add new command velocity message to circular buffer
+      cb_.push_front(cmd_vel);
+      // add new timestamp for subscribed command velocity message
+      cb_time_.push_front(now);
     }
   }
 };
