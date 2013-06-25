@@ -170,21 +170,27 @@ void cob_base_velocity_smoother::calculationStep(){
   ros::Time now = ros::Time::now();
   static ros::Time last = now;
 
-  // only publish command if we received a msg
+  geometry_msgs::Twist result = geometry_msgs::Twist();
+
+  // only publish command if we received a msg or the last message was actually zero
   if (get_new_msg_received())
   {
     // generate Output messages
-    geometry_msgs::Twist result = this->setOutput(now, sub_msg_);
-
-    // publish result
+    result = this->setOutput(now, sub_msg_);
     pub_.publish(result);
     
     last = now;
     set_new_msg_received(false);
   }
-  // start writing in zeros if we did not receive a new msg within a certain amount of time
+  // start writing in zeros if we did not receive a new msg within a certain amount of time. But don't publish!
   else if ( fabs((last - now).toSec()) > 1.0 )
-    geometry_msgs::Twist result = this->setOutput(now, geometry_msgs::Twist());
+    result = this->setOutput(now, geometry_msgs::Twist());
+  // if last message was a zero msg, fill the buffer with zeros and publish again
+  else if (IsZeroMsg(sub_msg_))
+  {
+    result = this->setOutput(now, sub_msg_);
+    pub_.publish(result);
+  }
 
 }
 
