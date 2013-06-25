@@ -61,7 +61,7 @@
 
 #include "ros/ros.h"
 #include <sensor_msgs/JointState.h>
-#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
+#include <control_msgs/JointTrajectoryControllerState.h>
 #include <actionlib/server/simple_action_server.h>
 //#include <pr2_controllers_msgs/JointTrajectoryAction.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
@@ -230,7 +230,7 @@ public:
   {
     current_operation_mode_ = message->data;
   }
-  void state_callback(const pr2_controllers_msgs::JointTrajectoryControllerStatePtr& message)
+  void state_callback(const control_msgs::JointTrajectoryControllerStatePtr& message)
   {
     std::vector<double> positions = message->actual.positions;
     for(unsigned int i = 0; i < positions.size(); i++)

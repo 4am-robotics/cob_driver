@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_undercarriage_ctrl)
 
-find_package(catkin REQUIRED COMPONENTS roscpp nav_msgs sensor_msgs geometry_msgs diagnostic_msgs tf cob_relayboard cob_utilities diagnostic_updater)
+find_package(catkin REQUIRED COMPONENTS roscpp nav_msgs sensor_msgs geometry_msgs diagnostic_msgs tf cob_relayboard cob_utilities diagnostic_updater control_msgs)
 
 
 

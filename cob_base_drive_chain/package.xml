@@ -20,6 +20,8 @@
   <build_depend>cob_canopen_motor</build_depend>
   <build_depend>cob_utilities</build_depend>
   <build_depend>libpcan</build_depend>
+  <build_depend>control_msgs</build_depend>
+  
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>diagnostic_msgs</run_depend>
