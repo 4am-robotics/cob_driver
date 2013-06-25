@@ -11,6 +11,7 @@ rospy.wait_for_service('camera/set_camera_info')
 set_camera_info = rospy.ServiceProxy('camera/set_camera_info', SetCameraInfo)
 req = SetCameraInfoRequest()
 req.camera_info.header.stamp = rospy.Time.now()
+req.camera_info.header.frame_id = rospy.get_param('~frame_id')
 req.camera_info.height = rospy.get_param('~image_height')
 req.camera_info.width = rospy.get_param('~image_width')
 req.camera_info.distortion_model = "plumb_bob"
