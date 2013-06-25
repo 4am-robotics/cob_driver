@@ -64,7 +64,7 @@
 #include <sensor_msgs/JointState.h>
 //#include <pr2_controllers_msgs/JointTrajectoryAction.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
-#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
+#include <control_msgs/JointTrajectoryControllerState.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
 
 // ROS service includes
@@ -159,7 +159,7 @@ class NodeClass
 
 		// implementation of topics to publish
 		topicPub_JointState_ = n_.advertise<sensor_msgs::JointState>("/joint_states", 1);
-		topicPub_ControllerState_ = n_.advertise<pr2_controllers_msgs::JointTrajectoryControllerState>("state", 1);
+		topicPub_ControllerState_ = n_.advertise<control_msgs::JointTrajectoryControllerState>("state", 1);
 		topicPub_Diagnostic_ = n_.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 
 
@@ -512,7 +512,7 @@ class NodeClass
 			topicPub_JointState_.publish(msg);
 
 			// publish controller state message
-			pr2_controllers_msgs::JointTrajectoryControllerState controllermsg;
+			control_msgs::JointTrajectoryControllerState controllermsg;
 			controllermsg.header = msg.header;
 			controllermsg.joint_names.resize(DOF);
 			controllermsg.desired.positions.resize(DOF);

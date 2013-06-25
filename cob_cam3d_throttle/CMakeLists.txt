@@ -17,5 +17,5 @@ catkin_package(
     DEPENDS roscpp sensor_msgs pluginlib message_filters nodelet
     CATKIN_DEPENDS # TODO
     INCLUDE_DIRS # TODO include
-    LIBRARIES # TODO
+    LIBRARIES cam3d_throttle
 )

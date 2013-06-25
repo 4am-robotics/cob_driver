@@ -4,13 +4,10 @@ project(cob_base_velocity_smoother)
 find_package(catkin REQUIRED COMPONENTS std_msgs roscpp geometry_msgs)
 
 
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include/cob_base_velocity_smoother)
+include_directories(include/cob_base_velocity_smoother ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_executable(cob_base_velocity_smoother src/cob_base_velocity_smoother.cpp)
-
-include_directories(${Boost_INCLUDE_DIRS})
-
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
+target_link_libraries(cob_base_velocity_smoother ${catkin_LIBRARIES})
 
 
 # TODO: fill in what other packages will need to use this package

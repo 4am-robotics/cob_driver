@@ -7,11 +7,11 @@ find_package(catkin REQUIRED COMPONENTS roscpp libphidgets cob_relayboard rospy 
 generate_dynamic_reconfigure_options(cfg/cob_voltage_control.cfg)
 
 # add include search paths
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/src)
+include_directories(common/include common/src ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+
 
 add_executable(cob_voltage_control ros/src/cob_voltage_control_ros.cpp)
-
+target_link_libraries(cob_voltage_control ${catkin_LIBRARIES}) 
 
 
 # TODO: fill in what other packages will need to use this package

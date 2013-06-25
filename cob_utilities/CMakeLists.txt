@@ -19,6 +19,6 @@ add_library(${PROJECT_NAME} common/src/IniFile.cpp common/src/MathSup.cpp common
 catkin_package(
     DEPENDS roscpp
     CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS # TODO include
-    LIBRARIES # TODO
+    INCLUDE_DIRS common/include
+    LIBRARIES ${PROJECT_NAME}
 )
