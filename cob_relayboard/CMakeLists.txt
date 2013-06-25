@@ -2,28 +2,36 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_relayboard)
 
-find_package(catkin REQUIRED COMPONENTS roscpp rostest std_msgs cob_utilities)
+find_package(catkin REQUIRED COMPONENTS roscpp rostest std_msgs cob_utilities message_generation)
 
 
 add_message_files(
-  FILES
-  EmergencyStopState.msg
+  DIRECTORY msg
+  FILES EmergencyStopState.msg
+)
+
+## Generate added messages and services with any dependencies listed here
+generate_messages(
+  DEPENDENCIES std_msgs
 )
 
 
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
+include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_library(SerialIO common/src/SerialIO.cpp)
 add_library(${PROJECT_NAME} common/src/SerRelayBoard.cpp common/src/StrUtil.cpp)
+
+add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_gencpp)
+add_dependencies(SerialIO ${PROJECT_NAME}_gencpp)
 
 target_link_libraries(${PROJECT_NAME} SerialIO)
 
 add_executable(cob_relayboard_node ros/src/cob_relayboard_node.cpp)
 target_link_libraries(cob_relayboard_node ${PROJECT_NAME})
-## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES std_msgs
-)
+target_link_libraries(cob_relayboard_node ${catkin_LIBRARIES})
+add_dependencies(cob_relayboard_node ${PROJECT_NAME}_gencpp)
+
+
 # TODO: fill in what other packages will need to use this package
 ## DEPENDS: system dependencies of this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
@@ -31,7 +39,7 @@ generate_messages(
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 catkin_package(
     DEPENDS roscpp rostest std_msgs cob_utilities pr2_msgs
-    CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS # TODO include
-    LIBRARIES # TODO
+    CATKIN_DEPENDS message_runtime
+    INCLUDE_DIRS common/include
+    LIBRARIES SerialIO ${PROJECT_NAME}
 )

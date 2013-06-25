@@ -62,7 +62,7 @@
 
 // ROS message includes
 #include <sensor_msgs/LaserScan.h>
-#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
+#include <control_msgs/JointTrajectoryControllerState.h>
 
 
 //####################
@@ -103,7 +103,7 @@ class NodeClass
     }
 
 
-    void trayCallback(const pr2_controllers_msgs::JointTrajectoryControllerState::ConstPtr& msg)
+    void trayCallback(const control_msgs::JointTrajectoryControllerState::ConstPtr& msg)
     {
 		if(msg->actual.positions[0] > tray_filter_min_angle and msg->actual.positions[0] < tray_filter_max_angle)
 			bFilterTray_ = true;

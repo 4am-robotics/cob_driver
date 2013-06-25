@@ -10,6 +10,8 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp common/src/ScannerSickS300.cpp common/src/SerialIO.cpp)
 add_executable(cob_scan_filter ros/src/cob_scan_filter.cpp)
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(cob_scan_filter ${catkin_LIBRARIES})
 
 
 

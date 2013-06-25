@@ -15,6 +15,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>roscpp</build_depend>
+  <build_depend>eigen</build_depend>
   <build_depend>cob_srvs</build_depend>
   <build_depend>brics_actuator</build_depend>
   <build_depend>sensor_msgs</build_depend>
