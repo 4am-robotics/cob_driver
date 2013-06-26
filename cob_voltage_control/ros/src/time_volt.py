@@ -63,6 +63,7 @@ import pylab
 import sys
 import getopt
 
+from os.path import expanduser
 import savitzky
 
 import numpy as np
@@ -92,7 +93,8 @@ def main(argv):
     filename = rosparam.get_param("/csv_proc/file_name")
     robot_name = rosparam.get_param("/csv_proc/robot_name")
     mode = rosparam.get_param("/csv_proc/mode")
-    yaml_file = open("voltage_filter.yaml", "w")
+    vcontrol_path = roslib.packages.get_pkg_dir("cob_voltage_control")
+    yaml_file = open(vcontrol_path+"/ros/config/voltage_filter.yaml", "w")
     yl = {}
     
     if(mode=="update"):
