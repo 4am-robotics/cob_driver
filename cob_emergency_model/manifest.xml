@@ -1,0 +1,24 @@
+<package>
+  <description brief="cob_emergency_model">
+
+     cob_emergency_model
+
+  </description>
+  <author>Thiago de Freitas</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_emergency_model</url>
+  
+  <depend package="roscpp"/>
+  <depend package="rostest"/>
+  <depend package="pr2_msgs"/>
+  <depend package="libphidgets"/>
+  <depend package="cob_relayboard"/>
+  <depend package="rospy"/>
+  <depend package="dynamic_reconfigure"/>
+  <depend package="sensor_msgs"/>
+
+
+</package>
+
+
