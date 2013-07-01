@@ -4,25 +4,35 @@ project(cob_sick_s300)
 
 find_package(catkin REQUIRED COMPONENTS roscpp rostest sensor_msgs message_filters diagnostic_msgs tf laser_geometry)
 
-
-
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
-
-add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp common/src/ScannerSickS300.cpp common/src/SerialIO.cpp)
-add_executable(cob_scan_filter ros/src/cob_scan_filter.cpp)
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
-target_link_libraries(cob_scan_filter ${catkin_LIBRARIES})
-
-
-
-# TODO: fill in what other packages will need to use this package
-## DEPENDS: system dependencies of this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## INCLUDE_DIRS: 
-## LIBRARIES: libraries you create in this project that dependent projects also need
+###################################
+## catkin specific configuration ##
+###################################
 catkin_package(
     DEPENDS roscpp rostest sensor_msgs message_filters diagnostic_msgs tf laser_geometry
     CATKIN_DEPENDS # TODO
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )
+
+###########
+## Build ##
+###########
+# add include search paths
+include_directories(common/include common/src ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp common/src/ScannerSickS300.cpp common/src/SerialIO.cpp)
+add_executable(cob_scan_filter ros/src/cob_scan_filter.cpp)
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(cob_scan_filter ${catkin_LIBRARIES})
+
+
+#############
+## Install ##
+#############
+
+## Mark executables and/or libraries for installation
+install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+

@@ -3,13 +3,36 @@ project(cob_camera_sensors)
 
 find_package(catkin REQUIRED COMPONENTS roscpp pluginlib message_filters sensor_msgs nodelet)
 
+#######################################
+## Declare ROS messages and services ##
+#######################################
+
 add_service_files(
   FILES
   AcquireCalibrationImages.srv 
   GetTOFImages.srv
 )
 
+## Generate added messages and services with any dependencies listed here
 
+generate_messages(
+   DEPENDENCIES std_msgs sensor_msgs
+)
+
+###################################
+## catkin specific configuration ##
+###################################
+catkin_package(
+    DEPENDS roscpp pluginlib message_filters nodelet
+    CATKIN_DEPENDS # TODO
+    INCLUDE_DIRS common/include
+    LIBRARIES # TODO
+)
+
+
+###########
+## Build ##
+###########
 # add include search paths
 #INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
@@ -57,20 +80,4 @@ add_service_files(
 #target_link_libraries(tof_camera_viewer cob_camera_sensors)
 #target_link_libraries(color_camera cob_camera_sensors)
 #target_link_libraries(all_cameras cob_camera_sensors usb)
-## Generate added messages and services with any dependencies listed here
 
-generate_messages(
-   DEPENDENCIES std_msgs sensor_msgs
-)
-
-# TODO: fill in what other packages will need to use this package
-## DEPENDS: system dependencies of this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## INCLUDE_DIRS: 
-## LIBRARIES: libraries you create in this project that dependent projects also need
-catkin_package(
-    DEPENDS roscpp pluginlib message_filters nodelet
-    CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS # TODO include
-    LIBRARIES # TODO
-)
