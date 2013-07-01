@@ -4,13 +4,9 @@ project(cob_hwboard)
 find_package(catkin REQUIRED COMPONENTS rospy std_msgs diagnostic_msgs)
 
 
-
-
-# TODO: fill in what other packages will need to use this package
-## DEPENDS: system dependencies of this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## INCLUDE_DIRS: 
-## LIBRARIES: libraries you create in this project that dependent projects also need
+###################################
+## catkin specific configuration ##
+###################################
 catkin_package(
     DEPENDS rospy std_msgs diagnostic_msgs
     CATKIN_DEPENDS # TODO

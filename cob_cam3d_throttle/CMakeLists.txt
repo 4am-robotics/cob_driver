@@ -3,19 +3,30 @@ project(cob_cam3d_throttle)
 
 find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs pluginlib message_filters nodelet)
 
-
+###########
+## Build ##
+###########
 add_library(cam3d_throttle src/cam3d_throttle.cpp)
 
 
 
-# TODO: fill in what other packages will need to use this package
-## DEPENDS: system dependencies of this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## INCLUDE_DIRS: 
-## LIBRARIES: libraries you create in this project that dependent projects also need
+###################################
+## catkin specific configuration ##
+###################################
 catkin_package(
     DEPENDS roscpp sensor_msgs pluginlib message_filters nodelet
     CATKIN_DEPENDS # TODO
     INCLUDE_DIRS # TODO include
     LIBRARIES cam3d_throttle
+)
+
+#############
+## Install ##
+#############
+
+## Mark executables and/or libraries for installation
+install(TARGETS cam3d_throttle
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

@@ -5,7 +5,21 @@ project(cob_undercarriage_ctrl)
 find_package(catkin REQUIRED COMPONENTS roscpp nav_msgs sensor_msgs geometry_msgs diagnostic_msgs tf cob_relayboard cob_utilities diagnostic_updater control_msgs)
 
 
+###################################
+## catkin specific configuration ##
+###################################
 
+catkin_package(
+    DEPENDS roscpp nav_msgs sensor_msgs geometry_msgs diagnostic_msgs tf cob_relayboard cob_utilities diagnostic_updater pr2_controllers_msgs
+    CATKIN_DEPENDS # TODO
+    INCLUDE_DIRS # TODO include
+    LIBRARIES # TODO
+)
+
+
+###########
+## Build ##
+###########
 # add include search paths
 include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 # add project libs
@@ -23,14 +37,13 @@ target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME}
 #target_link_libraries(${PROJECT_NAME}_Trike_node ${PROJECT_NAME}_Trike)
 
 
-# TODO: fill in what other packages will need to use this package
-## DEPENDS: system dependencies of this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## INCLUDE_DIRS: 
-## LIBRARIES: libraries you create in this project that dependent projects also need
-catkin_package(
-    DEPENDS roscpp nav_msgs sensor_msgs geometry_msgs diagnostic_msgs tf cob_relayboard cob_utilities diagnostic_updater pr2_controllers_msgs
-    CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS # TODO include
-    LIBRARIES # TODO
+#############
+## Install ##
+#############
+
+## Mark executables and/or libraries for installation
+install(TARGETS ${PROJECT_NAME}_node
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
