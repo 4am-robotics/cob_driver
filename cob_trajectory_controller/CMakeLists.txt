@@ -4,12 +4,34 @@ project(cob_trajectory_controller)
 
 find_package(catkin REQUIRED COMPONENTS eigen roscpp cob_srvs brics_actuator sensor_msgs actionlib control_msgs orocos_kdl)
 
-
+#######################################
+## Declare ROS messages and services ##
+#######################################
 
 add_service_files(
   FILES
   SetFloat.srv 
 )
+
+generate_messages(
+  DEPENDENCIES geometry_msgs std_msgs
+)
+
+
+###################################
+## catkin specific configuration ##
+###################################
+
+catkin_package(
+    DEPENDS roscpp cob_srvs brics_actuator sensor_msgs pr2_controllers_msgs actionlib control_msgs orocos_kdl
+    CATKIN_DEPENDS # TODO
+    INCLUDE_DIRS # TODO include
+    LIBRARIES # TODO
+)
+
+###########
+## Build ##
+###########
 
 include_directories(common/include ${catkin_INCLUDE_DIRS})
 
@@ -24,18 +46,13 @@ add_dependencies(cob_simulation_tester ${PROJECT_NAME}_gencpp)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 target_link_libraries(cob_simulation_tester ${catkin_LIBRARIES})
 
-generate_messages(
-  DEPENDENCIES geometry_msgs std_msgs
-)
+#############
+## Install ##
+#############
 
-# TODO: fill in what other packages will need to use this package
-## DEPENDS: system dependencies of this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## INCLUDE_DIRS: 
-## LIBRARIES: libraries you create in this project that dependent projects also need
-catkin_package(
-    DEPENDS roscpp cob_srvs brics_actuator sensor_msgs pr2_controllers_msgs actionlib control_msgs orocos_kdl
-    CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS # TODO include
-    LIBRARIES # TODO
+## Mark executables and/or libraries for installation
+install(TARGETS ${PROJECT_NAME} 
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

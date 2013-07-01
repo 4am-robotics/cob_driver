@@ -4,6 +4,9 @@ project(cob_relayboard)
 
 find_package(catkin REQUIRED COMPONENTS roscpp rostest std_msgs cob_utilities message_generation)
 
+#######################################
+## Declare ROS messages and services ##
+#######################################
 
 add_message_files(
   DIRECTORY msg
@@ -15,7 +18,20 @@ generate_messages(
   DEPENDENCIES std_msgs
 )
 
+###################################
+## catkin specific configuration ##
+###################################
 
+catkin_package(
+    DEPENDS roscpp rostest std_msgs cob_utilities pr2_msgs
+    CATKIN_DEPENDS message_runtime
+    INCLUDE_DIRS common/include
+    LIBRARIES SerialIO ${PROJECT_NAME}
+)
+
+###########
+## Build ##
+###########
 include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_library(SerialIO common/src/SerialIO.cpp)
@@ -31,15 +47,13 @@ target_link_libraries(cob_relayboard_node ${PROJECT_NAME})
 target_link_libraries(cob_relayboard_node ${catkin_LIBRARIES})
 add_dependencies(cob_relayboard_node ${PROJECT_NAME}_gencpp)
 
+#############
+## Install ##
+#############
 
-# TODO: fill in what other packages will need to use this package
-## DEPENDS: system dependencies of this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## INCLUDE_DIRS: 
-## LIBRARIES: libraries you create in this project that dependent projects also need
-catkin_package(
-    DEPENDS roscpp rostest std_msgs cob_utilities pr2_msgs
-    CATKIN_DEPENDS message_runtime
-    INCLUDE_DIRS common/include
-    LIBRARIES SerialIO ${PROJECT_NAME}
+## Mark executables and/or libraries for installation
+install(TARGETS cob_relayboard_node
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

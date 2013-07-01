@@ -5,6 +5,10 @@ project(cob_light)
 find_package(catkin REQUIRED COMPONENTS rospy roscpp std_msgs visualization_msgs actionlib actionlib_msgs diagnostic_msgs message_generation)
 find_package(Boost REQUIRED COMPONENTS thread)
 
+
+#######################################
+## Declare ROS messages and services ##
+#######################################
 add_message_files(
   FILES
   LightMode.msg
@@ -19,6 +23,27 @@ add_action_files(
   FILES
   SetLightMode.action 
 )
+
+## Generate added messages and services with any dependencies listed here
+generate_messages(
+  DEPENDENCIES actionlib_msgs geometry_msgs std_msgs
+)
+
+###################################
+## catkin specific configuration ##
+###################################
+
+catkin_package(
+    DEPENDS rospy roscpp std_msgs visualization_msgs actionlib diagnostic_msgs
+    CATKIN_DEPENDS message_runtime
+    INCLUDE_DIRS common/include
+    LIBRARIES # TODO
+)
+
+###########
+## Build ##
+###########
+
 #pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
 #pkg_check_modules(GTHREAD REQUIRED gthread-2.0)
 
@@ -33,24 +58,25 @@ add_dependencies(cob_light ${PROJECT_NAME}_gencpp)
 target_link_libraries(cob_light ${Boost_LIBRARIES})
 target_link_libraries(cob_light ${catkin_LIBRARIES})
 
+###########
+## Test ##
+###########
 # rostest
 #rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-1)
 #rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-2)
 #rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-3)
 #rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-4)
-## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES actionlib_msgs geometry_msgs std_msgs
+
+#############
+## Install ##
+#############
+
+## Mark executables and/or libraries for installation
+install(TARGETS cob_light
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-# TODO: fill in what other packages will need to use this package
-## DEPENDS: system dependencies of this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## INCLUDE_DIRS: 
-## LIBRARIES: libraries you create in this project that dependent projects also need
-catkin_package(
-    DEPENDS rospy roscpp std_msgs visualization_msgs actionlib diagnostic_msgs
-    CATKIN_DEPENDS message_runtime
-    INCLUDE_DIRS common/include
-    LIBRARIES # TODO
-)
+
+

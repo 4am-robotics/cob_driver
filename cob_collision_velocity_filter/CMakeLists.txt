@@ -4,7 +4,26 @@ project(cob_collision_velocity_filter)
 
 find_package(catkin REQUIRED COMPONENTS roscpp rospy dynamic_reconfigure nav_msgs tf cob_footprint_observer visualization_msgs)
 
+
+###################################
+## Dynamic reconfigure ##
+###################################
 generate_dynamic_reconfigure_options(cfg/DynParam.cfg)
+
+###################################
+## catkin specific configuration ##
+###################################
+catkin_package(
+    DEPENDS roscpp rospy dynamic_reconfigure move_base_msgs nav_msgs tf cob_footprint_observer visualization_msgs
+    CATKIN_DEPENDS # TODO
+    INCLUDE_DIRS include
+    LIBRARIES # TODO
+)
+
+
+###########
+## Build ##
+###########
 
 include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
@@ -17,16 +36,15 @@ target_link_libraries(collision_velocity_filter ${catkin_LIBRARIES})
 add_dependencies(collision_velocity_filter ${PROJECT_NAME}_gencpp)
 
 
+#############
+## Install ##
+#############
 
-
-# TODO: fill in what other packages will need to use this package
-## DEPENDS: system dependencies of this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## INCLUDE_DIRS: 
-## LIBRARIES: libraries you create in this project that dependent projects also need
-catkin_package(
-    DEPENDS roscpp rospy dynamic_reconfigure move_base_msgs nav_msgs tf cob_footprint_observer visualization_msgs
-    CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS include
-    LIBRARIES # TODO
+## Mark executables and/or libraries for installation
+install(TARGETS collision_velocity_filter
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+

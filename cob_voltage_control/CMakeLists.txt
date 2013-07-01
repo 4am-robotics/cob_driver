@@ -4,8 +4,25 @@ project(cob_voltage_control)
 
 find_package(catkin REQUIRED COMPONENTS roscpp libphidgets cob_relayboard rospy dynamic_reconfigure)
 
+###################################
+## Dynamic reconfigure ##
+###################################
 generate_dynamic_reconfigure_options(cfg/cob_voltage_control.cfg)
 
+
+###################################
+## catkin specific configuration ##
+###################################
+catkin_package(
+    DEPENDS roscpp libphidgets cob_relayboard rospy dynamic_reconfigure
+    CATKIN_DEPENDS # TODO
+    INCLUDE_DIRS 
+    LIBRARIES 
+)
+
+###########
+## Build ##
+###########
 # add include search paths
 include_directories(common/include common/src ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
@@ -14,14 +31,14 @@ add_executable(cob_voltage_control ros/src/cob_voltage_control_ros.cpp)
 target_link_libraries(cob_voltage_control ${catkin_LIBRARIES}) 
 
 
-# TODO: fill in what other packages will need to use this package
-## DEPENDS: system dependencies of this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## INCLUDE_DIRS: 
-## LIBRARIES: libraries you create in this project that dependent projects also need
-catkin_package(
-    DEPENDS roscpp libphidgets cob_relayboard rospy dynamic_reconfigure
-    CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS # TODO include
-    LIBRARIES # TODO
+#############
+## Install ##
+#############
+
+## Mark executables and/or libraries for installation
+install(TARGETS cob_voltage_control
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
