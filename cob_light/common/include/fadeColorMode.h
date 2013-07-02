@@ -60,7 +60,7 @@
 class FadeColorMode : public Mode
 {
 public:
-	FadeColorMode(color::rgba color, int priority = 0, double freq = 0, int pulses = 0, double timeout = 0)
+	FadeColorMode(color::rgba color, int priority = 0, double freq = 25, int pulses = 0, double timeout = 0)
 		:Mode(priority, freq, pulses, timeout)
 	{
 		_color = color;
