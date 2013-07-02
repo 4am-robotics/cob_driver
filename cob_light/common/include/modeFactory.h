@@ -64,9 +64,10 @@ public:
 	ModeFactory();
 	~ModeFactory();
 
-	Mode* create(cob_light::LightMode requestMode);
+	static Mode* create(cob_light::LightMode requestMode);
+	static Mode* create(std::string mode, color::rgba color);
 
-	int type(Mode *mode);
+	static int type(Mode *mode);
 
 private:
 };
