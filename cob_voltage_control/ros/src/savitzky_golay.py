@@ -120,6 +120,7 @@ class volts_filter():
         self.msg_power.time_remaining.secs = self.t_est
         self.msg_power.prediction_method = '3rd_order_polynom'
         self.msg_power.relative_capacity = (self.t_est/self.maximum_time) * 100
+        self.msg_power.AC_present = 1
         
         self.pub_power.publish(self.msg_power)
             
