@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp cob_utilities libpcan libntcan)
 ###################################
 
 catkin_package(
-    DEPENDS roscpp cob_utilities libpcan
+    DEPENDS roscpp cob_utilities libpcan libntcan
     CATKIN_DEPENDS # TODO
     INCLUDE_DIRS common/include
     LIBRARIES ${PROJECT_NAME}_peaksysusb ${PROJECT_NAME}_peaksys ${PROJECT_NAME}_esd 
