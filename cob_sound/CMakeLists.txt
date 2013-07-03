@@ -40,7 +40,7 @@ include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 add_executable(sound ros/src/sound.cpp)
 
 target_link_libraries(sound ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-
+add_dependencies(sound ${PROJECT_NAME}_gencpp)
 #############
 ## Install ##
 #############
