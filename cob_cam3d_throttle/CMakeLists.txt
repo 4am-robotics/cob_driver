@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs pluginlib message_fil
 ## Build ##
 ###########
 add_library(cam3d_throttle src/cam3d_throttle.cpp)
+target_link_libraries(cam3d_throttle ${catkin_LIBRARIES})
 
 
 
