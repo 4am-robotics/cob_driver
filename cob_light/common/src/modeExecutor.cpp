@@ -132,7 +132,7 @@ void ModeExecutor::run()
 		}
 		r.sleep();
 	}
-
+	ROS_INFO("Mode %s finished",_activeMode->getName().c_str());
 	delete _activeMode;
 	_activeMode = NULL;
 }
