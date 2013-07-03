@@ -131,10 +131,11 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "cob_sound");
 
-  SayAction say("say");
-
   // HACK: wait for publishers to be ready
+  ros::Time::init();
   ros::Duration(0.5).sleep();
+
+  SayAction say("say");
   
   ros::Rate r(10);
   while (ros::ok())
