@@ -9,7 +9,7 @@ uint8 FADE_COLOR = 5 	# will fade the colors in rainbow
 
 std_msgs/ColorRGBA color #the color which will be used
 float32 frequency 		# in Hz
-int32 timeout 			# in ms, requested mode will be executed for max timout ms.
+float32 timeout 		# in s, requested mode will be executed for max timout s.
 						# default is 0 and meens no timeout.
 int32 pulses 			# spezifies the amount of pulses which will be executed.
 			 			# eg: mode = flash, pulses = 2. Meens the light will flash two times

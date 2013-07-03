@@ -75,7 +75,7 @@ public:
 	void setPriority(int priority){ _priority = priority; }
 	int getPriority(){ return _priority; }
 
-	void setTimeout(int timeout){ _timeout = timeout; }
+	void setTimeout(double timeout){ _timeout = timeout; }
 	double getTimeout(){ return _timeout; }
 
 	void setFrequency(double freq){ _freq = freq; }
