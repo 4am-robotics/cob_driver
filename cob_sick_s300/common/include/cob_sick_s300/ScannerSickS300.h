@@ -182,6 +182,7 @@ private:
 	std::vector<int> m_viScanRaw;
 	int m_iPosReadBuf2;
 	static unsigned char m_iScanId;
+	int m_actualBufferSize;
 
 	// Components
 	SerialIO m_SerialIO;

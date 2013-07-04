@@ -219,6 +219,7 @@ public:
 
 	bool SetMotionCtrlType(int type);
 	int GetMotionCtrlType(); 
+	bool isError() ;
 	
 
 	enum {
