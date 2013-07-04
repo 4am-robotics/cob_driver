@@ -104,9 +104,6 @@ public:
     relayboard_available = false;
     relayboard_online = false;
     relayboard_timeout_ = 2.0;
-    voltage_offset_ = 2.0;
-    voltage_min_ = 48.0;
-    voltage_max_ = 56.0;
     protocol_version_ = 1;
     duration_for_EM_free_ = ros::Duration(1);
   }
@@ -129,9 +126,6 @@ private:
   ros::Duration duration_for_EM_free_;
   ros::Time time_of_EM_confirmed_;
   double relayboard_timeout_;
-  double voltage_offset_;
-  double voltage_min_;
-  double voltage_max_;
   int protocol_version_;
 
   ros::Time time_last_message_received_;
@@ -188,10 +182,6 @@ int NodeClass::init()
     }
 
   n.param("relayboard_timeout", relayboard_timeout_, 2.0);
-  n.param("relayboard_voltage_offset", voltage_offset_, 2.0);
-  n.param("cob3_min_voltage", voltage_min_, 48.0);
-  n.param("cob3_max_voltage", voltage_max_, 56.0); 
-
   n.param("protocol_version", protocol_version_, 1);
     
   m_SerRelayBoard = new SerRelayBoard(sComPort, protocol_version_);
@@ -238,7 +228,7 @@ int NodeClass::requestBoardStatus() {
 void NodeClass::sendBatteryVoltage()
 {
   std_msgs::Float64 voltage;
-  voltage.data = m_SerRelayBoard->getBatteryVoltage();
+  voltage.data = m_SerRelayBoard->getBatteryVoltage()/1000.0; //normalize from mV to V
   topicPub_Voltage.publish(voltage);
 }
 
