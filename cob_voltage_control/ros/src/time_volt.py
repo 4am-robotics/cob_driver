@@ -122,7 +122,7 @@ def main(argv):
         csvreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
         for row in csvreader:
             row = row[0].split(',')
-            volt_v = (float)(row[1])
+            volt_v = (float)(row[1]) * 1000.0
             if(volt_v < 48000 and volt_v > 44000):
                 time_values.append((float)(row[0]))
                 volt_values.append((float)(row[1]))

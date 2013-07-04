@@ -461,7 +461,7 @@ class NodeClass
 					}
 					else
 					{
-						ROS_INFO("...axis still moving to point[%d]",traj_point_nr_);
+						ROS_DEBUG("...axis still moving to point[%d]",traj_point_nr_);
 					}
 				}
 				else if (operationMode_ == "velocity")
@@ -481,7 +481,10 @@ class NodeClass
 	
 	void publishJointState()
 	{
-		if (isInitialized_ == true) {			
+
+		if (isInitialized_ == true) {
+			isError_ = CamAxis_->isError();
+
 			// create message
 			int DOF = 1;
 
@@ -542,8 +545,8 @@ class NodeClass
 	    if(isError_)
 	    {
 	      diagnostics.status[0].level = 2;
-	      diagnostics.status[0].name = "head_axis";
-	      diagnostics.status[0].message = "one or more drives are in Error mode";
+	      diagnostics.status[0].name = n_.getNamespace();
+	      diagnostics.status[0].message = "drive is in error mode";
 	    }
 	    else
 	    {
