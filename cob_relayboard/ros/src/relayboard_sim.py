@@ -23,6 +23,7 @@ def relayboard_sim():
 	msg_power_board.run_stop = True
 	msg_power_board.wireless_stop = True #for cob the wireless stop field is misused as laser stop field
 
+	# power_board/voltage topic
 	pub_voltage = rospy.Publisher('/power_board/voltage', Float64)
 	msg_voltage = Float64()
 	msg_voltage.data = 48.0 # in simulation battery is always full
@@ -36,6 +37,6 @@ def relayboard_sim():
 if __name__ == '__main__':
 	try:
 		relayboard_sim()
-	except rospy.ROSInterruptException: 
+	except rospy.ROSInterruptException:
 		print "Interupted"
 		pass

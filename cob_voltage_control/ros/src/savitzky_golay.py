@@ -89,11 +89,12 @@ class volts_filter():
     def callback(self, data):
     
         self.volts = data.data
+        self.volts = self.volts*1000
         
-        if(data.data <= 44000):
+        if(self.volts <= 44000):
             self.volts = 44000
             time_r = 0.
-        elif(data.data >= 48000):
+        elif(self.volts >= 48000):
             self.volts = 48000      
 
         self.process_voltage()
@@ -110,7 +111,6 @@ class volts_filter():
         self.t_est = np.polyval(self.abcd, vfilt[self.wsize])
 
         self.t_est = vfilt[self.wsize]*sin(self.theta) + self.t_est*cos(self.theta)
-
         self.t_est = self.t_est + self.off_y
         
         if(self.t_est <0):
