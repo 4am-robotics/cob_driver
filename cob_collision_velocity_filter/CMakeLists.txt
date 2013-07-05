@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy dynamic_reconfigure nav_msg
 ###################################
 ## Dynamic reconfigure ##
 ###################################
-generate_dynamic_reconfigure_options(cfg/DynParam.cfg)
+generate_dynamic_reconfigure_options(cfg/CollisionVelocityFilter.cfg)
 
 ###################################
 ## catkin specific configuration ##
