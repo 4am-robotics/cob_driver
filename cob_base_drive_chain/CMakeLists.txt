@@ -44,6 +44,7 @@ add_library(${PROJECT_NAME} common/src/CanCtrlPltfCOb3.cpp)
 # add executable
 add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp)
 add_executable(${PROJECT_NAME}_sim_node ros/src/${PROJECT_NAME}.cpp)
+set_target_properties(${PROJECT_NAME}_sim_node PROPERTIES COMPILE_FLAGS "-D__SIM__")
 
 target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME} cob_canopen_motor_harmonica)
 target_link_libraries(${PROJECT_NAME}_sim_node ${PROJECT_NAME} 
@@ -57,10 +58,14 @@ target_link_libraries(${PROJECT_NAME}_sim_node ${catkin_LIBRARIES})
 #############
 
 ## Mark executables and/or libraries for installation
-install(TARGETS cob_base_drive_chain
+install(TARGETS cob_base_drive_chain ${PROJECT_NAME}_sim_node 
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 
+## Mark lauch files for installation
+install(DIRECTORY ros/launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ros/launch
+)

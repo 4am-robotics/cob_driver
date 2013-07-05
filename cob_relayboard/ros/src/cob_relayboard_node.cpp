@@ -65,7 +65,6 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float64.h>
 #include <cob_relayboard/EmergencyStopState.h>
-#include <pr2_msgs/PowerState.h>
 #include <pr2_msgs/PowerBoardState.h>
 
 
@@ -86,7 +85,6 @@ public:
                 
   // topics to publish
   ros::Publisher topicPub_isEmergencyStop;
-  ros::Publisher topicPub_PowerState;
   ros::Publisher topicPub_PowerBoardState;
   ros::Publisher topicPub_Voltage;
   // topics to subscribe, callback is called for new messages arriving
@@ -98,7 +96,6 @@ public:
     n = ros::NodeHandle("~");
 			
     topicPub_isEmergencyStop = n.advertise<cob_relayboard::EmergencyStopState>("/emergency_stop_state", 1);
-    topicPub_PowerState = n.advertise<pr2_msgs::PowerState>("/power_state", 1);
     topicPub_PowerBoardState = n.advertise<pr2_msgs::PowerBoardState>("/power_board/state", 1);
     topicPub_Voltage = n.advertise<std_msgs::Float64>("/power_board/voltage", 10);
 
@@ -107,9 +104,6 @@ public:
     relayboard_available = false;
     relayboard_online = false;
     relayboard_timeout_ = 2.0;
-    voltage_offset_ = 2.0;
-    voltage_min_ = 48.0;
-    voltage_max_ = 56.0;
     protocol_version_ = 1;
     duration_for_EM_free_ = ros::Duration(1);
   }
@@ -132,9 +126,6 @@ private:
   ros::Duration duration_for_EM_free_;
   ros::Time time_of_EM_confirmed_;
   double relayboard_timeout_;
-  double voltage_offset_;
-  double voltage_min_;
-  double voltage_max_;
   int protocol_version_;
 
   ros::Time time_last_message_received_;
@@ -191,10 +182,6 @@ int NodeClass::init()
     }
 
   n.param("relayboard_timeout", relayboard_timeout_, 2.0);
-  n.param("relayboard_voltage_offset", voltage_offset_, 2.0);
-  n.param("cob3_min_voltage", voltage_min_, 48.0);
-  n.param("cob3_max_voltage", voltage_max_, 56.0); 
-
   n.param("protocol_version", protocol_version_, 1);
     
   m_SerRelayBoard = new SerRelayBoard(sComPort, protocol_version_);
@@ -240,23 +227,9 @@ int NodeClass::requestBoardStatus() {
 
 void NodeClass::sendBatteryVoltage()
 {
-  ROS_DEBUG("Current Battery Voltage: %f", (m_SerRelayBoard->getBatteryVoltage()/1000.0) + voltage_offset_);
-  double percentage = ((m_SerRelayBoard->getBatteryVoltage()/1000.0) + voltage_offset_ - voltage_min_) * 100/(voltage_max_ - voltage_min_);
-  //Not supported by relayboard
-  //ROS_INFO("Current Charge current: %d", m_SerRelayBoard->getChargeCurrent());
-  //---
-  pr2_msgs::PowerState ps;
-  ps.header.stamp = ros::Time::now();
-  ps.power_consumption = 0.0;
-  ps.time_remaining = ros::Duration(1000); //TODO: Needs to be calculated based on battery type (plumb or lithion-ion), maybe specify charging characteristics in table in .yaml file
-  ps.relative_capacity = percentage; // TODO: Needs to be calculated based on battery type (plumb or lithion-ion), maybe specify charging characteristics in table in .yaml file
-  topicPub_PowerState.publish(ps);
-
   std_msgs::Float64 voltage;
-  // std::cout << m_SerRelayBoard->getBatteryVoltage() << std::endl;
-  voltage.data = m_SerRelayBoard->getBatteryVoltage();
+  voltage.data = m_SerRelayBoard->getBatteryVoltage()/1000.0; //normalize from mV to V
   topicPub_Voltage.publish(voltage);
-
 }
 
 void NodeClass::sendEmergencyStopStates()
