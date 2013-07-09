@@ -56,6 +56,7 @@
 
 // general includes
 #include <math.h>
+#include <unistd.h>
 
 // Headers provided by other cob-packages
 #include <cob_generic_can/CanESD.h>
