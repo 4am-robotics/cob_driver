@@ -55,6 +55,7 @@
 #include "cob_sick_s300/SerialIO.h"
 #include <math.h>
 #include <iostream>
+#include <unistd.h>
 
 #include <errno.h>
 #include <sys/types.h>
