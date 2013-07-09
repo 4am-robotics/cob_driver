@@ -84,12 +84,11 @@ SerRelayBoard::SerRelayBoard(std::string ComPort, int ProtocolVersion)
 		m_NUM_BYTE_SEND = 50;
 	else if(m_iProtocolVersion == 2)
 	{	m_NUM_BYTE_SEND = 79;
-		m_iTypeLCD = RELAY_BOARD_1_4;
+		m_iTypeLCD = LCD_60CHAR_TEXT;
 	}	
 	else if(m_iProtocolVersion == 3)
 	{
-		m_iNumBytesSend = NUM_BYTE_SEND_RELAYBOARD_14;
-		m_NUM_BYTE_SEND = 88;
+		m_NUM_BYTE_SEND = NUM_BYTE_SEND_RELAYBOARD_14;
 		m_iTypeLCD = RELAY_BOARD_1_4;
 	}
 	m_bComInit = false;
@@ -246,7 +245,7 @@ int SerRelayBoard::sendRequest() {
 	int errorFlag = NO_ERROR;
 	int iNrBytesWritten;
 
-	unsigned char cMsg[m_iNumBytesSend];
+	unsigned char cMsg[m_NUM_BYTE_SEND];
 	
 	m_Mutex.lock();
 	
@@ -254,9 +253,9 @@ int SerRelayBoard::sendRequest() {
 
 		m_SerIO.purgeTx();
 
-		iNrBytesWritten = m_SerIO.write((char*)cMsg, m_iNumBytesSend);
+		iNrBytesWritten = m_SerIO.write((char*)cMsg, m_NUM_BYTE_SEND);
 	
-		if(iNrBytesWritten < m_iNumBytesSend) {
+		if(iNrBytesWritten < m_NUM_BYTE_SEND) {
 			//std::cerr << "Error in sending message to Relayboard over SerialIO, lost bytes during writing" << std::endl;
 			errorFlag = GENERAL_SENDING_ERROR;
 		}
@@ -416,7 +415,7 @@ void SerRelayBoard::convDataToSendMsg(unsigned char cMsg[])
 		{
 			cMsg[iCnt++] = 0;
 		}
-		while(iCnt < (m_iNumBytesSend - 2));
+		while(iCnt < (m_NUM_BYTE_SEND - 2));
 	}
 	else
 	{
@@ -431,14 +430,14 @@ void SerRelayBoard::convDataToSendMsg(unsigned char cMsg[])
 		cMsg[iCnt++] = m_cSoftEMStop;
 	}
 	// calc checksum
-	for(i = 0; i < (m_iNumBytesSend - 2); i++)
+	for(i = 0; i < (m_NUM_BYTE_SEND - 2); i++)
 	{
 		iChkSum %= 0xFF00;
 		iChkSum += cMsg[i];
 	}
 		
-	cMsg[m_iNumBytesSend - 2] = iChkSum >> 8;
-	cMsg[m_iNumBytesSend - 1] = iChkSum;
+	cMsg[m_NUM_BYTE_SEND - 2] = iChkSum >> 8;
+	cMsg[m_NUM_BYTE_SEND - 1] = iChkSum;
 	
 	// reset flags
 	m_iCmdRelayBoard &= ~CMD_RESET_POS_CNT;
@@ -486,11 +485,19 @@ bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 {
 
 	int iNumByteRec = NUM_BYTE_REC;
-
+	if(m_iTypeLCD == LCD_20CHAR_TEXT)
+	{
+		iNumByteRec = NUM_BYTE_REC;
+	}
+	if(m_iTypeLCD == LCD_60CHAR_TEXT)
+	{
+		iNumByteRec = NUM_BYTE_REC;
+	}
 	if(m_iTypeLCD == RELAY_BOARD_1_4)
 	{
 		iNumByteRec = NUM_BYTE_REC_RELAYBOARD_14;
 	}
+	
 	const int c_iStartCheckSum = iNumByteRec;
 	
 	int i;
