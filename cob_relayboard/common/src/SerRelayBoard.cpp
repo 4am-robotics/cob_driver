@@ -96,7 +96,7 @@ SerRelayBoard::SerRelayBoard(std::string ComPort, int ProtocolVersion)
 //-----------------------------------------------
 SerRelayBoard::~SerRelayBoard()
 {
-	m_SerIO.closeIO();
+	m_SerIO.close();
 }
 
 //-----------------------------------------------
@@ -164,13 +164,12 @@ int SerRelayBoard::evalRxBuffer()
 //-----------------------------------------------
 bool SerRelayBoard::init()
 {
-	
 	m_SerIO.setBaudRate(RS422_BAUDRATE);
 	m_SerIO.setDeviceName( m_sNumComPort.c_str() );
 	m_SerIO.setBufferSize(RS422_RX_BUFFERSIZE, RS422_TX_BUFFERSIZE);
 	m_SerIO.setTimeout(RS422_TIMEOUT);
 
-	m_SerIO.openIO();
+	m_SerIO.open();
 
 	m_bComInit = true;
 
@@ -180,7 +179,7 @@ bool SerRelayBoard::init()
 //-----------------------------------------------
 bool SerRelayBoard::reset()
 {
-	m_SerIO.closeIO();
+	m_SerIO.close();
 	m_bComInit = false;
 
 	init();
@@ -191,7 +190,7 @@ bool SerRelayBoard::reset()
 //-----------------------------------------------
 bool SerRelayBoard::shutdown()
 {
-	m_SerIO.closeIO();
+	m_SerIO.close();
 
 	m_bComInit = false;
 	
@@ -238,7 +237,7 @@ int SerRelayBoard::sendRequest() {
 
 		m_SerIO.purgeTx();
 
-		iNrBytesWritten = m_SerIO.writeIO((char*)cMsg, m_NUM_BYTE_SEND);
+		iNrBytesWritten = m_SerIO.write((char*)cMsg, m_NUM_BYTE_SEND);
 	
 		if(iNrBytesWritten < m_NUM_BYTE_SEND) {
 			//std::cerr << "Error in sending message to Relayboard over SerialIO, lost bytes during writing" << std::endl;
