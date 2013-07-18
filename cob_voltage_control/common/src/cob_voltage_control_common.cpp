@@ -3,6 +3,7 @@
 #include <pr2_msgs/PowerBoardState.h>
 #include <pr2_msgs/PowerState.h>
 #include <cob_relayboard/EmergencyStopState.h>
+#include <std_msgs/Float64.h>
 
 #include <libphidgets/phidget21.h>
 
@@ -31,6 +32,7 @@ public:
 	pr2_msgs::PowerBoardState out_pub_em_stop_state_;
 	pr2_msgs::PowerState out_pub_powerstate_;
   cob_relayboard::EmergencyStopState out_pub_relayboard_state;
+ std_msgs::Float64 out_pub_voltage;
 };
 
 //document how this class has to look
@@ -152,7 +154,7 @@ public:
 		//max_voltage = 70V ; max_counts = 999
 		double max_counts = 999.0; // see phidgit analog io docu
 		double voltage = voltageState * config.max_voltage_res/max_counts;
-
+		data.out_pub_voltage.data = voltage;
 		ROS_DEBUG("Current voltage %f", voltage);
 
 		//Linear calculation for percentage
