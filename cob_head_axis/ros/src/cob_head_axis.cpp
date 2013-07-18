@@ -75,6 +75,8 @@
 // external includes
 #include <cob_camera_axis/ElmoCtrl.h>
 
+#include <unistd.h>
+
 //####################
 //#### node class ####
 class NodeClass
