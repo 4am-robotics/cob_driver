@@ -547,7 +547,7 @@ class NodeClass
 	    if(isError_)
 	    {
 	      diagnostics.status[0].level = 2;
-	      diagnostics.status[0].name = "head_axis";
+	      diagnostics.status[0].name = n_.getNamespace();
 	      diagnostics.status[0].message = "drive is in error mode";
 	    }
 	    else
