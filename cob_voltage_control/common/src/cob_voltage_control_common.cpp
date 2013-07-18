@@ -154,7 +154,6 @@ public:
 		//max_voltage = 70V ; max_counts = 999
 		double max_counts = 999.0; // see phidgit analog io docu
 		double voltage = voltageState * config.max_voltage_res/max_counts;
-		std::cout << "Voltage from common: " << (double)voltageState << std::endl;
 		data.out_pub_voltage.data = voltage;
 		ROS_DEBUG("Current voltage %f", voltage);
 

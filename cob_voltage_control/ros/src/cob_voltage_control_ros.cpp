@@ -59,7 +59,6 @@ class cob_voltage_control_ros
         {
             component_implementation_.update(component_data_, component_config_);
             topicPub_Voltage.publish(component_data_.out_pub_voltage);   
-		std::cout << "Voltage: " << component_data_.out_pub_voltage << std::endl;
         }
 };
 
