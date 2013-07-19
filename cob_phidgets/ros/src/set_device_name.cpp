@@ -9,6 +9,7 @@
 #include <ros/ros.h>
 
 #include <stdio.h>
+#include <cstdio>
 #include <phidget21.h>
 
 int display_devices(CPhidgetManagerHandle MAN);
@@ -40,7 +41,6 @@ int DetachHandler(CPhidgetHandle phid, void *userPtr)
 	CPhidget_getSerialNumber(phid, &serialNo);
 	printf("%s %10d detached!\n", name, serialNo);
 
-	display_devices((CPhidgetManagerHandle)userPtr);
 	return 0;
 }
 
@@ -55,23 +55,23 @@ int display_devices(CPhidgetManagerHandle MAN)
 {
 	int serialNo, version, numDevices, i;
 	const char* ptr;
-	const char* name;
+	const char* label;
 	CPhidgetHandle *devices;
 
 	CPhidgetManager_getAttachedDevices (MAN, &devices, &numDevices);
 
-	printf("|-   # -|-        Name        -|-              Type              -|- Serial No. -|-  Version -|\n");
+	printf("|-   # -|-        Label       -|-              Type              -|- Serial No. -|-  Version -|\n");
 	printf("|-------|----------------------|----------------------------------|--------------|------------|\n");
 
 
 	for(i = 0; i < numDevices; i++)
 	{
 		CPhidget_getDeviceType(devices[i], &ptr);
-		CPhidget_getDeviceName(devices[i], &name);
+		CPhidget_getDeviceLabel(devices[i], &label);
 		CPhidget_getSerialNumber(devices[i], &serialNo);
 		CPhidget_getDeviceVersion(devices[i], &version);
 
-		printf("|- %3d -|- %18s -|- %30s -|- %10d -|- %8d -|\n", i, name, ptr, serialNo, version);
+		printf("|- %3d -|- %18s -|- %30s -|- %10d -|- %8d -|\n", i, label, ptr, serialNo, version);
 		printf("|-------|----------------------|----------------------------------|--------------|------------|\n");
 	}
 
@@ -80,8 +80,44 @@ int display_devices(CPhidgetManagerHandle MAN)
 	return 0;
 }
 
-int set_device_names()
+void set_label(CPhidgetManagerHandle MAN, int index)
 {
+	int numDevices;
+	char choise;
+	const char* label_old;
+	std::string label_new;
+	CPhidgetHandle *devices;
+
+	CPhidgetManager_getAttachedDevices (MAN, &devices, &numDevices);
+	CPhidget_getDeviceLabel(devices[index], &label_old);
+
+	printf("\nenter new label: ");
+	getline(std::cin, label_new);
+
+	printf("\n old label: %s \n”", label_old);
+	printf("new label: %s \n", label_new.c_str());
+	printf("is this correct? [Y/n]: ");
+	choise = getchar();
+	switch(choise)
+	{
+		case '\n':
+		case 'Y':
+		case 'y':
+			if(CPhidget_setDeviceLabel(devices[index], label_new.c_str()) == EPHIDGET_OK)
+				printf("\nnew label is: %s \n", label_new.c_str());	
+			break;
+		case 'n':
+			printf("\nlabel is still: %s \n", label_old);
+			break;
+		default:
+			break;
+	};
+
+}
+
+int set_device_label()
+{
+	int err;
 	//Declare an Manager handle
 	CPhidgetManagerHandle man = 0;
 
@@ -97,10 +133,38 @@ int set_device_names()
 
 	//open the Manager for device connections
 	CPhidgetManager_open(man);
-	//end simulation
-	printf("Press any key to end\n");
-	getchar();
 
+	if ((err = CPhidget_waitForAttachment((CPhidgetHandle) man, 10000))
+			!= EPHIDGET_OK)
+	{
+		const char *errStr;
+		CPhidget_getErrorDescription(err, &errStr);
+		printf("Error waiting for attachment: (%d): %s", err, errStr);
+	}
+
+	char choise;
+
+	do
+	{
+		display_devices(man);
+
+		//end simulation
+		printf("Press r to rename\n");
+		printf("Press q to exit\n");
+		choise = getchar();
+		switch (choise)
+		{
+			case 'r':
+				printf("Press index number of device you would like to rename\n");
+				choise = getchar();
+				set_label(man, choise);
+				break;
+			case 'q':
+				break;
+			default:
+				printf("Error\n");
+		};
+	}while(choise != 'q');
 	//since user input has been read, this is a signal to terminate the program so we will close the phidget and delete the object we created
 	printf("Closing...\n");
 	CPhidgetManager_close(man);
@@ -112,7 +176,7 @@ int set_device_names()
 
 int main(int argc, char* argv[])
 {
-	set_device_names();
+	set_device_label();
 	return 0;
 }
 
