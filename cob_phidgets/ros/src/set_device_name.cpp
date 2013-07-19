@@ -92,25 +92,28 @@ void set_label(CPhidgetManagerHandle MAN, int index)
 	std::string label_new;
 	CPhidgetHandle *devices;
 
+	printf("index: %d\n", index);
+
 	CPhidgetManager_getAttachedDevices (MAN, &devices, &numDevices);
 	CPhidget_getDeviceLabel(devices[index], &label_old);
 
 	printf("\nenter new label: ");
-	fflush(stdin);
 	getline(std::cin, label_new);
 
 	printf("\n old label: %s \n”", label_old);
 	printf("new label: %s \n", label_new.c_str());
 	printf("is this correct? [Y/n]: ");
-	fflush(stdin);
 	choise = getchar();
+	getchar();
 	switch(choise)
 	{
 		case '\n':
 		case 'Y':
 		case 'y':
 			if(CPhidget_setDeviceLabel(devices[index], label_new.c_str()) == EPHIDGET_OK)
-				printf("\nnew label is: %s \n", label_new.c_str());	
+				printf("\nnew label is: %s \n", label_new.c_str());
+			else
+				printf("\nerror setting label!\n");
 			break;
 		case 'n':
 			printf("\nlabel is still: %s \n", label_old);
@@ -150,25 +153,22 @@ int set_device_label()
 
 	char choise;
 
-	do
+	//end simulation
+	choise = getchar();
+	getchar();
+	switch (choise)
 	{
-		//end simulation
-		fflush(stdin);
-		choise = getchar();
-		switch (choise)
-		{
-			case 'r':
-				printf("Press index number of device you would like to rename\n");
-				fflush(stdin);
-				choise = getchar();
-				set_label(man, choise);
-				break;
-			case 'q':
-				break;
-			default:
-				printf("Error\n");
-		};
-	}while(choise != 'q');
+		case 'r':
+			printf("Press index number of device you would like to rename\n");
+			choise = getchar();
+			getchar();
+			set_label(man, atoi(&choise));
+			break;
+		case 'q':
+			break;
+		default:
+			printf("Error\n");
+	};
 	//since user input has been read, this is a signal to terminate the program so we will close the phidget and delete the object we created
 	printf("Closing...\n");
 	CPhidgetManager_close(man);
