@@ -55,22 +55,24 @@ int display_devices(CPhidgetManagerHandle MAN)
 {
 	int serialNo, version, numDevices, i;
 	const char* ptr;
+	const char* name;
 	CPhidgetHandle *devices;
 
 	CPhidgetManager_getAttachedDevices (MAN, &devices, &numDevices);
 
-	printf("|-   # -|-              Type              -|- Serial No. -|-  Version -|\n");
-	printf("|-------|----------------------------------|--------------|------------|\n");
+	printf("|-   # -|-        Name        -|-              Type              -|- Serial No. -|-  Version -|\n");
+	printf("|-------|----------------------|----------------------------------|--------------|------------|\n");
 
 
 	for(i = 0; i < numDevices; i++)
 	{
 		CPhidget_getDeviceType(devices[i], &ptr);
+		CPhidget_getDeviceName(devices[i], &name);
 		CPhidget_getSerialNumber(devices[i], &serialNo);
 		CPhidget_getDeviceVersion(devices[i], &version);
 
-		printf("|- %3d -|- %30s -|- %10d -|- %8d -|\n", i, ptr, serialNo, version);
-		printf("|-------|----------------------------------|--------------|------------|\n");
+		printf("|- %3d -|- %18s -|- %30s -|- %10d -|- %8d -|\n", i, name, ptr, serialNo, version);
+		printf("|-------|----------------------|----------------------------------|--------------|------------|\n");
 	}
 
 	CPhidgetManager_freeAttachedDevicesArray(devices);
