@@ -28,6 +28,8 @@ int AttachHandler(CPhidgetHandle phid, void *userPtr)
 
 	printf("%s %10d attached! (%d, %d) \n", name, serialNo, cls, id);
 
+	display_devices((CPhidgetManagerHandle)userPtr);
+
 	return 0;
 }
 
@@ -75,6 +77,9 @@ int display_devices(CPhidgetManagerHandle MAN)
 	}
 
 	CPhidgetManager_freeAttachedDevicesArray(devices);
+
+	printf("\nPress r to rename\n");
+	printf("Press q to exit\n");
 
 	return 0;
 }
@@ -147,11 +152,7 @@ int set_device_label()
 
 	do
 	{
-		display_devices(man);
-
 		//end simulation
-		printf("Press r to rename\n");
-		printf("Press q to exit\n");
 		fflush(stdin);
 		choise = getchar();
 		switch (choise)
