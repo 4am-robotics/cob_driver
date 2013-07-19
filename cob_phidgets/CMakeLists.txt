@@ -30,3 +30,7 @@ rosbuild_add_executable(range_sensors ros/src/phidgets_range_sensors.cpp)
 #target_link_libraries(phidget21 ${PROJECT_NAME})
 
 target_link_libraries(range_sensors phidget21)
+
+rosbuild_add_executable(device_name ros/src/set_device_name.cpp)
+
+target_link_libraries(device_name phidget21)
