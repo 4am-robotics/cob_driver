@@ -13,7 +13,7 @@
 
 int display_devices(CPhidgetManagerHandle MAN);
 
-int CCONV AttachHandler(CPhidgetHandle phid, void *userPtr)
+int AttachHandler(CPhidgetHandle phid, void *userPtr)
 {
 	int serialNo;
 	const char *name;
@@ -31,7 +31,7 @@ int CCONV AttachHandler(CPhidgetHandle phid, void *userPtr)
 	return 0;
 }
 
-int CCONV DetachHandler(CPhidgetHandle phid, void *userPtr)
+int DetachHandler(CPhidgetHandle phid, void *userPtr)
 {
 	int serialNo;
 	const char *name;
@@ -44,7 +44,7 @@ int CCONV DetachHandler(CPhidgetHandle phid, void *userPtr)
 	return 0;
 }
 
-int CCONV ErrorHandler(CPhidgetManagerHandle MAN, void *usrptr, int Code, const char *Description)
+int ErrorHandler(CPhidgetManagerHandle MAN, void *usrptr, int Code, const char *Description)
 {
 	printf("Error handled. %d - %s\n", Code, Description);
 	return 0;
@@ -78,7 +78,7 @@ int display_devices(CPhidgetManagerHandle MAN)
 	return 0;
 }
 
-int manager_simple()
+int set_device_names()
 {
 	//Declare an Manager handle
 	CPhidgetManagerHandle man = 0;
