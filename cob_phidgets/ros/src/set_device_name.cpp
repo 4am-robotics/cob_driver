@@ -28,7 +28,6 @@ int AttachHandler(CPhidgetHandle phid, void *userPtr)
 
 	printf("%s %10d attached! (%d, %d) \n", name, serialNo, cls, id);
 
-	display_devices((CPhidgetManagerHandle)userPtr);
 	return 0;
 }
 
@@ -92,11 +91,13 @@ void set_label(CPhidgetManagerHandle MAN, int index)
 	CPhidget_getDeviceLabel(devices[index], &label_old);
 
 	printf("\nenter new label: ");
+	fflush(stdin);
 	getline(std::cin, label_new);
 
 	printf("\n old label: %s \n”", label_old);
 	printf("new label: %s \n", label_new.c_str());
 	printf("is this correct? [Y/n]: ");
+	fflush(stdin);
 	choise = getchar();
 	switch(choise)
 	{
@@ -151,11 +152,13 @@ int set_device_label()
 		//end simulation
 		printf("Press r to rename\n");
 		printf("Press q to exit\n");
+		fflush(stdin);
 		choise = getchar();
 		switch (choise)
 		{
 			case 'r':
 				printf("Press index number of device you would like to rename\n");
+				fflush(stdin);
 				choise = getchar();
 				set_label(man, choise);
 				break;
