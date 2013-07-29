@@ -8,6 +8,7 @@ class PhidgetIK: public Phidget
 public:
 
 	PhidgetIK();
+	~PhidgetIK();
 
 	auto init(int serial_number) -> int;
 

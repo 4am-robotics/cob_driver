@@ -7,7 +7,7 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "cob_phidgets");
 	ros::NodeHandle nh("~");
 
-	std::vector<Phidget*> phidgets;
+	std::vector<std::shared_ptr<Phidget>> phidgets;
 
 	PhidgetManager* manager = new PhidgetManager();
 	auto devices = manager->getAttachedDevices();
@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 			std::stringstream ss_path;
 			ss_path << "/phidget_controller/board_";
 			ss_path << device.serial_num << "/";
-			phidgets.push_back(new PhidgetIKROS(ss_path.str(), device.serial_num));
+			phidgets.push_back(std::make_shared<PhidgetIKROS>(ss_path.str(), device.serial_num));
 		}
 
 		ros::Rate loop_rate(20);
@@ -35,6 +35,9 @@ int main(int argc, char **argv)
 	{
 		ROS_ERROR("Phidget Manager could not find any attached devices");
 	}
+	printf("clearing vector!\n");
 
+
+	phidgets.clear();
 	return 0;
 }

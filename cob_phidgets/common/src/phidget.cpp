@@ -7,7 +7,6 @@
 Phidget::Phidget(CPhidgetHandle* handle)
 	: _phiHandle(handle), _serialNumber(-1), _last_error(-1)
 {
-
 }
 
 Phidget::~Phidget() 

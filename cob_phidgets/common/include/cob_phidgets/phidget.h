@@ -9,7 +9,7 @@
 class Phidget
 {
 public:
-	virtual ~Phidget();
+	~Phidget();
 
 	auto open(int serial_number) -> int;
 	auto close(int serial_number) -> int;

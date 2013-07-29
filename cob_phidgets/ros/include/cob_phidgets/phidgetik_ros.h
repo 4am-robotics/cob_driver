@@ -14,6 +14,7 @@ class PhidgetIKROS: public PhidgetIK
 {
 public:
 	PhidgetIKROS(std::string path, int serial_num);
+	~PhidgetIKROS();
 
 private:
 	ros::NodeHandle _nh;

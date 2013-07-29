@@ -17,6 +17,10 @@ PhidgetIK::PhidgetIK()	: Phidget((CPhidgetHandle*) &_iKitHandle), _iKitHandle(0)
 	}
 }
 
+PhidgetIK::~PhidgetIK()
+{
+}
+
 auto PhidgetIK::init(int serial_number) -> int
 {
 	return (_last_error = open(serial_number));

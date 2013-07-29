@@ -19,12 +19,16 @@ PhidgetIKROS::PhidgetIKROS(std::string path, int serial_num)
 
 	if(init(serial_num) != EPHIDGET_OK)
 	{
-		ROS_ERROR("Error open Phidget Board on serial %d. Message: %s",path.c_str(), this->getErrorDescription(this->getError()).c_str());
+		ROS_ERROR("Error open Phidget Board on serial %d. Message: %s",serial_num, this->getErrorDescription(this->getError()).c_str());
 	}
 	if(waitForAttachment(10000) != EPHIDGET_OK)
 	{
 		ROS_ERROR("Error waiting for Attachment. Message: %s",this->getErrorDescription(this->getError()).c_str());
 	}
+}
+
+PhidgetIKROS::~PhidgetIKROS()
+{
 }
 
 auto PhidgetIKROS::inputChangeHandler(int index, int inputState) -> int
@@ -62,22 +66,34 @@ auto PhidgetIKROS::setDigitalOutCallback(cob_phidgets::SetDigitalSensor::Request
 										cob_phidgets::SetDigitalSensor::Response &res) -> bool
 {
 	bool ret = false;
+	_mutex.lock();
+	_outputChanged.updated=false;
+	_outputChanged.index=-1;
+	_outputChanged.state=0;
+	_mutex.unlock();
+
 	this->setOutputState(req.index, req.state);
 
-	std::lock_guard<std::mutex> lock{_mutex};
+	ros::Time start = ros::Time::now();
+	while((ros::Time::now().toSec() - start.toSec()) < 1.0)
 	{
-		ros::Time start = ros::Time::now();
-		while((_outputChanged.updated == false) || (ros::Time::now().toSec() - start.toSec()) < 0.5)
-			ros::Duration(0.025).sleep();
-		res.index = _outputChanged.index;
-		res.state = _outputChanged.state;
+		_mutex.lock();
+		if(_outputChanged.updated == true)
+		{
+			_mutex.unlock();
+			break;
+		}
+		_mutex.unlock();
 
-		ret = (_outputChanged.updated && (_outputChanged.index == req.index));
-
-		_outputChanged.updated=false;
-		_outputChanged.index=-1;
-		_outputChanged.state=0;
+		ros::Duration(0.025).sleep();
 	}
+	_mutex.lock();
+	res.index = _outputChanged.index;
+	res.state = _outputChanged.state;
+	ROS_DEBUG("Sending response: updated: %u, index: %d, state: %d",_outputChanged.updated, _outputChanged.index, _outputChanged.state);
+	ret = (_outputChanged.updated && (_outputChanged.index == req.index));
+
+	_mutex.unlock();
 
 	return ret;
 }
@@ -96,7 +112,7 @@ auto PhidgetIKROS::setTriggerValueCallback(cob_phidgets::SetTriggerValue::Reques
 
 auto PhidgetIKROS::attachHandler() -> int
 {
-	int serialNo, version, numInputs, numOutputs;
+	int serialNo, version, numInputs, numOutputs, millis;
 	int numSensors, triggerVal, ratiometric, i;
 	const char *ptr, *name;
 
@@ -120,9 +136,11 @@ auto PhidgetIKROS::attachHandler() -> int
 
 	for(i = 0; i < numSensors; i++)
 	{
-		CPhidgetInterfaceKit_getSensorChangeTrigger (_iKitHandle, i, &triggerVal);
+		CPhidgetInterfaceKit_getSensorChangeTrigger(_iKitHandle, i, &triggerVal);
+		CPhidgetInterfaceKit_getDataRate(_iKitHandle, i, &millis);
 
 		ROS_DEBUG("Sensor#: %d > Sensitivity Trigger: %d", i, triggerVal);
+		ROS_DEBUG("Sensor#: %d > Data Rate: %d", i, millis);
 	}
 
 	return 0;
