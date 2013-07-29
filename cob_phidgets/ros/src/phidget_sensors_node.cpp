@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 			std::stringstream ss_path;
 			ss_path << "/phidget_controller/board_";
 			ss_path << device.serial_num << "/";
-			phidgets.push_back(new PhidgetIKROS(ros::NodeHandle(ss_path.str().c_str()), device.serial_num));
+			phidgets.push_back(new PhidgetIKROS(ss_path.str(), device.serial_num));
 		}
 
 		ros::Rate loop_rate(20);

@@ -326,8 +326,8 @@ auto PhidgetIK::addSensor(SensorType type, int index, std::string sensor_name) -
 	//addSensor(sensor);
 	if(sensor)
 	{
-		_sensorsMap.emplace(std::make_pair(type, SensorMapInner()));
-		_sensorsMap[type].emplace(std::make_pair(index, sensor));
+		_sensorsMap.insert(std::make_pair(type, SensorMapInner()));
+		_sensorsMap[type].insert(std::make_pair(index, sensor));
 	}
 }
 

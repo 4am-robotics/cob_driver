@@ -37,19 +37,19 @@ public:
 
 	auto getError() -> int;
 
-	auto addSensor(SensorType type, int index, std::string sensor_name) override -> void;
-	auto addSensor(SensorType type, Sensor* sensor) override -> void;
-	auto removeSensor(SensorType type, int index) override -> void;
+	auto addSensor(SensorType type, int index, std::string sensor_name) -> void;
+	auto addSensor(SensorType type, Sensor* sensor) -> void;
+	auto removeSensor(SensorType type, int index) -> void;
 
 protected:
 	CPhidgetInterfaceKitHandle _iKitHandle;
 
-	virtual auto attachHandler() override -> int;
-	virtual auto detachHandler() override -> int;
+	virtual int attachHandler();
+	virtual int detachHandler();
 
-	virtual auto inputChangeHandler(int index, int inputState) -> int;
-	virtual auto outputChangeHandler(int index, int outputState) -> int;
-	virtual auto sensorChangeHandler(int index, int sensorValue) -> int;
+	virtual int inputChangeHandler(int index, int inputState);
+	virtual int outputChangeHandler(int index, int outputState);
+	virtual int sensorChangeHandler(int index, int sensorValue);
 
 private:
 	static auto attachDelegate(CPhidgetHandle phid, void *userptr) -> int;

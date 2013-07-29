@@ -2,57 +2,59 @@
 #include <cob_phidgets/DigitalSensor.h>
 #include <cob_phidgets/AnalogSensor.h>
 
-PhidgetIKROS::PhidgetIKROS(ros::NodeHandle nh, int serial_num)
-	:PhidgetIK(), _nh(nh), _serial_num(serial_num)
+PhidgetIKROS::PhidgetIKROS(std::string path, int serial_num)
+	:PhidgetIK(), _serial_num(serial_num)
 {
+	_nh = ros::NodeHandle(path.c_str());
+	_outputChanged.updated=false;
+	_outputChanged.index=-1;
+	_outputChanged.state=0;
 
-	if(this->init(serial_num) != EPHIDGET_OK)
+	_pubAnalog = _nh.advertise<cob_phidgets::AnalogSensor>("analog_sensor", 100);
+	_pubDigital = _nh.advertise<cob_phidgets::DigitalSensor>("digital_sensor", 100);
+
+	_srvDigitalOut = _nh.advertiseService("set_digital", &PhidgetIKROS::setDigitalOutCallback, this);
+	_srvDataRate = _nh.advertiseService("set_data_rate", &PhidgetIKROS::setDataRateCallback, this);
+	_srvTriggerValue = _nh.advertiseService("set_trigger_value", &PhidgetIKROS::setTriggerValueCallback, this);
+
+	if(init(serial_num) != EPHIDGET_OK)
 	{
-		ROS_ERROR("Error open Phidget Board on serial -1. Message: %s",this->getErrorDescription(this->getError()).c_str());
+		ROS_ERROR("Error open Phidget Board on serial %d. Message: %s",path.c_str(), this->getErrorDescription(this->getError()).c_str());
 	}
-	else if(this->waitForAttachment(10000) != EPHIDGET_OK)
+	if(waitForAttachment(10000) != EPHIDGET_OK)
 	{
 		ROS_ERROR("Error waiting for Attachment. Message: %s",this->getErrorDescription(this->getError()).c_str());
-	}
-	else
-	{
-		_pubAnalog = _nh.advertise<cob_phidgets::AnalogSensor>("analog_sensor", 100);
-		_pubDigital = _nh.advertise<cob_phidgets::DigitalSensor>("digital_sensor", 100);
-
-		_srvDigitalOut = _nh.advertiseService("set_digital", &PhidgetIKROS::setDigitalOutCallback, this);
-		_srvDataRate = _nh.advertiseService("set_data_rate", &PhidgetIKROS::setDataRateCallback, this);
-		_srvTriggerValue = _nh.advertiseService("set_trigger_value", &PhidgetIKROS::setTriggerValueCallback, this);
 	}
 }
 
 auto PhidgetIKROS::inputChangeHandler(int index, int inputState) -> int
 {
+	ROS_DEBUG("Board %d: Digital Input %d changed to State: %d", _serial_num, index, inputState);
 	cob_phidgets::DigitalSensor msg;
 	msg.index = index;
 	msg.state = inputState;
 
 	_pubDigital.publish(msg);
-	ROS_DEBUG("Board %d: Digital Input %d changed to State: %d", _serial_num, index, inputState);
 	return 0;
 }
 
 auto PhidgetIKROS::outputChangeHandler(int index, int outputState) -> int
 {
+	ROS_DEBUG("Board %d: Digital Output %d changed to State: %d", _serial_num, index, outputState);
 	std::lock_guard<std::mutex> lock{_mutex};
 	_outputChanged.updated = true;
 	_outputChanged.index = index;
 	_outputChanged.state = outputState;
-	ROS_DEBUG("Board %d: Digital Output %d changed to State: %d", _serial_num, index, outputState);
 	return 0;
 }
 auto PhidgetIKROS::sensorChangeHandler(int index, int sensorValue) -> int
 {
+	ROS_DEBUG("Board %d: Analog Input %d changed to Value: %d", _serial_num, index, sensorValue);
 	cob_phidgets::AnalogSensor msg;
 	msg.index = index;
 	msg.value = sensorValue;
 
 	_pubAnalog.publish(msg);
-	ROS_DEBUG("Board %d: Analog Input %d changed to Value: %d", _serial_num, index, sensorValue);
 	return 0;
 }
 
@@ -108,7 +110,7 @@ auto PhidgetIKROS::attachHandler() -> int
 	CPhidgetInterfaceKit_getSensorCount(_iKitHandle, &numSensors);
 	CPhidgetInterfaceKit_getRatiometric(_iKitHandle, &ratiometric);
 
-	ROS_INFO("%s %d attached!", name, serialNo);
+	ROS_INFO("%s %d attached!!", name, serialNo);
 
 	ROS_DEBUG("%s", ptr);
 	ROS_DEBUG("Serial Number: %d\tVersion: %d", serialNo, version);
@@ -134,4 +136,5 @@ auto PhidgetIKROS::detachHandler() -> int
     CPhidget_getDeviceName ((CPhidgetHandle)_iKitHandle, &device_name);
     CPhidget_getSerialNumber((CPhidgetHandle)_iKitHandle, &serial_number);
     ROS_INFO("%s Serial number %d detached!", device_name, serial_number);
+    return 0;
 }

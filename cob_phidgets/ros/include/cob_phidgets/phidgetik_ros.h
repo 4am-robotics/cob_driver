@@ -13,7 +13,7 @@
 class PhidgetIKROS: public PhidgetIK
 {
 public:
-	PhidgetIKROS(ros::NodeHandle nh, int serial_num);
+	PhidgetIKROS(std::string path, int serial_num);
 
 private:
 	ros::NodeHandle _nh;
@@ -32,15 +32,15 @@ private:
 		int state;
 	};
 
-	OutputCompare _outputChanged{false, -1, 0};
+	OutputCompare _outputChanged;
 	std::mutex _mutex;
 
-	virtual auto attachHandler() override final -> int;
-	virtual auto detachHandler() override final -> int;
+	auto attachHandler() -> int;
+	auto detachHandler() -> int;
 
-	auto inputChangeHandler(int index, int inputState) final override -> int;
-	auto outputChangeHandler(int index, int outputState) final override -> int;
-	auto sensorChangeHandler(int index, int sensorValue) final override -> int;
+	auto inputChangeHandler(int index, int inputState) -> int;
+	auto outputChangeHandler(int index, int outputState) -> int;
+	auto sensorChangeHandler(int index, int sensorValue) -> int;
 
 	auto setDigitalOutCallback(cob_phidgets::SetDigitalSensor::Request &req,
 										cob_phidgets::SetDigitalSensor::Response &res) -> bool;
