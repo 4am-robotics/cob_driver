@@ -5,7 +5,7 @@
 #include <cstring>
 
 Phidget::Phidget(CPhidgetHandle* handle)
-	: _phiHandle(handle)
+	: _phiHandle(handle), serial_number(-1), _last_error(-1)
 {
 
 }

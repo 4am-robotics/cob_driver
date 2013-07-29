@@ -48,11 +48,11 @@ class AnalogInSensor : public Sensor
 		auto update(int value) -> int {return 1;}
 
 	private:
-		int _dataRateMs = 20;
-		int _dataRateMsMax = -1;
-		int _dataRateMsMin = -1;
-		int _sensorChangeTrigger = -1;
-		int _sensorRawValue = -1;
+		int _dataRateMs;
+		int _dataRateMsMax;
+		int _dataRateMsMin;
+		int _sensorChangeTrigger;
+		int _sensorRawValue;
 
 };
 

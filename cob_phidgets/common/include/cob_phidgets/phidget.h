@@ -25,8 +25,8 @@ public:
 
 protected:
 	CPhidgetHandle* _phiHandle;
-	int _serialNumber = -1;
-	int _last_error = -1;
+	int _serialNumber;
+	int _last_error;
 
 	struct SensorTypeHash
 	{
@@ -36,8 +36,8 @@ protected:
 		}
 	};
 
-	using SensorMapInner = std::unordered_map<int, Sensor*>;
-	using SensorMap = std::unordered_map<SensorType, SensorMapInner, SensorTypeHash>;
+	typedef std::unordered_map<int, Sensor*> SensorMapInner;
+	typedef std::unordered_map<SensorType, SensorMapInner, SensorTypeHash> SensorMap;
 	SensorMap _sensorsMap;
 	
 
