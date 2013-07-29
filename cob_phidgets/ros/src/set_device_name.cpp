@@ -136,12 +136,14 @@ int set_device_label()
 	CPhidgetManager_create(&man);
 
 	//Set the handlers to be run when the device is plugged in or opened from software, unplugged or closed from software, or generates an error.
-	CPhidgetManager_set_OnAttach_Handler(man, AttachHandler, man);
-	CPhidgetManager_set_OnDetach_Handler(man, DetachHandler, man);
-	CPhidgetManager_set_OnError_Handler(man, ErrorHandler, NULL);
+	//CPhidgetManager_set_OnAttach_Handler(man, AttachHandler, man);
+	//CPhidgetManager_set_OnDetach_Handler(man, DetachHandler, man);
+	//CPhidgetManager_set_OnError_Handler(man, ErrorHandler, NULL);
 
 	//open the Manager for device connections
 	CPhidgetManager_open(man);
+
+	sleep(10);
 
 	if ((err = CPhidget_waitForAttachment((CPhidgetHandle) man, 10000))
 			!= EPHIDGET_OK)
@@ -152,6 +154,7 @@ int set_device_label()
 	}
 
 	char choise;
+	display_devices(man);
 
 	//end simulation
 	choise = getchar();

@@ -1105,7 +1105,7 @@ bool CanCtrlPltfCOb3::initPltf()
 				}	
 
 				// increment timeout counter
-				if (iCnt++ > 1000) //cpc-ck has 500 for Cob 3.5 here
+				if (iCnt++ > 1250) //cpc-ck has 500 for Cob 3.5 here
 					bTimeOut = true;
 
 				// Sleep: To avoid can overload
