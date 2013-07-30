@@ -35,9 +35,6 @@ int main(int argc, char **argv)
 	{
 		ROS_ERROR("Phidget Manager could not find any attached devices");
 	}
-	printf("clearing vector!\n");
 
-
-	phidgets.clear();
 	return 0;
 }
