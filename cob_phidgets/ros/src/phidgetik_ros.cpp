@@ -2,10 +2,9 @@
 #include <cob_phidgets/DigitalSensor.h>
 #include <cob_phidgets/AnalogSensor.h>
 
-PhidgetIKROS::PhidgetIKROS(std::string path, int serial_num)
-	:PhidgetIK(), _serial_num(serial_num)
+PhidgetIKROS::PhidgetIKROS(ros::NodeHandle nh, int serial_num)
+	:PhidgetIK(), _serial_num(serial_num), _nh(nh)
 {
-	_nh = ros::NodeHandle(path.c_str());
 	_outputChanged.updated=false;
 	_outputChanged.index=-1;
 	_outputChanged.state=0;
@@ -17,9 +16,9 @@ PhidgetIKROS::PhidgetIKROS(std::string path, int serial_num)
 	_srvDataRate = _nh.advertiseService("set_data_rate", &PhidgetIKROS::setDataRateCallback, this);
 	_srvTriggerValue = _nh.advertiseService("set_trigger_value", &PhidgetIKROS::setTriggerValueCallback, this);
 
-	if(init(serial_num) != EPHIDGET_OK)
+	if(init(_serial_num) != EPHIDGET_OK)
 	{
-		ROS_ERROR("Error open Phidget Board on serial %d. Message: %s",serial_num, this->getErrorDescription(this->getError()).c_str());
+		ROS_ERROR("Error open Phidget Board on serial %d. Message: %s",_serial_num, this->getErrorDescription(this->getError()).c_str());
 	}
 	if(waitForAttachment(10000) != EPHIDGET_OK)
 	{

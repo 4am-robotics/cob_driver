@@ -7,6 +7,9 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "cob_phidgets");
 	ros::NodeHandle nh("~");
 
+	std::stringstream ss_path;
+	ss_path << "/phidget_controller/";
+	ros::NodeHandle nodeHandle(ss_path.str().c_str());
 	std::vector<std::shared_ptr<Phidget>> phidgets;
 
 	PhidgetManager* manager = new PhidgetManager();
@@ -15,13 +18,10 @@ int main(int argc, char **argv)
 
 	if(devices.size() > 0)
 	{
-
 		for(auto& device : devices)
 		{
-			std::stringstream ss_path;
-			ss_path << "/phidget_controller/board_";
-			ss_path << device.serial_num << "/";
-			phidgets.push_back(std::make_shared<PhidgetIKROS>(ss_path.str(), device.serial_num));
+			phidgets.push_back(
+				std::make_shared<PhidgetIKROS>(nodeHandle, device.serial_num));
 		}
 
 		ros::Rate loop_rate(20);

@@ -66,6 +66,7 @@ auto Phidget::getDeviceSerialNumber() -> int
 {
 	int sernum;
 	CPhidget_getSerialNumber(*_phiHandle, &sernum);
+	_serialNumber = sernum;
 	return sernum;
 }
 
