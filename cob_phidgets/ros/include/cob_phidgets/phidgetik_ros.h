@@ -13,7 +13,7 @@
 class PhidgetIKROS: public PhidgetIK
 {
 public:
-	PhidgetIKROS(ros::NodeHandle nh, int serial_num);
+	PhidgetIKROS(ros::NodeHandle nh, int serial_num, SensingMode mode);
 	~PhidgetIKROS();
 
 private:
@@ -35,6 +35,8 @@ private:
 
 	OutputCompare _outputChanged;
 	std::mutex _mutex;
+
+	auto update() -> void;
 
 	auto attachHandler() -> int;
 	auto detachHandler() -> int;

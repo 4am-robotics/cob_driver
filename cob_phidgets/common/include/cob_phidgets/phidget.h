@@ -9,6 +9,8 @@
 class Phidget
 {
 public:
+	enum class SensingMode{EVENT=0, POLLING=1};
+
 	~Phidget();
 
 	auto open(int serial_number) -> int;
@@ -21,12 +23,15 @@ public:
 	auto getDeviceSerialNumber() -> int;
 	auto getDeviceVersion() -> int;
 
+	virtual auto update() -> void;
+
 	static auto getErrorDescription(int errorCode) -> std::string;
 
 protected:
 	CPhidgetHandle* _phiHandle;
 	int _serialNumber;
 	int _last_error;
+	SensingMode _sensMode;
 
 	struct SensorTypeHash
 	{
@@ -41,7 +46,7 @@ protected:
 	SensorMap _sensorsMap;
 	
 
-	Phidget(CPhidgetHandle * handle);
+	Phidget(CPhidgetHandle * handle, SensingMode mode);
 
 	virtual auto attachHandler() -> int;
 	virtual auto detachHandler() -> int;

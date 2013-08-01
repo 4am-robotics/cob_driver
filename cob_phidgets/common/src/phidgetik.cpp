@@ -1,19 +1,23 @@
 #include <cob_phidgets/phidgetik.h>
 
 
-PhidgetIK::PhidgetIK()	: Phidget((CPhidgetHandle*) &_iKitHandle), _iKitHandle(0) 
+PhidgetIK::PhidgetIK(SensingMode mode)	: Phidget((CPhidgetHandle*) &_iKitHandle, mode), _iKitHandle(0)
 {
 	_last_error = CPhidgetInterfaceKit_create(&_iKitHandle);
 
 	if (!_last_error) {
 		CPhidget_set_OnAttach_Handler((CPhidgetHandle) _iKitHandle,
 				PhidgetIK::attachDelegate, this);
-		CPhidgetInterfaceKit_set_OnInputChange_Handler(_iKitHandle,
-				PhidgetIK::inputChangeDelegate, this);
 		CPhidgetInterfaceKit_set_OnOutputChange_Handler(_iKitHandle,
 				PhidgetIK::outputChangeDelegate, this);
-		_last_error = CPhidgetInterfaceKit_set_OnSensorChange_Handler(
-				_iKitHandle, PhidgetIK::sensorChangeDelegate, this);
+
+		if(_sensMode == SensingMode::EVENT)
+		{
+			CPhidgetInterfaceKit_set_OnInputChange_Handler(_iKitHandle,
+					PhidgetIK::inputChangeDelegate, this);
+			_last_error = CPhidgetInterfaceKit_set_OnSensorChange_Handler(
+					_iKitHandle, PhidgetIK::sensorChangeDelegate, this);
+		}
 	}
 }
 
@@ -350,4 +354,9 @@ auto PhidgetIK::addSensor(SensorType type, Sensor* sensor) -> void
 auto PhidgetIK::removeSensor(SensorType type, int index) -> void
 {
 	_sensorsMap[type].erase(index);
+}
+
+auto PhidgetIK::update()-> void
+{
+	printf("PhidgetIK::update()");
 }

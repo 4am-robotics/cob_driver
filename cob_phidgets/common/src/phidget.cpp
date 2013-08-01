@@ -4,8 +4,8 @@
 #include <string>
 #include <cstring>
 
-Phidget::Phidget(CPhidgetHandle* handle)
-	: _phiHandle(handle), _serialNumber(-1), _last_error(-1)
+Phidget::Phidget(CPhidgetHandle* handle, SensingMode mode)
+	: _phiHandle(handle), _serialNumber(-1), _last_error(-1), _sensMode(mode)
 {
 }
 
@@ -95,4 +95,9 @@ auto Phidget::detachHandler() -> int
 {
 	printf("detachHandler()");
 	return 0;
+}
+
+auto Phidget::update() -> void
+{
+	printf("Phidget::update()");
 }

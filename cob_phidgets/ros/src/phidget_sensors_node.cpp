@@ -16,17 +16,26 @@ int main(int argc, char **argv)
 	auto devices = manager->getAttachedDevices();
 	delete manager;
 
+	PhidgetIK::SensingMode sensMode = PhidgetIK::SensingMode::POLLING;
+
 	if(devices.size() > 0)
 	{
 		for(auto& device : devices)
 		{
 			phidgets.push_back(
-				std::make_shared<PhidgetIKROS>(nodeHandle, device.serial_num));
+				std::make_shared<PhidgetIKROS>(nodeHandle, device.serial_num, sensMode));
 		}
 
 		ros::Rate loop_rate(20);
 		while (ros::ok())
 		{
+			if(sensMode == PhidgetIK::SensingMode::POLLING)
+			{
+				for(auto& phidget : phidgets)
+				{
+					phidget->update();
+				}
+			}
 			ros::spinOnce();
 			loop_rate.sleep();
 		}

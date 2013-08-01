@@ -6,8 +6,7 @@
 class PhidgetIK: public Phidget
 {
 public:
-
-	PhidgetIK();
+	PhidgetIK(SensingMode mode);
 	~PhidgetIK();
 
 	auto init(int serial_number) -> int;
@@ -41,6 +40,8 @@ public:
 	auto addSensor(SensorType type, int index, std::string sensor_name) -> void;
 	auto addSensor(SensorType type, Sensor* sensor) -> void;
 	auto removeSensor(SensorType type, int index) -> void;
+
+	virtual auto update() -> void;
 
 protected:
 	CPhidgetInterfaceKitHandle _iKitHandle;
