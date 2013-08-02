@@ -162,12 +162,12 @@ public:
 	 * Opens serial port.
 	 * The port has to be configured before.
 	 */
-	int open();
+	int openIO();
 
 	/**
 	 * Closes the serial port.
 	 */
-	void close();
+	void closeIO();
 
 	/**
 	 * Reads the serial port blocking.
@@ -192,7 +192,7 @@ public:
 	 * @param Buffer buffer of the message
 	 * @param Length number of bytes to send
 	 */
-	int write(const char *Buffer, int Length);
+	int writeIO(const char *Buffer, int Length);
 
 	/**
 	 * Returns the number of bytes available in the read buffer.

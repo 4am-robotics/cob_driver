@@ -57,11 +57,13 @@
 #include <string.h>
 #include <sstream>
 #include <math.h>
+#include <signal.h>
 
 // ros includes
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
+#include <ros/xmlrpc_manager.h>
 
 // ros message includes
 #include <std_msgs/ColorRGBA.h>
@@ -80,6 +82,28 @@
 #include <modeExecutor.h>
 #include <colorO.h>
 #include <colorOSim.h>
+
+sig_atomic_t volatile gShutdownRequest = 0;
+
+void sigIntHandler(int signal)
+{
+  ::gShutdownRequest = 1;
+}
+
+void shutdownCallback(XmlRpc::XmlRpcValue& params, XmlRpc::XmlRpcValue& result)
+{
+  int num_params = 0;
+  if (params.getType() == XmlRpc::XmlRpcValue::TypeArray)
+    num_params = params.size();
+  if (num_params > 1)
+  {
+    std::string reason = params[1];
+    ROS_WARN("Shutdown request received. Reason: [%s]", reason.c_str());
+    ::gShutdownRequest = 1; // Set flag
+  }
+
+  result = ros::xmlrpc::responseInt(1, "", 0);
+}
 
 class LightControl
 {
@@ -145,10 +169,10 @@ class LightControl
 			_nh.param<std::string>("startup_mode", startup_mode, "None");
 
 			//Subscribe to LightController Command Topic
-			_sub = _nh.subscribe("command", 1, &LightControl::commandCallback, this);
+			_sub = _nh.subscribe("command", 1, &LightControl::topicCallback, this);
 
 			//Advertise light mode Service
-			_srvServer = _nh.advertiseService("mode", &LightControl::modeCallback, this);
+			_srvServer = _nh.advertiseService("mode", &LightControl::serviceCallback, this);
 
 			//Start light mode Action Server
 			_as = new ActionServer(_nh, "set_lightmode", boost::bind(&LightControl::actionCallback, this, _1), false);
@@ -218,7 +242,7 @@ class LightControl
 			}
 		}
 
-		void commandCallback(std_msgs::ColorRGBA color)
+		void topicCallback(std_msgs::ColorRGBA color)
 		{
 			if(color.r <= 1.0 && color.g <=1.0 && color.b <= 1.0)
 			{
@@ -236,9 +260,12 @@ class LightControl
 				ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
 		}
 
-		bool modeCallback(cob_light::SetLightMode::Request &req, cob_light::SetLightMode::Response &res)
+		bool serviceCallback(cob_light::SetLightMode::Request &req, cob_light::SetLightMode::Response &res)
 		{
 			bool ret = false;
+
+			//ROS_DEBUG("Service Callback [Mode: %i with prio: %i freq: %f timeout: %f pulses: %i ]",
+			//	req.mode.mode, req.mode.priority, req.mode.frequency, req.mode.timeout, req.mode.pulses);
 
 			if(req.mode.color.r > 1.0 || req.mode.color.g > 1.0 || req.mode.color.b > 1.0 || req.mode.color.a > 1.0)
 			{
@@ -352,10 +379,27 @@ class LightControl
 int main(int argc, char** argv)
 {
 	// init node
-	ros::init(argc, argv, "light_controller");
-	// create LightControl instance
-	LightControl lightControl;
+	ros::init(argc, argv, "light_controller", ros::init_options::NoSigintHandler);
+	signal(SIGINT, sigIntHandler);
 
-	ros::spin();
+	// Override XMLRPC shutdown
+	ros::XMLRPCManager::instance()->unbind("shutdown");
+	ros::XMLRPCManager::instance()->bind("shutdown", shutdownCallback);
+
+	// create LightControl instance
+	LightControl *lightControl = new LightControl();
+
+	ros::AsyncSpinner spinner(1);
+  	spinner.start();
+
+  	while (!gShutdownRequest)
+  	{
+		ros::WallDuration(0.05).sleep();
+	}
+
+  	delete lightControl;
+
+  	ros::shutdown();
+
 	return 0;
 }

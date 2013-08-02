@@ -64,7 +64,7 @@ ModeExecutor::ModeExecutor(IColorO* colorO)
 
 ModeExecutor::~ModeExecutor()
 {
-
+	
 }
 
 void ModeExecutor::execute(cob_light::LightMode requestedMode)
@@ -88,7 +88,7 @@ void ModeExecutor::execute(Mode* mode)
 			_activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1));
 			_thread_ptr.reset(new boost::thread(boost::lambda::bind(&ModeExecutor::run, this)));
 			ROS_INFO("Executing new mode: %s",_activeMode->getName().c_str() );
-			ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %i pulses: %i ",
+			ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %f pulses: %i ",
 				ModeFactory::type(mode), mode->getPriority(), mode->getFrequency(), mode->getTimeout(), mode->getPulses());
 		}
 		else
@@ -100,7 +100,7 @@ void ModeExecutor::execute(Mode* mode)
 		_activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1));
 		_thread_ptr.reset(new boost::thread(boost::lambda::bind(&ModeExecutor::run, this)));
 		ROS_INFO("Executing new mode: %s",_activeMode->getName().c_str() );
-		ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %i pulses: %i ",
+		ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %f pulses: %i ",
 				ModeFactory::type(mode), mode->getPriority(), mode->getFrequency(), mode->getTimeout(), mode->getPulses());
 	}
 
@@ -108,11 +108,15 @@ void ModeExecutor::execute(Mode* mode)
 
 void ModeExecutor::run()
 {
-	ros::Rate r(_activeMode->getFrequency());
+	ros::Rate r(10);
+	if(_activeMode->getFrequency() != 0.0)
+		r = ros::Rate(_activeMode->getFrequency());
+	else
+		_activeMode->setFrequency(10);
 
 	ros::Time timeStart = ros::Time::now();
 
-	while(!isStopRequested())
+	while(!isStopRequested() && !ros::isShuttingDown())
 	{
 		_activeMode->execute();
 
@@ -123,12 +127,12 @@ void ModeExecutor::run()
 		if(_activeMode->getTimeout() != 0)
 		{
 			ros::Duration timePassed = ros::Time::now() - timeStart;
-			if(timePassed.toSec() >= ((double)_activeMode->getTimeout()/1000))
+			if(timePassed.toSec() >= _activeMode->getTimeout())
 				break;
 		}
 		r.sleep();
 	}
-
+	ROS_INFO("Mode %s finished",_activeMode->getName().c_str());
 	delete _activeMode;
 	_activeMode = NULL;
 }
