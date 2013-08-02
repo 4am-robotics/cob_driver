@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_footprint_observer)
 
-find_package(catkin REQUIRED COMPONENTS roscpp tf std_msgs message_generation)
+find_package(catkin REQUIRED COMPONENTS roscpp tf std_msgs geometry_msgs message_generation)
 
 
 #######################################
@@ -15,15 +15,14 @@ add_service_files(
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
-  DEPENDENCIES geometry_msgs std_msgs
+  DEPENDENCIES std_msgs geometry_msgs
 )
 
 ###################################
 ## catkin specific configuration ##
 ###################################
-catkin_package(
-    DEPENDS roscpp tf std_msgs
-    CATKIN_DEPENDS message_runtime
+catkin_package( 
+    CATKIN_DEPENDS roscpp tf std_msgs geometry_msgs message_runtime
     INCLUDE_DIRS include
     LIBRARIES # TODO
 )
