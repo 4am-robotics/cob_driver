@@ -97,7 +97,7 @@ public:
     nh_.param<std::string>("/sound_controller/cepstral_settings",cepstral_conf,"\"speech/rate=170\"");
     if (mode == "cepstral")
     {
-      command = "/opt/swift/bin/swift -p " + cepstral_conf + " " + text;
+      command = "swift -p " + cepstral_conf + " " + text;
     }
     else
     {

@@ -56,6 +56,7 @@
 
 #include <assert.h>
 #include <cob_canopen_motor/CanDriveHarmonica.h>
+#include <unistd.h> 
 
 //-----------------------------------------------
 CanDriveHarmonica::CanDriveHarmonica()
