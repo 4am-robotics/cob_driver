@@ -2,8 +2,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_trajectory_controller)
 
-find_package(catkin REQUIRED COMPONENTS eigen roscpp cob_srvs brics_actuator sensor_msgs actionlib control_msgs orocos_kdl)
-
+find_package(catkin REQUIRED COMPONENTS eigen roscpp cob_srvs brics_actuator sensor_msgs actionlib control_msgs)
+find_package(orocos_kdl REQUIRED)
 #######################################
 ## Declare ROS messages and services ##
 #######################################
@@ -23,8 +23,8 @@ generate_messages(
 ###################################
 
 catkin_package(
-    DEPENDS roscpp cob_srvs brics_actuator sensor_msgs pr2_controllers_msgs actionlib control_msgs orocos_kdl
-    CATKIN_DEPENDS # TODO
+    DEPENDS orocos_kdl
+    CATKIN_DEPENDS roscpp cob_srvs brics_actuator sensor_msgs actionlib control_msgs
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )
@@ -33,7 +33,7 @@ catkin_package(
 ## Build ##
 ###########
 
-include_directories(common/include ${catkin_INCLUDE_DIRS})
+include_directories(common/include ${catkin_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS})
 
 
 add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp common/src/genericArmCtrl.cpp common/src/RefValJS_PTP.cpp common/src/RefValJS_PTP_Trajectory.cpp common/src/TimeStamp.cpp)
@@ -43,8 +43,12 @@ add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_gencpp)
 add_executable(cob_simulation_tester ros/src/cob_simulation_tester.cpp)
 add_dependencies(cob_simulation_tester ${PROJECT_NAME}_gencpp)
 
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
-target_link_libraries(cob_simulation_tester ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
+target_link_libraries(cob_simulation_tester ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS -L${orocos_kdl_LIBRARY_DIRS})
+
+set_target_properties(cob_simulation_tester PROPERTIES LINK_FLAGS -L${orocos_kdl_LIBRARY_DIRS})
 
 #############
 ## Install ##
