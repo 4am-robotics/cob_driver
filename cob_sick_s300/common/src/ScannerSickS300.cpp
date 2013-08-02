@@ -125,7 +125,7 @@ ScannerSickS300::ScannerSickS300()
 //-------------------------------------------
 ScannerSickS300::~ScannerSickS300()
 {
-	m_SerialIO.close();
+	m_SerialIO.closeIO();
 }
 
 
@@ -147,7 +147,7 @@ bool ScannerSickS300::open(const char* pcPort, int iBaudRate, int iScanId=7)
 	m_SerialIO.setBufferSize(READ_BUF_SIZE - 10 , WRITE_BUF_SIZE -10 );
 	m_SerialIO.setHandshake(SerialIO::HS_NONE);
 	m_SerialIO.setMultiplier(m_dBaudMult);
-	bRetSerial = m_SerialIO.open();
+	bRetSerial = m_SerialIO.openIO();
 	m_SerialIO.setTimeout(0.0);
 	m_SerialIO.SetFormat(8, SerialIO::PA_NONE, SerialIO::SB_ONE);
 
@@ -201,7 +201,6 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 	int iNumData;
 	int iFirstByteOfHeader;
 	int iFirstByteOfData;
-	unsigned int iTelegramNumber;
 	unsigned int uiReadCRC;
 	unsigned int uiCalcCRC;
 	std::vector<ScanPolarType> vecScanPolar;
@@ -240,7 +239,6 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 			
 			//extract time stamp from header:
 			iTimestamp = (m_ReadBuf[i+17]<<24) | (m_ReadBuf[i+16]<<16) | (m_ReadBuf[i+15]<<8) |  (m_ReadBuf[i+14]);
-			iTelegramNumber = (m_ReadBuf[i+19]<<8) |  (m_ReadBuf[i+18]);
 			
 			if(iNumRead-iFirstByteOfHeader > m_Param.iDataLength+4+17) {
 				/*
