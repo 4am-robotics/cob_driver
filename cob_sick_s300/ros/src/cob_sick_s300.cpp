@@ -267,7 +267,6 @@ int main(int argc, char** argv)
 	brics_oodl::Errors errors;
 
 	bool bOpenScan = false;
-	bool firstTry = true;
 	
 	unsigned int iSickTimeStamp = 0, iSickNow = 0;
 	std::vector<double> vdDistM, vdAngRAD, vdIntensAU;
@@ -308,7 +307,6 @@ int main(int argc, char** argv)
 	if (!bOpenScan) {
 		ROS_ERROR("...scanner not available on port %s. Will retry every second.", nodeClass.port.c_str());
 		nodeClass.publishError("...scanner not available on port");
-		firstTry = false;
 	}
 	sleep(1); // wait for scan to get ready if successfull, or wait befor retrying
 	}
