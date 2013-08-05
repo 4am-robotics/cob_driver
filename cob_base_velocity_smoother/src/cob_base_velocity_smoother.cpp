@@ -134,7 +134,7 @@ cob_base_velocity_smoother::cob_base_velocity_smoother()
 
   if( min_input_rate > loop_rate_)
   {
-    ROS_WARN("min_input_rate > loop_rate: Setting min_input_rate to loop_rate = %d", loop_rate_);
+    ROS_WARN("min_input_rate > loop_rate: Setting min_input_rate to loop_rate = %f", loop_rate_);
     min_input_rate = loop_rate_;
   }
   max_delay_between_commands_ = 1/min_input_rate;
