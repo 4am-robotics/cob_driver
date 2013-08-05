@@ -125,6 +125,20 @@ cob_base_velocity_smoother::cob_base_velocity_smoother()
   }
   pnh_.param("loop_rate", loop_rate_, 30.0);
 
+  double min_input_rate;
+  if( !pnh_.hasParam("min_input_rate") )
+  {
+    ROS_WARN("No parameter min_input_rate on parameter server. Using default [9 in Hz]");
+  }
+  pnh_.param("min_input_rate", min_input_rate, 9.0);
+
+  if( min_input_rate > loop_rate_)
+  {
+    ROS_WARN("min_input_rate > loop_rate: Setting min_input_rate to loop_rate = %d", loop_rate_);
+    min_input_rate = loop_rate_;
+  }
+  max_delay_between_commands_ = 1/min_input_rate;
+
   // set a geometry message containing zero-values
   zero_values_.linear.x=0;
   zero_values_.linear.y=0;
@@ -182,8 +196,9 @@ void cob_base_velocity_smoother::calculationStep(){
     last = now;
     set_new_msg_received(false);
   }
-  // start writing in zeros if we did not receive a new msg within a certain amount of time. But don't publish!
-  else if ( fabs((last - now).toSec()) > 1.0 )
+  // start writing in zeros if we did not receive a new msg within a certain amount of time.
+  // Do not publish! Otherwise, the output of other nodes will be overwritten!
+  else if ( fabs((last - now).toSec()) > max_delay_between_commands_)
     result = this->setOutput(now, geometry_msgs::Twist());
   // if last message was a zero msg, fill the buffer with zeros and publish again
   else if (IsZeroMsg(sub_msg_))
