@@ -5,18 +5,25 @@
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "cob_phidgets");
+
+	int freq;
+	bool event_driven;
+	std::vector<std::shared_ptr<Phidget>> phidgets;
+	ros::NodeHandle nodeHandle;
 	ros::NodeHandle nh("~");
 
-	std::stringstream ss_path;
-	ss_path << "/phidget_controller/";
-	ros::NodeHandle nodeHandle(ss_path.str().c_str());
-	std::vector<std::shared_ptr<Phidget>> phidgets;
+	nh.param<int>("frequency",freq, 30);
+	nh.param<bool>("event_driver", event_driven, false);
 
 	PhidgetManager* manager = new PhidgetManager();
 	auto devices = manager->getAttachedDevices();
 	delete manager;
 
-	PhidgetIK::SensingMode sensMode = PhidgetIK::SensingMode::POLLING;
+	PhidgetIK::SensingMode sensMode;
+	if(event_driven)
+		sensMode = PhidgetIK::SensingMode::EVENT;
+	else
+		sensMode = PhidgetIK::SensingMode::POLLING;
 
 	if(devices.size() > 0)
 	{
@@ -26,7 +33,7 @@ int main(int argc, char **argv)
 				std::make_shared<PhidgetIKROS>(nodeHandle, device.serial_num, sensMode));
 		}
 
-		ros::Rate loop_rate(20);
+		ros::Rate loop_rate(freq);
 		while (ros::ok())
 		{
 			if(sensMode == PhidgetIK::SensingMode::POLLING)
