@@ -1,2 +1,51 @@
-frequency: 30 #hz
-event_driven: false
+frequency: 30                       #nodes update frequency in hz
+event_driven: false                 #switch between poll and event driven processing
+
+boards:                             
+  board: interfacekit1              #phidget board with a name
+    serial_num: 272740              #phidget boards serial number
+    sensors:                        #configured sensors of this board
+      sensor:                       
+        type: digital_out           #type of the sensor [digital_out, digital_in, analog]
+        index: 2                    #port on which the information is physically connected on the phidget board
+        name: gripper_open_close    #the name (URI) whith which the Information will be published
+      sensor:
+        type: analog
+        index: 2
+        name: gripper_finger
+      sensor:
+        type: analog
+        index: 3
+        name: gripper_x
+      sensor:
+        type: analog
+        index: 4
+        name: gripper_y
+      sensor:
+        type: analog
+        index: 5
+        name: gripper_z
+      sensor: 
+        type: digital_in
+        index: 0
+        name: em_stop_scanner
+      sensor: 
+        type: digital_in
+        index: 1
+        name: em_stop_laser
+        
+  board: interfacekit2
+    serial_num: 272745
+    sensors:
+      sensor:
+        type: digital_out
+        index: 2
+        name: gripper_open_close
+      sensor:
+        type: analog
+        index: 2
+        name: gripper_finger
+      sensor: 
+        type: digital_in
+        index: 1
+        name: em_stop_laser
