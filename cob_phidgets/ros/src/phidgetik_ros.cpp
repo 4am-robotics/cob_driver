@@ -2,8 +2,8 @@
 #include <cob_phidgets/DigitalSensor.h>
 #include <cob_phidgets/AnalogSensor.h>
 
-PhidgetIKROS::PhidgetIKROS(ros::NodeHandle nh, int serial_num, SensingMode mode)
-	:PhidgetIK(mode), _serial_num(serial_num), _nh(nh)
+PhidgetIKROS::PhidgetIKROS(ros::NodeHandle nh, int serial_num, XmlRpc::XmlRpcValue* sensor_params, SensingMode mode)
+	:PhidgetIK(mode), _nh(nh), _serial_num(serial_num)
 {
 	ros::NodeHandle nodeHandle("~");
 	_outputChanged.updated=false;
@@ -25,40 +25,124 @@ PhidgetIKROS::PhidgetIKROS(ros::NodeHandle nh, int serial_num, SensingMode mode)
 	{
 		ROS_ERROR("Error waiting for Attachment. Message: %s",this->getErrorDescription(this->getError()).c_str());
 	}
+	initLookupMaps(sensor_params);
 }
 
 PhidgetIKROS::~PhidgetIKROS()
 {
 }
 
+auto PhidgetIKROS::initLookupMaps(XmlRpc::XmlRpcValue* sensor_params) -> void
+{
+	for(auto& sensor : *sensor_params)
+	{
+		std::string name = sensor.first;
+		std::string type;
+		int index;
+		if(!sensor.second.hasMember("type"))
+		{
+			ROS_ERROR("Sensor Param '%s' has no 'type' member. Ignoring param!", name.c_str());
+			continue;
+		}
+		if(!sensor.second.hasMember("index"))
+		{
+			ROS_ERROR("Sensor Param '%s' has no 'index' member. Ignoring param!", name.c_str());
+			continue;
+		}
+		XmlRpc::XmlRpcValue value;
+		value = sensor.second["type"];
+		//type = value;
+		value = sensor.second["index"];
+		//index = value.;
+
+		if(type == "analog")
+			_indexNameMapAnalog.insert(std::make_pair(index, name));
+		else if(type == "digital_in")
+			_indexNameMapDigitalIn.insert(std::make_pair(index, name));
+		else if(type == "digital_out")
+			_indexNameMapDigitalOut.insert(std::make_pair(index, name));
+		else
+			ROS_ERROR("Type '%s' in sensor param '%s' is unkown", type.c_str(), name.c_str());
+	}
+}
+
 auto PhidgetIKROS::update() -> void
 {
 	int count = this->getInputCount();
 	cob_phidgets::DigitalSensor msg_digit;
-	std::vector<signed char> indexes;
+	std::vector<std::string> names;
 	std::vector<signed char> states;
 
-	for(size_t i = 0; i < count; i++)
+	//------- publish digital input states ----------//
+	for(int i = 0; i < count; i++)
 	{
-		indexes.push_back(i);
+		std::string name;
+		_indexNameMapItr = _indexNameMapDigitalIn.find(i);
+		if(_indexNameMapItr != _indexNameMapDigitalIn.end())
+			name = (*_indexNameMapItr).second;
+		else
+		{
+			std::stringstream ss;
+			ss << getDeviceSerialNumber() << "/" << "in/" << i;
+			name = ss.str();
+		}
+		names.push_back(name);
 		states.push_back(this->getInputState(i));
 	}
-	msg_digit.id = _serial_num;
-	msg_digit.index = indexes;
+	msg_digit.header.stamp = ros::Time::now();
+	msg_digit.uri = names;
 	msg_digit.state = states;
 
 	_pubDigital.publish(msg_digit);
 
-	cob_phidgets::AnalogSensor msg_analog;
-	indexes.clear();
-	std::vector<short int> values;
-	for(size_t i = 0; i < count; i++)
+	//------- publish digital output states ----------//
+	names.clear();
+	states.clear();
+	count = this->getOutputCount();
+	for(int i = 0; i < count; i++)
 	{
-		indexes.push_back(i);
+		std::string name;
+		_indexNameMapItr = _indexNameMapDigitalOut.find(i);
+		if(_indexNameMapItr != _indexNameMapDigitalOut.end())
+			name = (*_indexNameMapItr).second;
+		else
+		{
+			std::stringstream ss;
+			ss << getDeviceSerialNumber() << "/" << "out/" << i;
+			name = ss.str();
+		}
+		names.push_back(name);
+		states.push_back(this->getOutputState(i));
+	}
+	msg_digit.header.stamp = ros::Time::now();
+	msg_digit.uri = names;
+	msg_digit.state = states;
+
+	_pubDigital.publish(msg_digit);
+
+
+	//------- publish analog input states ----------//
+	cob_phidgets::AnalogSensor msg_analog;
+	names.clear();
+	std::vector<short int> values;
+	count = this->getSensorCount();
+	for(int i = 0; i < count; i++)
+	{
+		std::string name;
+		_indexNameMapItr = _indexNameMapAnalog.find(i);
+		if(_indexNameMapItr != _indexNameMapAnalog.end())
+			name = (*_indexNameMapItr).second;
+		else
+		{
+			std::stringstream ss;
+			ss << getDeviceSerialNumber() << "/" << i;
+			name = ss.str();
+		}
+		names.push_back(name);
 		values.push_back(this->getSensorValue(i));
 	}
-	msg_analog.id = _serial_num;
-	msg_analog.index = indexes;
+	msg_analog.header.stamp = ros::Time::now();
+	msg_analog.uri = names;
 	msg_analog.value = values;
 
 	_pubAnalog.publish(msg_analog);
@@ -68,14 +152,24 @@ auto PhidgetIKROS::inputChangeHandler(int index, int inputState) -> int
 {
 	ROS_DEBUG("Board %d: Digital Input %d changed to State: %d", _serial_num, index, inputState);
 	cob_phidgets::DigitalSensor msg;
-	std::vector<signed char> indexes;
+	std::vector<std::string> names;
 	std::vector<signed char> states;
 
-	indexes.push_back(index);
+	std::string name;
+	_indexNameMapItr = _indexNameMapAnalog.find(index);
+	if(_indexNameMapItr != _indexNameMapAnalog.end())
+		name = (*_indexNameMapItr).second;
+	else
+	{
+		std::stringstream ss;
+		ss << getDeviceSerialNumber() << "\\" << index;
+		name = ss.str();
+	}
+	names.push_back(name);
 	states.push_back(inputState);
 
-	msg.id = _serial_num;
-	msg.index = indexes;
+	msg.header.stamp = ros::Time::now();
+	msg.uri = names;
 	msg.state = states;
 	_pubDigital.publish(msg);
 
@@ -95,14 +189,24 @@ auto PhidgetIKROS::sensorChangeHandler(int index, int sensorValue) -> int
 {
 	ROS_DEBUG("Board %d: Analog Input %d changed to Value: %d", _serial_num, index, sensorValue);
 	cob_phidgets::AnalogSensor msg;
-	std::vector<signed char> indexes;
+	std::vector<std::string> names;
 	std::vector<short int> values;
 
-	indexes.push_back(index);
+	std::string name;
+	_indexNameMapItr = _indexNameMapAnalog.find(index);
+	if(_indexNameMapItr != _indexNameMapAnalog.end())
+		name = (*_indexNameMapItr).second;
+	else
+	{
+		std::stringstream ss;
+		ss << getDeviceSerialNumber() << "\\" << index;
+		name = ss.str();
+	}
+	names.push_back(name);
 	values.push_back(sensorValue);
 
-	msg.id = _serial_num;
-	msg.index = indexes;
+	msg.header.stamp = ros::Time::now();
+	msg.uri = names;
 	msg.value = values;
 
 	_pubAnalog.publish(msg);

@@ -2,50 +2,50 @@ frequency: 30                       #nodes update frequency in hz
 event_driven: false                 #switch between poll and event driven processing
 
 boards:                             
-  board: interfacekit1              #phidget board with a name
+  ifk_general:                    #phidget board with a name
     serial_num: 272740              #phidget boards serial number
     sensors:                        #configured sensors of this board
-      sensor:                       
+      gripper_open_close:                       
         type: digital_out           #type of the sensor [digital_out, digital_in, analog]
-        index: 2                    #port on which the information is physically connected on the phidget board
-        name: gripper_open_close    #the name (URI) whith which the Information will be published
-      sensor:
+        index: 2                    #port on which the information is physically connected to the phidget board
+        name: gripper_open_close    #the name (URI) with which the Information will be published
+      gripper_finger:
         type: analog
         index: 2
         name: gripper_finger
-      sensor:
+      gripper_x:
         type: analog
         index: 3
         name: gripper_x
-      sensor:
+      gripper_y:
         type: analog
         index: 4
         name: gripper_y
-      sensor:
+      gripper_z:
         type: analog
         index: 5
         name: gripper_z
-      sensor: 
+      em_stop_scanner: 
         type: digital_in
         index: 0
         name: em_stop_scanner
-      sensor: 
+      em_stop_laser: 
         type: digital_in
         index: 1
         name: em_stop_laser
-        
-  board: interfacekit2
-    serial_num: 272745
+
+  ifk_gripper: 
+    serial_num: 272745 
     sensors:
-      sensor:
+      gripper_open_close:
         type: digital_out
         index: 2
         name: gripper_open_close
-      sensor:
+      gripper_finger:
         type: analog
         index: 2
         name: gripper_finger
-      sensor: 
+      em_stop_laser: 
         type: digital_in
         index: 1
         name: em_stop_laser

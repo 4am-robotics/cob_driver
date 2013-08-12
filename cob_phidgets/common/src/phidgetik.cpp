@@ -273,6 +273,7 @@ auto PhidgetIK::detachHandler() -> int
     CPhidget_getDeviceName ((CPhidgetHandle)_iKitHandle, &device_name);
     CPhidget_getSerialNumber((CPhidgetHandle)_iKitHandle, &serial_number);
     printf("%s Serial number %d detached!\n", device_name, serial_number);
+    return 0;
 }
 
 auto PhidgetIK::inputChangeHandler(int index, int inputState) -> int

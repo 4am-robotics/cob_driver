@@ -1,3 +1,3 @@
-int32 id
-int8[] index
+Header header
+string[] uri
 int8[] state

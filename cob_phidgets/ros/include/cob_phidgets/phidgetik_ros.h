@@ -9,11 +9,12 @@
 
 #include <thread>
 #include <mutex>
+#include <map>
 
 class PhidgetIKROS: public PhidgetIK
 {
 public:
-	PhidgetIKROS(ros::NodeHandle nh, int serial_num, SensingMode mode);
+	PhidgetIKROS(ros::NodeHandle nh, int serial_num, XmlRpc::XmlRpcValue* sensor_params, SensingMode mode);
 	~PhidgetIKROS();
 
 private:
@@ -35,6 +36,13 @@ private:
 
 	OutputCompare _outputChanged;
 	std::mutex _mutex;
+
+	std::map<int, std::string> _indexNameMapAnalog;
+	std::map<int, std::string> _indexNameMapDigitalIn;
+	std::map<int, std::string> _indexNameMapDigitalOut;
+	std::map<int, std::string>::iterator _indexNameMapItr;
+
+	auto initLookupMaps(XmlRpc::XmlRpcValue* sensor_params) -> void;
 
 	auto update() -> void;
 
