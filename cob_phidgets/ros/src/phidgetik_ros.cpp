@@ -5,6 +5,7 @@
 PhidgetIKROS::PhidgetIKROS(ros::NodeHandle nh, int serial_num, SensingMode mode)
 	:PhidgetIK(mode), _serial_num(serial_num), _nh(nh)
 {
+	ros::NodeHandle nodeHandle("~");
 	_outputChanged.updated=false;
 	_outputChanged.index=-1;
 	_outputChanged.state=0;
@@ -12,9 +13,9 @@ PhidgetIKROS::PhidgetIKROS(ros::NodeHandle nh, int serial_num, SensingMode mode)
 	_pubAnalog = _nh.advertise<cob_phidgets::AnalogSensor>("analog_sensor", 100);
 	_pubDigital = _nh.advertise<cob_phidgets::DigitalSensor>("digital_sensor", 100);
 
-	_srvDigitalOut = _nh.advertiseService("set_digital", &PhidgetIKROS::setDigitalOutCallback, this);
-	_srvDataRate = _nh.advertiseService("set_data_rate", &PhidgetIKROS::setDataRateCallback, this);
-	_srvTriggerValue = _nh.advertiseService("set_trigger_value", &PhidgetIKROS::setTriggerValueCallback, this);
+	_srvDigitalOut = nodeHandle.advertiseService("set_digital", &PhidgetIKROS::setDigitalOutCallback, this);
+	_srvDataRate = nodeHandle.advertiseService("set_data_rate", &PhidgetIKROS::setDataRateCallback, this);
+	_srvTriggerValue = nodeHandle.advertiseService("set_trigger_value", &PhidgetIKROS::setTriggerValueCallback, this);
 
 	if(init(_serial_num) != EPHIDGET_OK)
 	{
