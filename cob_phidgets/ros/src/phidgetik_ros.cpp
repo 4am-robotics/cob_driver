@@ -37,23 +37,21 @@ auto PhidgetIKROS::initLookupMaps(XmlRpc::XmlRpcValue* sensor_params) -> void
 	for(auto& sensor : *sensor_params)
 	{
 		std::string name = sensor.first;
-		std::string type;
-		int index;
-		if(!sensor.second.hasMember("type"))
+		XmlRpc::XmlRpcValue value = sensor.second;
+		if(!value.hasMember("type"))
 		{
 			ROS_ERROR("Sensor Param '%s' has no 'type' member. Ignoring param!", name.c_str());
 			continue;
 		}
-		if(!sensor.second.hasMember("index"))
+		if(!value.hasMember("index"))
 		{
 			ROS_ERROR("Sensor Param '%s' has no 'index' member. Ignoring param!", name.c_str());
 			continue;
 		}
-		XmlRpc::XmlRpcValue value;
-		value = sensor.second["type"];
-		//type = value;
-		value = sensor.second["index"];
-		//index = value.;
+		XmlRpc::XmlRpcValue value_type = value["type"];
+		XmlRpc::XmlRpcValue value_index = value["index"];
+		std::string type = value_type;
+		int index = value_index;
 
 		if(type == "analog")
 			_indexNameMapAnalog.insert(std::make_pair(index, name));
