@@ -2,50 +2,40 @@ frequency: 30                       #nodes update frequency in hz
 event_driven: false                 #switch between poll and event driven processing
 
 boards:                             
-  ifk_general:                    #phidget board with a name
+  ifk_general:                      #phidget board with a name
     serial_num: 272740              #phidget boards serial number
     sensors:                        #configured sensors of this board
-      gripper_open_close:                       
+      gripper_command:           #a sensor and name (URI) with which the Information will be published
         type: digital_out           #type of the sensor [digital_out, digital_in, analog]
         index: 2                    #port on which the information is physically connected to the phidget board
-        name: gripper_open_close    #the name (URI) with which the Information will be published
-      gripper_finger:
+       gripper_hall_fingers:
         type: analog
         index: 2
-        name: gripper_finger
-      gripper_x:
+       gripper_hall_x:
         type: analog
         index: 3
-        name: gripper_x
-      gripper_y:
+       gripper_hall_y:
         type: analog
         index: 4
-        name: gripper_y
-      gripper_z:
+       gripper_hall_z:
         type: analog
         index: 5
-        name: gripper_z
-      em_stop_scanner: 
+       em_stop_scanner: 
         type: digital_in
         index: 0
-        name: em_stop_scanner
-      em_stop_laser: 
+       em_stop_laser: 
         type: digital_in
         index: 1
-        name: em_stop_laser
-
-  ifk_gripper: 
+ 
+  ifk_test: 
     serial_num: 272745 
     sensors:
       gripper_open_close:
         type: digital_out
         index: 2
-        name: gripper_open_close
       gripper_finger:
         type: analog
         index: 2
-        name: gripper_finger
       em_stop_laser: 
         type: digital_in
         index: 1
-        name: em_stop_laser
