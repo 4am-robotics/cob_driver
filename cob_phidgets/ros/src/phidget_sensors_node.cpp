@@ -4,19 +4,22 @@
 
 int main(int argc, char **argv)
 {
+	//init ros
 	ros::init(argc, argv, "cob_phidgets");
 
 	int freq;
-	bool event_driven;
+	std::string update_mode;
 	std::vector<std::shared_ptr<Phidget>> phidgets;
 	ros::NodeHandle nodeHandle;
 	ros::NodeHandle nh("~");
 	std::map<int, XmlRpc::XmlRpcValue> phidget_params_map;
 	std::map<int, XmlRpc::XmlRpcValue>::iterator phidget_params_map_itr;
 
+	//get default params from server
 	nh.param<int>("frequency",freq, 30);
-	nh.param<bool>("event_driver", event_driven, false);
+	nh.param<std::string>("update_mode", update_mode, "polling");
 
+	//get board params from server
 	XmlRpc::XmlRpcValue phidget_params;
 	if(nh.getParam("boards",phidget_params))
 	{
@@ -46,18 +49,27 @@ int main(int argc, char **argv)
 		ROS_WARN("No params for the phidget boards on the Paramserver using default name/port values");
 	}
 
+	//look for attached devices
 	PhidgetManager* manager = new PhidgetManager();
 	auto devices = manager->getAttachedDevices();
 	delete manager;
 
+	//set the update method
 	PhidgetIK::SensingMode sensMode;
-	if(event_driven)
+	if(update_mode == "event")
 		sensMode = PhidgetIK::SensingMode::EVENT;
-	else
+	else if(update_mode == "polling")
 		sensMode = PhidgetIK::SensingMode::POLLING;
+	else
+	{
+		ROS_WARN("Unknown update mode '%s' use polling instead", update_mode.c_str());
+		sensMode = PhidgetIK::SensingMode::POLLING;
+	}
 
+	//if no devices attached exit
 	if(devices.size() > 0)
 	{
+		//loop over all found devices and init them
 		for(auto& device : devices)
 		{
 			phidget_params_map_itr = phidget_params_map.find(device.serial_num);
@@ -69,6 +81,7 @@ int main(int argc, char **argv)
 		ros::Rate loop_rate(freq);
 		while (ros::ok())
 		{
+			//update devices if update method is polling
 			if(sensMode == PhidgetIK::SensingMode::POLLING)
 			{
 				for(auto& phidget : phidgets)

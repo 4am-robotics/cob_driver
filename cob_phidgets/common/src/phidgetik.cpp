@@ -45,11 +45,6 @@ auto PhidgetIK::getInputState(int index) -> int
 
 	 _last_error = CPhidgetInterfaceKit_getInputState(_iKitHandle, index,
 	 		&state);
-	
-	//DigitalInSensor* sensor = dynamic_cast<DigitalInSensor*>(_sensorsMap[SensorType::DIGITAL_IN][index]);
-
-	//if(sensor)
-	//	state = sensor->getInputState();
 
 	return state;
 }
@@ -70,25 +65,13 @@ auto PhidgetIK::getOutputState(int index) -> int
 	 _last_error = CPhidgetInterfaceKit_getOutputState(_iKitHandle, index,
 	 		&state);
 
-	//DigitalOutSensor* sensor = dynamic_cast<DigitalOutSensor*>(_sensorsMap[SensorType::DIGITAL_OUT][index]);
-
-	//if(sensor)
-	//	state = sensor->getOutputState();
-
 	return state;
 }
 
 auto PhidgetIK::setOutputState(int index, int state) -> int
 {
-//	auto ret = -1;
 	return (_last_error = CPhidgetInterfaceKit_setOutputState(_iKitHandle,
 	 		index, state));
-
-	//DigitalOutSensor* sensor = dynamic_cast<DigitalOutSensor*>(_sensorsMap[SensorType::DIGITAL_OUT][index]);
-
-	//if(sensor)
-	//	ret = sensor->setOutputState(state);
-	//return ret;
 }
 
 auto PhidgetIK::getSensorCount() -> int
@@ -106,11 +89,6 @@ auto PhidgetIK::getSensorValue(int index) -> int
 
 	 _last_error = CPhidgetInterfaceKit_getSensorValue(_iKitHandle, index, &value);
 
-	//AnalogInSensor* sensor = dynamic_cast<AnalogInSensor*>(_sensorsMap[SensorType::ANALOG][index]);
-
-	//if(sensor)
-	//	value = sensor->getSensorValue();
-
 	return value;
 }
 
@@ -119,11 +97,6 @@ auto PhidgetIK::getSensorRawValue(int index) -> int
 	int value = -1;
 
 	 _last_error = CPhidgetInterfaceKit_getSensorRawValue(_iKitHandle, index, &value);
-
-	//AnalogInSensor* sensor = dynamic_cast<AnalogInSensor*>(_sensorsMap[SensorType::ANALOG][index]);
-
-	//if(sensor)
-	//	value = sensor->getSensorRawValue();
 
 	return value;
 }
@@ -134,24 +107,12 @@ auto PhidgetIK::getSensorChangeTrigger(int index) -> int
 
 	 _last_error = CPhidgetInterfaceKit_getSensorChangeTrigger(_iKitHandle,	index, &trigger);
 
-	//AnalogInSensor* sensor = dynamic_cast<AnalogInSensor*>(_sensorsMap[SensorType::ANALOG][index]);
-
-	//if(sensor)
-	//	trigger = sensor->getSensorChangeTrigger();
-
 	return trigger;
 }
 
 auto PhidgetIK::setSensorChangeTrigger(int index, int trigger) -> int
 {
-	auto ret = -1;
 	return (_last_error = CPhidgetInterfaceKit_setSensorChangeTrigger(_iKitHandle, index, trigger));
-
-	//AnalogInSensor* sensor = dynamic_cast<AnalogInSensor*>(_sensorsMap[SensorType::ANALOG][index]);
-
-	//if(sensor)
-	//	ret = sensor->setSensorChangeTrigger(trigger);
-	return ret;
 }
 
 auto PhidgetIK::getRatiometric() -> int
@@ -176,26 +137,12 @@ auto PhidgetIK::getDataRate(int index) -> int
 
 	_last_error = CPhidgetInterfaceKit_getDataRate(_iKitHandle, index, &datarate);
 
-	//AnalogInSensor* sensor = dynamic_cast<AnalogInSensor*>(_sensorsMap[SensorType::ANALOG][index]);
-
-	//if(sensor)
-	//	datarate = sensor->getDataRateMax();
-
 	return datarate;
 }
 
 auto PhidgetIK::setDataRate(int index, int datarate) -> int
 {
-	//int ret = -1;
-
 	return (_last_error = CPhidgetInterfaceKit_setDataRate(_iKitHandle,	index, datarate));
-
-	//AnalogInSensor* sensor = dynamic_cast<AnalogInSensor*>(_sensorsMap[SensorType::ANALOG][index]);
-
-	//if(sensor)
-	//	ret = sensor->setDataRate(datarate);
-
-	//return ret;
 }
 
 auto PhidgetIK::getDataRateMax(int index) -> int
@@ -203,11 +150,6 @@ auto PhidgetIK::getDataRateMax(int index) -> int
 	int max = -1;
 
 	_last_error = CPhidgetInterfaceKit_getDataRateMax(_iKitHandle, index, &max);
-
-	// AnalogInSensor* sensor = dynamic_cast<AnalogInSensor*>(_sensorsMap[SensorType::ANALOG][index]);
-
-	// if(sensor)
-	// 	max = sensor->getDataRateMax();
 
 	return max;
 }
@@ -217,11 +159,6 @@ auto PhidgetIK::getDataRateMin(int index) -> int
 	int min = -1;
 
 	_last_error = CPhidgetInterfaceKit_getDataRateMin(_iKitHandle, index, &min);
-
-	// AnalogInSensor* sensor = dynamic_cast<AnalogInSensor*>(_sensorsMap[SensorType::ANALOG][index]);
-
-	// if(sensor)
-	// 	min = sensor->getDataRateMin();
 
 	return min;
 }
@@ -278,17 +215,17 @@ auto PhidgetIK::detachHandler() -> int
 
 auto PhidgetIK::inputChangeHandler(int index, int inputState) -> int
 {
-	return 0;//_sensorsMap[SensorType::DIGITAL_IN][index]->update(inputState);
+	return 0;
 }
 
 auto PhidgetIK::outputChangeHandler(int index, int outputState) -> int
 {
-	return 0;//_sensorsMap[SensorType::DIGITAL_OUT][index]->update(outputState);
+	return 0;
 }
 
 auto PhidgetIK::sensorChangeHandler(int index, int sensorValue) -> int
 {
-	return 0;//_sensorsMap[SensorType::ANALOG][index]->update(sensorValue);
+	return 0;
 }
 
 auto PhidgetIK::attachDelegate(CPhidgetHandle phid, void *userptr) -> int
@@ -312,49 +249,6 @@ auto PhidgetIK::sensorChangeDelegate(CPhidgetInterfaceKitHandle phid,
 		void *userPtr, int index, int sensorValue) -> int
 {
 	return ((PhidgetIK*) userPtr)->sensorChangeHandler(index, sensorValue);
-}
-
-auto PhidgetIK::addSensor(SensorType type, int index, std::string sensor_name) -> void
-{
-	Sensor* sensor;
-	switch(type)
-	{
-		case SensorType::ANALOG:
-			sensor = new AnalogInSensor(index, sensor_name, &_iKitHandle);
-			break;
-		case SensorType::DIGITAL_IN:
-			sensor = new DigitalInSensor(index, sensor_name, &_iKitHandle);
-			break;
-		case SensorType::DIGITAL_OUT:
-			sensor = new DigitalOutSensor(index, sensor_name, &_iKitHandle);
-			break;
-		default:
-			sensor = nullptr;
-			break;
-	};
-	//addSensor(sensor);
-	if(sensor)
-	{
-		_sensorsMap.insert(std::make_pair(type, SensorMapInner()));
-		_sensorsMap[type].insert(std::make_pair(index, sensor));
-	}
-}
-
-auto PhidgetIK::addSensor(SensorType type, Sensor* sensor) -> void
-{
-	// unresoved overloaded function type here???
-	// why?
-
-	// if(sensor)
-	// {
-	// 	_sensorsMap.emplace(std::make_pair(type, SensorMapInner()));
-	// 	_sensorsMap[type].emplace(std::make_pair(index, sensor));
-	// }
-}
-
-auto PhidgetIK::removeSensor(SensorType type, int index) -> void
-{
-	_sensorsMap[type].erase(index);
 }
 
 auto PhidgetIK::update()-> void

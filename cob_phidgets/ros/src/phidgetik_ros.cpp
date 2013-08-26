@@ -10,8 +10,8 @@ PhidgetIKROS::PhidgetIKROS(ros::NodeHandle nh, int serial_num, XmlRpc::XmlRpcVal
 	_outputChanged.index=-1;
 	_outputChanged.state=0;
 
-	_pubAnalog = _nh.advertise<cob_phidgets::AnalogSensor>("analog_sensor", 100);
-	_pubDigital = _nh.advertise<cob_phidgets::DigitalSensor>("digital_sensor", 100);
+	_pubAnalog = _nh.advertise<cob_phidgets::AnalogSensor>("analog_sensor", 1);
+	_pubDigital = _nh.advertise<cob_phidgets::DigitalSensor>("digital_sensor", 1);
 
 	_srvDigitalOut = nodeHandle.advertiseService("set_digital", &PhidgetIKROS::setDigitalOutCallback, this);
 	_srvDataRate = nodeHandle.advertiseService("set_data_rate", &PhidgetIKROS::setDataRateCallback, this);
@@ -25,14 +25,14 @@ PhidgetIKROS::PhidgetIKROS(ros::NodeHandle nh, int serial_num, XmlRpc::XmlRpcVal
 	{
 		ROS_ERROR("Error waiting for Attachment. Message: %s",this->getErrorDescription(this->getError()).c_str());
 	}
-	initLookupMaps(sensor_params);
+	readParams(sensor_params);
 }
 
 PhidgetIKROS::~PhidgetIKROS()
 {
 }
 
-auto PhidgetIKROS::initLookupMaps(XmlRpc::XmlRpcValue* sensor_params) -> void
+auto PhidgetIKROS::readParams(XmlRpc::XmlRpcValue* sensor_params) -> void
 {
 	for(auto& sensor : *sensor_params)
 	{
@@ -61,6 +61,21 @@ auto PhidgetIKROS::initLookupMaps(XmlRpc::XmlRpcValue* sensor_params) -> void
 			_indexNameMapDigitalOut.insert(std::make_pair(index, name));
 		else
 			ROS_ERROR("Type '%s' in sensor param '%s' is unkown", type.c_str(), name.c_str());
+
+		if(value.hasMember("change_trigger"))
+		{
+			XmlRpc::XmlRpcValue value_change_trigger = value["change_trigger"];
+			int change_trigger = value_change_trigger;
+			ROS_WARN("Setting change trigger to %d for sensor %s with index %d ",change_trigger, name.c_str(), index);
+			setSensorChangeTrigger(index, change_trigger);
+		}
+		if(value.hasMember("data_rate"))
+		{
+			XmlRpc::XmlRpcValue value_data_rate = value["data_rate"];
+			int data_rate = value_data_rate;
+			ROS_WARN("Setting data rate to %d for sensor %s with index %d ",data_rate, name.c_str(), index);
+			setDataRate(index, data_rate);
+		}
 	}
 }
 

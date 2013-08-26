@@ -1,10 +1,8 @@
 #ifndef _PHIDGET_H_
 #define _PHIDGET_H_
 
-#include <cob_phidgets/sensors.h>
-#include <map>
-#include <unordered_map>
 #include <string>
+#include <phidget21.h>
 
 class Phidget
 {
@@ -33,26 +31,9 @@ protected:
 	int _last_error;
 	SensingMode _sensMode;
 
-	struct SensorTypeHash
-	{
-		std::size_t operator()(const SensorType& type) const
-		{
-			return static_cast<size_t>(type);
-		}
-	};
-
-	typedef std::unordered_map<int, Sensor*> SensorMapInner;
-	typedef std::unordered_map<SensorType, SensorMapInner, SensorTypeHash> SensorMap;
-	SensorMap _sensorsMap;
-	
-
 	Phidget(CPhidgetHandle * handle, SensingMode mode);
 
 	virtual auto attachHandler() -> int;
 	virtual auto detachHandler() -> int;
-
-	virtual auto addSensor(SensorType type, int index, std::string sensor_name) -> void = 0;
-	virtual auto addSensor(SensorType type, Sensor* sensor) -> void = 0;
-	virtual auto removeSensor(SensorType type, int index) -> void = 0;
 };
 #endif //_PHIDGET_H_

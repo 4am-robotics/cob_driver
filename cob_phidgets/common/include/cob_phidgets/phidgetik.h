@@ -37,10 +37,6 @@ public:
 
 	auto getError() -> int;
 
-	auto addSensor(SensorType type, int index, std::string sensor_name) -> void;
-	auto addSensor(SensorType type, Sensor* sensor) -> void;
-	auto removeSensor(SensorType type, int index) -> void;
-
 	virtual auto update() -> void;
 
 protected:

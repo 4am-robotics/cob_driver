@@ -42,7 +42,7 @@ private:
 	std::map<int, std::string> _indexNameMapDigitalOut;
 	std::map<int, std::string>::iterator _indexNameMapItr;
 
-	auto initLookupMaps(XmlRpc::XmlRpcValue* sensor_params) -> void;
+	auto readParams(XmlRpc::XmlRpcValue* sensor_params) -> void;
 
 	auto update() -> void;
 
