@@ -17,6 +17,7 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>cob_utilities</build_depend>
   <build_depend>message_generation</build_depend>
+  <build_depend>pr2_msgs</build_depend>
   <run_depend>message_runtime</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rostest</run_depend>
@@ -33,3 +34,4 @@
     <cpp lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lSerialIO -lcob_relayboard" cflags="-I${prefix}/common/include"/>
   </export>
 </package>
+
