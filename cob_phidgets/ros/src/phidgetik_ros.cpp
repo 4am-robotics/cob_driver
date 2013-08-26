@@ -105,7 +105,7 @@ auto PhidgetIKROS::readParams(XmlRpc::XmlRpcValue* sensor_params) -> void
 	for(int i = 0; i < count; i++)
 	{
 		_indexNameMapItr = _indexNameMapAnalog.find(i);
-		if(_indexNameMapItr != _indexNameMapAnalog.end())
+		if(_indexNameMapItr == _indexNameMapAnalog.end())
 		{
 			std::stringstream ss;
 			ss << getDeviceSerialNumber() << "/" << i;

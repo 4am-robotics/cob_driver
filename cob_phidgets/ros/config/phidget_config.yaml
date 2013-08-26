@@ -6,7 +6,7 @@ boards:
     serial_num: 272740              #phidget boards serial number
     ratiometric: true
     sensors:                        #configured sensors of this board
-      gripper_command:              #a sensor and name (URI) with which the Information will be published
+       gripper_command:              #a sensor and name (URI) with which the Information will be published
         type: digital_out           #type of the sensor [digital_out, digital_in, analog]
         index: 2                    #port on which the information is physically connected to the phidget board
        gripper_hall_fingers:
