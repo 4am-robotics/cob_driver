@@ -2,10 +2,11 @@
 #include <cob_phidgets/DigitalSensor.h>
 #include <cob_phidgets/AnalogSensor.h>
 
-PhidgetIKROS::PhidgetIKROS(ros::NodeHandle nh, int serial_num, XmlRpc::XmlRpcValue* sensor_params, SensingMode mode)
+PhidgetIKROS::PhidgetIKROS(ros::NodeHandle nh, int serial_num, std::string board_name, XmlRpc::XmlRpcValue* sensor_params, SensingMode mode)
 	:PhidgetIK(mode), _nh(nh), _serial_num(serial_num)
 {
-	ros::NodeHandle nodeHandle("~");
+	ros::NodeHandle tmpHandle("~");
+	ros::NodeHandle nodeHandle(tmpHandle, board_name);
 	_outputChanged.updated=false;
 	_outputChanged.index=-1;
 	_outputChanged.state=0;
@@ -77,6 +78,40 @@ auto PhidgetIKROS::readParams(XmlRpc::XmlRpcValue* sensor_params) -> void
 			setDataRate(index, data_rate);
 		}
 	}
+	//fill up rest of maps with default values
+	int count = this->getInputCount();
+	for(int i = 0; i < count; i++)
+	{
+		_indexNameMapItr = _indexNameMapDigitalIn.find(i);
+		if(_indexNameMapItr == _indexNameMapDigitalIn.end())
+		{
+			std::stringstream ss;
+			ss << getDeviceSerialNumber() << "/" << "in/" << i;
+			_indexNameMapDigitalIn.insert(std::make_pair(i, ss.str()));
+		}
+	}
+	count = this->getOutputCount();
+	for(int i = 0; i < count; i++)
+	{
+		_indexNameMapItr = _indexNameMapDigitalOut.find(i);
+		if(_indexNameMapItr == _indexNameMapDigitalOut.end())
+		{
+			std::stringstream ss;
+			ss << getDeviceSerialNumber() << "/" << "out/" << i;
+			_indexNameMapDigitalOut.insert(std::make_pair(i, ss.str()));
+		}
+	}
+	count = this->getSensorCount();
+	for(int i = 0; i < count; i++)
+	{
+		_indexNameMapItr = _indexNameMapAnalog.find(i);
+		if(_indexNameMapItr != _indexNameMapAnalog.end())
+		{
+			std::stringstream ss;
+			ss << getDeviceSerialNumber() << "/" << i;
+			_indexNameMapAnalog.insert(std::make_pair(i, ss.str()));
+		}
+	}
 }
 
 auto PhidgetIKROS::update() -> void
@@ -93,12 +128,6 @@ auto PhidgetIKROS::update() -> void
 		_indexNameMapItr = _indexNameMapDigitalIn.find(i);
 		if(_indexNameMapItr != _indexNameMapDigitalIn.end())
 			name = (*_indexNameMapItr).second;
-		else
-		{
-			std::stringstream ss;
-			ss << getDeviceSerialNumber() << "/" << "in/" << i;
-			name = ss.str();
-		}
 		names.push_back(name);
 		states.push_back(this->getInputState(i));
 	}
@@ -118,12 +147,6 @@ auto PhidgetIKROS::update() -> void
 		_indexNameMapItr = _indexNameMapDigitalOut.find(i);
 		if(_indexNameMapItr != _indexNameMapDigitalOut.end())
 			name = (*_indexNameMapItr).second;
-		else
-		{
-			std::stringstream ss;
-			ss << getDeviceSerialNumber() << "/" << "out/" << i;
-			name = ss.str();
-		}
 		names.push_back(name);
 		states.push_back(this->getOutputState(i));
 	}
@@ -145,12 +168,6 @@ auto PhidgetIKROS::update() -> void
 		_indexNameMapItr = _indexNameMapAnalog.find(i);
 		if(_indexNameMapItr != _indexNameMapAnalog.end())
 			name = (*_indexNameMapItr).second;
-		else
-		{
-			std::stringstream ss;
-			ss << getDeviceSerialNumber() << "/" << i;
-			name = ss.str();
-		}
 		names.push_back(name);
 		values.push_back(this->getSensorValue(i));
 	}
@@ -172,12 +189,6 @@ auto PhidgetIKROS::inputChangeHandler(int index, int inputState) -> int
 	_indexNameMapItr = _indexNameMapAnalog.find(index);
 	if(_indexNameMapItr != _indexNameMapAnalog.end())
 		name = (*_indexNameMapItr).second;
-	else
-	{
-		std::stringstream ss;
-		ss << getDeviceSerialNumber() << "\\" << index;
-		name = ss.str();
-	}
 	names.push_back(name);
 	states.push_back(inputState);
 
@@ -209,12 +220,6 @@ auto PhidgetIKROS::sensorChangeHandler(int index, int sensorValue) -> int
 	_indexNameMapItr = _indexNameMapAnalog.find(index);
 	if(_indexNameMapItr != _indexNameMapAnalog.end())
 		name = (*_indexNameMapItr).second;
-	else
-	{
-		std::stringstream ss;
-		ss << getDeviceSerialNumber() << "\\" << index;
-		name = ss.str();
-	}
 	names.push_back(name);
 	values.push_back(sensorValue);
 

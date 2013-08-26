@@ -12,8 +12,8 @@ int main(int argc, char **argv)
 	std::vector<std::shared_ptr<Phidget>> phidgets;
 	ros::NodeHandle nodeHandle;
 	ros::NodeHandle nh("~");
-	std::map<int, XmlRpc::XmlRpcValue> phidget_params_map;
-	std::map<int, XmlRpc::XmlRpcValue>::iterator phidget_params_map_itr;
+	std::map<int, std::pair<std::string, XmlRpc::XmlRpcValue> > phidget_params_map;
+	std::map<int, std::pair<std::string, XmlRpc::XmlRpcValue> >::iterator phidget_params_map_itr;
 
 	//get default params from server
 	nh.param<int>("frequency",freq, 30);
@@ -41,7 +41,8 @@ int main(int argc, char **argv)
 				ROS_ERROR("Board '%s' has no sensors param in phidget yaml config",board_name.c_str());
 				continue;
 			}
-			phidget_params_map.insert(std::make_pair(board_desc["serial_num"], board_param));
+			phidget_params_map.insert(std::make_pair(board_desc["serial_num"],
+					std::make_pair(board_name, board_param)));
 		}
 	}
 	else
@@ -73,9 +74,17 @@ int main(int argc, char **argv)
 		for(auto& device : devices)
 		{
 			phidget_params_map_itr = phidget_params_map.find(device.serial_num);
-			XmlRpc::XmlRpcValue *sensors_param = (phidget_params_map_itr != phidget_params_map.end()) ? &((*phidget_params_map_itr).second) : nullptr;
+			XmlRpc::XmlRpcValue *sensors_param = (phidget_params_map_itr != phidget_params_map.end()) ? &((*phidget_params_map_itr).second.second) : nullptr;
+			std::string name;
+			if(phidget_params_map_itr != phidget_params_map.end())
+				name = (*phidget_params_map_itr).second.first;
+			else
+			{
+				std::stringstream ss; ss << device.serial_num;
+				name = ss.str();
+			}
 			phidgets.push_back(
-				std::make_shared<PhidgetIKROS>(nodeHandle, device.serial_num, sensors_param, sensMode));
+				std::make_shared<PhidgetIKROS>(nodeHandle, device.serial_num, name, sensors_param, sensMode));
 		}
 
 		ros::Rate loop_rate(freq);

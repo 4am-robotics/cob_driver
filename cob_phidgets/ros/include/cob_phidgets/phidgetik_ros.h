@@ -14,7 +14,7 @@
 class PhidgetIKROS: public PhidgetIK
 {
 public:
-	PhidgetIKROS(ros::NodeHandle nh, int serial_num, XmlRpc::XmlRpcValue* sensor_params, SensingMode mode);
+	PhidgetIKROS(ros::NodeHandle nh, int serial_num, std::string board_name, XmlRpc::XmlRpcValue* sensor_params, SensingMode mode);
 	~PhidgetIKROS();
 
 private:
