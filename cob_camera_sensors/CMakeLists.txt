@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_camera_sensors)
 
-find_package(catkin REQUIRED COMPONENTS roscpp pluginlib message_filters sensor_msgs nodelet)
+find_package(catkin REQUIRED COMPONENTS roscpp pluginlib message_generation message_filters sensor_msgs nodelet)
 
 #######################################
 ## Declare ROS messages and services ##
