@@ -6,16 +6,16 @@ find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs)
 catkin_package(
     DEPENDS roscpp sensor_msgs)
 
-include_directories(common/include common/src ${catkin_INCLUDE_DIRS})
+include_directories(common/include ${catkin_INCLUDE_DIRS})
 
 add_library(lms1xx common/src/lms1xx.cpp)
 
 add_executable(lms1xx_test common/src/test.cpp)
-add_executable(LMS100 ros/src/lms1xx_node.cpp)
+add_executable(lms100 ros/src/lms1xx_node.cpp)
 add_executable(set_config ros/src/set_config.cpp)
 
 target_link_libraries(lms1xx_test lms1xx ${catkin_LIBRARIES})
-target_link_libraries(LMS100 lms1xx ${catkin_LIBRARIES})
+target_link_libraries(lms100 lms1xx ${catkin_LIBRARIES})
 target_link_libraries(set_config lms1xx ${catkin_LIBRARIES})
 
 
@@ -23,11 +23,7 @@ target_link_libraries(set_config lms1xx ${catkin_LIBRARIES})
 ## Install ##
 #############
 
-install(TARGETS LMS100 set_config
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(TARGETS lms1xx lms1xx_test LMS100 set_config
+install(TARGETS lms1xx lms1xx_test lms100 set_config
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
