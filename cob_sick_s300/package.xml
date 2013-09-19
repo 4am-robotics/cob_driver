@@ -2,7 +2,7 @@
   <name>cob_sick_s300</name>
   <version>0.5.0</version>
   <description>This package published a laser scan message out of a Sick S300 laser scanner.</description>
-  
+
   <license>LGPL</license>
 
   <url type="website">http://ros.org/wiki/cob_sick_s300</url>
@@ -18,6 +18,7 @@
   <build_depend>message_filters</build_depend>
   <build_depend>diagnostic_msgs</build_depend>
   <build_depend>tf</build_depend>
+  <build_depend>tf2_ros</build_depend>
   <build_depend>laser_geometry</build_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rostest</run_depend>
@@ -25,6 +26,7 @@
   <run_depend>message_filters</run_depend>
   <run_depend>diagnostic_msgs</run_depend>
   <run_depend>tf</run_depend>
+  <run_depend>tf2_ros</run_depend>
   <run_depend>laser_geometry</run_depend>
   <!-- <test_depend>roscpp</test_depend> -->
   <!-- <test_depend>rostest</test_depend> -->
