@@ -2,7 +2,7 @@
   <name>cob_driver</name>
   <version>0.5.0</version>
   <description>The cob_driver stack includes packages that provide access to the Care-O-bot hardware through ROS messages, services and actions. E.g. for mobile base, arm, camera sensors, laser scanners, etc...</description>
- 
+
 
   <license>LGPL</license>
 
@@ -28,6 +28,7 @@
   <run_depend>cob_light</run_depend>
   <run_depend>cob_phidgets</run_depend>
   <run_depend>cob_relayboard</run_depend>
+  <run_depend>cob_sick_lms1xx</run_depend>
   <run_depend>cob_sick_s300</run_depend>
   <run_depend>cob_sound</run_depend>
   <run_depend>cob_touch</run_depend>
