@@ -60,7 +60,7 @@
 #ifndef _PHIDGETMANAGER_H_
 #define _PHIDGETMANAGER_H_
 
-#include <phidget21.h>
+#include <libphidgets/phidget21.h>
 #include <vector>
 #include <string>
 
