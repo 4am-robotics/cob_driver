@@ -33,7 +33,7 @@ add_executable(collision_velocity_filter
                         )
 
 target_link_libraries(collision_velocity_filter ${catkin_LIBRARIES})
-add_dependencies(collision_velocity_filter ${PROJECT_NAME}_gencpp)
+add_dependencies(collision_velocity_filter ${PROJECT_NAME}_gencfg)
 
 
 #############
