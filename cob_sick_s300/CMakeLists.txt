@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_sick_s300)
 
-find_package(catkin REQUIRED COMPONENTS roscpp rostest sensor_msgs message_filters diagnostic_msgs tf laser_geometry)
+find_package(catkin REQUIRED COMPONENTS roscpp rostest sensor_msgs message_filters diagnostic_msgs tf tf2_ros laser_geometry)
 
 ###################################
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-    DEPENDS roscpp rostest sensor_msgs message_filters diagnostic_msgs tf laser_geometry
+    DEPENDS roscpp rostest sensor_msgs message_filters diagnostic_msgs tf tf2_ros laser_geometry
     CATKIN_DEPENDS # TODO
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
@@ -32,8 +32,10 @@ SET(OODL_SickS300_SRC
 
 add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp ${OODL_SickS300_SRC})
 add_executable(cob_scan_filter ros/src/cob_scan_filter.cpp)
+add_executable(cob_unified_scan_publisher ros/src/cob_unified_scan_publisher.cpp)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 target_link_libraries(cob_scan_filter ${catkin_LIBRARIES})
+target_link_libraries(cob_unified_scan_publisher ${catkin_LIBRARIES})
 
 
 #############
@@ -41,7 +43,7 @@ target_link_libraries(cob_scan_filter ${catkin_LIBRARIES})
 #############
 
 ## Mark executables and/or libraries for installation
-install(TARGETS ${PROJECT_NAME} cob_scan_filter
+install(TARGETS ${PROJECT_NAME} cob_scan_filter cob_unified_scan_publisher
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
