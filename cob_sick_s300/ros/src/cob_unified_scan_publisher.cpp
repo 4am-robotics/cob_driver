@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -11,9 +11,9 @@
  * ROS stack name: cob_driver
  * ROS package name: cob_sick_s300
  * Description:
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Alexander Bubeck, email:alexander.bubeck@ipa.fhg.de
  * Supervised by: Alexander Bubeck, email:alexander.bubeck@ipa.fhg.de
  *
@@ -30,23 +30,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -60,34 +60,41 @@
 // ROS includes
 #include <ros/ros.h>
 #include <message_filters/subscriber.h>
-#include <message_filters/time_synchronizer.h>
+//#include <message_filters/time_synchronizer.h>
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
 #include <tf/transform_listener.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
 #include <sensor_msgs/PointCloud.h>
 #include <laser_geometry/laser_geometry.h>
 
 // ROS message includes
 #include <sensor_msgs/LaserScan.h>
 
-
+typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::LaserScan, sensor_msgs::LaserScan> NoCloudSyncPolicy;
 //####################
 //#### node class ####
 class NodeClass
 {
     //
     public:
-          
-		ros::NodeHandle nodeHandle;   
+
+	ros::NodeHandle nodeHandle;
     	// topics to publish
     	message_filters::Subscriber<sensor_msgs::LaserScan> * topicSub_LaserFront;
-		message_filters::Subscriber<sensor_msgs::LaserScan> * topicSub_LaserBack;
-        message_filters::TimeSynchronizer<sensor_msgs::LaserScan, sensor_msgs::LaserScan> *sync;
-		tf::TransformListener listener_;
-		laser_geometry::LaserProjection projector_;
-		ros::Publisher topicPub_LaserUnified;
+	message_filters::Subscriber<sensor_msgs::LaserScan> * topicSub_LaserBack;
+        //message_filters::TimeSynchronizer<sensor_msgs::LaserScan, sensor_msgs::LaserScan> *sync;
+	message_filters::Synchronizer<NoCloudSyncPolicy> *no_cloud_sync_;
+	tf::TransformListener listener_;
+// 	tf2_ros::Buffer buffer;
+// 	tf2_ros::TransformListener tf_listener_(buffer);
+	laser_geometry::LaserProjection projector_;
+	ros::Publisher topicPub_LaserUnified;
 
-		tf::StampedTransform transform_scan_front;
-	    tf::StampedTransform transform_scan_back;
-	  
+	//tf::StampedTransform transform_scan_front;
+	//tf::StampedTransform transform_scan_back;
+
 
     NodeClass()
     {
@@ -95,13 +102,15 @@ class NodeClass
       // implementation of topics to publish
       topicPub_LaserUnified = nodeHandle.advertise<sensor_msgs::LaserScan>("scan_unified", 1);
       topicSub_LaserFront = new message_filters::Subscriber<sensor_msgs::LaserScan>(nodeHandle, "/scan_front", 1);
+      topicSub_LaserBack = new message_filters::Subscriber<sensor_msgs::LaserScan>(nodeHandle, "/scan_rear", 1);
 
-	  topicSub_LaserBack = new message_filters::Subscriber<sensor_msgs::LaserScan>(nodeHandle, "/scan_rear", 1);
-	  sync = new message_filters::TimeSynchronizer<sensor_msgs::LaserScan, sensor_msgs::LaserScan>(*topicSub_LaserFront, *topicSub_LaserBack, 10);
-	  sync->registerCallback(boost::bind(&NodeClass::scanCallback, this, _1, _2));
+      //sync = new message_filters::TimeSynchronizer<sensor_msgs::LaserScan, sensor_msgs::LaserScan>(*topicSub_LaserFront, *topicSub_LaserBack, 10);
+      //sync->registerCallback(boost::bind(&NodeClass::scanCallback, this, _1, _2));
+      no_cloud_sync_ = new message_filters::Synchronizer<NoCloudSyncPolicy>(NoCloudSyncPolicy(1), *topicSub_LaserFront, *topicSub_LaserBack);
+      no_cloud_sync_->registerCallback(boost::bind(&NodeClass::scanCallback, this, _1, _2));
 
-	  //listener_.lookupTransform(scan_front->header.frame_id, "base_link",  ros::Time(0), transform_scan_front);
-	  //listener_.lookupTransform(scan_rear->header.frame_id, "base_link",  ros::Time(0), transform_scan_back);
+      //listener_.lookupTransform(scan_front->header.frame_id, "base_link",  ros::Time(0), transform_scan_front);
+      //listener_.lookupTransform(scan_rear->header.frame_id, "base_link",  ros::Time(0), transform_scan_back);
 
     }
 
@@ -120,7 +129,7 @@ class NodeClass
 
 	  //ROS_INFO("Creating message header");
 	  laserUnified.header = scan_front->header;
-      laserUnified.header.frame_id = "base_link";
+	  laserUnified.header.frame_id = "base_link";
 	  laserUnified.angle_min = -M_PI+0.1;
 	  laserUnified.angle_max = M_PI-0.1;
 	  laserUnified.angle_increment = M_PI/180.0/2.0;
@@ -164,7 +173,7 @@ class NodeClass
         	continue;
 		}
 		double angle = atan2(y, x); //+ M_PI/2; //TODO: no ideas why but it works
-		
+
       	if (angle < laserUnified.angle_min || angle > laserUnified.angle_max)
       	{
         	ROS_DEBUG("rejected for angle %f not in range (%f, %f)\n", angle, laserUnified.angle_min, laserUnified.angle_max);
