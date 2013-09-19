@@ -23,8 +23,8 @@ generate_messages(
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-    DEPENDS roscpp pluginlib message_filters nodelet
-    CATKIN_DEPENDS # TODO
+    DEPENDS #
+    CATKIN_DEPENDS roscpp pluginlib message_runtime message_filters nodelet
     INCLUDE_DIRS common/include
     LIBRARIES # TODO
 )
