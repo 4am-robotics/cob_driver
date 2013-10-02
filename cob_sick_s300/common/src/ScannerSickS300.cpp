@@ -165,7 +165,8 @@ class TelegramParser {
 	}
 
 	static void ntoh(TELEGRAM_TAIL &tc) {
-		tc.crc = ntohs(tc.crc);
+	    //crc calc. is also in network order
+		//tc.crc = ntohs(tc.crc);
 	}
 
 	static void print(const TELEGRAM_COMMON &tc) {
@@ -253,14 +254,14 @@ public:
 		ntoh(tc_);
 		//print(tc_);
 
+		if(tc_.size*2+JUNK_SIZE>(int)max_size) {std::cout<<"inv4"<<std::endl;return false;}
+
 		TELEGRAM_TAIL tt = *((TELEGRAM_TAIL*) (buffer+(2*tc_.size+JUNK_SIZE-sizeof(TELEGRAM_TAIL))) );
 		ntoh(tt);
 		//print(tt);
 
 		if(tt.crc!=createCRC((uint8_t*)buffer+JUNK_SIZE, 2*tc_.size-sizeof(TELEGRAM_TAIL)))
 			return false;
-
-		if(tc_.size*2+JUNK_SIZE>(int)max_size) return false;
 
 		memset(&td_, 0, sizeof(td_));
 		switch(tc_.type) {
