@@ -13,15 +13,6 @@
 #include "cob_sick_s300/Units.hpp"
 namespace brics_oodl {
 
-enum baud_rate {
-  BAUD_9600,
-  BAUD_19200,
-  BAUD_38400,
-  BAUD_115200,
-  BAUD_500K,
-  BAUD_UNKNOWN
-
-};
 /**
  * \brief 
  *
@@ -61,7 +52,7 @@ class LaserScannerConfiguration {
 
     quantity<length> maxRangeDistance;
 
-    baud_rate baud;
+    unsigned int baud;
 
     std::string devicePath;
     

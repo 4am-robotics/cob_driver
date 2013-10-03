@@ -134,9 +134,6 @@ bool ScannerSickS300::open(const char* pcPort, int iBaudRate, int iScanId=7)
 {
     int bRetSerial;
  
-	// for Care-O-bot3 S300 is set fixed to 500kBaud
-	if (iBaudRate != 500000)
-		return false;
 
 	// update scan id (id=8 for slave scanner, else 7)
 	m_iScanId = iScanId;
