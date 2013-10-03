@@ -67,6 +67,7 @@ public:
 	ModeExecutor(IColorO* colorO);
 	~ModeExecutor();
 
+	void execute(Mode* mode);
 	void execute(cob_light::LightMode requestMode);
 
 	int getExecutingPriority();
@@ -84,7 +85,6 @@ private:
 
 	IColorO* _colorO;
 
-	ModeFactory _modeFactory;
 	Mode* _activeMode;
 
 	bool _stopRequested;

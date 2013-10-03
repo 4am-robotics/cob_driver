@@ -60,7 +60,7 @@
 class FlashMode : public Mode
 {
 public:
-	FlashMode(color::rgba color, int priority = 0, double freq = 0, int pulses = 0, double timeout = 0)
+	FlashMode(color::rgba color, int priority = 0, double freq = 5, int pulses = 0, double timeout = 0)
 		:Mode(priority, freq, pulses, timeout), _toggle(false)
 	{
 		_color = color;

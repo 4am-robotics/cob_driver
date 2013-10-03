@@ -55,6 +55,7 @@
 #include "cob_sick_s300/SerialIO.h"
 #include <math.h>
 #include <iostream>
+#include <unistd.h>
 
 #include <errno.h>
 #include <sys/types.h>
@@ -154,15 +155,15 @@ SerialIO::SerialIO()
 
 SerialIO::~SerialIO()
 {
-	close();
+	closeIO();
 }
 
-int SerialIO::open()
+int SerialIO::openIO()
 {
 	int Res;
 
 	// open device
-	m_Device = ::open(m_DeviceName.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
+	m_Device = open(m_DeviceName.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
 
 	if(m_Device < 0)
 	{	
@@ -180,7 +181,7 @@ int SerialIO::open()
 		std::cout << "tcgetattr of " << m_DeviceName << " failed: "
 			<< strerror(errno) << " (Error code " << errno << ")" << std::endl;
 
-		::close(m_Device);
+		close(m_Device);
 		m_Device = -1;
 
 		return -1;
@@ -306,7 +307,7 @@ int SerialIO::open()
 		std::cout << "tcsetattr " << m_DeviceName << " failed: "
 			<< strerror(errno) << " (Error code " << errno << ")" << std::endl;
 
-		::close(m_Device);
+		close(m_Device);
 		m_Device = -1;
 
 		return -1;
@@ -321,11 +322,11 @@ int SerialIO::open()
 	return 0;
 }
 
-void SerialIO::close()
+void SerialIO::closeIO()
 {
 	if (m_Device != -1)
 	{
-		::close(m_Device);
+		close(m_Device);
 		m_Device = -1;
 	}
 }
@@ -336,7 +337,7 @@ void SerialIO::setTimeout(double Timeout)
 	if (m_Device != -1)
 	{
 		m_tio.c_cc[VTIME] = cc_t(ceil(m_Timeout * 10.0));
-		::tcsetattr(m_Device, TCSANOW, &m_tio);
+		tcsetattr(m_Device, TCSANOW, &m_tio);
 	}
 
 }
@@ -375,7 +376,7 @@ void SerialIO::changeBaudRate(int iBaudRate)
 int SerialIO::readBlocking(char *Buffer, int Length)
 {
 	ssize_t BytesRead;
-	BytesRead = ::read(m_Device, Buffer, Length);
+	BytesRead = read(m_Device, Buffer, Length);
 #ifdef PRINT_BYTES
 	printf("%2d Bytes read:", BytesRead);
 	for(int i=0; i<BytesRead; i++)
@@ -392,7 +393,7 @@ int SerialIO::readNonBlocking(char *Buffer, int Length)
 	ssize_t BytesRead;
 
 
-	BytesRead = ::read(m_Device, Buffer, iBytesToRead);
+	BytesRead = read(m_Device, Buffer, iBytesToRead);
 
 
 	// Debug
@@ -408,7 +409,7 @@ int SerialIO::readNonBlocking(char *Buffer, int Length)
 	return BytesRead;
 }
 
-int SerialIO::write(const char *Buffer, int Length)
+int SerialIO::writeIO(const char *Buffer, int Length)
 {
 	ssize_t BytesWritten;
 
@@ -417,15 +418,15 @@ int SerialIO::write(const char *Buffer, int Length)
 		int i;
 		for (i = 0; i < Length; i++)
 		{
-			BytesWritten = ::write(m_Device, Buffer + i, 1);
+			BytesWritten = write(m_Device, Buffer + i, 1);
 			if (BytesWritten != 1)
 				break;
-			::select(0, 0, 0, 0, &m_BytePeriod);
+			select(0, 0, 0, 0, &m_BytePeriod);
 		}
 		BytesWritten = i;
 	}
 	else
-		BytesWritten = ::write(m_Device, Buffer, Length);
+		BytesWritten = write(m_Device, Buffer, Length);
 #ifdef PRINT_BYTES
 	printf("%2d Bytes sent:", BytesWritten);
 	for(int i=0; i<BytesWritten; i++)

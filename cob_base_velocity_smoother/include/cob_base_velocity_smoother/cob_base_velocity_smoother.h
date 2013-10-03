@@ -61,6 +61,7 @@
 #include <iostream>
 #include <boost/circular_buffer.hpp>
 #include <boost/bind.hpp>
+#include <pthread.h>
 
 using namespace std;
 
@@ -91,14 +92,19 @@ private:
   double acc_limit_;
   // ros loop rate (to be loaded from parameter server, otherwise set to default value 30)
   double loop_rate_;
+  // delay between received commands that is allowed. After that, fill buffer with zeros.
+  double max_delay_between_commands_;
   //geometry message filled with zero values
   geometry_msgs::Twist zero_values_;
   // subscribed geometry message
   geometry_msgs::Twist sub_msg_;
-  // first time no incoming messages
-  ros::Time first_time_no_sub_;
-  // bool to check if it is the first time for first_time_no_sub_ to be set
-  bool no_sub_time_set_;
+
+  pthread_mutex_t m_mutex;
+  bool new_msg_received_;
+
+  // function for checking wether a new msg has been received, triggering publishers accordingly
+  void set_new_msg_received(bool received);
+  bool get_new_msg_received();
 
 public:
 

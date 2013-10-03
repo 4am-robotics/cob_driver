@@ -22,7 +22,7 @@ def record():
 
 	global f
 	global writer
-	filename = rospy.get_param("/recording_filename")
+	filename = rospy.get_param("/record_voltage/filename")
 	f = open(filename, 'wt', 1)
 	writer = csv.writer(f)
 

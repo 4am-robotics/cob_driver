@@ -116,6 +116,8 @@ ScannerSickS300::ScannerSickS300()
 	// init scan with zeros
 	m_viScanRaw.assign(541, 0);
 	m_iPosReadBuf2 = 0;
+	
+	m_actualBufferSize = 0;
 
 }
 
@@ -123,7 +125,7 @@ ScannerSickS300::ScannerSickS300()
 //-------------------------------------------
 ScannerSickS300::~ScannerSickS300()
 {
-	m_SerialIO.close();
+	m_SerialIO.closeIO();
 }
 
 
@@ -145,7 +147,7 @@ bool ScannerSickS300::open(const char* pcPort, int iBaudRate, int iScanId=7)
 	m_SerialIO.setBufferSize(READ_BUF_SIZE - 10 , WRITE_BUF_SIZE -10 );
 	m_SerialIO.setHandshake(SerialIO::HS_NONE);
 	m_SerialIO.setMultiplier(m_dBaudMult);
-	bRetSerial = m_SerialIO.open();
+	bRetSerial = m_SerialIO.openIO();
 	m_SerialIO.setTimeout(0.0);
 	m_SerialIO.SetFormat(8, SerialIO::PA_NONE, SerialIO::SB_ONE);
 
@@ -194,22 +196,25 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 {
 	bool bRet = false;
 	int i,j;
-	int iNumRead;
+	int iNumRead = 0;
+	int iNumRead2 = 0;
 	int iNumData;
 	int iFirstByteOfHeader;
 	int iFirstByteOfData;
-	unsigned int iTelegramNumber;
 	unsigned int uiReadCRC;
 	unsigned int uiCalcCRC;
 	std::vector<ScanPolarType> vecScanPolar;
 	vecScanPolar.resize(m_Param.iNumScanPoints);
 
-	iNumRead = m_SerialIO.readNonBlocking((char*)m_ReadBuf, SCANNER_S300_READ_BUF_SIZE-2);
-	
+	iNumRead2 = m_SerialIO.readNonBlocking((char*)m_ReadBuf+m_actualBufferSize, SCANNER_S300_READ_BUF_SIZE-2-m_actualBufferSize);
+
+	iNumRead = m_actualBufferSize + iNumRead2;
+	m_actualBufferSize = m_actualBufferSize + iNumRead2;
+
 	if( iNumRead < m_Param.iDataLength )
 	{
 		// not enough data in queue --> abort reading
-	  	printf("Not enough data in queue, read data at slower rate!\n");
+	  //	printf("Not enough data in queue, read data at slower rate!\n");
 		return false;
 	}
 	
@@ -234,7 +239,6 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 			
 			//extract time stamp from header:
 			iTimestamp = (m_ReadBuf[i+17]<<24) | (m_ReadBuf[i+16]<<16) | (m_ReadBuf[i+15]<<8) |  (m_ReadBuf[i+14]);
-			iTelegramNumber = (m_ReadBuf[i+19]<<8) |  (m_ReadBuf[i+18]);
 			
 			if(iNumRead-iFirstByteOfHeader > m_Param.iDataLength+4+17) {
 				/*
@@ -275,6 +279,7 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 				}
 				// Scan was succesfully read from buffer
 				bRet = true;
+				m_actualBufferSize = 0;
 				break;
 			}
 		}

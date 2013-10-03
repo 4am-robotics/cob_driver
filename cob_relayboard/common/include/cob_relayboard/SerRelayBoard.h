@@ -57,6 +57,7 @@
 //-----------------------------------------------
 #include <cob_relayboard/SerialIO.h>
 #include <cob_relayboard/Mutex.h>
+#include <cob_relayboard/CmdRelaisBoard.h>
 
 //-----------------------------------------------
 
@@ -106,7 +107,6 @@ public:
 		CHECKSUM_ERROR = 5,
 	};
 
-protected:
 	enum RelBoardCmd
 	{
 		CMD_SET_CHARGE_RELAY = 1,
@@ -131,6 +131,16 @@ protected:
 		CONFIG_HAS_DRIVES = 32,
 	};
 
+	enum TypeLCD
+	{
+		LCD_20CHAR_TEXT,
+		LCD_60CHAR_TEXT,
+		RELAY_BOARD_1_4
+	};
+
+protected:
+	
+
 	std::string m_sNumComPort;
 
 	void txCharArray();
@@ -141,10 +151,42 @@ protected:
 
 	Mutex m_Mutex;
 	
+	int m_iNumBytesSend;
+	int m_iTypeLCD;	
+
+	unsigned char m_cTextDisplay[60];
+
+	//relayboard 1.4:
+	int m_iVelCmdMotRearRightEncS;
+	int m_iVelCmdMotRearLeftEncS;
+	char m_cSoftEMStop;
+	char m_cDebugRearRight[4];
+	int m_iPosMeasMotRearRightEnc;
+	int m_iVelMeasMotRearRightEncS;
+	int m_iPosMeasMotRearLeftEnc;
+	char m_cDebugRearLeft[4];
+	int m_iVelMeasMotRearLeftEncS;
+	int m_iMotRearRightStatus;
+	int m_iMotRearLeftStatus;
+	double m_dLastPosRearRight;
+	double m_dLastPosRearLeft;	
+
 	//-----------------------
 	// send data
+
+	// RelayBoard
 	int m_iConfigRelayBoard;
 	int m_iCmdRelayBoard;
+
+	// IOBoard
+	int m_iIOBoardDigOut;
+
+	// MotCtrlBoards
+	int m_iVelCmdMotRightEncS;
+	int m_iVelCmdMotLeftEncS;
+
+	// USBoard
+	int m_iUSBoardSensorActive;
 
 	//-----------------------
 	// rec data

@@ -56,6 +56,7 @@
 
 // general includes
 #include <math.h>
+#include <unistd.h>
 
 // Headers provided by other cob-packages
 #include <cob_generic_can/CanESD.h>
@@ -63,6 +64,7 @@
 #include <cob_generic_can/CanPeakSysUSB.h>
 #include <cob_base_drive_chain/CanCtrlPltfCOb3.h>
 
+#include <unistd.h>
 
 //-----------------------------------------------
 

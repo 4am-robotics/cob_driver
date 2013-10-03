@@ -60,7 +60,7 @@
 class BreathColorMode : public Mode
 {
 public:
-	BreathColorMode(color::rgba color, int priority = 0, double freq = 0, int pulses = 0, double timeout = 0)
+	BreathColorMode(color::rgba color, int priority = 0, double freq = 20, int pulses = 0, double timeout = 0)
 		:Mode(priority, freq, pulses, timeout), _timer_inc(0.0)
 	{
 		_color = color;
