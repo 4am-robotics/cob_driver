@@ -64,6 +64,7 @@
 #include <cob_generic_can/CanPeakSysUSB.h>
 #include <cob_base_drive_chain/CanCtrlPltfCOb3.h>
 
+#include <unistd.h>
 
 //-----------------------------------------------
 

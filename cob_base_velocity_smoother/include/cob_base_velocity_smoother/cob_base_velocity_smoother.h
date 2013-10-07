@@ -92,6 +92,8 @@ private:
   double acc_limit_;
   // ros loop rate (to be loaded from parameter server, otherwise set to default value 30)
   double loop_rate_;
+  // delay between received commands that is allowed. After that, fill buffer with zeros.
+  double max_delay_between_commands_;
   //geometry message filled with zero values
   geometry_msgs::Twist zero_values_;
   // subscribed geometry message
