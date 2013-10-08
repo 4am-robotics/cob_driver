@@ -84,7 +84,7 @@ auto PhidgetManager::getAttachedDevices()-> std::vector<AttachedDevice>
 {
 	CPhidgetHandle* phidgetList;
 	int count;
-
+	ROS_INFO("getting attached Devices");
 	CPhidgetManager_getAttachedDevices((CPhidgetManagerHandle) _manHandle, &phidgetList, &count);
  
  	std::vector<AttachedDevice> attachedDevices;

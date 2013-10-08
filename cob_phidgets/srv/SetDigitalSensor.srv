@@ -1,5 +1,5 @@
-int8 index
+string uri
 int8 state
 ---
-int8 index
+string uri
 int8 state
