@@ -171,6 +171,38 @@ auto PhidgetIKROS::readParams(XmlRpc::XmlRpcValue* sensor_params) -> void
 			_indexNameMapAnalog.insert(std::make_pair(i, ss.str()));
 		}
 	}
+
+	//fill up reverse mapping
+	count = this->getInputCount();
+	for(int i = 0; i < count; i++)
+	{
+		_indexNameMapItr = _indexNameMapDigitalIn.find(i);
+		if(_indexNameMapItr != _indexNameMapDigitalIn.end())
+		{
+			std::stringstream ss;
+			ss << getDeviceSerialNumber() << "/" << "in/" << i;
+
+			_indexNameMapDigitalInRev.insert(std::make_pair(_indexNameMapDigitalIn[i],i));
+		}
+	}
+	count = this->getOutputCount();
+	for(int i = 0; i < count; i++)
+	{
+		_indexNameMapItr = _indexNameMapDigitalOut.find(i);
+		if(_indexNameMapItr != _indexNameMapDigitalOut.end())
+		{
+			_indexNameMapDigitalOutRev.insert(std::make_pair(_indexNameMapDigitalOut[i],i));
+		}
+	}
+	count = this->getSensorCount();
+	for(int i = 0; i < count; i++)
+	{
+		_indexNameMapItr = _indexNameMapAnalog.find(i);
+		if(_indexNameMapItr != _indexNameMapAnalog.end())
+		{
+			_indexNameMapAnalogRev.insert(std::make_pair(_indexNameMapAnalog[i],i));
+		}
+	}
 }
 
 auto PhidgetIKROS::update() -> void
@@ -301,7 +333,9 @@ auto PhidgetIKROS::setDigitalOutCallback(cob_phidgets::SetDigitalSensor::Request
 	_outputChanged.state=0;
 	_mutex.unlock();
 
-	this->setOutputState(req.index, req.state);
+	ROS_INFO("Setting digital output %i to state %i", _indexNameMapDigitalOutRev[req.uri], req.state);
+	this->setOutputState(_indexNameMapDigitalOutRev[req.uri], req.state);
+	//this->setOutputState(req.index, req.state);
 
 	ros::Time start = ros::Time::now();
 	while((ros::Time::now().toSec() - start.toSec()) < 1.0)
@@ -317,10 +351,10 @@ auto PhidgetIKROS::setDigitalOutCallback(cob_phidgets::SetDigitalSensor::Request
 		ros::Duration(0.025).sleep();
 	}
 	_mutex.lock();
-	res.index = _outputChanged.index;
+	res.uri = _indexNameMapDigitalOut[_outputChanged.index];
 	res.state = _outputChanged.state;
 	ROS_DEBUG("Sending response: updated: %u, index: %d, state: %d",_outputChanged.updated, _outputChanged.index, _outputChanged.state);
-	ret = (_outputChanged.updated && (_outputChanged.index == req.index));
+	ret = (_outputChanged.updated && (_outputChanged.index == _indexNameMapDigitalOutRev[req.uri]));
 
 	_mutex.unlock();
 

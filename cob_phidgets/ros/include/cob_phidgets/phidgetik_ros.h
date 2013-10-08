@@ -97,8 +97,11 @@ private:
 	std::mutex _mutex;
 
 	std::map<int, std::string> _indexNameMapAnalog;
+	std::map<std::string, int> _indexNameMapAnalogRev;
 	std::map<int, std::string> _indexNameMapDigitalIn;
+	std::map<std::string, int> _indexNameMapDigitalInRev;
 	std::map<int, std::string> _indexNameMapDigitalOut;
+	std::map<std::string, int> _indexNameMapDigitalOutRev;
 	std::map<int, std::string>::iterator _indexNameMapItr;
 
 	auto readParams(XmlRpc::XmlRpcValue* sensor_params) -> void;
