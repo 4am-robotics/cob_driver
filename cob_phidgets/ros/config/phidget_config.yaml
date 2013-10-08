@@ -3,7 +3,7 @@ update_mode: polling                #switch between poll and event driven proces
 
 boards:                             
   ifk_general:                      #phidget board with a name
-    serial_num: 272740              #phidget boards serial number
+    serial_num: 272849              #phidget boards serial number
     ratiometric: true
     sensors:                        #configured sensors of this board
        gripper_left_command:              #a sensor and name (URI) with which the Information will be published
