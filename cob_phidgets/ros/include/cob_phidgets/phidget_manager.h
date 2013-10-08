@@ -60,9 +60,9 @@
 #ifndef _PHIDGETMANAGER_H_
 #define _PHIDGETMANAGER_H_
 
-#include <libphidgets/phidget21.h>
 #include <vector>
 #include <string>
+#include <cob_phidgets/phidget.h>
 
 struct AttachedDevice
 {
