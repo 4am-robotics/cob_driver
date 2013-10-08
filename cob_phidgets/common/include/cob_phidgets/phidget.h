@@ -61,7 +61,7 @@
 #define _PHIDGET_H_
 
 #include <string>
-#include <phidget21.h>
+#include <libphidgets/phidget21.h>
 
 class Phidget
 {

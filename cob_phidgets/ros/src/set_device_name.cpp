@@ -10,7 +10,7 @@
 
 #include <stdio.h>
 #include <cstdio>
-#include <phidget21.h>
+#include <libphidgets/phidget21.h>
 
 int display_devices(CPhidgetManagerHandle MAN);
 
