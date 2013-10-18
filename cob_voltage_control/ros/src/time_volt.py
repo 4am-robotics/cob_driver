@@ -125,7 +125,7 @@ def main(argv):
             volt_v = (float)(row[1]) * 1000.0
             if(volt_v < 48000 and volt_v > 44000):
                 time_values.append((float)(row[0]))
-                volt_values.append((float)(row[1]))
+                volt_values.append(volt_v)
 
     time_values[:] = [x - time_values[0] for x in time_values]
     time_values = time_values[::-1]
