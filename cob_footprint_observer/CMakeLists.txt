@@ -4,6 +4,13 @@ project(cob_footprint_observer)
 find_package(catkin REQUIRED COMPONENTS roscpp tf std_msgs geometry_msgs message_generation)
 
 
+if(CMAKE_COMPILER_IS_GNUCXX)
+  add_definitions(-std=gnu++0x)
+else()
+  add_definitions(-std=c++0x)
+endif()
+
+
 #######################################
 ## Declare ROS messages and services ##
 #######################################
