@@ -69,7 +69,7 @@ RefValJS_PTP_Trajectory::RefValJS_PTP_Trajectory(const trajectory_msgs::JointTra
 			zwischenPunkte.at(i) = trajectory.points.at(i).positions;
 		}
 	}
-	ROS_INFO("Calculated %d zwischenPunkte", zwischenPunkte.size());
+	ROS_INFO("Calculated %lu zwischenPunkte", zwischenPunkte.size());
 	
 	m_TrajectorySpline.setCtrlPoints(zwischenPunkte);
 	
@@ -82,7 +82,7 @@ RefValJS_PTP_Trajectory::RefValJS_PTP_Trajectory(const trajectory_msgs::JointTra
 		throw std::runtime_error("Error in BSplineND::ipoWithConstSampleDist!");
 	}
 	m_SplinePoints = zwischenPunkte;
-	ROS_INFO("Calculated %d splinepoints", m_SplinePoints.size());
+	ROS_INFO("Calculated %lu splinepoints", m_SplinePoints.size());
 	
 	m_length_cumulated.clear();
 	m_length_cumulated.push_back(0.0);
