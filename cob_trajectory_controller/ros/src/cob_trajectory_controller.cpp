@@ -391,7 +391,7 @@ public:
 
      void executeFollowTrajectory(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal) 
   {
-        ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
+        ROS_INFO("Received new goal trajectory with %lu points",goal->trajectory.points.size());
         spawnTrajector(goal->trajectory);
         // only set to succeeded if component could reach position. this is currently not the care for e.g. by emergency stop, hardware error or exceeds limit.
         if(rejected_)

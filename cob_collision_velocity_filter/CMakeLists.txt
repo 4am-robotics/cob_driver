@@ -5,6 +5,13 @@ project(cob_collision_velocity_filter)
 find_package(catkin REQUIRED COMPONENTS roscpp rospy dynamic_reconfigure nav_msgs tf cob_footprint_observer visualization_msgs)
 
 
+if(CMAKE_COMPILER_IS_GNUCXX)
+  add_definitions(-std=gnu++0x)
+else()
+  add_definitions(-std=c++0x)
+endif()
+
+
 ###################################
 ## Dynamic reconfigure ##
 ###################################

@@ -264,7 +264,7 @@ class NodeClass
 	//void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal) {
 	void executeCB(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal) {	
 		if(isInitialized_) {	
-			ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
+			ROS_INFO("Received new goal trajectory with %lu points",goal->trajectory.points.size());
 			// saving goal into local variables
 			traj_ = goal->trajectory;
 			traj_point_nr_ = 0;
@@ -436,7 +436,7 @@ class NodeClass
 					{
 						//feedback_.isMoving = false;
 				
-						ROS_DEBUG("next point is %d from %d",traj_point_nr_,traj_.points.size());
+						ROS_DEBUG("next point is %d from %lu",traj_point_nr_,traj_.points.size());
 						
 						if (traj_point_nr_ < traj_.points.size())
 						{

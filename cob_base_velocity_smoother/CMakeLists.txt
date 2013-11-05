@@ -1,10 +1,15 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_base_velocity_smoother)
 
-
-
-
 find_package(catkin REQUIRED COMPONENTS std_msgs roscpp geometry_msgs)
+
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+  add_definitions(-std=gnu++0x)
+else()
+  add_definitions(-std=c++0x)
+endif()
+
 
 ###################################
 ## catkin specific configuration ##
