@@ -24,6 +24,7 @@
 #include "lms1xx.h"
 
 #include <iostream>
+#include <unistd.h>
 
 int main()
 {
