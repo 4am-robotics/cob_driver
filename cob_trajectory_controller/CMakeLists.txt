@@ -36,18 +36,21 @@ catkin_package(
 include_directories(common/include ${catkin_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS})
 
 
-add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp common/src/genericArmCtrl.cpp common/src/RefValJS_PTP.cpp common/src/RefValJS_PTP_Trajectory.cpp common/src/TimeStamp.cpp)
+add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp common/src/genericArmCtrl.cpp common/src/RefValJS_PTP.cpp  common/src/RefValJS_PTP_Trajectory.cpp common/src/TimeStamp.cpp)
 add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_gencpp)
 
+add_executable(${PROJECT_NAME}_sim ros/src/${PROJECT_NAME}_sim.cpp common/src/genericArmCtrl.cpp common/src/RefValJS_PTP.cpp  common/src/RefValJS_PTP_Trajectory.cpp common/src/TimeStamp.cpp)
+add_dependencies(${PROJECT_NAME}_sim ${PROJECT_NAME}_gencpp)
 
 add_executable(cob_simulation_tester ros/src/cob_simulation_tester.cpp)
 add_dependencies(cob_simulation_tester ${PROJECT_NAME}_gencpp)
 
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_sim ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
 target_link_libraries(cob_simulation_tester ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS -L${orocos_kdl_LIBRARY_DIRS})
-
+set_target_properties(${PROJECT_NAME}_sim PROPERTIES LINK_FLAGS -L${orocos_kdl_LIBRARY_DIRS})
 set_target_properties(cob_simulation_tester PROPERTIES LINK_FLAGS -L${orocos_kdl_LIBRARY_DIRS})
 
 #############
@@ -56,6 +59,12 @@ set_target_properties(cob_simulation_tester PROPERTIES LINK_FLAGS -L${orocos_kdl
 
 ## Mark executables and/or libraries for installation
 install(TARGETS ${PROJECT_NAME} 
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(TARGETS ${PROJECT_NAME}_sim 
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
