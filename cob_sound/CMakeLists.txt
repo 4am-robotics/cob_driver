@@ -2,18 +2,17 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_sound)
 
-find_package(catkin REQUIRED COMPONENTS rospy roscpp actionlib actionlib_msgs std_msgs cob_srvs diagnostic_msgs)
+find_package(catkin REQUIRED message_generation rospy roscpp actionlib actionlib_msgs std_msgs cob_srvs diagnostic_msgs)
 
 #######################################
 ## Declare ROS messages and services ##
 #######################################
 
-add_service_files(
+add_service_files(DIRECTORY srv FILES
   FILES
   SayText.srv
 )
-add_action_files(
-   FILES
+add_action_files(DIRECTORY action FILES
    Say.action 	
 )
 
@@ -26,8 +25,8 @@ generate_messages(
 ###################################
 
 catkin_package(
-    DEPENDS rospy roscpp sound_play actionlib std_msgs cob_srvs diagnostic_msgs
-    CATKIN_DEPENDS # TODO
+    DEPENDS 
+    CATKIN_DEPENDS rospy roscpp sound_play actionlib actionlib_msgs std_msgs cob_srvs diagnostic_msgs message_runtime # TODO
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )
@@ -39,7 +38,7 @@ catkin_package(
 include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 add_executable(sound ros/src/sound.cpp)
 
-target_link_libraries(sound ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(sound ${Boost_LIBRARIES} ${catkin_LIBRARIES})
 add_dependencies(sound ${PROJECT_NAME}_gencpp)
 #############
 ## Install ##
