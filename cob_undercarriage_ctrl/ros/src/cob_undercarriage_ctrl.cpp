@@ -302,6 +302,8 @@ class NodeClass
 			joint_state_cmd.joint_names.push_back("br_caster_rotation_joint");
 			joint_state_cmd.joint_names.push_back("fr_caster_r_wheel_joint");
 			joint_state_cmd.joint_names.push_back("fr_caster_rotation_joint");
+			joint_state_cmd.joint_names.resize(m_iNumJoints);
+			
 			// compose jointcmds
 			for(int i=0; i<m_iNumJoints; i++)
 			{
@@ -538,6 +540,7 @@ void NodeClass::CalcCtrlStep()
 		joint_state_cmd.joint_names.push_back("br_caster_rotation_joint");
 		joint_state_cmd.joint_names.push_back("fr_caster_r_wheel_joint");
 		joint_state_cmd.joint_names.push_back("fr_caster_rotation_joint");
+		joint_state_cmd.joint_names.resize(m_iNumJoints);
 
 		// compose data body
 		j = 0;
