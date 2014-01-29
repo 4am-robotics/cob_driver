@@ -473,119 +473,61 @@ void UndercarriageCtrlGeom::CalcDirect(void)
 	dtempVelYRobMMS = 0;			// Robot-Velocity in y-Direction (lateral) in mm/s (in Robot-Coordinateframe)
 	dtempRotRobRADPS = 0;
 
-	// odometry calculation is currently hard coded for 4 wheeled ominidirectional drive, cob4 -> 3 wheeled
-	bool b3Wheeled = true;
 
-	if (b3Wheeled == false)
+
+	// calculate corrected wheel velocities
+	for(int i = 0; i<m_iNumberOfDrives; i++)
 	{
-
-		// calculate corrected wheel velocities
-		for(int i = 0; i<4; i++)
-		{
-			// calc effective Driving-Velocity
-			vdtempVelWheelMMS[i] = m_UnderCarriagePrms.iRadiusWheelMM * (m_vdVelGearDriveRadS[i] - m_UnderCarriagePrms.vdFactorVel[i]* m_vdVelGearSteerRadS[i]);
-		}
-
-		// calculate rotational rate of robot and current "virtual" axis between all wheels
-		for(int i = 0; i<3; i++)
-		{
-			// calc Parameters (Dist,Phi) of virtual linking axis of the two considered wheels
-			dtempDiffXMM = m_vdExWheelXPosMM[i+1] - m_vdExWheelXPosMM[i];
-			dtempDiffYMM = m_vdExWheelYPosMM[i+1] - m_vdExWheelYPosMM[i];
-			dtempRelDistWheelsMM = sqrt( dtempDiffXMM*dtempDiffXMM + dtempDiffYMM*dtempDiffYMM );
-			dtempRelPhiWheelsRAD = MathSup::atan4quad( dtempDiffYMM, dtempDiffXMM );
-
-			// transform velocity of wheels into relative coordinate frame of linking axes -> subtract angles
-			dtempRelPhiWheel1RAD = m_vdAngGearSteerRad[i] - dtempRelPhiWheelsRAD;
-			dtempRelPhiWheel2RAD = m_vdAngGearSteerRad[i+1] - dtempRelPhiWheelsRAD;
-
-			dtempRotRobRADPS += (vdtempVelWheelMMS[i+1] * sin(dtempRelPhiWheel2RAD) - vdtempVelWheelMMS[i] * sin(dtempRelPhiWheel1RAD))/dtempRelDistWheelsMM;
-		}
-
-		// calculate last missing axis (between wheel 4 and 1)
-		// calc. Parameters (Dist,Phi) of virtual linking axis of the two considered wheels
-		dtempDiffXMM = m_vdExWheelXPosMM[0] - m_vdExWheelXPosMM[3];
-		dtempDiffYMM = m_vdExWheelYPosMM[0] - m_vdExWheelYPosMM[3];
-		dtempRelDistWheelsMM = sqrt( dtempDiffXMM*dtempDiffXMM + dtempDiffYMM*dtempDiffYMM );
-		dtempRelPhiWheelsRAD = MathSup::atan4quad( dtempDiffYMM, dtempDiffXMM );
-
-		// transform velocity of wheels into relative coordinate frame of linking axes -> subtract angles
-		dtempRelPhiWheel1RAD = m_vdAngGearSteerRad[3] - dtempRelPhiWheelsRAD;
-		dtempRelPhiWheel2RAD = m_vdAngGearSteerRad[0] - dtempRelPhiWheelsRAD;
-
-		// close calculation of robots rotational velocity
-		dtempRotRobRADPS += (vdtempVelWheelMMS[0]*sin(dtempRelPhiWheel2RAD) - vdtempVelWheelMMS[3]*sin(dtempRelPhiWheel1RAD))/dtempRelDistWheelsMM;
-
-		// calculate linear velocity of robot
-		for(int i = 0; i<4; i++)
-		{
-			dtempVelXRobMMS += vdtempVelWheelMMS[i]*cos(m_vdAngGearSteerRad[i]);
-			dtempVelYRobMMS += vdtempVelWheelMMS[i]*sin(m_vdAngGearSteerRad[i]);
-		}
-
-		// assign rotational velocities for output
-		m_dRotRobRadS = dtempRotRobRADPS/4;
-		m_dRotVelRadS = 0; // currently not used to represent 3rd degree of freedom -> set to zero
-
-		// assign linear velocity of robot for output
-		m_dVelLongMMS = dtempVelXRobMMS/4;
-		m_dVelLatMMS = dtempVelYRobMMS/4;
-
+		// calc effective Driving-Velocity
+		vdtempVelWheelMMS[i] = m_UnderCarriagePrms.iRadiusWheelMM * (m_vdVelGearDriveRadS[i] - m_UnderCarriagePrms.vdFactorVel[i]* m_vdVelGearSteerRadS[i]);
 	}
-	else {
 
-		// calculate corrected wheel velocities
-		for(int i = 0; i<3; i++)
-		{
-			// calc effective Driving-Velocity
-			vdtempVelWheelMMS[i] = m_UnderCarriagePrms.iRadiusWheelMM * (m_vdVelGearDriveRadS[i] - m_UnderCarriagePrms.vdFactorVel[i]* m_vdVelGearSteerRadS[i]);
-		}
-
-		// calculate rotational rate of robot and current "virtual" axis between all wheels
-		for(int i = 0; i<2; i++)
-		{
-			// calc Parameters (Dist,Phi) of virtual linking axis of the two considered wheels
-			dtempDiffXMM = m_vdExWheelXPosMM[i+1] - m_vdExWheelXPosMM[i];
-			dtempDiffYMM = m_vdExWheelYPosMM[i+1] - m_vdExWheelYPosMM[i];
-			dtempRelDistWheelsMM = sqrt( dtempDiffXMM*dtempDiffXMM + dtempDiffYMM*dtempDiffYMM );
-			dtempRelPhiWheelsRAD = MathSup::atan4quad( dtempDiffYMM, dtempDiffXMM );
-
-			// transform velocity of wheels into relative coordinate frame of linking axes -> subtract angles
-			dtempRelPhiWheel1RAD = m_vdAngGearSteerRad[i] - dtempRelPhiWheelsRAD;
-			dtempRelPhiWheel2RAD = m_vdAngGearSteerRad[i+1] - dtempRelPhiWheelsRAD;
-
-			dtempRotRobRADPS += (vdtempVelWheelMMS[i+1] * sin(dtempRelPhiWheel2RAD) - vdtempVelWheelMMS[i] * sin(dtempRelPhiWheel1RAD))/dtempRelDistWheelsMM;
-		}
-
-		// calculate last missing axis (between wheel 3 and 1)
-		// calc. Parameters (Dist,Phi) of virtual linking axis of the two considered wheels
-		dtempDiffXMM = m_vdExWheelXPosMM[0] - m_vdExWheelXPosMM[2];
-		dtempDiffYMM = m_vdExWheelYPosMM[0] - m_vdExWheelYPosMM[2];
+	// calculate rotational rate of robot and current "virtual" axis between all wheels
+	for(int i = 0; i< (m_iNumberOfDrives-1) ; i++)
+	{
+		// calc Parameters (Dist,Phi) of virtual linking axis of the two considered wheels
+		dtempDiffXMM = m_vdExWheelXPosMM[i+1] - m_vdExWheelXPosMM[i];
+		dtempDiffYMM = m_vdExWheelYPosMM[i+1] - m_vdExWheelYPosMM[i];
 		dtempRelDistWheelsMM = sqrt( dtempDiffXMM*dtempDiffXMM + dtempDiffYMM*dtempDiffYMM );
 		dtempRelPhiWheelsRAD = MathSup::atan4quad( dtempDiffYMM, dtempDiffXMM );
 
 		// transform velocity of wheels into relative coordinate frame of linking axes -> subtract angles
-		dtempRelPhiWheel1RAD = m_vdAngGearSteerRad[2] - dtempRelPhiWheelsRAD;
-		dtempRelPhiWheel2RAD = m_vdAngGearSteerRad[0] - dtempRelPhiWheelsRAD;
+		dtempRelPhiWheel1RAD = m_vdAngGearSteerRad[i] - dtempRelPhiWheelsRAD;
+		dtempRelPhiWheel2RAD = m_vdAngGearSteerRad[i+1] - dtempRelPhiWheelsRAD;
 
-		// close calculation of robots rotational velocity
-		dtempRotRobRADPS += (vdtempVelWheelMMS[0]*sin(dtempRelPhiWheel2RAD) - vdtempVelWheelMMS[3]*sin(dtempRelPhiWheel1RAD))/dtempRelDistWheelsMM;
+		dtempRotRobRADPS += (vdtempVelWheelMMS[i+1] * sin(dtempRelPhiWheel2RAD) - vdtempVelWheelMMS[i] * sin(dtempRelPhiWheel1RAD))/dtempRelDistWheelsMM;
+	}
 
-		// calculate linear velocity of robot
-		for(int i = 0; i<3; i++)
-		{
-			dtempVelXRobMMS += vdtempVelWheelMMS[i]*cos(m_vdAngGearSteerRad[i]);
-			dtempVelYRobMMS += vdtempVelWheelMMS[i]*sin(m_vdAngGearSteerRad[i]);
-		}
+	// calculate last missing axis (between last wheel and 1.)
+	// calc. Parameters (Dist,Phi) of virtual linking axis of the two considered wheels
+	dtempDiffXMM = m_vdExWheelXPosMM[0] - m_vdExWheelXPosMM[m_iNumberOfDrives-1];
+	dtempDiffYMM = m_vdExWheelYPosMM[0] - m_vdExWheelYPosMM[m_iNumberOfDrives-1];
+	dtempRelDistWheelsMM = sqrt( dtempDiffXMM*dtempDiffXMM + dtempDiffYMM*dtempDiffYMM );
+	dtempRelPhiWheelsRAD = MathSup::atan4quad( dtempDiffYMM, dtempDiffXMM );
 
-		// assign rotational velocities for output
-		m_dRotRobRadS = dtempRotRobRADPS/3;
-		m_dRotVelRadS = 0; // currently not used to represent 3rd degree of freedom -> set to zero
+	// transform velocity of wheels into relative coordinate frame of linking axes -> subtract angles
+	dtempRelPhiWheel1RAD = m_vdAngGearSteerRad[m_iNumberOfDrives-1] - dtempRelPhiWheelsRAD;
+	dtempRelPhiWheel2RAD = m_vdAngGearSteerRad[0] - dtempRelPhiWheelsRAD;
+
+	// close calculation of robots rotational velocity
+	dtempRotRobRADPS += (vdtempVelWheelMMS[0]*sin(dtempRelPhiWheel2RAD) - vdtempVelWheelMMS[m_iNumberOfDrives-1]*sin(dtempRelPhiWheel1RAD))/dtempRelDistWheelsMM;
+
+	// calculate linear velocity of robot
+	for(int i = 0; i<m_iNumberOfDrives; i++)
+	{
+		dtempVelXRobMMS += vdtempVelWheelMMS[i]*cos(m_vdAngGearSteerRad[i]);
+		dtempVelYRobMMS += vdtempVelWheelMMS[i]*sin(m_vdAngGearSteerRad[i]);
+	}
+
+	// assign rotational velocities for output
+	m_dRotRobRadS = dtempRotRobRADPS/m_iNumberOfDrives;
+	m_dRotVelRadS = 0; // currently not used to represent 3rd degree of freedom -> set to zero
+
+	// assign linear velocity of robot for output
+	m_dVelLongMMS = dtempVelXRobMMS/m_iNumberOfDrives;
+	m_dVelLatMMS = dtempVelYRobMMS/m_iNumberOfDrives;
+
 	
-		// assign linear velocity of robot for output
-		m_dVelLongMMS = dtempVelXRobMMS/3;
-		m_dVelLatMMS = dtempVelYRobMMS/3;
-	}
 
 }
 
