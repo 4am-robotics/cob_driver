@@ -9,7 +9,6 @@ find_package(catkin REQUIRED message_generation rospy roscpp actionlib actionlib
 #######################################
 
 add_service_files(DIRECTORY srv FILES
-  FILES
   SayText.srv
 )
 add_action_files(DIRECTORY action FILES
