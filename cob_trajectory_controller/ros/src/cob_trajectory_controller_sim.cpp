@@ -63,7 +63,6 @@
 #include <sensor_msgs/JointState.h>
 #include <control_msgs/JointTrajectoryControllerState.h>
 #include <actionlib/server/simple_action_server.h>
-//#include <pr2_controllers_msgs/JointTrajectoryAction.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
 
 #include <brics_actuator/JointVelocities.h>
@@ -90,7 +89,6 @@ private:
     ros::ServiceServer srvServer_SetAcc_;
     ros::ServiceClient srvClient_SetOperationMode;
 
-    //actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
     actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> as_follow_;
  
   
@@ -385,24 +383,6 @@ public:
         }
     }
 
-// swaped the main part out to a separate function which will be used by executeFollowTrajectory and executeTrajectory so that code is not duplicated?
-/*  void executeTrajectory(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal) {
-        ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
-        spawnTrajector(goal->trajectory);
-        // only set to succeeded if component could reach position. this is currently not the care for e.g. by emergency stop, hardware error or exceeds limit.
-        if(rejected_)
-            as_.setAborted(); //setRejected not implemented in simpleactionserver ?
-        else
-        {
-            if(failure_)
-                as_.setAborted();
-            else
-                as_.setSucceeded();
-        }
-        rejected_ = false;
-        failure_ = false;
-  }
-*/
 
     void executeFollowTrajectory(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal) 
     {
