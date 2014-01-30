@@ -62,7 +62,6 @@
 
 // ROS message includes
 #include <sensor_msgs/JointState.h>
-//#include <pr2_controllers_msgs/JointTrajectoryAction.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
 #include <control_msgs/JointTrajectoryControllerState.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
@@ -105,10 +104,6 @@ class NodeClass
 	//--
 
 	// action lib server
-	//actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
-	//std::string action_name_;
-	//pr2_controllers_msgs::JointTrajectoryFeedback feedback_;
-	//pr2_controllers_msgs::JointTrajectoryResult result_;
 	actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> as_;
 	std::string action_name_;
 	control_msgs::FollowJointTrajectoryFeedback feedback_;
@@ -261,7 +256,6 @@ class NodeClass
 		delete CamAxis_;
 	}
 
-	//void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal) {
 	void executeCB(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal) {	
 		if(isInitialized_) {	
 			ROS_INFO("Received new goal trajectory with %lu points",goal->trajectory.points.size());

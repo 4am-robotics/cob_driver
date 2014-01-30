@@ -25,16 +25,16 @@
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>diagnostic_msgs</run_depend>
-  <run_depend>pr2_controllers_msgs</run_depend>
   <run_depend>cob_srvs</run_depend>
   <run_depend>cob_generic_can</run_depend>
   <run_depend>cob_canopen_motor</run_depend>
   <run_depend>cob_utilities</run_depend>
   <run_depend>libpcan</run_depend>
+  <run_depend>control_msgs</run_depend>
+  
   <!-- <test_depend>roscpp</test_depend> -->
   <!-- <test_depend>sensor_msgs</test_depend> -->
   <!-- <test_depend>diagnostic_msgs</test_depend> -->
-  <!-- <test_depend>pr2_controllers_msgs</test_depend> -->
   <!-- <test_depend>cob_srvs</test_depend> -->
   <!-- <test_depend>cob_generic_can</test_depend> -->
   <!-- <test_depend>cob_canopen_motor</test_depend> -->

@@ -19,12 +19,10 @@
   <run_depend>roscpp</run_depend>
   <run_depend>rostest</run_depend>
   <run_depend>sensor_msgs</run_depend>
-  <run_depend>pr2_controllers_msgs</run_depend>
   <run_depend>hokuyo_node</run_depend>
   <!-- <test_depend>roscpp</test_depend> -->
   <!-- <test_depend>rostest</test_depend> -->
   <!-- <test_depend>sensor_msgs</test_depend> -->
-  <!-- <test_depend>pr2_controllers_msgs</test_depend> -->
   <!-- <test_depend>hokuyo_node</test_depend> -->
 
   <export>
