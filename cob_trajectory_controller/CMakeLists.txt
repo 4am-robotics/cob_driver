@@ -49,10 +49,6 @@ target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES
 target_link_libraries(${PROJECT_NAME}_sim ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
 target_link_libraries(cob_simulation_tester ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
 
-set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS -L${orocos_kdl_LIBRARY_DIRS})
-set_target_properties(${PROJECT_NAME}_sim PROPERTIES LINK_FLAGS -L${orocos_kdl_LIBRARY_DIRS})
-set_target_properties(cob_simulation_tester PROPERTIES LINK_FLAGS -L${orocos_kdl_LIBRARY_DIRS})
-
 #############
 ## Install ##
 #############
