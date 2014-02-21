@@ -1,0 +1,14 @@
+# canopen parameter
+max_accelerations: [1.5,1.5,1.5,1.5]
+OperationMode: position
+
+
+# trajectory controller parameters
+ptp_vel: 1.5 # rad/sec
+ptp_acc: 1.5 # rad/sec^2
+max_error: 0.15 # rad
+frequency: 100
+min_publish_duration: 0.1
+
+joint_names: [lookat_lin_joint, lookat_x_joint, lookat_y_joint, lookat_z_joint]
+

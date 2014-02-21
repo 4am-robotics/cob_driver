@@ -1,11 +1,8 @@
 <?xml version="1.0"?>
 <launch>
 
-	<arg name="robot" default="$(optenv ROBOT !!NO_ROBOT_SET!!)"/>
-	<arg name="pkg_hardware_config" default="$(find cob_hardware_config)"/>
-
 	<node name="lookat_controller" pkg="cob_lookat_chain" type="cob_lookat_chain" respawn="false" output="screen" >
-		<rosparam command="load" file="$(arg pkg_hardware_config)/$(arg robot)/config/lookat.yaml"/>
+		<rosparam command="load" file="$(find cob_lookat_chain)/config/lookat.yaml"/>
 	</node>
 	<node ns="lookat_controller" name="joint_trajectory_controller" pkg="cob_trajectory_controller" type="cob_trajectory_controller" cwd="node" respawn="false" output="screen" />
 

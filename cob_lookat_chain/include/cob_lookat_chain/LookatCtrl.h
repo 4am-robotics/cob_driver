@@ -105,13 +105,7 @@ public:
 	 */
 	bool MoveVel(const std::vector<double>& velocities)
 	{
-		float delta_t = ros::Time::now().toSec() - m_last_time_pub.toSec();
-		m_last_time_pub = ros::Time::now();  
-		
-		for(unsigned int i=0; i<m_params->GetDOF(); i++)
-		{
-			m_positions[i] += m_velocities[i] * delta_t;
-		}
+		bool success = updateStates();
 		//ROS_INFO("New velocities:");
 		//for(unsigned int i=0; i<velocities.size(); i++)
 			//ROS_INFO("\t%d: %f", i, velocities[i]);
