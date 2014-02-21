@@ -90,7 +90,6 @@ private:
     ros::ServiceClient srvClient_SetOperationMode;
 
     actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> as_follow_;
- 
   
     //std::string action_name_;
     std::string action_name_follow_;  
@@ -113,11 +112,9 @@ private:
 public:
 
     cob_trajectory_controller_node():
-    //as_(n_, "joint_trajectory_action", boost::bind(&cob_trajectory_controller_node::executeTrajectory, this, _1), true),
     as_follow_(n_, "follow_joint_trajectory", boost::bind(&cob_trajectory_controller_node::executeFollowTrajectory, this, _1), true),
-    //action_name_("joint_trajectory_action"),
     action_name_follow_("follow_joint_trajectory")
-    {
+   {
         joint_vel_pub_ = n_.advertise<brics_actuator::JointVelocities>("command_vel", 1);
         joint_state_sub_ = n_.subscribe("/joint_states", 1, &cob_trajectory_controller_node::joint_state_callback, this);
         controller_state_ = n_.subscribe("state", 1, &cob_trajectory_controller_node::state_callback, this);
@@ -388,7 +385,7 @@ public:
     {
         ROS_INFO("Received new goal trajectory with %lu points",goal->trajectory.points.size());
         spawnTrajector(goal->trajectory);
-        // only set to succeeded if component could reach position. this is currently not the care for e.g. by emergency stop, hardware error or exceeds limit.
+        // only set to succeeded if component could reach position. this is currently not the care for e.g. by emergency stop, ardware error or exceeds limit.
         if(rejected_)
             as_follow_.setAborted(); //setRejected not implemented in simpleactionserver ?
         else
@@ -404,7 +401,7 @@ public:
     
     void run()
     {
-        if(executing_)
+       if(executing_)
         {
             failure_ = false;
             watchdog_counter = 0;
@@ -466,7 +463,7 @@ public:
                     target_joint_vel.velocities[i].value = 0;
                 }
                 joint_vel_pub_.publish(target_joint_vel);
-                ROS_INFO("Publishing 0-vel (%d)", DOF);
+                ROS_DEBUG("Publishing 0-vel (%d)", DOF);
             }
             watchdog_counter++;
         }
@@ -493,7 +490,4 @@ int main(int argc, char ** argv)
         loop_rate.sleep();
     }
 }
-
-
-
 
