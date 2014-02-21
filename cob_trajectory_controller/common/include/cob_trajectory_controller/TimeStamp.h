@@ -11,9 +11,9 @@
  * ROS stack name: cob_driver
  * ROS package name: cob_powercube_chain
  * Description:
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Felix Geibel, email:Felix.Geibel@gmx.de
  * Supervised by: Alexander Bubeck, email:alexander.bubeck@ipa.fhg.de
  *

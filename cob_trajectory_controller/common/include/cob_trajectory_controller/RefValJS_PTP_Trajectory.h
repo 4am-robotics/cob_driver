@@ -35,7 +35,6 @@ class RefValJS_PTP_Trajectory : public RefVal_JS
 		
 		double getTotalTime() const { return m_T1 + m_T2 + m_T3; }
 		
-
 		std::vector<double> getLengthParts() const { return m_length_parts; }
 		
 	protected:
@@ -71,7 +70,6 @@ class RefValJS_PTP_Trajectory : public RefVal_JS
 		double m_sa3;	// "Verzög." des Wegparameters s in Phase 3
 		
 		static const double weigths[];
-		
 };
 
 
@@ -97,7 +95,7 @@ inline double RefValJS_PTP_Trajectory::norm_sqr(const std::vector<double>& j)
 	double l = 0;
 	for (unsigned int i = 0; i < j.size(); i++)
 	{
-	        l += j[i] * j[i];
+		l += j[i] * j[i];
 	}
 	return sqrt(l);
 }
