@@ -26,7 +26,6 @@
   <run_depend>cob_srvs</run_depend>
   <run_depend>brics_actuator</run_depend>
   <run_depend>sensor_msgs</run_depend>
-  <run_depend>pr2_controllers_msgs</run_depend>
   <run_depend>actionlib</run_depend>
   <run_depend>control_msgs</run_depend>
   <run_depend>orocos_kdl</run_depend>
@@ -34,7 +33,6 @@
   <!-- <test_depend>cob_srvs</test_depend> -->
   <!-- <test_depend>brics_actuator</test_depend> -->
   <!-- <test_depend>sensor_msgs</test_depend> -->
-  <!-- <test_depend>pr2_controllers_msgs</test_depend> -->
   <!-- <test_depend>actionlib</test_depend> -->
   <!-- <test_depend>control_msgs</test_depend> -->
   <!-- <test_depend>orocos_kdl</test_depend> -->
