@@ -70,7 +70,7 @@
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
 #include <cob_relayboard/EmergencyStopState.h>
-#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
+#include <control_msgs/JointTrajectoryControllerState.h>
 
 // external includes
 #include <cob_undercarriage_ctrl/UndercarriageCtrlGeom.h>
@@ -180,7 +180,7 @@ class NodeClass
 			// implementation of topics
             // published topics
 			//topic_pub_joint_state_cmd_ = n.advertise<sensor_msgs::JointState>("joint_command", 1);
-			topic_pub_controller_joint_command_ = n.advertise<pr2_controllers_msgs::JointTrajectoryControllerState> ("joint_command", 1);
+			topic_pub_controller_joint_command_ = n.advertise<control_msgs::JointTrajectoryControllerState> ("joint_command", 1);
 
 			topic_pub_odometry_ = n.advertise<nav_msgs::Odometry>("odometry", 1);
 
@@ -283,7 +283,7 @@ class NodeClass
 		// Listens for status of underlying hardware (base drive chain)
 		void topicCallbackDiagnostic(const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg)
 		{
-			pr2_controllers_msgs::JointTrajectoryControllerState joint_state_cmd;
+			control_msgs::JointTrajectoryControllerState joint_state_cmd;
 
 			// prepare joint_cmds for heartbeat (compose header)
 			joint_state_cmd.header.stamp = ros::Time::now();
@@ -352,7 +352,7 @@ class NodeClass
 			}
 		}
 
-		void topicCallbackJointControllerStates(const pr2_controllers_msgs::JointTrajectoryControllerState::ConstPtr& msg) {
+		void topicCallbackJointControllerStates(const control_msgs::JointTrajectoryControllerState::ConstPtr& msg) {
 			int num_joints;
 			int iter_k, iter_j;
 			std::vector<double> drive_joint_ang_rad, drive_joint_vel_rads, drive_joint_effort_NM;
@@ -494,7 +494,7 @@ void NodeClass::CalcCtrlStep()
 {
 	double vx_cmd_ms, vy_cmd_ms, w_cmd_rads, dummy;
 	std::vector<double> drive_jointvel_cmds_rads, steer_jointvel_cmds_rads, steer_jointang_cmds_rad;
-	pr2_controllers_msgs::JointTrajectoryControllerState joint_state_cmd;
+	control_msgs::JointTrajectoryControllerState joint_state_cmd;
 	int j, k;
 	iwatchdog_ += 1;	
 

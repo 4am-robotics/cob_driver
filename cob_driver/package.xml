@@ -1,0 +1,47 @@
+<package>
+  <name>cob_driver</name>
+  <version>0.5.0</version>
+  <description>The cob_driver stack includes packages that provide access to the Care-O-bot hardware through ROS messages, services and actions. E.g. for mobile base, arm, camera sensors, laser scanners, etc...</description>
+
+
+  <license>LGPL</license>
+
+  <url type="website">http://ros.org/wiki/cob_driver</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>
+  <author email="fmw@ipa.fhg.de">Florian Weisshardt</author>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <run_depend>cob_base_drive_chain</run_depend>
+  <run_depend>cob_base_velocity_smoother</run_depend>
+  <run_depend>cob_cam3d_throttle</run_depend>
+  <run_depend>cob_camera_sensors</run_depend>
+  <run_depend>cob_canopen_motor</run_depend>
+  <run_depend>cob_collision_velocity_filter</run_depend>
+  <run_depend>cob_footprint_observer</run_depend>
+  <run_depend>cob_generic_can</run_depend>
+  <run_depend>cob_head_axis</run_depend>
+  <run_depend>cob_hokuyo</run_depend>
+  <run_depend>cob_hwboard</run_depend>
+  <run_depend>cob_light</run_depend>
+  <run_depend>cob_phidgets</run_depend>
+  <run_depend>cob_relayboard</run_depend>
+  <run_depend>cob_sick_lms1xx</run_depend>
+  <run_depend>cob_sick_s300</run_depend>
+  <run_depend>cob_sound</run_depend>
+  <run_depend>cob_touch</run_depend>
+  <run_depend>cob_trajectory_controller</run_depend>
+  <run_depend>cob_undercarriage_ctrl</run_depend>
+  <run_depend>cob_utilities</run_depend>
+  <run_depend>cob_voltage_control</run_depend>
+
+
+
+
+
+  <export>
+    <metapackage/>
+  </export>
+</package>

@@ -1,44 +1,56 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
+cmake_minimum_required(VERSION 2.8.3)
+project(cob_sound)
 
-# Put this line before the executable or library:
-rosbuild_add_boost_directories()
+find_package(catkin REQUIRED message_generation rospy roscpp actionlib actionlib_msgs std_msgs cob_srvs diagnostic_msgs)
 
-rosbuild_find_ros_package(actionlib_msgs)
-include(${actionlib_msgs_PACKAGE_PATH}/cmake/actionbuild.cmake)
-genaction()
+#######################################
+## Declare ROS messages and services ##
+#######################################
 
-rosbuild_init()
+add_service_files(DIRECTORY srv FILES
+  SayText.srv
+)
+add_action_files(DIRECTORY action FILES
+   Say.action 	
+)
 
-#set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-#set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+generate_messages(
+  DEPENDENCIES actionlib_msgs geometry_msgs std_msgs
+)
 
-#uncomment if you have defined messages
-rosbuild_genmsg()
-#uncomment if you have defined services
-rosbuild_gensrv()
+###################################
+## catkin specific configuration ##
+###################################
 
-#common commands for building c++ executables and libraries
-#rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
-#target_link_libraries(${PROJECT_NAME} another_library)
-#rosbuild_add_boost_directories()
-#rosbuild_link_boost(${PROJECT_NAME} thread)
-#rosbuild_add_executable(example examples/example.cpp)
-#target_link_libraries(example ${PROJECT_NAME})
+catkin_package(
+    DEPENDS 
+    CATKIN_DEPENDS rospy roscpp sound_play actionlib actionlib_msgs std_msgs cob_srvs diagnostic_msgs message_runtime # TODO
+    INCLUDE_DIRS # TODO include
+    LIBRARIES # TODO
+)
 
-rosbuild_add_executable(sound ros/src/sound.cpp)
+###########
+## Build ##
+###########
 
-rosbuild_link_boost(sound thread)
+include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+add_executable(sound ros/src/sound.cpp)
 
-# rostest
-rosbuild_add_roslaunch_check(ros/launch/sound.launch)
+target_link_libraries(sound ${Boost_LIBRARIES} ${catkin_LIBRARIES})
+add_dependencies(sound ${PROJECT_NAME}_gencpp)
+#############
+## Install ##
+#############
+
+## Mark executables and/or libraries for installation
+install(TARGETS sound
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+## Mark cpp header files for installation
+install(DIRECTORY ros/launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ros/launch
+)
