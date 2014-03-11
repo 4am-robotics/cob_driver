@@ -3,30 +3,39 @@ update_mode: polling                #switch between poll and event driven proces
 
 boards:                             
   ifk_general:                      #phidget board with a name
-    serial_num: 272740              #phidget boards serial number
+    serial_num: 272849              #phidget boards serial number
     ratiometric: true
     sensors:                        #configured sensors of this board
-       gripper_command:              #a sensor and name (URI) with which the Information will be published
+       gripper_left_command:              #a sensor and name (URI) with which the Information will be published
         type: digital_out           #type of the sensor [digital_out, digital_in, analog]
-        index: 2                    #port on which the information is physically connected to the phidget board
-       gripper_hall_fingers:
-        type: analog
-        index: 2
-       gripper_hall_x:
-        type: analog
-        index: 3
-       gripper_hall_y:
+        index: 0                    #port on which the information is physically connected to the phidget board
+       gripper_left_hall_fingers:
         type: analog
         index: 4
-       gripper_hall_z:
+       gripper_left_hall_x:
         type: analog
         index: 5
-       em_stop_scanner: 
-        type: digital_in
+       gripper_left_hall_y:
+        type: analog
+        index: 6
+       gripper_left_hall_z:
+        type: analog
+        index: 7
+       gripper_right_command:              #a sensor and name (URI) with which the Information will be published
+        type: digital_out           #type of the sensor [digital_out, digital_in, analog]
+        index: 1                    #port on which the information is physically connected to the phidget board
+       gripper_right_hall_fingers:
+        type: analog
         index: 0
-       em_stop_laser: 
-        type: digital_in
+       gripper_right_hall_x:
+        type: analog
         index: 1
+       gripper_right_hall_y:
+        type: analog
+        index: 2
+       gripper_right_hall_z:
+        type: analog
+        index: 3
  
   ifk_test: 
     serial_num: 272745

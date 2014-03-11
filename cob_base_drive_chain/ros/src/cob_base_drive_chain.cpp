@@ -349,7 +349,7 @@ class NodeClass
 					}
 					else
 					{
-						ROS_ERROR("Unkown joint name");
+						ROS_ERROR("Unkown joint name %s", (msg->joint_names[i]).c_str());
 					}
 				}
 				
@@ -597,6 +597,7 @@ class NodeClass
 				jointstate.name.push_back("br_caster_rotation_joint");
 				jointstate.name.push_back("fr_caster_r_wheel_joint");
 				jointstate.name.push_back("fr_caster_rotation_joint");
+				jointstate.name.resize(m_iNumMotors);
 			
 			}
 			else
@@ -659,6 +660,7 @@ class NodeClass
 				jointstate.name.push_back("br_caster_rotation_joint");
 				jointstate.name.push_back("fr_caster_r_wheel_joint");
 				jointstate.name.push_back("fr_caster_rotation_joint");
+				jointstate.name.resize(m_iNumMotors);
 				
 			}
 
