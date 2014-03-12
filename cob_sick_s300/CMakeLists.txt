@@ -32,10 +32,8 @@ SET(OODL_SickS300_SRC
 
 add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp ${OODL_SickS300_SRC})
 add_executable(cob_scan_filter ros/src/cob_scan_filter.cpp)
-add_executable(cob_unified_scan_publisher ros/src/cob_unified_scan_publisher.cpp)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 target_link_libraries(cob_scan_filter ${catkin_LIBRARIES})
-target_link_libraries(cob_unified_scan_publisher ${catkin_LIBRARIES})
 
 
 #############
@@ -43,7 +41,7 @@ target_link_libraries(cob_unified_scan_publisher ${catkin_LIBRARIES})
 #############
 
 ## Mark executables and/or libraries for installation
-install(TARGETS ${PROJECT_NAME} cob_scan_filter cob_unified_scan_publisher
+install(TARGETS ${PROJECT_NAME} cob_scan_filter
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
