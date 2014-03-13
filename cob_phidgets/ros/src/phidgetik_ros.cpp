@@ -62,7 +62,6 @@
 PhidgetIKROS::PhidgetIKROS(ros::NodeHandle nh, int serial_num, std::string board_name, XmlRpc::XmlRpcValue* sensor_params, SensingMode mode)
 	:PhidgetIK(mode), _nh(nh), _serial_num(serial_num)
 {
-	ROS_DEBUG("PhidgetIKROS::PhidgetIKROS");
 	ros::NodeHandle tmpHandle("~");
 	ros::NodeHandle nodeHandle(tmpHandle, board_name);
 	_outputChanged.updated=false;
@@ -94,7 +93,6 @@ PhidgetIKROS::~PhidgetIKROS()
 
 auto PhidgetIKROS::readParams(XmlRpc::XmlRpcValue* sensor_params) -> void
 {
-	ROS_DEBUG("Reading Params");
 	if(sensor_params != nullptr)
 	{
 		for(auto& sensor : *sensor_params)
