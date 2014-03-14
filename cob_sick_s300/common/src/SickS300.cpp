@@ -62,33 +62,9 @@ bool SickS300::open(Errors& error) {
 
   }
 
-  unsigned int desired_baud = 500000;
+  unsigned int desired_baud = config->baud;
+  LOG(trace) << "using " << desired_baud << " to communicate with Sick S300";
 
-  switch (this->config->baud) {
-    case BAUD_9600:
-      desired_baud = 9600;
-      LOG(trace) << "using 9600 baut to comunicate to Sick S300";
-      break;
-    case BAUD_19200:
-      desired_baud = 19200;
-      LOG(trace) << "using 19200 baut to comunicate to Sick S300";
-      break;
-    case BAUD_38400:
-      desired_baud = 38400;
-      LOG(trace) << "using 38400 baut to comunicate to Sick S300";
-      break;
-    case BAUD_115200:
-      desired_baud = 115200;
-      LOG(trace) << "using 115200 baut to comunicate to Sick S300";
-      break;
-    case BAUD_500K:
-      desired_baud = 500000;
-      LOG(trace) << "using 500000 baut to comunicate to Sick S300";
-      break;
-    case BAUD_UNKNOWN:
-      desired_baud = 0;
-      break;
-  }
 
   //Initialize the Sick S300
   try {

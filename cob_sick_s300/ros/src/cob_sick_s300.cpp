@@ -276,24 +276,7 @@ int main(int argc, char** argv)
 	config.devicePath = nodeClass.port.c_str(); // Device path of the Sick S300
 	config.scannerID = nodeClass.scan_id;
 
-	switch (nodeClass.baud) {
-	case 9600:
-		config.baud = brics_oodl::BAUD_9600;
-		break;
-	case 38400:
-		config.baud = brics_oodl::BAUD_38400;
-		break;
-	case 115200:
-		config.baud = brics_oodl::BAUD_115200;
-		break;
-		break;
-	case 500000:
-		config.baud = brics_oodl::BAUD_500K;
-		break;
-	default:
-		config.baud = brics_oodl::BAUD_UNKNOWN;
-		break;
-	}
+	config.baud = nodeClass.baud;
 
 	if (!sickS300.setConfiguration(config, errors)) {
 		errors.printErrorsToConsole();
