@@ -93,47 +93,50 @@ PhidgetIKROS::~PhidgetIKROS()
 
 auto PhidgetIKROS::readParams(XmlRpc::XmlRpcValue* sensor_params) -> void
 {
-	for(auto& sensor : *sensor_params)
+	if(sensor_params != nullptr)
 	{
-		std::string name = sensor.first;
-		XmlRpc::XmlRpcValue value = sensor.second;
-		if(!value.hasMember("type"))
+		for(auto& sensor : *sensor_params)
 		{
-			ROS_ERROR("Sensor Param '%s' has no 'type' member. Ignoring param!", name.c_str());
-			continue;
-		}
-		if(!value.hasMember("index"))
-		{
-			ROS_ERROR("Sensor Param '%s' has no 'index' member. Ignoring param!", name.c_str());
-			continue;
-		}
-		XmlRpc::XmlRpcValue value_type = value["type"];
-		XmlRpc::XmlRpcValue value_index = value["index"];
-		std::string type = value_type;
-		int index = value_index;
+			std::string name = sensor.first;
+			XmlRpc::XmlRpcValue value = sensor.second;
+			if(!value.hasMember("type"))
+			{
+				ROS_ERROR("Sensor Param '%s' has no 'type' member. Ignoring param!", name.c_str());
+				continue;
+			}
+			if(!value.hasMember("index"))
+			{
+				ROS_ERROR("Sensor Param '%s' has no 'index' member. Ignoring param!", name.c_str());
+				continue;
+			}
+			XmlRpc::XmlRpcValue value_type = value["type"];
+			XmlRpc::XmlRpcValue value_index = value["index"];
+			std::string type = value_type;
+			int index = value_index;
 
-		if(type == "analog")
-			_indexNameMapAnalog.insert(std::make_pair(index, name));
-		else if(type == "digital_in")
-			_indexNameMapDigitalIn.insert(std::make_pair(index, name));
-		else if(type == "digital_out")
-			_indexNameMapDigitalOut.insert(std::make_pair(index, name));
-		else
-			ROS_ERROR("Type '%s' in sensor param '%s' is unkown", type.c_str(), name.c_str());
+			if(type == "analog")
+				_indexNameMapAnalog.insert(std::make_pair(index, name));
+			else if(type == "digital_in")
+				_indexNameMapDigitalIn.insert(std::make_pair(index, name));
+			else if(type == "digital_out")
+				_indexNameMapDigitalOut.insert(std::make_pair(index, name));
+			else
+				ROS_ERROR("Type '%s' in sensor param '%s' is unkown", type.c_str(), name.c_str());
 
-		if(value.hasMember("change_trigger"))
-		{
-			XmlRpc::XmlRpcValue value_change_trigger = value["change_trigger"];
-			int change_trigger = value_change_trigger;
-			ROS_WARN("Setting change trigger to %d for sensor %s with index %d ",change_trigger, name.c_str(), index);
-			setSensorChangeTrigger(index, change_trigger);
-		}
-		if(value.hasMember("data_rate"))
-		{
-			XmlRpc::XmlRpcValue value_data_rate = value["data_rate"];
-			int data_rate = value_data_rate;
-			ROS_WARN("Setting data rate to %d for sensor %s with index %d ",data_rate, name.c_str(), index);
-			setDataRate(index, data_rate);
+			if(value.hasMember("change_trigger"))
+			{
+				XmlRpc::XmlRpcValue value_change_trigger = value["change_trigger"];
+				int change_trigger = value_change_trigger;
+				ROS_WARN("Setting change trigger to %d for sensor %s with index %d ",change_trigger, name.c_str(), index);
+				setSensorChangeTrigger(index, change_trigger);
+			}
+			if(value.hasMember("data_rate"))
+			{
+				XmlRpc::XmlRpcValue value_data_rate = value["data_rate"];
+				int data_rate = value_data_rate;
+				ROS_WARN("Setting data rate to %d for sensor %s with index %d ",data_rate, name.c_str(), index);
+				setDataRate(index, data_rate);
+			}
 		}
 	}
 	//fill up rest of maps with default values
