@@ -10,8 +10,6 @@
 
 #include <cob_voltage_control_common.cpp>
 #include <cob_phidgets/AnalogSensor.h>
-//#include <libphidgets/phidget21.h>
-
 
 
 class cob_voltage_control_ros
@@ -24,13 +22,9 @@ class cob_voltage_control_ros
 		ros::Publisher pub_relayboard_state__;
 		ros::Publisher topicPub_Voltage;
 		ros::Subscriber topicSub_VoltagePhidget;
-		
-//		CPhidgetInterfaceKitHandle IFK;
 
-        
- 
         cob_voltage_control_data component_data_;
-	cob_voltage_control_config component_config_;
+		cob_voltage_control_config component_config_;
         cob_voltage_control_impl component_implementation_;
 
         cob_voltage_control_ros()
@@ -71,7 +65,7 @@ class cob_voltage_control_ros
                         	component_data_.in_phidget_voltage = msg->value[i];
                 	}
         	}
-	}
+        }
 };
 
 int main(int argc, char** argv)
@@ -80,16 +74,16 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "cob_voltage_control");
 
 	cob_voltage_control_ros node;
-    	ROS_INFO("blub");
-    	node.configure();
+    ROS_INFO("blub");
+    node.configure();
 
  	ros::Rate loop_rate(100); // Hz // if cycle time == 0 do a spin() here without calling node.update() 
 
 	while(node.n_.ok())
 	{
-        	node.update();
+        node.update();
 		loop_rate.sleep();
 		ros::spinOnce();
 	}
-    	return 0;
+    return 0;
 }

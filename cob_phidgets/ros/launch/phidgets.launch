@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-	<arg name="pkg_cob_phidgets" default="$(find cob_phidgets)"/>
-
-	<node pkg="cob_phidgets" type="phidget_sensors" name="cob_phidgets" cwd="node" output="screen">
-		<rosparam file="$(arg pkg_cob_phidgets)/ros/config/phidget_config.yaml" command="load" />
-	</node>
-</launch>
-
