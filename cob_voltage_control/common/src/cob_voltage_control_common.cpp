@@ -5,7 +5,7 @@
 #include <cob_relayboard/EmergencyStopState.h>
 #include <std_msgs/Float64.h>
 
-#include <libphidgets/phidget21.h>
+//#include <libphidgets/phidget21.h>
 
 
 class cob_voltage_control_config
@@ -33,6 +33,7 @@ public:
 	pr2_msgs::PowerState out_pub_powerstate_;
   cob_relayboard::EmergencyStopState out_pub_relayboard_state;
  std_msgs::Float64 out_pub_voltage;
+	int in_phidget_voltage;
 };
 
 //document how this class has to look
@@ -44,7 +45,7 @@ class cob_voltage_control_impl
 
 public:
 
-	CPhidgetInterfaceKitHandle IFK;
+	//CPhidgetInterfaceKitHandle IFK;
 	
 
 
@@ -57,12 +58,12 @@ public:
     {
         //user specific code
     	//init and open phidget
-    	int numInputs, numOutputs, numSensors, numAnalog;
-    	int err;
+//    	int numInputs, numOutputs, numSensors, numAnalog;
+//    	int err;
 
-    	IFK = 0;
-		CPhidget_enableLogging(PHIDGET_LOG_VERBOSE, NULL);
-		CPhidgetInterfaceKit_create(&IFK);
+//    	IFK = 0;
+//		CPhidget_enableLogging(PHIDGET_LOG_VERBOSE, NULL);
+//		CPhidgetInterfaceKit_create(&IFK);
 
 		//CPhidgetInterfaceKit_set_OnSensorChange_Handler(IFK, IFK_SensorChangeHandler, NULL);
 		
@@ -74,34 +75,34 @@ public:
 		CPhidget_set_OnError_Handler((CPhidgetHandle)IFK, IFK_ErrorHandler, NULL);*/
 
 		//opening phidget
-		CPhidget_open((CPhidgetHandle)IFK, -1);
+//		CPhidget_open((CPhidgetHandle)IFK, -1);
 
 		//wait 5 seconds for attachment
-		ROS_INFO("waiting for phidgets attachement...");
-		if((err = CPhidget_waitForAttachment((CPhidgetHandle)IFK, 10000)) != EPHIDGET_OK )
-		{
-			const char *errStr;
-			CPhidget_getErrorDescription(err, &errStr);
-			ROS_ERROR("Error waiting for attachment: (%d): %s",err,errStr);
-			return;
-		}
-		ROS_INFO("... attached");
+//		ROS_INFO("waiting for phidgets attachement...");
+//		if((err = CPhidget_waitForAttachment((CPhidgetHandle)IFK, 10000)) != EPHIDGET_OK )
+//		{
+//			const char *errStr;
+//			CPhidget_getErrorDescription(err, &errStr);
+//			ROS_ERROR("Error waiting for attachment: (%d): %s",err,errStr);
+//			return;
+//		}
+//		ROS_INFO("... attached");
 
-		int sernum, version;
-		const char *deviceptr, *label;
-		CPhidget_getDeviceType((CPhidgetHandle)IFK, &deviceptr);
-		CPhidget_getSerialNumber((CPhidgetHandle)IFK, &sernum);
-		CPhidget_getDeviceVersion((CPhidgetHandle)IFK, &version);
-		CPhidget_getDeviceLabel((CPhidgetHandle)IFK, &label);
+//		int sernum, version;
+//		const char *deviceptr, *label;
+//		CPhidget_getDeviceType((CPhidgetHandle)IFK, &deviceptr);
+//		CPhidget_getSerialNumber((CPhidgetHandle)IFK, &sernum);
+//		CPhidget_getDeviceVersion((CPhidgetHandle)IFK, &version);
+//		CPhidget_getDeviceLabel((CPhidgetHandle)IFK, &label);
 
-		ROS_INFO("%s", deviceptr);
-		ROS_INFO("Version: %8d SerialNumber: %10d", version, sernum);
-		ROS_INFO("Label: %s", label);
-		CPhidgetInterfaceKit_getOutputCount((CPhidgetInterfaceKitHandle)IFK, &numOutputs);
-		CPhidgetInterfaceKit_getInputCount((CPhidgetInterfaceKitHandle)IFK, &numInputs);
-		CPhidgetInterfaceKit_getSensorCount((CPhidgetInterfaceKitHandle)IFK, &numSensors);
+//		ROS_INFO("%s", deviceptr);
+//		ROS_INFO("Version: %8d SerialNumber: %10d", version, sernum);
+//		ROS_INFO("Label: %s", label);
+//		CPhidgetInterfaceKit_getOutputCount((CPhidgetInterfaceKitHandle)IFK, &numOutputs);
+//		CPhidgetInterfaceKit_getInputCount((CPhidgetInterfaceKitHandle)IFK, &numInputs);
+//		CPhidgetInterfaceKit_getSensorCount((CPhidgetInterfaceKitHandle)IFK, &numSensors);
 
-		ROS_INFO("Sensors:%d Inputs:%d Outputs:%d", numSensors, numInputs, numOutputs);
+//		ROS_INFO("Sensors:%d Inputs:%d Outputs:%d", numSensors, numInputs, numOutputs);
 
 
     }
@@ -112,9 +113,9 @@ public:
     	//Check for EM Stop
     	int em_stop_State = -1;
     	int scanner_stop_State = -1;
-    	CPhidgetInterfaceKit_getInputState ((CPhidgetInterfaceKitHandle)IFK, config.num_em_stop_port, &em_stop_State);
-    	CPhidgetInterfaceKit_getInputState ((CPhidgetInterfaceKitHandle)IFK, config.num_scanner_em_port, &scanner_stop_State);
-    	ROS_DEBUG("DIO: %d %d", em_stop_State, scanner_stop_State);
+//    	CPhidgetInterfaceKit_getInputState ((CPhidgetInterfaceKitHandle)IFK, config.num_em_stop_port, &em_stop_State);
+//    	CPhidgetInterfaceKit_getInputState ((CPhidgetInterfaceKitHandle)IFK, config.num_scanner_em_port, &scanner_stop_State);
+//    	ROS_DEBUG("DIO: %d %d", em_stop_State, scanner_stop_State);
     	
 	data.out_pub_em_stop_state_.header.stamp = ros::Time::now();
 	// pr2 power_board_state
@@ -147,7 +148,8 @@ public:
 
     	//Get Battery Voltage
 		int voltageState = -1;
-		CPhidgetInterfaceKit_getSensorValue((CPhidgetInterfaceKitHandle)IFK, config.num_voltage_port, &voltageState);
+//		CPhidgetInterfaceKit_getSensorValue((CPhidgetInterfaceKitHandle)IFK, config.num_voltage_port, &voltageState);
+		voltageState = data.in_phidget_voltage;
 		ROS_DEBUG("Sensor: %d", voltageState);
 
 		//Calculation of real voltage 
@@ -170,8 +172,8 @@ public:
     
     void exit()
     {
-    	CPhidget_close((CPhidgetHandle)IFK);
-    	CPhidget_delete((CPhidgetHandle)IFK);
+//    	CPhidget_close((CPhidgetHandle)IFK);
+//    	CPhidget_delete((CPhidgetHandle)IFK);
     }
 
 };
