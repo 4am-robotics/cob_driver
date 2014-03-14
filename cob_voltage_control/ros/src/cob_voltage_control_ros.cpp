@@ -10,7 +10,7 @@
 
 #include <cob_voltage_control_common.cpp>
 
-#include <libphidgets/phidget21.h>
+//#include <libphidgets/phidget21.h>
 
 
 
