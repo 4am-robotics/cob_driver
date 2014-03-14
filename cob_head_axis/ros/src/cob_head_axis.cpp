@@ -62,9 +62,8 @@
 
 // ROS message includes
 #include <sensor_msgs/JointState.h>
-//#include <pr2_controllers_msgs/JointTrajectoryAction.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
-#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
+#include <control_msgs/JointTrajectoryControllerState.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
 
 // ROS service includes
@@ -105,10 +104,6 @@ class NodeClass
 	//--
 
 	// action lib server
-	//actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
-	//std::string action_name_;
-	//pr2_controllers_msgs::JointTrajectoryFeedback feedback_;
-	//pr2_controllers_msgs::JointTrajectoryResult result_;
 	actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> as_;
 	std::string action_name_;
 	control_msgs::FollowJointTrajectoryFeedback feedback_;
@@ -161,7 +156,7 @@ class NodeClass
 
 		// implementation of topics to publish
 		topicPub_JointState_ = n_.advertise<sensor_msgs::JointState>("/joint_states", 1);
-		topicPub_ControllerState_ = n_.advertise<pr2_controllers_msgs::JointTrajectoryControllerState>("state", 1);
+		topicPub_ControllerState_ = n_.advertise<control_msgs::JointTrajectoryControllerState>("state", 1);
 		topicPub_Diagnostic_ = n_.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 
 
@@ -261,10 +256,9 @@ class NodeClass
 		delete CamAxis_;
 	}
 
-	//void executeCB(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal) {
 	void executeCB(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal) {	
 		if(isInitialized_) {	
-			ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
+			ROS_INFO("Received new goal trajectory with %lu points",goal->trajectory.points.size());
 			// saving goal into local variables
 			traj_ = goal->trajectory;
 			traj_point_nr_ = 0;
@@ -436,7 +430,7 @@ class NodeClass
 					{
 						//feedback_.isMoving = false;
 				
-						ROS_DEBUG("next point is %d from %d",traj_point_nr_,traj_.points.size());
+						ROS_DEBUG("next point is %d from %lu",traj_point_nr_,traj_.points.size());
 						
 						if (traj_point_nr_ < traj_.points.size())
 						{
@@ -517,7 +511,7 @@ class NodeClass
 			topicPub_JointState_.publish(msg);
 
 			// publish controller state message
-			pr2_controllers_msgs::JointTrajectoryControllerState controllermsg;
+			control_msgs::JointTrajectoryControllerState controllermsg;
 			controllermsg.header = msg.header;
 			controllermsg.joint_names.resize(DOF);
 			controllermsg.desired.positions.resize(DOF);

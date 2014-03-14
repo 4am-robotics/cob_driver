@@ -1,0 +1,47 @@
+<package>
+  <name>cob_base_drive_chain</name>
+  <version>0.5.0</version>
+  <description>This package contains classes that are able to control the platform of the Care-O-Bot. This means to establish a CAN communication to drive and steering motors of the platform and later send motion commands and receive motor information.</description>
+
+  <license>LGPL</license>
+
+  <url type="website">http://ros.org/wiki/cob_base_drive_chain</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <maintainer email="cpc@ipa.fhg.de">Christian Connette</maintainer>
+  <author email="cpc@ipa.fhg.de">Christian Connette</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>diagnostic_msgs</build_depend>
+  <build_depend>cob_srvs</build_depend>
+  <build_depend>cob_generic_can</build_depend>
+  <build_depend>cob_canopen_motor</build_depend>
+  <build_depend>cob_utilities</build_depend>
+  <build_depend>libpcan</build_depend>
+  <build_depend>control_msgs</build_depend>
+  
+  <run_depend>roscpp</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>diagnostic_msgs</run_depend>
+  <run_depend>cob_srvs</run_depend>
+  <run_depend>cob_generic_can</run_depend>
+  <run_depend>cob_canopen_motor</run_depend>
+  <run_depend>cob_utilities</run_depend>
+  <run_depend>libpcan</run_depend>
+  <run_depend>control_msgs</run_depend>
+  
+  <!-- <test_depend>roscpp</test_depend> -->
+  <!-- <test_depend>sensor_msgs</test_depend> -->
+  <!-- <test_depend>diagnostic_msgs</test_depend> -->
+  <!-- <test_depend>cob_srvs</test_depend> -->
+  <!-- <test_depend>cob_generic_can</test_depend> -->
+  <!-- <test_depend>cob_canopen_motor</test_depend> -->
+  <!-- <test_depend>cob_utilities</test_depend> -->
+  <!-- <test_depend>libpcan</test_depend> -->
+
+  <export>
+    <cpp lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_base_drive_chain" cflags="-I${prefix}/common/include"/>
+  </export>
+</package>

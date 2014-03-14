@@ -1,0 +1,39 @@
+<package>
+  <name>cob_voltage_control</name>
+  <version>0.5.0</version>
+  <description>Interface to IO board that manages emergency stop and battery voltage on rob@work 3</description>
+ 
+  <license>LGPL</license>
+
+  <url type="website">None</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <maintainer email="aub@ipa.fhg.de">Alexander Bubeck</maintainer>
+  <author>Alexander Bubeck</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>libphidgets</build_depend>
+  <build_depend>cob_relayboard</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>dynamic_reconfigure</build_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>rostest</run_depend>
+  <run_depend>pr2_msgs</run_depend>
+  <run_depend>libphidgets</run_depend>
+  <run_depend>cob_relayboard</run_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>dynamic_reconfigure</run_depend>
+  <!-- <test_depend>roscpp</test_depend> -->
+  <!-- <test_depend>rostest</test_depend> -->
+  <!-- <test_depend>pr2_msgs</test_depend> -->
+  <!-- <test_depend>libphidgets</test_depend> -->
+  <!-- <test_depend>cob_relayboard</test_depend> -->
+  <!-- <test_depend>rospy</test_depend> -->
+  <!-- <test_depend>dynamic_reconfigure</test_depend> -->
+
+  <export>
+
+  </export>
+</package>

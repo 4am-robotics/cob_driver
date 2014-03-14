@@ -9,6 +9,7 @@
 
 #include "RefVal_JS.h"
 #include <cmath>
+#include <iostream>
 
  
 class RefValJS_PTP : public RefVal_JS
@@ -22,7 +23,7 @@ class RefValJS_PTP : public RefVal_JS
 		virtual std::vector<double> dr_ds(double s) const;
 		virtual double ds_dt(double t) const;
 		
-		double getTotalTime() const { return m_T1 + m_T2 + m_T3; }
+		double getTotalTime() const { std::cout << m_T1 << "\n"; return m_T1 + m_T2 + m_T3; }
 		
 	protected:
 		double norm(const std::vector<double>& j);

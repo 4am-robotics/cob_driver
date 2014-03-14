@@ -17,8 +17,8 @@ RefValJS_PTP_Trajectory::RefValJS_PTP_Trajectory(const trajectory_msgs::JointTra
 {	
 	m_trajectory = trajectory;
 	m_length = 0;
-	m_stepSize = 0.4;
-	//m_stepSize = 0.0175; // 0.0175 rad = 1°
+	//m_stepSize = 0.4;
+	m_stepSize = 0.0175; // 0.0175 rad = 1°
 	m_length_parts.clear();
 	m_s_parts.clear();
 	
@@ -34,7 +34,8 @@ RefValJS_PTP_Trajectory::RefValJS_PTP_Trajectory(const trajectory_msgs::JointTra
 		// Maß dafür, wo groß die Rundung wird
 // 		double between_stepsize = 2.5; // 0.2 rad = 11.5°
 		//uhr-messmerf:
-		double between_stepsize = 0.1; //verkleinert wegen Exception (s.u.)
+		//double between_stepsize = 0.1; //verkleinert wegen Exception (s.u.)
+		double between_stepsize = 0.8; //AUB
 		for (unsigned int i=0; i < m_trajectory.points.size()-1; i++)
 		{
 			std::vector<double> direction;
@@ -68,7 +69,7 @@ RefValJS_PTP_Trajectory::RefValJS_PTP_Trajectory(const trajectory_msgs::JointTra
 			zwischenPunkte.at(i) = trajectory.points.at(i).positions;
 		}
 	}
-	ROS_INFO("Calculated %d zwischenPunkte", zwischenPunkte.size());
+	ROS_INFO("Calculated %lu zwischenPunkte", zwischenPunkte.size());
 	
 	m_TrajectorySpline.setCtrlPoints(zwischenPunkte);
 	
@@ -81,7 +82,7 @@ RefValJS_PTP_Trajectory::RefValJS_PTP_Trajectory(const trajectory_msgs::JointTra
 		throw std::runtime_error("Error in BSplineND::ipoWithConstSampleDist!");
 	}
 	m_SplinePoints = zwischenPunkte;
-	ROS_INFO("Calculated %d splinepoints", m_SplinePoints.size());
+	ROS_INFO("Calculated %lu splinepoints", m_SplinePoints.size());
 	
 	m_length_cumulated.clear();
 	m_length_cumulated.push_back(0.0);

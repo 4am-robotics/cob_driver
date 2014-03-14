@@ -1,0 +1,46 @@
+<package>
+  <name>cob_sound</name>
+  <version>0.5.0</version>
+  <description>This package implements a sound play module using text2wave and aplay through python.</description>
+  
+
+  <license>LGPL</license>
+
+  <url type="website">http://ros.org/wiki/cob_sound</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>
+  <author>Florian Weisshardt</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>rospy</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>sound_play</build_depend>
+  <build_depend>actionlib</build_depend>
+  <build_depend>actionlib_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>cob_srvs</build_depend>
+  <build_depend>diagnostic_msgs</build_depend>
+  <build_depend>message_generation</build_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>sound_play</run_depend>
+  <run_depend>actionlib</run_depend>
+  <run_depend>actionlib_msgs</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>cob_srvs</run_depend>
+  <run_depend>diagnostic_msgs</run_depend>
+  <run_depend>message_runtime</run_depend>
+  <!-- <test_depend>rospy</test_depend> -->
+  <!-- <test_depend>roscpp</test_depend> -->
+  <!-- <test_depend>sound_play</test_depend> -->
+  <!-- <test_depend>actionlib</test_depend> -->
+  <!-- <test_depend>std_msgs</test_depend> -->
+  <!-- <test_depend>cob_srvs</test_depend> -->
+  <!-- <test_depend>diagnostic_msgs</test_depend> -->
+
+  <export>
+
+  </export>
+</package>
