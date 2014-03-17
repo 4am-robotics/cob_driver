@@ -1,2 +1,0 @@
-#hw ID, frame id, filter interval
-sensors: [[0, "range_1", 10], [1, "range_2", 10], [2, "range_3", 10], [3, "range_4", 10]]

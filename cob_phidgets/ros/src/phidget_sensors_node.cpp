@@ -135,10 +135,11 @@ int main(int argc, char **argv)
 			phidget_params_map_itr = phidget_params_map.find(device.serial_num);
 			XmlRpc::XmlRpcValue *sensors_param = (phidget_params_map_itr != phidget_params_map.end()) ? &((*phidget_params_map_itr).second.second) : nullptr;
 			std::string name;
-			if(phidget_params_map_itr != phidget_params_map.end())
+			if(sensors_param != nullptr)
 				name = (*phidget_params_map_itr).second.first;
 			else
 			{
+				ROS_WARN("Could not find parameters for Board with serial: %d. Using default params!", device.serial_num);
 				std::stringstream ss; ss << device.serial_num;
 				name = ss.str();
 			}

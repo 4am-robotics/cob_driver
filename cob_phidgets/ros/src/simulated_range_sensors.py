@@ -43,11 +43,11 @@ if __name__ == "__main__":
 	rospy.init_node('tactile_sensors')
 	rospy.sleep(0.5)
 	
-	if not rospy.has_param('sensors'):
+	if not rospy.has_param('~sensors'):
 		rospy.logerr("no sensors specified")
 		exit(1)
 
-	sensors = rospy.get_param('sensors')
+	sensors = rospy.get_param('~sensors')
 	
 	if type(sensors) != list:
 		rospy.logerr("sensors parameter not a list")

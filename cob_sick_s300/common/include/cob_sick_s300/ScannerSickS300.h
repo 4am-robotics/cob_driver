@@ -167,8 +167,6 @@ public:
 private:
 
 	// Constants
-	static const unsigned short crc_LookUpTable[256];
-	static const unsigned char c_StartBytes[10];
 	static const double c_dPi;
 
 	// Parameters
@@ -188,13 +186,6 @@ private:
 	SerialIO m_SerialIO;
 
 	// Functions
-	unsigned int getUnsignedWord(unsigned char msb, unsigned char lsb)
-	{
-		return (msb << 8) | lsb;
-	}
-
-	unsigned int createCRC(unsigned char *ptrData, int Size);
-
 	void convertScanToPolar(std::vector<int> viScanRaw,
 							std::vector<ScanPolarType>& vecScanPolar);
 

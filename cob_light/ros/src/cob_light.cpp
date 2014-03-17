@@ -196,7 +196,7 @@ class LightControl
 				}
 				else
 				{
-					ROS_ERROR("Serial connection on %s failed.", _deviceString.c_str());
+					ROS_WARN("Serial connection on %s failed.", _deviceString.c_str());
 					ROS_INFO("Simulation Mode Enabled");
 					p_colorO = new ColorOSim(&_nh);
 
