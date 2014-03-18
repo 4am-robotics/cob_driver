@@ -28,6 +28,7 @@ add_library(${PROJECT_NAME}_esd common/src/CanESD.cpp)
 # link libraries
 target_link_libraries(${PROJECT_NAME}_peaksysusb cob_utilities ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_peaksys cob_utilities ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_esd cob_utilities ${catkin_LIBRARIES})
 
 
 
@@ -37,6 +38,16 @@ target_link_libraries(${PROJECT_NAME}_peaksys cob_utilities ${catkin_LIBRARIES})
 
 ## Mark executables and/or libraries for installation
 install(TARGETS ${PROJECT_NAME}_peaksysusb
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+install(TARGETS ${PROJECT_NAME}_peaksys
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+install(TARGETS ${PROJECT_NAME}_esd
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
