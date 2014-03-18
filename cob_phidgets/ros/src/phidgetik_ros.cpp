@@ -58,8 +58,6 @@
  ****************************************************************/
 
 #include <cob_phidgets/phidgetik_ros.h>
-#include <cob_phidgets/DigitalSensor.h>
-#include <cob_phidgets/AnalogSensor.h>
 
 PhidgetIKROS::PhidgetIKROS(ros::NodeHandle nh, int serial_num, std::string board_name, XmlRpc::XmlRpcValue* sensor_params, SensingMode mode)
 	:PhidgetIK(mode), _nh(nh), _serial_num(serial_num)
@@ -70,8 +68,9 @@ PhidgetIKROS::PhidgetIKROS(ros::NodeHandle nh, int serial_num, std::string board
 	_outputChanged.index=-1;
 	_outputChanged.state=0;
 
-	_pubAnalog = _nh.advertise<cob_phidgets::AnalogSensor>("analog_sensor", 1);
-	_pubDigital = _nh.advertise<cob_phidgets::DigitalSensor>("digital_sensor", 1);
+	_pubAnalog = _nh.advertise<cob_phidgets::AnalogSensor>("analog_sensors", 1);
+	_pubDigital = _nh.advertise<cob_phidgets::DigitalSensor>("digital_sensors", 1);
+	_subDigital = _nh.subscribe("set_digital_sensor", 1, &PhidgetIKROS::onDigitalOutCallback, this);
 
 	_srvDigitalOut = nodeHandle.advertiseService("set_digital", &PhidgetIKROS::setDigitalOutCallback, this);
 	_srvDataRate = nodeHandle.advertiseService("set_data_rate", &PhidgetIKROS::setDataRateCallback, this);
@@ -94,47 +93,50 @@ PhidgetIKROS::~PhidgetIKROS()
 
 auto PhidgetIKROS::readParams(XmlRpc::XmlRpcValue* sensor_params) -> void
 {
-	for(auto& sensor : *sensor_params)
+	if(sensor_params != nullptr)
 	{
-		std::string name = sensor.first;
-		XmlRpc::XmlRpcValue value = sensor.second;
-		if(!value.hasMember("type"))
+		for(auto& sensor : *sensor_params)
 		{
-			ROS_ERROR("Sensor Param '%s' has no 'type' member. Ignoring param!", name.c_str());
-			continue;
-		}
-		if(!value.hasMember("index"))
-		{
-			ROS_ERROR("Sensor Param '%s' has no 'index' member. Ignoring param!", name.c_str());
-			continue;
-		}
-		XmlRpc::XmlRpcValue value_type = value["type"];
-		XmlRpc::XmlRpcValue value_index = value["index"];
-		std::string type = value_type;
-		int index = value_index;
+			std::string name = sensor.first;
+			XmlRpc::XmlRpcValue value = sensor.second;
+			if(!value.hasMember("type"))
+			{
+				ROS_ERROR("Sensor Param '%s' has no 'type' member. Ignoring param!", name.c_str());
+				continue;
+			}
+			if(!value.hasMember("index"))
+			{
+				ROS_ERROR("Sensor Param '%s' has no 'index' member. Ignoring param!", name.c_str());
+				continue;
+			}
+			XmlRpc::XmlRpcValue value_type = value["type"];
+			XmlRpc::XmlRpcValue value_index = value["index"];
+			std::string type = value_type;
+			int index = value_index;
 
-		if(type == "analog")
-			_indexNameMapAnalog.insert(std::make_pair(index, name));
-		else if(type == "digital_in")
-			_indexNameMapDigitalIn.insert(std::make_pair(index, name));
-		else if(type == "digital_out")
-			_indexNameMapDigitalOut.insert(std::make_pair(index, name));
-		else
-			ROS_ERROR("Type '%s' in sensor param '%s' is unkown", type.c_str(), name.c_str());
+			if(type == "analog")
+				_indexNameMapAnalog.insert(std::make_pair(index, name));
+			else if(type == "digital_in")
+				_indexNameMapDigitalIn.insert(std::make_pair(index, name));
+			else if(type == "digital_out")
+				_indexNameMapDigitalOut.insert(std::make_pair(index, name));
+			else
+				ROS_ERROR("Type '%s' in sensor param '%s' is unkown", type.c_str(), name.c_str());
 
-		if(value.hasMember("change_trigger"))
-		{
-			XmlRpc::XmlRpcValue value_change_trigger = value["change_trigger"];
-			int change_trigger = value_change_trigger;
-			ROS_WARN("Setting change trigger to %d for sensor %s with index %d ",change_trigger, name.c_str(), index);
-			setSensorChangeTrigger(index, change_trigger);
-		}
-		if(value.hasMember("data_rate"))
-		{
-			XmlRpc::XmlRpcValue value_data_rate = value["data_rate"];
-			int data_rate = value_data_rate;
-			ROS_WARN("Setting data rate to %d for sensor %s with index %d ",data_rate, name.c_str(), index);
-			setDataRate(index, data_rate);
+			if(value.hasMember("change_trigger"))
+			{
+				XmlRpc::XmlRpcValue value_change_trigger = value["change_trigger"];
+				int change_trigger = value_change_trigger;
+				ROS_WARN("Setting change trigger to %d for sensor %s with index %d ",change_trigger, name.c_str(), index);
+				setSensorChangeTrigger(index, change_trigger);
+			}
+			if(value.hasMember("data_rate"))
+			{
+				XmlRpc::XmlRpcValue value_data_rate = value["data_rate"];
+				int data_rate = value_data_rate;
+				ROS_WARN("Setting data rate to %d for sensor %s with index %d ",data_rate, name.c_str(), index);
+				setDataRate(index, data_rate);
+			}
 		}
 	}
 	//fill up rest of maps with default values
@@ -169,6 +171,38 @@ auto PhidgetIKROS::readParams(XmlRpc::XmlRpcValue* sensor_params) -> void
 			std::stringstream ss;
 			ss << getDeviceSerialNumber() << "/" << i;
 			_indexNameMapAnalog.insert(std::make_pair(i, ss.str()));
+		}
+	}
+
+	//fill up reverse mapping
+	count = this->getInputCount();
+	for(int i = 0; i < count; i++)
+	{
+		_indexNameMapItr = _indexNameMapDigitalIn.find(i);
+		if(_indexNameMapItr != _indexNameMapDigitalIn.end())
+		{
+			std::stringstream ss;
+			ss << getDeviceSerialNumber() << "/" << "in/" << i;
+
+			_indexNameMapDigitalInRev.insert(std::make_pair(_indexNameMapDigitalIn[i],i));
+		}
+	}
+	count = this->getOutputCount();
+	for(int i = 0; i < count; i++)
+	{
+		_indexNameMapItr = _indexNameMapDigitalOut.find(i);
+		if(_indexNameMapItr != _indexNameMapDigitalOut.end())
+		{
+			_indexNameMapDigitalOutRev.insert(std::make_pair(_indexNameMapDigitalOut[i],i));
+		}
+	}
+	count = this->getSensorCount();
+	for(int i = 0; i < count; i++)
+	{
+		_indexNameMapItr = _indexNameMapAnalog.find(i);
+		if(_indexNameMapItr != _indexNameMapAnalog.end())
+		{
+			_indexNameMapAnalogRev.insert(std::make_pair(_indexNameMapAnalog[i],i));
 		}
 	}
 }
@@ -301,31 +335,67 @@ auto PhidgetIKROS::setDigitalOutCallback(cob_phidgets::SetDigitalSensor::Request
 	_outputChanged.state=0;
 	_mutex.unlock();
 
-	this->setOutputState(req.index, req.state);
-
-	ros::Time start = ros::Time::now();
-	while((ros::Time::now().toSec() - start.toSec()) < 1.0)
+	// this check is nessesary because [] operator on Maps inserts an element if it is not found
+	_indexNameMapRevItr = _indexNameMapDigitalOutRev.find(req.uri);
+	if(_indexNameMapRevItr != _indexNameMapDigitalOutRev.end())
 	{
-		_mutex.lock();
-		if(_outputChanged.updated == true)
+		ROS_INFO("Setting digital output %i to state %i", _indexNameMapDigitalOutRev[req.uri], req.state);
+		this->setOutputState(_indexNameMapDigitalOutRev[req.uri], req.state);
+
+		ros::Time start = ros::Time::now();
+		while((ros::Time::now().toSec() - start.toSec()) < 1.0)
 		{
+			_mutex.lock();
+			if(_outputChanged.updated == true)
+			{
+				_mutex.unlock();
+				break;
+			}
 			_mutex.unlock();
-			break;
+
+			ros::Duration(0.025).sleep();
 		}
+		_mutex.lock();
+		res.uri = _indexNameMapDigitalOut[_outputChanged.index];
+		res.state = _outputChanged.state;
+		ROS_DEBUG("Sending response: updated: %u, index: %d, state: %d",_outputChanged.updated, _outputChanged.index, _outputChanged.state);
+		ret = (_outputChanged.updated && (_outputChanged.index == _indexNameMapDigitalOutRev[req.uri]));
 		_mutex.unlock();
-
-		ros::Duration(0.025).sleep();
 	}
-	_mutex.lock();
-	res.index = _outputChanged.index;
-	res.state = _outputChanged.state;
-	ROS_DEBUG("Sending response: updated: %u, index: %d, state: %d",_outputChanged.updated, _outputChanged.index, _outputChanged.state);
-	ret = (_outputChanged.updated && (_outputChanged.index == req.index));
-
-	_mutex.unlock();
+	else
+	{
+		ROS_DEBUG("Could not find uri '%s' inside port uri mapping", req.uri.c_str());
+		res.uri = req.uri;
+		res.state = req.state;
+		ret = false;
+	}
 
 	return ret;
 }
+
+auto PhidgetIKROS::onDigitalOutCallback(const cob_phidgets::DigitalSensorConstPtr& msg) -> void
+{
+	if(msg->uri.size() == msg->state.size())
+	{
+		for(size_t i = 0; i < msg->uri.size(); i++)
+		{
+			// this check is nessesary because [] operator on Maps inserts an element if it is not found
+			_indexNameMapRevItr = _indexNameMapDigitalOutRev.find(msg->uri[i]);
+			if(_indexNameMapRevItr != _indexNameMapDigitalOutRev.end())
+			{
+				ROS_INFO("Setting digital output %i to state %i", _indexNameMapDigitalOutRev[msg->uri[i]], msg->state[i]);
+				this->setOutputState(_indexNameMapDigitalOutRev[msg->uri[i]], msg->state[i]);
+			}
+			else
+				ROS_DEBUG("Could not find uri '%s' inside port uri mapping", msg->uri[i].c_str());
+		}
+	}
+	else
+	{
+		ROS_ERROR("Received message with different uri and state container sizes");
+	}
+}
+
 auto PhidgetIKROS::setDataRateCallback(cob_phidgets::SetDataRate::Request &req,
 										cob_phidgets::SetDataRate::Response &res) -> bool
 {
@@ -342,7 +412,7 @@ auto PhidgetIKROS::setTriggerValueCallback(cob_phidgets::SetTriggerValue::Reques
 auto PhidgetIKROS::attachHandler() -> int
 {
 	int serialNo, version, numInputs, numOutputs, millis;
-	int numSensors, triggerVal, ratiometric, i;
+	int numSensors, triggerVal, ratiometric;
 	const char *ptr, *name;
 
 	CPhidget_getDeviceName((CPhidgetHandle)_iKitHandle, &name);
@@ -363,7 +433,7 @@ auto PhidgetIKROS::attachHandler() -> int
 	ROS_DEBUG("Num Sensors: %d", numSensors);
 	ROS_DEBUG("Ratiometric: %d", ratiometric);
 
-	for(i = 0; i < numSensors; i++)
+	for(int i = 0; i < numSensors; i++)
 	{
 		CPhidgetInterfaceKit_getSensorChangeTrigger(_iKitHandle, i, &triggerVal);
 		CPhidgetInterfaceKit_getDataRate(_iKitHandle, i, &millis);

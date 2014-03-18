@@ -132,6 +132,7 @@ class FootprintObserver
 
     // private members
     std::vector<geometry_msgs::Point> robot_footprint_;
+    double epsilon_;
     double footprint_front_initial_, footprint_rear_initial_, footprint_left_initial_, footprint_right_initial_;
     double footprint_front_, footprint_rear_, footprint_left_, footprint_right_;
     tf::TransformListener tf_listener_;
@@ -141,6 +142,7 @@ class FootprintObserver
     pthread_mutex_t m_mutex;
 
     ros::Time last_tf_missing_;
+    unsigned int times_warned_;
 };
 
 #endif
