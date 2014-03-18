@@ -59,5 +59,5 @@ install(TARGETS cob_relayboard_node
 )
 
 install(PROGRAMS ros/src/relayboard_sim.py
-  DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
