@@ -31,7 +31,6 @@
   <run_depend>cob_sick_lms1xx</run_depend>
   <run_depend>cob_sick_s300</run_depend>
   <run_depend>cob_sound</run_depend>
-  <run_depend>cob_touch</run_depend>
   <run_depend>cob_trajectory_controller</run_depend>
   <run_depend>cob_undercarriage_ctrl</run_depend>
   <run_depend>cob_utilities</run_depend>
