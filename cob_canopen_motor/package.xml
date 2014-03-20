@@ -9,8 +9,8 @@
   <url type="website">http://ros.org/wiki/cob_canopen_motor</url>
   <!-- <url type="bugtracker"></url> -->
 
-  <maintainer email="cpc@ipa.fhg.de">Christian Connette</maintainer>
-  <author email="cpc@ipa.fhg.de">Christian Connette</author>
+  <maintainer email="mig@ipa.fhg.de">Matthias Gruhler</maintainer>
+  <author>Christian Connette</author>
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>

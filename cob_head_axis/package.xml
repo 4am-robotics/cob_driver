@@ -9,7 +9,7 @@
   <url type="website">http://ros.org/wiki/cob_head_axis</url>
   <!-- <url type="bugtracker"></url> -->
 
-  <maintainer email="uhr@ipa.fhg.de">Ulrich Reiser</maintainer>
+  <maintainer email="mig@ipa.fhg.de">Matthias Gruhler</maintainer>
   <author>Ulrich Reiser</author>
 
   <buildtool_depend>catkin</buildtool_depend>

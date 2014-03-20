@@ -8,7 +8,7 @@
   <url type="website">http://ros.org/wiki/cob_undercarriage_ctrl</url>
   <!-- <url type="bugtracker"></url> -->
 
-  <maintainer email="cpc@ipa.fhg.de">Christian Connette</maintainer>
+  <maintainer email="mig@ipa.fhg.de">Matthias Gruhler</maintainer>
   <author>Christian Connette</author>
 
   <buildtool_depend>catkin</buildtool_depend>
