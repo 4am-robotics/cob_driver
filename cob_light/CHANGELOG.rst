@@ -2,8 +2,8 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.1 (2014-03-20)
+------------------
 * change Error to warning
 * console feedback if mode finished
 * bugfixed segfault if a freq with zero was set (default freq = 10Hz)

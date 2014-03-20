@@ -2,8 +2,8 @@
 Changelog for package cob_sick_s300
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.1 (2014-03-20)
+------------------
 * fix CMakeLists
 * move unified scan publisher to cob_navigation
 * fixed little issue and tested on raw3-1

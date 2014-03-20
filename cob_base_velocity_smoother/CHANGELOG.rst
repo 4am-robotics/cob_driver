@@ -2,8 +2,8 @@
 Changelog for package cob_base_velocity_smoother
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.1 (2014-03-20)
+------------------
 * add definitions to get rid of compiler warning
 * cob_undercarriage_ctrl: expose param for watchdog timeout
 * cob_base_velocity_smoother: add param to specify minimal rate which is expected for commands. At slower rates, start filling in zeros

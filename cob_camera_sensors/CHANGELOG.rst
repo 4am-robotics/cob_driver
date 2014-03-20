@@ -2,8 +2,8 @@
 Changelog for package cob_camera_sensors
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.1 (2014-03-20)
+------------------
 * cob_camera_sensors: add missing dependency to message_generation/message_runtime
 * cleaned up CMakeLists and added install directives
 * compiling but still some linker errors

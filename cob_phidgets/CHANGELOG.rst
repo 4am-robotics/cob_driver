@@ -2,8 +2,8 @@
 Changelog for package cob_phidgets
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.1 (2014-03-20)
+------------------
 * use local namespace
 * remove launch and yaml configuration. this should be either in cob_robots or on the ROS wiki page
 * removed some debug outputs

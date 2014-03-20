@@ -2,8 +2,8 @@
 Changelog for package cob_relayboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.1 (2014-03-20)
+------------------
 * some install tag updates
 * cleaup merge hell
 * Revert "added pr2_msgs to dependencies" as this change has been introduced in commit cc92fd0e590b607b29ea73bcdd

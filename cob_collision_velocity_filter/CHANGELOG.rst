@@ -2,8 +2,8 @@
 Changelog for package cob_collision_velocity_filter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.1 (2014-03-20)
+------------------
 * add definitions to get rid of compiler warning
 * Corrected compile error. See pull-request `#80 <https://github.com/ipa320/cob_driver/issues/80>`_ in original repo.
 * merge changes from frederikhegger, `#80 <https://github.com/ipa320/cob_driver/issues/80>`_

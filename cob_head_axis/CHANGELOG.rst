@@ -2,8 +2,8 @@
 Changelog for package cob_head_axis
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.1 (2014-03-20)
+------------------
 * cherry-pick
 * removed a lot of code related to packages not available in hydro anymore
 * output long unsigned variables correctly

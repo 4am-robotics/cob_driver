@@ -2,8 +2,8 @@
 Changelog for package cob_generic_can
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.1 (2014-03-20)
+------------------
 * added missing install tags
 * Some small dependency tweaks.
 * fixed gcc4.7 build error (sleep and usleep undefined)
