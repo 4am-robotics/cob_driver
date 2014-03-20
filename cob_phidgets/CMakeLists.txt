@@ -36,5 +36,5 @@ install(TARGETS range_sensors
 )
 
 install(PROGRAMS ros/src/simulated_range_sensors.py
-  DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
