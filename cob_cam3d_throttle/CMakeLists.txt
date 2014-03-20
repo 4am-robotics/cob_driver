@@ -36,3 +36,8 @@ install(TARGETS cam3d_throttle
 install(DIRECTORY launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
 )
+
+install(FILES
+   nodelet_plugins.xml
+   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
