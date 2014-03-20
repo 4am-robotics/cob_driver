@@ -1,6 +1,6 @@
 <package>
   <name>cob_undercarriage_ctrl</name>
-  <version>0.5.0</version>
+  <version>0.5.2</version>
   <description>cob_undercarriage_ctrl implements a controller for the omnidirectional base of Care-O-bot 3 on joint level. For a given Pltf-Twist the according wheel steering angles and linear wheel velocities are calculated based on the principle of rigid body motion. Each joint is than controlled individually to achieve the computed position and velocity</description>
   
   <license>LGPL</license>
@@ -8,7 +8,7 @@
   <url type="website">http://ros.org/wiki/cob_undercarriage_ctrl</url>
   <!-- <url type="bugtracker"></url> -->
 
-  <maintainer email="cpc@ipa.fhg.de">Christian Connette</maintainer>
+  <maintainer email="mig@ipa.fhg.de">Matthias Gruhler</maintainer>
   <author>Christian Connette</author>
 
   <buildtool_depend>catkin</buildtool_depend>

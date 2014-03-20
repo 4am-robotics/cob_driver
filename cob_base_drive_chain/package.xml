@@ -1,6 +1,6 @@
 <package>
   <name>cob_base_drive_chain</name>
-  <version>0.5.0</version>
+  <version>0.5.2</version>
   <description>This package contains classes that are able to control the platform of the Care-O-Bot. This means to establish a CAN communication to drive and steering motors of the platform and later send motion commands and receive motor information.</description>
 
   <license>LGPL</license>
@@ -8,8 +8,8 @@
   <url type="website">http://ros.org/wiki/cob_base_drive_chain</url>
   <!-- <url type="bugtracker"></url> -->
 
-  <maintainer email="cpc@ipa.fhg.de">Christian Connette</maintainer>
-  <author email="cpc@ipa.fhg.de">Christian Connette</author>
+  <maintainer email="mig@ipa.fhg.de">Matthias Gruhler</maintainer>
+  <author>Christian Connette</author>
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>

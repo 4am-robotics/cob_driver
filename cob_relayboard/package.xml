@@ -1,6 +1,6 @@
 <package>
   <name>cob_relayboard</name>
-  <version>0.5.0</version>
+  <version>0.5.2</version>
   <description>cob_relayboard</description>
   <license>LGPL</license>
 
@@ -8,7 +8,7 @@
   <!-- <url type="bugtracker"></url> -->
 
   <author>Christian Connette</author>
-  <maintainer email="cpc@ipa.fhg.de">Christian Connette</maintainer>
+  <maintainer email="mig@ipa.fhg.de">Matthias Gruhler</maintainer>
 
 
   <buildtool_depend>catkin</buildtool_depend>
