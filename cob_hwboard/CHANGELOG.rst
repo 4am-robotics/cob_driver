@@ -2,6 +2,9 @@
 Changelog for package cob_hwboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.5.1 (2014-03-20)
 ------------------
 * cleaned up CMakeLists and added install directives
