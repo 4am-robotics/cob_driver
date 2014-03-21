@@ -13,3 +13,7 @@ catkin_package(
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )
+
+install(PROGRAMS src/cob_hwboard.py
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)

@@ -29,6 +29,18 @@ catkin_package(
     LIBRARIES # TODO
 )
 
+install(DIRECTORY common/files
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/common
+)
+
+install(DIRECTORY common/scripts
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/common
+)
+
+install(PROGRAMS ros/scripts/set_camera_info.py
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
 
 ###########
 ## Build ##
