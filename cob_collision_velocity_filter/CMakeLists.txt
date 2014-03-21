@@ -21,9 +21,7 @@ generate_dynamic_reconfigure_options(cfg/CollisionVelocityFilter.cfg)
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-    DEPENDS roscpp rospy dynamic_reconfigure move_base_msgs nav_msgs tf cob_footprint_observer visualization_msgs
-    CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS include
+    CATKIN_DEPENDS roscpp rospy dynamic_reconfigure move_base_msgs nav_msgs tf cob_footprint_observer visualization_msgs
     LIBRARIES # TODO
 )
 
@@ -55,5 +53,6 @@ install(TARGETS collision_velocity_filter
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
 
 

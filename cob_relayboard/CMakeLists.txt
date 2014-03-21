@@ -23,8 +23,7 @@ generate_messages(
 ###################################
 
 catkin_package(
-    DEPENDS roscpp rostest std_msgs cob_utilities pr2_msgs
-    CATKIN_DEPENDS message_runtime
+    CATKIN_DEPENDS message_runtime roscpp rostest std_msgs cob_utilities pr2_msgs
     INCLUDE_DIRS common/include
     LIBRARIES SerialIO ${PROJECT_NAME}
 )
@@ -52,7 +51,7 @@ add_dependencies(cob_relayboard_node ${PROJECT_NAME}_gencpp)
 #############
 
 ## Mark executables and/or libraries for installation
-install(TARGETS cob_relayboard_node
+install(TARGETS cob_relayboard_node SerialIO ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -61,3 +60,8 @@ install(TARGETS cob_relayboard_node
 install(PROGRAMS ros/src/relayboard_sim.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+install(DIRECTORY common/include/
+  DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
+)
+

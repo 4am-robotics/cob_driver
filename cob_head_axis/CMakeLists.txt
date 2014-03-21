@@ -8,8 +8,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs cob_srvs actionlib co
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-    DEPENDS roscpp rostest sensor_msgs cob_srvs actionlib cob_generic_can cob_canopen_motor cob_utilities urdf libntcan diagnostic_msgs control_msgs
-    CATKIN_DEPENDS # TODO
+    CATKIN_DEPENDS roscpp rostest sensor_msgs cob_srvs actionlib cob_generic_can cob_canopen_motor cob_utilities urdf libntcan diagnostic_msgs control_msgs
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )

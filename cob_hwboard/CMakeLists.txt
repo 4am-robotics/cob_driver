@@ -7,9 +7,8 @@ find_package(catkin REQUIRED COMPONENTS rospy std_msgs diagnostic_msgs)
 ###################################
 ## catkin specific configuration ##
 ###################################
-catkin_package(
-    DEPENDS rospy std_msgs diagnostic_msgs
-    CATKIN_DEPENDS # TODO
+catkin_package( 
+    CATKIN_DEPENDS rospy std_msgs diagnostic_msgs
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )

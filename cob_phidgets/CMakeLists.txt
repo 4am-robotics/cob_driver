@@ -4,20 +4,10 @@ project(cob_phidgets)
 find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs sensor_msgs libphidgets message_generation)
 
 
-###################################
-## catkin specific configuration ##
-###################################
-catkin_package(
-    DEPENDS roscpp rospy libphidgets std_msgs sensor_msgs message_runtime
-    CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS # TODO include
-    LIBRARIES # TODO
-)
-
 add_message_files(
-	FILES
-	AnalogSensor.msg
-	DigitalSensor.msg
+  FILES
+  AnalogSensor.msg
+  DigitalSensor.msg
 )
 
 add_service_files(
@@ -26,6 +16,18 @@ add_service_files(
   SetDigitalSensor.srv
   SetTriggerValue.srv
 )
+
+generate_messages(DEPENDENCIES std_msgs sensor_msgs)
+
+###################################
+## catkin specific configuration ##
+###################################
+catkin_package(
+    CATKIN_DEPENDS roscpp rospy libphidgets std_msgs sensor_msgs message_runtime
+    INCLUDE_DIRS # TODO include
+    LIBRARIES # TODO
+)
+
 
 ###########
 ## Build ##

@@ -8,8 +8,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp cob_generic_can cob_utilities)
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-    DEPENDS roscpp cob_generic_can cob_utilities
-    CATKIN_DEPENDS # TODO
+    CATKIN_DEPENDS roscpp cob_generic_can cob_utilities
     INCLUDE_DIRS common/include
     LIBRARIES ${PROJECT_NAME}_harmonica
 )
@@ -33,4 +32,9 @@ install(TARGETS ${PROJECT_NAME}_harmonica
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+
+install(DIRECTORY common/include/
+  DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
 )

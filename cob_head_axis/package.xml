@@ -32,6 +32,7 @@
   <run_depend>cob_canopen_motor</run_depend>
   <run_depend>cob_utilities</run_depend>
   <run_depend>urdf</run_depend>
+  <run_depend>rostest</run_depend>
   <run_depend>libntcan</run_depend>
   <run_depend>diagnostic_msgs</run_depend>
   <run_depend>control_msgs</run_depend>

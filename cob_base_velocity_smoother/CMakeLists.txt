@@ -16,10 +16,7 @@ endif()
 ###################################
 
 catkin_package(
-    DEPENDS std_msgs roscpp geometry_msgs
-    CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS include
-    LIBRARIES # TODO
+    CATKIN_DEPENDS  std_msgs roscpp geometry_msgs
 )
 
 

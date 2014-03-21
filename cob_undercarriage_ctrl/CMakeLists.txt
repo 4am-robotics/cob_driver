@@ -10,8 +10,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp nav_msgs sensor_msgs geometry_msg
 ###################################
 
 catkin_package(
-    DEPENDS roscpp nav_msgs sensor_msgs geometry_msgs diagnostic_msgs tf cob_relayboard cob_utilities diagnostic_updater
-    CATKIN_DEPENDS # TODO
+    CATKIN_DEPENDS roscpp nav_msgs sensor_msgs geometry_msgs diagnostic_msgs tf cob_relayboard cob_utilities diagnostic_updater
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )

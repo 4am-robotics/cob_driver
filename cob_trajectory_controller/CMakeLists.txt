@@ -2,8 +2,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_trajectory_controller)
 
-find_package(catkin REQUIRED COMPONENTS eigen roscpp cob_srvs brics_actuator sensor_msgs actionlib control_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp cob_srvs brics_actuator message_generation geometry_msgs sensor_msgs std_msgs  actionlib control_msgs)
 find_package(orocos_kdl REQUIRED)
+find_package(eigen REQUIRED)
 #######################################
 ## Declare ROS messages and services ##
 #######################################
@@ -24,7 +25,7 @@ generate_messages(
 
 catkin_package(
     DEPENDS orocos_kdl
-    CATKIN_DEPENDS roscpp cob_srvs brics_actuator sensor_msgs actionlib control_msgs
+    CATKIN_DEPENDS roscpp std_msgs cob_srvs brics_actuator sensor_msgs actionlib control_msgs geometry_msgs message_runtime
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )
@@ -33,7 +34,7 @@ catkin_package(
 ## Build ##
 ###########
 
-include_directories(common/include ${catkin_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS})
+include_directories(common/include ${catkin_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS} ${eigen_INCLUDE_DIRS})
 
 
 add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp common/src/genericArmCtrl.cpp common/src/RefValJS_PTP.cpp  common/src/RefValJS_PTP_Trajectory.cpp common/src/TimeStamp.cpp)

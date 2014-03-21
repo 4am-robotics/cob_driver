@@ -8,8 +8,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs control_msgs)
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-    DEPENDS roscpp rostest sensor_msgs
-    CATKIN_DEPENDS # TODO
+    CATKIN_DEPENDS roscpp rostest sensor_msgs
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )
