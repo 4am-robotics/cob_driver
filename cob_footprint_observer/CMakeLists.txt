@@ -30,7 +30,6 @@ generate_messages(
 ###################################
 catkin_package( 
     CATKIN_DEPENDS roscpp tf std_msgs geometry_msgs message_runtime
-    INCLUDE_DIRS include
     LIBRARIES # TODO
 )
 

@@ -9,8 +9,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp)
 ###################################
 
 catkin_package(
-    DEPENDS roscpp
-    CATKIN_DEPENDS # TODO
+    CATKIN_DEPENDS roscpp
     INCLUDE_DIRS common/include
     LIBRARIES ${PROJECT_NAME}
 )
@@ -20,6 +19,8 @@ catkin_package(
 ## Build ##
 ###########
 # add include search paths
+include_directories(${catkin_INCLUDE_DIRS})
+
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common/include)
 
 # add project libs
@@ -35,4 +36,9 @@ install(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+
+install(DIRECTORY common/include/
+  DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
 )

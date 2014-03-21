@@ -1,15 +1,29 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_phidgets)
 
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs sensor_msgs libphidgets)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs sensor_msgs libphidgets message_generation)
 
+
+add_message_files(
+  FILES
+  AnalogSensor.msg
+  DigitalSensor.msg
+)
+
+add_service_files(
+  FILES
+  SetDataRate.srv 
+  SetDigitalSensor.srv
+  SetTriggerValue.srv
+)
+
+generate_messages(DEPENDENCIES std_msgs sensor_msgs)
 
 ###################################
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-    DEPENDS roscpp rospy libphidgets std_msgs sensor_msgs
-    CATKIN_DEPENDS # TODO
+    CATKIN_DEPENDS roscpp rospy libphidgets std_msgs sensor_msgs message_runtime
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )

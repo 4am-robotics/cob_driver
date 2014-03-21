@@ -7,8 +7,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp rostest sensor_msgs message_filte
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-    DEPENDS roscpp rostest sensor_msgs message_filters diagnostic_msgs tf tf2_ros laser_geometry
-    CATKIN_DEPENDS # TODO
+    CATKIN_DEPENDS roscpp rostest sensor_msgs message_filters diagnostic_msgs tf tf2_ros laser_geometry
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(cob_base_drive_chain)
 
 
-find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs diagnostic_msgs cob_srvs cob_generic_can cob_canopen_motor cob_utilities libpcan libntcan control_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs geometry_msgs sensor_msgs message_generation diagnostic_msgs cob_srvs cob_generic_can cob_canopen_motor cob_utilities libpcan libntcan control_msgs)
 
 #######################################
 ## Declare ROS messages and services ##
@@ -24,8 +24,7 @@ generate_messages(
 ###################################
 
 catkin_package(
-    DEPENDS roscpp sensor_msgs diagnostic_msgs cob_srvs cob_generic_can cob_canopen_motor cob_utilities libpcan
-    CATKIN_DEPENDS # TODO
+    CATKIN_DEPENDS roscpp control_msgs cob_generic_can cob_canopen_motor cob_utilities libpcan  std_msgs geometry_msgs sensor_msgs diagnostic_msgs cob_srvs message_runtime
     INCLUDE_DIRS common/include
     LIBRARIES ${PROJECT_NAME}
 )
@@ -46,9 +45,8 @@ add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp)
 add_executable(${PROJECT_NAME}_sim_node ros/src/${PROJECT_NAME}.cpp)
 set_target_properties(${PROJECT_NAME}_sim_node PROPERTIES COMPILE_FLAGS "-D__SIM__")
 
-target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME} cob_canopen_motor_harmonica)
-target_link_libraries(${PROJECT_NAME}_sim_node ${PROJECT_NAME} 
-cob_canopen_motor_harmonica)
+target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME}_sim_node ${PROJECT_NAME} )
 
 target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_sim_node ${catkin_LIBRARIES})
@@ -62,6 +60,10 @@ install(TARGETS cob_base_drive_chain_node ${PROJECT_NAME} ${PROJECT_NAME}_sim_no
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY common/include/
+  DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
 )
 
 

@@ -8,8 +8,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs cob_srvs actionlib co
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-    DEPENDS roscpp rostest sensor_msgs cob_srvs actionlib cob_generic_can cob_canopen_motor cob_utilities urdf libntcan diagnostic_msgs control_msgs
-    CATKIN_DEPENDS # TODO
+    CATKIN_DEPENDS roscpp rostest sensor_msgs cob_srvs actionlib cob_generic_can cob_canopen_motor cob_utilities urdf libntcan diagnostic_msgs control_msgs
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )
@@ -34,4 +33,8 @@ install(TARGETS ${PROJECT_NAME}_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(PROGRAMS ros/src/dummy_head.py
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
