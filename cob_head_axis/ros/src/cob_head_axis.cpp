@@ -141,11 +141,12 @@ class NodeClass
 
 	// Constructor
 	NodeClass(std::string name):
-		as_(n_, name, boost::bind(&NodeClass::executeCB, this, _1)),
+		as_(n_, name, boost::bind(&NodeClass::executeCB, this, _1), false),
 		action_name_(name)
 	{
 		n_ = ros::NodeHandle("~");
-	
+	  as_.start();
+
 		isInitialized_ = false;
 		isError_ = false;
 		ActualPos_=0.0;
