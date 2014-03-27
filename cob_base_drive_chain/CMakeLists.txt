@@ -56,18 +56,17 @@ target_link_libraries(${PROJECT_NAME}_sim_node ${catkin_LIBRARIES})
 #############
 
 ## Mark executables and/or libraries for installation
-install(TARGETS cob_base_drive_chain_node ${PROJECT_NAME} ${PROJECT_NAME}_sim_node 
+install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node ${PROJECT_NAME}_sim_node 
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(DIRECTORY common/include/
-  DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
+install(DIRECTORY common/include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
-
 ## Mark lauch files for installation
-install(DIRECTORY ros/launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ros/launch
+install(DIRECTORY ros/launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ros
 )
