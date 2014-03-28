@@ -174,13 +174,14 @@ public:
     }
     void configure(safety_controller_config config) 
     {
-        /* protected region user configure on begin */
-    	if (!flexi_client_->connect(config.host, config.port))
-    	{
-    		exit (EXIT_FAILURE);
-    	}
-    	flexi_client_->start_worker();
-    	flexi_client_->start_worker();
+		/* protected region user configure on begin */
+		if (!flexi_client_->connect(config.host, config.port))
+		{
+			exit (EXIT_FAILURE);
+		}
+		flexi_client_->start_worker();
+		flexi_client_->start_worker();
+		
 		/* protected region user configure end */
     }
     void update(safety_controller_data &data, safety_controller_config config)
