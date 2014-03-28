@@ -28,10 +28,6 @@ catkin_package(
     LIBRARIES # TODO
 )
 
-install(DIRECTORY common/files
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/common
-)
-
 install(DIRECTORY common/include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
