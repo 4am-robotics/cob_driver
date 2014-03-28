@@ -190,16 +190,45 @@ public:
 		
 		flexi_client_->send(flexi_output_msg_); // send initial values
 		/* protected region user configure end */
-    }
-    void update(safety_controller_data &data, safety_controller_config config)
-    {
-        /* protected region user update on begin */
-    	double direction = atan2(data.in_odometry.twist.twist.linear.y, data.in_odometry.twist.twist.linear.x);
-    	double lin_velocity = sqrt(data.in_odometry.twist.twist.linear.y*data.in_odometry.twist.twist.linear.y + data.in_odometry.twist.twist.linear.x*data.in_odometry.twist.twist.linear.x);
-    	//=(D5+F$3)/F$3
-    	//D5=winkel
-    	//F3 = 15deg
-    	// TODO: if lin vel > limit then safety field=far
+	}
+	void update(safety_controller_data &data, safety_controller_config config)
+	{
+		/* protected region user update on begin */
+		double lin_velocity = sqrt(data.in_odometry.twist.twist.linear.y*data.in_odometry.twist.twist.linear.y + data.in_odometry.twist.twist.linear.x*data.in_odometry.twist.twist.linear.x);
+		double rot_velocity = fabs(data.in_odometry.twist.twist.angular.z);
+
+		// reset far flags
+		if(rot_velocity < config.min_rotate_fast){
+			flexi_output_p_->far_front = 0;
+			flexi_output_p_->far_left = 0;
+			flexi_output_p_->far_right = 0;
+		}else{
+			flexi_output_p_->far_front = 1;
+			flexi_output_p_->far_left = 1;
+			flexi_output_p_->far_right = 1;
+		}
+
+		if(lin_velocity < config.drive_slow){ // does not move in linear direction
+			flexi_output_p_->laser_case = 0; // case = rotate
+		}else{
+
+			double direction = atan2(data.in_odometry.twist.twist.linear.y, data.in_odometry.twist.twist.linear.x) /M_PI*180.0 + 7.5; // direction lower bound, aligned to 15 deg
+			if(direction < 0) direction += 360; // enforce [0,360) range
+			flexi_output_p_->laser_case = (int(direction/15) % 24) + 1; // select case  in [1,24]
+
+			// principal directions: front  1, left  9, right  17
+			if( flexi_output_p_->laser_case  < 9 && flexi_output_p_->laser_case > 17){ // drive mode for front
+				flexi_output_p_->far_front = lin_velocity < config.drive_fast  ? 0 : 1;
+			}
+			if( flexi_output_p_->laser_case  > 1 && flexi_output_p_->laser_case < 17){  // drive mode for left
+				flexi_output_p_->far_left = lin_velocity < config.drive_fast  ? 0 : 1;
+			}
+			if( flexi_output_p_->laser_case  > 9){ // drive mode for right
+				flexi_output_p_->far_right = lin_velocity < config.drive_fast  ? 0 : 1;
+			}
+		}
+
+		flexi_client_->send(flexi_output_msg_);
 
 		/* protected region user update end */
     }
