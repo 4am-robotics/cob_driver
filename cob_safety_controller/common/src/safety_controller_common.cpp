@@ -179,7 +179,7 @@ public:
     	//=(D5+F$3)/F$3
     	//D5=winkel
     	//F3 = 15deg
-
+    	// TODO: if lin vel > limit then safety field=far
 
 		/* protected region user update end */
     }
