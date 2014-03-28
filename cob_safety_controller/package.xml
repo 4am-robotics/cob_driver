@@ -19,6 +19,12 @@
   <!-- user dependencies -->
   <build_depend>nav_msgs</build_depend>
   <run_depend>nav_msgs</run_depend>
+  <build_depend>visualization_msgs</build_depend>
+  <run_depend>visualization_msgs</run_depend>
+  <build_depend>cob_srvs</build_depend>
+  <run_depend>cob_srvs</run_depend>
+  <build_depend>sick_flexisoft_client</build_depend>
+  <run_depend>sick_flexisoft_client</run_depend>
 
   <!-- protected region additional manifest statements on begin -->
   <!-- protected region additional manifest statements end -->

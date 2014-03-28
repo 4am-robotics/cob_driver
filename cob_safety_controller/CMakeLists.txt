@@ -8,6 +8,9 @@ find_package(catkin REQUIRED COMPONENTS
 	roscpp
     dynamic_reconfigure 
 	nav_msgs
+	visualization_msgs
+	cob_srvs
+	sick_flexisoft_client
 )
 
 # protected region additional user defined REQUIREMENTS on begin #
@@ -30,6 +33,9 @@ catkin_package(
   	roscpp
     dynamic_reconfigure
 	nav_msgs
+	visualization_msgs
+	cob_srvs
+	sick_flexisoft_client
    
 )
 
