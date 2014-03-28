@@ -6,6 +6,7 @@
 
 /* protected region user include files on begin */
 #include <sick_flexisoft_client/flexiclient.h>
+#include <boost/static_assert.hpp>
 /* protected region user include files end */
 
 class safety_controller_config
@@ -125,6 +126,7 @@ class safety_controller_impl
 	    /*9.6*/ uint8_t:1;
 	    /*9.7*/ uint8_t:1;
 	}  __attribute__ ((__packed__));
+	BOOST_STATIC_ASSERT_MSG(sizeof(FlexiInput) <= sizeof(flexi::FlexiInputData::data), "FlexiInput does not fit into payload");
 
 	struct FlexiOutput{
 	    /*0.0*/ uint8_t laser_case:5;
@@ -141,6 +143,7 @@ class safety_controller_impl
 	    /*1.6*/ uint8_t:1;
 	    /*1.7*/ uint8_t:1;
 	    }  __attribute__ ((__packed__));
+	BOOST_STATIC_ASSERT_MSG(sizeof(FlexiOutput) <= sizeof(flexi::FlexiOutputData::data), "FlexiOutput does not fit into payload");
 
 	boost::scoped_ptr <flexi::FlexiClient> flexi_client_;
 	FlexiInput flexi_input_;
