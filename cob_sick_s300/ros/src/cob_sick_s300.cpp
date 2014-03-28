@@ -106,6 +106,7 @@ class NodeClass
 		ros::Time syncedROSTime;
 		unsigned int syncedSICKStamp;
 		bool syncedTimeReady;
+		bool debug_;
 
 		// Constructor
 		NodeClass()
@@ -136,6 +137,8 @@ class NodeClass
 
 			if (!nh.hasParam("publish_frequency")) ROS_WARN("Used default parameter for publish_frequency");
 			nh.param("publish_frequency", publish_frequency, 12); //Hz
+
+			if(nh.hasParam("debug")) nh.param("debug", debug_, false);
 
 			syncedSICKStamp = 0;
 			syncedROSTime = ros::Time::now();
@@ -301,8 +304,7 @@ int main(int argc, char** argv)
 
 	while (!bOpenScan) {
 	ROS_INFO("Opening scanner... (port:%s)", nodeClass.port.c_str());
-	//bOpenScan = SickS300.open(nodeClass.port.c_str(), iBaudRate, iScanId);
-	bOpenScan = sickS300.open(errors);
+	bOpenScan = sickS300.open(errors, nodeClass.debug_);
 	// check, if it is the first try to open scanner
 	if (!bOpenScan) {
 		ROS_ERROR("...scanner not available on port %s. Will retry every second.", nodeClass.port.c_str());

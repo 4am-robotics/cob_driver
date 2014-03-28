@@ -26,7 +26,7 @@ class SickS300 {
 
     virtual ~SickS300();
 
-    bool open(Errors& error);
+    bool open(Errors& error, const bool debug);
 
     bool close(Errors& error);
 
@@ -49,7 +49,7 @@ class SickS300 {
 
     LaserScannerConfiguration* config;
 
-    bool isConnected;
+    bool isConnected, debug_;
 
     ScannerSickS300* sickS300;
 

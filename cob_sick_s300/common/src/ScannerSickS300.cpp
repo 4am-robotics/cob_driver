@@ -244,7 +244,7 @@ class TelegramParser {
 	TELEGRAM_DISTANCE td_;
 public:
 
-	bool parseHeader(const unsigned char *buffer, const size_t max_size, const uint8_t DEVICE_ADDR)
+	bool parseHeader(const unsigned char *buffer, const size_t max_size, const uint8_t DEVICE_ADDR, const bool debug)
 	{
 		if(sizeof(tc_)>max_size) return false;
 		tc_ = *((TELEGRAM_COMMON*)buffer);
@@ -399,7 +399,7 @@ void ScannerSickS300::stopScanner()
 
 
 //-----------------------------------------------
-bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<double> &vdAngleRAD, std::vector<double> &vdIntensityAU, unsigned int &iTimestamp, unsigned int &iTimeNow)
+bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<double> &vdAngleRAD, std::vector<double> &vdIntensityAU, unsigned int &iTimestamp, unsigned int &iTimeNow, const bool debug)
 {
 	bool bRet = false;
 	int i;
@@ -426,7 +426,7 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 	for(i=iNumRead; i>=0; i--)
 	{
 		// parse through the telegram until header with correct scan id is found
-		if(tp.parseHeader(m_ReadBuf+i, iNumRead-i, m_iScanId))
+		if(tp.parseHeader(m_ReadBuf+i, iNumRead-i, m_iScanId, debug))
 		{
 			tp.readDistRaw(m_ReadBuf+i, m_viScanRaw);
 			if(m_viScanRaw.size()>0) {

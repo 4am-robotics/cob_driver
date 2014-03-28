@@ -10,6 +10,7 @@ SickS300::SickS300() {
   this->isConnected = false;
   this->newDataFlagOne = false;
   this->newDataFlagTwo = false;
+  debug_ = false;
   timestampBufferOne = 0;
   timeNowBufferOne = 0;
   timestampBufferTwo = 0;
@@ -37,7 +38,9 @@ SickS300::~SickS300() {
   // Bouml preserved body end 00020EE7
 }
 
-bool SickS300::open(Errors& error) {
+bool SickS300::open(Errors& error, const bool debug) {
+  debug_ = debug;
+
   // Bouml preserved body begin 00021367
   if (this->isConnected) {
     return true;
@@ -147,7 +150,7 @@ bool SickS300::setConfiguration(const LaserScannerConfiguration& configuration, 
   this->config = new LaserScannerConfiguration;
   *(this->config) = configuration;
 
-  if (!this->open(error)) {
+  if (!this->open(error, debug_)) {
     return false;
   }
 
@@ -158,7 +161,7 @@ bool SickS300::setConfiguration(const LaserScannerConfiguration& configuration, 
 
 bool SickS300::getConfiguration(LaserScannerConfiguration& configuration, Errors& error) {
   // Bouml preserved body begin 000210E7
-  if (!this->open(error)) {
+  if (!this->open(error, debug_)) {
     return false;
   }
   try {
@@ -183,7 +186,7 @@ bool SickS300::getConfiguration(LaserScannerConfiguration& configuration, Errors
 
 bool SickS300::getData(std::vector< double >& ranges_, std::vector< double >& rangeAngles_, std::vector< double >& intensities_, unsigned int& timestamp_, unsigned int& timeNow_, Errors& error) {
 
-  if (!this->open(error)) {
+  if (!this->open(error, debug_)) {
     return false;
   }
   try {
@@ -242,7 +245,7 @@ void SickS300::receiveScan() {
       if (newDataFlagOne == false) {
         {
           boost::mutex::scoped_lock dataMutex1(mutexData1);
-          returnValue = sickS300->getScan(distanceBufferOne, angleBufferOne, intensityBufferOne, timestampBufferOne, timeNowBufferOne);
+          returnValue = sickS300->getScan(distanceBufferOne, angleBufferOne, intensityBufferOne, timestampBufferOne, timeNowBufferOne, debug_);
         }
         if (returnValue) {
           newDataFlagOne = true;
@@ -252,7 +255,7 @@ void SickS300::receiveScan() {
       } else if (newDataFlagTwo == false) {
         {
           boost::mutex::scoped_lock dataMutex2(mutexData2);
-          returnValue = sickS300->getScan(distanceBufferTwo, angleBufferTwo, intensityBufferTwo, timestampBufferTwo, timeNowBufferTwo);
+          returnValue = sickS300->getScan(distanceBufferTwo, angleBufferTwo, intensityBufferTwo, timestampBufferTwo, timeNowBufferTwo, debug_);
         }
         if (returnValue) {
           newDataFlagTwo = true;
