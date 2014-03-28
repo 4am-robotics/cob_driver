@@ -102,20 +102,30 @@ const unsigned short crc_LookUpTable[256]
 class TelegramParser {
 
 	#pragma pack(push,1)
-	union TELEGRAM_COMMON {
+	union TELEGRAM_COMMON1 {
 		struct {
 			uint32_t reply_telegram;
 			uint16_t trigger_result;
 			uint16_t size;
 			uint8_t  coordination_flag;
 			uint8_t  device_addresss;
+		};
+		uint8_t bytes[10];
+	};
+	union TELEGRAM_COMMON2 {
+		struct {
 			uint16_t protocol_version;
 			uint16_t status;
 			uint32_t scan_number;
 			uint16_t telegram_number;
+		};
+		uint8_t bytes[10];
+	};
+	union TELEGRAM_COMMON3 {
+		struct {
 			uint16_t type;
 		};
-		uint8_t bytes[22];
+		uint8_t bytes[2];
 	};
 
 	union TELEGRAM_DISTANCE {
@@ -149,14 +159,20 @@ class TelegramParser {
 	enum TELEGRAM_DIST_SECTOR {_1=0x1111, _2=0x2222, _3=0x3333, _4=0x4444, _5=0x5555};
 
 
-	static void ntoh(TELEGRAM_COMMON &tc) {
+	static void ntoh(TELEGRAM_COMMON1 &tc) {
 		tc.reply_telegram = ntohl(tc.reply_telegram);
 		tc.trigger_result = ntohs(tc.trigger_result);
 		tc.size = ntohs(tc.size);
+	}
+
+	static void ntoh(TELEGRAM_COMMON2 &tc) {
 		tc.protocol_version = ntohs(tc.protocol_version);
 		tc.status = ntohs(tc.status);
 		tc.scan_number = ntohl(tc.scan_number);
 		tc.telegram_number = ntohs(tc.telegram_number);
+	}
+
+	static void ntoh(TELEGRAM_COMMON3 &tc) {
 		tc.type = ntohs(tc.type);
 	}
 
@@ -169,17 +185,23 @@ class TelegramParser {
 		//tc.crc = ntohs(tc.crc);
 	}
 
-	static void print(const TELEGRAM_COMMON &tc) {
+	static void print(const TELEGRAM_COMMON1 &tc) {
 		std::cout<<"HEADER"<<std::endl;
 		std::cout<<"reply_telegram"<<":"<<tc.reply_telegram<<std::endl;
 		std::cout<<"trigger_result"<<":"<<tc.trigger_result<<std::endl;
 		std::cout<<"size"<<":"<<2*tc.size<<std::endl;
 		std::cout<<"coordination_flag"<<":"<< std::hex<<tc.coordination_flag<<std::endl;
 		std::cout<<"device_addresss"<<":"<< std::hex<<tc.device_addresss<<std::endl;
+	}
+
+	static void print(const TELEGRAM_COMMON2 &tc) {
 		std::cout<<"protocol_version"<<":"<< std::hex<<tc.protocol_version<<std::endl;
 		std::cout<<"status"<<":"<<tc.status<<std::endl;
 		std::cout<<"scan_number"<<":"<< std::hex<<tc.scan_number<<std::endl;
 		std::cout<<"telegram_number"<<":"<< std::hex<<tc.telegram_number<<std::endl;
+	}
+
+	static void print(const TELEGRAM_COMMON3 &tc) {
 		std::cout<<"type"<<":"<< std::hex<<tc.type<<std::endl;
 		switch(tc.type) {
 			case IO: std::cout<<"type"<<": "<<"IO"<<std::endl; break;
@@ -226,9 +248,9 @@ class TelegramParser {
 	}
 
 	//supports versions: 0301, 0201
-	static bool check(const TELEGRAM_COMMON &tc, const uint8_t DEVICE_ADDR) {
-		uint8_t TELEGRAM_COMMON_PATTERN_EQ[] = {0,0,0,0, 0,0, 0,0, 0xFF, DEVICE_ADDR, 2, 1};
-		uint8_t TELEGRAM_COMMON_PATTERN_OR[] = {0,0,0,0, 0,0, 0xff,0xff, 0,0, 1, 0};
+	static bool check(const TELEGRAM_COMMON1 &tc, const uint8_t DEVICE_ADDR) {
+		uint8_t TELEGRAM_COMMON_PATTERN_EQ[] = {0,0,0,0, 0,0, 0,0, 0xFF, DEVICE_ADDR/*version, 2, 1*/};
+		uint8_t TELEGRAM_COMMON_PATTERN_OR[] = {0,0,0,0, 0,0, 0xff,0xff, 0,0/*version, 1, 0*/};
 
 		for(size_t i=0; i<sizeof(TELEGRAM_COMMON_PATTERN_EQ); i++) {
 			if(TELEGRAM_COMMON_PATTERN_EQ[i] != (tc.bytes[i]&(~TELEGRAM_COMMON_PATTERN_OR[i])) ) {
@@ -240,35 +262,54 @@ class TelegramParser {
 		return true;
 	}
 
-	TELEGRAM_COMMON tc_;
+	TELEGRAM_COMMON1 tc1_;
+	TELEGRAM_COMMON2 tc2_;
+	TELEGRAM_COMMON3 tc3_;
 	TELEGRAM_DISTANCE td_;
 public:
 
 	bool parseHeader(const unsigned char *buffer, const size_t max_size, const uint8_t DEVICE_ADDR, const bool debug)
 	{
-		if(sizeof(tc_)>max_size) return false;
-		tc_ = *((TELEGRAM_COMMON*)buffer);
+		if(sizeof(tc1_)>max_size) return false;
+		tc1_ = *((TELEGRAM_COMMON1*)buffer);
 
-		if(!check(tc_, DEVICE_ADDR))
+		if(!check(tc1_, DEVICE_ADDR)) {
+			if(debug) std::cout<<"basic check failed"<<std::endl;
 			return false;
-		ntoh(tc_);
-		//print(tc_);
+		}
 
-		if(tc_.size*2+JUNK_SIZE>(int)max_size) {std::cout<<"inv4"<<std::endl;return false;}
+		ntoh(tc1_);
+		if(debug) print(tc1_);
 
-		TELEGRAM_TAIL tt = *((TELEGRAM_TAIL*) (buffer+(2*tc_.size+JUNK_SIZE-sizeof(TELEGRAM_TAIL))) );
+		if(tc1_.size*2+JUNK_SIZE>(int)max_size) {
+			if(debug) std::cout<<"invalid header size"<<std::endl;
+			return false;
+		}
+
+		tc2_ = *((TELEGRAM_COMMON2*)(buffer+sizeof(TELEGRAM_COMMON1)));
+		tc3_ = *((TELEGRAM_COMMON3*)(buffer+(sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2))));
+
+		TELEGRAM_TAIL tt = *((TELEGRAM_TAIL*) (buffer+(2*tc1_.size+JUNK_SIZE-sizeof(TELEGRAM_TAIL)+sizeof(TELEGRAM_COMMON2))) );
 		ntoh(tt);
-		//print(tt);
 
-		if(tt.crc!=createCRC((uint8_t*)buffer+JUNK_SIZE, 2*tc_.size-sizeof(TELEGRAM_TAIL)))
+		if(tt.crc!=createCRC((uint8_t*)buffer+JUNK_SIZE, 2*tc1_.size-sizeof(TELEGRAM_TAIL)+sizeof(TELEGRAM_COMMON2))) {
+			if(debug) {
+				print(tc2_);
+				print(tc3_);
+				print(tt);
+				std::cout<<"invalid CRC"<<std::endl;
+			}
 			return false;
+		}
 
 		memset(&td_, 0, sizeof(td_));
-		switch(tc_.type) {
+		switch(tc3_.type) {
 			case IO: break;
 
 			case DISTANCE:
-				td_ = *((TELEGRAM_DISTANCE*)(buffer+sizeof(tc_)));
+				if(debug) std::cout<<"got distance"<<std::endl;
+
+				td_ = *((TELEGRAM_DISTANCE*)(buffer+sizeof(tc1_)+sizeof(tc2_)+sizeof(tc3_)));
 				ntoh(td_);
 				//print(td_);
 				break;
@@ -280,7 +321,7 @@ public:
 		return true;
 	}
 
-	bool isDist() const {return tc_.type==DISTANCE;}
+	bool isDist() const {return tc3_.type==DISTANCE;}
 	int getField() const {
 		switch(td_.type) {
 			case _1: return 0;
@@ -297,11 +338,11 @@ public:
 		res.clear();
 		if(!isDist()) return;
 
-		size_t num_points = (2*tc_.size - (sizeof(tc_)+sizeof(td_)+sizeof(TELEGRAM_TAIL)-JUNK_SIZE));
+		size_t num_points = (2*tc1_.size - (sizeof(tc1_)+sizeof(tc2_)+sizeof(tc3_)+sizeof(td_)+sizeof(TELEGRAM_TAIL)-JUNK_SIZE));
 		//std::cout<<"num_points: "<<num_points/sizeof(TELEGRAM_S300_DIST_2B)<<std::endl;
 		size_t i=0;
 		for(; i<num_points; ) {
-			TELEGRAM_S300_DIST_2B dist = *((TELEGRAM_S300_DIST_2B*) (buffer+(sizeof(tc_)+sizeof(td_)+i)) );
+			TELEGRAM_S300_DIST_2B dist = *((TELEGRAM_S300_DIST_2B*) (buffer+(sizeof(tc1_)+sizeof(tc2_)+sizeof(tc3_)+sizeof(td_)+i)) );
 			res.push_back((int)dist.distance);
 			i += sizeof(TELEGRAM_S300_DIST_2B);
 		}
