@@ -188,6 +188,7 @@ public:
 		control.set_control(true, false, false,false, 1000); 
 		flexi_client_->send(control);
 		
+		flexi_client_->send(flexi_output_msg_); // send initial values
 		/* protected region user configure end */
     }
     void update(safety_controller_data &data, safety_controller_config config)
