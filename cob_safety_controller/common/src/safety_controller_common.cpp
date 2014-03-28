@@ -148,19 +148,28 @@ class safety_controller_impl
 	boost::scoped_ptr <flexi::FlexiClient> flexi_client_;
 	FlexiInput flexi_input_;
 	boost::mutex flexi_input_mutex_;
-	FlexiOutput flexi_output_;
+	FlexiOutput *flexi_output_p_; // direct access to protocol data
+	flexi::FlexiMsg flexi_output_msg_;
 
 	/* protected region user member variables end */
 
 public:
     safety_controller_impl() 
     {
-        /* protected region user constructor on begin */
-    	flexi_client_.reset(new flexi::FlexiClient(boost::bind(&safety_controller_impl::handle_input, this, _1)));
-    	memset(&flexi_output_, sizeof(flexi_output_), 0);
-    	memset(&flexi_input_, sizeof(flexi_input_), 0);
-    	flexi_output_.enable_base = 1;
-    	flexi_output_.enable_torso = 1;
+		/* protected region user constructor on begin */
+		flexi_client_.reset(new flexi::FlexiClient(boost::bind(&safety_controller_impl::handle_input, this, _1)));
+		memset(&flexi_input_, sizeof(flexi_input_), 0);
+
+		BOOST_STATIC_ASSERT_MSG(sizeof(FlexiOutput) <= 10, "FlexiOutput does not fit into first field with 10 bytes");
+		
+		// set up output message with one field
+		std::vector<uint8_t> output_fields[5] = { std::vector<uint8_t>(sizeof(FlexiOutput)), std::vector<uint8_t>(0), std::vector<uint8_t>(0), std::vector<uint8_t>(0), std::vector<uint8_t>(0) };
+		flexi_output_msg_.set_output(output_fields);
+		
+		flexi_output_p_ = (FlexiOutput*) flexi_output_msg_.payload.output.data; 
+		
+		flexi_output_p_->enable_base = 1;
+		flexi_output_p_->enable_torso = 1;
 		/* protected region user constructor end */
     }
     void configure(safety_controller_config config) 
