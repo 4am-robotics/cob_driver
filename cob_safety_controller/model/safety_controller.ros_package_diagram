@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<notation:Diagram xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:notation="http://www.eclipse.org/gmf/runtime/1.0.2/notation" xmlns:ros="http://ros/1.0" xmi:id="_S4518LZgEeOp79cBnjrHoQ" type="RosPackage" name="safety_controller.ros_package_diagram" measurementUnit="Pixel">
+  <children xmi:type="notation:Shape" xmi:id="_Tnh2gLZgEeOp79cBnjrHoQ" type="2001" fontName="Ubuntu">
+    <children xmi:type="notation:DecorationNode" xmi:id="_TnidkLZgEeOp79cBnjrHoQ" type="5008"/>
+    <children xmi:type="notation:BasicCompartment" xmi:id="_TnidkbZgEeOp79cBnjrHoQ" type="7001">
+      <styles xmi:type="notation:TitleStyle" xmi:id="_TnidkrZgEeOp79cBnjrHoQ" showTitle="true"/>
+      <styles xmi:type="notation:SortingStyle" xmi:id="_Tnidk7ZgEeOp79cBnjrHoQ"/>
+      <styles xmi:type="notation:FilteringStyle" xmi:id="_TnidlLZgEeOp79cBnjrHoQ"/>
+    </children>
+    <element xmi:type="ros:Node" href="safety_controller.ros_package#//@node.0"/>
+    <layoutConstraint xmi:type="notation:Bounds" xmi:id="_Tnh2gbZgEeOp79cBnjrHoQ" x="315" y="148"/>
+  </children>
+  <styles xmi:type="notation:DiagramStyle" xmi:id="_S4518bZgEeOp79cBnjrHoQ"/>
+  <element xmi:type="ros:Package" href="safety_controller.ros_package#/"/>
+</notation:Diagram>
