@@ -28,7 +28,6 @@ add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp)
 # link libraries
 target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME}
   ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
 )
 #Geom Controller for one-wheel-COB3_5
 #add_library(${PROJECT_NAME}_Trike common/src/UndercarriageCtrlGeomTrike.cpp)
