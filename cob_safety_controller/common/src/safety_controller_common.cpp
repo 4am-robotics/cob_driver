@@ -182,6 +182,12 @@ public:
 		flexi_client_->start_worker();
 		flexi_client_->start_worker();
 		
+		BOOST_STATIC_ASSERT_MSG(sizeof(FlexiInput) <= 32, "FlexiInput does not fit into first field with 32 bytes");
+		flexi::FlexiMsg control;
+		// flexisoft should send update each 1000 ms or if set 1 has changed
+		control.set_control(true, false, false,false, 1000); 
+		flexi_client_->send(control);
+		
 		/* protected region user configure end */
     }
     void update(safety_controller_data &data, safety_controller_config config)
