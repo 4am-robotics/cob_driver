@@ -2,6 +2,11 @@
 Changelog for package cob_base_velocity_smoother
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* install tags
+* Contributors: ipa-fxm
+
 0.5.2 (2014-03-20)
 ------------------
 

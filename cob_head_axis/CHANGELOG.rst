@@ -2,6 +2,13 @@
 Changelog for package cob_head_axis
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* install tags
+* cob_head_axis: tabs to spaces
+* cob_head_axis: fix deprecated API in constructor
+* Contributors: ipa-fxm, ipa-mig
+
 0.5.2 (2014-03-20)
 ------------------
 

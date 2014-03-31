@@ -2,6 +2,11 @@
 Changelog for package cob_cam3d_throttle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* install tags
+* Contributors: ipa-fxm
+
 0.5.2 (2014-03-20)
 ------------------
 
