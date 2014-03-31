@@ -36,8 +36,8 @@ install(TARGETS cam3d_throttle
 )
 
 ## Mark cpp header files for installation
-install(DIRECTORY launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+install(DIRECTORY launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 install(FILES

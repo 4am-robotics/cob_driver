@@ -9,7 +9,7 @@
  *
  * Project name: care-o-bot
  * ROS stack name: cob3_driver
- * ROS package name: cob_camera_axis
+ * ROS package name: cob_head_axis
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
@@ -72,7 +72,7 @@
 #include <cob_srvs/SetDefaultVel.h>
 
 // external includes
-#include <cob_camera_axis/ElmoCtrl.h>
+#include <cob_head_axis/ElmoCtrl.h>
 
 #include <unistd.h>
 

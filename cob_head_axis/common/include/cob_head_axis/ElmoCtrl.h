@@ -9,7 +9,7 @@
  *
  * Project name: care-o-bot
  * ROS stack name: cob3_driver
- * ROS package name: cob_camera_axis
+ * ROS package name: cob_head_axis
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *			
