@@ -193,8 +193,8 @@ class TelegramParser {
 
 	//supports versions: 0301, 0201
 	static bool check(const TELEGRAM_COMMON1 &tc, const uint8_t DEVICE_ADDR) {
-		uint8_t TELEGRAM_COMMON_PATTERN_EQ[] = {0,0,0,0, 0,0, 0,0, 0xFF, DEVICE_ADDR/*version, 2, 1*/};
-		uint8_t TELEGRAM_COMMON_PATTERN_OR[] = {0,0,0,0, 0,0, 0xff,0xff, 0,0/*version, 1, 0*/};
+		uint8_t TELEGRAM_COMMON_PATTERN_EQ[] = {0,0,0,0, 0,0, 0,0, 0xFF, 0&DEVICE_ADDR/*version, 2, 1*/};
+		uint8_t TELEGRAM_COMMON_PATTERN_OR[] = {0,0,0,0, 0,0, 0xff,0xff, 0,0xff/*version, 1, 0*/};
 
 		for(size_t i=0; i<sizeof(TELEGRAM_COMMON_PATTERN_EQ); i++) {
 			if(TELEGRAM_COMMON_PATTERN_EQ[i] != (tc.bytes[i]&(~TELEGRAM_COMMON_PATTERN_OR[i])) ) {
