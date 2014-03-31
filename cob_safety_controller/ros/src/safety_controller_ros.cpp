@@ -95,7 +95,7 @@ int main(int argc, char** argv)
     safety_controller_ros node;
     node.configure();
 
-    ros::Rate loop_rate(1/10.0);
+    ros::Rate loop_rate(1/0.1);
 
     while(node.n_.ok())
     {

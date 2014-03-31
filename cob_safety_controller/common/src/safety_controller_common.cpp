@@ -221,7 +221,7 @@ double lin_velocity = sqrt(data.in_odometry.twist.twist.linear.y*data.in_odometr
 			flexi_output_p_->laser_case = (int(direction/15) % 24) + 1; // select case  in [1,24]
 
 			// principal directions: front  1, left  9, right  17
-			if( flexi_output_p_->laser_case  < 9 && flexi_output_p_->laser_case > 17){ // drive mode for front
+			if( flexi_output_p_->laser_case  < 9 || flexi_output_p_->laser_case > 17){ // drive mode for front
 				flexi_output_p_->far_front = lin_velocity < config.threshold_linear_fast  ? 0 : 1;
 			}
 			if( flexi_output_p_->laser_case  > 1 && flexi_output_p_->laser_case < 17){  // drive mode for left

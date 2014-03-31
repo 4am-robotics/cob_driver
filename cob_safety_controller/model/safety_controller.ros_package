@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ros:Package xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ros="http://ros/1.0" name="cob_safety_controller" author="Florian Weisshardt" author_email="fmw@ipa.fhg.de" description="Safety controller for Care-O-bot 4" license="BSD" url="http://wiki.ros.org/cob_safety_controller" rosdep="">
-  <node name="safety_controller" loopRate="10.0">
+  <node name="safety_controller" loopRate="0.1">
     <publisher name="marker" msg="visualization_msgs::MarkerArray"/>
     <publisher name="emergency_stop_state" msg="cob_relayboard::EmergencyStopState"/>
     <subscriber name="odometry" msg="nav_msgs::Odometry"/>
