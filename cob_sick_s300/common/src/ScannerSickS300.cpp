@@ -205,9 +205,6 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 	    //m_actualBufferSize=0;
 	    return false;
 	}
-	
-	//std::cout<<std::endl<<"READ "<<m_actualBufferSize<<" "<<iNumRead2<<std::endl;
-	//for(int i=0; i<1024; i++) std::cout<<std::hex<<(int)m_ReadBuf[i]<<" ";
 
 	m_actualBufferSize = m_actualBufferSize + iNumRead2;
 

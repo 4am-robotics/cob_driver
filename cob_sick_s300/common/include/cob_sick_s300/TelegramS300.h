@@ -268,8 +268,7 @@ public:
 				print(tc2_);
 				print(tc3_);
 				print(tt);
-				std::cout<<"at "<<std::hex<<(2*tc1_.size)<<std::endl;
-				std::cout<<"at "<<std::hex<<(2*tc1_.size+JUNK_SIZE-sizeof(TELEGRAM_TAIL)+sizeof(TELEGRAM_COMMON2)+last_offset_+1090)<<std::endl;
+				std::cout<<"at "<<std::hex<<(2*tc1_.size+JUNK_SIZE-sizeof(TELEGRAM_TAIL)+sizeof(TELEGRAM_COMMON2)+last_offset_)<<std::endl;
 				std::cout<<"invalid CRC: "<<crc<<" ("<<tt.crc<<")"<<std::endl;
 			}
 			return false;
