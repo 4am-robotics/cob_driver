@@ -108,10 +108,10 @@ class NodeClass
 		bool syncedTimeReady;
 		bool debug_;
 		ScannerSickS300 scanner_;
-		ros::Rate loop_rate_;
+		ros::Time loop_rate_;
 
 		// Constructor
-		NodeClass() : loop_rate_(1)
+		NodeClass() 
 		{
 			// create a handle for this node, initialize node
 			nh = ros::NodeHandle("~");
@@ -196,7 +196,7 @@ class NodeClass
 			topicPub_LaserScan = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
 			topicPub_Diagnostic_ = nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 
-			loop_rate_ = ros::Rate(publish_frequency); // Hz
+			loop_rate_ = ros::Time::now(); // Hz
 		}
 
 		bool open() {
@@ -218,10 +218,10 @@ class NodeClass
 		// other function declarations
 		void publishLaserScan(std::vector<double> vdDistM, std::vector<double> vdAngRAD, std::vector<double> vdIntensAU, unsigned int iSickTimeStamp, unsigned int iSickNow)
 		{
-			if(loop_rate_.cycleTime()<ros::Duration(1./publish_frequency))
+			if(ros::Time::now()-loop_rate_.now()>=ros::Duration(1./publish_frequency))
 				return;
-			loop_rate_.reset();
-
+			loop_rate_ = ros::Time::now();
+			
 			// fill message
 			int start_scan, stop_scan;
 			int num_readings = vdDistM.size(); // initialize with max scan size
