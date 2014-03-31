@@ -115,19 +115,10 @@ unsigned int TelegramParser::createCRC(uint8_t *ptrData, int Size)
 //-----------------------------------------------
 ScannerSickS300::ScannerSickS300()
 {
-	m_Param.iDataLength = 1104;
-	m_Param.iHeaderLength = 24;
-	// scanner has a half degree resolution and a VoW of 270 degrees
-	m_Param.iNumScanPoints = 541;
-	m_Param.dScale = 0.01;
-	m_Param.dStartAngle = -135.0/180.0*c_dPi;
-	m_Param.dStopAngle = 135.0/180.0*c_dPi;
-
 	// allows to set different Baud-Multipliers depending on used SerialIO-Card
 	m_dBaudMult = 1.0;
 
 	// init scan with zeros
-	m_viScanRaw.assign(541, 0);
 	m_iPosReadBuf2 = 0;
 	
 	m_actualBufferSize = 0;
@@ -208,42 +199,33 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 	int iNumRead = 0;
 	int iNumRead2 = 0;
 	std::vector<ScanPolarType> vecScanPolar;
-	vecScanPolar.resize(m_Param.iNumScanPoints);
 
 	iNumRead2 = m_SerialIO.readNonBlocking((char*)m_ReadBuf+m_actualBufferSize, SCANNER_S300_READ_BUF_SIZE-2-m_actualBufferSize);
 
 	iNumRead = m_actualBufferSize + iNumRead2;
 	m_actualBufferSize = m_actualBufferSize + iNumRead2;
 
-	if( iNumRead < m_Param.iDataLength )
-	{
-		// not enough data in queue --> abort reading
-	  //	printf("Not enough data in queue, read data at slower rate!\n");
-		return false;
-	}
-	
-	TelegramParser tp;
-
 	// Try to find scan. Searching backwards in the receive queue.
 	for(i=iNumRead; i>=0; i--)
 	{
 		// parse through the telegram until header with correct scan id is found
-		if(tp.parseHeader(m_ReadBuf+i, iNumRead-i, m_iScanId, debug))
+		if(tp_.parseHeader(m_ReadBuf+i, iNumRead-i, m_iScanId, debug))
 		{
-			tp.readDistRaw(m_ReadBuf+i, m_viScanRaw);
+			tp_.readDistRaw(m_ReadBuf+i, m_viScanRaw);
 			if(m_viScanRaw.size()>0) {
 				// Scan was succesfully read from buffer
 				bRet = true;
-				m_actualBufferSize = 0;
+				m_actualBufferSize -= tp_.getCompletePacketSize();
 				break;
 			}
 		}
 	}
 	
-	if(bRet)
+	PARAM_MAP::const_iterator param = m_Params.find(tp_.getField());
+	if(bRet && param!=m_Params.end())
 	{
 		// convert data into range and intensity information
-		convertScanToPolar(m_viScanRaw, vecScanPolar);
+		convertScanToPolar(param, m_viScanRaw, vecScanPolar);
 
 		// resize vectors to size of Scan
 		vdDistanceM.resize(vecScanPolar.size());
@@ -262,20 +244,21 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 }
 
 //-------------------------------------------
-void ScannerSickS300::convertScanToPolar(std::vector<int> viScanRaw,
+void ScannerSickS300::convertScanToPolar(const PARAM_MAP::const_iterator param, std::vector<int> viScanRaw,
 							std::vector<ScanPolarType>& vecScanPolar )
 {	
 	double dDist;
 	double dAngle, dAngleStep;
 	double dIntens;
 
-	dAngleStep = fabs(m_Param.dStopAngle - m_Param.dStartAngle) / double(m_Param.iNumScanPoints - 1) ;
+	vecScanPolar.resize(viScanRaw.size());
+	dAngleStep = fabs(param->second.dStopAngle - param->second.dStartAngle) / double(viScanRaw.size() - 1) ;
 	
-	for(int i=0; i<m_Param.iNumScanPoints; i++)
+	for(size_t i=0; i<viScanRaw.size(); i++)
 	{
-		dDist = double ((viScanRaw[i] & 0x1FFF) * m_Param.dScale);
+		dDist = double ((viScanRaw[i] & 0x1FFF) * param->second.dScale);
 
-		dAngle = m_Param.dStartAngle + i*dAngleStep;
+		dAngle = param->second.dStartAngle + i*dAngleStep;
 		dIntens = double(viScanRaw[i] & 0x2000);
 
 		vecScanPolar[i].dr = dDist;

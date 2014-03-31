@@ -108,9 +108,7 @@ public:
 	// set of parameters which are specific to the SickS300
 	struct ParamType
 	{
-		int iDataLength;	// length of data telegram
-		int iHeaderLength;	// length of telegram header
-		int iNumScanPoints;	// number of measurements in the scan
+		int range_field; //measurement range (1 to 5) --> usually 1 (default)
 		double dScale;		// scaling of the scan (multiply with to get scan in meters)
 		double dStartAngle;	// scan start angle
 		double dStopAngle;	// scan stop angle
@@ -144,7 +142,6 @@ public:
 	 * @param iScanId the scanner id in the data header (7 by default)
 	 */
 	bool open(const char* pcPort, int iBaudRate, int iScanId);
-	//bool open(char* pcPort, int iBaudRate);
 
 	// not implemented
 	void resetStartup();
@@ -160,13 +157,16 @@ public:
 
 	bool getScan(std::vector<double> &vdDistanceM, std::vector<double> &vdAngleRAD, std::vector<double> &vdIntensityAU, unsigned int &iTimestamp, unsigned int &iTimeNow, const bool debug);
 
+	void setRangeField(const int field, const ParamType &param) {m_Params[field] = param;}
+
 private:
 
 	// Constants
 	static const double c_dPi;
 
 	// Parameters
-	ParamType m_Param;
+	typedef std::map<int, ParamType> PARAM_MAP;
+	PARAM_MAP m_Params;
 	double m_dBaudMult;
 
 	// Variables
@@ -180,9 +180,10 @@ private:
 
 	// Components
 	SerialIO m_SerialIO;
+	TelegramParser tp_;
 
 	// Functions
-	void convertScanToPolar(std::vector<int> viScanRaw,
+	void convertScanToPolar(const PARAM_MAP::const_iterator param, std::vector<int> viScanRaw,
 							std::vector<ScanPolarType>& vecScanPolar);
 
 };
