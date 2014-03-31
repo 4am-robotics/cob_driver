@@ -202,7 +202,7 @@ double lin_velocity = sqrt(data.in_odometry.twist.twist.linear.y*data.in_odometr
 		double rot_velocity = fabs(data.in_odometry.twist.twist.angular.z);
 
 		// reset far flags
-		if(rot_velocity < config.min_rotate_fast){
+		if(rot_velocity < config.threshold_angular_fast){
 			flexi_output_p_->far_front = 0;
 			flexi_output_p_->far_left = 0;
 			flexi_output_p_->far_right = 0;
@@ -212,7 +212,7 @@ double lin_velocity = sqrt(data.in_odometry.twist.twist.linear.y*data.in_odometr
 			flexi_output_p_->far_right = 1;
 		}
 
-		if(lin_velocity < config.drive_slow){ // does not move in linear direction
+		if(lin_velocity < config.threshold_linear_slow){ // does not move in linear direction
 			flexi_output_p_->laser_case = 0; // case = rotate
 		}else{
 
@@ -222,13 +222,13 @@ double lin_velocity = sqrt(data.in_odometry.twist.twist.linear.y*data.in_odometr
 
 			// principal directions: front  1, left  9, right  17
 			if( flexi_output_p_->laser_case  < 9 && flexi_output_p_->laser_case > 17){ // drive mode for front
-				flexi_output_p_->far_front = lin_velocity < config.drive_fast  ? 0 : 1;
+				flexi_output_p_->far_front = lin_velocity < config.threshold_linear_fast  ? 0 : 1;
 			}
 			if( flexi_output_p_->laser_case  > 1 && flexi_output_p_->laser_case < 17){  // drive mode for left
-				flexi_output_p_->far_left = lin_velocity < config.drive_fast  ? 0 : 1;
+				flexi_output_p_->far_left = lin_velocity < config.threshold_linear_fast  ? 0 : 1;
 			}
 			if( flexi_output_p_->laser_case  > 9){ // drive mode for right
-				flexi_output_p_->far_right = lin_velocity < config.drive_fast  ? 0 : 1;
+				flexi_output_p_->far_right = lin_velocity < config.threshold_linear_fast  ? 0 : 1;
 			}
 		}
 
