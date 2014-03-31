@@ -14,6 +14,9 @@ class safety_controller_config
 public:
     std::string port;
     std::string host;
+    double threshold_linear_slow;
+    double threshold_linear_fast;
+    double threshold_angular_fast;
 };
 
 class safety_controller_data

@@ -45,6 +45,9 @@ class safety_controller_ros
 
         n_.param("port", component_config_.port, (std::string)"empty");
         n_.param("host", component_config_.host, (std::string)"empty");
+        n_.param("threshold_linear_slow", component_config_.threshold_linear_slow, (double)0.0);
+        n_.param("threshold_linear_fast", component_config_.threshold_linear_fast, (double)0.0);
+        n_.param("threshold_angular_fast", component_config_.threshold_angular_fast, (double)0.0);
         }
 
 
@@ -57,6 +60,9 @@ class safety_controller_ros
     {
         component_config_.port = config.port;
         component_config_.host = config.host;
+        component_config_.threshold_linear_slow = config.threshold_linear_slow;
+        component_config_.threshold_linear_fast = config.threshold_linear_fast;
+        component_config_.threshold_angular_fast = config.threshold_angular_fast;
     }
 
     void configure()

@@ -7,6 +7,9 @@
     <serviceServer name="set_mode" msg="cob_srvs::SetInt"/>
     <parameter name="port" value="empty" type="string"/>
     <parameter name="host" value="empty" type="string"/>
+    <parameter name="threshold_linear_slow" value="0.0" type="double"/>
+    <parameter name="threshold_linear_fast" value="0.0" type="double"/>
+    <parameter name="threshold_angular_fast" value="0.0" type="double"/>
   </node>
   <depend>nav_msgs</depend>
   <depend>visualization_msgs</depend>

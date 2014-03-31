@@ -11,6 +11,18 @@
         <element xmi:type="ros:Parameter" href="safety_controller.ros_package#//@node.0/@parameter.1"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_5yV6AbaHEeO2hqSFKGw_SA"/>
       </children>
+      <children xmi:type="notation:Node" xmi:id="_A2fR0LivEeOaINRY9-B0Xw" type="3001">
+        <element xmi:type="ros:Parameter" href="safety_controller.ros_package#//@node.0/@parameter.2"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_A2fR0bivEeOaINRY9-B0Xw"/>
+      </children>
+      <children xmi:type="notation:Node" xmi:id="_HqDQULivEeOaINRY9-B0Xw" type="3001">
+        <element xmi:type="ros:Parameter" href="safety_controller.ros_package#//@node.0/@parameter.3"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_HqDQUbivEeOaINRY9-B0Xw"/>
+      </children>
+      <children xmi:type="notation:Node" xmi:id="_N0EikLivEeOaINRY9-B0Xw" type="3001">
+        <element xmi:type="ros:Parameter" href="safety_controller.ros_package#//@node.0/@parameter.4"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_N0EikbivEeOaINRY9-B0Xw"/>
+      </children>
       <styles xmi:type="notation:TitleStyle" xmi:id="_TnidkrZgEeOp79cBnjrHoQ" showTitle="true"/>
       <styles xmi:type="notation:SortingStyle" xmi:id="_Tnidk7ZgEeOp79cBnjrHoQ"/>
       <styles xmi:type="notation:FilteringStyle" xmi:id="_TnidlLZgEeOp79cBnjrHoQ"/>
