@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <package>
   <name>cob_safety_controller</name>
   <description>Safety controller for Care-O-bot 4</description>

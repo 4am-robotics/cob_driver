@@ -22,7 +22,6 @@ class safety_controller_data
 public:
     //input data
     nav_msgs::Odometry in_odometry;
-	
     //output data
     visualization_msgs::MarkerArray out_marker;
     bool out_marker_active;

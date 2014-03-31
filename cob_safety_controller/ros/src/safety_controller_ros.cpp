@@ -20,7 +20,7 @@ class safety_controller_ros
 
     dynamic_reconfigure::Server<cob_safety_controller::safety_controllerConfig> server;
     dynamic_reconfigure::Server<cob_safety_controller::safety_controllerConfig>::CallbackType f;
-	
+
     ros::Publisher marker_;
     ros::Publisher emergency_stop_state_;
     ros::Subscriber odometry_;
@@ -53,7 +53,7 @@ class safety_controller_ros
         component_data_.in_odometry = *msg;
     }
 
-    void configure_callback(cob_safety_controller::safety_controllerConfig &config, uint32_t level) 
+    void configure_callback(cob_safety_controller::safety_controllerConfig &config, uint32_t level)
     {
         component_config_.port = config.port;
         component_config_.host = config.host;
@@ -89,7 +89,7 @@ int main(int argc, char** argv)
     safety_controller_ros node;
     node.configure();
 
-    ros::Rate loop_rate(1/10.0); // Hz
+    ros::Rate loop_rate(1/10.0);
 
     while(node.n_.ok())
     {
@@ -97,6 +97,6 @@ int main(int argc, char** argv)
         loop_rate.sleep();
         ros::spinOnce();
     }
-	
+
     return 0;
 }
