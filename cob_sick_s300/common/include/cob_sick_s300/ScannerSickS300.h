@@ -58,11 +58,13 @@
 // base classes
 #include <string>
 #include <vector>
+#include <map>
 #include <iostream>
 #include <math.h>
 #include <stdio.h>
 
 #include <cob_sick_s300/SerialIO.h>
+#include <cob_sick_s300/TelegramS300.h>
 
 /** 
  * Driver class for the laser scanner SICK S300 Professional.
