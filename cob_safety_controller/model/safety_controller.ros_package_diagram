@@ -37,6 +37,13 @@
       <element xmi:type="ros:ServiceServer" href="safety_controller.ros_package#//@node.0/@serviceServer.0"/>
       <layoutConstraint xmi:type="notation:Bounds" xmi:id="_ARJQ1LaFEeO2hqSFKGw_SA"/>
     </children>
+    <children xmi:type="notation:Node" xmi:id="_bHxG4LinEeO2hqSFKGw_SA" type="3004">
+      <children xmi:type="notation:DecorationNode" xmi:id="_bHxt8LinEeO2hqSFKGw_SA" type="5004"/>
+      <styles xmi:type="notation:DescriptionStyle" xmi:id="_bHxG4binEeO2hqSFKGw_SA"/>
+      <styles xmi:type="notation:FontStyle" xmi:id="_bHxG4rinEeO2hqSFKGw_SA" fontName="Ubuntu"/>
+      <element xmi:type="ros:Publisher" href="safety_controller.ros_package#//@node.0/@publisher.1"/>
+      <layoutConstraint xmi:type="notation:Bounds" xmi:id="_bHxG47inEeO2hqSFKGw_SA"/>
+    </children>
     <element xmi:type="ros:Node" href="safety_controller.ros_package#//@node.0"/>
     <layoutConstraint xmi:type="notation:Bounds" xmi:id="_Tnh2gbZgEeOp79cBnjrHoQ" x="315" y="148"/>
   </children>

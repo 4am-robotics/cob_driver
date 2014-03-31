@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
 	visualization_msgs
 	cob_srvs
 	sick_flexisoft_client
+	cob_relayboard
 )
 
 # protected region additional user defined REQUIREMENTS on begin #
@@ -36,6 +37,7 @@ catkin_package(
 	visualization_msgs
 	cob_srvs
 	sick_flexisoft_client
+	cob_relayboard
    
 )
 
