@@ -29,6 +29,6 @@ install(TARGETS lms1xx lms1xx_test lms100 set_config
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(DIRECTORY common/include
+install(DIRECTORY common/include/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )

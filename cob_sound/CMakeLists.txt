@@ -49,7 +49,10 @@ install(TARGETS sound
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-## Mark cpp header files for installation
+install(PROGRAMS ros/src/test_client.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/ros/src
+)
+
 install(DIRECTORY ros/launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ros/launch
 )

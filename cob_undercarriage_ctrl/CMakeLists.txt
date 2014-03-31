@@ -28,7 +28,6 @@ add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp)
 # link libraries
 target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME}
   ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
 )
 #Geom Controller for one-wheel-COB3_5
 #add_library(${PROJECT_NAME}_Trike common/src/UndercarriageCtrlGeomTrike.cpp)
@@ -45,6 +44,10 @@ install(TARGETS ${PROJECT_NAME}_node ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY common/include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
 ## Mark cpp header files for installation
