@@ -196,20 +196,26 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 {
 	bool bRet = false;
 	int i;
-	int iNumRead = 0;
 	int iNumRead2 = 0;
 	std::vector<ScanPolarType> vecScanPolar;
 
-	iNumRead2 = m_SerialIO.readBlocking((char*)m_ReadBuf+m_actualBufferSize, SCANNER_S300_READ_BUF_SIZE-2-m_actualBufferSize);
+	iNumRead2 = m_SerialIO.readNonBlocking((char*)m_ReadBuf+m_actualBufferSize, SCANNER_S300_READ_BUF_SIZE-2-m_actualBufferSize);
+	if(iNumRead2==0) return false;
+	else if(iNumRead2<0) {
+	    //m_actualBufferSize=0;
+	    return false;
+	}
+	
+	//std::cout<<std::endl<<"READ "<<m_actualBufferSize<<" "<<iNumRead2<<std::endl;
+	//for(int i=0; i<1024; i++) std::cout<<std::hex<<(int)m_ReadBuf[i]<<" ";
 
-	iNumRead = m_actualBufferSize + iNumRead2;
 	m_actualBufferSize = m_actualBufferSize + iNumRead2;
 
 	// Try to find scan. Searching backwards in the receive queue.
-	for(i=iNumRead; i>=0; i--)
+	for(i=m_actualBufferSize; i>=0; i--)
 	{
 		// parse through the telegram until header with correct scan id is found
-		if(tp_.parseHeader(m_ReadBuf+i, iNumRead-i, m_iScanId, debug))
+		if(tp_.parseHeader(m_ReadBuf+i, m_actualBufferSize-i, m_iScanId, debug))
 		{
 			tp_.readDistRaw(m_ReadBuf+i, m_viScanRaw);
 			if(m_viScanRaw.size()>0) {
