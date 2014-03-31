@@ -37,97 +37,69 @@ class safety_controller_impl
 {
     /* protected region user member variables on begin */
 	struct FlexiInput{
-	    /*0.0*/ uint8_t:1;
-	    /*0.1*/ uint8_t:1;
-	    /*0.2*/ uint8_t :1;
+	    /*0.0*/ uint8_t gateway_not_connected:1;
+	    /*0.1*/ uint8_t laser_stop_ok:1;
+	    /*0.2*/ uint8_t edm_error_base:1;
 	    /*0.3*/ uint8_t:1;
 	    /*0.4*/ uint8_t:1;
 	    /*0.5*/ uint8_t:1;
-	    /*0.6*/ uint8_t em_stop_ur10_ok:1;
+	    /*0.6*/ uint8_t:1;
 	    /*0.7*/ uint8_t:1;
 
-	    /*1.0*/ uint8_t ext_permission:1;
-	    /*1.1*/ uint8_t:1;
-	    /*1.2*/ uint8_t enabling_switch_pressed:1;
-	    /*1.3*/ uint8_t:1;
-	    /*1.4*/ uint8_t:1;
-	    /*1.5*/ uint8_t:1;
-	    /*1.6*/ uint8_t manual_mode:1;
-	    /*1.7*/ uint8_t:1;
+	    /*1.0 to 3.7*/ uint8_t _bytes_1_to_3[3-1+1];
 
-	    /*2.0*/ uint8_t base_active:1;
-	    /*2.1*/ uint8_t lift_active:1;
-	    /*2.2*/ uint8_t arm_active:1;
-	    /*2.3*/ uint8_t em_can_recover:1;
-	    /*2.4*/ uint8_t em_stop_ok:1;
-	    /*2.5*/ uint8_t hardware_stop_ok:1;
-	    /*2.6*/ uint8_t laser_stop_ok:1;
-	    /*2.7*/ uint8_t unlocked:1;
-
-	    /*3.0*/ uint8_t connection_ok:1;
-	    /*3.1*/ uint8_t arm_locked:1;
-	    /*3.2*/ uint8_t edm_err_base:1;
-	    /*3.3*/ uint8_t edm_err_lift:1;
-	    /*3.4*/ uint8_t edm_err_arm:1;
-	    /*3.5*/ uint8_t software_stop_ok:1;
-	    /*3.6*/ uint8_t arm_in_laser:1;
-	    /*3.7*/ uint8_t :1;
-
-	    /*4.0*/ uint8_t xtio1_input_ok:1;
-	    /*4.1*/ uint8_t xtio2_input_ok:1;
+	    /*4.0*/ uint8_t external_stop_ok:1;
+	    /*4.1*/ uint8_t:1;
 	    /*4.2*/ uint8_t:1;
 	    /*4.3*/ uint8_t:1;
-	    /*4.4*/ uint8_t:1;
+	    /*4.4*/ uint8_t edm_base:1;
 	    /*4.5*/ uint8_t:1;
 	    /*4.6*/ uint8_t:1;
-	    /*4.7*/ uint8_t:1;
+	    /*4.7*/ uint8_t wireless_emstop_ok:1;
 
-	    /*5.0*/ uint8_t:1;
-	    /*5.1*/ uint8_t:1;
-	    /*5.2*/ uint8_t:1;
-	    /*5.3*/ uint8_t:1;
-	    /*5.4*/ uint8_t gateway_input_ok:1;
-	    /*5.5*/ uint8_t:1;
-	    /*5.6*/ uint8_t:1;
-	    /*5.7*/ uint8_t:1;
+	    /*5.0 to 15.7*/ uint8_t _bytes_5_to_15[15-5+1];
 
-	    /*6.0*/ uint8_t xtio1_output_ok:1;
-	    /*6.1*/ uint8_t xtio2_output_ok:1;
-	    /*6.2*/ uint8_t:1;
-	    /*6.3*/ uint8_t:1;
-	    /*6.4*/ uint8_t:1;
-	    /*6.5*/ uint8_t:1;
-	    /*6.6*/ uint8_t:1;
-	    /*6.7*/ uint8_t:1;
+	    /*16.0*/ uint8_t base_active:1;
+	    /*16.1*/ uint8_t:1;
+	    /*16.2*/ uint8_t torso_active:1;
+	    /*16.3*/ uint8_t:1;
+	    /*16.4*/ uint8_t:1;
+	    /*16.5*/ uint8_t:1;
+	    /*16.6*/ uint8_t:1;
+	    /*16.7*/ uint8_t:1;
 
-	    /*7.0*/ uint8_t:1;
-	    /*7.1*/ uint8_t:1;
-	    /*7.2*/ uint8_t:1;
-	    /*7.3*/ uint8_t:1;
-	    /*7.4*/ uint8_t gateway_output_ok:1;
-	    /*7.5*/ uint8_t:1;
-	    /*7.6*/ uint8_t:1;
-	    /*7.7*/ uint8_t:1;
+	    /*17.0 to 27.7*/ uint8_t _bytes_17_to_27[27-17+1];
 
-	    /*8.0*/ uint8_t:1;
-	    /*8.1*/ uint8_t:1;
-	    /*8.2*/ uint8_t:1;
-	    /*8.3*/ uint8_t:1;
-	    /*8.4*/ uint8_t laser_front_ok:1;
-	    /*8.5*/ uint8_t:1;
-	    /*8.6*/ uint8_t:1;
-	    /*8.7*/ uint8_t:1;
+	    /*28.0*/ uint8_t:1;
+	    /*28.1*/ uint8_t:1;
+	    /*28.2*/ uint8_t:1;
+	    /*28.3*/ uint8_t:1;
+	    /*28.4*/ uint8_t front_1_blocked:1;
+	    /*28.5*/ uint8_t front_2_blocked:1;
+	    /*28.6*/ uint8_t:1;
+	    /*28.7*/ uint8_t front_3_blocked:1;
 
-	    /*9.0*/ uint8_t:1;
-	    /*9.1*/ uint8_t:1;
-	    /*9.2*/ uint8_t:1;
-	    /*9.3*/ uint8_t:1;
-	    /*9.4*/ uint8_t laser_rear_ok:1;
-	    /*9.5*/ uint8_t:1;
-	    /*9.6*/ uint8_t:1;
-	    /*9.7*/ uint8_t:1;
+	    /*29.0*/ uint8_t:1;
+	    /*29.1*/ uint8_t:1;
+	    /*29.2*/ uint8_t:1;
+	    /*29.3*/ uint8_t:1;
+	    /*29.4*/ uint8_t left_1_blocked:1;
+	    /*29.5*/ uint8_t left_2_blocked:1;
+	    /*29.6*/ uint8_t:1;
+	    /*29.7*/ uint8_t left_3_blocked:1;
+
+	    /*30.0*/ uint8_t:1;
+	    /*30.1*/ uint8_t:1;
+	    /*30.2*/ uint8_t:1;
+	    /*30.3*/ uint8_t:1;
+	    /*30.4*/ uint8_t right_1_blocked:1;
+	    /*30.5*/ uint8_t right_2_blocked:1;
+	    /*30.6*/ uint8_t:1;
+	    /*30.7*/ uint8_t right_3_blocked:1;
+
 	}  __attribute__ ((__packed__));
 	BOOST_STATIC_ASSERT_MSG(sizeof(FlexiInput) <= sizeof(flexi::FlexiInputData::data), "FlexiInput does not fit into payload");
+	BOOST_STATIC_ASSERT_MSG(sizeof(FlexiInput) == 31, "FlexiIntput is not 31 bytes");
 
 	struct FlexiOutput{
 	    /*0.0*/ uint8_t laser_case:5;
@@ -135,8 +107,7 @@ class safety_controller_impl
 	    /*0.6*/ uint8_t far_left:1;
 	    /*0.7*/ uint8_t far_right:1;
 
-	    /*1.0*/ uint8_t enable_base:1;
-	    /*1.1*/ uint8_t enable_torso:1;
+	    /*1.0 to 1.1*/ uint8_t enable_components:2; // base: bit 0, torso: bit 1
 	    /*1.2*/ uint8_t:1;
 	    /*1.3*/ uint8_t:1;
 	    /*1.4*/ uint8_t:1;
@@ -162,15 +133,14 @@ public:
 		memset(&flexi_input_, sizeof(flexi_input_), 0);
 
 		BOOST_STATIC_ASSERT_MSG(sizeof(FlexiOutput) <= 10, "FlexiOutput does not fit into first field with 10 bytes");
-		
+
 		// set up output message with one field
 		std::vector<uint8_t> output_fields[5] = { std::vector<uint8_t>(sizeof(FlexiOutput)), std::vector<uint8_t>(0), std::vector<uint8_t>(0), std::vector<uint8_t>(0), std::vector<uint8_t>(0) };
 		flexi_output_msg_.set_output(output_fields);
 		
 		flexi_output_p_ = (FlexiOutput*) flexi_output_msg_.payload.output.data; 
 		
-		flexi_output_p_->enable_base = 1;
-		flexi_output_p_->enable_torso = 1;
+		flexi_output_p_->enable_components = 3; // base and torso enabled
 		/* protected region user constructor end */
     }
 
@@ -222,17 +192,27 @@ double lin_velocity = sqrt(data.in_odometry.twist.twist.linear.y*data.in_odometr
 
 			// principal directions: front  1, left  9, right  17
 			if( flexi_output_p_->laser_case  < 9 || flexi_output_p_->laser_case > 17){ // drive mode for front
-				flexi_output_p_->far_front = lin_velocity < config.threshold_linear_fast  ? 0 : 1;
+				flexi_output_p_->far_front = lin_velocity < config.threshold_linear_fast ? 0 : 1;
 			}
 			if( flexi_output_p_->laser_case  > 1 && flexi_output_p_->laser_case < 17){  // drive mode for left
-				flexi_output_p_->far_left = lin_velocity < config.threshold_linear_fast  ? 0 : 1;
+				flexi_output_p_->far_left = lin_velocity < config.threshold_linear_fast ? 0 : 1;
 			}
 			if( flexi_output_p_->laser_case  > 9){ // drive mode for right
-				flexi_output_p_->far_right = lin_velocity < config.threshold_linear_fast  ? 0 : 1;
+				flexi_output_p_->far_right = lin_velocity < config.threshold_linear_fast ? 0 : 1;
 			}
 		}
 
 		flexi_client_->send(flexi_output_msg_);
+
+		// set emergency information
+		data.out_emergency_stop_state.emergency_button_stop = !flexi_input_.external_stop_ok || !flexi_input_.wireless_emstop_ok;
+		data.out_emergency_stop_state.scanner_stop = !flexi_input_.laser_stop_ok;
+		if (!data.out_emergency_stop_state.emergency_button_stop && !data.out_emergency_stop_state.scanner_stop)
+			data.out_emergency_stop_state.emergency_state = data.out_emergency_stop_state.EMFREE;
+		else
+			data.out_emergency_stop_state.emergency_state = data.out_emergency_stop_state.EMSTOP;
+
+		// TODO add marker
 
 		/* protected region user update end */
     }
@@ -240,6 +220,17 @@ double lin_velocity = sqrt(data.in_odometry.twist.twist.linear.y*data.in_odometr
     bool callback_set_mode(cob_srvs::SetInt::Request  &req, cob_srvs::SetInt::Response &res , safety_controller_config config)
     {
         /* protected region user implementation of service callback for set_mode on begin */
+    	switch (req.data){
+    	case 0:
+    	case 1:
+    	case 2:
+    	case 3:
+    		flexi_output_p_->enable_components = req.data;
+    		res.success = true;
+    		break;
+    	default:
+    		res.success = false;
+    	}
 		/* protected region user implementation of service callback for set_mode end */
         return true;
     }
