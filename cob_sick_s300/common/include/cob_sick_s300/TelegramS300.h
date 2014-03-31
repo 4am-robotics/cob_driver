@@ -147,7 +147,7 @@ class TelegramParser {
 		std::cout<<"trigger_result"<<":"<<tc.trigger_result<<std::endl;
 		std::cout<<"size"<<":"<<2*tc.size<<std::endl;
 		std::cout<<"coordination_flag"<<":"<< std::hex<<tc.coordination_flag<<std::endl;
-		std::cout<<"device_addresss"<<":"<< std::hex<<tc.device_addresss<<std::endl;
+		std::cout<<"device_addresss"<<":"<< std::hex<<(int)tc.device_addresss<<std::endl;
 	}
 
 	static void print(const TELEGRAM_COMMON2 &tc) {
