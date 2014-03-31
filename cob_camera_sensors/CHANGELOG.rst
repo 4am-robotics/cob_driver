@@ -2,8 +2,8 @@
 Changelog for package cob_camera_sensors
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.3 (2014-03-31)
+------------------
 * removed obsolete files
 * install tags
 * Contributors: ipa-fxm

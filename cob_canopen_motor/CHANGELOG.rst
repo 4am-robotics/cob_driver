@@ -2,8 +2,8 @@
 Changelog for package cob_canopen_motor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.3 (2014-03-31)
+------------------
 * install tags
 * Contributors: ipa-fxm
 

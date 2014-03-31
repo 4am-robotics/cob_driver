@@ -2,8 +2,8 @@
 Changelog for package cob_collision_velocity_filter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.3 (2014-03-31)
+------------------
 * install tags
 * Contributors: ipa-fxm
 

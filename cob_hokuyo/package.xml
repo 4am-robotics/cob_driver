@@ -1,6 +1,6 @@
 <package>
   <name>cob_hokuyo</name>
-  <version>0.5.2</version>
+  <version>0.5.3</version>
   <description>This Package is simply a Care-O-bot specific setup for the hokuyo scanner.</description>
   
   <license>LGPL</license>

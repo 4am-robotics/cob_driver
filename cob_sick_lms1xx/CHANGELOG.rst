@@ -2,8 +2,8 @@
 Changelog for package cob_sick_lms1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.3 (2014-03-31)
+------------------
 * install tags
 * Contributors: ipa-fxm
 
