@@ -199,12 +199,11 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 	int iNumRead2 = 0;
 	std::vector<ScanPolarType> vecScanPolar;
 
+	if(SCANNER_S300_READ_BUF_SIZE-2-m_actualBufferSize<=0)
+		m_actualBufferSize=0;
+
 	iNumRead2 = m_SerialIO.readBlocking((char*)m_ReadBuf+m_actualBufferSize, SCANNER_S300_READ_BUF_SIZE-2-m_actualBufferSize);
-	if(iNumRead2==0) return false;
-	else if(iNumRead2<0) {
-	    //m_actualBufferSize=0;
-	    return false;
-	}
+	if(iNumRead2<=0) return false;
 
 	m_actualBufferSize = m_actualBufferSize + iNumRead2;
 
