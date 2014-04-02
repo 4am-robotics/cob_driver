@@ -54,9 +54,9 @@ class volts_filter():
 	
 if __name__ == '__main__':
     rospy.init_node('volt_filt')
-	vf = volts_filter()
+    vf = volts_filter()
 	
-	while not rospy.is_shutdown():
-		rospy.sleep(1.0)
+    while not rospy.is_shutdown():
+        rospy.sleep(1.0)
 
 
