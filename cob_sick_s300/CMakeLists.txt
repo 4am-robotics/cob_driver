@@ -40,7 +40,6 @@ SET(OODL_SickS300_SRC
  # ${PROJECT_SOURCE_DIR}/common/src/LaserScannerData.cpp
   ${PROJECT_SOURCE_DIR}/common/src/LaserScannerConfiguration.cpp
  # ${PROJECT_SOURCE_DIR}/common/src/LaserScannerDataWithIntensities.cpp
-  ${PROJECT_SOURCE_DIR}/common/src/SickS300.cpp
   ${PROJECT_SOURCE_DIR}/common/src/ScannerSickS300.cpp
   ${PROJECT_SOURCE_DIR}/common/src/SerialIO.cpp
 )
