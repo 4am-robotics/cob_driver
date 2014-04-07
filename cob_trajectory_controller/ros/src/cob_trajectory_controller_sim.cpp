@@ -81,6 +81,7 @@ private:
     ros::NodeHandle n_;
     
     ros::Publisher joint_vel_pub_;
+    std::vector< ros::Publisher > v_vel_controller_command_pub_;
     ros::Subscriber joint_state_sub_;
     ros::Subscriber controller_state_;
     ros::Subscriber operation_mode_;
@@ -113,9 +114,7 @@ private:
 public:
 
     cob_trajectory_controller_node():
-    //as_(n_, "joint_trajectory_action", boost::bind(&cob_trajectory_controller_node::executeTrajectory, this, _1), true),
     as_follow_(n_, "follow_joint_trajectory", boost::bind(&cob_trajectory_controller_node::executeFollowTrajectory, this, _1), true),
-    //action_name_("joint_trajectory_action"),
     action_name_follow_("follow_joint_trajectory")
     {
         joint_vel_pub_ = n_.advertise<brics_actuator::JointVelocities>("command_vel", 1);
@@ -159,6 +158,12 @@ public:
             JointNames_[i] = (std::string)JointNames_param_[i];
         }
         DOF = JointNames_param_.size();
+        for(unsigned int i= 0; i< DOF; i++)
+        {
+            ros::Publisher vel_controller_pub = n_.advertise<std_msgs::Float64>("/"+JointNames_[i]+"_velocity_controller/command", 1);
+            v_vel_controller_command_pub_.push_back(vel_controller_pub);
+        }
+        
         if (n_.hasParam("ptp_vel"))
         {
             n_.getParam("ptp_vel", PTPvel);
@@ -174,6 +179,10 @@ public:
         if (n_.hasParam("overlap_time"))
         {
             n_.getParam("overlap_time", overlap_time);
+        }
+        if (n_.hasParam("operation_mode"))
+        {
+            n_.getParam("operation_mode", current_operation_mode_);
         }
         q_current.resize(DOF);
         ROS_INFO("starting controller with DOF: %d PTPvel: %f PTPAcc: %f maxError %f", DOF, PTPvel, PTPacc, maxError);
@@ -445,6 +454,13 @@ public:
                 
                 //send everything
                 joint_vel_pub_.publish(target_joint_vel);
+                for(unsigned int i=0; i<DOF; i++)
+                {
+                    std_msgs::Float64 msg;
+                    msg.data = des_vel.at(i);
+                    v_vel_controller_command_pub_[i].publish(msg);
+                }
+                
             }
             else
             {
@@ -466,7 +482,12 @@ public:
                     target_joint_vel.velocities[i].value = 0;
                 }
                 joint_vel_pub_.publish(target_joint_vel);
-                ROS_INFO("Publishing 0-vel (%d)", DOF);
+                for(unsigned int i=0; i<DOF; i++)
+                {
+                    std_msgs::Float64 msg;
+                    msg.data = 0.0;
+                    v_vel_controller_command_pub_[i].publish(msg);
+                }
             }
             watchdog_counter++;
         }
