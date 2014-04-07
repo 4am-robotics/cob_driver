@@ -199,6 +199,8 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 	int iNumRead2 = 0;
 	std::vector<ScanPolarType> vecScanPolar;
 
+	iTimeNow=0;
+
 	if(SCANNER_S300_READ_BUF_SIZE-2-m_actualBufferSize<=0)
 		m_actualBufferSize=0;
 
