@@ -48,6 +48,11 @@ void CobTwistController::initialize()
 	limits_max_.push_back(6.2831);
 	limits_max_.push_back(6.2831);
 	
+	limits_vel_.push_back(1.4);
+	limits_vel_.push_back(1.4);
+	limits_vel_.push_back(1.4);
+	
+	
 	chain_base_ = "torso_base_link";
 	chain_tip_ = "torso_center_link";
 	
@@ -78,10 +83,17 @@ void CobTwistController::initialize()
 	
 	
 	///initialize configuration control solver
-	p_fksolver_pos_ = new KDL::ChainFkSolverPos_recursive(chain_);
-	p_fksolver_vel_ = new KDL::ChainFkSolverVel_recursive(chain_);
+	//p_fksolver_pos_ = new KDL::ChainFkSolverPos_recursive(chain_);
+	//p_fksolver_vel_ = new KDL::ChainFkSolverVel_recursive(chain_);
+	
 	p_iksolver_vel_ = new KDL::ChainIkSolverVel_pinv(chain_, 0.001, 5);
-	p_iksolver_pos_ = new KDL::ChainIkSolverPos_NR_JL(chain_, chain_min, chain_max, *p_fksolver_pos_, *p_iksolver_vel_, 50, 0.001);
+	p_iksolver_vel_wdls_ = new KDL::ChainIkSolverVel_wdls(chain_, 0.001, 5);
+	//Eigen::MatrixXd Mq;
+	//p_iksolver_vel_wdls_->setWeightJS(Mq);
+	//Eigen::MatrixXd Mx;
+	//p_iksolver_vel_wdls_->setWeightTS(Mx);
+	
+	//p_iksolver_pos_ = new KDL::ChainIkSolverPos_NR_JL(chain_, chain_min, chain_max, *p_fksolver_pos_, *p_iksolver_vel_, 50, 0.001);
 	
 	
 	///initialize ROS interfaces
@@ -106,6 +118,18 @@ void CobTwistController::run()
 
 void CobTwistController::twist_cb(const geometry_msgs::Twist::ConstPtr& msg)
 {
+	tf::StampedTransform transform_tf;
+	KDL::Frame frame;
+	try{
+		tf_listener_.lookupTransform(chain_base_, chain_tip_, ros::Time(0), transform_tf);
+		frame.p = KDL::Vector(transform_tf.getOrigin().x(), transform_tf.getOrigin().y(), transform_tf.getOrigin().z());
+		frame.M = KDL::Rotation::Quaternion(transform_tf.getRotation().x(), transform_tf.getRotation().y(), transform_tf.getRotation().z(), transform_tf.getRotation().w());
+	}
+	catch (tf::TransformException ex){
+		ROS_ERROR("%s",ex.what());
+		return;
+	}
+	
 	KDL::Twist twist;
 	tf::twistMsgToKDL(*msg, twist);
 	KDL::JntArray q_dot_ik(chain_.getNrOfJoints());
@@ -113,7 +137,12 @@ void CobTwistController::twist_cb(const geometry_msgs::Twist::ConstPtr& msg)
 	ROS_INFO("Twist Vel (%f, %f, %f)", twist.vel.x(), twist.vel.y(), twist.vel.z());
 	ROS_INFO("Twist Rot (%f, %f, %f)", twist.rot.x(), twist.rot.y(), twist.rot.z());
 	
-	std::cout << "Current q : ";
+	KDL::Twist twist_transformed = frame*twist;
+	
+	ROS_INFO("TwistTransformed Vel (%f, %f, %f)", twist_transformed.vel.x(), twist_transformed.vel.y(), twist_transformed.vel.z());
+	ROS_INFO("TwistTransformed Rot (%f, %f, %f)", twist_transformed.rot.x(), twist_transformed.rot.y(), twist_transformed.rot.z());
+	
+	std::cout << "Current q: ";
 	for(unsigned int i=0; i<last_q_.rows(); i++)
 	{
 		std::cout << last_q_(i) << ", ";
@@ -121,7 +150,8 @@ void CobTwistController::twist_cb(const geometry_msgs::Twist::ConstPtr& msg)
 	std::cout << std::endl;
 	
 	
-	int ret_ik = p_iksolver_vel_->CartToJnt(last_q_, twist, q_dot_ik);
+	//int ret_ik = p_iksolver_vel_->CartToJnt(last_q_, twist_transformed, q_dot_ik);
+	int ret_ik = p_iksolver_vel_wdls_->CartToJnt(last_q_, twist_transformed, q_dot_ik);
 	
 	if(ret_ik < 0)
 	{
@@ -129,13 +159,20 @@ void CobTwistController::twist_cb(const geometry_msgs::Twist::ConstPtr& msg)
 	}
 	else
 	{
+		std::cout << "Solution q_dot: ";
+		for(unsigned int i=0; i<q_dot_ik.rows(); i++)
+		{
+			std::cout << q_dot_ik(i) << ", ";
+		}
+		std::cout << std::endl;
+		
 		brics_actuator::JointVelocities vel_msg;
 		vel_msg.velocities.resize(joints_.size());
 		for(int i=0; i<joints_.size(); i++)
 		{
 			vel_msg.velocities[i].joint_uri = joints_[i].c_str();
 			vel_msg.velocities[i].unit = "rad";
-			vel_msg.velocities[i].value = q_dot_ik(i);
+			vel_msg.velocities[i].value = (std::fabs(q_dot_ik(i)) >= limits_vel_[i]) ? limits_vel_[i] : q_dot_ik(i);
 		}
 		vel_pub.publish(vel_msg);
 	}

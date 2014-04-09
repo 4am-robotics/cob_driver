@@ -39,17 +39,21 @@
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/chainfksolvervel_recursive.hpp>
 #include <kdl/chainiksolvervel_pinv.hpp>
+#include <kdl/chainiksolvervel_wdls.hpp>
 #include <kdl/chainiksolverpos_nr.hpp>
 #include <kdl/chainiksolverpos_nr_jl.hpp>
 #include <kdl/jntarray.hpp>
 #include <kdl/jntarrayvel.hpp>
 #include <kdl/frames.hpp>
 
+#include <tf/transform_listener.h>
+
 
 class CobTwistController
 {
 private:
 	ros::NodeHandle nh_;
+	tf::TransformListener tf_listener_;
 	
 	ros::Subscriber jointstate_sub;
 	ros::Subscriber twist_sub;
@@ -59,14 +63,16 @@ private:
 	std::string chain_base_;
 	std::string chain_tip_;
 	
-	KDL::ChainFkSolverPos_recursive* p_fksolver_pos_;
-	KDL::ChainFkSolverVel_recursive* p_fksolver_vel_;
-	KDL::ChainIkSolverPos_NR_JL* p_iksolver_pos_;
+	//KDL::ChainFkSolverPos_recursive* p_fksolver_pos_;
+	//KDL::ChainFkSolverVel_recursive* p_fksolver_vel_;
 	KDL::ChainIkSolverVel_pinv* p_iksolver_vel_;
+	KDL::ChainIkSolverVel_wdls* p_iksolver_vel_wdls_;
+	//KDL::ChainIkSolverPos_NR_JL* p_iksolver_pos_;
 	
 	std::vector<std::string> joints_;
 	std::vector<float> limits_min_;
 	std::vector<float> limits_max_;
+	std::vector<float> limits_vel_;
 	
 	KDL::JntArray last_q_;
 	KDL::JntArray last_q_dot_;
