@@ -129,11 +129,11 @@ public:
         srvServer_SetVel_ = n_.advertiseService("set_joint_velocity", &cob_trajectory_controller_node::srvCallback_setVel, this);
         srvServer_SetAcc_ = n_.advertiseService("set_joint_acceleration", &cob_trajectory_controller_node::srvCallback_setAcc, this);
         srvClient_SetOperationMode = n_.serviceClient<cob_srvs::SetOperationMode>("set_operation_mode");
-        while(!srvClient_SetOperationMode.exists())
-        {
-            ROS_INFO("Waiting for operationmode service to become available");
-            sleep(1);
-        }
+        //while(!srvClient_SetOperationMode.exists())
+        //{
+            //ROS_INFO("Waiting for operationmode service to become available");
+            //sleep(1);
+        //}
         executing_ = false;
         failure_ = false;
         rejected_ = false;
