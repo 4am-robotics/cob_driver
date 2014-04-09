@@ -81,7 +81,6 @@ private:
     ros::NodeHandle n_;
     
     ros::Publisher joint_vel_pub_;
-    std::vector< ros::Publisher > v_vel_controller_command_pub_;
     ros::Subscriber joint_state_sub_;
     ros::Subscriber controller_state_;
     ros::Subscriber operation_mode_;
@@ -158,11 +157,6 @@ public:
             JointNames_[i] = (std::string)JointNames_param_[i];
         }
         DOF = JointNames_param_.size();
-        for(unsigned int i= 0; i< DOF; i++)
-        {
-            ros::Publisher vel_controller_pub = n_.advertise<std_msgs::Float64>("/"+JointNames_[i]+"_velocity_controller/command", 1);
-            v_vel_controller_command_pub_.push_back(vel_controller_pub);
-        }
         
         if (n_.hasParam("ptp_vel"))
         {
@@ -454,13 +448,6 @@ public:
                 
                 //send everything
                 joint_vel_pub_.publish(target_joint_vel);
-                for(unsigned int i=0; i<DOF; i++)
-                {
-                    std_msgs::Float64 msg;
-                    msg.data = des_vel.at(i);
-                    v_vel_controller_command_pub_[i].publish(msg);
-                }
-                
             }
             else
             {
@@ -482,12 +469,6 @@ public:
                     target_joint_vel.velocities[i].value = 0;
                 }
                 joint_vel_pub_.publish(target_joint_vel);
-                for(unsigned int i=0; i<DOF; i++)
-                {
-                    std_msgs::Float64 msg;
-                    msg.data = 0.0;
-                    v_vel_controller_command_pub_[i].publish(msg);
-                }
             }
             watchdog_counter++;
         }
