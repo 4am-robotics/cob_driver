@@ -72,6 +72,9 @@
 #include <cob_srvs/SetOperationMode.h>
 #include <cob_trajectory_controller/SetFloat.h>
 
+#include <dynamic_reconfigure/server.h>
+#include <cob_trajectory_controller/CobTrajectoryControllerConfig.h>
+
 
 #define HZ 100
 
@@ -109,6 +112,8 @@ private:
     trajectory_msgs::JointTrajectory traj_;
     trajectory_msgs::JointTrajectory traj_2_;
     std::vector<double> q_current, startposition_, joint_distance_;
+    
+    dynamic_reconfigure::Server<cob_trajectory_controller::CobTrajectoryControllerConfig> reconfigure_server;
 
 public:
 
@@ -182,6 +187,35 @@ public:
         ROS_INFO("starting controller with DOF: %d PTPvel: %f PTPAcc: %f maxError %f", DOF, PTPvel, PTPacc, maxError);
         traj_generator_ = new genericArmCtrl(DOF, PTPvel, PTPacc, maxError);
         traj_generator_->overlap_time = overlap_time;
+        
+        reconfigure_server.setCallback(boost::bind(&cob_trajectory_controller_node::dynamic_reconfigure_cb, this, _1, _2));
+    }
+    
+    
+    void dynamic_reconfigure_cb(cob_trajectory_controller::CobTrajectoryControllerConfig &config, uint32_t level)
+    {
+        ROS_INFO("Dynamically reconfigure cob_trajectory_controller parameter!");
+        traj_generator_->SetPTPvel(config.ptp_vel);
+        traj_generator_->SetPTPvel(config.ptp_acc);
+        traj_generator_->m_AllowedError = config.max_error;
+        traj_generator_->overlap_time = config.overlap_time;
+        
+        switch(config.operation_mode)
+        {
+          case 0:  //"undefined"
+            this->current_operation_mode_ = "undefined";
+            break;
+          case 1:  //"velocity"
+            this->current_operation_mode_ = "velocity";
+            break;
+          case 2:  //"position"
+            this->current_operation_mode_ = "position";
+            break;
+          default:
+            ROS_ERROR("Unknown operation_mode");
+            this->current_operation_mode_ = "undefined";
+            break;            
+        }
     }
 
     double getFrequency()
