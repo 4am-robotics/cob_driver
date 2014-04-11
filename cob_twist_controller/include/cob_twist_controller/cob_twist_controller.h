@@ -70,6 +70,7 @@ private:
 	//KDL::ChainIkSolverPos_NR_JL* p_iksolver_pos_;
 	
 	std::vector<std::string> joints_;
+	unsigned int dof_;
 	std::vector<float> limits_min_;
 	std::vector<float> limits_max_;
 	std::vector<float> limits_vel_;

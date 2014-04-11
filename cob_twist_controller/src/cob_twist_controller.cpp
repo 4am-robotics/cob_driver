@@ -36,25 +36,42 @@
 void CobTwistController::initialize()
 {
 	///get params
-	//hardcoded for now -- get this from URDF or yaml file later
-	joints_.push_back("torso_1_joint");
-	joints_.push_back("torso_2_joint");
-	joints_.push_back("torso_3_joint");
+	XmlRpc::XmlRpcValue jn_param;
+	if (nh_.hasParam("joint_names"))
+	{	nh_.getParam("joint_names", jn_param);	}
+	else
+	{	ROS_ERROR("Parameter joint_names not set");	}
 	
-	limits_min_.push_back(-6.2831);
-	limits_min_.push_back(-6.2831);
-	limits_min_.push_back(-6.2831);
-	limits_max_.push_back(6.2831);
-	limits_max_.push_back(6.2831);
-	limits_max_.push_back(6.2831);
+	dof_ = jn_param.size();
+	for(unsigned int i=0; i<dof_; i++)
+	{	joints_.push_back((std::string)jn_param[i]);	}
 	
-	limits_vel_.push_back(1.4);
-	limits_vel_.push_back(1.4);
-	limits_vel_.push_back(1.4);
+	////used only for p_iksolver_pos_
+	//limits_min_.push_back(-6.2831);
+	//limits_min_.push_back(-6.2831);
+	//limits_min_.push_back(-6.2831);
+	//limits_max_.push_back(6.2831);
+	//limits_max_.push_back(6.2831);
+	//limits_max_.push_back(6.2831);
 	
+	//ToDo: get this from urdf
+	double vel_param;
+	if (nh_.hasParam("ptp_vel"))
+	{
+		nh_.getParam("ptp_vel", vel_param);
+	}
+	limits_vel_.push_back(vel_param);
+	limits_vel_.push_back(vel_param);
+	limits_vel_.push_back(vel_param);
 	
-	chain_base_ = "torso_base_link";
-	chain_tip_ = "torso_center_link";
+	if (nh_.hasParam("base_link"))
+	{
+		nh_.getParam("base_link", chain_base_);
+	}
+	if (nh_.hasParam("tip_link"))
+	{
+		nh_.getParam("tip_link", chain_tip_);
+	}
 	
 	
 	
@@ -73,13 +90,15 @@ void CobTwistController::initialize()
 		return;
 	}
 	
-	KDL::JntArray chain_min(limits_min_.size());
-	KDL::JntArray chain_max(limits_max_.size());
-	for(unsigned int i=0; i<limits_min_.size(); i++)
-	{
-		chain_min(i)=limits_min_[i];
-		chain_max(i)=limits_max_[i];
-	}
+	
+	////used only for p_iksolver_pos_
+	//KDL::JntArray chain_min(limits_min_.size());
+	//KDL::JntArray chain_max(limits_max_.size());
+	//for(unsigned int i=0; i<limits_min_.size(); i++)
+	//{
+		//chain_min(i)=limits_min_[i];
+		//chain_max(i)=limits_max_[i];
+	//}
 	
 	
 	///initialize configuration control solver
