@@ -74,7 +74,7 @@ inline double RefValJS_PTP::norm_sqr(const std::vector<double>& j)
 	double l = 0;
 	for (unsigned int i = 0; i < j.size(); i++)
 	{
-	        l += j[i] * j[i];
+		l += j[i] * j[i];
 	}
 	return sqrt(l);
 }
