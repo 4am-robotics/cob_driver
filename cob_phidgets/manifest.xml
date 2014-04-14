@@ -4,7 +4,7 @@
      cob_phidgets
 
   </description>
-  <author>Florian Weisshardt</author>
+  <author>Florian Weisshardt, Benjamin Maidel</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_phidgets</url>

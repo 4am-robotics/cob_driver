@@ -56,7 +56,8 @@
 #include <cob_footprint_observer.h>
 
 // Constructor
-FootprintObserver::FootprintObserver()
+FootprintObserver::FootprintObserver() :
+  times_warned_(0)
 {
   nh_ = ros::NodeHandle("~");
 
@@ -80,7 +81,12 @@ FootprintObserver::FootprintObserver()
   robot_footprint_ = loadRobotFootprint(footprint_source_nh_);
   if(robot_footprint_.size() > 4) 
     ROS_WARN("You have set more than 4 points as robot_footprint, cob_footprint_observer can deal only with rectangular footprints so far!");
-  
+
+  // get parameter sepcifying minimal changes of footprint that are accepted. (smaller changes are neglected)
+  if(!nh_.hasParam("epsilon"))
+    ROS_WARN("No epsilon value specified. Changes in footprint smaller than epsilon are neglected. Using default [0.01m]!");
+  nh_.param("epsilon", epsilon_, 0.01);
+    
   // get the frames for which to check the footprint
   if(!nh_.hasParam("frames_to_check")) ROS_WARN("No frames to check for footprint observer. Only using initial footprint!");
   nh_.param("frames_to_check", frames_to_check_, std::string(""));
@@ -148,8 +154,10 @@ std::vector<geometry_msgs::Point> FootprintObserver::loadRobotFootprint(ros::Nod
       footstring_list = std::vector<std::string>(tokens.begin(), tokens.end());
     }
     //make sure we have a list of lists
-    if(!(footprint_list.getType() == XmlRpc::XmlRpcValue::TypeArray && footprint_list.size() > 2) && !(footprint_list.getType() == XmlRpc::XmlRpcValue::TypeString && footstring_list.size() > 5)){
-      ROS_FATAL("The footprint must be specified as list of lists on the parameter server, %s was specified as %s", footprint_param.c_str(), std::string(footprint_list).c_str());
+    if(!(footprint_list.getType() == XmlRpc::XmlRpcValue::TypeArray && footprint_list.size() > 2)
+       && !(footprint_list.getType() == XmlRpc::XmlRpcValue::TypeString && footstring_list.size() > 5)){
+      ROS_FATAL("The footprint must be specified as list of lists on the parameter server, %s was specified as %s",
+                footprint_param.c_str(), std::string(footprint_list).c_str());
       throw std::runtime_error("The footprint must be specified as list of lists on the parameter server with at least 3 points eg: [[x1, y1], [x2, y2], ..., [xn, yn]]");
     }
 
@@ -256,7 +264,8 @@ std::vector<geometry_msgs::Point> FootprintObserver::loadRobotFootprint(ros::Nod
     if(footprint[i].y > footprint_left_) footprint_left_ = footprint[i].y;
     if(footprint[i].y < footprint_right_) footprint_right_ = footprint[i].y;
   }
-  ROS_DEBUG("Extracted rectangular footprint for cob_footprint_observer: Front: %f, Rear %f, Left: %f, Right %f", footprint_front_, footprint_rear_, footprint_left_, footprint_right_);
+  ROS_DEBUG("Extracted rectangular footprint for cob_footprint_observer: Front: %f, Rear %f, Left: %f, Right %f",
+            footprint_front_, footprint_rear_, footprint_left_, footprint_right_);
 
   if ( fabs(footprint_front_ - footprint_rear_) == 0.0 || fabs(footprint_right_ - footprint_left_) == 0.0){
     ROS_WARN("Footprint has no physical dimension!");
@@ -298,7 +307,9 @@ void FootprintObserver::checkFootprint(){
       if(frame_position.x() < x_rear) x_rear = frame_position.x();
       if(frame_position.y() > y_left) y_left = frame_position.y();
       if(frame_position.y() < y_right) y_right = frame_position.y();
-    } else if ( (ros::Time::now() - last_tf_missing_).toSec() > 5.0) {
+    } else if ( (ros::Time::now() - last_tf_missing_).toSec() > 10.0
+                && times_warned_ < 3 ) {
+      ++times_warned_;
       missing_frame_exists = true;
       ROS_WARN("Footprint Observer: Transformation for %s not available! Frame %s not considered in adjusted footprint!",
                frame.c_str(), frame.c_str());
@@ -306,36 +317,44 @@ void FootprintObserver::checkFootprint(){
   }
   if (missing_frame_exists)
     last_tf_missing_ = ros::Time::now();
+
+  // check if footprint has changed
+  if ( fabs( footprint_front_ - x_front ) > epsilon_
+       || fabs( footprint_rear_ - x_rear ) > epsilon_
+       || fabs( footprint_left_ - y_left ) > epsilon_
+       || fabs( footprint_right_ - y_right ) > epsilon_ )
+  {
+    pthread_mutex_lock(&m_mutex);
+    // adjust footprint
+    footprint_front_ = x_front; 
+    footprint_rear_ = x_rear;
+    footprint_left_ = y_left;
+    footprint_right_ = y_right;
+    pthread_mutex_unlock(&m_mutex);
+
+    // create new footprint vector
+    geometry_msgs::Point point;
+    std::vector<geometry_msgs::Point> points;
+
+    point.x = footprint_front_;
+    point.y = footprint_left_;
+    point.z = 0;
+    points.push_back(point);
+    point.y = footprint_right_;
+    points.push_back(point);
+    point.x = footprint_rear_;
+    points.push_back(point);
+    point.y = footprint_left_;
+    points.push_back(point);
+
+    pthread_mutex_lock(&m_mutex);
+    robot_footprint_ = points;
+    pthread_mutex_unlock(&m_mutex);
+
+    // publish the adjusted footprint
+    publishFootprint();
+  }
   
-  pthread_mutex_lock(&m_mutex);
-  // adjust footprint
-  footprint_front_ = x_front; 
-  footprint_rear_ = x_rear;
-  footprint_left_ = y_left;
-  footprint_right_ = y_right;
-  pthread_mutex_unlock(&m_mutex);
-
-  // create new footprint vector
-  geometry_msgs::Point point;
-  std::vector<geometry_msgs::Point> points;
-
-  point.x = footprint_front_;
-  point.y = footprint_left_;
-  point.z = 0;
-  points.push_back(point);
-  point.y = footprint_right_;
-  points.push_back(point);
-  point.x = footprint_rear_;
-  points.push_back(point);
-  point.y = footprint_left_;
-  points.push_back(point);
-
-  pthread_mutex_lock(&m_mutex);
-  robot_footprint_ = points;
-  pthread_mutex_unlock(&m_mutex);
-
-  // publish the adjusted footprint
-  publishFootprint();
 }
 
 // publishes the adjusted footprint

@@ -158,7 +158,6 @@ int ElmoRecorder::processData(segData& SDOData) {
 	unsigned int iNumDataItems = 0;
 	bool bCollectFloats = true;
 	float fFloatingPointFactor = 0;
-	float fTimeQuantum = 1.0f;
 	
 	std::vector<float> vfResData[2];
 	
@@ -195,7 +194,6 @@ int ElmoRecorder::processData(segData& SDOData) {
 	}
 	std::cout << ">>>>>ElmoRec: HEADER INFOS<<<<<\nData type is: " << (SDOData.data[0] >> 4) << std::endl;
 	
-	fTimeQuantum = (SDOData.data[0] & 0x0F) * 0.000090; //Time quantum is specified in Bit 4 to 7
 	//std::cout << "fTimeQuantum from Header is " << fTimeQuantum << " m_fRecordingStepSec is " << m_fRecordingStepSec << std::endl;
 	
 	

@@ -51,8 +51,9 @@
 
 
 #include <cob_camera_axis/ElmoCtrl.h>
-
+#include <unistd.h>
 #include <iostream>
+#include <unistd.h>
 
 using namespace std;
 
@@ -410,6 +411,11 @@ bool ElmoCtrl::SetMotionCtrlType(int type)
 int ElmoCtrl::GetMotionCtrlType() 
 {
 	return m_MotionCtrlType;
+}
+
+bool ElmoCtrl::isError() 
+{
+	return m_Joint->isError();
 }
 
 int ElmoCtrl::getGearPosVelRadS( double* pdAngleGearRad, double* pdVelGearRadS)

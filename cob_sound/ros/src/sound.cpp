@@ -34,7 +34,6 @@ public:
     sub_ = nh_.subscribe("/say", 1000, &SayAction::topic_cb, this);
     topicPub_Diagnostic_ = nh_.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
     mute_ = false;
-    diagnostics_.header.stamp = ros::Time::now() - ros::Duration(30);
   }
 
   ~SayAction(void)
@@ -98,7 +97,7 @@ public:
     nh_.param<std::string>("/sound_controller/cepstral_settings",cepstral_conf,"\"speech/rate=170\"");
     if (mode == "cepstral")
     {
-      command = "/opt/swift/bin/swift -p " + cepstral_conf + " " + text;
+      command = "swift -p " + cepstral_conf + " " + text;
     }
     else
     {
@@ -119,7 +118,7 @@ public:
       return false;
     }
 
-    diagnostics_.header.stamp = ros::Time::now() - ros::Duration(30);
+    diagnostics_.header.stamp = ros::Time::now();
     return true;
   }
 
@@ -133,9 +132,14 @@ int main(int argc, char** argv)
 
   SayAction say("say");
 
-  // HACK: wait for publishers to be ready
-  ros::Duration(0.5).sleep();
-  
+  // HACK: wait for ros::Time to be initialized
+  ros::Rate loop_rate(10);
+  while (ros::Time::now().toSec() <= 1.0)
+  {
+    loop_rate.sleep();
+  }
+  say.diagnostics_.header.stamp = ros::Time::now();
+
   ros::Rate r(10);
   while (ros::ok())
   {

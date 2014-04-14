@@ -53,17 +53,16 @@
 
 #include <cob_sick_s300/ScannerSickS300.h>
 
+#include <stdint.h>
+
 //-----------------------------------------------
 
 typedef unsigned char BYTE;
 
 const double ScannerSickS300::c_dPi = 3.14159265358979323846;
-
-const unsigned char ScannerSickS300::c_StartBytes[10] = {0,0,0,0,0,0,0,0,255,7};
-
 unsigned char ScannerSickS300::m_iScanId = 7;
 
-const unsigned short ScannerSickS300::crc_LookUpTable[256]
+const unsigned short crc_LookUpTable[256]
 	   = { 
 	   0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7, 
 	   0x8108, 0x9129, 0xA14A, 0xB16B, 0xC18C, 0xD1AD, 0xE1CE, 0xF1EF, 
@@ -99,22 +98,27 @@ const unsigned short ScannerSickS300::crc_LookUpTable[256]
 	   0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0x0ED1, 0x1EF0 
 	 }; 
 
+unsigned int TelegramParser::createCRC(uint8_t *ptrData, int Size)
+{ 
+	int CounterWord; 
+	unsigned short CrcValue=0xFFFF;
+
+	for (CounterWord = 0; CounterWord < Size; CounterWord++) 
+	{ 
+		CrcValue = (CrcValue << 8) ^ crc_LookUpTable[ (((uint8_t)(CrcValue >> 8)) ^ *ptrData) ]; 
+		ptrData++; 
+	} 
+
+	return (CrcValue); 
+}
+
 //-----------------------------------------------
 ScannerSickS300::ScannerSickS300()
 {
-	m_Param.iDataLength = 1104;
-	m_Param.iHeaderLength = 24;
-	// scanner has a half degree resolution and a VoW of 270 degrees
-	m_Param.iNumScanPoints = 541;
-	m_Param.dScale = 0.01;
-	m_Param.dStartAngle = -135.0/180.0*c_dPi;
-	m_Param.dStopAngle = 135.0/180.0*c_dPi;
-
 	// allows to set different Baud-Multipliers depending on used SerialIO-Card
 	m_dBaudMult = 1.0;
 
 	// init scan with zeros
-	m_viScanRaw.assign(541, 0);
 	m_iPosReadBuf2 = 0;
 	
 	m_actualBufferSize = 0;
@@ -125,7 +129,7 @@ ScannerSickS300::ScannerSickS300()
 //-------------------------------------------
 ScannerSickS300::~ScannerSickS300()
 {
-	m_SerialIO.close();
+	m_SerialIO.closeIO();
 }
 
 
@@ -133,10 +137,6 @@ ScannerSickS300::~ScannerSickS300()
 bool ScannerSickS300::open(const char* pcPort, int iBaudRate, int iScanId=7)
 {
     int bRetSerial;
- 
-	// for Care-O-bot3 S300 is set fixed to 500kBaud
-	if (iBaudRate != 500000)
-		return false;
 
 	// update scan id (id=8 for slave scanner, else 7)
 	m_iScanId = iScanId;
@@ -147,7 +147,7 @@ bool ScannerSickS300::open(const char* pcPort, int iBaudRate, int iScanId=7)
 	m_SerialIO.setBufferSize(READ_BUF_SIZE - 10 , WRITE_BUF_SIZE -10 );
 	m_SerialIO.setHandshake(SerialIO::HS_NONE);
 	m_SerialIO.setMultiplier(m_dBaudMult);
-	bRetSerial = m_SerialIO.open();
+	bRetSerial = m_SerialIO.openIO();
 	m_SerialIO.setTimeout(0.0);
 	m_SerialIO.SetFormat(8, SerialIO::PA_NONE, SerialIO::SB_ONE);
 
@@ -192,105 +192,47 @@ void ScannerSickS300::stopScanner()
 
 
 //-----------------------------------------------
-bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<double> &vdAngleRAD, std::vector<double> &vdIntensityAU, unsigned int &iTimestamp, unsigned int &iTimeNow)
+bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<double> &vdAngleRAD, std::vector<double> &vdIntensityAU, unsigned int &iTimestamp, unsigned int &iTimeNow, const bool debug)
 {
 	bool bRet = false;
-	int i,j;
-	int iNumRead = 0;
+	int i;
 	int iNumRead2 = 0;
-	int iNumData;
-	int iFirstByteOfHeader;
-	int iFirstByteOfData;
-	unsigned int iTelegramNumber;
-	unsigned int uiReadCRC;
-	unsigned int uiCalcCRC;
 	std::vector<ScanPolarType> vecScanPolar;
-	vecScanPolar.resize(m_Param.iNumScanPoints);
 
-	iNumRead2 = m_SerialIO.readNonBlocking((char*)m_ReadBuf+m_actualBufferSize, SCANNER_S300_READ_BUF_SIZE-2-m_actualBufferSize);
+	iTimeNow=0;
 
-	iNumRead = m_actualBufferSize + iNumRead2;
+	if(SCANNER_S300_READ_BUF_SIZE-2-m_actualBufferSize<=0)
+		m_actualBufferSize=0;
+
+	iNumRead2 = m_SerialIO.readBlocking((char*)m_ReadBuf+m_actualBufferSize, SCANNER_S300_READ_BUF_SIZE-2-m_actualBufferSize);
+	if(iNumRead2<=0) return false;
+
 	m_actualBufferSize = m_actualBufferSize + iNumRead2;
 
-	if( iNumRead < m_Param.iDataLength )
-	{
-		// not enough data in queue --> abort reading
-	  //	printf("Not enough data in queue, read data at slower rate!\n");
-		return false;
-	}
-	
 	// Try to find scan. Searching backwards in the receive queue.
-	for(i=iNumRead-m_Param.iDataLength; i>=0; i--)
+	for(i=m_actualBufferSize; i>=0; i--)
 	{
 		// parse through the telegram until header with correct scan id is found
-		if (
-				( m_ReadBuf[i+0] == c_StartBytes[0] ) &&
-				( m_ReadBuf[i+1] == c_StartBytes[1] ) &&
-				( m_ReadBuf[i+2] == c_StartBytes[2] ) &&
-				( m_ReadBuf[i+3] == c_StartBytes[3] ) &&
-				( m_ReadBuf[i+4] == c_StartBytes[4] ) &&
-				( m_ReadBuf[i+5] == c_StartBytes[5] ) &&
-		  		( m_ReadBuf[i+8] == c_StartBytes[8] ) &&
-		  		( m_ReadBuf[i+9] == m_iScanId )
-		 )
-
+		if(tp_.parseHeader(m_ReadBuf+i, m_actualBufferSize-i, m_iScanId, debug))
 		{
-			// ---- Start bytes found
-			iFirstByteOfHeader = i;
-			
-			//extract time stamp from header:
-			iTimestamp = (m_ReadBuf[i+17]<<24) | (m_ReadBuf[i+16]<<16) | (m_ReadBuf[i+15]<<8) |  (m_ReadBuf[i+14]);
-			iTelegramNumber = (m_ReadBuf[i+19]<<8) |  (m_ReadBuf[i+18]);
-			
-			if(iNumRead-iFirstByteOfHeader > m_Param.iDataLength+4+17) {
-				/*
-				Besides the actual data set we found some parts of the following message.
-				This means we grabbed these during transmission of a new message, let's use that to sync ros time with sick time
-				*/
-				iTimeNow = (m_ReadBuf[i+m_Param.iDataLength+4+17]<<24) | (m_ReadBuf[i+m_Param.iDataLength+4+16]<<16) | (m_ReadBuf[i+m_Param.iDataLength+4+15]<<8) |  (m_ReadBuf[i+m_Param.iDataLength+4+14]);
-			} else iTimeNow = 0;
-			
-			iFirstByteOfData = i + m_Param.iHeaderLength;
-			
-			// check length of transmitted data (see Telegram in .h for reference)
-			// read out how many bytes were transmitted (every data package has two bytes)
-			iNumData = 2 * getUnsignedWord(m_ReadBuf[iFirstByteOfHeader + 6],
-										 m_ReadBuf[iFirstByteOfHeader + 7]);
-			// if the Data does not correspond to the expected amount --> abort the reading process
-			if ( iNumData != m_Param.iDataLength ) {
-			  continue;
-			}
-
-			// check CRC
-			// Telgramm includes "24 bytes Header" (4 byte Reply-Header + 20 Bytes Tel.-Header) + 
-			// + 1082 bytes Data + 2 bytes CRC (last two bytes) (see h-file for more details)
-			// --> iNumData (1104) total telegram bytes +4 Bytes from the reply header (--> +4)
-			uiReadCRC = getUnsignedWord(m_ReadBuf[iFirstByteOfHeader + 4 + iNumData - 1],
-										m_ReadBuf[iFirstByteOfHeader + 4 + iNumData - 2]);
-			// calc CRC
-			uiCalcCRC = createCRC(&m_ReadBuf[iFirstByteOfHeader + 4], m_Param.iDataLength - 2);
-
-			// if CRC check is positive --> read out data
-			if (uiReadCRC == uiCalcCRC)
-			{
-				for(j=0; j<m_Param.iNumScanPoints; j++)
-				{
-					// read data-words from the scan
-					m_viScanRaw[j] = getUnsignedWord(m_ReadBuf[iFirstByteOfData + 2 * j + 1],
-													 m_ReadBuf[iFirstByteOfData + 2 * j ]);
-				}
+			tp_.readDistRaw(m_ReadBuf+i, m_viScanRaw);
+			if(m_viScanRaw.size()>0) {
 				// Scan was succesfully read from buffer
 				bRet = true;
-				m_actualBufferSize = 0;
+				int old = m_actualBufferSize;
+				m_actualBufferSize -= tp_.getCompletePacketSize()+i;
+				for(int i=0; i<old-m_actualBufferSize; i++)
+				    m_ReadBuf[i] = m_ReadBuf[i+old-m_actualBufferSize];
 				break;
 			}
 		}
 	}
 	
-	if(bRet)
+	PARAM_MAP::const_iterator param = m_Params.find(tp_.getField());
+	if(bRet && param!=m_Params.end())
 	{
 		// convert data into range and intensity information
-		convertScanToPolar(m_viScanRaw, vecScanPolar);
+		convertScanToPolar(param, m_viScanRaw, vecScanPolar);
 
 		// resize vectors to size of Scan
 		vdDistanceM.resize(vecScanPolar.size());
@@ -308,38 +250,22 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 	return bRet;
 }
 
-
 //-------------------------------------------
-unsigned int ScannerSickS300::createCRC(unsigned char *ptrData, int Size)
-{ 
-	int CounterWord; 
-	unsigned short CrcValue=0xFFFF;
-
-	for (CounterWord = 0; CounterWord < Size; CounterWord++) 
-	{ 
-		CrcValue = (CrcValue << 8) ^ crc_LookUpTable[ (((BYTE)(CrcValue >> 8)) ^ *ptrData) ]; 
-		ptrData++; 
-	} 
-
-	return (CrcValue); 
-}
-
-
-//-------------------------------------------
-void ScannerSickS300::convertScanToPolar(std::vector<int> viScanRaw,
+void ScannerSickS300::convertScanToPolar(const PARAM_MAP::const_iterator param, std::vector<int> viScanRaw,
 							std::vector<ScanPolarType>& vecScanPolar )
 {	
 	double dDist;
 	double dAngle, dAngleStep;
 	double dIntens;
 
-	dAngleStep = fabs(m_Param.dStopAngle - m_Param.dStartAngle) / double(m_Param.iNumScanPoints - 1) ;
+	vecScanPolar.resize(viScanRaw.size());
+	dAngleStep = fabs(param->second.dStopAngle - param->second.dStartAngle) / double(viScanRaw.size() - 1) ;
 	
-	for(int i=0; i<m_Param.iNumScanPoints; i++)
+	for(size_t i=0; i<viScanRaw.size(); i++)
 	{
-		dDist = double ((viScanRaw[i] & 0x1FFF) * m_Param.dScale);
+		dDist = double ((viScanRaw[i] & 0x1FFF) * param->second.dScale);
 
-		dAngle = m_Param.dStartAngle + i*dAngleStep;
+		dAngle = param->second.dStartAngle + i*dAngleStep;
 		dIntens = double(viScanRaw[i] & 0x2000);
 
 		vecScanPolar[i].dr = dDist;

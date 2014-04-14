@@ -114,7 +114,7 @@ class NodeClass
 		int drive_chain_diagnostic_;		// flag whether base drive chain is operating normal 
 		ros::Time last_time_;				// time Stamp for last odometry measurement
 		ros::Time joint_state_odom_stamp_;	// time stamp of joint states used for current odometry calc
-		double sample_time_;
+		double sample_time_, timeout_;
 		double x_rob_m_, y_rob_m_, theta_rob_rad_; // accumulated motion of robot since startup
     	int iwatchdog_;
     	double 	vel_x_rob_last_, vel_y_rob_last_, vel_theta_rob_last_; //save velocities for better odom calculation
@@ -141,6 +141,23 @@ class NodeClass
 			drive_chain_diagnostic_ = diagnostic_status_lookup_.OK; //WARN; <- THATS FOR DEBUGGING ONLY!
 			
 			// Parameters are set within the launch file
+			// read in timeout for watchdog stopping the controller.
+			if (n.hasParam("timeout"))
+			{
+			  n.getParam("timeout", timeout_);
+			  ROS_INFO("Timeout loaded from Parameter-Server is: %fs", timeout_);
+			}
+			else
+			{
+			  ROS_WARN("No parameter timeout on Parameter-Server. Using default: 1.0s");
+			  timeout_ = 1.0;
+			}
+			if ( timeout_ < sample_time_ )
+			{
+			  ROS_WARN("Specified timeout < sample_time. Setting timeout to sample_time = %fs", sample_time_);
+			  timeout_ = sample_time_;
+			}
+			
 			// Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
 			if (n.hasParam("IniDirectory"))
 			{
@@ -285,6 +302,8 @@ class NodeClass
 			joint_state_cmd.joint_names.push_back("br_caster_rotation_joint");
 			joint_state_cmd.joint_names.push_back("fr_caster_r_wheel_joint");
 			joint_state_cmd.joint_names.push_back("fr_caster_rotation_joint");
+			joint_state_cmd.joint_names.resize(m_iNumJoints);
+			
 			// compose jointcmds
 			for(int i=0; i<m_iNumJoints; i++)
 			{
@@ -521,13 +540,14 @@ void NodeClass::CalcCtrlStep()
 		joint_state_cmd.joint_names.push_back("br_caster_rotation_joint");
 		joint_state_cmd.joint_names.push_back("fr_caster_r_wheel_joint");
 		joint_state_cmd.joint_names.push_back("fr_caster_rotation_joint");
+		joint_state_cmd.joint_names.resize(m_iNumJoints);
 
 		// compose data body
 		j = 0;
 		k = 0;
 		for(int i = 0; i<m_iNumJoints; i++)
 		{
-			if(iwatchdog_ < 50)
+			if(iwatchdog_ < (int) std::floor(timeout_/sample_time_) )
 			{
 				// for steering motors
 				if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the Msg

@@ -5,8 +5,13 @@
 #include <pr2_msgs/PowerBoardState.h>
 #include <pr2_msgs/PowerState.h>
 #include <cob_relayboard/EmergencyStopState.h>
+#include <std_msgs/Bool.h>
+#include <std_msgs/Float64.h>
 
 #include <cob_voltage_control_common.cpp>
+
+//#include <libphidgets/phidget21.h>
+
 
 
 class cob_voltage_control_ros
@@ -17,7 +22,9 @@ class cob_voltage_control_ros
 		ros::Publisher pub_em_stop_state__;
 		ros::Publisher pub_powerstate__;
 		ros::Publisher pub_relayboard_state__;
+		ros::Publisher topicPub_Voltage;
 		
+		CPhidgetInterfaceKitHandle IFK;
 
         
  
@@ -28,13 +35,14 @@ class cob_voltage_control_ros
         cob_voltage_control_ros()
         {
 
-        	pub_em_stop_state__ = n_.advertise<pr2_msgs::PowerBoardState>("pub_em_stop_state_", 1);
-        	pub_powerstate__ = n_.advertise<pr2_msgs::PowerState>("pub_powerstate_", 1);
-	        pub_relayboard_state__ = n_.advertise<cob_relayboard::EmergencyStopState>("pub_relayboard_state_", 1);
+        	//pub_em_stop_state__ = n_.advertise<pr2_msgs::PowerBoardState>("pub_em_stop_state_", 1);
+        	//pub_powerstate__ = n_.advertise<pr2_msgs::PowerState>("pub_powerstate_", 1);
+	        //pub_relayboard_state__ = n_.advertise<cob_relayboard::EmergencyStopState>("pub_relayboard_state_", 1);
+		topicPub_Voltage = n_.advertise<std_msgs::Float64>("/power_board/voltage", 10);
 			
 		n_.param("battery_max_voltage", component_config_.max_voltage, 50.0);
 		n_.param("battery_min_voltage", component_config_.min_voltage, 44.0);
-		n_.param("robot_max_voltage", component_config_.max_voltage_res, 70.0);
+		n_.param("robot_max_voltage", component_config_.max_voltage_res, 61.0);
 		n_.param("voltage_analog_port", component_config_.num_voltage_port, 1);
 		n_.param("em_stop_dio_port", component_config_.num_em_stop_port, 0); 
 		n_.param("scanner_stop_dio_port", component_config_.num_scanner_em_port, 1);            
@@ -50,9 +58,7 @@ class cob_voltage_control_ros
         void update()
         {
             component_implementation_.update(component_data_, component_config_);
-            pub_em_stop_state__.publish(component_data_.out_pub_em_stop_state_);
-            pub_powerstate__.publish(component_data_.out_pub_powerstate_);
-	    pub_relayboard_state__.publish(component_data_.out_pub_relayboard_state);
+            topicPub_Voltage.publish(component_data_.out_pub_voltage);   
         }
 };
 
