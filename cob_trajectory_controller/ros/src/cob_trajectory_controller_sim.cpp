@@ -502,7 +502,6 @@ public:
                     target_joint_vel.velocities[i].value = 0;
                 }
                 joint_vel_pub_.publish(target_joint_vel);
-                ROS_INFO("Publishing 0-vel (%d)", DOF);
             }
             watchdog_counter++;
         }
