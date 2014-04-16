@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <launch>
-	<rosparam ns="lookat_controller" file="$(find cob_lookat_controller)/config/lookat_controller.yaml" command="load" />
+	
+	<arg name="robot"/>
+	
+	<rosparam ns="lookat_controller" file="$(find cob_lookat_controller)/config/lookat_controller_$(arg robot).yaml" command="load" />
 	
 	<!-- start virutal driver -->
 	<node ns="lookat_controller" name="lookat_driver" pkg="cob_lookat_controller" type="cob_lookat_driver_node" cwd="node" respawn="false" output="screen">
