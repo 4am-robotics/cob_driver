@@ -7,4 +7,10 @@
 		<remap from="joint_states" to="/joint_states"/>
 	</node>
 	
+	<!-- start lookat twist controller -->
+	<node ns="lookat_controller" name="lookat_controller" pkg="cob_lookat_controller" type="cob_lookat_controller_node" cwd="node" respawn="false" output="screen">
+		<remap from="chain_command_vel" to="/torso_controller/command_vel"/>
+		<remap from="lookat_command_vel" to="/lookat_controller/command_vel"/>
+	</node>
+	
 </launch>

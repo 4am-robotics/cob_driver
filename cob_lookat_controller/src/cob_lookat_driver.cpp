@@ -34,16 +34,17 @@ void CobLookatDriver::initialize()
 {
 	///get params
 	XmlRpc::XmlRpcValue jn_param;
-	if (nh_.hasParam("joint_names"))
-	{	nh_.getParam("joint_names", jn_param);	}
+	if (nh_.hasParam("lookat_joint_names"))
+	{	nh_.getParam("lookat_joint_names", jn_param);	}
 	else
-	{	ROS_ERROR("Parameter joint_names not set");	}
+	{	ROS_ERROR("Parameter lookat_joint_names not set");	}
 	
 	dof_ = jn_param.size();
 	for(unsigned int i=0; i<dof_; i++)
 	{	joints_.push_back((std::string)jn_param[i]);	}
 	
 	current_pos_.resize(dof_, 0.0);
+	current_pos_[0] = 1.0;
 	current_vel_.resize(dof_, 0.0);
 	
 	if (nh_.hasParam("update_rate"))

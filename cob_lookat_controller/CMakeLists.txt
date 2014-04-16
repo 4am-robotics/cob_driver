@@ -4,15 +4,11 @@ project(cob_lookat_controller)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  sensor_msgs
-  brics_actuator
-)
+find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs geometry_msgs brics_actuator kdl_parser kdl_conversions tf tf_conversions )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
+find_package(orocos_kdl REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -82,7 +78,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES cob_lookat_driver cob_lookat_controller
-  CATKIN_DEPENDS roscpp sensor_msgs brics_actuator
+  CATKIN_DEPENDS roscpp sensor_msgs geometry_msgs brics_actuator
 #  DEPENDS system_lib
 )
 
@@ -94,18 +90,19 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(include)
 include_directories(${catkin_INCLUDE_DIRS})
-#include_directories(${orocos_kdl_INCLUDE_DIRS})
+include_directories(${orocos_kdl_INCLUDE_DIRS})
 
 ## Declare a cpp library
 add_library(cob_lookat_driver src/cob_lookat_driver.cpp )
-#add_library(${PROJECT_NAME} src/cob_lookat_controller.cpp )
-#target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
+add_library(cob_lookat_controller src/cob_lookat_controller.cpp )
+target_link_libraries(cob_lookat_controller ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
 
 ## Declare a cpp executable
 add_executable(cob_lookat_driver_node src/cob_lookat_driver_node.cpp)
 target_link_libraries(cob_lookat_driver_node cob_lookat_driver ${catkin_LIBRARIES})
-#add_executable(${PROJECT_NAME}_node src/cob_lookat_controller_node.cpp)
-#target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME} ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
+
+add_executable(cob_lookat_controller_node src/cob_lookat_controller_node.cpp)
+target_link_libraries(cob_lookat_controller_node cob_lookat_controller ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
 
 
 #############
@@ -123,7 +120,7 @@ target_link_libraries(cob_lookat_driver_node cob_lookat_driver ${catkin_LIBRARIE
 # )
 
 ## Mark executables and/or libraries for installation
-install(TARGETS cob_lookat_driver cob_lookat_driver_node #${PROJECT_NAME} ${PROJECT_NAME}_node
+install(TARGETS cob_lookat_driver cob_lookat_driver_node cob_lookat_controller cob_lookat_controller_node
  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
