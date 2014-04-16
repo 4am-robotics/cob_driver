@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import roslib;
-roslib.load_manifest('cob_lookat_chain')
+roslib.load_manifest('cob_lookat_controller')
 import rospy
 from brics_actuator.msg import JointVelocities, JointValue
 
@@ -37,7 +37,7 @@ def start_node():
     msg.velocities.append(value_z)
 
     #print msg
-
+    rospy.loginfo("publishing now!")
     pub.publish(msg)
     rospy.sleep(1.0)
 

@@ -1,0 +1,10 @@
+#all
+joint_names: [lookat_lin_joint, lookat_x_joint, lookat_y_joint, lookat_z_joint]
+
+# lookat_driver
+update_rate: 100.0
+
+# lookat controller parameters
+base_link: base_link
+tip_link: lookat_focus_frame
+focus_goal: focus_goal
