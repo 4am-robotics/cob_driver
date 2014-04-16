@@ -56,6 +56,7 @@ private:
 	ros::Subscriber twist_sub;
 	ros::Publisher chain_vel_pub;
 	ros::Publisher lookat_vel_pub;
+	std::string chain_vel_pub_topic_;
 	
 	KDL::Chain chain_;
 	std::string chain_base_;

@@ -103,11 +103,16 @@ void CobLookatController::initialize()
 	//p_iksolver_vel_wdls_->setWeightTS(Mx);
 	
 	
+	if (nh_.hasParam("chain_vel_pub_topic"))
+	{	nh_.getParam("chain_vel_pub_topic", chain_vel_pub_topic_);	}
+	else
+	{	ROS_ERROR("Parameter chain_vel_pub_topic not set");	}
+	
 	///initialize ROS interfaces
 	jointstate_sub = nh_.subscribe("/joint_states", 10, &CobLookatController::jointstate_cb, this);
 	//lookatstate_sub = nh_.subscribe("/lookat_controller/joint_states", 1, &CobLookatController::lookatstate_cb, this);
 	twist_sub = nh_.subscribe("command_twist", 1, &CobLookatController::twist_cb, this);
-	chain_vel_pub = nh_.advertise<brics_actuator::JointVelocities>("chain_command_vel", 10);
+	chain_vel_pub = nh_.advertise<brics_actuator::JointVelocities>(chain_vel_pub_topic_, 10);
 	lookat_vel_pub = nh_.advertise<brics_actuator::JointVelocities>("lookat_command_vel", 10);
 	
 	
