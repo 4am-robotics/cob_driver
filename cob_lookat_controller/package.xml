@@ -13,6 +13,8 @@
   <build_depend>roscpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
+  <build_depend>std_srvs</build_depend>
+  <build_depend>cob_srvs</build_depend>
   <build_depend>brics_actuator</build_depend>
   <build_depend>kdl_parser</build_depend>
   <build_depend>kdl_conversions</build_depend>
@@ -24,6 +26,8 @@
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>geometry_msgs</run_depend>
+  <run_depend>std_srvs</run_depend>
+  <run_depend>cob_srvs</run_depend>
   <run_depend>brics_actuator</run_depend>
   <run_depend>kdl_parser</run_depend>
   <run_depend>kdl_conversions</run_depend>

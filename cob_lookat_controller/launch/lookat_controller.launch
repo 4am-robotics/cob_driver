@@ -16,4 +16,6 @@
 		<remap from="lookat_command_vel" to="/lookat_controller/command_vel"/>
 	</node>
 	
+	<node ns="lookat_controller" name="frame_tracker" pkg="cob_lookat_controller" type="cob_frame_tracker_node" cwd="node" respawn="false" output="screen"/>
+	
 </launch>

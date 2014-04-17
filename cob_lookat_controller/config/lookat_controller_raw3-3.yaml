@@ -11,6 +11,6 @@ tip_link: lookat_focus_frame
 chain_vel_pub_topic: /head_controller/command_vel
 ptp_vel: 0.3
 
-
-# lookat frame follower
-focus_goal: focus_goal
+# frame_tracker
+update_rate: 10.0
+max_vel_lin: 0.1
