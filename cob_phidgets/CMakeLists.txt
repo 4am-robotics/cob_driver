@@ -40,7 +40,7 @@ generate_messages(DEPENDENCIES std_msgs sensor_msgs)
 ###################################
 catkin_package(
     CATKIN_DEPENDS roscpp rospy libphidgets std_msgs sensor_msgs message_runtime
-    INCLUDE_DIRS # TODO include
+    INCLUDE_DIRS common/include
     LIBRARIES # TODO
 )
 
@@ -56,8 +56,8 @@ add_executable(range_sensors ros/src/phidgets_range_sensors.cpp)
 target_link_libraries(range_sensors ${catkin_LIBRARIES})
 
 add_executable(device_name ros/src/set_device_name.cpp)
-target_link_libraries(device_name ${catkin_LIBRARIES}
-                      ${PROJECT_NAME}_gencpp)
+add_dependencies(device_name ${PROJECT_NAME}_gencpp)
+target_link_libraries(device_name ${catkin_LIBRARIES})
 
 add_executable(phidget_sensors 
 	ros/src/phidget_sensors_node.cpp
@@ -65,8 +65,8 @@ add_executable(phidget_sensors
 	common/src/phidget.cpp 
 	common/src/phidgetik.cpp 
 	ros/src/phidgetik_ros.cpp)
-target_link_libraries(phidget_sensors ${catkin_LIBRARIES}
-                      ${PROJECT_NAME}_gencpp)
+add_dependencies(device_name ${PROJECT_NAME}_gencpp)
+target_link_libraries(phidget_sensors ${catkin_LIBRARIES})
 
 
 #############
