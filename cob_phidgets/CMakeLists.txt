@@ -33,9 +33,20 @@ catkin_package(
 ## Build ##
 ###########
 include_directories(${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
-add_executable(range_sensors ros/src/phidgets_range_sensors.cpp)
 
+add_executable(range_sensors ros/src/phidgets_range_sensors.cpp)
 target_link_libraries(range_sensors ${catkin_LIBRARIES})
+
+add_executable(device_name ros/src/set_device_name.cpp)
+target_link_libraries(device_name ${catkin_LIBRARIES})
+
+add_executable(phidget_sensors 
+	ros/src/phidget_sensors_node.cpp
+	ros/src/phidget_manager.cpp 
+	common/src/phidget.cpp 
+	common/src/phidgetik.cpp 
+	ros/src/phidgetik_ros.cpp)
+target_link_libraries(phidget_sensors ${catkin_LIBRARIES})
 
 
 #############
