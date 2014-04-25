@@ -65,7 +65,7 @@ add_executable(phidget_sensors
 	common/src/phidget.cpp 
 	common/src/phidgetik.cpp 
 	ros/src/phidgetik_ros.cpp)
-add_dependencies(device_name ${PROJECT_NAME}_gencpp)
+add_dependencies(device_name ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(phidget_sensors ${catkin_LIBRARIES})
 
 
