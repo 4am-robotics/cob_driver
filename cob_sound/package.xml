@@ -9,7 +9,7 @@
   <url type="website">http://ros.org/wiki/cob_sound</url>
   <!-- <url type="bugtracker"></url> -->
 
-  <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>
+  <maintainer email="nhg@ipa.fhg.de">Nadia Hammoudeh Garcia</maintainer>
   <author>Florian Weisshardt</author>
 
   <buildtool_depend>catkin</buildtool_depend>
