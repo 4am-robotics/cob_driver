@@ -19,7 +19,7 @@ max_vel_lin: 0.1
 # trajectory controller parameters
 joint_names: [lookat_lin_joint, lookat_x_joint, lookat_y_joint, lookat_z_joint]
 ptp_vel: 1.0 # rad/sec
-ptp_acc: 1.0 # rad/sec^2
+ptp_acc: 0.5 # rad/sec^2
 max_error: 0.25 # rad
 overlap_time: 0.4
 frequency: 68
