@@ -111,6 +111,10 @@ void CobTwistController::initialize()
 	//p_iksolver_vel_wdls_->setWeightJS(Mq);
 	//Eigen::MatrixXd Mx;
 	//p_iksolver_vel_wdls_->setWeightTS(Mx);
+	double max_vel = vel_param;
+	//double lambda = 1.0/(2*max_vel);
+	double lambda = 100.0;
+	p_iksolver_vel_wdls_->setLambda(lambda);
 	
 	//p_iksolver_pos_ = new KDL::ChainIkSolverPos_NR_JL(chain_, chain_min, chain_max, *p_fksolver_pos_, *p_iksolver_vel_, 50, 0.001);
 	
@@ -153,20 +157,20 @@ void CobTwistController::twist_cb(const geometry_msgs::Twist::ConstPtr& msg)
 	tf::twistMsgToKDL(*msg, twist);
 	KDL::JntArray q_dot_ik(chain_.getNrOfJoints());
 	
-	ROS_INFO("Twist Vel (%f, %f, %f)", twist.vel.x(), twist.vel.y(), twist.vel.z());
-	ROS_INFO("Twist Rot (%f, %f, %f)", twist.rot.x(), twist.rot.y(), twist.rot.z());
+	//ROS_INFO("Twist Vel (%f, %f, %f)", twist.vel.x(), twist.vel.y(), twist.vel.z());
+	//ROS_INFO("Twist Rot (%f, %f, %f)", twist.rot.x(), twist.rot.y(), twist.rot.z());
 	
 	KDL::Twist twist_transformed = frame*twist;
 	
-	ROS_INFO("TwistTransformed Vel (%f, %f, %f)", twist_transformed.vel.x(), twist_transformed.vel.y(), twist_transformed.vel.z());
-	ROS_INFO("TwistTransformed Rot (%f, %f, %f)", twist_transformed.rot.x(), twist_transformed.rot.y(), twist_transformed.rot.z());
+	//ROS_INFO("TwistTransformed Vel (%f, %f, %f)", twist_transformed.vel.x(), twist_transformed.vel.y(), twist_transformed.vel.z());
+	//ROS_INFO("TwistTransformed Rot (%f, %f, %f)", twist_transformed.rot.x(), twist_transformed.rot.y(), twist_transformed.rot.z());
 	
-	std::cout << "Current q: ";
-	for(unsigned int i=0; i<last_q_.rows(); i++)
-	{
-		std::cout << last_q_(i) << ", ";
-	}
-	std::cout << std::endl;
+	//std::cout << "Current q: ";
+	//for(unsigned int i=0; i<last_q_.rows(); i++)
+	//{
+		//std::cout << last_q_(i) << ", ";
+	//}
+	//std::cout << std::endl;
 	
 	
 	//int ret_ik = p_iksolver_vel_->CartToJnt(last_q_, twist_transformed, q_dot_ik);
@@ -178,12 +182,12 @@ void CobTwistController::twist_cb(const geometry_msgs::Twist::ConstPtr& msg)
 	}
 	else
 	{
-		std::cout << "Solution q_dot: ";
-		for(unsigned int i=0; i<q_dot_ik.rows(); i++)
-		{
-			std::cout << q_dot_ik(i) << ", ";
-		}
-		std::cout << std::endl;
+		//std::cout << "Solution q_dot: ";
+		//for(unsigned int i=0; i<q_dot_ik.rows(); i++)
+		//{
+			//std::cout << q_dot_ik(i) << ", ";
+		//}
+		//std::cout << std::endl;
 		
 		brics_actuator::JointVelocities vel_msg;
 		vel_msg.velocities.resize(joints_.size());
@@ -220,7 +224,7 @@ void CobTwistController::jointstate_cb(const sensor_msgs::JointState::ConstPtr& 
 	
 	if(count == joints_.size())
 	{
-		ROS_DEBUG("Done Parsing");
+		//ROS_DEBUG("Done Parsing");
 		last_q_ = q_temp;
 		last_q_dot_ = q_dot_temp;
 	}

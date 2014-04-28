@@ -148,20 +148,22 @@ void CobLookatController::twist_cb(const geometry_msgs::Twist::ConstPtr& msg)
 	tf::twistMsgToKDL(*msg, twist);
 	KDL::JntArray q_dot_ik(chain_.getNrOfJoints());
 	
-	ROS_INFO("Twist Vel (%f, %f, %f)", twist.vel.x(), twist.vel.y(), twist.vel.z());
-	ROS_INFO("Twist Rot (%f, %f, %f)", twist.rot.x(), twist.rot.y(), twist.rot.z());
+	//ROS_INFO("Twist Vel (%f, %f, %f)", twist.vel.x(), twist.vel.y(), twist.vel.z());
+	//ROS_INFO("Twist Rot (%f, %f, %f)", twist.rot.x(), twist.rot.y(), twist.rot.z());
 	
+	
+	///ToDo: Verify this transformation
 	KDL::Twist twist_transformed = frame*twist;
 	
-	ROS_INFO("TwistTransformed Vel (%f, %f, %f)", twist_transformed.vel.x(), twist_transformed.vel.y(), twist_transformed.vel.z());
-	ROS_INFO("TwistTransformed Rot (%f, %f, %f)", twist_transformed.rot.x(), twist_transformed.rot.y(), twist_transformed.rot.z());
+	//ROS_INFO("TwistTransformed Vel (%f, %f, %f)", twist_transformed.vel.x(), twist_transformed.vel.y(), twist_transformed.vel.z());
+	//ROS_INFO("TwistTransformed Rot (%f, %f, %f)", twist_transformed.rot.x(), twist_transformed.rot.y(), twist_transformed.rot.z());
 	
-	std::cout << "Current q: ";
-	for(unsigned int i=0; i<last_q_.rows(); i++)
-	{
-		std::cout << last_q_(i) << ", ";
-	}
-	std::cout << std::endl;
+	//std::cout << "Current q: ";
+	//for(unsigned int i=0; i<last_q_.rows(); i++)
+	//{
+		//std::cout << last_q_(i) << ", ";
+	//}
+	//std::cout << std::endl;
 	
 	
 	//int ret_ik = p_iksolver_vel_->CartToJnt(last_q_, twist_transformed, q_dot_ik);
@@ -173,12 +175,12 @@ void CobLookatController::twist_cb(const geometry_msgs::Twist::ConstPtr& msg)
 	}
 	else
 	{
-		std::cout << "Solution q_dot: ";
-		for(unsigned int i=0; i<q_dot_ik.rows(); i++)
-		{
-			std::cout << q_dot_ik(i) << ", ";
-		}
-		std::cout << std::endl;
+		//std::cout << "Solution q_dot: ";
+		//for(unsigned int i=0; i<q_dot_ik.rows(); i++)
+		//{
+			//std::cout << q_dot_ik(i) << ", ";
+		//}
+		//std::cout << std::endl;
 		
 		brics_actuator::JointVelocities chain_vel_msg;
 		chain_vel_msg.velocities.resize(chain_dof_);
