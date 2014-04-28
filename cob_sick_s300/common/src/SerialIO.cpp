@@ -163,7 +163,7 @@ int SerialIO::openIO()
 	int Res;
 
 	// open device
-	m_Device = open(m_DeviceName.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
+	m_Device = open(m_DeviceName.c_str(), O_RDWR | O_NOCTTY /*| O_NONBLOCK*/);
 
 	if(m_Device < 0)
 	{	
