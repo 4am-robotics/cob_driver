@@ -3,7 +3,7 @@ lookat_joint_names: [lookat_lin_joint, lookat_x_joint, lookat_y_joint, lookat_z_
 chain_joint_names: [torso_1_joint, torso_2_joint, torso_3_joint]
 
 # lookat_driver
-update_rate: 25.0
+update_rate: 68.0
 
 # lookat controller parameters
 base_link: base_link
