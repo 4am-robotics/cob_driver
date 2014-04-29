@@ -34,6 +34,8 @@
   <run_depend>orocos_kdl</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>tf_conversions</run_depend>
+  <run_depend>visualization_msgs</run_depend>
+  <run_depend>interactive_markers</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

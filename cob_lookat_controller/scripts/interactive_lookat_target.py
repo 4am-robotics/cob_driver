@@ -33,14 +33,17 @@ class InteractiveLookatTarget():
 		print "...done!"
 		self.stop_tracking_client = rospy.ServiceProxy('/lookat_controller/stop_tracking', Empty)
 		
-		#self.handle_pose = PoseStamped()
+		self.target_pose = PoseStamped()
+		self.target_pose.header.stamp = rospy.Time.now()
+		self.target_pose.header.frame_id = "lookat_focus_frame"
+		self.target_pose.pose.orientation.w = 1.0
 		#self.viz_pub = rospy.Publisher('lookat_target', PoseStamped)
 		self.br = tf.TransformBroadcaster()
 		self.listener = tf.TransformListener()
 
 		self.ia_server = InteractiveMarkerServer("marker_server")
 		self.int_marker = InteractiveMarker()
-		self.int_marker.header.frame_id = "base_link"
+		self.int_marker.header.frame_id = "lookat_focus_frame"
 		self.int_marker.name = "lookat_target"
 		self.int_marker.description = "virtual lookat target"
 		self.int_marker.scale = 0.5
@@ -141,12 +144,11 @@ class InteractiveLookatTarget():
 	def marker_fb(self, fb):
 		#p = feedback.pose.position
 		#print feedback.marker_name + " is now at " + str(p.x) + ", " + str(p.y) + ", " + str(p.z)
-		#self.handle_pose.header = fb.header
-		#self.handle_pose.pose = fb.pose
-		self.br.sendTransform((fb.pose.position.x, fb.pose.position.y, fb.pose.position.z), tf.transformations.quaternion_from_euler(0, 0, 0),rospy.Time.now(), "lookat_target", fb.header.frame_id)
+		self.target_pose.header = fb.header
+		self.target_pose.pose = fb.pose
+		self.ia_server.applyChanges()
 
  	def run(self):
-		rospy.spin()
  		#self.max_angle = 20
  		#if(self.focus != 4):
  			#focus_transformed = self.listener.transformPose("head_ids_middle_frame",self.focus)
@@ -162,13 +164,14 @@ class InteractiveLookatTarget():
 				#result = self.client.get_result()
 				#print result
 		#self.br.sendTransform((self.handle_pose.x, self.handle_pose.y, self.handle_pose.z), tf.transformations.quaternion_from_euler(0, 0, 0),rospy.Time.now(), "prace_handle", "base_link")
+		self.br.sendTransform((self.target_pose.pose.position.x, self.target_pose.pose.position.y, self.target_pose.pose.position.z), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "lookat_target", self.target_pose.header.frame_id)
 		
 
 if __name__ == "__main__":
 	rospy.init_node("interactive_lookat_target")
 	ilt = InteractiveLookatTarget()
-	ilt.run()
- 	#r = rospy.Rate(10)
- 	#while not rospy.is_shutdown():
-   		#ilt.run()
-		#r.sleep()
+	#ilt.run()
+ 	r = rospy.Rate(68)
+ 	while not rospy.is_shutdown():
+   		ilt.run()
+		r.sleep()
