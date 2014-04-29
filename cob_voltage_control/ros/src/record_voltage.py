@@ -26,7 +26,7 @@ def record():
 	f = open(filename, 'wt', 1)
 	writer = csv.writer(f)
 
-	rospy.Subscriber("/power_board/voltage", Float64, callback)
+	rospy.Subscriber("/analog_sensors", Float64, callback)
 	
 
 	while not rospy.is_shutdown():

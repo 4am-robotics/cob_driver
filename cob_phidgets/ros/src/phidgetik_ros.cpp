@@ -60,7 +60,7 @@
 #include <cob_phidgets/phidgetik_ros.h>
 
 PhidgetIKROS::PhidgetIKROS(ros::NodeHandle nh, int serial_num, std::string board_name, XmlRpc::XmlRpcValue* sensor_params, SensingMode mode)
-	:PhidgetIK(mode), _nh(nh), _serial_num(serial_num)
+	:PhidgetIK(mode), _nh(nh), _serial_num(serial_num), _board_name(board_name)
 {
 	ros::NodeHandle tmpHandle("~");
 	ros::NodeHandle nodeHandle(tmpHandle, board_name);
@@ -147,7 +147,7 @@ auto PhidgetIKROS::readParams(XmlRpc::XmlRpcValue* sensor_params) -> void
 		if(_indexNameMapItr == _indexNameMapDigitalIn.end())
 		{
 			std::stringstream ss;
-			ss << getDeviceSerialNumber() << "/" << "in/" << i;
+			ss << _board_name << "/" << "in/" << i;
 			_indexNameMapDigitalIn.insert(std::make_pair(i, ss.str()));
 		}
 	}
@@ -158,7 +158,7 @@ auto PhidgetIKROS::readParams(XmlRpc::XmlRpcValue* sensor_params) -> void
 		if(_indexNameMapItr == _indexNameMapDigitalOut.end())
 		{
 			std::stringstream ss;
-			ss << getDeviceSerialNumber() << "/" << "out/" << i;
+			ss << _board_name << "/" << "out/" << i;
 			_indexNameMapDigitalOut.insert(std::make_pair(i, ss.str()));
 		}
 	}
@@ -169,7 +169,7 @@ auto PhidgetIKROS::readParams(XmlRpc::XmlRpcValue* sensor_params) -> void
 		if(_indexNameMapItr == _indexNameMapAnalog.end())
 		{
 			std::stringstream ss;
-			ss << getDeviceSerialNumber() << "/" << i;
+			ss << _board_name << "/" << i;
 			_indexNameMapAnalog.insert(std::make_pair(i, ss.str()));
 		}
 	}
@@ -182,7 +182,7 @@ auto PhidgetIKROS::readParams(XmlRpc::XmlRpcValue* sensor_params) -> void
 		if(_indexNameMapItr != _indexNameMapDigitalIn.end())
 		{
 			std::stringstream ss;
-			ss << getDeviceSerialNumber() << "/" << "in/" << i;
+			ss << _board_name << "/" << "in/" << i;
 
 			_indexNameMapDigitalInRev.insert(std::make_pair(_indexNameMapDigitalIn[i],i));
 		}
