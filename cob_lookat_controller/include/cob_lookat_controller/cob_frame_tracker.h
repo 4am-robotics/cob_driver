@@ -28,6 +28,8 @@
 #ifndef COB_FRAME_TRACKER_H
 #define COB_FRAME_TRACKER_H
 
+#include <math.h>
+#include <algorithm>
 #include <ros/ros.h>
 
 #include <std_srvs/Empty.h>

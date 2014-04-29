@@ -80,9 +80,12 @@ void CobFrameTracker::publish_twist()
 	}
 	
 	tf::transformStampedTFToMsg(transform_tf, transform_msg);
-	twist_msg.linear.x = transform_msg.transform.translation.x/(max_vel_lin_/update_rate_);
-	twist_msg.linear.y = transform_msg.transform.translation.y/(max_vel_lin_/update_rate_);
-	twist_msg.linear.z = transform_msg.transform.translation.z/(max_vel_lin_/update_rate_);
+	//twist_msg.linear.x = transform_msg.transform.translation.x/(max_vel_lin_/update_rate_);
+	//twist_msg.linear.y = transform_msg.transform.translation.y/(max_vel_lin_/update_rate_);
+	//twist_msg.linear.z = transform_msg.transform.translation.z/(max_vel_lin_/update_rate_);
+	twist_msg.linear.x = copysign(std::min(max_vel_lin_, std::fabs(transform_msg.transform.translation.x)),transform_msg.transform.translation.x);
+	twist_msg.linear.y = copysign(std::min(max_vel_lin_, std::fabs(transform_msg.transform.translation.y)),transform_msg.transform.translation.y);
+	twist_msg.linear.z = copysign(std::min(max_vel_lin_, std::fabs(transform_msg.transform.translation.z)),transform_msg.transform.translation.z);
 	twist_msg.angular.x = 0.0;	//rotation does not matter
 	twist_msg.angular.y = 0.0;
 	twist_msg.angular.z = 0.0;
