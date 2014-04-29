@@ -236,7 +236,7 @@ class NodeClass
 				syncedTimeReady = true;
 				
 				ROS_DEBUG("Got iSickNow, store sync-stamp: %d", syncedSICKStamp);
-			}
+			} else syncedTimeReady = false;
 			
 			// create LaserScan message
 			sensor_msgs::LaserScan laserScan;
