@@ -14,6 +14,7 @@ import copy
 import math
 import tf
 import actionlib
+from copy import deepcopy
 
 
 class InteractiveLookatTarget():
@@ -40,12 +41,17 @@ class InteractiveLookatTarget():
 		#self.viz_pub = rospy.Publisher('lookat_target', PoseStamped)
 		self.br = tf.TransformBroadcaster()
 		self.listener = tf.TransformListener()
-		rospy.sleep(1.0)
 		
-		try:
-			(trans,rot) = self.listener.lookupTransform('/base_link', '/lookat_focus_frame', rospy.Time(0))
-		except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-			rospy.logerr("Unable to lookup transform")
+		transform_available = False
+		while not transform_available:
+			try:
+				(trans,rot) = self.listener.lookupTransform('/base_link', '/lookat_focus_frame', rospy.Time(0))
+			except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+				rospy.logwarn("Waiting for transform...")
+				rospy.sleep(0.5)
+				continue
+			transform_available = True
+			
 		self.target_pose.pose.position.x = trans[0]
 		self.target_pose.pose.position.y = trans[1]
 		self.target_pose.pose.position.z = trans[2]
