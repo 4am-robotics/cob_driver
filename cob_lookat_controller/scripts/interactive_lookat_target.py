@@ -79,24 +79,37 @@ class InteractiveLookatTarget():
 		box_control.markers.append( box_marker )
 		self.int_marker.controls.append(box_control)
 
-		x_control = InteractiveMarkerControl()
-		x_control.name = "move_x"
-		x_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
-		self.int_marker.controls.append(x_control)
-		y_control = InteractiveMarkerControl()
-		y_control.name = "move_y"
-		y_control.orientation.w = 1
-		y_control.orientation.x = 0
-		y_control.orientation.z = 1
-		y_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
-		self.int_marker.controls.append(y_control)
-		z_control = InteractiveMarkerControl()
-		z_control.name = "move_z"
-		z_control.orientation.w = 1
-		z_control.orientation.x = 0
-		z_control.orientation.y = 1
-		z_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
-		self.int_marker.controls.append(z_control)
+		control = InteractiveMarkerControl()
+		control.always_visible = True
+		control.orientation.w = 1
+		control.orientation.x = 1
+		control.orientation.y = 0
+		control.orientation.z = 0
+		control.name = "move_3D"
+		control.interaction_mode = InteractiveMarkerControl.MOVE_3D
+		self.int_marker.controls.append(deepcopy(control))
+		control.name = "move_x"
+		control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+		self.int_marker.controls.append(deepcopy(control))
+		control.name = "rotate_x"
+		control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
+		self.int_marker.controls.append(deepcopy(control))
+		control.name = "move_y"
+		control.orientation.x = 0
+		control.orientation.y = 1
+		control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+		self.int_marker.controls.append(deepcopy(control))
+		control.name = "rotate_y"
+		control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
+		self.int_marker.controls.append(deepcopy(control))
+		control.name = "move_z"
+		control.orientation.y = 0
+		control.orientation.z = 1
+		control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+		self.int_marker.controls.append(deepcopy(control))
+		control.name = "rotate_z"
+		control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
+		self.int_marker.controls.append(deepcopy(control))
 		
 		self.ia_server.insert(self.int_marker, self.marker_fb)
 
