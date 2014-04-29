@@ -62,6 +62,7 @@ public:
 	bool tracking_;
 	std::string tracking_frame_;
 	double max_vel_lin_;
+	double max_vel_rot_;
 	
 	ros::ServiceServer start_server_;
 	ros::ServiceServer stop_server_;

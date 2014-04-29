@@ -41,7 +41,12 @@ void CobFrameTracker::initialize()
 	if (nh_.hasParam("max_vel_lin"))
 	{	nh_.getParam("max_vel_lin", max_vel_lin_);	}
 	else
-	{	max_vel_lin_ = 0.1;	}	//m/sec
+	{	max_vel_lin_ = 0.5;	}	//m/sec
+	
+	if (nh_.hasParam("max_vel_rot"))
+	{	nh_.getParam("max_vel_rot", max_vel_rot_);	}
+	else
+	{	max_vel_rot_ = 0.3;	}	//rad/sec
 	
 	start_server_ = nh_.advertiseService("start_tracking", &CobFrameTracker::start_tracking_cb, this);
 	stop_server_ = nh_.advertiseService("stop_tracking", &CobFrameTracker::stop_tracking_cb, this);
@@ -86,9 +91,9 @@ void CobFrameTracker::publish_twist()
 	twist_msg.linear.x = copysign(std::min(max_vel_lin_, std::fabs(transform_msg.transform.translation.x)),transform_msg.transform.translation.x);
 	twist_msg.linear.y = copysign(std::min(max_vel_lin_, std::fabs(transform_msg.transform.translation.y)),transform_msg.transform.translation.y);
 	twist_msg.linear.z = copysign(std::min(max_vel_lin_, std::fabs(transform_msg.transform.translation.z)),transform_msg.transform.translation.z);
-	twist_msg.angular.x = 0.0;	//rotation does not matter
-	twist_msg.angular.y = 0.0;
-	twist_msg.angular.z = 0.0;
+	twist_msg.angular.x = copysign(std::min(max_vel_rot_, std::fabs(transform_msg.transform.rotation.x)),transform_msg.transform.rotation.x);
+	twist_msg.angular.y = copysign(std::min(max_vel_rot_, std::fabs(transform_msg.transform.rotation.y)),transform_msg.transform.rotation.y);
+	twist_msg.angular.z = copysign(std::min(max_vel_rot_, std::fabs(transform_msg.transform.rotation.z)),transform_msg.transform.rotation.z);
 	
 	twist_pub_.publish(twist_msg);
 }
