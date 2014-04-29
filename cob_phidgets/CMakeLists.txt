@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.4.6)
+cmake_minimum_required(VERSION 2.8.3)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
    execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
@@ -15,43 +15,79 @@ else(CMAKE_COMPILER_IS_GNUCXX)
    add_definitions("-std=c++0x")
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+project(cob_phidgets)
 
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs sensor_msgs libphidgets message_generation)
 
-rosbuild_init()
 
-#set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/bin)
-#set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/lib)
+add_message_files(
+  FILES
+  AnalogSensor.msg
+  DigitalSensor.msg
+)
 
-#uncomment if you have defined messages
-rosbuild_genmsg()
-#uncomment if you have defined services
-rosbuild_gensrv()
+add_service_files(
+  FILES
+  SetDataRate.srv 
+  SetDigitalSensor.srv
+  SetTriggerValue.srv
+)
 
-#common commands for building c++ executables and libraries
-#rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
-#target_link_libraries(${PROJECT_NAME} another_library)
-#rosbuild_add_boost_directories()
-#rosbuild_link_boost(${PROJECT_NAME} thread)
-include_directories(${PROJECT_SOURCE_DIR}/ros/include ${PROJECT_SOURCE_DIR}/common/include)
+generate_messages(DEPENDENCIES std_msgs sensor_msgs)
 
-rosbuild_add_executable(range_sensors ros/src/phidgets_range_sensors.cpp)
-target_link_libraries(range_sensors phidget21)
+###################################
+## catkin specific configuration ##
+###################################
+catkin_package(
+    CATKIN_DEPENDS roscpp rospy libphidgets std_msgs sensor_msgs message_runtime
+    INCLUDE_DIRS common/include
+    LIBRARIES # TODO
+)
 
-rosbuild_add_executable(device_name ros/src/set_device_name.cpp)
-target_link_libraries(device_name phidget21)
 
-rosbuild_add_executable(phidget_sensors ros/src/phidget_sensors_node.cpp ros/src/phidget_manager.cpp 
-						common/src/phidget.cpp common/src/phidgetik.cpp ros/src/phidgetik_ros.cpp)
-target_link_libraries(phidget_sensors phidget21)
+###########
+## Build ##
+###########
+include_directories(${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+include_directories(${PROJECT_SOURCE_DIR}/ros/include ${PROJECT_SOURCE_DIR}/common/include ${catkin_INCLUDE_DIRS})
 
-list( APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS} -g -ftest-coverage -fprofile-arcs" )
+
+add_executable(range_sensors ros/src/phidgets_range_sensors.cpp)
+target_link_libraries(range_sensors ${catkin_LIBRARIES})
+
+add_executable(device_name ros/src/set_device_name.cpp)
+add_dependencies(device_name ${PROJECT_NAME}_gencpp)
+target_link_libraries(device_name ${catkin_LIBRARIES})
+
+add_executable(phidget_sensors 
+	ros/src/phidget_sensors_node.cpp
+	ros/src/phidget_manager.cpp 
+	common/src/phidget.cpp 
+	common/src/phidgetik.cpp 
+	ros/src/phidgetik_ros.cpp)
+add_dependencies(device_name ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_generate_messages_cpp)
+target_link_libraries(phidget_sensors ${catkin_LIBRARIES})
+
+
+#############
+## Install ##
+#############
+
+## Mark executables and/or libraries for installation
+install(TARGETS range_sensors
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY common/include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
+
+install(DIRECTORY ros/include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
+
+install(PROGRAMS ros/src/simulated_range_sensors.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/ros/src
+)
