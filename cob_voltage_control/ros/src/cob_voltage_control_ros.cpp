@@ -47,8 +47,8 @@ class cob_voltage_control_ros
 
         cob_voltage_control_ros()
         {
-            topicPub_powerstate = n_.advertise<pr2_msgs::PowerBoardState>("/power_board/state", 1);
-            topicPub_em_stop_state_ = n_.advertise<cob_relayboard::EmergencyStopState>("/emergency_stop_state", 1);
+            topicPub_powerstate = n_.advertise<pr2_msgs::PowerBoardState>("pub_em_stop_state_", 1);
+            topicPub_em_stop_state_ = n_.advertise<cob_relayboard::EmergencyStopState>("pub_relayboard_state_", 1);
 
             topicPub_Voltage = n_.advertise<std_msgs::Float64>("/power_board/voltage", 10);
             topicSub_AnalogInputs = n_.subscribe("/analog_sensors", 1, &cob_voltage_control_ros::analogPhidgetSignalsCallback, this);
@@ -56,7 +56,7 @@ class cob_voltage_control_ros
                 
             n_.param("battery_max_voltage", component_config_.max_voltage, 50.0);
             n_.param("battery_min_voltage", component_config_.min_voltage, 44.0);
-            n_.param("robot_max_voltage", component_config_.max_voltage_res, 61.0);
+            n_.param("robot_max_voltage", component_config_.max_voltage_res, 70.0);
             n_.param("voltage_analog_port", component_config_.num_voltage_port, 1);
             n_.param("em_stop_dio_port", component_config_.num_em_stop_port, 0); 
             n_.param("scanner_stop_dio_port", component_config_.num_scanner_em_port, 1);
@@ -105,11 +105,11 @@ class cob_voltage_control_ros
             {
                 if( msg->uri[i] == "em_stop_laser_rear")
                 {
-                    rear_em_active = (bool)msg->state[i];
+                    rear_em_active = !((bool)msg->state[i]);
                 }
                 else if( msg->uri[i] == "em_stop_laser_front")
                 {
-                    front_em_active = (bool)msg->state[i];
+                    front_em_active = !((bool)msg->state[i]);
                 }
             }
             if( (front_em_active && rear_em_active) && (!last_front_em_state && !last_rear_em_state))
