@@ -108,6 +108,10 @@ bool CobFrameTracker::stop_tracking_cb(std_srvs::Empty::Request& request, std_sr
 	tracking_frame_ = "/lookat_focus_frame";
 	tracking_ = false;
 	
+	//publish zero Twist for stopping
+	geometry_msgs::Twist twist_msg;
+	twist_pub_.publish(twist_msg);
+	
 	return true;
 }
 

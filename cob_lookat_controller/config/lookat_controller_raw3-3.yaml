@@ -13,7 +13,7 @@ ptp_vel: 0.3
 
 # frame_tracker
 update_rate: 68.0
-max_vel_lin: 0.1
+max_vel_lin: 0.6
 
 # trajectory controller parameters
 joint_names: [lookat_lin_joint, lookat_x_joint, lookat_y_joint, lookat_z_joint]

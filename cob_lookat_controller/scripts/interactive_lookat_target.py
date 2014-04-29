@@ -35,15 +35,25 @@ class InteractiveLookatTarget():
 		
 		self.target_pose = PoseStamped()
 		self.target_pose.header.stamp = rospy.Time.now()
-		self.target_pose.header.frame_id = "lookat_focus_frame"
+		self.target_pose.header.frame_id = "base_link"
 		self.target_pose.pose.orientation.w = 1.0
 		#self.viz_pub = rospy.Publisher('lookat_target', PoseStamped)
 		self.br = tf.TransformBroadcaster()
 		self.listener = tf.TransformListener()
-
+		rospy.sleep(1.0)
+		
+		try:
+			(trans,rot) = self.listener.lookupTransform('/base_link', '/lookat_focus_frame', rospy.Time(0))
+		except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+			rospy.logerr("Unable to lookup transform")
+		self.target_pose.pose.position.x = trans[0]
+		self.target_pose.pose.position.y = trans[1]
+		self.target_pose.pose.position.z = trans[2]
+		
 		self.ia_server = InteractiveMarkerServer("marker_server")
 		self.int_marker = InteractiveMarker()
-		self.int_marker.header.frame_id = "lookat_focus_frame"
+		self.int_marker.header.frame_id = "base_link"
+		self.int_marker.pose = self.target_pose.pose
 		self.int_marker.name = "lookat_target"
 		self.int_marker.description = "virtual lookat target"
 		self.int_marker.scale = 0.5
