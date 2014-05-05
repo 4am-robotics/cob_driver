@@ -24,7 +24,6 @@ SET(OODL_SickS300_SRC
  # ${PROJECT_SOURCE_DIR}/common/src/LaserScannerData.cpp
   ${PROJECT_SOURCE_DIR}/common/src/LaserScannerConfiguration.cpp
  # ${PROJECT_SOURCE_DIR}/common/src/LaserScannerDataWithIntensities.cpp
-  ${PROJECT_SOURCE_DIR}/common/src/SickS300.cpp
   ${PROJECT_SOURCE_DIR}/common/src/ScannerSickS300.cpp
   ${PROJECT_SOURCE_DIR}/common/src/SerialIO.cpp
 )
@@ -45,4 +44,9 @@ install(TARGETS ${PROJECT_NAME} cob_scan_filter
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+install(DIRECTORY common/include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
+
 

@@ -54,7 +54,6 @@
 #include <cob_sick_s300/ScannerSickS300.h>
 
 #include <stdint.h>
-#include <arpa/inet.h>
 
 //-----------------------------------------------
 
@@ -99,233 +98,27 @@ const unsigned short crc_LookUpTable[256]
 	   0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0x0ED1, 0x1EF0 
 	 }; 
 
-class TelegramParser {
+unsigned int TelegramParser::createCRC(uint8_t *ptrData, int Size)
+{ 
+	int CounterWord; 
+	unsigned short CrcValue=0xFFFF;
 
-	#pragma pack(push,1)
-	union TELEGRAM_COMMON {
-		struct {
-			uint32_t reply_telegram;
-			uint16_t trigger_result;
-			uint16_t size;
-			uint8_t  coordination_flag;
-			uint8_t  device_addresss;
-			uint16_t protocol_version;
-			uint16_t status;
-			uint32_t scan_number;
-			uint16_t telegram_number;
-			uint16_t type;
-		};
-		uint8_t bytes[22];
-	};
-
-	union TELEGRAM_DISTANCE {
-		struct {
-			uint16_t type;
-		};
-		uint8_t bytes[2];
-	};
-
-	union TELEGRAM_TAIL {
-		struct {
-			uint16_t crc;
-		};
-		uint8_t bytes[2];
-	};
-
-	union TELEGRAM_S300_DIST_2B {
-		struct {
-			unsigned distance : 13; //cm
-			unsigned bit13 : 1;  //reflector or scanner distorted
-			unsigned protective : 1;
-			unsigned warn_field : 1;
-		};
-		uint8_t bytes[2];
-	};
-
-	#pragma pack(pop)
-
-	enum TELEGRAM_COMMON_HS {JUNK_SIZE=4};
-	enum TELEGRAM_COMMON_TYPES {IO=0xAAAA, DISTANCE=0xBBBB, REFLEXION=0xCCCC};
-	enum TELEGRAM_DIST_SECTOR {_1=0x1111, _2=0x2222, _3=0x3333, _4=0x4444, _5=0x5555};
-
-
-	static void ntoh(TELEGRAM_COMMON &tc) {
-		tc.reply_telegram = ntohl(tc.reply_telegram);
-		tc.trigger_result = ntohs(tc.trigger_result);
-		tc.size = ntohs(tc.size);
-		tc.protocol_version = ntohs(tc.protocol_version);
-		tc.status = ntohs(tc.status);
-		tc.scan_number = ntohl(tc.scan_number);
-		tc.telegram_number = ntohs(tc.telegram_number);
-		tc.type = ntohs(tc.type);
-	}
-
-	static void ntoh(TELEGRAM_DISTANCE &tc) {
-		tc.type = ntohs(tc.type);
-	}
-
-	static void ntoh(TELEGRAM_TAIL &tc) {
-	    //crc calc. is also in network order
-		//tc.crc = ntohs(tc.crc);
-	}
-
-	static void print(const TELEGRAM_COMMON &tc) {
-		std::cout<<"HEADER"<<std::endl;
-		std::cout<<"reply_telegram"<<":"<<tc.reply_telegram<<std::endl;
-		std::cout<<"trigger_result"<<":"<<tc.trigger_result<<std::endl;
-		std::cout<<"size"<<":"<<2*tc.size<<std::endl;
-		std::cout<<"coordination_flag"<<":"<< std::hex<<tc.coordination_flag<<std::endl;
-		std::cout<<"device_addresss"<<":"<< std::hex<<tc.device_addresss<<std::endl;
-		std::cout<<"protocol_version"<<":"<< std::hex<<tc.protocol_version<<std::endl;
-		std::cout<<"status"<<":"<<tc.status<<std::endl;
-		std::cout<<"scan_number"<<":"<< std::hex<<tc.scan_number<<std::endl;
-		std::cout<<"telegram_number"<<":"<< std::hex<<tc.telegram_number<<std::endl;
-		std::cout<<"type"<<":"<< std::hex<<tc.type<<std::endl;
-		switch(tc.type) {
-			case IO: std::cout<<"type"<<": "<<"IO"<<std::endl; break;
-			case DISTANCE: std::cout<<"type"<<": "<<"DISTANCE"<<std::endl; break;
-			case REFLEXION: std::cout<<"type"<<": "<<"REFLEXION"<<std::endl; break;
-			default: std::cout<<"type"<<": "<<"unknown "<<tc.type<<std::endl; break;
-		}
-		std::cout<<std::dec<<std::endl;
-	}
-
-	static void print(const TELEGRAM_DISTANCE &tc) {
-		std::cout<<"DISTANCE"<<std::endl;
-		std::cout<<"type"<<":"<< std::hex<<tc.type<<std::endl;
-		switch(tc.type) {
-			case _1: std::cout<<"field 1"<<std::endl; break;
-			case _2: std::cout<<"field 2"<<std::endl; break;
-			case _3: std::cout<<"field 3"<<std::endl; break;
-			case _4: std::cout<<"field 4"<<std::endl; break;
-			case _5: std::cout<<"field 5"<<std::endl; break;
-			default: std::cout<<"unknown "<<tc.type<<std::endl; break;
-		}
-		std::cout<<std::dec<<std::endl;
-	}
-
-	static void print(const TELEGRAM_TAIL &tc) {
-		std::cout<<"TAIL"<<std::endl;
-		std::cout<<"crc"<<":"<< std::hex<<tc.crc<<std::endl;
-		std::cout<<std::dec<<std::endl;
-	}
-
-	//-------------------------------------------
-	static unsigned int createCRC(uint8_t *ptrData, int Size)
+	for (CounterWord = 0; CounterWord < Size; CounterWord++) 
 	{ 
-		int CounterWord; 
-		unsigned short CrcValue=0xFFFF;
+		CrcValue = (CrcValue << 8) ^ crc_LookUpTable[ (((uint8_t)(CrcValue >> 8)) ^ *ptrData) ]; 
+		ptrData++; 
+	} 
 
-		for (CounterWord = 0; CounterWord < Size; CounterWord++) 
-		{ 
-			CrcValue = (CrcValue << 8) ^ crc_LookUpTable[ (((uint8_t)(CrcValue >> 8)) ^ *ptrData) ]; 
-			ptrData++; 
-		} 
-
-		return (CrcValue); 
-	}
-
-	//supports versions: 0301, 0201
-	static bool check(const TELEGRAM_COMMON &tc, const uint8_t DEVICE_ADDR) {
-		uint8_t TELEGRAM_COMMON_PATTERN_EQ[] = {0,0,0,0, 0,0, 0,0, 0xFF, DEVICE_ADDR, 2, 1};
-		uint8_t TELEGRAM_COMMON_PATTERN_OR[] = {0,0,0,0, 0,0, 0xff,0xff, 0,0, 1, 0};
-
-		for(size_t i=0; i<sizeof(TELEGRAM_COMMON_PATTERN_EQ); i++) {
-			if(TELEGRAM_COMMON_PATTERN_EQ[i] != (tc.bytes[i]&(~TELEGRAM_COMMON_PATTERN_OR[i])) ) {
-				//std::cout<<"invalid at byte "<<i<<std::endl;
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	TELEGRAM_COMMON tc_;
-	TELEGRAM_DISTANCE td_;
-public:
-
-	bool parseHeader(const unsigned char *buffer, const size_t max_size, const uint8_t DEVICE_ADDR)
-	{
-		if(sizeof(tc_)>max_size) return false;
-		tc_ = *((TELEGRAM_COMMON*)buffer);
-
-		if(!check(tc_, DEVICE_ADDR))
-			return false;
-		ntoh(tc_);
-		//print(tc_);
-
-		if(tc_.size*2+JUNK_SIZE>(int)max_size) {std::cout<<"inv4"<<std::endl;return false;}
-
-		TELEGRAM_TAIL tt = *((TELEGRAM_TAIL*) (buffer+(2*tc_.size+JUNK_SIZE-sizeof(TELEGRAM_TAIL))) );
-		ntoh(tt);
-		//print(tt);
-
-		if(tt.crc!=createCRC((uint8_t*)buffer+JUNK_SIZE, 2*tc_.size-sizeof(TELEGRAM_TAIL)))
-			return false;
-
-		memset(&td_, 0, sizeof(td_));
-		switch(tc_.type) {
-			case IO: break;
-
-			case DISTANCE:
-				td_ = *((TELEGRAM_DISTANCE*)(buffer+sizeof(tc_)));
-				ntoh(td_);
-				//print(td_);
-				break;
-
-			case REFLEXION: break;
-			default: return false;
-		}
-
-		return true;
-	}
-
-	bool isDist() const {return tc_.type==DISTANCE;}
-	int getField() const {
-		switch(td_.type) {
-			case _1: return 0;
-			case _2: return 1;
-			case _3: return 2;
-			case _4: return 3;
-			case _5: return 4;
-			default: return -1;
-		}
-	}
-
-	void readDistRaw(const unsigned char *buffer, std::vector<int> &res) const
-	{
-		res.clear();
-		if(!isDist()) return;
-
-		size_t num_points = (2*tc_.size - (sizeof(tc_)+sizeof(td_)+sizeof(TELEGRAM_TAIL)-JUNK_SIZE));
-		//std::cout<<"num_points: "<<num_points/sizeof(TELEGRAM_S300_DIST_2B)<<std::endl;
-		size_t i=0;
-		for(; i<num_points; ) {
-			TELEGRAM_S300_DIST_2B dist = *((TELEGRAM_S300_DIST_2B*) (buffer+(sizeof(tc_)+sizeof(td_)+i)) );
-			res.push_back((int)dist.distance);
-			i += sizeof(TELEGRAM_S300_DIST_2B);
-		}
-	}
-
-};
-
+	return (CrcValue); 
+}
 
 //-----------------------------------------------
 ScannerSickS300::ScannerSickS300()
 {
-	m_Param.iDataLength = 1104;
-	m_Param.iHeaderLength = 24;
-	// scanner has a half degree resolution and a VoW of 270 degrees
-	m_Param.iNumScanPoints = 541;
-	m_Param.dScale = 0.01;
-	m_Param.dStartAngle = -135.0/180.0*c_dPi;
-	m_Param.dStopAngle = 135.0/180.0*c_dPi;
-
 	// allows to set different Baud-Multipliers depending on used SerialIO-Card
 	m_dBaudMult = 1.0;
 
 	// init scan with zeros
-	m_viScanRaw.assign(541, 0);
 	m_iPosReadBuf2 = 0;
 	
 	m_actualBufferSize = 0;
@@ -399,49 +192,47 @@ void ScannerSickS300::stopScanner()
 
 
 //-----------------------------------------------
-bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<double> &vdAngleRAD, std::vector<double> &vdIntensityAU, unsigned int &iTimestamp, unsigned int &iTimeNow)
+bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<double> &vdAngleRAD, std::vector<double> &vdIntensityAU, unsigned int &iTimestamp, unsigned int &iTimeNow, const bool debug)
 {
 	bool bRet = false;
 	int i;
-	int iNumRead = 0;
 	int iNumRead2 = 0;
 	std::vector<ScanPolarType> vecScanPolar;
-	vecScanPolar.resize(m_Param.iNumScanPoints);
 
-	iNumRead2 = m_SerialIO.readNonBlocking((char*)m_ReadBuf+m_actualBufferSize, SCANNER_S300_READ_BUF_SIZE-2-m_actualBufferSize);
+	iTimeNow=0;
 
-	iNumRead = m_actualBufferSize + iNumRead2;
+	if(SCANNER_S300_READ_BUF_SIZE-2-m_actualBufferSize<=0)
+		m_actualBufferSize=0;
+
+	iNumRead2 = m_SerialIO.readBlocking((char*)m_ReadBuf+m_actualBufferSize, SCANNER_S300_READ_BUF_SIZE-2-m_actualBufferSize);
+	if(iNumRead2<=0) return false;
+
 	m_actualBufferSize = m_actualBufferSize + iNumRead2;
 
-	if( iNumRead < m_Param.iDataLength )
-	{
-		// not enough data in queue --> abort reading
-	  //	printf("Not enough data in queue, read data at slower rate!\n");
-		return false;
-	}
-	
-	TelegramParser tp;
-
 	// Try to find scan. Searching backwards in the receive queue.
-	for(i=iNumRead; i>=0; i--)
+	for(i=m_actualBufferSize; i>=0; i--)
 	{
 		// parse through the telegram until header with correct scan id is found
-		if(tp.parseHeader(m_ReadBuf+i, iNumRead-i, m_iScanId))
+		if(tp_.parseHeader(m_ReadBuf+i, m_actualBufferSize-i, m_iScanId, debug))
 		{
-			tp.readDistRaw(m_ReadBuf+i, m_viScanRaw);
+			tp_.readDistRaw(m_ReadBuf+i, m_viScanRaw);
 			if(m_viScanRaw.size()>0) {
 				// Scan was succesfully read from buffer
 				bRet = true;
-				m_actualBufferSize = 0;
+				int old = m_actualBufferSize;
+				m_actualBufferSize -= tp_.getCompletePacketSize()+i;
+				for(int i=0; i<old-m_actualBufferSize; i++)
+				    m_ReadBuf[i] = m_ReadBuf[i+old-m_actualBufferSize];
 				break;
 			}
 		}
 	}
 	
-	if(bRet)
+	PARAM_MAP::const_iterator param = m_Params.find(tp_.getField());
+	if(bRet && param!=m_Params.end())
 	{
 		// convert data into range and intensity information
-		convertScanToPolar(m_viScanRaw, vecScanPolar);
+		convertScanToPolar(param, m_viScanRaw, vecScanPolar);
 
 		// resize vectors to size of Scan
 		vdDistanceM.resize(vecScanPolar.size());
@@ -460,20 +251,21 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 }
 
 //-------------------------------------------
-void ScannerSickS300::convertScanToPolar(std::vector<int> viScanRaw,
+void ScannerSickS300::convertScanToPolar(const PARAM_MAP::const_iterator param, std::vector<int> viScanRaw,
 							std::vector<ScanPolarType>& vecScanPolar )
 {	
 	double dDist;
 	double dAngle, dAngleStep;
 	double dIntens;
 
-	dAngleStep = fabs(m_Param.dStopAngle - m_Param.dStartAngle) / double(m_Param.iNumScanPoints - 1) ;
+	vecScanPolar.resize(viScanRaw.size());
+	dAngleStep = fabs(param->second.dStopAngle - param->second.dStartAngle) / double(viScanRaw.size() - 1) ;
 	
-	for(int i=0; i<m_Param.iNumScanPoints; i++)
+	for(size_t i=0; i<viScanRaw.size(); i++)
 	{
-		dDist = double ((viScanRaw[i] & 0x1FFF) * m_Param.dScale);
+		dDist = double ((viScanRaw[i] & 0x1FFF) * param->second.dScale);
 
-		dAngle = m_Param.dStartAngle + i*dAngleStep;
+		dAngle = param->second.dStartAngle + i*dAngleStep;
 		dIntens = double(viScanRaw[i] & 0x2000);
 
 		vecScanPolar[i].dr = dDist;

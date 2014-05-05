@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!-- start laser driver -->
+	<node name="laser_front" pkg="cob_sick_s300" type="cob_sick_s300" respawn="false" output="screen" launch-prefix="gdb -ex run --args">
+		<rosparam command="load" file="$(find cob_sick_s300)/ros/test/dummy_config.yaml"/>
+	</node>
+
+</launch>

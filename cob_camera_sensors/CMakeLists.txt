@@ -28,8 +28,8 @@ catkin_package(
     LIBRARIES # TODO
 )
 
-install(DIRECTORY common/files
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/common
+install(DIRECTORY common/include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
 install(DIRECTORY common/scripts
@@ -37,9 +37,6 @@ install(DIRECTORY common/scripts
 )
 
 install(PROGRAMS ros/scripts/set_camera_info.py
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(DIRECTORY common/include/
-  DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
-)
