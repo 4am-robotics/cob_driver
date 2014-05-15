@@ -51,8 +51,8 @@ class cob_voltage_control_ros
             topicPub_em_stop_state_ = n_.advertise<cob_relayboard::EmergencyStopState>("pub_relayboard_state_", 1);
 
             topicPub_Voltage = n_.advertise<std_msgs::Float64>("/power_board/voltage", 10);
-            topicSub_AnalogInputs = n_.subscribe("/analog_sensors", 1, &cob_voltage_control_ros::analogPhidgetSignalsCallback, this);
-            topicSub_DigitalInputs = n_.subscribe("/digital_sensors", 1, &cob_voltage_control_ros::digitalPhidgetSignalsCallback, this);
+            topicSub_AnalogInputs = n_.subscribe("/analog_sensors", 10, &cob_voltage_control_ros::analogPhidgetSignalsCallback, this);
+            topicSub_DigitalInputs = n_.subscribe("/digital_sensors", 10, &cob_voltage_control_ros::digitalPhidgetSignalsCallback, this);
                 
             n_.param("battery_max_voltage", component_config_.max_voltage, 50.0);
             n_.param("battery_min_voltage", component_config_.min_voltage, 44.0);
