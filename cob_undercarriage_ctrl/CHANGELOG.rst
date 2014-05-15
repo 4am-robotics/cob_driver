@@ -2,6 +2,12 @@
 Changelog for package cob_undercarriage_ctrl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.3 (2014-03-31)
+------------------
+* removed obsoledte OpenCV reference
+* install tags
+* Contributors: ipa-fxm
+
 0.5.2 (2014-03-20)
 ------------------
 

@@ -1,6 +1,6 @@
 <package>
   <name>cob_phidgets</name>
-  <version>0.5.2</version>
+  <version>0.5.3</version>
   <description>cob_phidgets</description>
   
   <license>LGPL</license>
@@ -8,7 +8,7 @@
   <url type="website">http://ros.org/wiki/cob_phidgets</url>
   <!-- <url type="bugtracker"></url> -->
 
-  <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>
+  <maintainer email="benjamin.maidel@ipa.fraunhofer.de">Benjamin Maidel</maintainer>
   <author>Florian Weisshardt</author>
 
   <buildtool_depend>catkin</buildtool_depend>
