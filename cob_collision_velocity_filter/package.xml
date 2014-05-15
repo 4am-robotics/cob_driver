@@ -1,6 +1,6 @@
 <package>
   <name>cob_collision_velocity_filter</name>
-  <version>0.5.2</version>
+  <version>0.5.3</version>
   <description>The cob_collision_velocity_filter package is a package for collision avoidance using teleoperation.</description>
  
   <license>LGPL</license>

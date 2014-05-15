@@ -65,6 +65,7 @@ class cob_voltage_control_ros
             last_front_em_state = false;
 
             EM_stop_status_ = ST_EM_ACTIVE;
+            component_data_.out_pub_relayboard_state.scanner_stop = false;
         }
 
         void configure()
@@ -94,7 +95,6 @@ class cob_voltage_control_ros
 
         void digitalPhidgetSignalsCallback(const cob_phidgets::DigitalSensorConstPtr &msg)
         {
-            component_data_.out_pub_relayboard_state.scanner_stop = false;
             bool front_em_active = false;
             bool rear_em_active = false;
             static bool em_caused_by_button = false;
@@ -131,10 +131,13 @@ class cob_voltage_control_ros
 				{
 					component_data_.out_pub_relayboard_state.emergency_button_stop = false;
 					em_caused_by_button = false;
-					component_data_.out_pub_relayboard_state.scanner_stop = front_em_active | rear_em_active;
+					component_data_.out_pub_relayboard_state.scanner_stop = (bool)(front_em_active | rear_em_active);
 				}
 				else
-					component_data_.out_pub_relayboard_state.scanner_stop = front_em_active | rear_em_active;
+				{
+					component_data_.out_pub_relayboard_state.scanner_stop = (bool)(front_em_active | rear_em_active);
+					ROS_INFO_STREAM("scanner_stop: "<<component_data_.out_pub_relayboard_state.scanner_stop);
+				}
 
 				EM_signal = component_data_.out_pub_relayboard_state.scanner_stop | component_data_.out_pub_relayboard_state.emergency_button_stop;
 

@@ -2,6 +2,11 @@
 Changelog for package cob_sound
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.3 (2014-03-31)
+------------------
+* install tags
+* Contributors: ipa-fxm
+
 0.5.2 (2014-03-20)
 ------------------
 
