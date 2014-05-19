@@ -88,6 +88,7 @@ private:
 	ros::ServiceServer _srvTriggerValue;
 
 	int _serial_num;
+	std::string _board_name;
 
 	struct OutputCompare
 	{
