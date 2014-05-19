@@ -1,6 +1,6 @@
 <package>
   <name>cob_cam3d_throttle</name>
-  <version>0.5.2</version>
+  <version>0.5.3</version>
   <description>cob_cam3d_throttle: only for Trottel</description>
 
   <license>LGPL</license>
@@ -8,7 +8,7 @@
   <url type="website">http://ros.org/wiki/cob_cam3d_throttle</url>
   <!-- <url type="bugtracker"></url> -->
 
-  <maintainer email="goa@ipa.fhg.de">Georg Arbeiter</maintainer>
+  <maintainer email="joshua.hampp@ipa.fhg.de">Joshua Hampp</maintainer>
   <author email="goa@ipa.fhg.de">Georg Arbeiter</author>
 
   <buildtool_depend>catkin</buildtool_depend>

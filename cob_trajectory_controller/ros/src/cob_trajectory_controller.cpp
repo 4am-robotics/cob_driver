@@ -70,7 +70,7 @@
 // ROS service includes
 #include <cob_srvs/Trigger.h>
 #include <cob_srvs/SetOperationMode.h>
-#include <cob_trajectory_controller/SetFloat.h>
+#include <cob_srvs/SetFloat.h>
 
 
 #define HZ 100
@@ -90,8 +90,9 @@ private:
 
     actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> as_follow_;
  
+  
     //std::string action_name_;
-    std::string action_name_follow_;  
+    std::string action_name_follow_;
     std::string current_operation_mode_;
     XmlRpc::XmlRpcValue JointNames_param_;
     std::vector<std::string> JointNames_;
@@ -110,9 +111,11 @@ private:
 
 public:
 
+
     cob_trajectory_controller_node():
     as_follow_(n_, "follow_joint_trajectory", boost::bind(&cob_trajectory_controller_node::executeFollowTrajectory, this, _1), true),
     action_name_follow_("follow_joint_trajectory")
+ 
     {
         joint_vel_pub_ = n_.advertise<brics_actuator::JointVelocities>("command_vel", 1);
         controller_state_ = n_.subscribe("state", 1, &cob_trajectory_controller_node::state_callback, this);
@@ -179,15 +182,15 @@ public:
     double getFrequency()
     {
         double frequency;
-        if (n_.hasParam("frequency"))                                                                   
-        {                                                                                                     
-            n_.getParam("frequency", frequency);                                                              
-            ROS_INFO("Setting controller frequency to %f HZ", frequency);                                       
-        }                                                                                                     
-        else                                                                                                    
-        {                                                                                                     
-            frequency = 100; //Hz                                                                               
-            ROS_WARN("Parameter frequency not available, setting to default value: %f Hz", frequency);          
+        if (n_.hasParam("frequency"))
+        {
+            n_.getParam("frequency", frequency);
+            ROS_INFO("Setting controller frequency to %f HZ", frequency);
+        }
+        else
+        {
+            frequency = 100; //Hz
+            ROS_WARN("Parameter frequency not available, setting to default value: %f Hz", frequency);
         }
         return frequency;
     }
@@ -195,29 +198,28 @@ public:
     bool srvCallback_Stop(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res)
     {
         ROS_INFO("Stopping trajectory controller.");
-        
+
         // stop trajectory controller
         executing_ = false;
         res.success.data = true;
         traj_generator_->isMoving = false;
-        //as_.setPreemted();
         failure_ = true;
         return true;
     }
     
-    bool srvCallback_setVel(cob_trajectory_controller::SetFloat::Request &req, cob_trajectory_controller::SetFloat::Response &res)
+    bool srvCallback_setVel(cob_srvs::SetFloat::Request &req, cob_srvs::SetFloat::Response &res)
     {
-        ROS_INFO("Setting velocity to %f", req.value.data);
-        traj_generator_->SetPTPvel(req.value.data);
-        res.success.data = true;
+        ROS_INFO("Setting velocity to %f", req.data);
+        traj_generator_->SetPTPvel(req.data);
+        res.success = true;
         return true;
     }
     
-    bool srvCallback_setAcc(cob_trajectory_controller::SetFloat::Request &req, cob_trajectory_controller::SetFloat::Response &res)
+    bool srvCallback_setAcc(cob_srvs::SetFloat::Request &req, cob_srvs::SetFloat::Response &res)
     {
-        ROS_INFO("Setting acceleration to %f", req.value.data);
-        traj_generator_->SetPTPacc(req.value.data);
-        res.success.data = true;
+        ROS_INFO("Setting acceleration to %f", req.data);
+        traj_generator_->SetPTPacc(req.data);
+        res.success = true;
         return true;
     }
 
@@ -255,7 +257,7 @@ public:
                     return;
                 }  
             }
-            
+
             std::vector<double> traj_start;
             if(preemted_ == true) //Calculate trajectory for runtime modification of trajectories
             {
@@ -343,11 +345,11 @@ public:
                     traj_generator_->moveTrajectory(temp_traj, traj_start);
                 }
             }
-            
+
             executing_ = true;
             startposition_ = q_current;
             preemted_ = false;
-            
+
         }
         else //suspend current movement and start new one
         {
@@ -358,8 +360,7 @@ public:
             {
                 usleep(1000);
             }
-            else
-            {
+            else{
                 return;
             }
         }
@@ -370,73 +371,55 @@ public:
     {
         ROS_INFO("Received new goal trajectory with %lu points",goal->trajectory.points.size());
         spawnTrajector(goal->trajectory);
-        // only set to succeeded if component could reach position. this is currently not the care for e.g. by emergency stop, hardware error or exceeds limit.
-        if(rejected_)
-            as_follow_.setAborted(); //setRejected not implemented in simpleactionserver ?
-        else
-        {
-            if(failure_)
-                as_follow_.setAborted();
-            else
-                as_follow_.setSucceeded();
-        }
-        rejected_ = false;
+        // only set to succeeded if component could reach position. this is currently not the care for e.g. by emergency stop, 
         failure_ = false;
-    }
-    
-    void run()
-    {
-        if(executing_)
+        watchdog_counter = 0;
+        //if (as_follow_.isPreemptRequested() || !ros::ok() || current_operation_mode_ != "velocity")
+        if (!ros::ok() || current_operation_mode_ != "velocity")
         {
-            failure_ = false;
-            watchdog_counter = 0;
-            //if (as_follow_.isPreemptRequested() || !ros::ok() || current_operation_mode_ != "velocity")
-            if (!ros::ok() || current_operation_mode_ != "velocity")
+            // set the action state to preempted
+            executing_ = false;
+            traj_generator_->isMoving = false;
+            failure_ = true;
+            return;
+        }
+        if (as_follow_.isPreemptRequested())
+        {
+            //as_follow_.setAborted()
+            failure_ = true;
+            preemted_ = true;
+            ROS_INFO("Preempted trajectory action");
+            return;
+        }
+        std::vector<double> des_vel;
+        if(traj_generator_->step(q_current, des_vel))
+        {
+            if(!traj_generator_->isMoving) //Finished trajectory
             {
-                // set the action state to preempted
                 executing_ = false;
-                traj_generator_->isMoving = false;
-                //as_.setPreempted();
-                failure_ = true;
-                return;
+                preemted_ = false;
             }
-            if (as_follow_.isPreemptRequested())
+            brics_actuator::JointVelocities target_joint_vel;
+            target_joint_vel.velocities.resize(DOF);
+            for(int i=0; i<DOF; i++)
             {
-                //as_follow_.setAborted()
-                failure_ = true;
-                preemted_ = true;
-                ROS_INFO("Preempted trajectory action");
-                return;
+                target_joint_vel.velocities[i].joint_uri = JointNames_[i].c_str();
+                target_joint_vel.velocities[i].unit = "rad";
+                target_joint_vel.velocities[i].value = des_vel.at(i);
             }
-            std::vector<double> des_vel;
-            if(traj_generator_->step(q_current, des_vel))
-            {
-                if(!traj_generator_->isMoving) //Finished trajectory
-                {
-                    executing_ = false;
-                    preemted_ = false;
-                }
-                brics_actuator::JointVelocities target_joint_vel;
-                target_joint_vel.velocities.resize(DOF);
-                for(int i=0; i<DOF; i++)
-                {
-                    target_joint_vel.velocities[i].joint_uri = JointNames_[i].c_str();
-                    target_joint_vel.velocities[i].unit = "rad";
-                    target_joint_vel.velocities[i].value = des_vel.at(i);
-                }
-                
-                //send everything
-                joint_vel_pub_.publish(target_joint_vel);
-            }
-            else
-            {
-                ROS_INFO("An controller error occured!");
-                failure_ = true;
+            //send everything
+            joint_vel_pub_.publish(target_joint_vel);
+        }
+        else
+        {
+            ROS_INFO("An controller error occured!");
+            failure_ = true;
                 executing_ = false;
             }
         }
         else
-        {  //WATCHDOG TODO: don't always send
+        {    
+            //WATCHDOG TODO: don't always send
             if(watchdog_counter < 10)
             {
                 brics_actuator::JointVelocities target_joint_vel;
@@ -452,6 +435,7 @@ public:
             watchdog_counter++;
         }
     }
+    
 };
 
 
@@ -473,6 +457,4 @@ int main(int argc, char ** argv)
         loop_rate.sleep();
     }
 }
-
-
 

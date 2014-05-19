@@ -1,6 +1,6 @@
 <package>
   <name>cob_base_velocity_smoother</name>
-  <version>0.5.2</version>
+  <version>0.5.3</version>
   <description>The 'cob_base_velocity_smoother' reads velocity messages and publishes messages of the same type for "smoothed" velocity to avoid shaking behavior.</description>
   <!--  -->
 

@@ -9,19 +9,9 @@ find_package(eigen REQUIRED)
 ## Declare ROS messages and services ##
 #######################################
 
-add_service_files(
-  FILES
-  SetFloat.srv 
-)
-
-generate_messages(
-  DEPENDENCIES geometry_msgs std_msgs
-)
-
 generate_dynamic_reconfigure_options(
   cfg/cob_trajectory_controller.cfg
 )
-
 
 
 ###################################
@@ -30,7 +20,7 @@ generate_dynamic_reconfigure_options(
 
 catkin_package(
     DEPENDS orocos_kdl
-    CATKIN_DEPENDS roscpp std_msgs cob_srvs brics_actuator sensor_msgs actionlib control_msgs geometry_msgs message_runtime dynamic_reconfigure
+    CATKIN_DEPENDS roscpp std_msgs cob_srvs brics_actuator sensor_msgs actionlib control_msgs geometry_msgs message_runtime
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )

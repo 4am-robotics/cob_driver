@@ -70,7 +70,7 @@
 // ROS service includes
 #include <cob_srvs/Trigger.h>
 #include <cob_srvs/SetOperationMode.h>
-#include <cob_trajectory_controller/SetFloat.h>
+#include <cob_srvs/SetFloat.h>
 
 #include <dynamic_reconfigure/server.h>
 #include <cob_trajectory_controller/CobTrajectoryControllerConfig.h>
@@ -246,19 +246,19 @@ public:
         return true;
     }
     
-    bool srvCallback_setVel(cob_trajectory_controller::SetFloat::Request &req, cob_trajectory_controller::SetFloat::Response &res)
+    bool srvCallback_setVel(cob_srvs::SetFloat::Request &req, cob_srvs::SetFloat::Response &res)
     {
-        ROS_INFO("Setting velocity to %f", req.value.data);
-        traj_generator_->SetPTPvel(req.value.data);
-        res.success.data = true;
+        ROS_INFO("Setting velocity to %f", req.data);
+        traj_generator_->SetPTPvel(req.data);
+        res.success = true;
         return true;
     }
     
-    bool srvCallback_setAcc(cob_trajectory_controller::SetFloat::Request &req, cob_trajectory_controller::SetFloat::Response &res)
+    bool srvCallback_setAcc(cob_srvs::SetFloat::Request &req, cob_srvs::SetFloat::Response &res)
     {
-        ROS_INFO("Setting acceleration to %f", req.value.data);
-        traj_generator_->SetPTPacc(req.value.data);
-        res.success.data = true;
+        ROS_INFO("Setting acceleration to %f", req.data);
+        traj_generator_->SetPTPacc(req.data);
+        res.success = true;
         return true;
     }
 
