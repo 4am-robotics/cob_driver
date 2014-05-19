@@ -9,15 +9,6 @@ find_package(eigen REQUIRED)
 ## Declare ROS messages and services ##
 #######################################
 
-add_service_files(
-  FILES
-  SetFloat.srv 
-)
-
-generate_messages(
-  DEPENDENCIES geometry_msgs std_msgs
-)
-
 
 ###################################
 ## catkin specific configuration ##
