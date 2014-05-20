@@ -65,8 +65,3 @@ install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node ${PROJECT_NAME}_sim_node
 install(DIRECTORY common/include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
-
-## Mark lauch files for installation
-install(DIRECTORY ros/launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ros
-)
