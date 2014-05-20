@@ -79,7 +79,7 @@ class cob_trajectory_controller_node
 {
 private:
     ros::NodeHandle n_;
-
+    
     ros::Publisher joint_vel_pub_;
     ros::Subscriber controller_state_;
     ros::Subscriber operation_mode_;
@@ -89,10 +89,9 @@ private:
     ros::ServiceClient srvClient_SetOperationMode;
 
     actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> as_follow_;
- 
   
     //std::string action_name_;
-    std::string action_name_follow_;    
+    std::string action_name_follow_;
     std::string current_operation_mode_;
     XmlRpc::XmlRpcValue JointNames_param_;
     std::vector<std::string> JointNames_;
@@ -110,7 +109,6 @@ private:
     std::vector<double> q_current, startposition_, joint_distance_;
 
 public:
-
 
     cob_trajectory_controller_node():
     //as_(n_, "joint_trajectory_action", boost::bind(&cob_trajectory_controller_node::executeTrajectory, this, _1), true),
@@ -158,6 +156,7 @@ public:
             JointNames_[i] = (std::string)JointNames_param_[i];
         }
         DOF = JointNames_param_.size();
+        
         if (n_.hasParam("ptp_vel"))
         {
             n_.getParam("ptp_vel", PTPvel);
@@ -173,6 +172,10 @@ public:
         if (n_.hasParam("overlap_time"))
         {
             n_.getParam("overlap_time", overlap_time);
+        }
+        if (n_.hasParam("operation_mode"))
+        {
+            n_.getParam("operation_mode", current_operation_mode_);
         }
         q_current.resize(DOF);
         ROS_INFO("starting controller with DOF: %d PTPvel: %f PTPAcc: %f maxError %f", DOF, PTPvel, PTPacc, maxError);
@@ -199,7 +202,7 @@ public:
     bool srvCallback_Stop(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res)
     {
         ROS_INFO("Stopping trajectory controller.");
-
+        
         // stop trajectory controller
         executing_ = false;
         res.success.data = true;
@@ -256,10 +259,10 @@ public:
                 if((ros::Time::now() - begin).toSec() > velocity_timeout_)
                 {
                     rejected_ = true;
-                return;
+                    return;
                 }  
             }
-
+            
             std::vector<double> traj_start;
             if(preemted_ == true) //Calculate trajectory for runtime modification of trajectories
             {
@@ -347,11 +350,11 @@ public:
                     traj_generator_->moveTrajectory(temp_traj, traj_start);
                 }
             }
-
+            
             executing_ = true;
             startposition_ = q_current;
             preemted_ = false;
-
+            
         }
         else //suspend current movement and start new one
         {
@@ -362,7 +365,8 @@ public:
             {
                 usleep(1000);
             }
-            else{
+            else
+            {
                 return;
             }
         }
@@ -427,6 +431,7 @@ public:
                     target_joint_vel.velocities[i].unit = "rad";
                     target_joint_vel.velocities[i].value = des_vel.at(i);
                 }
+                
                 //send everything
                 joint_vel_pub_.publish(target_joint_vel);
             }
@@ -438,7 +443,7 @@ public:
             }
         }
         else
-        {    //WATCHDOG TODO: don't always send
+        {   //WATCHDOG TODO: don't always send
             if(watchdog_counter < 10)
             {
                 brics_actuator::JointVelocities target_joint_vel;
@@ -474,7 +479,7 @@ int main(int argc, char ** argv)
         tm.run();
         ros::spinOnce();
         loop_rate.sleep();
-    }  
+    }
 }
 
 

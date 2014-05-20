@@ -490,7 +490,7 @@ public:
             }
         }
         else
-        {  //WATCHDOG TODO: don't always send
+        {   //WATCHDOG TODO: don't always send
             if(watchdog_counter < 10)
             {
                 brics_actuator::JointVelocities target_joint_vel;
@@ -528,7 +528,6 @@ int main(int argc, char ** argv)
         loop_rate.sleep();
     }
 }
-
 
 
 
