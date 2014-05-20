@@ -1,6 +1,6 @@
 <package>
   <name>cob_sick_s300</name>
-  <version>0.5.2</version>
+  <version>0.5.3</version>
   <description>This package published a laser scan message out of a Sick S300 laser scanner.</description>
 
   <license>LGPL</license>
@@ -8,8 +8,8 @@
   <url type="website">http://ros.org/wiki/cob_sick_s300</url>
   <!-- <url type="bugtracker"></url> -->
 
-  <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>
-  <author>Florian Weisshardt</author>
+  <maintainer email="joshua.hampp@ipa.fhg.de">Joshua Hampp</maintainer>
+  <author email="fmw@ipa.fhg.de">Florian Weisshardt</author>
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
