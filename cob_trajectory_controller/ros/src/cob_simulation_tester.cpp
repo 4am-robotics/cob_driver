@@ -63,12 +63,12 @@ JntArray parseJointStates(std::vector<std::string> names, std::vector<double> po
     bool parsed = false;
 	for(unsigned int i = 0; i < names.size(); i++)
     {
-			if(strncmp(names[i].c_str(), "arm_", 4) == 0)
-			{
-				q_temp(count) = positions[i];
-				count++;
-				parsed = true;
-      }
+		if(strncmp(names[i].c_str(), "arm_", 4) == 0)
+		{
+			q_temp(count) = positions[i];
+			count++;
+			parsed = true;
+		}
     }
 	if(!parsed)
 		return q_last;
@@ -81,7 +81,7 @@ JntArray parseJointStates(std::vector<std::string> names, std::vector<double> po
 		VirtualQ = q_temp;
 		started = true;
 		last = ros::Time::now();
-
+		
 		ROS_INFO("Starting up controller with first configuration: %f %f %f", q_temp(0), q_temp(1), q_temp(2));
 	}
 	return q_temp;
@@ -110,7 +110,6 @@ void velocityCallback(const brics_actuator::JointVelocities::ConstPtr& msg)
 		q_dot(j) = msg->velocities.at(j).value;
 	}
 	sendVel(q_dot);
-
 }
 
 

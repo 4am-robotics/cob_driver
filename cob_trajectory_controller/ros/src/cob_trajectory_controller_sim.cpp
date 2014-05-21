@@ -72,6 +72,9 @@
 #include <cob_srvs/SetOperationMode.h>
 #include <cob_srvs/SetFloat.h>
 
+#include <dynamic_reconfigure/server.h>
+#include <cob_trajectory_controller/CobTrajectoryControllerConfig.h>
+
 
 #define HZ 100
 
@@ -90,7 +93,6 @@ private:
     ros::ServiceClient srvClient_SetOperationMode;
 
     actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> as_follow_;
- 
   
     //std::string action_name_;
     std::string action_name_follow_;  
@@ -109,13 +111,13 @@ private:
     trajectory_msgs::JointTrajectory traj_;
     trajectory_msgs::JointTrajectory traj_2_;
     std::vector<double> q_current, startposition_, joint_distance_;
+    
+    dynamic_reconfigure::Server<cob_trajectory_controller::CobTrajectoryControllerConfig> reconfigure_server;
 
 public:
 
     cob_trajectory_controller_node():
-    //as_(n_, "joint_trajectory_action", boost::bind(&cob_trajectory_controller_node::executeTrajectory, this, _1), true),
     as_follow_(n_, "follow_joint_trajectory", boost::bind(&cob_trajectory_controller_node::executeFollowTrajectory, this, _1), true),
-    //action_name_("joint_trajectory_action"),
     action_name_follow_("follow_joint_trajectory")
     {
         joint_vel_pub_ = n_.advertise<brics_actuator::JointVelocities>("command_vel", 1);
@@ -159,6 +161,7 @@ public:
             JointNames_[i] = (std::string)JointNames_param_[i];
         }
         DOF = JointNames_param_.size();
+        
         if (n_.hasParam("ptp_vel"))
         {
             n_.getParam("ptp_vel", PTPvel);
@@ -175,10 +178,43 @@ public:
         {
             n_.getParam("overlap_time", overlap_time);
         }
+        if (n_.hasParam("operation_mode"))
+        {
+            n_.getParam("operation_mode", current_operation_mode_);
+        }
         q_current.resize(DOF);
         ROS_INFO("starting controller with DOF: %d PTPvel: %f PTPAcc: %f maxError %f", DOF, PTPvel, PTPacc, maxError);
         traj_generator_ = new genericArmCtrl(DOF, PTPvel, PTPacc, maxError);
         traj_generator_->overlap_time = overlap_time;
+        
+        reconfigure_server.setCallback(boost::bind(&cob_trajectory_controller_node::dynamic_reconfigure_cb, this, _1, _2));
+    }
+    
+    
+    void dynamic_reconfigure_cb(cob_trajectory_controller::CobTrajectoryControllerConfig &config, uint32_t level)
+    {
+        ROS_INFO("Dynamically reconfigure cob_trajectory_controller parameter!");
+        traj_generator_->SetPTPvel(config.ptp_vel);
+        traj_generator_->SetPTPvel(config.ptp_acc);
+        traj_generator_->m_AllowedError = config.max_error;
+        traj_generator_->overlap_time = config.overlap_time;
+        
+        switch(config.operation_mode)
+        {
+          case 0:  //"undefined"
+            this->current_operation_mode_ = "undefined";
+            break;
+          case 1:  //"velocity"
+            this->current_operation_mode_ = "velocity";
+            break;
+          case 2:  //"position"
+            this->current_operation_mode_ = "position";
+            break;
+          default:
+            ROS_ERROR("Unknown operation_mode");
+            this->current_operation_mode_ = "undefined";
+            break;            
+        }
     }
 
     double getFrequency()
@@ -454,7 +490,7 @@ public:
             }
         }
         else
-        {  //WATCHDOG TODO: don't always send
+        {   //WATCHDOG TODO: don't always send
             if(watchdog_counter < 10)
             {
                 brics_actuator::JointVelocities target_joint_vel;
@@ -466,7 +502,6 @@ public:
                     target_joint_vel.velocities[i].value = 0;
                 }
                 joint_vel_pub_.publish(target_joint_vel);
-                ROS_INFO("Publishing 0-vel (%d)", DOF);
             }
             watchdog_counter++;
         }
@@ -493,7 +528,6 @@ int main(int argc, char ** argv)
         loop_rate.sleep();
     }
 }
-
 
 
 
