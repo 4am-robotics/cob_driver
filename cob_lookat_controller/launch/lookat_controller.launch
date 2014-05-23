@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<launch>
+	
+	<arg name="robot"/>
+	
+	<rosparam ns="lookat_controller" file="$(find cob_lookat_controller)/config/lookat_controller_$(arg robot).yaml" command="load" />
+	
+	<!-- start virutal driver -->
+	<node ns="lookat_controller" name="lookat_driver" pkg="cob_lookat_controller" type="cob_lookat_driver_node" cwd="node" respawn="false" output="screen">
+		<remap from="joint_states" to="/joint_states"/>
+	</node>
+	
+	<!--trajectory controller-->
+	<!--node ns="lookat_controller" name="joint_trajectory_controller" pkg="cob_trajectory_controller" type="cob_trajectory_controller" cwd="node" respawn="false" output="screen"/-->
+	
+	<!-- start lookat twist controller -->
+	<node ns="lookat_controller" name="lookat_controller" pkg="cob_lookat_controller" type="cob_lookat_controller_node" cwd="node" respawn="false" output="screen">
+		<!--remap from="chain_command_vel" to="/torso_controller/command_vel"/-->
+		<remap from="lookat_command_vel" to="/lookat_controller/command_vel"/>
+	</node>
+	
+	<node ns="lookat_controller" name="frame_tracker" pkg="cob_lookat_controller" type="cob_frame_tracker_node" cwd="node" respawn="false" output="screen"/>
+<!--
+	<node ns="lookat_controller" name="interactive_target" pkg="cob_lookat_controller" type="interactive_lookat_target.py" cwd="node" respawn="false" output="screen"/>
+-->
+	
+</launch>

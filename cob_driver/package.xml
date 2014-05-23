@@ -33,6 +33,8 @@
   <run_depend>cob_sick_s300</run_depend>
   <run_depend>cob_sound</run_depend>
   <run_depend>cob_trajectory_controller</run_depend>
+  <run_depend>cob_twist_controller</run_depend>
+  <run_depend>cob_lookat_controller</run_depend>
   <run_depend>cob_undercarriage_ctrl</run_depend>
   <run_depend>cob_utilities</run_depend>
   <run_depend>cob_voltage_control</run_depend>

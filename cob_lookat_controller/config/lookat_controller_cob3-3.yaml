@@ -1,0 +1,18 @@
+#all
+lookat_joint_names: [lookat_lin_joint, lookat_x_joint, lookat_y_joint, lookat_z_joint]
+#chain_joint_names: [torso_lower_neck_tilt_joint, torso_pan_joint, torso_upper_neck_tilt_joint]
+chain_joint_names: []
+
+# lookat_driver
+update_rate: 10.0
+
+# lookat controller parameters
+#base_link: base_link
+base_link: torso_upper_neck_tilt_link
+tip_link: lookat_focus_frame
+chain_vel_pub_topic: /torso_controller/command_vel
+ptp_vel: 0.3
+
+
+# lookat frame follower
+focus_goal: focus_goal
