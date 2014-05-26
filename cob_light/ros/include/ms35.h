@@ -52,116 +52,31 @@
  *
  ****************************************************************/
 
-#include "serialIO.h"
- #include "sys/select.h"
+#ifndef ES35_H
+#define ES35_H
 
-SerialIO::SerialIO() :
-	 _fd(-1)
+#include <iColorO.h>
+
+#include <serialIO.h>
+#include <colorUtils.h>
+#include <sstream>
+
+class MS35 : public IColorO
 {
-}
+public:
+	MS35(SerialIO* serialIO);
+	virtual ~MS35();
 
-SerialIO::~SerialIO()
-{
-	closePort();
-}
-
-// Open Serial Port
-int SerialIO::openPort(std::string devicestring, int baudrate)
-{
-	if(_fd != -1) return _fd;
-
-	_fd = open(devicestring.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
-	if(_fd != -1)
-	{
-		speed_t baud = getBaudFromInt(baudrate);
-		fcntl(_fd, F_SETFL, 0);
-		tcgetattr(_fd, &port_settings);
-		port_settings.c_cflag &= ~PARENB;
-		port_settings.c_cflag &= ~CSTOPB;
-		port_settings.c_cflag &= ~CSIZE;
-		port_settings.c_cflag = baud | CS8 | CLOCAL | CREAD;
-		port_settings.c_iflag = IGNPAR;
-		tcsetattr(_fd, TCSANOW, &port_settings);
-	}
-	return _fd;
-}
-
-// Send Data to Serial Port
-int SerialIO::sendData(std::string value)
-{
-	int wrote = -1;
-	if(_fd != -1)
-		wrote = write(_fd, value.c_str(), value.length());
-	return wrote;
-}
-
-// Send Data to Serial Port
-int SerialIO::sendData(const char* data, size_t len)
-{
-	int wrote = -1;
-	if(_fd != -1)
-		wrote = write(_fd, data, len);
-	return wrote;
-}
-
-// Read Data from Serial Port
-int SerialIO::readData(std::string &value, size_t nBytes)
-{
-	fd_set fds;
-	FD_ZERO(&fds);
-	FD_SET(_fd, &fds);
-	struct timeval timeout = {0, 10000};
-	char buffer[32];
-	size_t rec = -1;
-	if(select(_fd+1, &fds, NULL, NULL, &timeout))
-	{
-		rec = read(_fd, buffer, nBytes);
-		value = std::string(buffer);
-	}
+	void setColor(color::rgba color);
 	
-	return rec;
-}
+private:
+	SerialIO* _serialIO;
+	std::stringstream _ssOut;
+	static const int PACKAGE_SIZE = 9;
+	char buffer[PACKAGE_SIZE];
 
-// Check if Serial Port is opened
-bool SerialIO::isOpen()
-{
-	return (_fd != -1);
-}
+	int sendData(const char* data, size_t len);
+	unsigned short int getChecksum(const char* data, size_t len);
+};
 
-// Close Serial Port
-void SerialIO::closePort()
-{
-	if(_fd != -1)
-		close(_fd);
-}
-
-
-speed_t SerialIO::getBaudFromInt(int baud)
-{
-	speed_t ret;
-	switch(baud)
-	{
-		case 0: 	ret=B0;		break;
-		case 50: 	ret=B50; 	break;
-		case 75: 	ret=B75; 	break;
-		case 110: 	ret=B110;	break;
-		case 134: 	ret=B134;	break;
-		case 150: 	ret=B150;	break;
-		case 200: 	ret=B200;	break;
-		case 300: 	ret=B300;	break;
-		case 1200: 	ret=B1200; 	break;
-		case 1800: 	ret=B1800; 	break;
-		case 2400: 	ret=B2400; 	break;
-		case 4800: 	ret=B4800; 	break;
-		case 9600: 	ret=B9600; 	break;
-		case 19200: ret=B19200; break;
-		case 38400: ret=B38400;	break;
-		case 57600: ret=B57600; break;
-		case 115200: ret=B115200; break;
-		case 230400: ret=B230400; break;
-		default:
-			ret=B230400;
-			break;
-	}
-	return ret;
-}
+#endif
