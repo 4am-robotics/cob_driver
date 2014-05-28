@@ -53,7 +53,9 @@
  ****************************************************************/
 
 #include "serialIO.h"
- #include "sys/select.h"
+#include "sys/select.h"
+#include <iostream>
+#include <cstring>
 
 SerialIO::SerialIO() :
 	 _fd(-1)
@@ -70,19 +72,21 @@ int SerialIO::openPort(std::string devicestring, int baudrate)
 {
 	if(_fd != -1) return _fd;
 
-	_fd = open(devicestring.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
-	if(_fd != -1)
-	{
-		speed_t baud = getBaudFromInt(baudrate);
-		fcntl(_fd, F_SETFL, 0);
-		tcgetattr(_fd, &port_settings);
-		port_settings.c_cflag &= ~PARENB;
-		port_settings.c_cflag &= ~CSTOPB;
-		port_settings.c_cflag &= ~CSIZE;
-		port_settings.c_cflag = baud | CS8 | CLOCAL | CREAD;
-		port_settings.c_iflag = IGNPAR;
-		tcsetattr(_fd, TCSANOW, &port_settings);
-	}
+	speed_t baud = getBaudFromInt(baudrate);
+	std::memset(&port_settings,0,sizeof(port_settings));
+	port_settings.c_iflag = 0;
+	port_settings.c_oflag = 0;
+	port_settings.c_cflag = CS8|CREAD|CLOCAL;
+	port_settings.c_lflag = 0;
+	port_settings.c_cc[VMIN]=1;
+	port_settings.c_cc[VTIME]=5;
+
+	_fd=open(devicestring.c_str(), O_RDWR | O_NONBLOCK);
+	cfsetospeed(&port_settings, baud);
+	cfsetispeed(&port_settings, baud);
+
+	tcsetattr(_fd, TCSANOW, &port_settings);
+
 	return _fd;
 }
 
@@ -110,7 +114,7 @@ int SerialIO::readData(std::string &value, size_t nBytes)
 	fd_set fds;
 	FD_ZERO(&fds);
 	FD_SET(_fd, &fds);
-	struct timeval timeout = {0, 10000};
+	struct timeval timeout = {0, 100000};
 	char buffer[32];
 	size_t rec = -1;
 	if(select(_fd+1, &fds, NULL, NULL, &timeout))
