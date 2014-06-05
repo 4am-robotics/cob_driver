@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_relayboard)
 
-find_package(catkin REQUIRED COMPONENTS roscpp rostest std_msgs pr2_msgs cob_utilities message_generation)
+find_package(catkin REQUIRED COMPONENTS roscpp rostest std_msgs cob_utilities message_generation)
 
 #######################################
 ## Declare ROS messages and services ##
@@ -23,7 +23,7 @@ generate_messages(
 ###################################
 
 catkin_package(
-    CATKIN_DEPENDS message_runtime roscpp rostest std_msgs cob_utilities pr2_msgs
+    CATKIN_DEPENDS message_runtime roscpp rostest std_msgs cob_utilities
     INCLUDE_DIRS common/include
     LIBRARIES SerialIO ${PROJECT_NAME}
 )

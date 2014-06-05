@@ -1,7 +1,5 @@
 //ROS typedefs
 #include "ros/ros.h"
-#include <pr2_msgs/PowerBoardState.h>
-#include <pr2_msgs/PowerState.h>
 #include <cob_relayboard/EmergencyStopState.h>
 #include <std_msgs/Float64.h>
 
@@ -29,8 +27,6 @@ public:
     int in_phidget_voltage;
 
     //output data
-    pr2_msgs::PowerBoardState out_pub_em_stop_state_;
-    pr2_msgs::PowerState out_pub_powerstate_;
     cob_relayboard::EmergencyStopState out_pub_relayboard_state;
     std_msgs::Float64 out_pub_voltage;    
 };
@@ -69,14 +65,8 @@ public:
         //Linear calculation for percentage
         double percentage =  (voltage - config.min_voltage) * 100/(config.max_voltage - config.min_voltage);
 
-        data.out_pub_powerstate_.header.stamp = ros::Time::now();
-        data.out_pub_powerstate_.power_consumption = 0.0;
-        data.out_pub_powerstate_.time_remaining = ros::Duration(1000);
-        data.out_pub_powerstate_.relative_capacity = percentage;
 
-        data.out_pub_em_stop_state_.header.stamp = ros::Time::now();
-        data.out_pub_em_stop_state_.run_stop = false;
-        data.out_pub_em_stop_state_.wireless_stop = false;
+
 
     }
     

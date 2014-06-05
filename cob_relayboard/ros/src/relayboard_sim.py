@@ -3,7 +3,6 @@ import roslib; roslib.load_manifest('cob_relayboard')
 import rospy
 import time
 from cob_relayboard.msg import EmergencyStopState
-from pr2_msgs.msg import PowerBoardState
 from std_msgs.msg import Float64
 
 def relayboard_sim():
@@ -15,13 +14,6 @@ def relayboard_sim():
 	msg_em.emergency_button_stop = False
 	msg_em.scanner_stop = False
 	msg_em.emergency_state = 0
-
-	# power_board/state topic
-	pub_power_board = rospy.Publisher('/power_board/state', PowerBoardState)
-	msg_power_board = PowerBoardState()
-	msg_power_board.header.stamp = rospy.Time.now()
-	msg_power_board.run_stop = True
-	msg_power_board.wireless_stop = True #for cob the wireless stop field is misused as laser stop field
 
 	# power_board/voltage topic
 	pub_voltage = rospy.Publisher('/power_board/voltage', Float64)

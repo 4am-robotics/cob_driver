@@ -19,9 +19,6 @@
   <run_depend>roscpp</run_depend>
   <run_depend>cob_generic_can</run_depend>
   <run_depend>cob_utilities</run_depend>
-  <!-- <test_depend>roscpp</test_depend> -->
-  <!-- <test_depend>cob_generic_can</test_depend> -->
-  <!-- <test_depend>cob_utilities</test_depend> -->
 
   <export>
     <cpp lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_canopen_motor_harmonica" cflags="-I${prefix}/common/include"/>

@@ -2,8 +2,6 @@
 #include <ros/ros.h>
 
 // ROS message includes
-#include <pr2_msgs/PowerBoardState.h>
-#include <pr2_msgs/PowerState.h>
 #include <cob_relayboard/EmergencyStopState.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float64.h>
@@ -23,7 +21,6 @@ class cob_voltage_control_ros
         ros::NodeHandle n_;
 
         ros::Publisher topicPub_em_stop_state_;
-        ros::Publisher topicPub_powerstate;
 
         ros::Publisher topicPub_Voltage;
         ros::Subscriber topicSub_AnalogInputs;
@@ -47,7 +44,6 @@ class cob_voltage_control_ros
 
         cob_voltage_control_ros()
         {
-            topicPub_powerstate = n_.advertise<pr2_msgs::PowerBoardState>("pub_em_stop_state_", 1);
             topicPub_em_stop_state_ = n_.advertise<cob_relayboard::EmergencyStopState>("pub_relayboard_state_", 1);
 
             topicPub_Voltage = n_.advertise<std_msgs::Float64>("/power_board/voltage", 10);
@@ -77,7 +73,6 @@ class cob_voltage_control_ros
         {
             component_implementation_.update(component_data_, component_config_);
             topicPub_Voltage.publish(component_data_.out_pub_voltage);
-            topicPub_powerstate.publish(component_data_.out_pub_em_stop_state_);
             topicPub_em_stop_state_.publish(component_data_.out_pub_relayboard_state);
         }
         

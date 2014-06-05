@@ -63,7 +63,6 @@
 #include <ros/ros.h>
 
 // ROS message includes
-#include <sensor_msgs/JointState.h>
 #include <diagnostic_msgs/DiagnosticStatus.h>
 #include <diagnostic_updater/diagnostic_updater.h>
 #include <geometry_msgs/Twist.h>

@@ -65,7 +65,6 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float64.h>
 #include <cob_relayboard/EmergencyStopState.h>
-#include <pr2_msgs/PowerBoardState.h>
 
 
 // ROS service includes
@@ -85,7 +84,6 @@ public:
                 
   // topics to publish
   ros::Publisher topicPub_isEmergencyStop;
-  ros::Publisher topicPub_PowerBoardState;
   ros::Publisher topicPub_Voltage;
   // topics to subscribe, callback is called for new messages arriving
   // --
@@ -96,7 +94,6 @@ public:
     n = ros::NodeHandle("~");
 			
     topicPub_isEmergencyStop = n.advertise<cob_relayboard::EmergencyStopState>("/emergency_stop_state", 1);
-    topicPub_PowerBoardState = n.advertise<pr2_msgs::PowerBoardState>("/power_board/state", 1);
     topicPub_Voltage = n.advertise<std_msgs::Float64>("/power_board/voltage", 10);
 
     // Make sure member variables have a defined state at the beginning
@@ -244,9 +241,7 @@ void NodeClass::sendEmergencyStopStates()
   bool EM_signal;
   ros::Duration duration_since_EM_confirmed;
   cob_relayboard::EmergencyStopState EM_msg;
-  pr2_msgs::PowerBoardState pbs;
-  pbs.header.stamp = ros::Time::now();
-
+  
   // assign input (laser, button) specific EM state TODO: Laser and Scanner stop can't be read independently (e.g. if button is stop --> no informtion about scanner, if scanner ist stop --> no informtion about button stop)
   EM_msg.emergency_button_stop = m_SerRelayBoard->isEMStop();
   EM_msg.scanner_stop = m_SerRelayBoard->isScannerStop();
@@ -297,24 +292,10 @@ void NodeClass::sendEmergencyStopStates()
 
 	
   EM_msg.emergency_state = EM_stop_status_;
-	
-  // pr2 power_board_state
-  if(EM_msg.emergency_button_stop)
-    pbs.run_stop = false;
-  else
-    pbs.run_stop = true;
-	
-  //for cob the wireless stop field is misused as laser stop field
-  if(EM_msg.scanner_stop)
-    pbs.wireless_stop = false; 
-  else
-    pbs.wireless_stop = true;
-  
 
   //publish EM-Stop-Active-messages, when connection to relayboard got cut
   if(relayboard_online == false) {
     EM_msg.emergency_state = EM_msg.EMSTOP;
   }
   topicPub_isEmergencyStop.publish(EM_msg);
-  topicPub_PowerBoardState.publish(pbs);
 }
