@@ -1,7 +1,0 @@
-<library path="lib/libcam3d_throttle">
-  <class name="cob_cam3d_throttle/Cam3DThrottle" type="cob_cam3d_throttle::Cam3DThrottle" base_class_type="nodelet::Nodelet">
-    <description>
-      Throttle point clouds
-    </description>
-  </class>
-</library>
