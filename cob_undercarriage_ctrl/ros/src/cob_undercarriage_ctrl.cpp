@@ -242,34 +242,44 @@ class NodeClass
 		// Listen for Pltf Cmds
 		void topicCallbackTwistCmd(const geometry_msgs::Twist::ConstPtr& msg)
 		{
+			double vx_cmd_mms, vy_cmd_mms, w_cmd_rads;
+			
 			if(msg->linear.x > max_vel_trans_)
 			{
-				ROS_DEBUG_STREAM("Recevied cmdVelX: " << msg->linear.x << " which is bigger 
-					than the maximal allowed translational velocity: " <<	max_vel_trans_ << "so set cmdVelX to 0.0");
-				msg->linear.x = 0.0;
+				ROS_DEBUG_STREAM("Recevied cmdVelX: " << msg->linear.x << 
+					" which is bigger than the maximal allowed translational velocity: " <<	max_vel_trans_ << "so set cmdVelX to 0.0");
+				vx_cmd_mms = 0.0;
+			}
+			else
+			{
+				// controller expects velocities in mm/s, ROS works with SI-Units -> convert
+				// ToDo: rework Controller Class to work with SI-Units
+				vx_cmd_mms = msg->linear.x*1000.0;	
 			}
 			if(msg->linear.y > max_vel_trans_)
 			{
-				ROS_DEBUG_STREAM("Recevied cmdVelY: " << msg->linear.y << " which is bigger 
-					than the maximal allowed translational velocity: " <<	max_vel_trans_ << "so set cmdVelY to 0.0");
-				msg->linear.y = 0.0;
+				ROS_DEBUG_STREAM("Recevied cmdVelY: " << msg->linear.y << 
+					" which is bigger than the maximal allowed translational velocity: " <<	max_vel_trans_ << "so set cmdVelY to 0.0");
+				vy_cmd_mms = 0.0;
+			}
+			else
+			{
+				// controller expects velocities in mm/s, ROS works with SI-Units -> convert
+				// ToDo: rework Controller Class to work with SI-Units
+				vy_cmd_mms = msg->linear.y*1000.0;
 			}
 			if(msg->angular.z > max_vel_rot_)
 			{
-				ROS_DEBUG_STREAM("Recevied cmdVelTh: " << msg->angualr.z << " which is bigger 
-					than the maximal allowed rotational velocity: " << max_vel_rot_ << "so set cmdVelTh to 0.0");
-				msg->angular.z = 0.0;
+				ROS_DEBUG_STREAM("Recevied cmdVelTh: " << msg->angular.z << 
+					" which is bigger than the maximal allowed rotational velocity: " << max_vel_rot_ << "so set cmdVelTh to 0.0");
+				w_cmd_rads = 0.0;
+			}
+			else
+			{
+				w_cmd_rads = msg->angular.z;
 			}
 
-			double vx_cmd_mms, vy_cmd_mms, w_cmd_rads;
-
-			iwatchdog_ = 0;			
-
-			// controller expects velocities in mm/s, ROS works with SI-Units -> convert
-			// ToDo: rework Controller Class to work with SI-Units
-			vx_cmd_mms = msg->linear.x*1000.0;
-			vy_cmd_mms = msg->linear.y*1000.0;
-			w_cmd_rads = msg->angular.z;
+			iwatchdog_ = 0;
 
 			// only process if controller is already initialized
 			if (is_initialized_bool_ && drive_chain_diagnostic_==diagnostic_status_lookup_.OK)
