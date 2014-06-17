@@ -118,7 +118,7 @@ class NodeClass
 		double x_rob_m_, y_rob_m_, theta_rob_rad_; // accumulated motion of robot since startup
     	int iwatchdog_;
     	double 	vel_x_rob_last_, vel_y_rob_last_, vel_theta_rob_last_; //save velocities for better odom calculation
-    	double max_vel_;
+    	double max_vel_trans_, max_vel_rot_;
 		
 		int m_iNumJoints;
 		
@@ -171,15 +171,25 @@ class NodeClass
 				ROS_WARN("IniDirectory not found on Parameter-Server, using default value: %s", sIniDirectory.c_str());
 			}
 
-			if (n.hasParam("max_velocity"))
+			if (n.hasParam("max_trans_velocity"))
 			{
-			  n.getParam("max_velocity", max_vel_);
-			  ROS_INFO("Max velocity loaded from Parameter-Server is: %fs", max_vel_);
+			  n.getParam("max_trans_velocity", max_vel_trans_);
+			  ROS_INFO("Max translational velocity loaded from Parameter-Server is: %fs", max_vel_trans_);
 			}
 			else
 			{
-			  ROS_WARN("No parameter max_velocity on Parameter-Server. Using default: 0.5 m/s");
-			  max_vel_ = 0.5;
+			  ROS_WARN("No parameter max_trans_velocity on Parameter-Server. Using default: 0.5 m/s");
+			  max_vel_trans_ = 0.5;
+			}
+			if (n.hasParam("max_rot_velocity"))
+			{
+			  n.getParam("max_rot_velocity", max_vel_rot_);
+			  ROS_INFO("Max rotational velocity loaded from Parameter-Server is: %fs", max_vel_rot_);
+			}
+			else
+			{
+			  ROS_WARN("No parameter max_rot_velocity on Parameter-Server. Using default: 0.5 rad/s");
+			  max_vel_rot_ = 0.7;
 			}
 
 			IniFile iniFile;
@@ -232,37 +242,53 @@ class NodeClass
 		// Listen for Pltf Cmds
 		void topicCallbackTwistCmd(const geometry_msgs::Twist::ConstPtr& msg)
 		{
-			if(msg->linear.x < max_vel_ && msg->linear.y < max_vel_ && msg->angular.z < max_vel_)
+			if(msg->linear.x > max_vel_trans_)
 			{
-
-				double vx_cmd_mms, vy_cmd_mms, w_cmd_rads;
-
-				iwatchdog_ = 0;			
-
-				// controller expects velocities in mm/s, ROS works with SI-Units -> convert
-				// ToDo: rework Controller Class to work with SI-Units
-				vx_cmd_mms = msg->linear.x*1000.0;
-				vy_cmd_mms = msg->linear.y*1000.0;
-				w_cmd_rads = msg->angular.z;
-
-				// only process if controller is already initialized
-				if (is_initialized_bool_ && drive_chain_diagnostic_==diagnostic_status_lookup_.OK)
-	            {
-					ROS_DEBUG("received new velocity command [cmdVelX=%3.5f,cmdVelY=%3.5f,cmdVelTh=%3.5f]", 
-						msg->linear.x, msg->linear.y, msg->angular.z);
-
-					// Set desired value for Plattform Velocity to UndercarriageCtrl (setpoint setting)
-					ucar_ctrl_->SetDesiredPltfVelocity(vx_cmd_mms, vy_cmd_mms, w_cmd_rads, 0.0);
-					// ToDo: last value (0.0) is not used anymore --> remove from interface
-				}
-				else
-				{	
-					// Set desired value for Plattform Velocity to zero (setpoint setting)
-					ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
-					// ToDo: last value (0.0) is not used anymore --> remove from interface
-					ROS_DEBUG("Forced platform-velocity cmds to zero");
-				}
+				ROS_DEBUG_STREAM("Recevied cmdVelX: " << msg->linear.x << " which is bigger 
+					than the maximal allowed translational velocity: " <<	max_vel_trans_ << "so set cmdVelX to 0.0");
+				msg->linear.x = 0.0;
 			}
+			if(msg->linear.y > max_vel_trans_)
+			{
+				ROS_DEBUG_STREAM("Recevied cmdVelY: " << msg->linear.y << " which is bigger 
+					than the maximal allowed translational velocity: " <<	max_vel_trans_ << "so set cmdVelY to 0.0");
+				msg->linear.y = 0.0;
+			}
+			if(msg->angular.z > max_vel_rot_)
+			{
+				ROS_DEBUG_STREAM("Recevied cmdVelTh: " << msg->angualr.z << " which is bigger 
+					than the maximal allowed rotational velocity: " << max_vel_rot_ << "so set cmdVelTh to 0.0");
+				msg->angular.z = 0.0;
+			}
+
+			double vx_cmd_mms, vy_cmd_mms, w_cmd_rads;
+
+			iwatchdog_ = 0;			
+
+			// controller expects velocities in mm/s, ROS works with SI-Units -> convert
+			// ToDo: rework Controller Class to work with SI-Units
+			vx_cmd_mms = msg->linear.x*1000.0;
+			vy_cmd_mms = msg->linear.y*1000.0;
+			w_cmd_rads = msg->angular.z;
+
+			// only process if controller is already initialized
+			if (is_initialized_bool_ && drive_chain_diagnostic_==diagnostic_status_lookup_.OK)
+            {
+				ROS_DEBUG("received new velocity command [cmdVelX=%3.5f,cmdVelY=%3.5f,cmdVelTh=%3.5f]", 
+					msg->linear.x, msg->linear.y, msg->angular.z);
+
+				// Set desired value for Plattform Velocity to UndercarriageCtrl (setpoint setting)
+				ucar_ctrl_->SetDesiredPltfVelocity(vx_cmd_mms, vy_cmd_mms, w_cmd_rads, 0.0);
+				// ToDo: last value (0.0) is not used anymore --> remove from interface
+			}
+			else
+			{	
+				// Set desired value for Plattform Velocity to zero (setpoint setting)
+				ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
+				// ToDo: last value (0.0) is not used anymore --> remove from interface
+				ROS_DEBUG("Forced platform-velocity cmds to zero");
+			}
+			
 		}
 
 		// Listen for Emergency Stop
