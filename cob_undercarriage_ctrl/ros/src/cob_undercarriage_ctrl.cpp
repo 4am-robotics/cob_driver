@@ -243,11 +243,11 @@ class NodeClass
 		void topicCallbackTwistCmd(const geometry_msgs::Twist::ConstPtr& msg)
 		{
 			double vx_cmd_mms, vy_cmd_mms, w_cmd_rads;
-			
+
 			if(msg->linear.x > max_vel_trans_)
 			{
 				ROS_DEBUG_STREAM("Recevied cmdVelX: " << msg->linear.x << 
-					" which is bigger than the maximal allowed translational velocity: " <<	max_vel_trans_ << "so set cmdVelX to 0.0");
+					", which is bigger than the maximal allowed translational velocity: " <<	max_vel_trans_ << " so set cmdVelX to 0.0");
 				vx_cmd_mms = 0.0;
 			}
 			else
@@ -259,7 +259,7 @@ class NodeClass
 			if(msg->linear.y > max_vel_trans_)
 			{
 				ROS_DEBUG_STREAM("Recevied cmdVelY: " << msg->linear.y << 
-					" which is bigger than the maximal allowed translational velocity: " <<	max_vel_trans_ << "so set cmdVelY to 0.0");
+					", which is bigger than the maximal allowed translational velocity: " <<	max_vel_trans_ << " so set cmdVelY to 0.0");
 				vy_cmd_mms = 0.0;
 			}
 			else
@@ -271,7 +271,7 @@ class NodeClass
 			if(msg->angular.z > max_vel_rot_)
 			{
 				ROS_DEBUG_STREAM("Recevied cmdVelTh: " << msg->angular.z << 
-					" which is bigger than the maximal allowed rotational velocity: " << max_vel_rot_ << "so set cmdVelTh to 0.0");
+					", which is bigger than the maximal allowed rotational velocity: " << max_vel_rot_ << " so set cmdVelTh to 0.0");
 				w_cmd_rads = 0.0;
 			}
 			else
