@@ -244,7 +244,7 @@ class NodeClass
 		{
 			double vx_cmd_mms, vy_cmd_mms, w_cmd_rads;
 
-			if(msg->linear.x > max_vel_trans_)
+			if(fabs(msg->linear.x) > max_vel_trans_)
 			{
 				ROS_DEBUG_STREAM("Recevied cmdVelX: " << msg->linear.x << 
 					", which is bigger than the maximal allowed translational velocity: " <<	max_vel_trans_ << " so set cmdVelX to 0.0");
@@ -256,7 +256,7 @@ class NodeClass
 				// ToDo: rework Controller Class to work with SI-Units
 				vx_cmd_mms = msg->linear.x*1000.0;	
 			}
-			if(msg->linear.y > max_vel_trans_)
+			if(fabs(msg->linear.y) > max_vel_trans_)
 			{
 				ROS_DEBUG_STREAM("Recevied cmdVelY: " << msg->linear.y << 
 					", which is bigger than the maximal allowed translational velocity: " <<	max_vel_trans_ << " so set cmdVelY to 0.0");
@@ -268,7 +268,7 @@ class NodeClass
 				// ToDo: rework Controller Class to work with SI-Units
 				vy_cmd_mms = msg->linear.y*1000.0;
 			}
-			if(msg->angular.z > max_vel_rot_)
+			if(fabs(msg->angular.z) > max_vel_rot_)
 			{
 				ROS_DEBUG_STREAM("Recevied cmdVelTh: " << msg->angular.z << 
 					", which is bigger than the maximal allowed rotational velocity: " << max_vel_rot_ << " so set cmdVelTh to 0.0");
