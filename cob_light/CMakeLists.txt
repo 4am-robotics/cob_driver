@@ -51,7 +51,8 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 
 
-add_executable(cob_light ros/src/cob_light.cpp ros/src/colorO.cpp ros/src/colorOSim.cpp common/src/serialIO.cpp common/src/modeExecutor.cpp common/src/modeFactory.cpp)
+add_executable(cob_light ros/src/cob_light.cpp ros/src/colorO.cpp ros/src/colorOSim.cpp ros/src/ms35.cpp
+				common/src/serialIO.cpp common/src/modeExecutor.cpp common/src/modeFactory.cpp)
 add_dependencies(cob_light ${PROJECT_NAME}_gencpp)
 
 target_link_libraries(cob_light ${Boost_LIBRARIES})

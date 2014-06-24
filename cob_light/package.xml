@@ -1,6 +1,6 @@
 <package>
   <name>cob_light</name>
-  <version>0.5.2</version>
+  <version>0.5.3</version>
   <description>This package contains scripts to operate the LED lights on Care-O-bot.</description>
  
   <license>LGPL</license>

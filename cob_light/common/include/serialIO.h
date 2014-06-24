@@ -61,6 +61,7 @@
 #include <errno.h>
 #include <termios.h>
 #include <time.h>
+#include <sys/time.h>
 
 #include <string>
 
@@ -77,6 +78,9 @@ public:
 
 	// Send Data to Serial Port
 	int sendData(std::string value);
+
+	// Send Data to Serial Port
+	int sendData(const char* data, size_t len);
 
 	// Read Data from Serial Port
 	int readData(std::string &value, size_t nBytes);
