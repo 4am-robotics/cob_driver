@@ -227,7 +227,7 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
 		}
 		ROS_DEBUG("Creating message header");
 		unified_scan.header = vec_laser_struct_.at(0).current_scan_msg.header;
-	    unified_scan.header.frame_id = "base_link";
+    unified_scan.header.frame_id = "base_link";
 		unified_scan.angle_min = -M_PI+0.1;
 		unified_scan.angle_max = M_PI-0.1;
 		unified_scan.angle_increment = M_PI/180.0/2.0;
@@ -242,29 +242,28 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
 		for(int j = 0; j < config_.number_input_scans; j++)
 		{
 			for (unsigned int i = 0; i < vec_cloud.at(j).points.size(); i++)
-	      	{
-		    	const float &x = vec_cloud.at(j).points[i].x;
-		      	const float &y = vec_cloud.at(j).points[i].y;
-		      	const float &z = vec_cloud.at(j).points[i].z;
+      {
+		    const float &x = vec_cloud.at(j).points[i].x;
+		    const float &y = vec_cloud.at(j).points[i].y;
+		    const float &z = vec_cloud.at(j).points[i].z;
 				//ROS_INFO("Point %f %f %f", x, y, z);
 				if ( std::isnan(x) || std::isnan(y) || std::isnan(z) )
-		      	{
+		    {
 					ROS_DEBUG("rejected for nan in point(%f, %f, %f)\n", x, y, z);
-		        	continue;
+		      continue;
 				}
 				double angle = atan2(y, x);// + M_PI/2;
-		      	if (angle < unified_scan.angle_min || angle > unified_scan.angle_max)
-		      	{
-		        	ROS_DEBUG("rejected for angle %f not in range (%f, %f)\n", angle, unified_scan.angle_min, unified_scan.angle_max);
-		        	continue;
-		      	}
+		    if (angle < unified_scan.angle_min || angle > unified_scan.angle_max)
+		    {
+		     	ROS_DEBUG("rejected for angle %f not in range (%f, %f)\n", angle, unified_scan.angle_min, unified_scan.angle_max);
+		       continue;
+		    }
 				int index = (angle - unified_scan.angle_min) / unified_scan.angle_increment;
 				double range_sq = y*y+x*x;
-		        //printf ("index xyz( %f %f %f) angle %f index %d range %f\n", x, y, z, angle, index, sqrt(range_sq));
-		        unified_scan.ranges[index] = sqrt(range_sq);
+		    //printf ("index xyz( %f %f %f) angle %f index %d range %f\n", x, y, z, angle, index, sqrt(range_sq));
+		    unified_scan.ranges[index] = sqrt(range_sq);
 			}
 		}
-
 	}
 
 	return unified_scan;
@@ -320,13 +319,13 @@ int main(int argc, char** argv)
 	ros::Rate rate(my_scan_unifier_node.getLoopRate());
 
 	// actual calculation step with given frequency
-	while(my_scan_unifier_node.nh_.ok()){
-		
+	while(my_scan_unifier_node.nh_.ok())
+  {
+
 		my_scan_unifier_node.checkUnifieCondition();
 		
 		ros::spinOnce();
 		rate.sleep();
-
 	}
 
 	return 0;
