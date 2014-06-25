@@ -128,12 +128,12 @@ public:
 	/* ----------------------------------- */
 
 	/**
-     * @function getParams
-     * @brief function to load parameters from ros parameter server
-     *
-     * input: - 
-     * output: - 
-     */ 
+     	* @function getParams
+     	* @brief function to load parameters from ros parameter server
+     	*
+     	* input: - 
+     	* output: - 
+     	*/ 
 	void getParams();
 
 	/**
