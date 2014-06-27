@@ -713,6 +713,7 @@ class NodeClass
 			ROS_DEBUG("published new drive-chain configuration (JointState message)");
 			//publish global diagnostic messages
 			diagnostic_msgs::DiagnosticArray diagnostics_gl;
+			diagnostics_gl.header.stamp = ros::Time::now();
 		    diagnostics_gl.status.resize(1);
 		    // set data to diagnostics
 		    if(bIsError)

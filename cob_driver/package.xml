@@ -16,12 +16,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <run_depend>cob_base_drive_chain</run_depend>
-  <run_depend>cob_base_velocity_smoother</run_depend>
-  <run_depend>cob_cam3d_throttle</run_depend>
   <run_depend>cob_camera_sensors</run_depend>
   <run_depend>cob_canopen_motor</run_depend>
-  <run_depend>cob_collision_velocity_filter</run_depend>
-  <run_depend>cob_footprint_observer</run_depend>
   <run_depend>cob_generic_can</run_depend>
   <run_depend>cob_head_axis</run_depend>
   <run_depend>cob_hokuyo</run_depend>
@@ -32,7 +28,6 @@
   <run_depend>cob_sick_lms1xx</run_depend>
   <run_depend>cob_sick_s300</run_depend>
   <run_depend>cob_sound</run_depend>
-  <run_depend>cob_trajectory_controller</run_depend>
   <run_depend>cob_undercarriage_ctrl</run_depend>
   <run_depend>cob_utilities</run_depend>
   <run_depend>cob_voltage_control</run_depend>
