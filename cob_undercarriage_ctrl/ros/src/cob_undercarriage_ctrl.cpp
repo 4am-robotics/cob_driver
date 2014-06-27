@@ -244,39 +244,35 @@ class NodeClass
 		{
 			double vx_cmd_mms, vy_cmd_mms, w_cmd_rads;
 
-			if(fabs(msg->linear.x) > max_vel_trans_)
+			if( (fabs(msg->linear.x) > max_vel_trans_) || (fabs(msg->linear.y) > max_vel_trans_) || (fabs(msg->angular.z) > max_vel_rot_))
 			{
-				ROS_DEBUG_STREAM("Recevied cmdVelX: " << msg->linear.x << 
-					", which is bigger than the maximal allowed translational velocity: " <<	max_vel_trans_ << " so set cmdVelX to 0.0");
+        if(fabs(msg->linear.x) > max_vel_trans_)
+        {
+          ROS_DEBUG_STREAM("Recevied cmdVelX: " << msg->linear.x << 
+            ", which is bigger than the maximal allowed translational velocity: " <<  max_vel_trans_ << " so stop the robot");
+        }
+        if(fabs(msg->linear.y) > max_vel_trans_)
+        {
+          ROS_DEBUG_STREAM("Recevied cmdVelY: " << msg->linear.x << 
+            ", which is bigger than the maximal allowed translational velocity: " <<  max_vel_trans_ << " so stop the robot");
+        }
+
+        if(fabs(msg->angular.z) > max_vel_rot_)
+        {
+          ROS_DEBUG_STREAM("Recevied cmdVelTh: " << msg->angular.z << 
+            ", which is bigger than the maximal allowed rotational velocity: " << max_vel_rot_ << " so stop the robot");
+        }
 				vx_cmd_mms = 0.0;
+        vy_cmd_mms = 0.0;
+        w_cmd_rads = 0.0;
 			}
 			else
 			{
 				// controller expects velocities in mm/s, ROS works with SI-Units -> convert
 				// ToDo: rework Controller Class to work with SI-Units
 				vx_cmd_mms = msg->linear.x*1000.0;	
-			}
-			if(fabs(msg->linear.y) > max_vel_trans_)
-			{
-				ROS_DEBUG_STREAM("Recevied cmdVelY: " << msg->linear.y << 
-					", which is bigger than the maximal allowed translational velocity: " <<	max_vel_trans_ << " so set cmdVelY to 0.0");
-				vy_cmd_mms = 0.0;
-			}
-			else
-			{
-				// controller expects velocities in mm/s, ROS works with SI-Units -> convert
-				// ToDo: rework Controller Class to work with SI-Units
 				vy_cmd_mms = msg->linear.y*1000.0;
-			}
-			if(fabs(msg->angular.z) > max_vel_rot_)
-			{
-				ROS_DEBUG_STREAM("Recevied cmdVelTh: " << msg->angular.z << 
-					", which is bigger than the maximal allowed rotational velocity: " << max_vel_rot_ << " so set cmdVelTh to 0.0");
-				w_cmd_rads = 0.0;
-			}
-			else
-			{
-				w_cmd_rads = msg->angular.z;
+        w_cmd_rads = msg->angular.z;
 			}
 
 			iwatchdog_ = 0;
