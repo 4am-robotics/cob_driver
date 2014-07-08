@@ -66,6 +66,7 @@ public:
 	// --------------- Interface
 	CanPeakSys(const char* cIniFile);
 	~CanPeakSys();
+	bool init_ret();
 	void init();
 	void destroy() {}
 	bool transmitMsg(CanMsg CMsg, bool bBlocking = true);
