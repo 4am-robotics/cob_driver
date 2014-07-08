@@ -178,8 +178,8 @@ class NodeClass
       }
       else
       {
-        ROS_WARN("No parameter max_trans_velocity on Parameter-Server. Using default: 0.5 m/s");
-        max_vel_trans_ = 0.5;
+        ROS_WARN("No parameter max_trans_velocity on Parameter-Server. Using default: 1.1 m/s");
+        max_vel_trans_ = 1.1;
       }
       if (n.hasParam("max_rot_velocity"))
       {
@@ -188,8 +188,8 @@ class NodeClass
       }
       else
       {
-        ROS_WARN("No parameter max_rot_velocity on Parameter-Server. Using default: 0.5 rad/s");
-        max_vel_rot_ = 0.7;
+        ROS_WARN("No parameter max_rot_velocity on Parameter-Server. Using default: 1.8 rad/s");
+        max_vel_rot_ = 1.8;
       }
 
       IniFile iniFile;
