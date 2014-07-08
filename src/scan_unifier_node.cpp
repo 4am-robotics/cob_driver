@@ -246,7 +246,7 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
             vec_laser_struct_.at(i).current_scan_msg.header.stamp, ros::Duration(3.0));
 
         ROS_DEBUG("now project to point_cloud");
-        projector_.transformLaserScanToPointCloud("/base_link",vec_laser_struct_.at(i).current_scan_msg, vec_cloud.at(i), listener_);
+        projector_.transformLaserScanToPointCloud("/base_link",vec_laser_struct_.at(i).current_scan_msg, vec_cloud.at(i), listener_, laser_geometry::channel_option::Default);
       }
       catch(tf::TransformException ex){
         ROS_ERROR("%s",ex.what());
@@ -263,6 +263,7 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
     unified_scan.range_min = vec_laser_struct_.at(0).current_scan_msg.range_min;
     unified_scan.range_max = vec_laser_struct_.at(0).current_scan_msg.range_max;
     unified_scan.ranges.resize(round((unified_scan.angle_max - unified_scan.angle_min) / unified_scan.angle_increment) + 1);
+    unified_scan.intensities.resize(round((unified_scan.angle_max - unified_scan.angle_min) / unified_scan.angle_increment) + 1);
 
     // now unifie all Scans
     ROS_DEBUG("unifie scans");
@@ -288,7 +289,13 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
         int index = (angle - unified_scan.angle_min) / unified_scan.angle_increment;
         double range_sq = y*y+x*x;
         //printf ("index xyz( %f %f %f) angle %f index %d range %f\n", x, y, z, angle, index, sqrt(range_sq));
-        unified_scan.ranges[index] = sqrt(range_sq);
+        if( (unified_scan.ranges.at(index) == 0) || (sqrt(range_sq) <= unified_scan.ranges.at(index)) )
+        {
+          // use the nearest reflection point of all scans for unified scan
+          unified_scan.ranges.at(index) = sqrt(range_sq);
+          // get respective intensity from point cloud intensity-channel (index 0)
+          unified_scan.intensities.at(index) = vec_cloud.at(j).channels.at(0).values.at(i);
+        }
       }
     }
   }
