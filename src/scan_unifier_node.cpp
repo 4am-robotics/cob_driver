@@ -246,7 +246,7 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
             vec_laser_struct_.at(i).current_scan_msg.header.stamp, ros::Duration(3.0));
 
         ROS_DEBUG("now project to point_cloud");
-        projector_.transformLaserScanToPointCloud("/base_link",vec_laser_struct_.at(i).current_scan_msg, vec_cloud.at(i), listener_, laser_geometry::channel_option::Default);
+        projector_.transformLaserScanToPointCloud("/base_link",vec_laser_struct_.at(i).current_scan_msg, vec_cloud.at(i), listener_);
       }
       catch(tf::TransformException ex){
         ROS_ERROR("%s",ex.what());
