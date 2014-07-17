@@ -86,9 +86,9 @@ private:
 	ros::ServiceServer _srvDigitalOut;
 	ros::ServiceServer _srvDataRate;
 	ros::ServiceServer _srvTriggerValue;
+    ros::ServiceServer _srvDigitalIn;
 
 	int _serial_num;
-	std::string _board_name;
 
 	struct OutputCompare
 	{
@@ -127,5 +127,9 @@ private:
 										cob_phidgets::SetDataRate::Response &res) -> bool;
 	auto setTriggerValueCallback(cob_phidgets::SetTriggerValue::Request &req,
 										cob_phidgets::SetTriggerValue::Response &res) -> bool;
+
+    auto getDigitalCallback(cob_phidgets::SetDigitalSensor::Request &req,
+                                        cob_phidgets::SetDigitalSensor::Response &res) -> bool;
+
 };
 #endif //_PHIDGETIK_H_
