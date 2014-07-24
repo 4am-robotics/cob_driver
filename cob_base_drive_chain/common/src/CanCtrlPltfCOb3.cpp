@@ -68,15 +68,13 @@
 
 //-----------------------------------------------
 
-CanCtrlPltfCOb3::CanCtrlPltfCOb3(std::string iniDirectory)
+CanCtrlPltfCOb3::CanCtrlPltfCOb3(PlatformParams platform_parameters)
 {	
-	sIniDirectory = iniDirectory;
-	IniFile iniFile;
-	iniFile.SetFileName(sIniDirectory + "Platform.ini", "PltfHardwareCoB3.h");
+	//sIniDirectory = iniDirectory;
+	m_PlatformParams = platform_parameters;
 
-	// get max Joint-Velocities (in rad/s) for Steer- and Drive-Joint
-	iniFile.GetKeyInt("Config", "NumberOfMotors", &m_iNumMotors, true);
-	iniFile.GetKeyInt("Config", "NumberOfWheels", &m_iNumDrives, true);
+	m_iNumDrives = m_PlatformParams.num_wheels;
+	m_iNumMotors = m_iNumDrives * 2;
 
 	if(m_iNumMotors < 2 || m_iNumMotors > 8) {
 		m_iNumMotors = 8;
@@ -114,113 +112,7 @@ CanCtrlPltfCOb3::CanCtrlPltfCOb3(std::string iniDirectory)
 	if(m_iNumMotors == 8)
 		m_viMotorID[7] = CANNODE_WHEEL4STEERMOTOR;
 
-	// ------------- parameters
-	m_Param.dCanTimeout = 7;
-
-	if(m_iNumMotors >= 1)
-		m_Param.iHasWheel1DriveMotor = 0;
-	if(m_iNumMotors >= 2)
-		m_Param.iHasWheel1SteerMotor = 0;
-	if(m_iNumMotors >= 3)
-		m_Param.iHasWheel2DriveMotor = 0;
-	if(m_iNumMotors >= 4)
-		m_Param.iHasWheel2SteerMotor = 0;
-	if(m_iNumMotors >= 5)
-		m_Param.iHasWheel3DriveMotor = 0;
-	if(m_iNumMotors >= 6)
-		m_Param.iHasWheel3SteerMotor = 0;
-	if(m_iNumMotors >= 7)
-		m_Param.iHasWheel4DriveMotor = 0;
-	if(m_iNumMotors == 8)
-		m_Param.iHasWheel4SteerMotor = 0;
-
-	m_Param.iHasRelayBoard = 0;
-	m_Param.iHasIOBoard = 0;
-	m_Param.iHasUSBoard = 0;
-	m_Param.iHasGyroBoard = 0;
-	m_Param.iHasRadarBoard = 0;	
-
 	m_bWatchdogErr = false;
-	
-	// ------------ CanIds
-	
-	// ------------ For CanOpen (Harmonica)
-	// Wheel 1
-	// can adresse motor 1
-	if(m_iNumMotors >= 1)
-	{
-		m_CanOpenIDParam.TxPDO1_W1Drive = 0x182;
-		m_CanOpenIDParam.TxPDO2_W1Drive = 0x282;
-		m_CanOpenIDParam.RxPDO2_W1Drive = 0x302;
-		m_CanOpenIDParam.TxSDO_W1Drive = 0x582;
-		m_CanOpenIDParam.RxSDO_W1Drive = 0x602;
-	}
-	// can adresse motor 2
-	if(m_iNumMotors >= 2)
-	{
-		m_CanOpenIDParam.TxPDO1_W1Steer = 0x181;
-		m_CanOpenIDParam.TxPDO2_W1Steer = 0x281;
-		m_CanOpenIDParam.RxPDO2_W1Steer = 0x301;
-		m_CanOpenIDParam.TxSDO_W1Steer = 0x581;
-		m_CanOpenIDParam.RxSDO_W1Steer = 0x601;
-	}
-	// Wheel 2
-	// can adresse motor 7
-	if(m_iNumMotors >= 3)
-	{
-		m_CanOpenIDParam.TxPDO1_W2Drive = 0x184;
-		m_CanOpenIDParam.TxPDO2_W2Drive = 0x284;
-		m_CanOpenIDParam.RxPDO2_W2Drive = 0x304;
-		m_CanOpenIDParam.TxSDO_W2Drive = 0x584;
-		m_CanOpenIDParam.RxSDO_W2Drive = 0x604;
-	}
-	// can adresse motor 8
-	if(m_iNumMotors >= 4)
-	{
-		m_CanOpenIDParam.TxPDO1_W2Steer = 0x183;
-		m_CanOpenIDParam.TxPDO2_W2Steer = 0x283;
-		m_CanOpenIDParam.RxPDO2_W2Steer = 0x303;
-		m_CanOpenIDParam.TxSDO_W2Steer = 0x583;
-		m_CanOpenIDParam.RxSDO_W2Steer = 0x603;
-	}
-	// Wheel 3
-	// can adresse motor 5
-	if(m_iNumMotors >= 5)
-	{
-		m_CanOpenIDParam.TxPDO1_W3Drive = 0x188;
-		m_CanOpenIDParam.TxPDO2_W3Drive = 0x288;
-		m_CanOpenIDParam.RxPDO2_W3Drive = 0x308;
-		m_CanOpenIDParam.TxSDO_W3Drive = 0x588;
-		m_CanOpenIDParam.RxSDO_W3Drive = 0x608;
-	}
-	// can adresse motor 6
-	if(m_iNumMotors >= 6)
-	{
-		m_CanOpenIDParam.TxPDO1_W3Steer = 0x187;
-		m_CanOpenIDParam.TxPDO2_W3Steer = 0x287;
-		m_CanOpenIDParam.RxPDO2_W3Steer = 0x307;
-		m_CanOpenIDParam.TxSDO_W3Steer = 0x587;
-		m_CanOpenIDParam.RxSDO_W3Steer = 0x607;
-	}
-	// Wheel 4
-	// can adresse motor 3
-	if(m_iNumMotors >= 7)
-	{
-		m_CanOpenIDParam.TxPDO1_W4Drive = 0x186;
-		m_CanOpenIDParam.TxPDO2_W4Drive = 0x286;
-		m_CanOpenIDParam.RxPDO2_W4Drive = 0x306;
-		m_CanOpenIDParam.TxSDO_W4Drive = 0x586;
-		m_CanOpenIDParam.RxSDO_W4Drive = 0x606;
-	}
-	// can adresse motor 4
-	if(m_iNumMotors == 8)
-	{
-		m_CanOpenIDParam.TxPDO1_W4Steer = 0x185;
-		m_CanOpenIDParam.TxPDO2_W4Steer = 0x285;
-		m_CanOpenIDParam.RxPDO2_W4Steer = 0x305;
-		m_CanOpenIDParam.TxSDO_W4Steer = 0x585;
-		m_CanOpenIDParam.RxSDO_W4Steer = 0x605;
-	}
 }
 
 //-----------------------------------------------
@@ -245,10 +137,6 @@ CanCtrlPltfCOb3::~CanCtrlPltfCOb3()
 //-----------------------------------------------
 void CanCtrlPltfCOb3::readConfiguration()
 {
-
-	int iTypeCan = 0;
-	int iMaxMessages = 0;
-
 	DriveParam DriveParamW1DriveMotor;
 	DriveParam DriveParamW1SteerMotor;
 	DriveParam DriveParamW2DriveMotor;
@@ -260,458 +148,171 @@ void CanCtrlPltfCOb3::readConfiguration()
 	
 	std::string strTypeDrive;
 	std::string strTypeSteer;
-
-	double dScaleToMM;
-
-	// read Platform.ini (Coupling of Drive/Steer for Homing)
-	m_IniFile.SetFileName(sIniDirectory + "Platform.ini", "CanCtrlPltfCOb3.cpp");
-
-	m_IniFile.GetKeyInt("Geom", "RadiusWheel", &m_Param.iRadiusWheelMM, true);
-	m_IniFile.GetKeyInt("Geom", "DistSteerAxisToDriveWheelCenter", &m_Param.iDistSteerAxisToDriveWheelMM, true);
-
-	if(m_iNumDrives >= 1)
-		m_IniFile.GetKeyDouble("DrivePrms", "Wheel1SteerDriveCoupling", &m_Param.dWheel1SteerDriveCoupling, true);
-	if(m_iNumDrives >= 2)
-		m_IniFile.GetKeyDouble("DrivePrms", "Wheel2SteerDriveCoupling", &m_Param.dWheel2SteerDriveCoupling, true);
-	if(m_iNumDrives >= 3)
-		m_IniFile.GetKeyDouble("DrivePrms", "Wheel3SteerDriveCoupling", &m_Param.dWheel3SteerDriveCoupling, true);
-	if(m_iNumDrives == 4)
-		m_IniFile.GetKeyDouble("DrivePrms", "Wheel4SteerDriveCoupling", &m_Param.dWheel4SteerDriveCoupling, true);
-
-
-	// read CanCtrl.ini
-	m_IniFile.SetFileName(sIniDirectory + "CanCtrl.ini", "CanCtrlPltfCOb3.cpp");
-
-	std::cout << "Can configuration of the platform:" << std::endl;
 	
-	// read Configuration of the Can-Network (CanCtrl.ini)
-	m_IniFile.GetKeyInt("TypeCan", "Can", &iTypeCan, true);
-	if (iTypeCan == 0)
-	{
-		sComposed = sIniDirectory;
-		sComposed += "CanCtrl.ini";
-		m_pCanCtrl = new CanPeakSys(sComposed.c_str());
-		std::cout << "Uses CAN-Peak-Systems dongle" << std::endl;
-	}
-	else if (iTypeCan == 1)
-	{
-		sComposed = sIniDirectory;
-		sComposed += "CanCtrl.ini";
-		m_pCanCtrl = new CANPeakSysUSB(sComposed.c_str());
-		std::cout << "Uses CAN-Peak-USB" << std::endl;
-	}
-	else if (iTypeCan == 2)
-	{
-		sComposed = sIniDirectory;
-		sComposed += "CanCtrl.ini";
-		m_pCanCtrl = new CanESD(sComposed.c_str(), false);
-		std::cout << "Uses CAN-ESD-card" << std::endl;
-	}
-
-	// CanOpenId's ----- Default values (DESIRE)
-	// Wheel 1
-	// DriveMotor
-	if(m_iNumDrives >= 1)
-	{
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO1_W1Drive", &m_CanOpenIDParam.TxPDO1_W1Drive, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO2_W1Drive", &m_CanOpenIDParam.TxPDO2_W1Drive, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "RxPDO2_W1Drive", &m_CanOpenIDParam.RxPDO2_W1Drive, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxSDO_W1Drive", &m_CanOpenIDParam.TxSDO_W1Drive, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "RxSDO_W1Drive", &m_CanOpenIDParam.RxSDO_W1Drive, true);
-	}
-	// SteerMotor
-	if(m_iNumDrives >= 1)
-	{
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO1_W1Steer", &m_CanOpenIDParam.TxPDO1_W1Steer, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO2_W1Steer", &m_CanOpenIDParam.TxPDO2_W1Steer, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "RxPDO2_W1Steer", &m_CanOpenIDParam.RxPDO2_W1Steer, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxSDO_W1Steer", &m_CanOpenIDParam.TxSDO_W1Steer, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "RxSDO_W1Steer", &m_CanOpenIDParam.RxSDO_W1Steer, true);
-	}
+	// Select CAN-interface here
+	m_pCanCtrl = new CANPeakSysUSB(m_PlatformParams.can_device_params);
 	
-	// Wheel 2
-	// DriveMotor
-	if(m_iNumDrives >= 2)
-	{
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO1_W2Drive", &m_CanOpenIDParam.TxPDO1_W2Drive, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO2_W2Drive", &m_CanOpenIDParam.TxPDO2_W2Drive, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "RxPDO2_W2Drive", &m_CanOpenIDParam.RxPDO2_W2Drive, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxSDO_W2Drive", &m_CanOpenIDParam.TxSDO_W2Drive, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "RxSDO_W2Drive", &m_CanOpenIDParam.RxSDO_W2Drive, true);
-	}
-	// SteerMotor
-	if(m_iNumDrives >= 2)
-	{
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO1_W2Steer", &m_CanOpenIDParam.TxPDO1_W2Steer, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO2_W2Steer", &m_CanOpenIDParam.TxPDO2_W2Steer, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "RxPDO2_W2Steer", &m_CanOpenIDParam.RxPDO2_W2Steer, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxSDO_W2Steer", &m_CanOpenIDParam.TxSDO_W2Steer, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "RxSDO_W2Steer", &m_CanOpenIDParam.RxSDO_W2Steer, true);
-	}
-	
-	// Wheel 3
-	// DriveMotor
-	if(m_iNumDrives >= 3)
-	{
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO1_W3Drive", &m_CanOpenIDParam.TxPDO1_W3Drive, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO2_W3Drive", &m_CanOpenIDParam.TxPDO2_W3Drive, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "RxPDO2_W3Drive", &m_CanOpenIDParam.RxPDO2_W3Drive, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxSDO_W3Drive", &m_CanOpenIDParam.TxSDO_W3Drive, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "RxSDO_W3Drive", &m_CanOpenIDParam.RxSDO_W3Drive, true);
-	}
-	// SteerMotor
-	if(m_iNumDrives >= 3)
-	{
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO1_W3Steer", &m_CanOpenIDParam.TxPDO1_W3Steer, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO2_W3Steer", &m_CanOpenIDParam.TxPDO2_W3Steer, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "RxPDO2_W3Steer", &m_CanOpenIDParam.RxPDO2_W3Steer, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxSDO_W3Steer", &m_CanOpenIDParam.TxSDO_W3Steer, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "RxSDO_W3Steer", &m_CanOpenIDParam.RxSDO_W3Steer, true);
-	}
-	
-	// Wheel 4
-	// DriveMotor
-	if(m_iNumDrives >= 4)
-	{
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO1_W4Drive", &m_CanOpenIDParam.TxPDO1_W4Drive, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO2_W4Drive", &m_CanOpenIDParam.TxPDO2_W4Drive, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "RxPDO2_W4Drive", &m_CanOpenIDParam.RxPDO2_W4Drive, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxSDO_W4Drive", &m_CanOpenIDParam.TxSDO_W4Drive, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "RxSDO_W4Drive", &m_CanOpenIDParam.RxSDO_W4Drive, true);
-	}
-	// SteerMotor
-	if(m_iNumDrives == 4)
-	{
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO1_W4Steer", &m_CanOpenIDParam.TxPDO1_W4Steer, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxPDO2_W4Steer", &m_CanOpenIDParam.TxPDO2_W4Steer, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "RxPDO2_W4Steer", &m_CanOpenIDParam.RxPDO2_W4Steer, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "TxSDO_W4Steer", &m_CanOpenIDParam.TxSDO_W4Steer, true);
-		m_IniFile.GetKeyInt("CanOpenIDs", "RxSDO_W4Steer", &m_CanOpenIDParam.RxSDO_W4Steer, true);
-	}
+	// CanOpenId's
+	m_CanOpenIDParam = m_PlatformParams.canopen_ids;
 
-	// read configuration of the Drives (CanCtrl.ini)
-	/* Drivemotor1-Parameters Old
-	m_IniFile.GetKeyString("TypeDrive", "Drive1", &strTypeDrive, true);	
-	m_IniFile.GetKeyInt(strTypeDrive.c_str(), "EncIncrPerRevMot", &(m_GearMotDrive1.iEncIncrPerRevMot), true);
-	m_IniFile.GetKeyDouble(strTypeDrive.c_str(), "VelMeasFrqHz", &(m_GearMotDrive1.dVelMeasFrqHz), true);
-	m_IniFile.GetKeyDouble(strTypeDrive.c_str(), "BeltRatio", &(m_GearMotDrive1.dBeltRatio), true);
-	m_IniFile.GetKeyDouble(strTypeDrive.c_str(), "GearRatio", &(m_GearMotDrive1.dGearRatio), true);
-	m_IniFile.GetKeyInt(strTypeDrive.c_str(), "Sign", &(m_GearMotDrive1.iSign), true);
-	m_IniFile.GetKeyDouble(strTypeDrive.c_str(), "VelMaxEncIncrS", &(m_GearMotDrive1.dVelMaxEncIncrS), true);
-	m_IniFile.GetKeyDouble(strTypeDrive.c_str(), "AccIncrS", &(m_GearMotDrive1.dAccIncrS2), true);
-	m_IniFile.GetKeyDouble(strTypeDrive.c_str(), "DecIncrS", &(m_GearMotDrive1.dDecIncrS2), true);
-	m_IniFile.GetKeyDouble(strTypeDrive.c_str(), "EncOffsetIncr",&(m_GearMotDrive1.iEncOffsetIncr),true);
-	*/
-
-	// "Drive Motor Type1" drive parameters	
-	if(m_iNumDrives >= 1)
-	{
-		m_IniFile.GetKeyInt("Drive1", "EncIncrPerRevMot", &(m_GearMotDrive1.iEncIncrPerRevMot), true);
-		m_IniFile.GetKeyDouble("Drive1", "VelMeasFrqHz", &(m_GearMotDrive1.dVelMeasFrqHz), true);
-		m_IniFile.GetKeyDouble("Drive1", "BeltRatio", &(m_GearMotDrive1.dBeltRatio), true);
-		m_IniFile.GetKeyDouble("Drive1", "GearRatio", &(m_GearMotDrive1.dGearRatio), true);
-		m_IniFile.GetKeyInt("Drive1", "Sign", &(m_GearMotDrive1.iSign), true);
-		m_IniFile.GetKeyDouble("Drive1", "VelMaxEncIncrS", &(m_GearMotDrive1.dVelMaxEncIncrS), true);
-		m_IniFile.GetKeyDouble("Drive1", "AccIncrS", &(m_GearMotDrive1.dAccIncrS2), true);
-		m_IniFile.GetKeyDouble("Drive1", "DecIncrS", &(m_GearMotDrive1.dDecIncrS2), true);
-		m_IniFile.GetKeyInt("Drive1", "EncOffsetIncr",&(m_GearMotDrive1.iEncOffsetIncr),true);
-		m_IniFile.GetKeyBool("Drive1", "IsSteering", &(m_GearMotDrive1.bIsSteer), true);
-		m_IniFile.GetKeyDouble("Drive1", "CurrentToTorque", &(m_GearMotDrive1.dCurrentToTorque), false);
-		m_IniFile.GetKeyDouble("Drive1", "CurrMax", &(m_GearMotDrive1.dCurrMax), false);
-		m_IniFile.GetKeyInt("Drive1", "HomingDigIn", &(m_GearMotDrive1.iHomingDigIn), false);
-	}
-
-	// "Drive Motor Type2" drive parameters	
-	if(m_iNumDrives >= 2)
-	{
-		m_IniFile.GetKeyInt("Drive2", "EncIncrPerRevMot", &(m_GearMotDrive2.iEncIncrPerRevMot), true);
-		m_IniFile.GetKeyDouble("Drive2", "VelMeasFrqHz", &(m_GearMotDrive2.dVelMeasFrqHz), true);
-		m_IniFile.GetKeyDouble("Drive2", "BeltRatio", &(m_GearMotDrive2.dBeltRatio), true);
-		m_IniFile.GetKeyDouble("Drive2", "GearRatio", &(m_GearMotDrive2.dGearRatio), true);
-		m_IniFile.GetKeyInt("Drive2", "Sign", &(m_GearMotDrive2.iSign), true);
-		m_IniFile.GetKeyDouble("Drive2", "VelMaxEncIncrS", &(m_GearMotDrive2.dVelMaxEncIncrS), true);
-		m_IniFile.GetKeyDouble("Drive2", "AccIncrS", &(m_GearMotDrive2.dAccIncrS2), true);
-		m_IniFile.GetKeyDouble("Drive2", "DecIncrS", &(m_GearMotDrive2.dDecIncrS2), true);
-		m_IniFile.GetKeyInt("Drive2", "EncOffsetIncr",&(m_GearMotDrive2.iEncOffsetIncr),true);
-		m_IniFile.GetKeyBool("Drive2", "IsSteering", &(m_GearMotDrive2.bIsSteer), true);
-		m_IniFile.GetKeyDouble("Drive2", "CurrentToTorque", &(m_GearMotDrive2.dCurrentToTorque), false);
-		m_IniFile.GetKeyDouble("Drive2", "CurrMax", &(m_GearMotDrive2.dCurrMax), false);
-		m_IniFile.GetKeyInt("Drive2", "HomingDigIn", &(m_GearMotDrive2.iHomingDigIn), false);
-	}
-
-	// "Drive Motor Type3" drive parameters	
-	if(m_iNumDrives >= 3)
-	{
-		m_IniFile.GetKeyInt("Drive3", "EncIncrPerRevMot", &(m_GearMotDrive3.iEncIncrPerRevMot), true);
-		m_IniFile.GetKeyDouble("Drive3", "VelMeasFrqHz", &(m_GearMotDrive3.dVelMeasFrqHz), true);
-		m_IniFile.GetKeyDouble("Drive3", "BeltRatio", &(m_GearMotDrive3.dBeltRatio), true);
-		m_IniFile.GetKeyDouble("Drive3", "GearRatio", &(m_GearMotDrive3.dGearRatio), true);
-		m_IniFile.GetKeyInt("Drive3", "Sign", &(m_GearMotDrive3.iSign), true);
-		m_IniFile.GetKeyDouble("Drive3", "VelMaxEncIncrS", &(m_GearMotDrive3.dVelMaxEncIncrS), true);
-		m_IniFile.GetKeyDouble("Drive3", "AccIncrS", &(m_GearMotDrive3.dAccIncrS2), true);
-		m_IniFile.GetKeyDouble("Drive3", "DecIncrS", &(m_GearMotDrive3.dDecIncrS2), true);
-		m_IniFile.GetKeyInt("Drive3", "EncOffsetIncr",&(m_GearMotDrive3.iEncOffsetIncr),true);
-		m_IniFile.GetKeyBool("Drive3", "IsSteering", &(m_GearMotDrive3.bIsSteer), true);
-		m_IniFile.GetKeyDouble("Drive3", "CurrentToTorque", &(m_GearMotDrive3.dCurrentToTorque), false);
-		m_IniFile.GetKeyDouble("Drive3", "CurrMax", &(m_GearMotDrive3.dCurrMax), false);
-		m_IniFile.GetKeyInt("Drive3", "HomingDigIn", &(m_GearMotDrive3.iHomingDigIn), false);
-	}
-
-	// "Drive Motor Type4" drive parameters	
-	if(m_iNumDrives == 4)
-	{
-		m_IniFile.GetKeyInt("Drive4", "EncIncrPerRevMot", &(m_GearMotDrive4.iEncIncrPerRevMot), true);
-		m_IniFile.GetKeyDouble("Drive4", "VelMeasFrqHz", &(m_GearMotDrive4.dVelMeasFrqHz), true);
-		m_IniFile.GetKeyDouble("Drive4", "BeltRatio", &(m_GearMotDrive4.dBeltRatio), true);
-		m_IniFile.GetKeyDouble("Drive4", "GearRatio", &(m_GearMotDrive4.dGearRatio), true);
-		m_IniFile.GetKeyInt("Drive4", "Sign", &(m_GearMotDrive4.iSign), true);
-		m_IniFile.GetKeyDouble("Drive4", "VelMaxEncIncrS", &(m_GearMotDrive4.dVelMaxEncIncrS), true);
-		m_IniFile.GetKeyDouble("Drive4", "AccIncrS", &(m_GearMotDrive4.dAccIncrS2), true);
-		m_IniFile.GetKeyDouble("Drive4", "DecIncrS", &(m_GearMotDrive4.dDecIncrS2), true);
-		m_IniFile.GetKeyInt("Drive4", "EncOffsetIncr",&(m_GearMotDrive4.iEncOffsetIncr),true);
-		m_IniFile.GetKeyBool("Drive4", "IsSteering", &(m_GearMotDrive4.bIsSteer), true);
-		m_IniFile.GetKeyDouble("Drive4", "CurrentToTorque", &(m_GearMotDrive4.dCurrentToTorque), false);
-		m_IniFile.GetKeyDouble("Drive4", "CurrMax", &(m_GearMotDrive4.dCurrMax), false);
-		m_IniFile.GetKeyInt("Drive4", "HomingDigIn", &(m_GearMotDrive4.iHomingDigIn), false);
-	}
-
-	// "Steer Motor Type1" drive parameters	
-	if(m_iNumDrives >= 1)
-	{
-		m_IniFile.GetKeyInt("Steer1", "EncIncrPerRevMot", &(m_GearMotSteer1.iEncIncrPerRevMot), true);
-		m_IniFile.GetKeyDouble("Steer1", "VelMeasFrqHz", &(m_GearMotSteer1.dVelMeasFrqHz), true);
-		m_IniFile.GetKeyDouble("Steer1", "BeltRatio", &(m_GearMotSteer1.dBeltRatio), true);
-		m_IniFile.GetKeyDouble("Steer1", "GearRatio", &(m_GearMotSteer1.dGearRatio), true);
-		m_IniFile.GetKeyInt("Steer1", "Sign", &(m_GearMotSteer1.iSign), true);
-		m_IniFile.GetKeyDouble("Steer1", "VelMaxEncIncrS", &(m_GearMotSteer1.dVelMaxEncIncrS), true);
-		m_IniFile.GetKeyDouble("Steer1", "AccIncrS", &(m_GearMotSteer1.dAccIncrS2), true);
-		m_IniFile.GetKeyDouble("Steer1", "DecIncrS", &(m_GearMotSteer1.dDecIncrS2), true);
-		m_IniFile.GetKeyInt("Steer1", "EncOffsetIncr",&(m_GearMotSteer1.iEncOffsetIncr),true);
-		m_IniFile.GetKeyBool("Steer1", "IsSteering", &(m_GearMotSteer1.bIsSteer), true);
-		m_IniFile.GetKeyDouble("Steer1", "CurrentToTorque", &(m_GearMotSteer1.dCurrentToTorque), false);
-		m_IniFile.GetKeyDouble("Steer1", "CurrMax", &(m_GearMotSteer1.dCurrMax), false);
-		m_IniFile.GetKeyInt("Steer1", "HomingDigIn", &(m_GearMotSteer1.iHomingDigIn), false);
-	}
-
-	// "Steer Motor Type2" drive parameters	
-	if(m_iNumDrives >= 2)
-	{
-		m_IniFile.GetKeyInt("Steer2", "EncIncrPerRevMot", &(m_GearMotSteer2.iEncIncrPerRevMot), true);
-		m_IniFile.GetKeyDouble("Steer2", "VelMeasFrqHz", &(m_GearMotSteer2.dVelMeasFrqHz), true);
-		m_IniFile.GetKeyDouble("Steer2", "BeltRatio", &(m_GearMotSteer2.dBeltRatio), true);
-		m_IniFile.GetKeyDouble("Steer2", "GearRatio", &(m_GearMotSteer2.dGearRatio), true);
-		m_IniFile.GetKeyInt("Steer2", "Sign", &(m_GearMotSteer2.iSign), true);
-		m_IniFile.GetKeyDouble("Steer2", "VelMaxEncIncrS", &(m_GearMotSteer2.dVelMaxEncIncrS), true);
-		m_IniFile.GetKeyDouble("Steer2", "AccIncrS", &(m_GearMotSteer2.dAccIncrS2), true);
-		m_IniFile.GetKeyDouble("Steer2", "DecIncrS", &(m_GearMotSteer2.dDecIncrS2), true);
-		m_IniFile.GetKeyInt("Steer2", "EncOffsetIncr",&(m_GearMotSteer2.iEncOffsetIncr),true);
-		m_IniFile.GetKeyBool("Steer2", "IsSteering", &(m_GearMotSteer2.bIsSteer), true);
-		m_IniFile.GetKeyDouble("Steer2", "CurrentToTorque", &(m_GearMotSteer2.dCurrentToTorque), false);
-		m_IniFile.GetKeyDouble("Steer2", "CurrMax", &(m_GearMotSteer2.dCurrMax), false);
-		m_IniFile.GetKeyInt("Steer2", "HomingDigIn", &(m_GearMotSteer2.iHomingDigIn), false);
-	}
-
-	// "Steer Motor Type3" drive parameters	
-	if(m_iNumDrives >= 3)
-	{
-		m_IniFile.GetKeyInt("Steer3", "EncIncrPerRevMot", &(m_GearMotSteer3.iEncIncrPerRevMot), true);
-		m_IniFile.GetKeyDouble("Steer3", "VelMeasFrqHz", &(m_GearMotSteer3.dVelMeasFrqHz), true);
-		m_IniFile.GetKeyDouble("Steer3", "BeltRatio", &(m_GearMotSteer3.dBeltRatio), true);
-		m_IniFile.GetKeyDouble("Steer3", "GearRatio", &(m_GearMotSteer3.dGearRatio), true);
-		m_IniFile.GetKeyInt("Steer3", "Sign", &(m_GearMotSteer3.iSign), true);
-		m_IniFile.GetKeyDouble("Steer3", "VelMaxEncIncrS", &(m_GearMotSteer3.dVelMaxEncIncrS), true);
-		m_IniFile.GetKeyDouble("Steer3", "AccIncrS", &(m_GearMotSteer3.dAccIncrS2), true);
-		m_IniFile.GetKeyDouble("Steer3", "DecIncrS", &(m_GearMotSteer3.dDecIncrS2), true);
-		m_IniFile.GetKeyInt("Steer3", "EncOffsetIncr",&(m_GearMotSteer3.iEncOffsetIncr),true);
-		m_IniFile.GetKeyBool("Steer3", "IsSteering", &(m_GearMotSteer3.bIsSteer), true);
-		m_IniFile.GetKeyDouble("Steer3", "CurrentToTorque", &(m_GearMotSteer3.dCurrentToTorque), false);
-		m_IniFile.GetKeyDouble("Steer3", "CurrMax", &(m_GearMotSteer3.dCurrMax), false);
-		m_IniFile.GetKeyInt("Steer3", "HomingDigIn", &(m_GearMotSteer3.iHomingDigIn), false);
-	}
-
-	// "Steer Motor Type4" drive parameters	
-	if(m_iNumDrives == 4)
-	{
-		m_IniFile.GetKeyInt("Steer4", "EncIncrPerRevMot", &(m_GearMotSteer4.iEncIncrPerRevMot), true);
-		m_IniFile.GetKeyDouble("Steer4", "VelMeasFrqHz", &(m_GearMotSteer4.dVelMeasFrqHz), true);
-		m_IniFile.GetKeyDouble("Steer4", "BeltRatio", &(m_GearMotSteer4.dBeltRatio), true);
-		m_IniFile.GetKeyDouble("Steer4", "GearRatio", &(m_GearMotSteer4.dGearRatio), true);
-		m_IniFile.GetKeyInt("Steer4", "Sign", &(m_GearMotSteer4.iSign), true);
-		m_IniFile.GetKeyDouble("Steer4", "VelMaxEncIncrS", &(m_GearMotSteer4.dVelMaxEncIncrS), true);
-		m_IniFile.GetKeyDouble("Steer4", "AccIncrS", &(m_GearMotSteer4.dAccIncrS2), true);
-		m_IniFile.GetKeyDouble("Steer4", "DecIncrS", &(m_GearMotSteer4.dDecIncrS2), true);
-		m_IniFile.GetKeyInt("Steer4", "EncOffsetIncr",&(m_GearMotSteer4.iEncOffsetIncr),true);
-		m_IniFile.GetKeyBool("Steer4", "IsSteering", &(m_GearMotSteer4.bIsSteer), true);
-		m_IniFile.GetKeyDouble("Steer4", "CurrentToTorque", &(m_GearMotSteer4.dCurrentToTorque), false);
-		m_IniFile.GetKeyDouble("Steer4", "CurrMax", &(m_GearMotSteer4.dCurrMax), false);
-		m_IniFile.GetKeyInt("Steer4", "HomingDigIn", &(m_GearMotSteer4.iHomingDigIn), false);
-	}
-
+	// Drive parameters
 	if(m_iNumDrives >= 1)
 	{
 		DriveParamW1DriveMotor.setParam(
 			0,
-			m_GearMotDrive1.iEncIncrPerRevMot,
-			m_GearMotDrive1.dVelMeasFrqHz,
-			m_GearMotDrive1.dBeltRatio,
-			m_GearMotDrive1.dGearRatio,
-			m_GearMotDrive1.iSign,
-			m_GearMotDrive1.dVelMaxEncIncrS,
-			m_GearMotDrive1.dAccIncrS2,
-			m_GearMotDrive1.dDecIncrS2,
-			m_GearMotDrive1.iEncOffsetIncr,
-			m_GearMotDrive1.bIsSteer,
-			m_GearMotDrive1.dCurrentToTorque,
-			m_GearMotDrive1.dCurrMax,
-			m_GearMotDrive1.iHomingDigIn);
+			m_PlatformParams.drive_param_drive.at(0).iEncIncrPerRevMot,
+			m_PlatformParams.drive_param_drive.at(0).dVelMeasFrqHz,
+			m_PlatformParams.drive_param_drive.at(0).dBeltRatio,
+			m_PlatformParams.drive_param_drive.at(0).dGearRatio,
+			m_PlatformParams.drive_param_drive.at(0).iSign,
+			m_PlatformParams.drive_param_drive.at(0).dVelMaxEncIncrS,
+			m_PlatformParams.drive_param_drive.at(0).dAccIncrS2,
+			m_PlatformParams.drive_param_drive.at(0).dDecIncrS2,
+			m_PlatformParams.drive_param_drive.at(0).iEncOffsetIncr,
+			m_PlatformParams.drive_param_drive.at(0).bIsSteer,
+			m_PlatformParams.drive_param_drive.at(0).dCurrentToTorque,
+			m_PlatformParams.drive_param_drive.at(0).dCurrMax,
+			m_PlatformParams.drive_param_drive.at(0).iHomingDigIn);
 	}
 	
 	if(m_iNumDrives >= 1)
 	{
 		DriveParamW1SteerMotor.setParam(
 			1,
-			m_GearMotSteer1.iEncIncrPerRevMot,
-			m_GearMotSteer1.dVelMeasFrqHz,
-			m_GearMotSteer1.dBeltRatio,
-			m_GearMotSteer1.dGearRatio,
-			m_GearMotSteer1.iSign,
-			m_GearMotSteer1.dVelMaxEncIncrS,
-			m_GearMotSteer1.dAccIncrS2,
-			m_GearMotSteer1.dDecIncrS2,
-			m_GearMotSteer1.iEncOffsetIncr,
-			m_GearMotSteer1.bIsSteer,
-			m_GearMotSteer1.dCurrentToTorque,
-			m_GearMotSteer1.dCurrMax,
-			m_GearMotSteer1.iHomingDigIn);
+			m_PlatformParams.drive_param_steer.at(0).iEncIncrPerRevMot,
+			m_PlatformParams.drive_param_steer.at(0).dVelMeasFrqHz,
+			m_PlatformParams.drive_param_steer.at(0).dBeltRatio,
+			m_PlatformParams.drive_param_steer.at(0).dGearRatio,
+			m_PlatformParams.drive_param_steer.at(0).iSign,
+			m_PlatformParams.drive_param_steer.at(0).dVelMaxEncIncrS,
+			m_PlatformParams.drive_param_steer.at(0).dAccIncrS2,
+			m_PlatformParams.drive_param_steer.at(0).dDecIncrS2,
+			m_PlatformParams.drive_param_steer.at(0).iEncOffsetIncr,
+			m_PlatformParams.drive_param_steer.at(0).bIsSteer,
+			m_PlatformParams.drive_param_steer.at(0).dCurrentToTorque,
+			m_PlatformParams.drive_param_steer.at(0).dCurrMax,
+			m_PlatformParams.drive_param_steer.at(0).iHomingDigIn);
 	}
 
 	if(m_iNumDrives >= 2)
 	{
 		DriveParamW2DriveMotor.setParam(
 			2,
-			m_GearMotDrive2.iEncIncrPerRevMot,
-			m_GearMotDrive2.dVelMeasFrqHz,
-			m_GearMotDrive2.dBeltRatio,
-			m_GearMotDrive2.dGearRatio,
-			m_GearMotDrive2.iSign,
-			m_GearMotDrive2.dVelMaxEncIncrS,
-			m_GearMotDrive2.dAccIncrS2,
-			m_GearMotDrive2.dDecIncrS2,
-			m_GearMotDrive2.iEncOffsetIncr,
-			m_GearMotDrive2.bIsSteer,
-			m_GearMotDrive2.dCurrentToTorque,
-			m_GearMotDrive2.dCurrMax,
-			m_GearMotDrive2.iHomingDigIn);
+			m_PlatformParams.drive_param_drive.at(1).iEncIncrPerRevMot,
+			m_PlatformParams.drive_param_drive.at(1).dVelMeasFrqHz,
+			m_PlatformParams.drive_param_drive.at(1).dBeltRatio,
+			m_PlatformParams.drive_param_drive.at(1).dGearRatio,
+			m_PlatformParams.drive_param_drive.at(1).iSign,
+			m_PlatformParams.drive_param_drive.at(1).dVelMaxEncIncrS,
+			m_PlatformParams.drive_param_drive.at(1).dAccIncrS2,
+			m_PlatformParams.drive_param_drive.at(1).dDecIncrS2,
+			m_PlatformParams.drive_param_drive.at(1).iEncOffsetIncr,
+			m_PlatformParams.drive_param_drive.at(1).bIsSteer,
+			m_PlatformParams.drive_param_drive.at(1).dCurrentToTorque,
+			m_PlatformParams.drive_param_drive.at(1).dCurrMax,
+			m_PlatformParams.drive_param_drive.at(1).iHomingDigIn);
 	}
 	
 	if(m_iNumDrives >= 2)
 	{
 		DriveParamW2SteerMotor.setParam(
 			3,
-			m_GearMotSteer2.iEncIncrPerRevMot,
-			m_GearMotSteer2.dVelMeasFrqHz,
-			m_GearMotSteer2.dBeltRatio,
-			m_GearMotSteer2.dGearRatio,
-			m_GearMotSteer2.iSign,
-			m_GearMotSteer2.dVelMaxEncIncrS,
-			m_GearMotSteer2.dAccIncrS2,
-			m_GearMotSteer2.dDecIncrS2,
-			m_GearMotSteer2.iEncOffsetIncr,
-			m_GearMotSteer2.bIsSteer,
-			m_GearMotSteer2.dCurrentToTorque,
-			m_GearMotSteer2.dCurrMax,
-			m_GearMotSteer2.iHomingDigIn);
+			m_PlatformParams.drive_param_steer.at(1).iEncIncrPerRevMot,
+			m_PlatformParams.drive_param_steer.at(1).dVelMeasFrqHz,
+			m_PlatformParams.drive_param_steer.at(1).dBeltRatio,
+			m_PlatformParams.drive_param_steer.at(1).dGearRatio,
+			m_PlatformParams.drive_param_steer.at(1).iSign,
+			m_PlatformParams.drive_param_steer.at(1).dVelMaxEncIncrS,
+			m_PlatformParams.drive_param_steer.at(1).dAccIncrS2,
+			m_PlatformParams.drive_param_steer.at(1).dDecIncrS2,
+			m_PlatformParams.drive_param_steer.at(1).iEncOffsetIncr,
+			m_PlatformParams.drive_param_steer.at(1).bIsSteer,
+			m_PlatformParams.drive_param_steer.at(1).dCurrentToTorque,
+			m_PlatformParams.drive_param_steer.at(1).dCurrMax,
+			m_PlatformParams.drive_param_steer.at(1).iHomingDigIn);
 	}
 
 	if(m_iNumDrives >= 3)
 	{
 		DriveParamW3DriveMotor.setParam(
 			4,
-			m_GearMotDrive3.iEncIncrPerRevMot,
-			m_GearMotDrive3.dVelMeasFrqHz,
-			m_GearMotDrive3.dBeltRatio,
-			m_GearMotDrive3.dGearRatio,
-			m_GearMotDrive3.iSign,
-			m_GearMotDrive3.dVelMaxEncIncrS,
-			m_GearMotDrive3.dAccIncrS2,
-			m_GearMotDrive3.dDecIncrS2,
-			m_GearMotDrive3.iEncOffsetIncr,
-			m_GearMotDrive3.bIsSteer,
-			m_GearMotDrive3.dCurrentToTorque,
-			m_GearMotDrive3.dCurrMax,
-			m_GearMotDrive3.iHomingDigIn);
+			m_PlatformParams.drive_param_drive.at(2).iEncIncrPerRevMot,
+			m_PlatformParams.drive_param_drive.at(2).dVelMeasFrqHz,
+			m_PlatformParams.drive_param_drive.at(2).dBeltRatio,
+			m_PlatformParams.drive_param_drive.at(2).dGearRatio,
+			m_PlatformParams.drive_param_drive.at(2).iSign,
+			m_PlatformParams.drive_param_drive.at(2).dVelMaxEncIncrS,
+			m_PlatformParams.drive_param_drive.at(2).dAccIncrS2,
+			m_PlatformParams.drive_param_drive.at(2).dDecIncrS2,
+			m_PlatformParams.drive_param_drive.at(2).iEncOffsetIncr,
+			m_PlatformParams.drive_param_drive.at(2).bIsSteer,
+			m_PlatformParams.drive_param_drive.at(2).dCurrentToTorque,
+			m_PlatformParams.drive_param_drive.at(2).dCurrMax,
+			m_PlatformParams.drive_param_drive.at(2).iHomingDigIn);
 	}
 	
 	if(m_iNumDrives >= 3)
 	{
 		DriveParamW3SteerMotor.setParam(
 			5,
-			m_GearMotSteer3.iEncIncrPerRevMot,
-			m_GearMotSteer3.dVelMeasFrqHz,
-			m_GearMotSteer3.dBeltRatio,
-			m_GearMotSteer3.dGearRatio,
-			m_GearMotSteer3.iSign,
-			m_GearMotSteer3.dVelMaxEncIncrS,
-			m_GearMotSteer3.dAccIncrS2,
-			m_GearMotSteer3.dDecIncrS2,
-			m_GearMotSteer3.iEncOffsetIncr,
-			m_GearMotSteer3.bIsSteer,
-			m_GearMotSteer3.dCurrentToTorque,
-			m_GearMotSteer3.dCurrMax,
-			m_GearMotSteer3.iHomingDigIn);
+			m_PlatformParams.drive_param_steer.at(2).iEncIncrPerRevMot,
+			m_PlatformParams.drive_param_steer.at(2).dVelMeasFrqHz,
+			m_PlatformParams.drive_param_steer.at(2).dBeltRatio,
+			m_PlatformParams.drive_param_steer.at(2).dGearRatio,
+			m_PlatformParams.drive_param_steer.at(2).iSign,
+			m_PlatformParams.drive_param_steer.at(2).dVelMaxEncIncrS,
+			m_PlatformParams.drive_param_steer.at(2).dAccIncrS2,
+			m_PlatformParams.drive_param_steer.at(2).dDecIncrS2,
+			m_PlatformParams.drive_param_steer.at(2).iEncOffsetIncr,
+			m_PlatformParams.drive_param_steer.at(2).bIsSteer,
+			m_PlatformParams.drive_param_steer.at(2).dCurrentToTorque,
+			m_PlatformParams.drive_param_steer.at(2).dCurrMax,
+			m_PlatformParams.drive_param_steer.at(2).iHomingDigIn);
 	}
 
 	if(m_iNumDrives == 4)
 	{
 		DriveParamW4DriveMotor.setParam(
 			6,
-			m_GearMotDrive4.iEncIncrPerRevMot,
-			m_GearMotDrive4.dVelMeasFrqHz,
-			m_GearMotDrive4.dBeltRatio,
-			m_GearMotDrive4.dGearRatio,
-			m_GearMotDrive4.iSign,
-			m_GearMotDrive4.dVelMaxEncIncrS,
-			m_GearMotDrive4.dAccIncrS2,
-			m_GearMotDrive4.dDecIncrS2,
-			m_GearMotDrive4.iEncOffsetIncr,
-			m_GearMotDrive4.bIsSteer,
-			m_GearMotDrive4.dCurrentToTorque,
-			m_GearMotDrive4.dCurrMax,
-			m_GearMotDrive4.iHomingDigIn);
+			m_PlatformParams.drive_param_drive.at(3).iEncIncrPerRevMot,
+			m_PlatformParams.drive_param_drive.at(3).dVelMeasFrqHz,
+			m_PlatformParams.drive_param_drive.at(3).dBeltRatio,
+			m_PlatformParams.drive_param_drive.at(3).dGearRatio,
+			m_PlatformParams.drive_param_drive.at(3).iSign,
+			m_PlatformParams.drive_param_drive.at(3).dVelMaxEncIncrS,
+			m_PlatformParams.drive_param_drive.at(3).dAccIncrS2,
+			m_PlatformParams.drive_param_drive.at(3).dDecIncrS2,
+			m_PlatformParams.drive_param_drive.at(3).iEncOffsetIncr,
+			m_PlatformParams.drive_param_drive.at(3).bIsSteer,
+			m_PlatformParams.drive_param_drive.at(3).dCurrentToTorque,
+			m_PlatformParams.drive_param_drive.at(3).dCurrMax,
+			m_PlatformParams.drive_param_drive.at(3).iHomingDigIn);
 	}
 	
 	if(m_iNumDrives == 4)
 	{
 		DriveParamW4SteerMotor.setParam(
 			7,
-			m_GearMotSteer4.iEncIncrPerRevMot,
-			m_GearMotSteer4.dVelMeasFrqHz,
-			m_GearMotSteer4.dBeltRatio,
-			m_GearMotSteer4.dGearRatio,
-			m_GearMotSteer4.iSign,
-			m_GearMotSteer4.dVelMaxEncIncrS,
-			m_GearMotSteer4.dAccIncrS2,
-			m_GearMotSteer4.dDecIncrS2,
-			m_GearMotSteer4.iEncOffsetIncr,
-			m_GearMotSteer4.bIsSteer,
-			m_GearMotSteer4.dCurrentToTorque,
-			m_GearMotSteer4.dCurrMax,
-			m_GearMotSteer4.iHomingDigIn);
+			m_PlatformParams.drive_param_steer.at(3).iEncIncrPerRevMot,
+			m_PlatformParams.drive_param_steer.at(3).dVelMeasFrqHz,
+			m_PlatformParams.drive_param_steer.at(3).dBeltRatio,
+			m_PlatformParams.drive_param_steer.at(3).dGearRatio,
+			m_PlatformParams.drive_param_steer.at(3).iSign,
+			m_PlatformParams.drive_param_steer.at(3).dVelMaxEncIncrS,
+			m_PlatformParams.drive_param_steer.at(3).dAccIncrS2,
+			m_PlatformParams.drive_param_steer.at(3).dDecIncrS2,
+			m_PlatformParams.drive_param_steer.at(3).iEncOffsetIncr,
+			m_PlatformParams.drive_param_steer.at(3).bIsSteer,
+			m_PlatformParams.drive_param_steer.at(3).dCurrentToTorque,
+			m_PlatformParams.drive_param_steer.at(3).dCurrMax,
+			m_PlatformParams.drive_param_steer.at(3).iHomingDigIn);
 	}
-	
-	m_IniFile.GetKeyDouble("US", "ScaleToMM", &dScaleToMM, true);
-
-
-	// read Platform.ini
-	m_IniFile.SetFileName(sIniDirectory + "Platform.ini", "CanCtrlPltfCOb3.cpp");
-
 
 	// ------ WHEEL 1 ------ //
 	// --- Motor Wheel 1 Drive
 	if(m_iNumDrives >= 1)
 	{
-		m_IniFile.GetKeyInt("Config", "Wheel1DriveMotor", &m_Param.iHasWheel1DriveMotor, true);
-		if (m_Param.iHasWheel1DriveMotor == 0)
+		if (m_PlatformParams.platform_config.iHasWheel1DriveMotor == 0)
 		{
 			// No motor
 			std::cout << "node Wheel1DriveMotor available = 0" << std::endl;
@@ -722,8 +323,8 @@ void CanCtrlPltfCOb3::readConfiguration()
 			std::cout << "Wheel1DriveMotor available = type version 2" << std::endl;
 			m_vpMotor[0] = new CanDriveHarmonica();
 			((CanDriveHarmonica*) m_vpMotor[0])->setCanOpenParam(
-				m_CanOpenIDParam.TxPDO1_W1Drive, m_CanOpenIDParam.TxPDO2_W1Drive, m_CanOpenIDParam.RxPDO2_W1Drive,
-				m_CanOpenIDParam.TxSDO_W1Drive, m_CanOpenIDParam.RxSDO_W1Drive);
+				m_PlatformParams.canopen_ids.TxPDO1_W1Drive, m_PlatformParams.canopen_ids.TxPDO2_W1Drive, m_PlatformParams.canopen_ids.RxPDO2_W1Drive,
+				m_PlatformParams.canopen_ids.TxSDO_W1Drive, m_PlatformParams.canopen_ids.RxSDO_W1Drive);
 			m_vpMotor[0]->setCanItf(m_pCanCtrl);
 			m_vpMotor[0]->setDriveParam(DriveParamW1DriveMotor);
 		}
@@ -732,8 +333,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	// --- Motor Wheel 1 Steer
 	if(m_iNumDrives >= 1)
 	{
-		m_IniFile.GetKeyInt("Config", "Wheel1SteerMotor", &m_Param.iHasWheel1SteerMotor, true);
-		if (m_Param.iHasWheel1SteerMotor == 0)
+		if (m_PlatformParams.platform_config.iHasWheel1SteerMotor == 0)
 		{
 			// No motor
 			std::cout << "node Wheel1SteerMotor available = 0" << std::endl;
@@ -744,8 +344,8 @@ void CanCtrlPltfCOb3::readConfiguration()
 			std::cout << "Wheel1SteerMotor available = type version 2" << std::endl;
 			m_vpMotor[1] = new CanDriveHarmonica();
 			((CanDriveHarmonica*) m_vpMotor[1])->setCanOpenParam(
-				m_CanOpenIDParam.TxPDO1_W1Steer, m_CanOpenIDParam.TxPDO2_W1Steer, m_CanOpenIDParam.RxPDO2_W1Steer,
-				m_CanOpenIDParam.TxSDO_W1Steer, m_CanOpenIDParam.RxSDO_W1Steer);
+				m_PlatformParams.canopen_ids.TxPDO1_W1Steer, m_PlatformParams.canopen_ids.TxPDO2_W1Steer, m_PlatformParams.canopen_ids.RxPDO2_W1Steer,
+				m_PlatformParams.canopen_ids.TxSDO_W1Steer, m_PlatformParams.canopen_ids.RxSDO_W1Steer);
 			m_vpMotor[1]->setCanItf(m_pCanCtrl);
 			m_vpMotor[1]->setDriveParam(DriveParamW1SteerMotor);
 
@@ -756,8 +356,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	// --- Motor Wheel 2 Drive
 	if(m_iNumDrives >= 2)
 	{
-		m_IniFile.GetKeyInt("Config", "Wheel2DriveMotor", &m_Param.iHasWheel2DriveMotor, true);
-		if (m_Param.iHasWheel2DriveMotor == 0)
+		if (m_PlatformParams.platform_config.iHasWheel2DriveMotor == 0)
 		{
 			// No motor
 			std::cout << "node Wheel2DriveMotor available = 0" << std::endl;
@@ -768,8 +367,8 @@ void CanCtrlPltfCOb3::readConfiguration()
 			std::cout << "Wheel2DriveMotor available = type version 2" << std::endl;
 			m_vpMotor[2] = new CanDriveHarmonica();
 			((CanDriveHarmonica*) m_vpMotor[2])->setCanOpenParam(
-				m_CanOpenIDParam.TxPDO1_W2Drive, m_CanOpenIDParam.TxPDO2_W2Drive, m_CanOpenIDParam.RxPDO2_W2Drive,
-				m_CanOpenIDParam.TxSDO_W2Drive, m_CanOpenIDParam.RxSDO_W2Drive);
+				m_PlatformParams.canopen_ids.TxPDO1_W2Drive, m_PlatformParams.canopen_ids.TxPDO2_W2Drive, m_PlatformParams.canopen_ids.RxPDO2_W2Drive,
+				m_PlatformParams.canopen_ids.TxSDO_W2Drive, m_PlatformParams.canopen_ids.RxSDO_W2Drive);
 			m_vpMotor[2]->setCanItf(m_pCanCtrl);
 			m_vpMotor[2]->setDriveParam(DriveParamW2DriveMotor);
 		}
@@ -778,8 +377,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	// --- Motor Wheel 2 Steer
 	if(m_iNumDrives >= 2)
 	{
-		m_IniFile.GetKeyInt("Config", "Wheel2SteerMotor", &m_Param.iHasWheel2SteerMotor, true);
-		if (m_Param.iHasWheel2SteerMotor == 0)
+		if (m_PlatformParams.platform_config.iHasWheel2SteerMotor == 0)
 		{
 			// No motor
 			std::cout << "node Wheel2SteerMotor available = 0" << std::endl;
@@ -790,8 +388,8 @@ void CanCtrlPltfCOb3::readConfiguration()
 			std::cout << "Wheel2SteerMotor available = type version 2" << std::endl;
 			m_vpMotor[3] = new CanDriveHarmonica();
 			((CanDriveHarmonica*) m_vpMotor[3])->setCanOpenParam(
-				m_CanOpenIDParam.TxPDO1_W2Steer, m_CanOpenIDParam.TxPDO2_W2Steer, m_CanOpenIDParam.RxPDO2_W2Steer,
-				m_CanOpenIDParam.TxSDO_W2Steer, m_CanOpenIDParam.RxSDO_W2Steer);
+				m_PlatformParams.canopen_ids.TxPDO1_W2Steer, m_PlatformParams.canopen_ids.TxPDO2_W2Steer, m_PlatformParams.canopen_ids.RxPDO2_W2Steer,
+				m_PlatformParams.canopen_ids.TxSDO_W2Steer, m_PlatformParams.canopen_ids.RxSDO_W2Steer);
 			m_vpMotor[3]->setCanItf(m_pCanCtrl);
 			m_vpMotor[3]->setDriveParam(DriveParamW2SteerMotor);
 
@@ -802,8 +400,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	// --- Motor Wheel 3 Drive
 	if(m_iNumDrives >= 3)
 	{
-		m_IniFile.GetKeyInt("Config", "Wheel3DriveMotor", &m_Param.iHasWheel3DriveMotor, true);
-		if (m_Param.iHasWheel3DriveMotor == 0)
+		if (m_PlatformParams.platform_config.iHasWheel3DriveMotor == 0)
 		{
 			// No motor
 			std::cout << "node Wheel3DriveMotor available = 0" << std::endl;
@@ -814,8 +411,8 @@ void CanCtrlPltfCOb3::readConfiguration()
 			std::cout << "Wheel3DriveMotor available = type version 2" << std::endl;
 			m_vpMotor[4] = new CanDriveHarmonica();
 			((CanDriveHarmonica*) m_vpMotor[4])->setCanOpenParam(
-				m_CanOpenIDParam.TxPDO1_W3Drive, m_CanOpenIDParam.TxPDO2_W3Drive, m_CanOpenIDParam.RxPDO2_W3Drive,
-				m_CanOpenIDParam.TxSDO_W3Drive, m_CanOpenIDParam.RxSDO_W3Drive);
+				m_PlatformParams.canopen_ids.TxPDO1_W3Drive, m_PlatformParams.canopen_ids.TxPDO2_W3Drive, m_PlatformParams.canopen_ids.RxPDO2_W3Drive,
+				m_PlatformParams.canopen_ids.TxSDO_W3Drive, m_PlatformParams.canopen_ids.RxSDO_W3Drive);
 			m_vpMotor[4]->setCanItf(m_pCanCtrl);
 			m_vpMotor[4]->setDriveParam(DriveParamW3DriveMotor);
 		}
@@ -824,8 +421,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	// --- Motor Wheel 3 Steer
 	if(m_iNumDrives >= 3)
 	{
-		m_IniFile.GetKeyInt("Config", "Wheel3SteerMotor", &m_Param.iHasWheel3SteerMotor, true);
-		if (m_Param.iHasWheel3SteerMotor == 0)
+		if (m_PlatformParams.platform_config.iHasWheel3SteerMotor == 0)
 		{
 			// No motor
 			std::cout << "node Wheel3SteerMotor available = 0" << std::endl;
@@ -836,8 +432,8 @@ void CanCtrlPltfCOb3::readConfiguration()
 			std::cout << "Wheel3SteerMotor available = type version 2" << std::endl;
 			m_vpMotor[5] = new CanDriveHarmonica();
 			((CanDriveHarmonica*) m_vpMotor[5])->setCanOpenParam(
-				m_CanOpenIDParam.TxPDO1_W3Steer, m_CanOpenIDParam.TxPDO2_W3Steer, m_CanOpenIDParam.RxPDO2_W3Steer,
-				m_CanOpenIDParam.TxSDO_W3Steer, m_CanOpenIDParam.RxSDO_W3Steer);
+				m_PlatformParams.canopen_ids.TxPDO1_W3Steer, m_PlatformParams.canopen_ids.TxPDO2_W3Steer, m_PlatformParams.canopen_ids.RxPDO2_W3Steer,
+				m_PlatformParams.canopen_ids.TxSDO_W3Steer, m_PlatformParams.canopen_ids.RxSDO_W3Steer);
 			m_vpMotor[5]->setCanItf(m_pCanCtrl);
 			m_vpMotor[5]->setDriveParam(DriveParamW3SteerMotor);
 
@@ -848,8 +444,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	// --- Motor Wheel 4 Drive
 	if(m_iNumDrives == 4)
 	{
-		m_IniFile.GetKeyInt("Config", "Wheel4DriveMotor", &m_Param.iHasWheel4DriveMotor, true);
-		if (m_Param.iHasWheel4DriveMotor == 0)
+		if (m_PlatformParams.platform_config.iHasWheel4DriveMotor == 0)
 		{
 			// No motor
 			std::cout << "node Wheel4DriveMotor available = 0" << std::endl;
@@ -860,8 +455,8 @@ void CanCtrlPltfCOb3::readConfiguration()
 			std::cout << "Wheel4DriveMotor available = type version 2" << std::endl;
 			m_vpMotor[6] = new CanDriveHarmonica();
 			((CanDriveHarmonica*) m_vpMotor[6])->setCanOpenParam(
-				m_CanOpenIDParam.TxPDO1_W4Drive, m_CanOpenIDParam.TxPDO2_W4Drive, m_CanOpenIDParam.RxPDO2_W4Drive,
-				m_CanOpenIDParam.TxSDO_W4Drive, m_CanOpenIDParam.RxSDO_W4Drive);
+				m_PlatformParams.canopen_ids.TxPDO1_W4Drive, m_PlatformParams.canopen_ids.TxPDO2_W4Drive, m_PlatformParams.canopen_ids.RxPDO2_W4Drive,
+				m_PlatformParams.canopen_ids.TxSDO_W4Drive, m_PlatformParams.canopen_ids.RxSDO_W4Drive);
 			m_vpMotor[6]->setCanItf(m_pCanCtrl);
 			m_vpMotor[6]->setDriveParam(DriveParamW4DriveMotor);
 		}
@@ -870,8 +465,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	// --- Motor Wheel 4 Steer
 	if(m_iNumDrives == 4)
 	{
-		m_IniFile.GetKeyInt("Config", "Wheel4SteerMotor", &m_Param.iHasWheel4SteerMotor, true);
-		if (m_Param.iHasWheel4SteerMotor == 0)
+		if (m_PlatformParams.platform_config.iHasWheel4SteerMotor == 0)
 		{
 			// No motor
 			std::cout << "node Wheel4SteerMotor available = 0" << std::endl;
@@ -882,17 +476,13 @@ void CanCtrlPltfCOb3::readConfiguration()
 			std::cout << "Wheel4SteerMotor available = type version 2" << std::endl;
 			m_vpMotor[7] = new CanDriveHarmonica();
 			((CanDriveHarmonica*) m_vpMotor[7])->setCanOpenParam(
-				m_CanOpenIDParam.TxPDO1_W4Steer, m_CanOpenIDParam.TxPDO2_W4Steer, m_CanOpenIDParam.RxPDO2_W4Steer,
-				m_CanOpenIDParam.TxSDO_W4Steer, m_CanOpenIDParam.RxSDO_W4Steer);
+				m_PlatformParams.canopen_ids.TxPDO1_W4Steer, m_PlatformParams.canopen_ids.TxPDO2_W4Steer, m_PlatformParams.canopen_ids.RxPDO2_W4Steer,
+				m_PlatformParams.canopen_ids.TxSDO_W4Steer, m_PlatformParams.canopen_ids.RxSDO_W4Steer);
 			m_vpMotor[7]->setCanItf(m_pCanCtrl);
 			m_vpMotor[7]->setDriveParam(DriveParamW4SteerMotor);
 
 		}
 	}
-
-	m_IniFile.GetKeyInt("Config", "GenericBufferLen", &iMaxMessages, true);
-
-
 }
 
 //-----------------------------------------------
@@ -929,7 +519,7 @@ int CanCtrlPltfCOb3::evalCanBuffer()
 //-----------------------------------------------
 bool CanCtrlPltfCOb3::initPltf()
 {	
-	// read Configuration parameters from Inifile
+	// read Configuration parameters
 	readConfiguration();
 		
 	// Vectors for drive objects and return values
@@ -939,8 +529,6 @@ bool CanCtrlPltfCOb3::initPltf()
 	std::vector<CanDriveItf*> vpSteerMotor;
 	bool bHomingOk;
 
-//	vbRetDriveMotor.assign(4,0);
-//	vbRetSteerMotor.assign(4,0);
 	vbRetDriveMotor.assign(m_iNumDrives,0);
 	vbRetSteerMotor.assign(m_iNumDrives,0);
 
@@ -948,17 +536,10 @@ bool CanCtrlPltfCOb3::initPltf()
 	// copy Motor-Pointer into Steer/Drive vector for more insight
 	for(int i=0; i<=m_iNumMotors; i+=2)
 		vpDriveMotor.push_back(m_vpMotor[i]);
-//	vpDriveMotor.push_back(m_vpMotor[2]);
-//	vpDriveMotor.push_back(m_vpMotor[4]);
-//	vpDriveMotor.push_back(m_vpMotor[6]);
 	for(int i=1; i<=m_iNumMotors; i+=2)
 		vpSteerMotor.push_back(m_vpMotor[i]);
-//	vpSteerMotor.push_back(m_vpMotor[3]);
-//	vpSteerMotor.push_back(m_vpMotor[5]);
-//	vpSteerMotor.push_back(m_vpMotor[7]);
 
 	std::vector<double> vdFactorVel;
-//	vdFactorVel.assign(4,0);
 	vdFactorVel.assign(m_iNumDrives,0);
 	double dhomeVeloRadS = -1.0;
 
@@ -976,15 +557,6 @@ bool CanCtrlPltfCOb3::initPltf()
 	{
 		m_vpMotor[i]->startWatchdog(true);
 	}
-/*	m_vpMotor[0]->startWatchdog(true);
-	m_vpMotor[1]->startWatchdog(true);
-	m_vpMotor[2]->startWatchdog(true);
-	m_vpMotor[3]->startWatchdog(true);
-	m_vpMotor[4]->startWatchdog(true);
-	m_vpMotor[5]->startWatchdog(true);
-	m_vpMotor[6]->startWatchdog(true);
-	m_vpMotor[7]->startWatchdog(true);
-*/
 	usleep(10000);
 	
 	// 2nd send watchdogs to bed while initializing drives
@@ -992,15 +564,6 @@ bool CanCtrlPltfCOb3::initPltf()
 	{
 		m_vpMotor[i]->startWatchdog(false);
 	}
-/*	m_vpMotor[0]->startWatchdog(false);
-	m_vpMotor[1]->startWatchdog(false);
-	m_vpMotor[2]->startWatchdog(false);
-	m_vpMotor[3]->startWatchdog(false);
-	m_vpMotor[4]->startWatchdog(false);
-	m_vpMotor[5]->startWatchdog(false);
-	m_vpMotor[6]->startWatchdog(false);
-	m_vpMotor[7]->startWatchdog(false);
-*/
 	usleep(100000);
 
 	std::cout << "Initialization of Watchdogs done" << std::endl;
@@ -1036,8 +599,6 @@ bool CanCtrlPltfCOb3::initPltf()
 		}	
 		
 		// perform homing only when ALL drives are ERROR-Free
-//		if (vbRetDriveMotor[0] && vbRetDriveMotor[1] && vbRetDriveMotor[2] && vbRetDriveMotor[3] &&
-//			vbRetSteerMotor[0] && vbRetSteerMotor[1] && vbRetSteerMotor[2] && vbRetSteerMotor[3])
 		bHomingOk = true;
 		for(int i=0; i<m_iNumDrives; i++)
 		{
@@ -1048,13 +609,13 @@ bool CanCtrlPltfCOb3::initPltf()
 		{
 			// Calc Compensation factor for Velocity:
 			if(m_iNumDrives >= 1)
-				vdFactorVel[0] = - m_Param.dWheel1SteerDriveCoupling + double(m_Param.iDistSteerAxisToDriveWheelMM) / double(m_Param.iRadiusWheelMM);
+				vdFactorVel[0] = - m_PlatformParams.steer_drive_coupling.at(0) + double(m_PlatformParams.platform_config.iDistSteerAxisToDriveWheelMM) / double(m_PlatformParams.platform_config.iRadiusWheelMM);
 			if(m_iNumDrives >= 2)
-				vdFactorVel[1] = - m_Param.dWheel2SteerDriveCoupling + double(m_Param.iDistSteerAxisToDriveWheelMM) / double(m_Param.iRadiusWheelMM);
+				vdFactorVel[1] = - m_PlatformParams.steer_drive_coupling.at(1) + double(m_PlatformParams.platform_config.iDistSteerAxisToDriveWheelMM) / double(m_PlatformParams.platform_config.iRadiusWheelMM);
 			if(m_iNumDrives >= 3)
-				vdFactorVel[2] = - m_Param.dWheel3SteerDriveCoupling + double(m_Param.iDistSteerAxisToDriveWheelMM) / double(m_Param.iRadiusWheelMM);
+				vdFactorVel[2] = - m_PlatformParams.steer_drive_coupling.at(2) + double(m_PlatformParams.platform_config.iDistSteerAxisToDriveWheelMM) / double(m_PlatformParams.platform_config.iRadiusWheelMM);
 			if(m_iNumDrives == 4)
-				vdFactorVel[3] = - m_Param.dWheel4SteerDriveCoupling + double(m_Param.iDistSteerAxisToDriveWheelMM) / double(m_Param.iRadiusWheelMM);
+				vdFactorVel[3] = - m_PlatformParams.steer_drive_coupling.at(3) + double(m_PlatformParams.platform_config.iDistSteerAxisToDriveWheelMM) / double(m_PlatformParams.platform_config.iRadiusWheelMM);
 
 			// initialize homing procedure
 			for (int i = 0; i<m_iNumDrives; i++)
@@ -1180,18 +741,7 @@ bool CanCtrlPltfCOb3::initPltf()
 	{
 		m_vpMotor[i]->startWatchdog(true);
 	}
-/*	m_vpMotor[0]->startWatchdog(true);
-	m_vpMotor[1]->startWatchdog(true);
-	m_vpMotor[2]->startWatchdog(true);
-	m_vpMotor[3]->startWatchdog(true);
-	m_vpMotor[4]->startWatchdog(true);
-	m_vpMotor[5]->startWatchdog(true);
-	m_vpMotor[6]->startWatchdog(true);
-	m_vpMotor[7]->startWatchdog(true);
-*/
-//	return  (
-//		vbRetDriveMotor[0] && vbRetDriveMotor[1] && vbRetDriveMotor[2] && vbRetDriveMotor[3] &&
-//		vbRetSteerMotor[0] && vbRetSteerMotor[1] && vbRetSteerMotor[2] && vbRetSteerMotor[3]);
+
 	bHomingOk = true;
 	for(int i=0; i<m_iNumDrives; i++)
 	{
@@ -1275,11 +825,11 @@ bool CanCtrlPltfCOb3::isPltfError()
 	{
 		dWatchTime = m_vpMotor[i]->getTimeToLastMsg();
 
-		if(dWatchTime <  m_Param.dCanTimeout)
+		if(dWatchTime <  m_PlatformParams.platform_config.dCanTimeout)
 		{
 			m_bWatchdogErr = false;
 		}
-		if( (dWatchTime > m_Param.dCanTimeout) && (m_bWatchdogErr == false) )
+		if( (dWatchTime > m_PlatformParams.platform_config.dCanTimeout) && (m_bWatchdogErr == false) )
 		{
 			std::cout << "timeout CAN motor " << i << std::endl;
 			m_bWatchdogErr = true;

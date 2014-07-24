@@ -52,24 +52,23 @@
  ****************************************************************/
 
 //#define __DEBUG__
-
 #include <cob_generic_can/CanPeakSysUSB.h>
+
 #include <stdlib.h>
 #include <cerrno>
-#include <cstring>
-#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 //-----------------------------------------------
 
-CANPeakSysUSB::CANPeakSysUSB(const char* cIniFile)
+CANPeakSysUSB::CANPeakSysUSB(CanDeviceParams can_device_params)
 {
 	m_bInitialized = false;
-
-	// read IniFile
-	m_IniFile.SetFileName(cIniFile, "CanPeakSysUSB.cpp");
+	
+	m_sDevicePath = can_device_params.sDevicePath;
+	if(m_sDevicePath == "") m_sDevicePath = "/dev/pcan32";
+	m_iBaudrateVal = can_device_params.iBaudrateVal;
 
 	init();
 }
@@ -83,6 +82,25 @@ CANPeakSysUSB::~CANPeakSysUSB()
 	}
 }
 
+//-----------------------------------------------
+void CANPeakSysUSB::init() {
+	std::cout << "Trying to open CAN-device on " << m_sDevicePath << std::endl;
+
+	//m_handle = LINUX_CAN_Open("/dev/pcan32", O_RDWR | O_NONBLOCK);
+	m_handle = LINUX_CAN_Open(m_sDevicePath.c_str(), O_RDWR);
+
+	if (! m_handle)
+	{
+		// Fatal error
+		std::cout << "Cannot open CAN on USB: " << strerror(errno) << std::endl;
+		sleep(3);
+		exit(0);
+	}
+
+	initCAN();
+}
+
+/*
 //-----------------------------------------------
 void CANPeakSysUSB::init()
 {
@@ -108,6 +126,7 @@ void CANPeakSysUSB::init()
 	
 	initCAN();
 }
+*/
 
 //-------------------------------------------
 bool CANPeakSysUSB::transmitMsg(CanMsg CMsg, bool bBlocking)

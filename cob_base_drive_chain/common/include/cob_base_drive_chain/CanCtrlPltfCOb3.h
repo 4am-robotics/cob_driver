@@ -66,13 +66,11 @@
 #include <cob_canopen_motor/CanDriveHarmonica.h>
 #include <cob_generic_can/CanItf.h>
 
+#include <cob_base_drive_chain/CanCtrlPltfTypes.h>
+#include <cob_base_drive_chain/PlatformParams.h>
+
 // Headers provided by cob-packages which should be avoided/removed
-#include <cob_utilities/IniFile.h>
 #include <cob_utilities/Mutex.h>
-
-// remove (not supported)
-//#include "stdafx.h"
-
 
 //-----------------------------------------------
 
@@ -88,7 +86,7 @@ public:
 	/** 
 	 * Default constructor.
 	 */
-	CanCtrlPltfCOb3(std::string iniDirectory);
+	CanCtrlPltfCOb3(PlatformParams platform_parameters);
 
 	/**
 	 * Default destructor.
@@ -254,8 +252,7 @@ protected:
 	 * Reads configuration of can node and components from Inifile
 	 * (should be adapted to use ROS-Parameter file)
 	 */
-	std::string sIniDirectory;
-	std::string sComposed;
+	PlatformParams m_PlatformParams;
 	void readConfiguration();
 
 	/**
@@ -263,176 +260,9 @@ protected:
 	 */
 	void sendNetStartCanOpen();
 
-
-	//--------------------------------- Types
-	
-	/**
-	 * Parameters of the class CanCtrlPltfCOb3.
-	 */
-	struct ParamType
-	{
-		// Platform config
-
-		int iHasWheel1DriveMotor;
-		int iHasWheel1SteerMotor;
-		int iHasWheel2DriveMotor;
-		int iHasWheel2SteerMotor;
-		int iHasWheel3DriveMotor;
-		int iHasWheel3SteerMotor;
-		int iHasWheel4DriveMotor;
-		int iHasWheel4SteerMotor;
-
-		double dWheel1SteerDriveCoupling;
-		double dWheel2SteerDriveCoupling;
-		double dWheel3SteerDriveCoupling;
-		double dWheel4SteerDriveCoupling;
-
-		int iRadiusWheelMM;
-		int iDistSteerAxisToDriveWheelMM;
-
-		int iHasRelayBoard;
-		int iHasIOBoard;
-		int iHasUSBoard;
-		int iHasGyroBoard;
-		int iHasRadarBoard;
-
-		double dCanTimeout;
-	};
-
-	/**
-	 * Parameters charaterising combination of gears and drives
-	 */
-	struct GearMotorParamType
-	{
-		int		iEncIncrPerRevMot;
-		double	dVelMeasFrqHz;
-		double	dGearRatio;
-		double	dBeltRatio;
-		int		iSign;
-		double	dVelMaxEncIncrS;
-		double	dAccIncrS2;
-		double	dDecIncrS2;
-		double	dScaleToMM;
-		int	iEncOffsetIncr;
-		bool	bIsSteer;
-		double  dCurrentToTorque;
-		double  dCurrMax;
-		int 	iHomingDigIn;
-	};
-
-	/**
-	 * CAN IDs for Neobotix boards. (Default Values)
-	 */
-	struct CanNeoIDType
-	{
-		int IOBoard_rx_ID;
-		int IOBoard_tx_ID;
-
-		int DriveNeo_W1Drive_rx_ID;
-		int DriveNeo_W1Drive_tx_ID;
-		int DriveNeo_W1Steer_rx_ID;
-		int DriveNeo_W1Steer_tx_ID;
-
-		int DriveNeo_W2Drive_rx_ID;
-		int DriveNeo_W2Drive_tx_ID;
-		int DriveNeo_W2Steer_rx_ID;
-		int DriveNeo_W2Steer_tx_ID;
-
-		int DriveNeo_W3Drive_rx_ID;
-		int DriveNeo_W3Drive_tx_ID;
-		int DriveNeo_W3Steer_rx_ID;
-		int DriveNeo_W3Steer_tx_ID;
-
-		int DriveNeo_W4Drive_rx_ID;
-		int DriveNeo_W4Drive_tx_ID;
-		int DriveNeo_W4Steer_rx_ID;
-		int DriveNeo_W4Steer_tx_ID;
-
-		int USBoard_rx_ID;
-		int USBoard_tx_ID;
-		int GyroBoard_rx_ID;
-		int GyroBoard_tx_ID;
-		int RadarBoard_rx_ID;
-		int RadarBoard_tx_ID;
-	};
-
-	/**
-	 * CAN IDs for motor drive Harmonica.
-	 * (actually this should be read from inifile)
-	 */
-	struct CanOpenIDType
-	{	
-		// Wheel 1
-		// can adresse motor 1
-		int TxPDO1_W1Drive;
-		int TxPDO2_W1Drive;
-		int RxPDO2_W1Drive;
-		int TxSDO_W1Drive;
-		int RxSDO_W1Drive;
-		// can adresse motor 2
-		int TxPDO1_W1Steer;
-		int TxPDO2_W1Steer;
-		int RxPDO2_W1Steer;
-		int TxSDO_W1Steer;
-		int RxSDO_W1Steer;
-
-		// Wheel 2
-		// can adresse motor 7
-		int TxPDO1_W2Drive;
-		int TxPDO2_W2Drive;
-		int RxPDO2_W2Drive;
-		int TxSDO_W2Drive;
-		int RxSDO_W2Drive;
-		// can adresse motor 8
-		int TxPDO1_W2Steer;
-		int TxPDO2_W2Steer;
-		int RxPDO2_W2Steer;
-		int TxSDO_W2Steer;
-		int RxSDO_W2Steer;	
-		
-		// Wheel 3
-		// can adresse motor 5
-		int TxPDO1_W3Drive;
-		int TxPDO2_W3Drive;
-		int RxPDO2_W3Drive;
-		int TxSDO_W3Drive;
-		int RxSDO_W3Drive;
-		// can adresse motor 6
-		int TxPDO1_W3Steer;
-		int TxPDO2_W3Steer;
-		int RxPDO2_W3Steer;
-		int TxSDO_W3Steer;
-		int RxSDO_W3Steer;
-		
-		// Wheel 4
-		// can adresse motor 3
-		int TxPDO1_W4Drive;
-		int TxPDO2_W4Drive;
-		int RxPDO2_W4Drive;
-		int TxSDO_W4Drive;
-		int RxSDO_W4Drive;
-		// can adresse motor 4
-		int TxPDO1_W4Steer;
-		int TxPDO2_W4Steer;
-		int RxPDO2_W4Steer;
-		int TxSDO_W4Steer;
-		int RxSDO_W4Steer;	
-	};
-
 	//--------------------------------- Parameter
-	ParamType m_Param;
-//	CanNeoIDType m_CanNeoIDParam;
 	CanOpenIDType m_CanOpenIDParam;
 
-	// Prms for all Motor/Gear combos
-	GearMotorParamType m_GearMotDrive1;
-	GearMotorParamType m_GearMotDrive2;
-	GearMotorParamType m_GearMotDrive3;
-	GearMotorParamType m_GearMotDrive4;	
-	GearMotorParamType m_GearMotSteer1;
-	GearMotorParamType m_GearMotSteer2;
-	GearMotorParamType m_GearMotSteer3;
-	GearMotorParamType m_GearMotSteer4;
 
 	//--------------------------------- Variables
 	CanMsg m_CanMsgRec;
@@ -442,29 +272,14 @@ protected:
 	//--------------------------------- Components
 	// Can-Interface
 	CanItf* m_pCanCtrl;
-	IniFile m_IniFile;
 
 	int m_iNumMotors;
 	int m_iNumDrives;
 
 	// Motor-Controllers
-/*	CanDriveItf* m_pW1DriveMotor;
-	CanDriveItf* m_pW1SteerMotor;
-	CanDriveItf* m_pW2DriveMotor;
-	CanDriveItf* m_pW2SteerMotor;
-	CanDriveItf* m_pW3DriveMotor;
-	CanDriveItf* m_pW3SteerMotor;
-	CanDriveItf* m_pW4DriveMotor;
-	CanDriveItf* m_pW4SteerMotor;*/
 	// pointer to each motors Can-Itf
 	std::vector<CanDriveItf*> m_vpMotor;
-	// vector with enums (specifying hardware-structure) -> simplifies cmd-check
-	// this has to be adapted in c++ file to your hardware
 	std::vector<int> m_viMotorID;
-
-	// other
-
-
 };
 
 
