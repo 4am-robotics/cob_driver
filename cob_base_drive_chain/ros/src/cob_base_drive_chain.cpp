@@ -65,8 +65,8 @@
 #include <sensor_msgs/JointState.h>
 #include <diagnostic_msgs/DiagnosticStatus.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
-#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
-#include <pr2_controllers_msgs/JointControllerState.h>
+#include <control_msgs/JointTrajectoryControllerState.h>
+#include <control_msgs/JointControllerState.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -242,7 +242,7 @@ class NodeClass
 			// implementation of topics
 			// published topics
 			topicPub_JointState = n.advertise<sensor_msgs::JointState>("/joint_states", 1);
-			topicPub_ControllerState = n.advertise<pr2_controllers_msgs::JointTrajectoryControllerState>("state", 1);
+			topicPub_ControllerState = n.advertise<control_msgs::JointTrajectoryControllerState>("state", 1);
 			topicPub_DiagnosticGlobal_ = n.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 			
 			topicPub_Diagnostic = n.advertise<diagnostic_msgs::DiagnosticStatus>("diagnostic", 1);
@@ -279,7 +279,7 @@ class NodeClass
 
 		// topic callback functions 
 		// function will be called when a new message arrives on a topic
-		void topicCallback_JointStateCmd(const pr2_controllers_msgs::JointTrajectoryControllerState::ConstPtr& msg)
+		void topicCallback_JointStateCmd(const control_msgs::JointTrajectoryControllerState::ConstPtr& msg)
 		{
 			ROS_DEBUG("Topic Callback joint_command");
 			// only process cmds when system is initialized
@@ -557,7 +557,7 @@ class NodeClass
 			// create temporary (local) JointState/Diagnostics Data-Container
 			sensor_msgs::JointState jointstate;
 			diagnostic_msgs::DiagnosticStatus diagnostics;
-			pr2_controllers_msgs::JointTrajectoryControllerState controller_state;
+			control_msgs::JointTrajectoryControllerState controller_state;
 			
 			// get time stamp for header
 #ifdef __SIM__
@@ -713,6 +713,7 @@ class NodeClass
 			ROS_DEBUG("published new drive-chain configuration (JointState message)");
 			//publish global diagnostic messages
 			diagnostic_msgs::DiagnosticArray diagnostics_gl;
+			diagnostics_gl.header.stamp = ros::Time::now();
 		    diagnostics_gl.status.resize(1);
 		    // set data to diagnostics
 		    if(bIsError)

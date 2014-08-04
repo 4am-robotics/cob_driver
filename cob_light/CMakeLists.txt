@@ -1,45 +1,91 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
-include($ENV{ROS_ROOT}/core/rosbuild/FindPkgConfig.cmake)
+cmake_minimum_required(VERSION 2.8.3)
+project(cob_light)
 
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
 
-rosbuild_find_ros_package(actionlib_msgs)
-include(${actionlib_msgs_PACKAGE_PATH}/cmake/actionbuild.cmake)
-genaction()
+find_package(catkin REQUIRED COMPONENTS rospy roscpp std_msgs geometry_msgs visualization_msgs actionlib actionlib_msgs diagnostic_msgs message_generation)
+find_package(Boost REQUIRED COMPONENTS thread)
 
-rosbuild_init()
 
-#set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-#set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+#######################################
+## Declare ROS messages and services ##
+#######################################
+add_message_files(
+  FILES
+  LightMode.msg
+)
 
-#uncomment if you have defined messages
-rosbuild_genmsg()
-#uncomment if you have defined services
-rosbuild_gensrv()
+add_service_files(
+  FILES
+  SetLightMode.srv 
+)
+
+add_action_files(
+  FILES
+  SetLightMode.action 
+)
+
+## Generate added messages and services with any dependencies listed here
+generate_messages(
+  DEPENDENCIES actionlib_msgs geometry_msgs std_msgs
+)
+
+###################################
+## catkin specific configuration ##
+###################################
+
+catkin_package(
+    CATKIN_DEPENDS message_runtime rospy roscpp std_msgs visualization_msgs actionlib diagnostic_msgs actionlib_msgs geometry_msgs
+    INCLUDE_DIRS common/include
+    LIBRARIES # TODO
+)
+
+###########
+## Build ##
+###########
 
 #pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
 #pkg_check_modules(GTHREAD REQUIRED gthread-2.0)
 
-include_directories(${PROJECT_SOURCE_DIR}/ros/include ${PROJECT_SOURCE_DIR}/common/include)
+include_directories(${PROJECT_SOURCE_DIR}/ros/include ${PROJECT_SOURCE_DIR}/common/include ${catkin_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIRS})
 
-#common commands for building c++ executables and libraries
-#rospack_add_library(${PROJECT_NAME} src/example.cpp)
-#target_link_libraries(${PROJECT_NAME} another_library)
-#rospack_add_boost_directories()
-rosbuild_add_executable(cob_light ros/src/cob_light.cpp ros/src/colorO.cpp ros/src/colorOSim.cpp common/src/serialIO.cpp common/src/modeExecutor.cpp common/src/modeFactory.cpp)
-rosbuild_link_boost(cob_light thread)
 
+
+add_executable(cob_light ros/src/cob_light.cpp ros/src/colorO.cpp ros/src/colorOSim.cpp ros/src/ms35.cpp
+				common/src/serialIO.cpp common/src/modeExecutor.cpp common/src/modeFactory.cpp)
+add_dependencies(cob_light ${PROJECT_NAME}_gencpp)
+
+target_link_libraries(cob_light ${Boost_LIBRARIES})
+target_link_libraries(cob_light ${catkin_LIBRARIES})
+
+###########
+## Test ##
+###########
 # rostest
 #rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-1)
 #rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-2)
 #rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-3)
 #rosbuild_add_roslaunch_check(ros/launch/light.launch ROBOT=cob3-4)
+
+#############
+## Install ##
+#############
+
+## Mark executables and/or libraries for installation
+install(TARGETS cob_light
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY common/include/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
+
+install(DIRECTORY ros/include/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
+
+install(PROGRAMS ros/scripts/test.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/ros/scripts
+)
