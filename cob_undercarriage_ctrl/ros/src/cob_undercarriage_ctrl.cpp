@@ -111,6 +111,7 @@ class NodeClass
     UndercarriageCtrlGeom * ucar_ctrl_;	// instantiate undercarriage controller
     std::string sIniDirectory;
     bool is_initialized_bool_;			// flag wether node is already up and running
+    bool broadcast_tf_;			// flag wether to broadcast the tf from odom to base_link
     int drive_chain_diagnostic_;		// flag whether base drive chain is operating normal 
     ros::Time last_time_;				// time Stamp for last odometry measurement
     ros::Time joint_state_odom_stamp_;	// time stamp of joint states used for current odometry calc
@@ -129,6 +130,7 @@ class NodeClass
     {
       // initialization of variables
       is_initialized_bool_ = false;
+      broadcast_tf_ = true;
       iwatchdog_ = 0;
       last_time_ = ros::Time::now();
       sample_time_ = 0.020;
@@ -190,6 +192,10 @@ class NodeClass
       {
         ROS_WARN("No parameter max_rot_velocity on Parameter-Server. Using default: 1.8 rad/s");
         max_vel_rot_ = 1.8;
+      }
+      if (n.hasParam("broadcast_tf"))
+      {
+        n.getParam("broadcast_tf", broadcast_tf_);
       }
 
       IniFile iniFile;
@@ -686,17 +692,23 @@ void NodeClass::UpdateOdometry()
   // generate quaternion for rotation
   geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(theta_rob_rad_);
 
-  // compose and publish transform for tf package
-  geometry_msgs::TransformStamped odom_tf;
-  // compose header
-  odom_tf.header.stamp = joint_state_odom_stamp_;
-  odom_tf.header.frame_id = "/odom_combined";
-  odom_tf.child_frame_id = "/base_footprint";
-  // compose data container
-  odom_tf.transform.translation.x = x_rob_m_;
-  odom_tf.transform.translation.y = y_rob_m_;
-  odom_tf.transform.translation.z = 0.0;
-  odom_tf.transform.rotation = odom_quat;
+  if (broadcast_tf_ == true)
+  {
+    // compose and publish transform for tf package
+    geometry_msgs::TransformStamped odom_tf;
+    // compose header
+    odom_tf.header.stamp = joint_state_odom_stamp_;
+    odom_tf.header.frame_id = "/odom_combined";
+    odom_tf.child_frame_id = "/base_footprint";
+    // compose data container
+    odom_tf.transform.translation.x = x_rob_m_;
+    odom_tf.transform.translation.y = y_rob_m_;
+    odom_tf.transform.translation.z = 0.0;
+    odom_tf.transform.rotation = odom_quat;
+
+    // publish the transform (for debugging, conflicts with robot-pose-ekf)
+    tf_broadcast_odometry_.sendTransform(odom_tf);
+  }
 
   // compose and publish odometry message as topic
   nav_msgs::Odometry odom_top;
@@ -721,9 +733,6 @@ void NodeClass::UpdateOdometry()
   odom_top.twist.twist.angular.z = rot_rob_rads;
   for(int i = 0; i < 6; i++)
     odom_top.twist.covariance[6*i+i] = 0.1;
-
-  // publish the transform (for debugging, conflicts with robot-pose-ekf)
-  tf_broadcast_odometry_.sendTransform(odom_tf);
 
   // publish odometry msg
   topic_pub_odometry_.publish(odom_top);
