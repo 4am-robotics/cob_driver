@@ -6,7 +6,7 @@ import csv
 from cob_relayboard.msg import EmergencyStopState
 from std_msgs.msg import Float64
 import savizky
-#from pr2_msgs.msg import PowerState
+#from cob_msgs.msg import PowerState
 
 class volts_filter():
     

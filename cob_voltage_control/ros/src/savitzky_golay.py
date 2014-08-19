@@ -65,7 +65,7 @@ from std_msgs.msg import Float64
 import savitzky
 import numpy as np
 from math import *
-from pr2_msgs.msg import PowerState
+from cob_msgs.msg import PowerState
 
 class volts_filter():
     
@@ -83,7 +83,7 @@ class volts_filter():
         
         rospy.Subscriber("/power_board/voltage", Float64, self.callback)
         
-        self.pub_power = rospy.Publisher('/power_state', PowerState)
+        self.pub_power = rospy.Publisher('/power_state', PowerState, queue_size=1)
         self.msg_power = PowerState()
         
     def callback(self, data):

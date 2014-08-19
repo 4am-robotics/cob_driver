@@ -2,19 +2,13 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_voltage_control)
 
-find_package(catkin REQUIRED COMPONENTS roscpp message_generation std_msgs libphidgets cob_relayboard rospy dynamic_reconfigure)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs cob_msgs libphidgets cob_relayboard rospy dynamic_reconfigure)
 
 ###################################
 ## Dynamic reconfigure ##
 ###################################
 generate_dynamic_reconfigure_options(cfg/cob_voltage_control.cfg)
 
-add_message_files(
-  FILES 
-  PowerState.msg
-)
-
-generate_messages(DEPENDENCIES std_msgs)
 
 ###################################
 ## catkin specific configuration ##
@@ -34,8 +28,6 @@ include_directories(common/src ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_executable(cob_voltage_control ros/src/cob_voltage_control_ros.cpp)
 target_link_libraries(cob_voltage_control ${catkin_LIBRARIES}) 
-
-add_dependencies(cob_voltage_control cob_voltage_control_gencpp)
 
 #############
 ## Install ##
