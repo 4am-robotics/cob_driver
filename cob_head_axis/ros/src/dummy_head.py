@@ -3,7 +3,7 @@ import roslib; roslib.load_manifest('cob_head_axis')
 import rospy
 from sensor_msgs.msg import JointState
 def talker():
-    pub = rospy.Publisher('/joint_states', JointState)
+    pub = rospy.Publisher('/joint_states', JointState, queue_size=1)
     rospy.init_node('dummy_head')
     while not rospy.is_shutdown():
         msg = JointState()
