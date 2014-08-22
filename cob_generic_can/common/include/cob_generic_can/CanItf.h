@@ -98,7 +98,7 @@ public:
 	/**
 	 * Initializes the CAN bus and returns success.
 	 */
-	virtual void init_ret() = 0;
+	virtual bool init_ret() = 0;
 	
 	/**
 	 * Initializes the CAN bus.
