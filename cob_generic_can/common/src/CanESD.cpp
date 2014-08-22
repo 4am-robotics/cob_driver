@@ -79,6 +79,12 @@ CanESD::~CanESD()
 	canClose(m_Handle);
 }
 
+//-----------------------------------------------
+bool CanESD::init_ret()
+{
+	// Not implemented yet
+	return false;
+}
 
 //-----------------------------------------------
 void CanESD::initIntern()
