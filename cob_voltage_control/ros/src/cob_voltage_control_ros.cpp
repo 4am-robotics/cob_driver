@@ -2,7 +2,9 @@
 #include <ros/ros.h>
 
 // ROS message includes
-#include <cob_relayboard/EmergencyStopState.h>
+#include <cob_msgs/PowerBoardState.h>
+#include <cob_msgs/PowerState.h>
+#include <cob_msgs/EmergencyStopState.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float64.h>
 
@@ -21,6 +23,7 @@ class cob_voltage_control_ros
         ros::NodeHandle n_;
 
         ros::Publisher topicPub_em_stop_state_;
+        ros::Publisher topicPub_powerstate;
 
         ros::Publisher topicPub_Voltage;
         ros::Subscriber topicSub_AnalogInputs;
@@ -44,7 +47,8 @@ class cob_voltage_control_ros
 
         cob_voltage_control_ros()
         {
-            topicPub_em_stop_state_ = n_.advertise<cob_relayboard::EmergencyStopState>("pub_relayboard_state_", 1);
+            topicPub_powerstate = n_.advertise<cob_msgs::PowerBoardState>("pub_em_stop_state_", 1);
+            topicPub_em_stop_state_ = n_.advertise<cob_msgs::EmergencyStopState>("pub_relayboard_state_", 1);
 
             topicPub_Voltage = n_.advertise<std_msgs::Float64>("/power_board/voltage", 10);
             topicSub_AnalogInputs = n_.subscribe("/analog_sensors", 10, &cob_voltage_control_ros::analogPhidgetSignalsCallback, this);
@@ -73,6 +77,7 @@ class cob_voltage_control_ros
         {
             component_implementation_.update(component_data_, component_config_);
             topicPub_Voltage.publish(component_data_.out_pub_voltage);
+            topicPub_powerstate.publish(component_data_.out_pub_em_stop_state_);
             topicPub_em_stop_state_.publish(component_data_.out_pub_relayboard_state);
         }
         
@@ -93,7 +98,7 @@ class cob_voltage_control_ros
             bool front_em_active = false;
             bool rear_em_active = false;
             static bool em_caused_by_button = false;
-            cob_relayboard::EmergencyStopState EM_msg;
+            cob_msgs::EmergencyStopState EM_msg;
             bool EM_signal = false;
             bool got_message = false;
 

@@ -56,11 +56,11 @@
 # If not, see < http://www.gnu.org/licenses/>.
 #
 #################################################################
-import roslib; roslib.load_manifest('cob_relayboard')
+import roslib; roslib.load_manifest('cob_voltage_control')
 import rospy
 import time
 import csv
-from cob_relayboard.msg import EmergencyStopState
+from cob_msgs.msg import EmergencyStopState
 from std_msgs.msg import Float64
 import savitzky
 import numpy as np
