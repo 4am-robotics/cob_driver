@@ -2,8 +2,8 @@
 Changelog for package cob_canopen_motor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.6 (2014-08-26)
+------------------
 * Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
   updates from hydro_dev
 * Cleaned up cob_driver with reduced deps to compile on indigo

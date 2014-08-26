@@ -2,8 +2,8 @@
 Changelog for package cob_sick_lms1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.6 (2014-08-26)
+------------------
 * merge
 * fix python3 ascii error while parsing "S"
 * Corrected inversion for lms1xx
