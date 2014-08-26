@@ -4,7 +4,7 @@ import rospy
 import time
 import csv
 from std_msgs.msg import Float64
-#from pr2_msgs.msg import PowerState
+#from cob_msgs.msg import PowerState
 
 #starttime = 1
 
