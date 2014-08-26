@@ -52,6 +52,7 @@ include_directories(${PROJECT_SOURCE_DIR}/ros/include ${PROJECT_SOURCE_DIR}/comm
 
 
 add_executable(range_sensors ros/src/phidgets_range_sensors.cpp)
+add_dependencies(range_sensors ${PROJECT_NAME}_gencpp)
 target_link_libraries(range_sensors ${catkin_LIBRARIES})
 
 add_executable(device_name ros/src/set_device_name.cpp)
@@ -64,7 +65,7 @@ add_executable(phidget_sensors
 	common/src/phidget.cpp 
 	common/src/phidgetik.cpp 
 	ros/src/phidgetik_ros.cpp)
-add_dependencies(device_name ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(phidget_sensors ${PROJECT_NAME}_gencpp)
 target_link_libraries(phidget_sensors ${catkin_LIBRARIES})
 
 
