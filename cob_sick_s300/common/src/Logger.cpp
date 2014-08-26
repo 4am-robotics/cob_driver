@@ -116,22 +116,22 @@ namespace brics_oodl {
     if (toROS) {
       switch (level) {
         case trace:
-          ROS_DEBUG(out.str().c_str());
+          ROS_DEBUG("%s",out.str().c_str());
           break;
         case debug:
-          ROS_DEBUG(out.str().c_str());
+          ROS_DEBUG("%s",out.str().c_str());
           break;
         case info:
-          ROS_INFO(out.str().c_str());
+          ROS_INFO("%s",out.str().c_str());
           break;
         case warning:
-          ROS_WARN(out.str().c_str());
+          ROS_WARN("%s",out.str().c_str());
           break;
         case error:
-          ROS_ERROR(out.str().c_str());
+          ROS_ERROR("%s",out.str().c_str());
           break;
         case fatal:
-          ROS_FATAL(out.str().c_str());
+          ROS_FATAL("%s",out.str().c_str());
           break;
         default:
           break;
