@@ -2,6 +2,16 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.6 (2014-08-26)
+------------------
+* Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
+  updates from hydro_dev
+* added explicit default argument queue_size
+* Cleaned up cob_driver with reduced deps to compile on indigo
+* port settings fixed
+* added light support for conrad ms-35 led controller
+* Contributors: Alexander Bubeck, Felix Messmer, Florian Weisshardt, ipa-bnm
+
 0.5.3 (2014-03-31)
 ------------------
 * install tags
