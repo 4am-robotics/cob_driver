@@ -2,6 +2,19 @@
 Changelog for package cob_sound
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
+  updates from hydro_dev
+* 0.5.6
+* update changelog
+* merge
+* Cleaned up cob_driver with reduced deps to compile on indigo
+* Merge pull request `#135 <https://github.com/ipa320/cob_driver/issues/135>`_ from ipa320/hydro_release_candidate
+  bring back changes from Hydro release candidate
+* New maintainer
+* Contributors: Alexander Bubeck, Florian Weisshardt, Nadia Hammoudeh García, ipa-nhg
+
 0.5.6 (2014-08-26)
 ------------------
 * Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev

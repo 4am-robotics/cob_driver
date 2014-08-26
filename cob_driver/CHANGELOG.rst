@@ -2,6 +2,27 @@
 Changelog for package cob_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* remove dep to cob_hokuyo
+* Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
+  updates from hydro_dev
+* 0.5.6
+* update changelog
+* merge
+* remove obsolete cob_hwboard dependendcy
+* update meta-package
+* update meta-package
+* merge with ipa320
+* Merge pull request `#135 <https://github.com/ipa320/cob_driver/issues/135>`_ from ipa320/hydro_release_candidate
+  bring back changes from Hydro release candidate
+* Merge branch 'hydro_dev' of github.com:ipa-bnm/cob_driver into hydro_vel_control
+* New maintainer
+* first version of frame_tracker publishing twists
+* minor
+* first draft for cob_twist_controller
+* Contributors: Florian Weisshardt, Nadia Hammoudeh García, ipa-fxm, ipa-nhg
+
 0.5.6 (2014-08-26)
 ------------------
 * Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
