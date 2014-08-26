@@ -49,8 +49,3 @@ install(TARGETS ${PROJECT_NAME}_node ${PROJECT_NAME}
 install(DIRECTORY common/include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
-
-## Mark cpp header files for installation
-install(DIRECTORY ros/launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ros/launch
-)
