@@ -105,6 +105,7 @@ class TelegramParser {
 			unsigned protective : 1;
 			unsigned warn_field : 1;
 		};
+		uint16_t val16;
 		uint8_t bytes[2];
 	};
 
@@ -319,7 +320,8 @@ public:
 		size_t i=0;
 		for(; i<num_points; ) {
 			TELEGRAM_S300_DIST_2B dist = *((TELEGRAM_S300_DIST_2B*) (buffer+(sizeof(tc1_)+sizeof(tc2_)+sizeof(tc3_)+sizeof(td_)+i)) );
-			res.push_back((int)dist.distance);
+			//for distance only: res.push_back((int)dist.distance);
+			res.push_back((int)dist.val16);
 			i += sizeof(TELEGRAM_S300_DIST_2B);
 		}
 	}
