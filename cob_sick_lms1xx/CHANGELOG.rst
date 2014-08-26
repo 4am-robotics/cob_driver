@@ -2,8 +2,8 @@
 Changelog for package cob_sick_lms1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.7 (2014-08-26)
+------------------
 * 0.5.6
 * update changelog
 * merge
