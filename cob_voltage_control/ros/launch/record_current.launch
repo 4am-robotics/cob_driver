@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+
+	<arg name="filename" />
+	<node name="phidget_ios" pkg="cob_phidgets" type="phidget_sensors">
+    		<param name="update_mode" value="polling"/>
+  	</node>
+
+	<node name="record_current" pkg="cob_voltage_control" type="record_current.py" output="screen">
+		<param name="filename" value="$(arg filename)" />
+	</node>
+
+</launch>
