@@ -2,6 +2,72 @@
 Changelog for package cob_sick_s300
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.7 (2014-08-26)
+------------------
+* Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
+  updates from hydro_dev
+* 0.5.6
+* update changelog
+* merge
+* remove warnings
+* Update cob_sick_s300.cpp
+* Cleaned up cob_driver with reduced deps to compile on indigo
+* Merge pull request `#136 <https://github.com/ipa320/cob_driver/issues/136>`_ from ipa-fmw/hydro_dev
+  change maintainer and add missing dependency
+* enabled raw reading (for intensity)
+* Update package.xml
+* fixed cpu load issue
+* fixed time stamp issue (s300)
+* merge
+* small fix
+* fix
+* debug
+* fix
+* ignoring addr.
+* output
+* test files
+* adaptation + parameter parsing
+* now blocking
+* parameteres for different fields
+* includes
+* moved telegram definition
+* rmoved Bride files
+* fixed offset & debug output
+* added debug flag
+* Contributors: Alexander Bubeck, Florian Weisshardt, Nadia Hammoudeh García, Your full name, cob4-1, ipa-cob4-1, ipa-josh
+
+0.5.6 (2014-08-26)
+------------------
+* Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
+  updates from hydro_dev
+* merge
+* remove warnings
+* Update cob_sick_s300.cpp
+* Cleaned up cob_driver with reduced deps to compile on indigo
+* Merge pull request `#136 <https://github.com/ipa320/cob_driver/issues/136>`_ from ipa-fmw/hydro_dev
+  change maintainer and add missing dependency
+* enabled raw reading (for intensity)
+* Update package.xml
+* fixed cpu load issue
+* fixed time stamp issue (s300)
+* merge
+* small fix
+* fix
+* debug
+* fix
+* ignoring addr.
+* output
+* test files
+* adaptation + parameter parsing
+* now blocking
+* parameteres for different fields
+* includes
+* moved telegram definition
+* rmoved Bride files
+* fixed offset & debug output
+* added debug flag
+* Contributors: Alexander Bubeck, Florian Weisshardt, Nadia Hammoudeh García, Your full name, cob4-1, ipa-cob4-1, ipa-josh
+
 0.5.3 (2014-03-31)
 ------------------
 * install tags

@@ -2,6 +2,22 @@
 Changelog for package cob_camera_sensors
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.7 (2014-08-26)
+------------------
+* Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
+  updates from hydro_dev
+* 0.5.6
+* update changelog
+* Cleaned up cob_driver with reduced deps to compile on indigo
+* Contributors: Alexander Bubeck, Florian Weisshardt
+
+0.5.6 (2014-08-26)
+------------------
+* Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
+  updates from hydro_dev
+* Cleaned up cob_driver with reduced deps to compile on indigo
+* Contributors: Alexander Bubeck, Florian Weisshardt
+
 0.5.3 (2014-03-31)
 ------------------
 * removed obsolete files
