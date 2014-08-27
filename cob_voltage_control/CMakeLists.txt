@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_voltage_control)
 
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs cob_msgs libphidgets cob_msgs rospy dynamic_reconfigure)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs cob_msgs libphidgets cob_msgs rospy dynamic_reconfigure cob_phidgets)
 
 ###################################
 ## Dynamic reconfigure ##
