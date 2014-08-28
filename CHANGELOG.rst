@@ -4,6 +4,7 @@ Changelog for package cob_scan_unifier
 
 Forthcoming
 -----------
+* add changelog
 * cob_scan_unifier: fix laser projection. wrong parameter
 * cob_scan_unifier: added intensities to unified scan and use the nearest range measurement from all incoming scan
 * adjusted license header in cob_scan_unifier
