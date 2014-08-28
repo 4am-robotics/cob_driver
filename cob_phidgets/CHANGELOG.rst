@@ -2,6 +2,60 @@
 Changelog for package cob_phidgets
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.7 (2014-08-26)
+------------------
+* Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
+  updates from hydro_dev
+* 0.5.6
+* update changelog
+* merge
+* fix CMakeLists.txt
+* small changes to remove warnings
+* Cleaned up cob_driver with reduced deps to compile on indigo
+* fix install tag
+* Merge pull request `#136 <https://github.com/ipa320/cob_driver/issues/136>`_ from ipa-fmw/hydro_dev
+  change maintainer and add missing dependency
+* Update package.xml
+* fix
+* use board_name instead serial_num in debug outputs
+* CMakeLists include_dirs order
+* renaming topic name
+* voltage info from phidgets
+* message generation dependencies
+* catkin dependencies
+* message generation
+* added c++11 support to phidgets CMakeLists
+* added phidgets to CMakelists
+* fix cob_phidget release pipeline error
+* Fixes the Jenkins Release Error
+* Contributors: Alexander Bubeck, Florian Weisshardt, Nadia Hammoudeh García, Thiago de Freitas Oliveira Araujo, Your full name, ipa-bnm
+
+0.5.6 (2014-08-26)
+------------------
+* Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
+  updates from hydro_dev
+* merge
+* fix CMakeLists.txt
+* small changes to remove warnings
+* Cleaned up cob_driver with reduced deps to compile on indigo
+* fix install tag
+* Merge pull request `#136 <https://github.com/ipa320/cob_driver/issues/136>`_ from ipa-fmw/hydro_dev
+  change maintainer and add missing dependency
+* Update package.xml
+* fix
+* use board_name instead serial_num in debug outputs
+* CMakeLists include_dirs order
+* renaming topic name
+* voltage info from phidgets
+* message generation dependencies
+* catkin dependencies
+* message generation
+* added c++11 support to phidgets CMakeLists
+* added phidgets to CMakelists
+* fix cob_phidget release pipeline error
+* Fixes the Jenkins Release Error
+* Contributors: Alexander Bubeck, Florian Weisshardt, Nadia Hammoudeh García, Thiago de Freitas Oliveira Araujo, Your full name, ipa-bnm
+
 0.5.3 (2014-03-31)
 ------------------
 * install tags

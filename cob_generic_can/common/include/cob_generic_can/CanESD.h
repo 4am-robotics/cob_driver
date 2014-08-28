@@ -92,6 +92,7 @@ private:
 public:
 	CanESD(const char* cIniFile, bool bObjectMode = false);
 	~CanESD();
+	bool init_ret();
 	void init(){};
 	bool transmitMsg(CanMsg CMsg, bool bBlocking = true);
 	bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry);

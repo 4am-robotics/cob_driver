@@ -2,6 +2,56 @@
 Changelog for package cob_voltage_control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.7 (2014-08-26)
+------------------
+* Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
+  updates from hydro_dev
+* 0.5.6
+* update changelog
+* merge
+* move EmergencyStopState.msg to cob_msgs + PowerBoardState works again
+* changes due to introduction of cob_msgs
+* added message to submit voltage data
+* Cleaned up cob_driver with reduced deps to compile on indigo
+* increased receive buffer
+* Merge pull request `#136 <https://github.com/ipa320/cob_driver/issues/136>`_ from ipa-fmw/hydro_dev
+  change maintainer and add missing dependency
+* Update package.xml
+* fix
+* fix
+* voltage ctrl over phidgets
+* voltage info from phidgets
+* work in progress voltagectrl with cob_phidget
+  Merge branch 'groovy_dev' into feature/voltagectrl_newphidget
+  Conflicts:
+  cob_voltage_control/ros/src/cob_voltage_control_ros.cpp
+* voltagectrl work in progress
+* Contributors: Alexander Bubeck, Felix Messmer, Florian Weisshardt, Nadia Hammoudeh García, ipa-bnm, ipa-fxm
+
+0.5.6 (2014-08-26)
+------------------
+* Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
+  updates from hydro_dev
+* merge
+* move EmergencyStopState.msg to cob_msgs + PowerBoardState works again
+* changes due to introduction of cob_msgs
+* added message to submit voltage data
+* Cleaned up cob_driver with reduced deps to compile on indigo
+* increased receive buffer
+* Merge pull request `#136 <https://github.com/ipa320/cob_driver/issues/136>`_ from ipa-fmw/hydro_dev
+  change maintainer and add missing dependency
+* Update package.xml
+* fix
+* fix
+* voltage ctrl over phidgets
+* voltage info from phidgets
+* work in progress voltagectrl with cob_phidget
+  Merge branch 'groovy_dev' into feature/voltagectrl_newphidget
+  Conflicts:
+  cob_voltage_control/ros/src/cob_voltage_control_ros.cpp
+* voltagectrl work in progress
+* Contributors: Alexander Bubeck, Felix Messmer, Florian Weisshardt, Nadia Hammoudeh García, ipa-bnm, ipa-fxm
+
 0.5.3 (2014-03-31)
 ------------------
 * install tags

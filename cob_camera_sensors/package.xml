@@ -1,6 +1,6 @@
 <package>
   <name>cob_camera_sensors</name>
-  <version>0.5.5</version>
+  <version>0.5.7</version>
   <description>For more information read the readme.htm file located in</description>
 
   <license>LGPL</license>
@@ -16,7 +16,6 @@
   <build_depend>roscpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>pluginlib</build_depend>
-  <build_depend>std_msgs</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>message_filters</build_depend>
   <build_depend>nodelet</build_depend>
@@ -24,17 +23,10 @@
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>pluginlib</run_depend>
-  <run_depend>std_msgs</run_depend>
-
   <run_depend>message_runtime</run_depend>
   <run_depend>message_filters</run_depend>
   <run_depend>nodelet</run_depend>
 
-  <!-- <test_depend>roscpp</test_depend> -->
-  <!-- <test_depend>sensor_msgs</test_depend> -->
-  <!-- <test_depend>pluginlib</test_depend> -->
-  <!-- <test_depend>message_filters</test_depend> -->
-  <!-- <test_depend>nodelet</test_depend> -->
 
   <export>
 

@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_common
- * ROS package name: generic_can
+ * ROS stack name: cob_driver
+ * ROS package name: cob_generic_can
  * Description:
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -63,6 +63,13 @@
 #include <fcntl.h>
 #include <unistd.h>
 //-----------------------------------------------
+CANPeakSysUSB::CANPeakSysUSB(const char* device, int baudrate)
+{
+	m_bInitialized = false;
+
+	p_cDevice = device;
+	m_iBaudrateVal = baudrate;
+}
 
 CANPeakSysUSB::CANPeakSysUSB(const char* cIniFile)
 {
@@ -81,6 +88,27 @@ CANPeakSysUSB::~CANPeakSysUSB()
 	{
 		CAN_Close(m_handle);
 	}
+}
+
+//-----------------------------------------------
+bool CANPeakSysUSB::init_ret()
+{
+	bool ret = true;
+
+	// init() - part
+	m_handle = LINUX_CAN_Open(p_cDevice, O_RDWR);
+
+	if (! m_handle)
+	{
+		std::cout << "Cannot open CAN on USB: " << strerror(errno) << std::endl;
+		ret = false;
+	}
+	else
+	{
+		ret = initCAN();
+	}
+
+	return ret;
 }
 
 //-----------------------------------------------
@@ -118,9 +146,9 @@ bool CANPeakSysUSB::transmitMsg(CanMsg CMsg, bool bBlocking)
 	if (m_bInitialized == false) return false;
 
 	// copy CMsg to TPCmsg
-	TPCMsg.LEN = CMsg.m_iLen;
-	TPCMsg.ID = CMsg.m_iID;
-	TPCMsg.MSGTYPE = CMsg.m_iType;
+	TPCMsg.LEN = CMsg.getLength();
+	TPCMsg.ID = CMsg.getID();
+	TPCMsg.MSGTYPE = CMsg.getType();
 	for(int i=0; i<8; i++)
 		TPCMsg.DATA[i] = CMsg.getAt(i);
 	
@@ -182,7 +210,8 @@ bool CANPeakSysUSB::receiveMsg(CanMsg* pCMsg)
 
 	if (iRet == CAN_ERR_OK)
 	{
-		pCMsg->m_iID = TPCMsg.Msg.ID;
+		pCMsg->setID(TPCMsg.Msg.ID);
+		pCMsg->setLength(TPCMsg.Msg.LEN);
 		pCMsg->set(TPCMsg.Msg.DATA[0], TPCMsg.Msg.DATA[1], TPCMsg.Msg.DATA[2], TPCMsg.Msg.DATA[3],
 			TPCMsg.Msg.DATA[4], TPCMsg.Msg.DATA[5], TPCMsg.Msg.DATA[6], TPCMsg.Msg.DATA[7]);
 		bRet = true;
@@ -239,7 +268,8 @@ bool CANPeakSysUSB::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
 	}
 	else
 	{
-		pCMsg->m_iID = TPCMsg.Msg.ID;
+		pCMsg->setID(TPCMsg.Msg.ID);
+		pCMsg->setLength(TPCMsg.Msg.LEN);
 		pCMsg->set(TPCMsg.Msg.DATA[0], TPCMsg.Msg.DATA[1], TPCMsg.Msg.DATA[2], TPCMsg.Msg.DATA[3],
 			TPCMsg.Msg.DATA[4], TPCMsg.Msg.DATA[5], TPCMsg.Msg.DATA[6], TPCMsg.Msg.DATA[7]);
 	}
