@@ -57,7 +57,7 @@ install(TARGETS cob_relayboard_node SerialIO ${PROJECT_NAME}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(PROGRAMS 
+install(PROGRAMS ros/src/relayboard_sim.py ros/src/new_method.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/ros/src
 )
 
