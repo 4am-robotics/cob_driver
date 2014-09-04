@@ -72,6 +72,7 @@ public:
 	bool transmitMsg(CanMsg CMsg, bool bBlocking = true);
 	bool receiveMsg(CanMsg* pCMsg);
 	bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry);
+	bool receiveMsgTimeout(CanMsg* pCMsg, int nMicroSeconds);
 	bool isObjectMode() { return false; }
 
 private:

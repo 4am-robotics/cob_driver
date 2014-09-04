@@ -126,6 +126,14 @@ public:
 	 * @return true if a message is available
 	 */
 	virtual bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry) = 0;
+	
+	/**
+	 * Reads a CAN message with timeout.
+	 * @param pCMsg CAN message
+	 * @param nSecTimeout timeout in ns
+	 * @return true if a message is available
+	 */
+	virtual bool receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout) = 0;
 
 	/**
 	 * Check if the current CAN interface was opened on OBJECT mode.
