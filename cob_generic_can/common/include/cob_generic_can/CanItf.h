@@ -8,8 +8,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
  * Project name: care-o-bot
- * ROS stack name: cob3_common
- * ROS package name: generic_can
+ * ROS stack name: cob_driver
+ * ROS package name: cob_generic_can
  * Description:
  *								
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -58,6 +58,21 @@
 #include <cob_generic_can/CanMsg.h>
 //-----------------------------------------------
 
+// for types and baudrates see: https://github.com/ipa320/cob_robots/blob/hydro_dev/cob_hardware_config/raw3-5/config/base/CanCtrl.ini
+#define CANITFTYPE_CAN_PEAK	0
+#define CANITFTYPE_CAN_PEAK_USB	1
+#define CANITFTYPE_CAN_ESD	2
+#define CANITFTYPE_CAN_DUMMY	3
+#define CANITFTYPE_CAN_BECKHOFF	4
+
+#define CANITFBAUD_1M 	0x0
+#define CANITFBAUD_500K	0x2
+#define CANITFBAUD_250K 0x4
+#define CANITFBAUD_125K	0x6
+#define CANITFBAUD_50K	0x9
+#define CANITFBAUD_20K	0xB
+#define CANITFBAUD_10K	0xD
+
 /**
  * General interface of the CAN bus.
  * \ingroup DriversCanModul	
@@ -79,6 +94,11 @@ public:
 	 */
 	virtual ~CanItf() {
 	}
+	
+	/**
+	 * Initializes the CAN bus and returns success.
+	 */
+	virtual bool init_ret() = 0;
 	
 	/**
 	 * Initializes the CAN bus.
@@ -106,6 +126,14 @@ public:
 	 * @return true if a message is available
 	 */
 	virtual bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry) = 0;
+	
+	/**
+	 * Reads a CAN message with timeout.
+	 * @param pCMsg CAN message
+	 * @param nSecTimeout timeout in ns
+	 * @return true if a message is available
+	 */
+	virtual bool receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout) = 0;
 
 	/**
 	 * Check if the current CAN interface was opened on OBJECT mode.

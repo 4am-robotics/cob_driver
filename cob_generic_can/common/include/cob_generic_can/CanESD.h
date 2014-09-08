@@ -77,47 +77,51 @@
 class CanESD : public CanItf
 {
 private:
-	BYTE m_DeviceNr;
-	BYTE m_BaudRate;
-	NTCAN_HANDLE m_Handle;
-	int m_LastID;
-	bool m_bObjectMode;
-	bool m_bIsTXError;
-	Mutex m_Mutex;
+    
+    BYTE m_DeviceNr;
+    BYTE m_BaudRate;
+    NTCAN_HANDLE m_Handle;
+    int m_LastID;
+    bool m_bObjectMode;
+    bool m_bIsTXError;
+    Mutex m_Mutex;
 
-	IniFile m_IniFile;
+    IniFile m_IniFile;
 
-	void initIntern();
+    void initIntern();
 
 public:
-	CanESD(const char* cIniFile, bool bObjectMode = false);
-	~CanESD();
-	void init(){};
-	bool transmitMsg(CanMsg CMsg, bool bBlocking = true);
-	bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry);
-	bool receiveMsg(CanMsg* pCMsg);
-	bool isObjectMode() { return m_bObjectMode; }
-	bool isTransmitError() { return m_bIsTXError; }
+    CanESD(const char* cIniFile, bool bObjectMode = false);
+    ~CanESD();
+    bool init_ret();
+    void init(){};
+    bool transmitMsg(CanMsg CMsg, bool bBlocking = true);
+    bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry);
+    bool receiveMsg(CanMsg* pCMsg);
+    bool receiveMsgTimeout(CanMsg* pCMsg, int nMicroSeconds);
+    bool isObjectMode() { return m_bObjectMode; }
+    bool isTransmitError() { return m_bIsTXError; }
+	
 protected:
 
     /*!
-        \fn CanESD::invert(int id)
-     */
-	/**
-	 * Invert a give ID in 1-complement.
-	 * <b>Note:</b> Only 11 bits are used, i.e. the range is from 0x00 to 0x7FF.
-	 * @param id The id to be inverted.
-	 * @return The inverted id.
-	 */
-	int invert(int id)
-	{
-		return (~id) & 0x7F8;
-	}
-	
-	int canIdAddGroup(NTCAN_HANDLE handle, int id);
+    \fn CanESD::invert(int id)
+    */
+    /**
+	* Invert a give ID in 1-complement.
+	* <b>Note:</b> Only 11 bits are used, i.e. the range is from 0x00 to 0x7FF.
+	* @param id The id to be inverted.
+	* @return The inverted id.
+	*/
+    int invert(int id)
+    {
+	    return (~id) & 0x7F8;
+    }
 
-	std::string GetErrorStr(int ntstatus) const;
-	int readEvent();
+    int canIdAddGroup(NTCAN_HANDLE handle, int id);
+
+    std::string GetErrorStr(int ntstatus) const;
+    int readEvent();
 };
 //-----------------------------------------------
 #endif

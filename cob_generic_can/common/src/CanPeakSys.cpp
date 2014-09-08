@@ -84,6 +84,13 @@ CanPeakSys::~CanPeakSys()
 }
 
 //-----------------------------------------------
+bool CanPeakSys::init_ret()
+{
+	// Not implemented yet
+	return false;
+}
+
+//-----------------------------------------------
 void CanPeakSys::init()
 {
  std::string sCanDevice; 
@@ -108,25 +115,25 @@ void CanPeakSys::init()
 	
 	switch(iBaudrateVal)
 	{
-	case 0:
+	case CANITFBAUD_1M:
 		ret = CAN_Init(m_handle, CAN_BAUD_1M, CAN_INIT_TYPE_ST);
 		break;
-	case 2:
+	case CANITFBAUD_500K:
 		ret = CAN_Init(m_handle, CAN_BAUD_500K, CAN_INIT_TYPE_ST);
 		break;
-	case 4:
+	case CANITFBAUD_250K:
 		ret = CAN_Init(m_handle, CAN_BAUD_250K, CAN_INIT_TYPE_ST);
 		break;
-	case 6:
+	case CANITFBAUD_125K:
 		ret = CAN_Init(m_handle, CAN_BAUD_125K, CAN_INIT_TYPE_ST);
 		break;
-	case 9:
+	case CANITFBAUD_50K:
 		ret = CAN_Init(m_handle, CAN_BAUD_50K, CAN_INIT_TYPE_ST);
 		break;
-	case 11:
+	case CANITFBAUD_20K:
 		ret = CAN_Init(m_handle, CAN_BAUD_20K, CAN_INIT_TYPE_ST);
 		break;
-	case 13:
+	case CANITFBAUD_10K:
 		ret = CAN_Init(m_handle, CAN_BAUD_10K, CAN_INIT_TYPE_ST);
 		break;
 	}
@@ -254,3 +261,36 @@ bool CanPeakSys::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
 	return bRet;
 }
 
+//-------------------------------------------
+bool CanPeakSys::receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout)
+{
+    int iRet = CAN_ERR_OK;
+
+    TPCANRdMsg TPCMsg;
+    TPCMsg.Msg.LEN = 8;
+    TPCMsg.Msg.MSGTYPE = 0;
+    TPCMsg.Msg.ID = 0;
+
+    if (m_bInitialized == false) return false;
+
+    bool bRet = true;
+
+    iRet = LINUX_CAN_Read_Timeout(m_handle, &TPCMsg, nSecTimeout);
+
+    // eval return value
+    if(iRet != CAN_ERR_OK)
+    {
+	std::cout << "CANPeakSysUSB::receiveMsgRetry, errorcode= " << nGetLastError() << std::endl;
+	pCMsg->set(0, 0, 0, 0, 0, 0, 0, 0);
+	bRet = false;
+    }
+    else
+    {
+	pCMsg->setID(TPCMsg.Msg.ID);
+	pCMsg->setLength(TPCMsg.Msg.LEN);
+	pCMsg->set(TPCMsg.Msg.DATA[0], TPCMsg.Msg.DATA[1], TPCMsg.Msg.DATA[2], TPCMsg.Msg.DATA[3],
+		    TPCMsg.Msg.DATA[4], TPCMsg.Msg.DATA[5], TPCMsg.Msg.DATA[6], TPCMsg.Msg.DATA[7]);
+    }
+
+    return bRet;
+}
