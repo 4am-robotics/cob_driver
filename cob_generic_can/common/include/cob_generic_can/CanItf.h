@@ -60,7 +60,7 @@
 
 // for types and baudrates see: https://github.com/ipa320/cob_robots/blob/hydro_dev/cob_hardware_config/raw3-5/config/base/CanCtrl.ini
 #define CANITFTYPE_CAN_PEAK	0
-#define CANITFTYPE_CAN_PEAK_USN	1
+#define CANITFTYPE_CAN_PEAK_USB	1
 #define CANITFTYPE_CAN_ESD	2
 #define CANITFTYPE_CAN_DUMMY	3
 #define CANITFTYPE_CAN_BECKHOFF	4
