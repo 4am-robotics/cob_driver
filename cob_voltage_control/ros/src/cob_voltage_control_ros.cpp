@@ -5,7 +5,6 @@
 #include <pr2_msgs/PowerBoardState.h>
 #include <pr2_msgs/PowerState.h>
 #include <cob_relayboard/EmergencyStopState.h>
-#include <cob_relayboard/CurrentMeasurement.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float64.h>
 
