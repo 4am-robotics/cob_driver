@@ -10,7 +10,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp rostest std_msgs pr2_msgs cob_uti
 
 add_message_files(
   DIRECTORY msg
-  FILES EmergencyStopState.msg
+  FILES EmergencyStopState.msg 
 )
 
 ## Generate added messages and services with any dependencies listed here

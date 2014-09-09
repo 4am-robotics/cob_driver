@@ -46,6 +46,6 @@ install(DIRECTORY ros/launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ros/launch
 )
 
-install(PROGRAMS ros/src/record_voltage.py ros/src/savitzky.py ros/src/savitzky_golay.py ros/src/time_volt.py
+install(PROGRAMS ros/src/record_current.py ros/src/record_voltage.py ros/src/savitzky.py ros/src/savitzky_golay.py ros/src/time_volt.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
