@@ -1,6 +1,6 @@
 <package>
   <name>cob_phidgets</name>
-  <version>0.5.7</version>
+  <version>0.6.0</version>
   <description>cob_phidgets</description>
   
   <license>LGPL</license>

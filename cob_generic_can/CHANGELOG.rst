@@ -2,8 +2,8 @@
 Changelog for package cob_generic_can
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.0 (2014-09-09)
+------------------
 * Fixed typo
 * Extended with ReciveMsgTimeout method.
 * Correction...

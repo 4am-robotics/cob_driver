@@ -2,8 +2,8 @@
 Changelog for package cob_voltage_control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.0 (2014-09-09)
+------------------
 * trying to fix cob_voltage_control buildfarm error
 * missing dependency
 * Contributors: Florian Weisshardt, ipa-fxm
