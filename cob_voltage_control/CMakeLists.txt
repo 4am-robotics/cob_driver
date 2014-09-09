@@ -14,7 +14,7 @@ generate_dynamic_reconfigure_options(cfg/cob_voltage_control.cfg)
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-    CATKIN_DEPENDS roscpp libphidgets cob_msgs rospy dynamic_reconfigure
+    CATKIN_DEPENDS roscpp libphidgets cob_msgs rospy dynamic_reconfigure cob_phidgets
     INCLUDE_DIRS 
     LIBRARIES 
 )
@@ -27,6 +27,7 @@ include_directories(common/src ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 
 add_executable(cob_voltage_control ros/src/cob_voltage_control_ros.cpp)
+add_dependencies(cob_voltage_control cob_phidgets_gencpp)
 target_link_libraries(cob_voltage_control ${catkin_LIBRARIES}) 
 
 #############
