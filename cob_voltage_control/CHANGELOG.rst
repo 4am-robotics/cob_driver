@@ -2,6 +2,12 @@
 Changelog for package cob_voltage_control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* trying to fix cob_voltage_control buildfarm error
+* missing dependency
+* Contributors: Florian Weisshardt, ipa-fxm
+
 0.5.7 (2014-08-26)
 ------------------
 * Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev

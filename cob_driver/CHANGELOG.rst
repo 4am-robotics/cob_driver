@@ -2,6 +2,9 @@
 Changelog for package cob_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.5.7 (2014-08-26)
 ------------------
 * remove dep to cob_hokuyo
