@@ -79,6 +79,12 @@ CanESD::~CanESD()
 	canClose(m_Handle);
 }
 
+//-----------------------------------------------
+bool CanESD::init_ret()
+{
+	// Not implemented yet
+	return false;
+}
 
 //-----------------------------------------------
 void CanESD::initIntern()
@@ -291,6 +297,13 @@ bool CanESD::receiveMsg(CanMsg* pCMsg)
 	return bRet;
 }
 
+
+//-----------------------------------------------
+bool CanESD::receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout)
+{
+    // Not implemented yet
+    return false;	
+}
 
 /**
  * Add a group of CAN identifier to the handle, so it can be received.

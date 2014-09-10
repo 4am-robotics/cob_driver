@@ -2,6 +2,34 @@
 Changelog for package cob_relayboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.7 (2014-08-26)
+------------------
+* Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
+  updates from hydro_dev
+* 0.5.6
+* update changelog
+* move EmergencyStopState.msg to cob_msgs + PowerBoardState works again
+* Added queue_size=1 paramter to Publisher initialisation.
+* changes due to introduction of cob_msgs
+* small changes to remove warnings
+* Cleaned up cob_driver with reduced deps to compile on indigo
+* fix tabs vs spaces
+* Fix python indentation problems
+* Contributors: Alexander Bubeck, Denis Štogl, Felix Messmer, Florian Weisshardt, Scott K Logan, ipa-fxm
+
+0.5.6 (2014-08-26)
+------------------
+* Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
+  updates from hydro_dev
+* move EmergencyStopState.msg to cob_msgs + PowerBoardState works again
+* Added queue_size=1 paramter to Publisher initialisation.
+* changes due to introduction of cob_msgs
+* small changes to remove warnings
+* Cleaned up cob_driver with reduced deps to compile on indigo
+* fix tabs vs spaces
+* Fix python indentation problems
+* Contributors: Alexander Bubeck, Denis Štogl, Felix Messmer, Florian Weisshardt, Scott K Logan, ipa-fxm
+
 0.5.3 (2014-03-31)
 ------------------
 * install tags

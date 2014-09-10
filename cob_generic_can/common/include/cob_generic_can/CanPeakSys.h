@@ -66,11 +66,13 @@ public:
 	// --------------- Interface
 	CanPeakSys(const char* cIniFile);
 	~CanPeakSys();
+	bool init_ret();
 	void init();
 	void destroy() {}
 	bool transmitMsg(CanMsg CMsg, bool bBlocking = true);
 	bool receiveMsg(CanMsg* pCMsg);
 	bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry);
+	bool receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout);
 	bool isObjectMode() { return false; }
 
 private:

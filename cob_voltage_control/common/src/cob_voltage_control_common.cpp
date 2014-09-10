@@ -1,8 +1,8 @@
 //ROS typedefs
 #include "ros/ros.h"
-#include <pr2_msgs/PowerBoardState.h>
-#include <pr2_msgs/PowerState.h>
-#include <cob_relayboard/EmergencyStopState.h>
+#include <cob_msgs/PowerBoardState.h>
+#include <cob_msgs/PowerState.h>
+#include <cob_msgs/EmergencyStopState.h>
 #include <std_msgs/Float64.h>
 
 //#include <libphidgets/phidget21.h>
@@ -30,9 +30,9 @@ public:
     int in_phidget_current;
 
     //output data
-    pr2_msgs::PowerBoardState out_pub_em_stop_state_;
-    pr2_msgs::PowerState out_pub_powerstate_;
-    cob_relayboard::EmergencyStopState out_pub_relayboard_state;
+    cob_msgs::PowerBoardState out_pub_em_stop_state_;
+    cob_msgs::PowerState out_pub_powerstate_;
+    cob_msgs::EmergencyStopState out_pub_relayboard_state;
     std_msgs::Float64 out_pub_voltage;
     std_msgs::Float64 out_pub_current;
 };

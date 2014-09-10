@@ -63,13 +63,16 @@ class CANPeakSysUSB : public CanItf
 {
 public:
 	// --------------- Interface
+	CANPeakSysUSB(const char* device, int baudrate);
 	CANPeakSysUSB(const char* cIniFile);
 	~CANPeakSysUSB();
+	bool init_ret();
 	void init();
 	void destroy() {};
 	bool transmitMsg(CanMsg CMsg, bool bBlocking = true);
 	bool receiveMsg(CanMsg* pCMsg);
 	bool receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry);
+	bool receiveMsgTimeout(CanMsg* pCMsg, int nMicroSeconds);
 	bool isObjectMode() { return false; }
 
 private:
@@ -79,6 +82,7 @@ private:
 	bool m_bInitialized;
 	IniFile m_IniFile;
 	bool m_bSimuEnabled;
+	const char* p_cDevice;
 	int m_iBaudrateVal;
 
 	static const int c_iInterrupt;
