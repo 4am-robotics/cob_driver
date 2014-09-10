@@ -265,7 +265,7 @@ class NodeClass
 
 			
 			// check for inverted laser
-			if(not inverted) {
+			if(inverted) {
 				// to be really accurate, we now invert time_increment
 				// laserScan.header.stamp = laserScan.header.stamp + ros::Duration(scan_duration); //adding of the sum over all negative increments would be mathematically correct, but looks worse.
 				laserScan.time_increment = - laserScan.time_increment;
@@ -275,7 +275,7 @@ class NodeClass
 
 			for(int i = 0; i < (stop_scan - start_scan); i++)
 			{
-				if(not inverted)
+				if(inverted)
 				{
 					laserScan.ranges[i] = vdDistM[stop_scan-1-i];
 					laserScan.intensities[i] = vdIntensAU[stop_scan-1-i];

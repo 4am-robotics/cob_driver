@@ -27,12 +27,14 @@ public:
 
     //input data
     int in_phidget_voltage;
+    int in_phidget_current;
 
     //output data
     cob_msgs::PowerBoardState out_pub_em_stop_state_;
     cob_msgs::PowerState out_pub_powerstate_;
     cob_msgs::EmergencyStopState out_pub_relayboard_state;
-    std_msgs::Float64 out_pub_voltage;    
+    std_msgs::Float64 out_pub_voltage;
+    std_msgs::Float64 out_pub_current;
 };
 
 //document how this class has to look
@@ -55,9 +57,14 @@ public:
         //user specific code
         //Get Battery Voltage
         int voltageState = -1;
+        //Get Battery Current
+        int currentState = -1;
 //      CPhidgetInterfaceKit_getSensorValue((CPhidgetInterfaceKitHandle)IFK, config.num_voltage_port, &voltageState);
         voltageState = data.in_phidget_voltage;
+        currentState = data.in_phidget_current;
+
         ROS_DEBUG("Sensor: %d", voltageState);
+        ROS_DEBUG("Sensor: %d", currentState);
 
         //Calculation of real voltage 
         //max_voltage = 70V ; max_counts = 999
@@ -66,17 +73,21 @@ public:
         data.out_pub_voltage.data = voltage;
         ROS_DEBUG("Current voltage %f", voltage);
 
+        data.out_pub_current.data = currentState;
+        ROS_DEBUG("Current Strom %f", voltage);
+
         //Linear calculation for percentage
         double percentage =  (voltage - config.min_voltage) * 100/(config.max_voltage - config.min_voltage);
 
-	data.out_pub_powerstate_.header.stamp = ros::Time::now();
-	data.out_pub_powerstate_.power_consumption = 0.0;
-	data.out_pub_powerstate_.time_remaining = ros::Duration(1000);
-	data.out_pub_powerstate_.relative_capacity = percentage;
-	
-	data.out_pub_em_stop_state_.header.stamp = ros::Time::now();
-	data.out_pub_em_stop_state_.run_stop = false;
-	data.out_pub_em_stop_state_.wireless_stop = false;
+        data.out_pub_powerstate_.header.stamp = ros::Time::now();
+        data.out_pub_powerstate_.power_consumption = 0.0;
+        data.out_pub_powerstate_.time_remaining = ros::Duration(1000);
+        data.out_pub_powerstate_.relative_capacity = percentage;
+
+        data.out_pub_em_stop_state_.header.stamp = ros::Time::now();
+        data.out_pub_em_stop_state_.run_stop = false;
+        data.out_pub_em_stop_state_.wireless_stop = false;
+
     }
     
     void exit()
