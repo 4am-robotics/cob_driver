@@ -2,6 +2,28 @@
 Changelog for package cob_voltage_control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* merge conflict
+* Deleted CurrentMeasurement.msg
+* Re-add time_volt
+* reocord current script and launch file
+* fix install tags
+* Current measurement
+* Removed emergency model and custom Relayboard
+* Merge branch 'groovy_dev' of https://github.com/ipa320/cob_driver into groovy_dev
+  Conflicts:
+  cob_relayboard/ros/src/new_method.py
+  cob_relayboard/ros/src/relayboard_sim.py
+* Voltage filter now on the config folder
+* Changes
+* Adjusting path for the required files
+* More thrash
+* Removing some thrash
+* License
+* Modifications for the battery characterization on the robot
+* Contributors: Thiago de Freitas, ipa-cob4-2, ipa-nhg, thiagodefreitas, thiagodefreitas@gmail.com
+
 0.6.0 (2014-09-09)
 ------------------
 * trying to fix cob_voltage_control buildfarm error

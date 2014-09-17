@@ -2,6 +2,9 @@
 Changelog for package cob_camera_sensors
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.0 (2014-09-09)
 ------------------
 
