@@ -2,8 +2,8 @@
 Changelog for package cob_voltage_control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.1 (2014-09-17)
+------------------
 * merge conflict
 * Deleted CurrentMeasurement.msg
 * Re-add time_volt

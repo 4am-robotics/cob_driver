@@ -2,8 +2,8 @@
 Changelog for package cob_relayboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.1 (2014-09-17)
+------------------
 * Deleted CurrentMeasurement.msg
 * Re-add relayboard_sim
 * fix install tags

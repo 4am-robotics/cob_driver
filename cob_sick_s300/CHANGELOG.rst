@@ -2,8 +2,8 @@
 Changelog for package cob_sick_s300
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.1 (2014-09-17)
+------------------
 * undo
 * Contributors: ipa-cob4-2
 
