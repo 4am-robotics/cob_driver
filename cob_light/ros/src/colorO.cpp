@@ -94,7 +94,7 @@ void ColorO::setColor(color::rgba color, int led_number)
   else
   {
     ROS_DEBUG("Wrote [%s] with %i bytes from %i bytes", \
-      _ssOut.str().c_str(), bytes_wrote, (int)_ssOut.str().length());
+              _ssOut.str().c_str(), bytes_wrote, (int)_ssOut.str().length());
     m_sigColorSet(color_tmp);
   }
 }
