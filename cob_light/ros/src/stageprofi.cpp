@@ -183,4 +183,3 @@ void STAGEPROFI::setColor(color::rgba color, int led_number)
   char check_command[] = { 'C', '0', '0', '0', '?' };
   sendData(check_command, 5);
 }
-
