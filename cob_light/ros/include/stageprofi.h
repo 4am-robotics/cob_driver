@@ -1,6 +1,6 @@
 /****************************************************************
  *
- * Copyright (c) 2010
+ * Copyright (c) 2014
  *
  * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
@@ -11,15 +11,14 @@
  * ROS stack name: cob_driver
  * ROS package name: cob_light
  * Description: Switch robots led color by sending data to
- * the led-µC over serial connection.
+ * the DMX StageProfi
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
- * Author: Benjamin Maidel, email:benjamin.maidel@ipa.fraunhofer.de
- * Supervised by: Benjamin Maidel, email:benjamin.maidel@ipa.fraunhofer.de
+ * Author: Thiago de Freitas, email:tdf@ipa.fhg.de
+ * Supervised by: Thiago de Freitas, email:tdf@ipa.fhg.de
  *
- * Date of creation: August 2012
- * ToDo:
+ * Date of creation: October 2014
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
@@ -52,27 +51,34 @@
  *
  ****************************************************************/
 
-#ifndef ICOLORO_H
-#define ICOLORO_H
+#ifndef COB_DRIVER_STAGE_PROFI_H
+#define COB_DRIVER_STAGE_PROFI_H
 
+#include <iColorO.h>
+
+#include <serialIO.h>
 #include <colorUtils.h>
-#include <boost/signals2.hpp>
+#include <sstream>
 
-class IColorO
+class STAGEPROFI : public IColorO
 {
 public:
-  IColorO() : _invertMask(0){;}
-  virtual ~IColorO(){;}
+  STAGEPROFI(SerialIO* serialIO);
+  virtual ~STAGEPROFI();
 
-  virtual void setColor(color::rgba color, int led_number=0) = 0;
+  void setColor(color::rgba color, int led_number=0);
 
-  void setMask(int mask){ _invertMask = mask; }
+private:
+  SerialIO* _serialIO;
+  std::stringstream _ssOut;
+  static const int PACKAGE_SIZE = 8;
+  char buffer[PACKAGE_SIZE];
 
-  boost::signals2::signal<void (color::rgba color)>* signalColorSet(){ return &m_sigColorSet; }
-
-protected:
-  int _invertMask;
-  boost::signals2::signal<void (color::rgba color)> m_sigColorSet;
+  int sendData(const char* data, size_t len);
+  void updateColorBuffer(float color_value);
+  void updateChannelBuffer();
+  unsigned short int getChecksum(const char* data, size_t len);
+  int actual_channel;
 };
 
 #endif

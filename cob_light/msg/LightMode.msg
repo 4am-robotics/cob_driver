@@ -15,3 +15,4 @@ int32 pulses 			# spezifies the amount of pulses which will be executed.
 			 			# eg: mode = flash, pulses = 2. Meens the light will flash two times
 int8 priority 			# priority [-20,20] default = 0. Modes with same or higher priorities will 
 						# be executed.
+int32 led_number

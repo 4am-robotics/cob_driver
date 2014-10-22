@@ -1,6 +1,6 @@
 /****************************************************************
  *
- * Copyright (c) 2010
+ * Copyright (c) 2014
  *
  * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
@@ -11,15 +11,14 @@
  * ROS stack name: cob_driver
  * ROS package name: cob_light
  * Description: Switch robots led color by sending data to
- * the led-µC over serial connection.
+ * the DMX StageProfi
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
- * Author: Benjamin Maidel, email:benjamin.maidel@ipa.fraunhofer.de
- * Supervised by: Benjamin Maidel, email:benjamin.maidel@ipa.fraunhofer.de
+ * Author: Thiago de Freitas, email:tdf@ipa.fhg.de
+ * Supervised by: Thiago de Freitas, email:tdf@ipa.fhg.de
  *
- * Date of creation: August 2012
- * ToDo:
+ * Date of creation: October 2014
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
@@ -52,20 +51,19 @@
  *
  ****************************************************************/
 
-#include <ms35.h>
+#include <stageprofi.h>
 #include <ros/ros.h>
 #include <boost/crc.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/integer.hpp>
 
-MS35::MS35(SerialIO* serialIO)
+STAGEPROFI::STAGEPROFI(SerialIO* serialIO)
 {
   _serialIO = serialIO;
-  const char init_data[] = { 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd };
+  const char init_data[] = { 'C', '?' };
   int init_len = sizeof(init_data) / sizeof(init_data[0]);
-  const char startup_data[] = { 0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-  int startup_len = sizeof(startup_data) / sizeof(startup_data[0]);
-  char init_buf[18];
+
+  char init_buf[2];
 
   //write data until controller is ready to receive valid package
   char tmp = 0xfd;
@@ -77,20 +75,15 @@ MS35::MS35(SerialIO* serialIO)
 
   }while(bytes_recv <= 0);
 
-  unsigned short int crc = getChecksum(startup_data, startup_len);
-
   memcpy(&init_buf, init_data, init_len);
-  memcpy(&init_buf[init_len], startup_data, startup_len);
-  init_buf[init_len+startup_len] = ((char*)&crc)[1];
-  init_buf[init_len+startup_len+1] = ((char*)&crc)[0];
-  sendData(init_buf, 18);
+  sendData(init_buf, 2);
 }
 
-MS35::~MS35()
+STAGEPROFI::~STAGEPROFI()
 {
 }
 
-unsigned short int MS35::getChecksum(const char* data, size_t len)
+unsigned short int STAGEPROFI::getChecksum(const char* data, size_t len)
 {
   unsigned int ret;
   boost::crc_16_type checksum_agent;
@@ -98,7 +91,7 @@ unsigned short int MS35::getChecksum(const char* data, size_t len)
   return checksum_agent.checksum();;
 }
 
-int MS35::sendData(const char* data, size_t len)
+int STAGEPROFI::sendData(const char* data, size_t len)
 {
   int ret = -1;
   int bytes_wrote = 0;
@@ -112,22 +105,44 @@ int MS35::sendData(const char* data, size_t len)
   else
   {
     ROS_DEBUG("Wrote [%s] with %i bytes from %i bytes", data, bytes_wrote, len);
-    //std::string recv;
-    //ROS_INFO("Receiving");
-    //int byte_recv = _serialIO->readData(recv, 1);
-    //ROS_INFO_STREAM("Received "<<byte_recv<<" bytes after color set: "<<recv);
-    //ret = 1;
+    std::string recv;
+    ROS_INFO("Receiving");
+    int byte_recv = _serialIO->readData(recv, 1);
+    ROS_INFO_STREAM("Received "<<byte_recv<<" bytes after color set: "<<recv);
+    ret = 1;
   }
   return ret;
 }
 
-
-void MS35::setColor(color::rgba color, int led_number)
+void STAGEPROFI::updateColorBuffer(float color_value)
 {
+  int cvalue2 = (static_cast<int>(color_value)-static_cast<int>(color_value)%100)/100;
+  int cvalue1 = (static_cast<int>(color_value)%100-static_cast<int>(color_value)%10)/10;
+  int cvalue0 = static_cast<int>(color_value)%10;
+
+  buffer[5] = static_cast<char>('0'+cvalue2);
+  buffer[6] = static_cast<char>('0'+cvalue1);
+  buffer[7] = static_cast<char>('0'+cvalue0);
+}
+
+void STAGEPROFI::updateChannelBuffer()
+{
+  actual_channel = actual_channel+1;
+
+  int ac_ch2 = (static_cast<int>(actual_channel)-static_cast<int>(actual_channel)%100)/100;
+  int ac_ch1 = (static_cast<int>(actual_channel)%100-static_cast<int>(actual_channel)%10)/10;
+  int ac_ch0 = static_cast<int>(actual_channel)%10;
+
+  buffer[1] = static_cast<char>('0'+ac_ch2);
+  buffer[2] = static_cast<char>('0'+ac_ch1);
+  buffer[3] = static_cast<char>('0'+ac_ch0);
+}
+
+void STAGEPROFI::setColor(color::rgba color, int led_number)
+{
+  actual_channel = led_number*3; //TODO: add option for led groups
   color::rgba color_tmp = color;
 
-  //calculate rgb spektrum for spezific alpha value, because
-  //led board is not supporting alpha values
   color.r *= color.a;
   color.g *= color.a;
   color.b *= color.a;
@@ -136,15 +151,36 @@ void MS35::setColor(color::rgba color, int led_number)
   color.g = fabs(color.g * 255);
   color.b = fabs(color.b * 255);
 
-  buffer[0] = 0x01; buffer[1] = 0x00;
-  buffer[2] = (int)color.r; buffer[3]=(int)color.g; buffer[4]=(int)color.b;
-  buffer[5] = 0x00; buffer[6]=0x00;
+  buffer[0] = 'C';
 
-  unsigned short int crc = getChecksum(buffer, 7);
-  buffer[7] = ((char*)&crc)[1];
-  buffer[8] = ((char*)&crc)[0];
-  //memcpy(&buffer[7], &crc, sizeof(unsigned short int));
+  int ac_ch2 = (static_cast<int>(actual_channel)-static_cast<int>(actual_channel)%100)/100;
+  int ac_ch1 = (static_cast<int>(actual_channel)%100-static_cast<int>(actual_channel)%10)/10;
+  int ac_ch0 = static_cast<int>(actual_channel)%10;
+
+  buffer[1] = static_cast<char>('0'+ac_ch2);
+  buffer[2] = static_cast<char>('0'+ac_ch1);
+  buffer[3] = static_cast<char>('0'+ac_ch0);
+
+  buffer[4] = 'L';
+
+  updateColorBuffer(color.r);
 
   if(sendData(buffer, PACKAGE_SIZE))
     m_sigColorSet(color_tmp);
+
+  updateColorBuffer(color.g);
+  updateChannelBuffer();
+
+  if(sendData(buffer, PACKAGE_SIZE))
+    m_sigColorSet(color_tmp);
+
+  updateColorBuffer(color.b);
+  updateChannelBuffer();
+
+  if(sendData(buffer, PACKAGE_SIZE))
+    m_sigColorSet(color_tmp);
+
+  char check_command[] = { 'C', '0', '0', '0', '?' };
+  sendData(check_command, 5);
 }
+

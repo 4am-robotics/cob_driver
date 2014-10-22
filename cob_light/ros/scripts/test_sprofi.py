@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #***************************************************************
 #
-# Copyright (c) 2010
+# Copyright (c) 2014
 #
 # Fraunhofer Institute for Manufacturing Engineering	
 # and Automation (IPA)
@@ -14,11 +14,10 @@
 #								
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #			
-# Author: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
-# Supervised by: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
+# Author: Thiago de Freitas, email:tdf@ipa.fhg.de
+# Supervised by: Thiago de Freitas, email:tdf@ipa.fhg.de
 #
-# Date of creation: June 2010
-# ToDo:
+# Date of creation: October 2014
 #
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #
@@ -56,45 +55,64 @@ import roslib
 roslib.load_manifest('cob_light')
 import rospy
 from std_msgs.msg import ColorRGBA
+from cob_light.srv import *
+from cob_light.msg import *
 
 def changeColor():
-	pub = rospy.Publisher('light_controller/command', ColorRGBA, queue_size=1)
-	rospy.init_node('light_test')
-	#color in rgb color space ranging from 0 to 1
-	red = ColorRGBA()
-	red.r = 1
-	red.g = 0
-	red.b = 0
-	red.a = 1
+  rospy.wait_for_service('/light_controller/mode')
+  control_lights = rospy.ServiceProxy('/light_controller/mode', SetLightMode)
+  rospy.init_node('light_test')
+  light_mode = LightMode()
+  #color in rgb color space ranging from 0 to 1
+  red = ColorRGBA()
+  red.r = 1
+  red.g = 0
+  red.b = 0
+  red.a = 1
+
+  yellow = ColorRGBA()
+  yellow.r = 0.4
+  yellow.g = 1
+  yellow.b = 0
+  yellow.a = 1
+
+  green = ColorRGBA()
+  green.r = 0
+  green.g = 1
+  green.b = 0
+  green.a = 1
+
+  blue = ColorRGBA()
+  blue.r = 0
+  blue.g = 0
+  blue.b = 1
+  blue.a = 1
+
+  white = ColorRGBA()
+  white.r = 0.3
+  white.g = 1
+  white.b = 0.3
+  white.g = 1
+
+  for color in [red,yellow,green,white,blue,green]:
+    for i in range(58):
+      rospy.loginfo("Setting rgb to %s [%d, %d, %d]",color.r,color.g,color.b,color.a)
+      light_mode.mode = 0
+      light_mode.led_number = i
+      light_mode.color = color
+      control_lights(light_mode)
+    time.sleep(2)
+
 	
-	yellow = ColorRGBA()
-	yellow.r = 0.4
-	yellow.g = 1
-	yellow.b = 0
-	yellow.a = 1
-	
-	green = ColorRGBA()
-	green.r = 0
-	green.g = 1
-	green.b = 0
-	green.a = 1
-	
-	blue = ColorRGBA()
-	blue.r = 0
-	blue.g = 0
-	blue.b = 1
-	blue.a = 1
-	
-	white = ColorRGBA()
-	white.r = 0.3
-	white.g = 1
-	white.b = 0.3
-	white.g = 1
-	
-	for color in [red,yellow,green,white,blue,green]:
-		rospy.loginfo("Setting rgb to %s [%d, %d, %d]",color.r,color.g,color.b,color.a)
-		pub.publish(color)
-		time.sleep(3)
+  for color in [red,yellow,green,white,blue,green]:
+    for i in range(58):
+      rospy.loginfo("Setting rgb to %s [%d, %d, %d]",color.r,color.g,color.b,color.a)
+      light_mode.mode = 2
+      light_mode.led_number = i
+      light_mode.color = color
+      control_lights(light_mode)
+      time.sleep(0.2)
+    time.sleep(2)
 
 if __name__ == '__main__':
     try:
