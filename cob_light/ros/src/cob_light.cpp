@@ -294,11 +294,6 @@ public:
       _color.a = 0;
       if(_deviceDriver == "stageprofi")
       {
-        std::cout << "Requested r" << req.mode.color.r;
-        _color.a = 1;
-        _color.r = req.mode.color.r;
-        _color.g = req.mode.color.g;
-        _color.b = req.mode.color.b;
         p_colorO->setColor(_color, req.mode.led_number);
       }
       else
