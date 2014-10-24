@@ -111,7 +111,7 @@ int MS35::sendData(const char* data, size_t len)
   }
   else
   {
-    ROS_DEBUG("Wrote [%s] with %i bytes from %i bytes", data, bytes_wrote, len);
+    ROS_DEBUG("Wrote [%s] with %i bytes from %lu bytes", data, bytes_wrote, len);
     //std::string recv;
     //ROS_INFO("Receiving");
     //int byte_recv = _serialIO->readData(recv, 1);
