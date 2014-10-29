@@ -71,7 +71,7 @@ def changeColor():
   red.a = 1
 
   yellow = ColorRGBA()
-  yellow.r = 0.4
+  yellow.r = 1
   yellow.g = 1
   yellow.b = 0
   yellow.a = 1
@@ -92,26 +92,14 @@ def changeColor():
   white.r = 0.3
   white.g = 1
   white.b = 0.3
-  white.g = 1
+  white.a = 1
 
   for color in [red,yellow,green,white,blue,green]:
-    for i in range(58):
-      rospy.loginfo("Setting rgb to %s [%d, %d, %d]",color.r,color.g,color.b,color.a)
-      light_mode.mode = 0
-      light_mode.led_number = i
-      light_mode.color = color
-      control_lights(light_mode)
-    time.sleep(2)
-
-	
-  for color in [red,yellow,green,white,blue,green]:
-    for i in range(58):
-      rospy.loginfo("Setting rgb to %s [%d, %d, %d]",color.r,color.g,color.b,color.a)
-      light_mode.mode = 2
-      light_mode.led_number = i
-      light_mode.color = color
-      control_lights(light_mode)
-      time.sleep(0.2)
+    rospy.loginfo("Setting rgb to %s [%d, %d, %d]",color.r,color.g,color.b,color.a)
+    light_mode.mode = 1
+    light_mode.led_numbers = range(0,58)
+    light_mode.colors = 58*[color]
+    control_lights(light_mode)
     time.sleep(2)
 
 if __name__ == '__main__':

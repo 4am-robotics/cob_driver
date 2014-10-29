@@ -294,7 +294,10 @@ public:
       _color.a = 0;
       if(_deviceDriver == "stageprofi")
       {
-        p_colorO->setColor(_color, req.mode.led_number);
+        for(size_t i=0; i<req.mode.led_numbers.size();i++)
+        {
+          p_colorO->setColor(_color, req.mode.led_numbers[i]);
+        }
       }
       else
         p_colorO->setColor(_color);
@@ -305,7 +308,15 @@ public:
     else
     {
       if(_deviceDriver == "stageprofi")
-        p_modeExecutor->execute(req.mode, req.mode.led_number);
+        for(size_t i=0; i<req.mode.led_numbers.size();i++)
+        {
+          req.mode.color.a = req.mode.colors[i].a;
+          req.mode.color.r = req.mode.colors[i].r;
+          req.mode.color.g = req.mode.colors[i].g;
+          req.mode.color.b = req.mode.colors[i].b;
+
+          p_modeExecutor->execute(req.mode, req.mode.led_numbers[i]);
+        }
       else
         p_modeExecutor->execute(req.mode);
       res.active_mode = p_modeExecutor->getExecutingMode();
@@ -332,7 +343,10 @@ public:
       p_modeExecutor->stop();
       _color.a = 0;
       if(_deviceDriver == "stageprofi")
-        p_colorO->setColor(_color, goal->mode.led_number);
+        for(size_t i=0; i<goal->mode.led_numbers.size();i++)
+        {
+          p_colorO->setColor(_color, goal->mode.led_numbers[i]);
+        }
       else
         p_colorO->setColor(_color);
 
@@ -342,7 +356,13 @@ public:
     }
     else
     {
-      p_modeExecutor->execute(goal->mode);
+      if(_deviceDriver == "stageprofi")
+        for(size_t i=0; i<goal->mode.led_numbers.size();i++)
+        {
+          p_modeExecutor->execute(goal->mode, goal->mode.led_numbers[i]);
+        }
+      else
+        p_modeExecutor->execute(goal->mode);
       result.active_mode = p_modeExecutor->getExecutingMode();
       result.active_priority = p_modeExecutor->getExecutingPriority();
       _as->setSucceeded(result, "Mode switched");
@@ -397,6 +417,7 @@ private:
   ActionServer *_as;
 
   color::rgba _color;
+  std::vector<color::rgba> _colors;
   int _led_number;
 
   IColorO* p_colorO;

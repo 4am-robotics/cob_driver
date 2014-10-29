@@ -104,11 +104,10 @@ int STAGEPROFI::sendData(const char* data, size_t len)
   }
   else
   {
-    ROS_DEBUG("Wrote [%s] with %i bytes from %i bytes", data, bytes_wrote, len);
     std::string recv;
-    ROS_INFO("Receiving");
+    ROS_DEBUG("Receiving");
     int byte_recv = _serialIO->readData(recv, 1);
-    ROS_INFO_STREAM("Received "<<byte_recv<<" bytes after color set: "<<recv);
+    ROS_DEBUG_STREAM("Received "<<byte_recv<<" bytes after color set: "<<recv);
     ret = 1;
   }
   return ret;
