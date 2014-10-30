@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+
+	<arg name="filename" />
+	<arg name="port_voltage" />
+	<arg name="port_current" />
+	<node name="record_current_and_voltage" pkg="cob_voltage_control" type="record_current_and_voltage.py" output="screen">
+		<param name="filename" value="$(arg filename)" />
+		<param name="port_voltage" value="$(arg port_voltage)" />
+		<param name="port_current" value="$(arg port_current)" />
+	</node>
+
+</launch>
