@@ -67,8 +67,11 @@ public:
   ModeExecutor(IColorO* colorO);
   ~ModeExecutor();
 
-  void execute(Mode* mode, int led_number=0);
-  void execute(cob_light::LightMode requestMode, int led_number=0);
+  void execute(Mode* mode);
+  void execute(Mode* mode, std::vector<int> & led_numbers, std::vector<color::rgba> & color);
+  void execute(cob_light::LightMode requestMode, std::vector<int> &led_numbers, std::vector<color::rgba> &color);
+  void execute(cob_light::LightMode requestMode);
+
 
   int getExecutingPriority();
   int getExecutingMode();

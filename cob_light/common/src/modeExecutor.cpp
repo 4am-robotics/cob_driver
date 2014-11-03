@@ -56,7 +56,7 @@
 #include <ros/ros.h>
 
 ModeExecutor::ModeExecutor(IColorO* colorO)
-: _stopRequested(false), default_priority(0)
+  : _stopRequested(false), default_priority(0)
 {
   _colorO = colorO;
   _activeMode = NULL;
@@ -67,15 +67,15 @@ ModeExecutor::~ModeExecutor()
 
 }
 
-void ModeExecutor::execute(cob_light::LightMode requestedMode, int led_number)
+void ModeExecutor::execute(cob_light::LightMode requestedMode)
 {
   Mode* mode = ModeFactory::create(requestedMode);
   // check if mode was correctly created
   if(mode != NULL)
-    execute(mode, led_number);
+    execute(mode);
 }
 
-void ModeExecutor::execute(Mode* mode, int led_number)
+void ModeExecutor::execute(Mode* mode)
 {
   // check if a mode is already executed
   if(_activeMode != NULL)
@@ -85,11 +85,11 @@ void ModeExecutor::execute(Mode* mode, int led_number)
     {
       stop();
       _activeMode = mode;
-      _activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1,led_number));
+      _activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1));
       _thread_ptr.reset(new boost::thread(boost::lambda::bind(&ModeExecutor::run, this)));
       ROS_INFO("Executing new mode: %s",_activeMode->getName().c_str() );
       ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %f pulses: %i ",
-        ModeFactory::type(mode), mode->getPriority(), mode->getFrequency(), mode->getTimeout(), mode->getPulses());
+                ModeFactory::type(mode), mode->getPriority(), mode->getFrequency(), mode->getTimeout(), mode->getPulses());
     }
     else
       ROS_DEBUG("Mode with higher priority is allready executing");
@@ -97,11 +97,50 @@ void ModeExecutor::execute(Mode* mode, int led_number)
   else
   {
     _activeMode = mode;
-    _activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1,led_number));
+    _activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1));
     _thread_ptr.reset(new boost::thread(boost::lambda::bind(&ModeExecutor::run, this)));
     ROS_INFO("Executing new mode: %s",_activeMode->getName().c_str() );
     ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %f pulses: %i ",
-        ModeFactory::type(mode), mode->getPriority(), mode->getFrequency(), mode->getTimeout(), mode->getPulses());
+              ModeFactory::type(mode), mode->getPriority(), mode->getFrequency(), mode->getTimeout(), mode->getPulses());
+  }
+
+}
+
+void ModeExecutor::execute(cob_light::LightMode requestedMode, std::vector<int> &led_numbers, std::vector<color::rgba> &colors)
+{
+  Mode* mode = ModeFactory::create(requestedMode);
+  // check if mode was correctly created
+  if(mode != NULL)
+    execute(mode, led_numbers, colors);
+}
+
+void ModeExecutor::execute(Mode* mode, std::vector<int> &led_numbers, std::vector<color::rgba> &colors)
+{
+  // check if a mode is already executed
+  if(_activeMode != NULL)
+  {
+    // check if priority from requested mode is higher or the same
+    if(_activeMode->getPriority() <= mode->getPriority())
+    {
+      stop();
+      _activeMode = mode;
+      _activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColorMulti, _colorO, colors,led_numbers));
+      _thread_ptr.reset(new boost::thread(boost::lambda::bind(&ModeExecutor::run, this)));
+      ROS_INFO("Executing new mode: %s",_activeMode->getName().c_str() );
+      ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %f pulses: %i ",
+                ModeFactory::type(mode), mode->getPriority(), mode->getFrequency(), mode->getTimeout(), mode->getPulses());
+    }
+    else
+      ROS_DEBUG("Mode with higher priority is allready executing");
+  }
+  else
+  {
+    _activeMode = mode;
+    _activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColorMulti, _colorO, colors,led_numbers));
+    _thread_ptr.reset(new boost::thread(boost::lambda::bind(&ModeExecutor::run, this)));
+    ROS_INFO("Executing new mode: %s",_activeMode->getName().c_str() );
+    ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %f pulses: %i ",
+              ModeFactory::type(mode), mode->getPriority(), mode->getFrequency(), mode->getTimeout(), mode->getPulses());
   }
 
 }
@@ -121,7 +160,7 @@ void ModeExecutor::run()
     _activeMode->execute();
 
     if((_activeMode->getPulses() != 0) &&
-      (_activeMode->getPulses() <= _activeMode->pulsed()))
+       (_activeMode->getPulses() <= _activeMode->pulsed()))
       break;
 
     if(_activeMode->getTimeout() != 0)

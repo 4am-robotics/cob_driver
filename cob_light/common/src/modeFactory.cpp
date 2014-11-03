@@ -78,33 +78,33 @@ Mode* ModeFactory::create(cob_light::LightMode requestMode)
 
   switch(requestMode.mode)
   {
-    case cob_light::LightMode::STATIC:
-      mode = new StaticMode(color, requestMode.priority, requestMode.frequency,\
-        requestMode.pulses, requestMode.timeout);
+  case cob_light::LightMode::STATIC:
+    mode = new StaticMode(color, requestMode.priority, requestMode.frequency,\
+                          requestMode.pulses, requestMode.timeout);
     break;
 
-    case cob_light::LightMode::FLASH:
-      mode = new FlashMode(color, requestMode.priority, requestMode.frequency,\
-        requestMode.pulses, requestMode.timeout);
+  case cob_light::LightMode::FLASH:
+    mode = new FlashMode(color, requestMode.priority, requestMode.frequency,\
+                         requestMode.pulses, requestMode.timeout);
     break;
 
-    case cob_light::LightMode::BREATH:
-      mode = new BreathMode(color, requestMode.priority, requestMode.frequency,\
-        requestMode.pulses, requestMode.timeout);
+  case cob_light::LightMode::BREATH:
+    mode = new BreathMode(color, requestMode.priority, requestMode.frequency,\
+                          requestMode.pulses, requestMode.timeout);
     break;
 
-    case cob_light::LightMode::BREATH_COLOR:
-      mode = new BreathColorMode(color, requestMode.priority, requestMode.frequency,\
-        requestMode.pulses, requestMode.timeout);
+  case cob_light::LightMode::BREATH_COLOR:
+    mode = new BreathColorMode(color, requestMode.priority, requestMode.frequency,\
+                               requestMode.pulses, requestMode.timeout);
     break;
 
-    case cob_light::LightMode::FADE_COLOR:
-      mode = new FadeColorMode(color, requestMode.priority, requestMode.frequency,\
-        requestMode.pulses, requestMode.timeout);
+  case cob_light::LightMode::FADE_COLOR:
+    mode = new FadeColorMode(color, requestMode.priority, requestMode.frequency,\
+                             requestMode.pulses, requestMode.timeout);
     break;
 
-    default:
-      mode = NULL;
+  default:
+    mode = NULL;
   }
 
   return mode;
@@ -116,25 +116,25 @@ Mode* ModeFactory::create(std::string requestMode, color::rgba color)
 
   if(requestMode == "Static" || requestMode == "static" || requestMode == "STATIC")
   {
-      mode = new StaticMode(color);
+    mode = new StaticMode(color);
   }
   else if(requestMode == "Flash" || requestMode == "flash" || requestMode == "FLASH")
   {
-      mode = new FlashMode(color);
+    mode = new FlashMode(color);
   }
   else if(requestMode == "Breath" || requestMode == "breath" || requestMode == "BREATH")
   {
-      mode = new BreathMode(color);
+    mode = new BreathMode(color);
   }
   else if(requestMode == "BreathColor" || requestMode == "BreathColor" || requestMode == "BreathColor" ||
-    requestMode == "Breath_Color" || requestMode == "breath_color" || requestMode == "BREATH_COLOR")
+          requestMode == "Breath_Color" || requestMode == "breath_color" || requestMode == "BREATH_COLOR")
   {
-      mode = new BreathColorMode(color);
+    mode = new BreathColorMode(color);
   }
   else if(requestMode == "FadeColor" || requestMode == "fadecolor" || requestMode == "FADECOLOR" ||
-    requestMode == "Fade_Color" || requestMode == "fade_color" || requestMode == "FADE_COLOR")
+          requestMode == "Fade_Color" || requestMode == "fade_color" || requestMode == "FADE_COLOR")
   {
-      mode = new FadeColorMode(color);
+    mode = new FadeColorMode(color);
   }
   else
   {

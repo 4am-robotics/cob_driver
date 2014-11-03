@@ -66,7 +66,8 @@ public:
   STAGEPROFI(SerialIO* serialIO);
   virtual ~STAGEPROFI();
 
-  void setColor(color::rgba color, int led_number=0);
+  void setColorMulti(std::vector<color::rgba> &colors, std::vector<int> &led_numbers);
+  void setColor(color::rgba color);
 
 private:
   SerialIO* _serialIO;

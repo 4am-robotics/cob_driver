@@ -118,8 +118,6 @@ public:
     std::string startup_mode;
     p_colorO = NULL;
     p_modeExecutor = NULL;
-
-    _led_number=0;
     //diagnostics
     _pubDiagnostic = _nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 
@@ -294,10 +292,20 @@ public:
       _color.a = 0;
       if(_deviceDriver == "stageprofi")
       {
+        std::vector<color::rgba> colors;
+        std::vector<int> led_numbers;
+
         for(size_t i=0; i<req.mode.led_numbers.size();i++)
         {
-          p_colorO->setColor(_color, req.mode.led_numbers[i]);
+          _color.a=0;
+          _color.r=req.mode.colors[i].r;
+          _color.g=req.mode.colors[i].g;
+          _color.b=req.mode.colors[i].b;
+
+          led_numbers.push_back(req.mode.led_numbers[i]);
+          colors.push_back(_color);
         }
+          p_colorO->setColorMulti(colors, led_numbers);
       }
       else
         p_colorO->setColor(_color);
@@ -308,15 +316,22 @@ public:
     else
     {
       if(_deviceDriver == "stageprofi")
+      {
+        std::vector<color::rgba> colors;
+        std::vector<int> led_numbers;
+
         for(size_t i=0; i<req.mode.led_numbers.size();i++)
         {
-          req.mode.color.a = req.mode.colors[i].a;
-          req.mode.color.r = req.mode.colors[i].r;
-          req.mode.color.g = req.mode.colors[i].g;
-          req.mode.color.b = req.mode.colors[i].b;
+          _color.a=req.mode.colors[i].a;
+          _color.r=req.mode.colors[i].r;
+          _color.g=req.mode.colors[i].g;
+          _color.b=req.mode.colors[i].b;
 
-          p_modeExecutor->execute(req.mode, req.mode.led_numbers[i]);
+          led_numbers.push_back(req.mode.led_numbers[i]);
+          colors.push_back(_color);
         }
+           p_modeExecutor->execute(req.mode, led_numbers, colors);
+      }
       else
         p_modeExecutor->execute(req.mode);
       res.active_mode = p_modeExecutor->getExecutingMode();
@@ -343,10 +358,22 @@ public:
       p_modeExecutor->stop();
       _color.a = 0;
       if(_deviceDriver == "stageprofi")
+      {
+        std::vector<color::rgba> colors;
+        std::vector<int> led_numbers;
+
         for(size_t i=0; i<goal->mode.led_numbers.size();i++)
         {
-          p_colorO->setColor(_color, goal->mode.led_numbers[i]);
+          _color.a=0;
+          _color.r=goal->mode.colors[i].r;
+          _color.g=goal->mode.colors[i].g;
+          _color.b=goal->mode.colors[i].b;
+
+          led_numbers.push_back(goal->mode.led_numbers[i]);
+          colors.push_back(_color);
         }
+          p_colorO->setColorMulti(colors,led_numbers);
+      }
       else
         p_colorO->setColor(_color);
 
@@ -357,10 +384,22 @@ public:
     else
     {
       if(_deviceDriver == "stageprofi")
+      {
+        std::vector<color::rgba> colors;
+        std::vector<int> led_numbers;
+
         for(size_t i=0; i<goal->mode.led_numbers.size();i++)
         {
-          p_modeExecutor->execute(goal->mode, goal->mode.led_numbers[i]);
+          _color.a=goal->mode.colors[i].a;
+          _color.r=goal->mode.colors[i].r;
+          _color.g=goal->mode.colors[i].g;
+          _color.b=goal->mode.colors[i].b;
+
+          led_numbers.push_back(goal->mode.led_numbers[i]);
+          colors.push_back(_color);
         }
+           p_modeExecutor->execute(goal->mode, led_numbers, colors);
+      }
       else
         p_modeExecutor->execute(goal->mode);
       result.active_mode = p_modeExecutor->getExecutingMode();
@@ -417,8 +456,6 @@ private:
   ActionServer *_as;
 
   color::rgba _color;
-  std::vector<color::rgba> _colors;
-  int _led_number;
 
   IColorO* p_colorO;
   SerialIO _serialIO;

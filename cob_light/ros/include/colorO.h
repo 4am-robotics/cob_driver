@@ -67,7 +67,8 @@ public:
   ColorO(SerialIO* serialIO);
   virtual ~ColorO();
 
-  void setColor(color::rgba color, int led_number=0);
+  void setColor(color::rgba color);
+  void setColorMulti(std::vector<color::rgba> &colors, std::vector<int> &led_numbers);
 
 private:
   SerialIO* _serialIO;

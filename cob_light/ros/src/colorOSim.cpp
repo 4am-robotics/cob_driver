@@ -65,7 +65,12 @@ ColorOSim::~ColorOSim()
 {
 }
 
-void ColorOSim::setColor(color::rgba color, int led_number)
+void ColorOSim::setColorMulti(std::vector<color::rgba> &colors, std::vector<int> &led_numbers)
+{
+
+}
+
+void ColorOSim::setColor(color::rgba color)
 {
   std_msgs::ColorRGBA _color;
   _color.r = color.r;

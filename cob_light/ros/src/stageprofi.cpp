@@ -137,48 +137,56 @@ void STAGEPROFI::updateChannelBuffer()
   buffer[3] = static_cast<char>('0'+ac_ch0);
 }
 
-void STAGEPROFI::setColor(color::rgba color, int led_number)
+void STAGEPROFI::setColor(color::rgba color)
 {
-  actual_channel = led_number*3; //TODO: add option for led groups
-  color::rgba color_tmp = color;
 
-  color.r *= color.a;
-  color.g *= color.a;
-  color.b *= color.a;
+}
 
-  color.r = fabs(color.r * 255);
-  color.g = fabs(color.g * 255);
-  color.b = fabs(color.b * 255);
+void STAGEPROFI::setColorMulti(std::vector<color::rgba> &colors, std::vector<int> &led_numbers)
+{
+  for(size_t i=0; i<led_numbers.size();i++)
+  {
+    actual_channel = led_numbers[i]*3; //TODO: add option for led groups
+    color::rgba color_tmp = colors[i];
 
-  buffer[0] = 'C';
+    colors[i].r *= colors[i].a;
+    colors[i].g *= colors[i].a;
+    colors[i].b *= colors[i].a;
 
-  int ac_ch2 = (static_cast<int>(actual_channel)-static_cast<int>(actual_channel)%100)/100;
-  int ac_ch1 = (static_cast<int>(actual_channel)%100-static_cast<int>(actual_channel)%10)/10;
-  int ac_ch0 = static_cast<int>(actual_channel)%10;
+    colors[i].r = fabs(colors[i].r * 255);
+    colors[i].g = fabs(colors[i].g * 255);
+    colors[i].b = fabs(colors[i].b * 255);
 
-  buffer[1] = static_cast<char>('0'+ac_ch2);
-  buffer[2] = static_cast<char>('0'+ac_ch1);
-  buffer[3] = static_cast<char>('0'+ac_ch0);
+    buffer[0] = 'C';
 
-  buffer[4] = 'L';
+    int ac_ch2 = (static_cast<int>(actual_channel)-static_cast<int>(actual_channel)%100)/100;
+    int ac_ch1 = (static_cast<int>(actual_channel)%100-static_cast<int>(actual_channel)%10)/10;
+    int ac_ch0 = static_cast<int>(actual_channel)%10;
 
-  updateColorBuffer(color.r);
+    buffer[1] = static_cast<char>('0'+ac_ch2);
+    buffer[2] = static_cast<char>('0'+ac_ch1);
+    buffer[3] = static_cast<char>('0'+ac_ch0);
 
-  if(sendData(buffer, PACKAGE_SIZE))
-    m_sigColorSet(color_tmp);
+    buffer[4] = 'L';
 
-  updateColorBuffer(color.g);
-  updateChannelBuffer();
+    updateColorBuffer(colors[i].r);
 
-  if(sendData(buffer, PACKAGE_SIZE))
-    m_sigColorSet(color_tmp);
+    if(sendData(buffer, PACKAGE_SIZE))
+      m_sigColorSet(color_tmp);
 
-  updateColorBuffer(color.b);
-  updateChannelBuffer();
+    updateColorBuffer(colors[i].g);
+    updateChannelBuffer();
 
-  if(sendData(buffer, PACKAGE_SIZE))
-    m_sigColorSet(color_tmp);
+    if(sendData(buffer, PACKAGE_SIZE))
+      m_sigColorSet(color_tmp);
 
-  char check_command[] = { 'C', '0', '0', '0', '?' };
-  sendData(check_command, 5);
+    updateColorBuffer(colors[i].b);
+    updateChannelBuffer();
+
+    if(sendData(buffer, PACKAGE_SIZE))
+      m_sigColorSet(color_tmp);
+
+    char check_command[] = { 'C', '0', '0', '0', '?' };
+    sendData(check_command, 5);
+  }
 }
