@@ -2,6 +2,48 @@
 Changelog for package cob_undercarriage_ctrl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.7 (2014-08-26)
+------------------
+* Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
+  updates from hydro_dev
+* 0.5.6
+* update changelog
+* move EmergencyStopState.msg to cob_msgs + PowerBoardState works again
+* Merge branch 'hydro_dev' of github.com:ipa-fxm/cob_driver into indigo_dev
+* cob_undercarriage_ctrl: add parameter to disable tf broadcast
+* updated default values for maximal velocities in ucar_ctrl_watchdog
+* fixed indentation cob_undercarriage_ctrl.cpp
+* updated watchdog in ucar ctrl to stop in case we receive a really high command in at least one direction
+* added missing absolute value functions to velocity watchdog in undercarriage_control
+* beautification of some outputs in undercarriage control
+* corrected some typos and minor bugs
+* split maximal allowed velocity in undercarriage control in translational and rotaional part. set velocity to zero, if the maximal allowed velocity is exceeded.
+* first draft for undercarriage_control velocity-watchdog. not tested yet.
+* Cleaned up cob_driver with reduced deps to compile on indigo
+* fix install tags
+* remove deprecated launch files in cob_driver and add nodes to cob_robots
+* Contributors: Alexander Bubeck, Felix Messmer, Florian Mirus, Florian Weisshardt, ipa-fxm, ipa-mig
+
+0.5.6 (2014-08-26)
+------------------
+* Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
+  updates from hydro_dev
+* move EmergencyStopState.msg to cob_msgs + PowerBoardState works again
+* Merge branch 'hydro_dev' of github.com:ipa-fxm/cob_driver into indigo_dev
+* cob_undercarriage_ctrl: add parameter to disable tf broadcast
+* updated default values for maximal velocities in ucar_ctrl_watchdog
+* fixed indentation cob_undercarriage_ctrl.cpp
+* updated watchdog in ucar ctrl to stop in case we receive a really high command in at least one direction
+* added missing absolute value functions to velocity watchdog in undercarriage_control
+* beautification of some outputs in undercarriage control
+* corrected some typos and minor bugs
+* split maximal allowed velocity in undercarriage control in translational and rotaional part. set velocity to zero, if the maximal allowed velocity is exceeded.
+* first draft for undercarriage_control velocity-watchdog. not tested yet.
+* Cleaned up cob_driver with reduced deps to compile on indigo
+* fix install tags
+* remove deprecated launch files in cob_driver and add nodes to cob_robots
+* Contributors: Alexander Bubeck, Felix Messmer, Florian Mirus, Florian Weisshardt, ipa-fxm, ipa-mig
+
 0.5.3 (2014-03-31)
 ------------------
 * removed obsoledte OpenCV reference

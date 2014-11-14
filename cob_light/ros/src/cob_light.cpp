@@ -82,6 +82,7 @@
 #include <modeExecutor.h>
 #include <colorO.h>
 #include <colorOSim.h>
+#include <ms35.h>
 
 sig_atomic_t volatile gShutdownRequest = 0;
 
@@ -130,6 +131,10 @@ class LightControl
 				ROS_WARN("Parameter 'invert_output' is missing. Using default Value: false");
 			_nh.param<bool>("invert_output", invert_output, false);
 			_invertMask = (int)invert_output;
+
+			if(!_nh.hasParam("devicedriver"))
+				ROS_WARN("Parameter 'devicedriver' is missing. Using default Value: cob_ledboard");
+			_nh.param<std::string>("devicedriver",_deviceDriver,"cob_ledboard");
 
 			if(!_nh.hasParam("devicestring"))
 				ROS_WARN("Parameter 'devicestring' is missing. Using default Value: /dev/ttyLed");
@@ -188,8 +193,12 @@ class LightControl
 				if(_serialIO.openPort(_deviceString, _baudrate) != -1)
 				{
 					ROS_INFO("Serial connection on %s succeeded.", _deviceString.c_str());
-					p_colorO = new ColorO(&_serialIO);
-					p_colorO->setMask(_invertMask);
+					if(_deviceDriver == "cob_ledboard")
+						p_colorO = new ColorO(&_serialIO);
+					else if(_deviceDriver == "ms-35")
+						p_colorO = new MS35(&_serialIO);
+					if(p_colorO)
+						p_colorO->setMask(_invertMask);
 
 					status.level = 0;
 					status.message = "light controller running";
@@ -350,6 +359,7 @@ class LightControl
 		}
 		
 	private:
+		std::string _deviceDriver;
 		std::string _deviceString;
 		int _baudrate;
 		int _invertMask;

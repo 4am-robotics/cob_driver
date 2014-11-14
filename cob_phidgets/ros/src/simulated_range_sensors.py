@@ -10,7 +10,7 @@ class GazeboVirtualRangeSensor():
 	def __init__(self, laser_topic, range_topic):		
 		rospy.Subscriber(laser_topic, LaserScan, self.laser_callback)
 #		rospy.logdebug("subscribed to laser topic: %s", laser_topic)
-		self.pub = rospy.Publisher(range_topic, Range)
+		self.pub = rospy.Publisher(range_topic, Range, queue_size=1)
 #		rospy.loginfo("topic '" + range_topic + "' advertised")
 		rospy.loginfo("adding sensor converting from topic '" + laser_topic + "' to topic '" + range_topic + "'")
 

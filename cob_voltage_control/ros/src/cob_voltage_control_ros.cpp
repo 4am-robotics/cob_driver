@@ -2,9 +2,9 @@
 #include <ros/ros.h>
 
 // ROS message includes
-#include <pr2_msgs/PowerBoardState.h>
-#include <pr2_msgs/PowerState.h>
-#include <cob_relayboard/EmergencyStopState.h>
+#include <cob_msgs/PowerBoardState.h>
+#include <cob_msgs/PowerState.h>
+#include <cob_msgs/EmergencyStopState.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float64.h>
 
@@ -24,6 +24,9 @@ class cob_voltage_control_ros
 
         ros::Publisher topicPub_em_stop_state_;
         ros::Publisher topicPub_powerstate;
+
+        ros::Publisher topicPub_current_measurement_;
+        ros::Publisher topicPub_Current;
 
         ros::Publisher topicPub_Voltage;
         ros::Subscriber topicSub_AnalogInputs;
@@ -47,8 +50,10 @@ class cob_voltage_control_ros
 
         cob_voltage_control_ros()
         {
-            topicPub_powerstate = n_.advertise<pr2_msgs::PowerBoardState>("pub_em_stop_state_", 1);
-            topicPub_em_stop_state_ = n_.advertise<cob_relayboard::EmergencyStopState>("pub_relayboard_state_", 1);
+            topicPub_powerstate = n_.advertise<cob_msgs::PowerBoardState>("pub_em_stop_state_", 1);
+            topicPub_em_stop_state_ = n_.advertise<cob_msgs::EmergencyStopState>("pub_relayboard_state_", 1);
+
+            topicPub_Current = n_.advertise<std_msgs::Float64>("/power_board/current", 10);
 
             topicPub_Voltage = n_.advertise<std_msgs::Float64>("/power_board/voltage", 10);
             topicSub_AnalogInputs = n_.subscribe("/analog_sensors", 10, &cob_voltage_control_ros::analogPhidgetSignalsCallback, this);
@@ -77,6 +82,7 @@ class cob_voltage_control_ros
         {
             component_implementation_.update(component_data_, component_config_);
             topicPub_Voltage.publish(component_data_.out_pub_voltage);
+            topicPub_Current.publish(component_data_.out_pub_current);
             topicPub_powerstate.publish(component_data_.out_pub_em_stop_state_);
             topicPub_em_stop_state_.publish(component_data_.out_pub_relayboard_state);
         }
@@ -85,6 +91,7 @@ class cob_voltage_control_ros
         {
             for(int i = 0; i < msg->uri.size(); i++)
             {
+                std::cout << "u" << msg->uri[i] << std::endl;
                 if( msg->uri[i] == "bat1")
                 {
                     component_data_.in_phidget_voltage = msg->value[i];
@@ -98,7 +105,7 @@ class cob_voltage_control_ros
             bool front_em_active = false;
             bool rear_em_active = false;
             static bool em_caused_by_button = false;
-            cob_relayboard::EmergencyStopState EM_msg;
+            cob_msgs::EmergencyStopState EM_msg;
             bool EM_signal = false;
             bool got_message = false;
 
