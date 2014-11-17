@@ -1,6 +1,6 @@
 /****************************************************************
  *
- * Copyright (c) 2010
+ * Copyright (c) 2014
  *
  * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
@@ -11,15 +11,14 @@
  * ROS stack name: cob_driver
  * ROS package name: cob_light
  * Description: Switch robots led color by sending data to
- * the led-µC over serial connection.
+ * the DMX StageProfi
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
- * Author: Benjamin Maidel, email:benjamin.maidel@ipa.fraunhofer.de
- * Supervised by: Benjamin Maidel, email:benjamin.maidel@ipa.fraunhofer.de
+ * Author: Thiago de Freitas, email:tdf@ipa.fhg.de
+ * Supervised by: Thiago de Freitas, email:tdf@ipa.fhg.de
  *
- * Date of creation: August 2012
- * ToDo:
+ * Date of creation: October 2014
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
@@ -52,8 +51,8 @@
  *
  ****************************************************************/
 
-#ifndef COLORO_H
-#define COLORO_H
+#ifndef COB_DRIVER_STAGE_PROFI_H
+#define COB_DRIVER_STAGE_PROFI_H
 
 #include <iColorO.h>
 
@@ -61,18 +60,26 @@
 #include <colorUtils.h>
 #include <sstream>
 
-class ColorO : public IColorO
+class STAGEPROFI : public IColorO
 {
 public:
-  ColorO(SerialIO* serialIO);
-  virtual ~ColorO();
+  STAGEPROFI(SerialIO* serialIO);
+  virtual ~STAGEPROFI();
 
-  void setColor(color::rgba color);
   void setColorMulti(std::vector<color::rgba> &colors, std::vector<int> &led_numbers);
+  void setColor(color::rgba color);
 
 private:
   SerialIO* _serialIO;
   std::stringstream _ssOut;
+  static const int PACKAGE_SIZE = 8;
+  char buffer[PACKAGE_SIZE];
+
+  int sendData(const char* data, size_t len);
+  void updateColorBuffer(float color_value);
+  void updateChannelBuffer();
+  unsigned short int getChecksum(const char* data, size_t len);
+  int actual_channel;
 };
 
 #endif
