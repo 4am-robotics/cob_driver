@@ -94,13 +94,25 @@ def changeColor():
   white.b = 0.3
   white.a = 1
 
-  for color in [red,yellow,green,white,blue,green]:
-    rospy.loginfo("Setting rgb to %s [%d, %d, %d]",color.r,color.g,color.b,color.a)
-    light_mode.mode = 1
-    light_mode.led_numbers = range(0,58)
-    light_mode.colors = 58*[color]
-    control_lights(light_mode)
-    time.sleep(2)
+  nr_leds = 58
+  #rospy.loginfo("Setting rgb to %s [%d, %d, %d]",color.r,color.g,color.b,color.a)
+  light_mode.mode = 2
+  light_mode.pulses = 2
+  light_mode.color = blue
+  light_mode.frequency = 10
+  #light_mode.led_numbers = range(0,nr_leds)
+  #light_mode.colors = nr_leds/2*[red]
+  #light_mode.colors += nr_leds/2*[blue]
+  print "red"
+  control_lights(light_mode)
+
+
+  rospy.sleep(2)
+
+  print "green"
+  #light_mode.colors = nr_leds*[green]
+  light_mode.color = green
+  control_lights(light_mode)
 
 if __name__ == '__main__':
     try:
