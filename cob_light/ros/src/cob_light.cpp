@@ -274,7 +274,7 @@ public:
       p_colorO->setColorMulti(colors);
     }
     else
-    {    
+    {
       p_colorO->setColor(_color);
     }
   }
@@ -370,7 +370,7 @@ public:
     marker.type = visualization_msgs::Marker::SPHERE;
     marker.action = visualization_msgs::Marker::ADD;
     marker.pose.position.x = 0;
-    marker.pose.position.y = 0,
+    marker.pose.position.y = 0;
     marker.pose.position.z = 1.5;
     marker.pose.orientation.x = 0.0;
     marker.pose.orientation.y = 0.0;
@@ -433,7 +433,7 @@ int main(int argc, char** argv)
 
   while (!gShutdownRequest)
   {
-      ros::WallDuration(0.05).sleep();
+    ros::WallDuration(0.05).sleep();
   }
 
   delete lightControl;
