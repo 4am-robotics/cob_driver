@@ -68,7 +68,7 @@ public:
   virtual ~ColorOSim();
 
   void setColor(color::rgba color);
-  void setColorMulti(std::vector<color::rgba> &colors, std::vector<int> &led_numbers);
+  void setColorMulti(std::vector<color::rgba> &colors){};
 
 private:
   ros::NodeHandle* p_nh;

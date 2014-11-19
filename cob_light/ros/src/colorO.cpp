@@ -64,7 +64,7 @@ ColorO::~ColorO()
 {
 }
 
-void ColorO::setColorMulti(std::vector<color::rgba> &colors, std::vector<int> &led_numbers)
+void ColorO::setColorMulti(std::vector<color::rgba> &colors)
 {
 
 }

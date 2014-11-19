@@ -60,13 +60,13 @@
 #include <colorUtils.h>
 #include <sstream>
 
-class STAGEPROFI : public IColorO
+class StageProfi : public IColorO
 {
 public:
-  STAGEPROFI(SerialIO* serialIO);
-  virtual ~STAGEPROFI();
+  StageProfi(SerialIO* serialIO);
+  virtual ~StageProfi();
 
-  void setColorMulti(std::vector<color::rgba> &colors, std::vector<int> &led_numbers);
+  void setColorMulti(std::vector<color::rgba> &colors);
   void setColor(color::rgba color);
 
 private:
