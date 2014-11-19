@@ -61,7 +61,7 @@ from cob_light.msg import *
 def changeColor():
   rospy.wait_for_service('/light_controller/mode')
   control_lights = rospy.ServiceProxy('/light_controller/mode', SetLightMode)
-  rospy.init_node('light_test')
+  
   light_mode = LightMode()
   #color in rgb color space ranging from 0 to 1
   red = ColorRGBA()
@@ -94,16 +94,24 @@ def changeColor():
   white.b = 0.3
   white.a = 1
 
-  for color in [red,yellow,green,white,blue,green]:
-    rospy.loginfo("Setting rgb to %s [%d, %d, %d]",color.r,color.g,color.b,color.a)
-    light_mode.mode = 2
-    light_mode.led_numbers = range(0,58)
-    light_mode.colors = 58*[color]
-    control_lights(light_mode)
-    time.sleep(6)
+  for i in range(1,6):
+    for color in [red,yellow,green,white,blue,green]:
+      rospy.loginfo("Setting rgb to %s [%d, %d, %d]",color.r,color.g,color.b,color.a)
+      light_mode.mode = i
+      light_mode.frequency=10
+      light_mode.color = color
+      try:
+        resp1 = control_lights(light_mode)
+        print resp1
+      except rospy.ServiceException, e:
+        print "Service call failed: %s"%e
+      
+      time.sleep(6)
 
 if __name__ == '__main__':
     try:
+        rospy.init_node('light_test')
         changeColor()
-    except rospy.ROSInterruptException: pass
+    except rospy.ROSInterruptException: 
+        pass
 

@@ -177,7 +177,7 @@ public:
     _sub = _nh.subscribe("command", 1, &LightControl::topicCallback, this);
 
     //Subscribe to LightController Command Topic
-    _sub = _nh.subscribe("command_mode", 1, &LightControl::topicCallbackMode, this);
+    _sub_mode = _nh.subscribe("command_mode", 1, &LightControl::topicCallbackMode, this);
 
     //Advertise light mode Service
     _srvServer = _nh.advertiseService("mode", &LightControl::serviceCallback, this);
@@ -274,7 +274,9 @@ public:
       p_colorO->setColorMulti(colors);
     }
     else
+    {    
       p_colorO->setColor(_color);
+    }
   }
 
   void topicCallback(std_msgs::ColorRGBA color)
@@ -300,8 +302,8 @@ public:
   {
     bool ret = false;
 
-    //ROS_DEBUG("Service Callback [Mode: %i with prio: %i freq: %f timeout: %f pulses: %i ]",
-    //	req.mode.mode, req.mode.priority, req.mode.frequency, req.mode.timeout, req.mode.pulses);
+    //ROS_DEBUG("Service Callback [Mode: %i with prio: %i freq: %f timeout: %f pulses: %i ] [R: %f with G: %f B: %f A: %f]",
+    //	req.mode.mode, req.mode.priority, req.mode.frequency, req.mode.timeout, req.mode.pulses,req.mode.color.r,req.mode.color.g ,req.mode.color.b,req.mode.color.a);
 
     if(req.mode.color.r > 1.0 || req.mode.color.g > 1.0 || req.mode.color.b > 1.0 || req.mode.color.a > 1.0)
     {
@@ -313,6 +315,13 @@ public:
     {
       p_modeExecutor->stop();
       _color.a = 0;
+      p_modeExecutor->execute(req.mode);
+      res.active_mode = p_modeExecutor->getExecutingMode();
+      res.active_priority = p_modeExecutor->getExecutingPriority();
+      ret = true;
+    }
+    else
+    {
       p_modeExecutor->execute(req.mode);
       res.active_mode = p_modeExecutor->getExecutingMode();
       res.active_priority = p_modeExecutor->getExecutingPriority();
@@ -362,7 +371,7 @@ public:
     marker.action = visualization_msgs::Marker::ADD;
     marker.pose.position.x = 0;
     marker.pose.position.y = 0,
-        marker.pose.position.z = 1.5;
+    marker.pose.position.z = 1.5;
     marker.pose.orientation.x = 0.0;
     marker.pose.orientation.y = 0.0;
     marker.pose.orientation.z = 0.0;
@@ -389,6 +398,7 @@ private:
 
   ros::NodeHandle _nh;
   ros::Subscriber _sub;
+  ros::Subscriber _sub_mode;
   ros::Publisher _pubMarker;
   ros::ServiceServer _srvServer;
 
@@ -423,7 +433,7 @@ int main(int argc, char** argv)
 
   while (!gShutdownRequest)
   {
-    ros::WallDuration(0.05).sleep();
+      ros::WallDuration(0.05).sleep();
   }
 
   delete lightControl;

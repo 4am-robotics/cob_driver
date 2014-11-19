@@ -146,13 +146,13 @@ void StageProfi::setColor(color::rgba color)
     actual_channel = i*3;
     color::rgba color_tmp = color;
 
-    color.r *= color.a;
-    color.g *= color.a;
-    color.b *= color.a;
+    color_tmp.r *= color.a;
+    color_tmp.g *= color.a;
+    color_tmp.b *= color.a;
 
-    color.r = fabs(color.r * 255);
-    color.g = fabs(color.g * 255);
-    color.b = fabs(color.b * 255);
+    color_tmp.r = fabs(color_tmp.r * 255);
+    color_tmp.g = fabs(color_tmp.g * 255);
+    color_tmp.b = fabs(color_tmp.b * 255);
 
     buffer[0] = 'C';
 
@@ -166,22 +166,22 @@ void StageProfi::setColor(color::rgba color)
 
     buffer[4] = 'L';
 
-    updateColorBuffer(color.r);
+    updateColorBuffer(color_tmp.r);
 
     if(sendData(buffer, PACKAGE_SIZE))
-      m_sigColorSet(color_tmp);
+      m_sigColorSet(color);
 
-    updateColorBuffer(color.g);
+    updateColorBuffer(color_tmp.g);
     updateChannelBuffer();
 
     if(sendData(buffer, PACKAGE_SIZE))
-      m_sigColorSet(color_tmp);
+      m_sigColorSet(color);
 
-    updateColorBuffer(color.b);
+    updateColorBuffer(color_tmp.b);
     updateChannelBuffer();
 
     if(sendData(buffer, PACKAGE_SIZE))
-      m_sigColorSet(color_tmp);
+      m_sigColorSet(color);
 
     char check_command[] = { 'C', '0', '0', '0', '?' };
     sendData(check_command, 5);
