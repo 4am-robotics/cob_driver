@@ -64,7 +64,6 @@ roslib.load_manifest('cob_mimic')
 import pygame
 from pygame.locals import *
 from cob_mimic.srv import *
-from cob_mimic.msg import Mimic
 
 import time
 
@@ -234,27 +233,30 @@ class GIFImage(object):
         new.reversed = self.reversed
         return new
         
-def set_face(req):
+def set_mimic(req):
     pygame.init()
-    req_msg = Mimic
-    req_msg = req
-    print "Mimic: %s" % req_msg.face.mimic
-    file_localition = roslib.packages.get_pkg_dir('cob_mimic') + '/common/' + req_msg.face.mimic + '.gif'
+    print "Mimic: %s" % req.mimic.data
+    file_localition = roslib.packages.get_pkg_dir('cob_mimic') + '/common/' + req.mimic.data + '.gif'
     image = GIFImage(file_localition)
-    while 1:
+    while not rospy.is_shutdown():
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
                 return
-        screen = pygame.display.set_mode((1680,1050))#,FULLSCREEN)
-        screen.fill((0,0,0))
-        image.render(screen, (200, 200))
-        pygame.display.flip()
-        
+      screen = pygame.display.set_mode((1680,1050))#,FULLSCREEN)
+      screen.fill((0,0,0))
+      image.render(screen, (200, 200))
+      pygame.display.flip()
+
+
 def main():
     rospy.init_node('mimic')
-    s=rospy.Service('mimic',SetFace, set_face)
+    s=rospy.Service('mimic',SetMimic, set_mimic)
+    rospy.sleep(10)
     rospy.spin()
+    
+
+
 
  
 if __name__ == "__main__":

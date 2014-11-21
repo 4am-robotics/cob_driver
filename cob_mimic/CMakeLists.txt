@@ -1,30 +1,23 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_mimic)
 
-find_package(catkin REQUIRED COMPONENTS message_generation rospy actionlib actionlib_msgs std_msgs cob_srvs)
+find_package(catkin REQUIRED COMPONENTS rospy std_msgs)
 
 #######################################
 ## Declare ROS messages and services ##
 #######################################
 
-add_message_files(DIRECTORY msg FILES
-  Mimic.msg 	
-)
 add_service_files(DIRECTORY srv FILES
-  SetFace.srv
+  SetMimic.srv
 )
 
-
-generate_messages(
-  DEPENDENCIES actionlib_msgs std_msgs
-)
 
 ###################################
 ## catkin specific configuration ##
 ###################################
 
 catkin_package(
-    CATKIN_DEPENDS rospy actionlib actionlib_msgs std_msgs cob_srvs diagnostic_msgs message_runtime # TODO
+    CATKIN_DEPENDS rospy std_msgs # TODO
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )
@@ -43,3 +36,8 @@ install(TARGETS
 install(PROGRAMS src/mimic_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/src
 )
+
+install(DIRECTORY common
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/common
+)
+
