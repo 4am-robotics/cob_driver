@@ -121,7 +121,7 @@ int MS35::sendData(const char* data, size_t len)
   return ret;
 }
 
-void MS35::setColorMulti(std::vector<color::rgba> &colors, std::vector<int> &led_numbers)
+void MS35::setColorMulti(std::vector<color::rgba> &colors)
 {
 
 }

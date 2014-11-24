@@ -176,6 +176,9 @@ public:
     //Subscribe to LightController Command Topic
     _sub = _nh.subscribe("command", 1, &LightControl::topicCallback, this);
 
+    //Subscribe to LightController Command Topic
+    _sub_mode = _nh.subscribe("command_mode", 1, &LightControl::topicCallbackMode, this);
+
     //Advertise light mode Service
     _srvServer = _nh.advertiseService("mode", &LightControl::serviceCallback, this);
 
@@ -198,7 +201,7 @@ public:
         else if(_deviceDriver == "ms-35")
           p_colorO = new MS35(&_serialIO);
         else if(_deviceDriver == "stageprofi")
-          p_colorO = new STAGEPROFI(&_serialIO);
+          p_colorO = new StageProfi(&_serialIO);
         if(p_colorO)
           p_colorO->setMask(_invertMask);
 
@@ -255,6 +258,27 @@ public:
     }
   }
 
+  void topicCallbackMode(cob_light::LightMode mode_msg)
+  {
+    if(_deviceDriver == "stageprofi")
+    {
+      std::vector<color::rgba> colors;
+      for(size_t i=0; i<mode_msg.colors.size();i++)
+      {
+        _color.a = mode_msg.colors[i].a;
+        _color.r = mode_msg.colors[i].r;
+        _color.g = mode_msg.colors[i].g;
+        _color.b = mode_msg.colors[i].b;
+        colors.push_back(_color);
+      }
+      p_colorO->setColorMulti(colors);
+    }
+    else
+    {
+      p_colorO->setColor(_color);
+    }
+  }
+
   void topicCallback(std_msgs::ColorRGBA color)
   {
     if(color.r <= 1.0 && color.g <=1.0 && color.b <= 1.0)
@@ -266,6 +290,7 @@ public:
         _color.g = color.g;
         _color.b = color.b;
         _color.a = color.a;
+
         p_colorO->setColor(_color);
       }
     }
@@ -277,8 +302,8 @@ public:
   {
     bool ret = false;
 
-    //ROS_DEBUG("Service Callback [Mode: %i with prio: %i freq: %f timeout: %f pulses: %i ]",
-    //	req.mode.mode, req.mode.priority, req.mode.frequency, req.mode.timeout, req.mode.pulses);
+    //ROS_DEBUG("Service Callback [Mode: %i with prio: %i freq: %f timeout: %f pulses: %i ] [R: %f with G: %f B: %f A: %f]",
+    //	req.mode.mode, req.mode.priority, req.mode.frequency, req.mode.timeout, req.mode.pulses,req.mode.color.r,req.mode.color.g ,req.mode.color.b,req.mode.color.a);
 
     if(req.mode.color.r > 1.0 || req.mode.color.g > 1.0 || req.mode.color.b > 1.0 || req.mode.color.a > 1.0)
     {
@@ -290,50 +315,14 @@ public:
     {
       p_modeExecutor->stop();
       _color.a = 0;
-      if(_deviceDriver == "stageprofi")
-      {
-        std::vector<color::rgba> colors;
-        std::vector<int> led_numbers;
-
-        for(size_t i=0; i<req.mode.led_numbers.size();i++)
-        {
-          _color.a=0;
-          _color.r=req.mode.colors[i].r;
-          _color.g=req.mode.colors[i].g;
-          _color.b=req.mode.colors[i].b;
-
-          led_numbers.push_back(req.mode.led_numbers[i]);
-          colors.push_back(_color);
-        }
-          p_colorO->setColorMulti(colors, led_numbers);
-      }
-      else
-        p_colorO->setColor(_color);
+      p_modeExecutor->execute(req.mode);
       res.active_mode = p_modeExecutor->getExecutingMode();
       res.active_priority = p_modeExecutor->getExecutingPriority();
       ret = true;
     }
     else
     {
-      if(_deviceDriver == "stageprofi")
-      {
-        std::vector<color::rgba> colors;
-        std::vector<int> led_numbers;
-
-        for(size_t i=0; i<req.mode.led_numbers.size();i++)
-        {
-          _color.a=req.mode.colors[i].a;
-          _color.r=req.mode.colors[i].r;
-          _color.g=req.mode.colors[i].g;
-          _color.b=req.mode.colors[i].b;
-
-          led_numbers.push_back(req.mode.led_numbers[i]);
-          colors.push_back(_color);
-        }
-           p_modeExecutor->execute(req.mode, led_numbers, colors);
-      }
-      else
-        p_modeExecutor->execute(req.mode);
+      p_modeExecutor->execute(req.mode);
       res.active_mode = p_modeExecutor->getExecutingMode();
       res.active_priority = p_modeExecutor->getExecutingPriority();
       ret = true;
@@ -357,51 +346,14 @@ public:
     {
       p_modeExecutor->stop();
       _color.a = 0;
-      if(_deviceDriver == "stageprofi")
-      {
-        std::vector<color::rgba> colors;
-        std::vector<int> led_numbers;
-
-        for(size_t i=0; i<goal->mode.led_numbers.size();i++)
-        {
-          _color.a=0;
-          _color.r=goal->mode.colors[i].r;
-          _color.g=goal->mode.colors[i].g;
-          _color.b=goal->mode.colors[i].b;
-
-          led_numbers.push_back(goal->mode.led_numbers[i]);
-          colors.push_back(_color);
-        }
-          p_colorO->setColorMulti(colors,led_numbers);
-      }
-      else
-        p_colorO->setColor(_color);
-
+      p_colorO->setColor(_color);
       result.active_mode = p_modeExecutor->getExecutingMode();
       result.active_priority = p_modeExecutor->getExecutingPriority();
       _as->setSucceeded(result, "Mode switched");
     }
     else
     {
-      if(_deviceDriver == "stageprofi")
-      {
-        std::vector<color::rgba> colors;
-        std::vector<int> led_numbers;
-
-        for(size_t i=0; i<goal->mode.led_numbers.size();i++)
-        {
-          _color.a=goal->mode.colors[i].a;
-          _color.r=goal->mode.colors[i].r;
-          _color.g=goal->mode.colors[i].g;
-          _color.b=goal->mode.colors[i].b;
-
-          led_numbers.push_back(goal->mode.led_numbers[i]);
-          colors.push_back(_color);
-        }
-           p_modeExecutor->execute(goal->mode, led_numbers, colors);
-      }
-      else
-        p_modeExecutor->execute(goal->mode);
+      p_modeExecutor->execute(goal->mode);
       result.active_mode = p_modeExecutor->getExecutingMode();
       result.active_priority = p_modeExecutor->getExecutingPriority();
       _as->setSucceeded(result, "Mode switched");
@@ -418,8 +370,8 @@ public:
     marker.type = visualization_msgs::Marker::SPHERE;
     marker.action = visualization_msgs::Marker::ADD;
     marker.pose.position.x = 0;
-    marker.pose.position.y = 0,
-        marker.pose.position.z = 1.5;
+    marker.pose.position.y = 0;
+    marker.pose.position.z = 1.5;
     marker.pose.orientation.x = 0.0;
     marker.pose.orientation.y = 0.0;
     marker.pose.orientation.z = 0.0;
@@ -446,6 +398,7 @@ private:
 
   ros::NodeHandle _nh;
   ros::Subscriber _sub;
+  ros::Subscriber _sub_mode;
   ros::Publisher _pubMarker;
   ros::ServiceServer _srvServer;
 

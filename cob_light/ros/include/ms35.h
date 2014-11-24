@@ -68,7 +68,7 @@ public:
   virtual ~MS35();
 
   void setColor(color::rgba color);
-  void setColorMulti(std::vector<color::rgba> &colors, std::vector<int> &led_numbers);
+  void setColorMulti(std::vector<color::rgba> &colors);
 
 private:
   SerialIO* _serialIO;
