@@ -65,6 +65,13 @@
 
 #include <string>
 
+#include <concurrentQueue.h>
+
+struct ioData{
+	const char* data;
+	size_t len;
+};
+
 class SerialIO
 {
 public:
@@ -85,6 +92,8 @@ public:
 	// Read Data from Serial Port
 	int readData(std::string &value, size_t nBytes);
 
+	bool enqueueData(struct ioData data);
+
 	// Check if Serial Port is opened
 	bool isOpen();
 
@@ -92,6 +101,9 @@ public:
 	void closePort();
 
 private:
+	//ioQueue
+	ConcurrentQueue<struct ioData> _oQueue;
+
 	// filedescriptor
 	int _fd;
 	// serial port settings

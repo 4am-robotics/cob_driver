@@ -126,6 +126,11 @@ int SerialIO::readData(std::string &value, size_t nBytes)
 	return rec;
 }
 
+bool SerialIO::enqueueData(struct ioData data)
+{
+	_oQueue.push(data);
+}
+
 // Check if Serial Port is opened
 bool SerialIO::isOpen()
 {
