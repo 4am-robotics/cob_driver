@@ -64,7 +64,12 @@ ColorO::~ColorO()
 {
 }
 
-void ColorO::setColor(color::rgba color, int led_number)
+void ColorO::setColorMulti(std::vector<color::rgba> &colors)
+{
+
+}
+
+void ColorO::setColor(color::rgba color)
 {
   int bytes_wrote = 0;
 

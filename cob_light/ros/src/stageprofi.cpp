@@ -57,7 +57,9 @@
 #include <boost/cstdint.hpp>
 #include <boost/integer.hpp>
 
-STAGEPROFI::STAGEPROFI(SerialIO* serialIO)
+#define MAX_NUM_LEDS 60
+
+StageProfi::StageProfi(SerialIO* serialIO)
 {
   _serialIO = serialIO;
   const char init_data[] = { 'C', '?' };
@@ -79,11 +81,11 @@ STAGEPROFI::STAGEPROFI(SerialIO* serialIO)
   sendData(init_buf, 2);
 }
 
-STAGEPROFI::~STAGEPROFI()
+StageProfi::~StageProfi()
 {
 }
 
-unsigned short int STAGEPROFI::getChecksum(const char* data, size_t len)
+unsigned short int StageProfi::getChecksum(const char* data, size_t len)
 {
   unsigned int ret;
   boost::crc_16_type checksum_agent;
@@ -91,7 +93,7 @@ unsigned short int STAGEPROFI::getChecksum(const char* data, size_t len)
   return checksum_agent.checksum();;
 }
 
-int STAGEPROFI::sendData(const char* data, size_t len)
+int StageProfi::sendData(const char* data, size_t len)
 {
   int ret = -1;
   int bytes_wrote = 0;
@@ -113,7 +115,7 @@ int STAGEPROFI::sendData(const char* data, size_t len)
   return ret;
 }
 
-void STAGEPROFI::updateColorBuffer(float color_value)
+void StageProfi::updateColorBuffer(float color_value)
 {
   int cvalue2 = (static_cast<int>(color_value)-static_cast<int>(color_value)%100)/100;
   int cvalue1 = (static_cast<int>(color_value)%100-static_cast<int>(color_value)%10)/10;
@@ -124,7 +126,7 @@ void STAGEPROFI::updateColorBuffer(float color_value)
   buffer[7] = static_cast<char>('0'+cvalue0);
 }
 
-void STAGEPROFI::updateChannelBuffer()
+void StageProfi::updateChannelBuffer()
 {
   actual_channel = actual_channel+1;
 
@@ -137,48 +139,100 @@ void STAGEPROFI::updateChannelBuffer()
   buffer[3] = static_cast<char>('0'+ac_ch0);
 }
 
-void STAGEPROFI::setColor(color::rgba color, int led_number)
+void StageProfi::setColor(color::rgba color)
 {
-  actual_channel = led_number*3; //TODO: add option for led groups
-  color::rgba color_tmp = color;
+  for(size_t i=0; i<MAX_NUM_LEDS;i++)
+  {
+    actual_channel = i*3;
+    color::rgba color_tmp = color;
 
-  color.r *= color.a;
-  color.g *= color.a;
-  color.b *= color.a;
+    color_tmp.r *= color.a;
+    color_tmp.g *= color.a;
+    color_tmp.b *= color.a;
 
-  color.r = fabs(color.r * 255);
-  color.g = fabs(color.g * 255);
-  color.b = fabs(color.b * 255);
+    color_tmp.r = fabs(color_tmp.r * 255);
+    color_tmp.g = fabs(color_tmp.g * 255);
+    color_tmp.b = fabs(color_tmp.b * 255);
 
-  buffer[0] = 'C';
+    buffer[0] = 'C';
 
-  int ac_ch2 = (static_cast<int>(actual_channel)-static_cast<int>(actual_channel)%100)/100;
-  int ac_ch1 = (static_cast<int>(actual_channel)%100-static_cast<int>(actual_channel)%10)/10;
-  int ac_ch0 = static_cast<int>(actual_channel)%10;
+    int ac_ch2 = (static_cast<int>(actual_channel)-static_cast<int>(actual_channel)%100)/100;
+    int ac_ch1 = (static_cast<int>(actual_channel)%100-static_cast<int>(actual_channel)%10)/10;
+    int ac_ch0 = static_cast<int>(actual_channel)%10;
 
-  buffer[1] = static_cast<char>('0'+ac_ch2);
-  buffer[2] = static_cast<char>('0'+ac_ch1);
-  buffer[3] = static_cast<char>('0'+ac_ch0);
+    buffer[1] = static_cast<char>('0'+ac_ch2);
+    buffer[2] = static_cast<char>('0'+ac_ch1);
+    buffer[3] = static_cast<char>('0'+ac_ch0);
 
-  buffer[4] = 'L';
+    buffer[4] = 'L';
 
-  updateColorBuffer(color.r);
+    updateColorBuffer(color_tmp.r);
 
-  if(sendData(buffer, PACKAGE_SIZE))
-    m_sigColorSet(color_tmp);
+    if(sendData(buffer, PACKAGE_SIZE))
+      m_sigColorSet(color);
 
-  updateColorBuffer(color.g);
-  updateChannelBuffer();
+    updateColorBuffer(color_tmp.g);
+    updateChannelBuffer();
 
-  if(sendData(buffer, PACKAGE_SIZE))
-    m_sigColorSet(color_tmp);
+    if(sendData(buffer, PACKAGE_SIZE))
+      m_sigColorSet(color);
 
-  updateColorBuffer(color.b);
-  updateChannelBuffer();
+    updateColorBuffer(color_tmp.b);
+    updateChannelBuffer();
 
-  if(sendData(buffer, PACKAGE_SIZE))
-    m_sigColorSet(color_tmp);
+    if(sendData(buffer, PACKAGE_SIZE))
+      m_sigColorSet(color);
 
-  char check_command[] = { 'C', '0', '0', '0', '?' };
-  sendData(check_command, 5);
+    char check_command[] = { 'C', '0', '0', '0', '?' };
+    sendData(check_command, 5);
+  }
+}
+
+void StageProfi::setColorMulti(std::vector<color::rgba> &colors)
+{
+  for(size_t i=0; i<colors.size();i++)
+  {
+    actual_channel = i*3;
+    color::rgba color_tmp = colors[i];
+
+    colors[i].r *= colors[i].a;
+    colors[i].g *= colors[i].a;
+    colors[i].b *= colors[i].a;
+
+    colors[i].r = fabs(colors[i].r * 255);
+    colors[i].g = fabs(colors[i].g * 255);
+    colors[i].b = fabs(colors[i].b * 255);
+
+    buffer[0] = 'C';
+
+    int ac_ch2 = (static_cast<int>(actual_channel)-static_cast<int>(actual_channel)%100)/100;
+    int ac_ch1 = (static_cast<int>(actual_channel)%100-static_cast<int>(actual_channel)%10)/10;
+    int ac_ch0 = static_cast<int>(actual_channel)%10;
+
+    buffer[1] = static_cast<char>('0'+ac_ch2);
+    buffer[2] = static_cast<char>('0'+ac_ch1);
+    buffer[3] = static_cast<char>('0'+ac_ch0);
+
+    buffer[4] = 'L';
+
+    updateColorBuffer(colors[i].r);
+
+    if(sendData(buffer, PACKAGE_SIZE))
+      m_sigColorSet(color_tmp);
+
+    updateColorBuffer(colors[i].g);
+    updateChannelBuffer();
+
+    if(sendData(buffer, PACKAGE_SIZE))
+      m_sigColorSet(color_tmp);
+
+    updateColorBuffer(colors[i].b);
+    updateChannelBuffer();
+
+    if(sendData(buffer, PACKAGE_SIZE))
+      m_sigColorSet(color_tmp);
+
+    char check_command[] = { 'C', '0', '0', '0', '?' };
+    sendData(check_command, 5);
+  }
 }

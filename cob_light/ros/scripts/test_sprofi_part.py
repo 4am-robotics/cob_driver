@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #***************************************************************
 #
-# Copyright (c) 2010
+# Copyright (c) 2014
 #
 # Fraunhofer Institute for Manufacturing Engineering	
 # and Automation (IPA)
@@ -14,11 +14,10 @@
 #								
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #			
-# Author: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
-# Supervised by: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
+# Author: Thiago de Freitas, email:tdf@ipa.fhg.de
+# Supervised by: Thiago de Freitas, email:tdf@ipa.fhg.de
 #
-# Date of creation: June 2010
-# ToDo:
+# Date of creation: October 2014
 #
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #
@@ -56,10 +55,12 @@ import roslib
 roslib.load_manifest('cob_light')
 import rospy
 from std_msgs.msg import ColorRGBA
+from cob_light.msg import LightMode
 
 def changeColor():
-	pub = rospy.Publisher('light_controller/command', ColorRGBA, queue_size=1)
+	pub = rospy.Publisher('light_controller/command_mode', LightMode, queue_size=1)
 	rospy.init_node('light_test')
+	light_mode = LightMode()
 	#color in rgb color space ranging from 0 to 1
 	red = ColorRGBA()
 	red.r = 1
@@ -93,7 +94,8 @@ def changeColor():
 	
 	for color in [red,yellow,green,white,blue,green]:
 		rospy.loginfo("Setting rgb to %s [%d, %d, %d]",color.r,color.g,color.b,color.a)
-		pub.publish(color)
+		light_mode.colors= 27*[color]
+		pub.publish(light_mode)
 		time.sleep(3)
 
 if __name__ == '__main__':
