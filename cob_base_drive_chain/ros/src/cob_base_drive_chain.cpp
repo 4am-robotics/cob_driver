@@ -236,12 +236,12 @@ class NodeClass
 			m_gazeboPos.resize(m_iNumMotors);
 			m_gazeboVel.resize(m_iNumMotors);
 #else
+			topicPub_JointState = n.advertise<sensor_msgs::JointState>("/joint_states", 1);
 			m_CanCtrlPltf = new CanCtrlPltfCOb3(sIniDirectory);
 #endif
 			
 			// implementation of topics
 			// published topics
-			topicPub_JointState = n.advertise<sensor_msgs::JointState>("/joint_states", 1);
 			topicPub_ControllerState = n.advertise<control_msgs::JointTrajectoryControllerState>("state", 1);
 			topicPub_DiagnosticGlobal_ = n.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 			
@@ -669,7 +669,11 @@ class NodeClass
 			controller_state.actual.velocities = jointstate.velocity;
 
 			// publish jointstate message
+#ifdef __SIM__
+			//do not publish
+#else
 			topicPub_JointState.publish(jointstate);
+#endif
 			topicPub_ControllerState.publish(controller_state);
 			
 			ROS_DEBUG("published new drive-chain configuration (JointState message)");
