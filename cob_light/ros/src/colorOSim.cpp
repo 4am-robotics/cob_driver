@@ -65,7 +65,7 @@ ColorOSim::~ColorOSim()
 {
 }
 
-void ColorOSim::setColor(color::rgba color, int led_number)
+void ColorOSim::setColor(color::rgba color)
 {
   std_msgs::ColorRGBA _color;
   _color.r = color.r;

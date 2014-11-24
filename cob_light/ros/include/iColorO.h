@@ -64,7 +64,8 @@ public:
   IColorO() : _invertMask(0){;}
   virtual ~IColorO(){;}
 
-  virtual void setColor(color::rgba color, int led_number=0) = 0;
+  virtual void setColor(color::rgba color) = 0;
+  virtual void setColorMulti(std::vector<color::rgba> &colors) = 0;
 
   void setMask(int mask){ _invertMask = mask; }
 
