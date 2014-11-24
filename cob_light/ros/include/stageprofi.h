@@ -72,8 +72,8 @@ public:
 private:
   SerialIO* _serialIO;
   std::stringstream _ssOut;
-  static const int PACKAGE_SIZE = 8;
-  char buffer[PACKAGE_SIZE];
+  static const unsigned int MAX_NUM_LEDS = 60;
+  char buffer[MAX_NUM_LEDS*3+4];
 
   int sendData(const char* data, size_t len);
   void updateColorBuffer(float color_value);
