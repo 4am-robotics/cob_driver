@@ -53,7 +53,6 @@
 
 #include <stageprofi.h>
 #include <ros/ros.h>
-#include <boost/crc.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/integer.hpp>
 
@@ -67,30 +66,12 @@ StageProfi::StageProfi(SerialIO* serialIO)
 
   char init_buf[2];
 
-  //write data until controller is ready to receive valid package
-  char tmp = 0xfd;
-  std::string recv;
-  int bytes_recv;
-  do{
-    _serialIO->sendData(&tmp, 1);
-    bytes_recv = _serialIO->readData(recv, 1);
-
-  }while(bytes_recv <= 0);
-
   memcpy(&init_buf, init_data, init_len);
   sendData(init_buf, 2);
 }
 
 StageProfi::~StageProfi()
 {
-}
-
-unsigned short int StageProfi::getChecksum(const char* data, size_t len)
-{
-  unsigned int ret;
-  boost::crc_16_type checksum_agent;
-  checksum_agent.process_bytes(data, len);
-  return checksum_agent.checksum();;
 }
 
 int StageProfi::sendData(const char* data, size_t len)
@@ -168,14 +149,12 @@ void StageProfi::setColor(color::rgba color)
 
     updateColorBuffer(color_tmp.r);
 
-    if(sendData(buffer, PACKAGE_SIZE))
-      m_sigColorSet(color);
+    sendData(buffer, PACKAGE_SIZE);
 
     updateColorBuffer(color_tmp.g);
     updateChannelBuffer();
 
-    if(sendData(buffer, PACKAGE_SIZE))
-      m_sigColorSet(color);
+    sendData(buffer, PACKAGE_SIZE);
 
     updateColorBuffer(color_tmp.b);
     updateChannelBuffer();
