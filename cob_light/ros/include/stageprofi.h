@@ -1,6 +1,6 @@
 /****************************************************************
  *
- * Copyright (c) 2010
+ * Copyright (c) 2014
  *
  * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
@@ -11,15 +11,14 @@
  * ROS stack name: cob_driver
  * ROS package name: cob_light
  * Description: Switch robots led color by sending data to
- * the led-µC over serial connection.
+ * the DMX StageProfi
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
- * Author: Benjamin Maidel, email:benjamin.maidel@ipa.fraunhofer.de
- * Supervised by: Benjamin Maidel, email:benjamin.maidel@ipa.fraunhofer.de
+ * Author: Thiago de Freitas, email:tdf@ipa.fhg.de
+ * Supervised by: Thiago de Freitas, email:tdf@ipa.fhg.de
  *
- * Date of creation: August 2012
- * ToDo:
+ * Date of creation: October 2014
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
@@ -52,54 +51,35 @@
  *
  ****************************************************************/
 
-#include <colorO.h>
-#include <ros/ros.h>
+#ifndef COB_DRIVER_STAGE_PROFI_H
+#define COB_DRIVER_STAGE_PROFI_H
 
-ColorO::ColorO(SerialIO* serialIO)
+#include <iColorO.h>
+
+#include <serialIO.h>
+#include <colorUtils.h>
+#include <sstream>
+
+class StageProfi : public IColorO
 {
-  _serialIO = serialIO;
-}
+public:
+  StageProfi(SerialIO* serialIO);
+  virtual ~StageProfi();
 
-ColorO::~ColorO()
-{
-}
+  void setColorMulti(std::vector<color::rgba> &colors);
+  void setColor(color::rgba color);
 
-void ColorO::setColorMulti(std::vector<color::rgba> &colors)
-{
+private:
+  SerialIO* _serialIO;
+  std::stringstream _ssOut;
+  static const int PACKAGE_SIZE = 8;
+  char buffer[PACKAGE_SIZE];
 
-}
+  int sendData(const char* data, size_t len);
+  void updateColorBuffer(float color_value);
+  void updateChannelBuffer();
+  unsigned short int getChecksum(const char* data, size_t len);
+  int actual_channel;
+};
 
-void ColorO::setColor(color::rgba color)
-{
-  int bytes_wrote = 0;
-
-  color::rgba color_tmp = color;
-
-  //calculate rgb spektrum for spezific alpha value, because
-  //led board is not supporting alpha values
-  color.r *= color.a;
-  color.g *= color.a;
-  color.b *= color.a;
-  //led board value spektrum is from 0 - 999.
-  //at r@w's led strip, 0 means fully lighted and 999 light off(_invertMask)
-  color.r = (fabs(_invertMask-color.r) * 999.0);
-  color.g = (fabs(_invertMask-color.g) * 999.0);
-  color.b = (fabs(_invertMask-color.b) * 999.0);
-
-  _ssOut.clear();
-  _ssOut.str("");
-  _ssOut << (int)color.r << " " << (int)color.g << " " << (int)color.b << "\n\r";
-
-  // send data over serial port
-  bytes_wrote = _serialIO->sendData(_ssOut.str());
-  if(bytes_wrote == -1)
-  {
-    ROS_WARN("Can not write to serial port. Port closed!");
-  }
-  else
-  {
-    ROS_DEBUG("Wrote [%s] with %i bytes from %i bytes", \
-              _ssOut.str().c_str(), bytes_wrote, (int)_ssOut.str().length());
-    m_sigColorSet(color_tmp);
-  }
-}
+#endif
