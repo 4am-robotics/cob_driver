@@ -69,26 +69,64 @@ import Image
 
 from cob_mimic.srv import *
 
+class Mimic:
+  def set_mimic(self,req):
 
-def set_mimic(req):
-    print "Mimic: %s" % req.mimic.data
-    file_localition = roslib.packages.get_pkg_dir('cob_mimic') + '/common/' + req.mimic.data + '.gif'
-    if(not os.path.isfile(file_localition)):
-      print "File not found: cob_mimic" + "/common/" + req.mimic.data + '.gif'
+      self.ServiceCalled = True
+      
+      print "Mimic: %s" % req.mimic
+      file_localition = roslib.packages.get_pkg_dir('cob_mimic') + '/common/' + req.mimic + '.mp4'
+      if(not os.path.isfile(file_localition)):
+        print "File not found: cob_mimic" + "/common/" + req.mimic + '.mp4'
+        return
+      #command = "animate -loop 0 %s "  % file_localition
+      
+       
+      if ( req.speed == 0 ):
+        self.speed = 1
+      else:
+        self.speed = req.speed
+        
+      if (req.repeat == 0 ):
+        self.ServiceCalled == False
+        self.default_mimic = req.mimic
+        self.default_speed = self.speed
+      else: 
+        for i in range(0,req.repeat):
+          command = "vlc --fullscreen --rate %d %s"  % (self.speed,file_localition)
+          os.system(command)
+          
+      os.system(self.quit_command)
       return
-    command = "animate -loop 0 %s"  % file_localition
-    #command = "vlc --fullscreen %s"  % file_localition
-    os.system(command)
-
-def main():
+      
+  def defaultMimic(self):
+    while not rospy.is_shutdown():
+      file_localition = roslib.packages.get_pkg_dir('cob_mimic') + '/common/' + self.default_mimic + '.mp4'
+      command = "vlc --fullscreen --rate %d --loop %s"  % (self.default_speed,file_localition) 
+      os.system(command)
+      self.ServiceCalled = False
+      
+      
+  def main(self):
     rospy.init_node('mimic')
-    s=rospy.Service('mimic',SetMimic, set_mimic)
-    rospy.spin()
+    self.ServiceCalled = False
+    self.default_speed = 1
+    self.default_mimic = "default"
+    self.quit_command = "vlc vlc://quit"
     
+    s=rospy.Service('mimic',SetMimic, self.set_mimic)
+    
+    while ( self.ServiceCalled == False):
+      self.defaultMimic()
+        
+    rospy.spin()
+
+
  
 if __name__ == "__main__":
   try:
-    main()
+    mimic = Mimic()
+    mimic.main()
   except KeyboardInterrupt, e:
     pass
   print "exiting"
