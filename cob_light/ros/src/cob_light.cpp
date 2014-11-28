@@ -173,6 +173,10 @@ public:
       ROS_WARN("Parameter 'startup_mode' is missing. Using default Value: None");
     _nh.param<std::string>("startup_mode", startup_mode, "None");
 
+    if(!_nh.hasParam("num_leds"))
+	    ROS_WARN("Parameter 'num_leds' is missing. Using default Value: 58");
+ 	  _nh.param<int>("num_leds", _num_leds, 58);
+
     //Subscribe to LightController Command Topic
     _sub = _nh.subscribe("command", 1, &LightControl::topicCallback, this);
 
@@ -201,7 +205,7 @@ public:
         else if(_deviceDriver == "ms-35")
           p_colorO = new MS35(&_serialIO);
         else if(_deviceDriver == "stageprofi")
-          p_colorO = new StageProfi(&_serialIO);
+          p_colorO = new StageProfi(&_serialIO, _num_leds);
         if(p_colorO)
           p_colorO->setMask(_invertMask);
 
@@ -315,7 +319,8 @@ public:
     {
       p_modeExecutor->stop();
       _color.a = 0;
-      p_modeExecutor->execute(req.mode);
+      //p_modeExecutor->execute(req.mode);
+      p_colorO->setColor(_color);
       res.active_mode = p_modeExecutor->getExecutingMode();
       res.active_priority = p_modeExecutor->getExecutingPriority();
       ret = true;
@@ -393,6 +398,7 @@ private:
   int _invertMask;
   bool _bPubMarker;
   bool _bSimEnabled;
+  int _num_leds;
 
   int _topic_priority;
 
@@ -433,7 +439,7 @@ int main(int argc, char** argv)
 
   while (!gShutdownRequest)
   {
-    ros::WallDuration(0.05).sleep();
+    ros::Duration(0.05).sleep();
   }
 
   delete lightControl;

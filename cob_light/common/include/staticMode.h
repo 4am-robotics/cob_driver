@@ -70,7 +70,7 @@ public:
 
 	void execute()
 	{
-		_pulsed++;		
+		_pulsed++;
 		m_sigColorReady(_color);
 	}
 
