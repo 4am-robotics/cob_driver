@@ -57,10 +57,10 @@
 #include <boost/integer.hpp>
 #include <algorithm>
 
-StageProfi::StageProfi(SerialIO* serialIO, unsigned int leds) :
-    _num_leds(leds)
+StageProfi::StageProfi(SerialIO* serialIO, unsigned int leds)
 {
   _serialIO = serialIO;
+  _num_leds = leds;
   const char init_data[] =
   { 'C', '?' };
   int init_len = sizeof(init_data) / sizeof(init_data[0]);

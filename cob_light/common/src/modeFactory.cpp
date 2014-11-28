@@ -59,6 +59,7 @@
 #include <breathColorMode.h>
 #include <fadeColorMode.h>
 #include <sequenceMode.h>
+#include <circleColorMode.h>
 
 ModeFactory::ModeFactory()
 {
@@ -67,7 +68,7 @@ ModeFactory::~ModeFactory()
 {
 }
 
-Mode* ModeFactory::create(cob_light::LightMode requestMode)
+Mode* ModeFactory::create(cob_light::LightMode requestMode, IColorO* colorO)
 {
 	Mode* mode = NULL;
 	color::rgba color;
@@ -106,7 +107,7 @@ Mode* ModeFactory::create(cob_light::LightMode requestMode)
 		case cob_light::LightMode::SEQ:
 		{
       std::vector<seq_t> seqs;
-      for(int i = 0; i < requestMode.sequences.size(); i++)
+      for(size_t i = 0; i < requestMode.sequences.size(); i++)
       {
         seq_t seq;
         seq.color.r = requestMode.sequences[i].color.r;
@@ -122,6 +123,25 @@ Mode* ModeFactory::create(cob_light::LightMode requestMode)
         requestMode.pulses, requestMode.timeout);
 		}
     break;
+
+		case cob_light::LightMode::CIRCLE_COLORS:
+		{
+        std::vector<color::rgba> colors;
+        if(requestMode.colors.empty())
+          colors.push_back(color);
+        else
+        {
+          for(size_t i = 0; i < requestMode.colors.size(); i++)
+          {
+            color.r = requestMode.colors[i].r;
+            color.g = requestMode.colors[i].g;
+            color.b = requestMode.colors[i].b;
+            color.a = requestMode.colors[i].a;
+          }
+        }
+		    mode = new CircleColorMode(colors, colorO->getNumLeds(), requestMode.priority, requestMode.frequency, requestMode.pulses, requestMode.timeout);
+		}
+		break;
 
 		default:
 			mode = NULL;

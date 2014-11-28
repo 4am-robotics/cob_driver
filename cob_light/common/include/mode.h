@@ -112,6 +112,7 @@ public:
 	color::rgba getActualColor(){ return _color; }
 
 	boost::signals2::signal<void (color::rgba color)>* signalColorReady(){ return &m_sigColorReady; }
+	boost::signals2::signal<void (std::vector<color::rgba> colors)>* signalColorsReady(){ return &m_sigColorsReady; }
 	boost::signals2::signal<void ()>* signalModeFinished(){ return &m_sigFinished; }
 
 protected:
@@ -124,11 +125,13 @@ protected:
 	int _pulsed;
 
 	color::rgba _color;
+	std::vector<color::rgba> _colors;
 	color::rgba _actualColor;
 
 	static const unsigned int UPDATE_RATE_HZ = 100;
 
 	boost::signals2::signal<void (color::rgba color)> m_sigColorReady;
+	boost::signals2::signal<void (std::vector<color::rgba> colors)> m_sigColorsReady;
 	boost::signals2::signal<void ()> m_sigFinished;
 
 private:

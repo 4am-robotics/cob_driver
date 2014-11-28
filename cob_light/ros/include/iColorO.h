@@ -61,19 +61,24 @@
 class IColorO
 {
 public:
-  IColorO() : _invertMask(0){;}
+  IColorO() : _invertMask(0), _num_leds(1){;}
   virtual ~IColorO(){;}
 
   virtual void setColor(color::rgba color) = 0;
   virtual void setColorMulti(std::vector<color::rgba> &colors) = 0;
 
   void setMask(int mask){ _invertMask = mask; }
+  void setNumLeds(size_t num_leds){ _num_leds = num_leds; }
+  int getNumLeds(){ return _num_leds; }
 
   boost::signals2::signal<void (color::rgba color)>* signalColorSet(){ return &m_sigColorSet; }
+  boost::signals2::signal<void (std::vector<color::rgba> colors) >* signalColorsSet(){ return &m_sigColorsSet; }
 
 protected:
   int _invertMask;
+  int _num_leds;
   boost::signals2::signal<void (color::rgba color)> m_sigColorSet;
+  boost::signals2::signal<void (std::vector<color::rgba> colors) > m_sigColorsSet;
 };
 
 #endif
