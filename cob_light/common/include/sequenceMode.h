@@ -81,29 +81,29 @@ public:
     switch (_state)
     {
     case INIT_SEQ:
-      std::cout<<"INIT_SEQ"<<std::endl;
+      //std::cout<<"INIT_SEQ"<<std::endl;
       _seqidx = 0;
       _int_inc = 0.0;
       _int_count = 0.0;
       //_color_old = getColor();
       _int_inc = 1.0/(_seqences[_seqidx].crosstime * _freq);
       _state = CROSSFADE;
-      std::cout<<"Setting color: "<<_seqences[_seqidx].color.r<<" "<<_seqences[_seqidx].color.g<<" "<<_seqences[_seqidx].color.b<<std::endl;
+      //std::cout<<"Setting color: "<<_seqences[_seqidx].color.r<<" "<<_seqences[_seqidx].color.g<<" "<<_seqences[_seqidx].color.b<<std::endl;
       break;
 
     case CROSSFADE:
-      std::cout<<"CROSSFADE"<<std::endl;
+      //std::cout<<"CROSSFADE"<<std::endl;
       //first execute cross fade between old and new color for current seq
-      if(_int_count <= 1)
+      if(_int_count <= 1.0001)
       {
+        //std::cout<<"_int_count "<<_int_count<<std::endl;
         _color = interpolateColor(_actualColor, _seqences[_seqidx].color, _int_count);
         _int_count += _int_inc;
-        std::cout<<"_int_count "<<_int_count<<std::endl;
         m_sigColorReady(_color);
       }
       else
       {
-        _state = HOLD;
+        //_state = HOLD;
         _int_count = 0.0;
         _int_inc = 1.0/(_seqences[_seqidx].holdtime * _freq);
         _actualColor = _color;
@@ -120,7 +120,7 @@ public:
       break;
 
     case NEXT:
-      std::cout<<"NEXT"<<std::endl;
+      //std::cout<<"NEXT"<<std::endl;
       _seqidx++;
       if(_seqidx == _seqences.size())
         _seqidx = 0;
@@ -128,7 +128,7 @@ public:
       _int_count = 0.0;
       _int_inc = 1.0/(_seqences[_seqidx].crosstime * _freq);
       _state = CROSSFADE;
-      std::cout<<"Setting color: "<<_seqences[_seqidx].color.r<<" "<<_seqences[_seqidx].color.g<<" "<<_seqences[_seqidx].color.b<<std::endl;
+      //std::cout<<"Setting color: "<<_seqences[_seqidx].color.r<<" "<<_seqences[_seqidx].color.g<<" "<<_seqences[_seqidx].color.b<<std::endl;
       break;
     }
   }
@@ -164,12 +164,12 @@ private:
     color::Color::hsv2rgb(cr.h, cr.s, cr.v, result.r, result.g, result.b);
     result.a = 1.0;
 
-    std::cout<<"Original h:"<<ca.h<<" s:"<<ca.s<<" v:"<<ca.v<<std::endl;
-    std::cout<<"Original r:"<<a.r<<" g:"<<a.g<<" b:"<<a.b<<std::endl;
-    std::cout<<"Goal     h:"<<cb.h<<" s:"<<cb.s<<" v:"<<cb.v<<std::endl;
-    std::cout<<"Goal     r:"<<b.r<<" g:"<<b.g<<" b:"<<b.b<<std::endl;
-    std::cout<<"New      h:"<<cr.h<<" s:"<<cr.s<<" v:"<<cr.v<<std::endl;
-    std::cout<<"New      r:"<<result.r<<" g:"<<result.g<<" b:"<<result.b<<std::endl;
+    //std::cout<<"Original h:"<<ca.h<<" s:"<<ca.s<<" v:"<<ca.v<<std::endl;
+    //std::cout<<"Original r:"<<a.r<<" g:"<<a.g<<" b:"<<a.b<<std::endl;
+    //std::cout<<"Goal     h:"<<cb.h<<" s:"<<cb.s<<" v:"<<cb.v<<std::endl;
+    //std::cout<<"Goal     r:"<<b.r<<" g:"<<b.g<<" b:"<<b.b<<std::endl;
+    //std::cout<<"New      h:"<<cr.h<<" s:"<<cr.s<<" v:"<<cr.v<<std::endl;
+    //std::cout<<"New      r:"<<result.r<<" g:"<<result.g<<" b:"<<result.b<<std::endl;
 
     return result;
   }
