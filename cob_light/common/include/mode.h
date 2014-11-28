@@ -126,6 +126,8 @@ protected:
 	color::rgba _color;
 	color::rgba _actualColor;
 
+	static const unsigned int UPDATE_RATE_HZ = 100;
+
 	boost::signals2::signal<void (color::rgba color)> m_sigColorReady;
 	boost::signals2::signal<void ()> m_sigFinished;
 
@@ -133,6 +135,7 @@ private:
 	boost::shared_ptr<boost::thread> _thread;
 	boost::mutex _mutex;
 	bool _isStopRequested;
+
 
 	bool isStopRequested()
 	{
@@ -146,11 +149,9 @@ private:
 protected:
 	virtual void run()
 	{
-		ros::Rate r(10);
-		if(this->getFrequency() != 0.0)
-			r = ros::Rate(this->getFrequency());
-		else
-			this->setFrequency(10);
+		ros::Rate r(UPDATE_RATE_HZ);
+		if(this->getFrequency() == 0.0)
+		  this->setFrequency(1);
 
 		ros::Time timeStart = ros::Time::now();
 

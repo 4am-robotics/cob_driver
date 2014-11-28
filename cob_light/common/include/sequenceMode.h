@@ -86,7 +86,7 @@ public:
       _int_inc = 0.0;
       _int_count = 0.0;
       //_color_old = getColor();
-      _int_inc = 1.0/(_seqences[_seqidx].crosstime * _freq);
+      _int_inc = 1.0/(_seqences[_seqidx].crosstime * UPDATE_RATE_HZ);
       _state = CROSSFADE;
       //std::cout<<"Setting color: "<<_seqences[_seqidx].color.r<<" "<<_seqences[_seqidx].color.g<<" "<<_seqences[_seqidx].color.b<<" "<<_seqences[_seqidx].color.a<<std::endl;
       break;
@@ -105,7 +105,7 @@ public:
       {
         _state = HOLD;
         _int_count = 0.0;
-        _int_inc = 1.0/(_seqences[_seqidx].holdtime * _freq);
+        _int_inc = 1.0/(_seqences[_seqidx].holdtime * UPDATE_RATE_HZ);
         _actualColor = _color;
         m_sigColorReady(_color);
       }
@@ -126,7 +126,7 @@ public:
         _seqidx = 0;
       _int_inc = 0.0;
       _int_count = 0.0;
-      _int_inc = 1.0/(_seqences[_seqidx].crosstime * _freq);
+      _int_inc = 1.0/(_seqences[_seqidx].crosstime * UPDATE_RATE_HZ);
       _state = CROSSFADE;
       //std::cout<<"Setting color: "<<_seqences[_seqidx].color.r<<" "<<_seqences[_seqidx].color.g<<" "<<_seqences[_seqidx].color.b<<" "<<_seqences[_seqidx].color.a<<std::endl;
       break;
