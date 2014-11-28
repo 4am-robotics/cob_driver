@@ -88,7 +88,7 @@ public:
       //_color_old = getColor();
       _int_inc = 1.0/(_seqences[_seqidx].crosstime * _freq);
       _state = CROSSFADE;
-      //std::cout<<"Setting color: "<<_seqences[_seqidx].color.r<<" "<<_seqences[_seqidx].color.g<<" "<<_seqences[_seqidx].color.b<<std::endl;
+      //std::cout<<"Setting color: "<<_seqences[_seqidx].color.r<<" "<<_seqences[_seqidx].color.g<<" "<<_seqences[_seqidx].color.b<<" "<<_seqences[_seqidx].color.a<<std::endl;
       break;
 
     case CROSSFADE:
@@ -103,7 +103,7 @@ public:
       }
       else
       {
-        //_state = HOLD;
+        _state = HOLD;
         _int_count = 0.0;
         _int_inc = 1.0/(_seqences[_seqidx].holdtime * _freq);
         _actualColor = _color;
@@ -128,7 +128,7 @@ public:
       _int_count = 0.0;
       _int_inc = 1.0/(_seqences[_seqidx].crosstime * _freq);
       _state = CROSSFADE;
-      //std::cout<<"Setting color: "<<_seqences[_seqidx].color.r<<" "<<_seqences[_seqidx].color.g<<" "<<_seqences[_seqidx].color.b<<std::endl;
+      //std::cout<<"Setting color: "<<_seqences[_seqidx].color.r<<" "<<_seqences[_seqidx].color.g<<" "<<_seqences[_seqidx].color.b<<" "<<_seqences[_seqidx].color.a<<std::endl;
       break;
     }
   }
@@ -145,14 +145,21 @@ private:
 
   color::rgba _color;
 
-  color::rgba interpolateColor(color::rgba a, color::rgba b, float t)
+  color::rgba interpolateColor(color::rgba start, color::rgba goal, float t)
   {
     color::hsv ca;
     color::hsv cb;
     color::hsv cr;
+    color::rgba a, b;
+    a = start;
+    b = goal;
+
     a.r *= a.a;
     a.g *= a.a;
     a.b *= a.a;
+    b.r *= b.a;
+    b.g *= b.a;
+    b.b *= b.a;
     color::Color::rgb2hsv(a.r, a.g, a.b, ca.h, ca.s, ca.v);
     color::Color::rgb2hsv(b.r, b.g, b.b, cb.h, cb.s, cb.v);
 
@@ -164,12 +171,12 @@ private:
     color::Color::hsv2rgb(cr.h, cr.s, cr.v, result.r, result.g, result.b);
     result.a = 1.0;
 
-    //std::cout<<"Original h:"<<ca.h<<" s:"<<ca.s<<" v:"<<ca.v<<std::endl;
-    //std::cout<<"Original r:"<<a.r<<" g:"<<a.g<<" b:"<<a.b<<std::endl;
-    //std::cout<<"Goal     h:"<<cb.h<<" s:"<<cb.s<<" v:"<<cb.v<<std::endl;
-    //std::cout<<"Goal     r:"<<b.r<<" g:"<<b.g<<" b:"<<b.b<<std::endl;
-    //std::cout<<"New      h:"<<cr.h<<" s:"<<cr.s<<" v:"<<cr.v<<std::endl;
-    //std::cout<<"New      r:"<<result.r<<" g:"<<result.g<<" b:"<<result.b<<std::endl;
+//    std::cout<<"Original h:"<<ca.h<<" s:"<<ca.s<<" v:"<<ca.v<<std::endl;
+//    std::cout<<"Original r:"<<a.r<<" g:"<<a.g<<" b:"<<a.b<<std::endl;
+//    std::cout<<"Goal     h:"<<cb.h<<" s:"<<cb.s<<" v:"<<cb.v<<std::endl;
+//    std::cout<<"Goal     r:"<<b.r<<" g:"<<b.g<<" b:"<<b.b<<std::endl;
+//    std::cout<<"New      h:"<<cr.h<<" s:"<<cr.s<<" v:"<<cr.v<<std::endl;
+//    std::cout<<"New      r:"<<result.r<<" g:"<<result.g<<" b:"<<result.b<<std::endl;
 
     return result;
   }
