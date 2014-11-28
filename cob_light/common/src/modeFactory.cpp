@@ -58,7 +58,7 @@
 #include <breathMode.h>
 #include <breathColorMode.h>
 #include <fadeColorMode.h>
-
+#include <sequenceMode.h>
 
 ModeFactory::ModeFactory()
 {
@@ -102,6 +102,26 @@ Mode* ModeFactory::create(cob_light::LightMode requestMode)
 			mode = new FadeColorMode(color, requestMode.priority, requestMode.frequency,\
 				requestMode.pulses, requestMode.timeout);
 		break;
+
+		case cob_light::LightMode::SEQ:
+		{
+      std::vector<seq_t> seqs;
+      for(int i = 0; i < requestMode.sequences.size(); i++)
+      {
+        seq_t seq;
+        seq.color.r = requestMode.sequences[i].color.r;
+        seq.color.g = requestMode.sequences[i].color.g;
+        seq.color.b = requestMode.sequences[i].color.b;
+        seq.color.a = requestMode.sequences[i].color.a;
+        seq.holdtime = requestMode.sequences[i].hold_time;
+        seq.crosstime = requestMode.sequences[i].cross_time;
+        seqs.push_back(seq);
+        std::cout<<"got new seq: "<<seq.color.r<<" "<<seq.color.g<<" "<<seq.color.b<<std::endl;
+      }
+      mode = new SequenceMode(seqs, requestMode.priority, requestMode.frequency,\
+        requestMode.pulses, requestMode.timeout);
+		}
+    break;
 
 		default:
 			mode = NULL;
@@ -159,6 +179,8 @@ int ModeFactory::type(Mode *mode)
 		ret = cob_light::LightMode::BREATH_COLOR;
 	else if(dynamic_cast<FadeColorMode*>(mode) != NULL)
 		ret = cob_light::LightMode::FADE_COLOR;
+  else if(dynamic_cast<SequenceMode*>(mode) != NULL)
+    ret = cob_light::LightMode::SEQ;
 	else
 		ret = cob_light::LightMode::NONE;
 

@@ -74,24 +74,20 @@ public:
 	int getExecutingMode();
 
 	void stop();
-	void resume();
 
 	void setDefaultPriority(int priority);
 
 private:
-	void run();
-
-	bool isStopRequested();
-
 	IColorO* _colorO;
 
 	Mode* _activeMode;
+	color::rgba _activeColor;
 
 	bool _stopRequested;
-	boost::shared_ptr<boost::thread> _thread_ptr;
-	boost::mutex _mutex;
-
 	int default_priority;
+
+	void onModeFinishedReceived();
+	void onColorSetReceived(color::rgba color);
 };
 
 #endif
