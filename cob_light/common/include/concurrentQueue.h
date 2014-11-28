@@ -11,7 +11,7 @@ private:
     boost::condition_variable _condition;
 public:
     ConcurrentQueue()
-	: _ioQueue(2)
+	: _queue(2)
 	{
 	}
 

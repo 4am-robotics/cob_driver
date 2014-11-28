@@ -66,11 +66,12 @@
 #include <string>
 
 #include <concurrentQueue.h>
+#include <boost/thread.hpp>
 
-struct ioData{
-	const char* data;
+typedef struct ioData{
+	const char* buf;
 	size_t len;
-};
+} ioData_t;
 
 class SerialIO
 {
@@ -92,7 +93,9 @@ public:
 	// Read Data from Serial Port
 	int readData(std::string &value, size_t nBytes);
 
-	bool enqueueData(struct ioData data);
+	bool enqueueData(std::vector<ioData_t> data);
+
+	bool enqueueData(const char* data, size_t len);
 
 	// Check if Serial Port is opened
 	bool isOpen();
@@ -100,9 +103,16 @@ public:
 	// Close Serial Port
 	void closePort();
 
+	void start();
+	void stop();
+
 private:
 	//ioQueue
-	ConcurrentQueue<struct ioData> _oQueue;
+	ConcurrentQueue<std::vector<struct ioData> > _oQueue;
+
+	boost::shared_ptr<boost::thread> _thread;
+	boost::mutex _mutex;
+	boost::condition_variable _condition;
 
 	// filedescriptor
 	int _fd;
@@ -111,6 +121,10 @@ private:
 
 	// resolve int to baudrate
 	speed_t getBaudFromInt(int baud);
+
+	static const int maxUpdateRate = 50;
+
+	void run();
 };
 
 #endif

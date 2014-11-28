@@ -12,6 +12,7 @@ find_package(Boost REQUIRED COMPONENTS thread)
 add_message_files(
   FILES
   LightMode.msg
+  Sequence.msg
 )
 
 add_service_files(

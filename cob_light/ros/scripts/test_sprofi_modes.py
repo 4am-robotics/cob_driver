@@ -69,6 +69,24 @@ def changeColor():
   red.g = 0
   red.b = 0
   red.a = 1
+  
+  light_red = ColorRGBA()
+  light_red.r = 1
+  light_red.g = 0
+  light_red.b = 0
+  light_red.a = 0.6
+  
+  off = ColorRGBA()
+  off.r = 0.0001
+  off.g = 0
+  off.b = 0
+  off.a = 0
+  
+  dimm = ColorRGBA()
+  dimm.r = 1
+  dimm.g = 0
+  dimm.b = 0
+  dimm.a = 0
 
   yellow = ColorRGBA()
   yellow.r = 1
@@ -94,19 +112,40 @@ def changeColor():
   white.b = 0.3
   white.a = 1
 
-  for i in range(1,6):
-    for color in [red,yellow,green,white,blue,green]:
-      rospy.loginfo("Setting rgb to %s [%d, %d, %d]",color.r,color.g,color.b,color.a)
-      light_mode.mode = i
-      light_mode.frequency=10
-      light_mode.color = color
-      try:
-        resp1 = control_lights(light_mode)
-        print resp1
-      except rospy.ServiceException, e:
-        print "Service call failed: %s"%e
+  light_mode.mode = 6
+  light_mode.frequency=100
+  seq1 = Sequence()
+  seq1.color = off;
+  seq1.hold_time = 1;
+  seq1.cross_time = 0.2;
+  light_mode.sequences.append(seq1);
+  print "Setting color: ", off
+  
+  seq2 = Sequence()
+  seq2.color = red;
+  seq2.hold_time = 0.2;
+  seq2.cross_time = 0.1;  
+  light_mode.sequences.append(seq2);
+  
+  seq3 = Sequence()
+  seq3.color = off;
+  seq3.hold_time = 0.2;
+  seq3.cross_time = 0.1;
+  light_mode.sequences.append(seq3);
+  
+  seq4 = Sequence()
+  seq4.color = red;
+  seq4.hold_time = 0.2;
+  seq4.cross_time = 0.1;
+  light_mode.sequences.append(seq4);
+  
+  try:
+    resp1 = control_lights(light_mode)
+    print resp1
+  except rospy.ServiceException, e:
+    print "Service call failed: %s"%e
       
-      time.sleep(6)
+  time.sleep(6)
 
 if __name__ == '__main__':
     try:

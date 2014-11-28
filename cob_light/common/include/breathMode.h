@@ -79,7 +79,7 @@ public:
 		}
 
 		_color.a = fV;
-		
+
 		m_sigColorReady(_color);
 	}
 

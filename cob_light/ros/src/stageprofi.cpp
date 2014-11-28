@@ -55,45 +55,32 @@
 #include <ros/ros.h>
 #include <boost/cstdint.hpp>
 #include <boost/integer.hpp>
+#include <algorithm>
 
-StageProfi::StageProfi(SerialIO* serialIO)
+StageProfi::StageProfi(SerialIO* serialIO, unsigned int leds) :
+    _num_leds(leds)
 {
   _serialIO = serialIO;
-  const char init_data[] = { 'C', '?' };
+  const char init_data[] =
+  { 'C', '?' };
   int init_len = sizeof(init_data) / sizeof(init_data[0]);
 
   char init_buf[2];
 
   memcpy(&init_buf, init_data, init_len);
-  sendData(init_buf, 2);
+  if (serialIO->sendData(init_buf, 2))
+  {
+    std::string rec;
+    _serialIO->readData(rec, 1);
+    serialIO->start();
+  }
+  else
+    std::cout << "StageProfi Error sending init" << std::endl;
 }
 
 StageProfi::~StageProfi()
 {
 }
-
-int StageProfi::sendData(const char* data, size_t len)
-{
-  int ret = -1;
-  int bytes_wrote = 0;
-
-  bytes_wrote = _serialIO->sendData(data, len);
-  if(bytes_wrote == -1)
-  {
-    ROS_WARN("Can not write to serial port. Port closed!");
-    ret = -1;
-  }
-  else
-  {
-    std::string recv;
-    ROS_DEBUG("Receiving");
-    int byte_recv = _serialIO->readData(recv, 1);
-    ROS_DEBUG_STREAM("Received "<<byte_recv<<" bytes after color set: "<<recv);
-    ret = 1;
-  }
-  return ret;
-}
-
 
 void StageProfi::setColor(color::rgba color)
 {
@@ -107,38 +94,37 @@ void StageProfi::setColor(color::rgba color)
   color_tmp.g = fabs(color_tmp.g * 255);
   color_tmp.b = fabs(color_tmp.b * 255);
 
-  buffer[0] = 0xff; //array command
-  buffer[1] = 0x00; //start channel low byte
-  buffer[2] = 0x00; //start channel high byte
-  buffer[3] = static_cast<char>(MAX_NUM_LEDS); //num channels to set
-  
-  for(size_t i=0; i<MAX_NUM_LEDS;++i)
+  unsigned int num_channels = _num_leds * 3;
+  char channelbuffer[num_channels];
+
+  for (int i = 0; i < _num_leds; i++)
   {
-    actual_channel = i*3+4;
-    buffer[actual_channel] = (int)color_tmp.r;
-    buffer[actual_channel+1] = (int)color_tmp.g;
-    buffer[actual_channel+2] = (int)color_tmp.b;
+    channelbuffer[i * 3] = (int) color_tmp.r;
+    channelbuffer[i * 3 + 1] = (int) color_tmp.g;
+    channelbuffer[i * 3 + 2] = (int) color_tmp.b;
   }
 
-  if(sendData(buffer, MAX_NUM_LEDS*3+4))
-      m_sigColorSet(color);
-
-    //char check_command[] = { 'C', '0', '0', '0', '?' };
-    //sendData(check_command, 5);
+  uint16_t index = 0;
+  while (index < num_channels)
+  {
+    unsigned int size = std::min((unsigned int) MAX_CHANNELS,
+        num_channels - index);
+    if (sendDMX(index, channelbuffer + index, size))
+      index += size;
+    else
+      std::cout << "Error sending stageprofi" << std::endl;
   }
+
+  m_sigColorSet(color);
 }
 
 void StageProfi::setColorMulti(std::vector<color::rgba> &colors)
 {
-  color::rgba color_tmp = color;
+  color::rgba color_tmp;
+  unsigned int num_channels = _num_leds * 3;
+  char channelbuffer[num_channels];
 
-  
-  buffer[0] = 0xff; //array command
-  buffer[1] = 0x00; //start channel low byte
-  buffer[2] = 0x00; //start channel high byte
-  buffer[3] = static_cast<char>(colors.size()); //num channels to set
-  
-  for(size_t i=0; i<colors.size(); ++i)
+  for (int i = 0; i < _num_leds || i < colors.size(); i++)
   {
     color_tmp.r *= colors[i].a;
     color_tmp.g *= colors[i].a;
@@ -148,12 +134,40 @@ void StageProfi::setColorMulti(std::vector<color::rgba> &colors)
     color_tmp.g = fabs(color_tmp.g * 255);
     color_tmp.b = fabs(color_tmp.b * 255);
 
-    actual_channel = i*3+4;
-    buffer[actual_channel] = (int)color_tmp.r;
-    buffer[actual_channel+1] = (int)color_tmp.g;
-    buffer[actual_channel+2] = (int)color_tmp.b;
+    channelbuffer[i * 3] = (int) color_tmp.r;
+    channelbuffer[i * 3 + 1] = (int) color_tmp.g;
+    channelbuffer[i * 3 + 2] = (int) color_tmp.b;
   }
 
-  if(sendData(buffer, MAX_NUM_LEDS*3+4))
-      m_sigColorSet(color);
+  uint16_t index = 0;
+  while (index < num_channels)
+  {
+    unsigned int size = std::min((unsigned int) MAX_CHANNELS,
+        num_channels - index);
+    if (sendDMX(index, channelbuffer + index, size))
+      index += size;
+    else
+      std::cout << "Error sending stageprofi" << std::endl;
+  }
+
+  m_sigColorSet(colors[0]);
 }
+
+bool StageProfi::sendDMX(uint16_t start, const char* buf, unsigned int length)
+{
+  char msg[MAX_CHANNELS + HEADER_SIZE];
+
+  unsigned int len = std::min((unsigned int) MAX_CHANNELS, length);
+
+  msg[0] = 0xFF;
+  msg[1] = start & 0xFF;
+  msg[2] = (start >> 8) & 0xFF;
+  msg[3] = len;
+
+  memcpy(msg + HEADER_SIZE, buf, len);
+
+  // This needs to be an int, as m_descriptor->Send() below returns an int
+  const int bytes_to_send = len + HEADER_SIZE;
+  return _serialIO->sendData(msg, bytes_to_send) == bytes_to_send;
+}
+
