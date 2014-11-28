@@ -63,23 +63,20 @@
 class StageProfi : public IColorO
 {
 public:
-  StageProfi(SerialIO* serialIO);
+  StageProfi(SerialIO* serialIO, unsigned int leds);
   virtual ~StageProfi();
 
-  void setColorMulti(std::vector<color::rgba> &colors);
   void setColor(color::rgba color);
+  void setColorMulti(std::vector<color::rgba> &colors);
 
 private:
   SerialIO* _serialIO;
   std::stringstream _ssOut;
-  static const int PACKAGE_SIZE = 8;
-  char buffer[PACKAGE_SIZE];
+  static const unsigned int HEADER_SIZE = 4;
+  static const unsigned int MAX_CHANNELS = 255;
+  unsigned int _num_leds;
 
-  int sendData(const char* data, size_t len);
-  void updateColorBuffer(float color_value);
-  void updateChannelBuffer();
-  unsigned short int getChecksum(const char* data, size_t len);
-  int actual_channel;
+  bool sendDMX(uint16_t start, const char* buf, unsigned int length);
 };
 
 #endif

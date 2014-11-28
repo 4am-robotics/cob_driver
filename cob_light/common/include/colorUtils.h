@@ -69,6 +69,14 @@ struct rgba
 	float a;
 };
 
+struct rgb
+{
+  rgb(): r(0.0), g(0.0), b(0.0){}
+  float r;
+  float g;
+  float b;
+};
+
 struct hsv
 {
 	hsv(): h(0.0), s(0.0), v(0.0) {}
