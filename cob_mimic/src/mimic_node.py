@@ -93,7 +93,7 @@ class Mimic:
         self.default_speed = self.speed
       else: 
         for i in range(0,req.repeat):
-          command = "vlc --fullscreen --rate %d %s"  % (self.speed,file_localition)
+          command = "vlc --fullscreen --video-filter 'rotate{angle=90}' --no-video-title-show --rate %d %s"  % (self.speed,file_localition)
           os.system(command)
           
       os.system(self.quit_command)
@@ -102,7 +102,7 @@ class Mimic:
   def defaultMimic(self):
     while not rospy.is_shutdown():
       file_localition = roslib.packages.get_pkg_dir('cob_mimic') + '/common/' + self.default_mimic + '.mp4'
-      command = "vlc --fullscreen --rate %d --loop %s"  % (self.default_speed,file_localition) 
+      command = "vlc --fullscreen --video-filter 'rotate{angle=90}' --no-video-title-show --rate %d  --loop %s"  % (self.default_speed,file_localition) 
       os.system(command)
       self.ServiceCalled = False
       
