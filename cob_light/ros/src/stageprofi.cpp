@@ -126,9 +126,9 @@ void StageProfi::setColorMulti(std::vector<color::rgba> &colors)
 
   for (int i = 0; i < _num_leds || i < colors.size(); i++)
   {
-    color_tmp.r *= colors[i].a;
-    color_tmp.g *= colors[i].a;
-    color_tmp.b *= colors[i].a;
+    color_tmp.r = colors[i].r * colors[i].a;
+    color_tmp.g = colors[i].g * colors[i].a;
+    color_tmp.b = colors[i].b * colors[i].a;
 
     color_tmp.r = fabs(color_tmp.r * 255);
     color_tmp.g = fabs(color_tmp.g * 255);

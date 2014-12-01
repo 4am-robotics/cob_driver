@@ -175,7 +175,8 @@ protected:
 			r.sleep();
 		}
 		ROS_INFO("Mode %s finished",this->getName().c_str());
-		m_sigFinished();
+		if(!isStopRequested())
+			m_sigFinished();
 	}
 };
 

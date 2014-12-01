@@ -102,9 +102,9 @@ def changeColor():
 
   blue = ColorRGBA()
   blue.r = 0
-  blue.g = 0
-  blue.b = 1
-  blue.a = 1
+  blue.g = 1
+  blue.b = 0.7
+  blue.a = 0.4
 
   white = ColorRGBA()
   white.r = 0.3
@@ -115,30 +115,29 @@ def changeColor():
   light_mode.mode = 6
   light_mode.frequency=100
   seq1 = Sequence()
-  seq1.color = dimm;
-  seq1.hold_time = 1;
-  seq1.cross_time = 0.05;
+  seq1.color = blue
+  seq1.hold_time = 4;
+  seq1.cross_time = 1;
   light_mode.sequences.append(seq1);
-  print "Setting color: ", off
   
   seq2 = Sequence()
   seq2.color = red;
-  seq2.hold_time = 0.08;
-  seq2.cross_time = 0.05;  
+  seq2.hold_time = 4;
+  seq2.cross_time = 1;  
   light_mode.sequences.append(seq2);
   
-  seq3 = Sequence()
-  seq3.color = off;
-  seq3.hold_time = 0.06;
-  seq3.cross_time = 0.05;
-  light_mode.sequences.append(seq3);
+ # seq3 = Sequence()
+ # seq3.color = off;
+ # seq3.hold_time = 0.06;
+ # seq3.cross_time = 0.05;
+ # light_mode.sequences.append(seq3);
   
-  seq4 = Sequence()
-  seq4.color = light_red;
-  seq4.hold_time = 0.08;
-  seq4.cross_time = 0.05;
-  light_mode.sequences.append(seq4);
-  
+ # seq4 = Sequence()
+ # seq4.color = light_red;
+ # seq4.hold_time = 0.08;
+ # seq4.cross_time = 0.05;
+ # light_mode.sequences.append(seq4);
+ # 
   try:
     resp1 = control_lights(light_mode)
     print resp1

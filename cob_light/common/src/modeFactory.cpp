@@ -126,9 +126,13 @@ Mode* ModeFactory::create(cob_light::LightMode requestMode, IColorO* colorO)
 
 		case cob_light::LightMode::CIRCLE_COLORS:
 		{
+	std::cout<<"Factory generting Circle_Colors";
         std::vector<color::rgba> colors;
         if(requestMode.colors.empty())
+	{
+	  std::cout<<"Colors is empty"<<std::endl;
           colors.push_back(color);
+	}
         else
         {
           for(size_t i = 0; i < requestMode.colors.size(); i++)
@@ -137,6 +141,7 @@ Mode* ModeFactory::create(cob_light::LightMode requestMode, IColorO* colorO)
             color.g = requestMode.colors[i].g;
             color.b = requestMode.colors[i].b;
             color.a = requestMode.colors[i].a;
+	    colors.push_back(color);
           }
         }
 		    mode = new CircleColorMode(colors, colorO->getNumLeds(), requestMode.priority, requestMode.frequency, requestMode.pulses, requestMode.timeout);
