@@ -71,48 +71,43 @@ from cob_mimic.srv import *
 
 class Mimic:
   def set_mimic(self,req):
-
       self.ServiceCalled = True
-      
+      #os.system(self.quit_command)
+
       print "Mimic: %s" % req.mimic
       file_localition = roslib.packages.get_pkg_dir('cob_mimic') + '/common/' + req.mimic + '.mp4'
       if(not os.path.isfile(file_localition)):
         print "File not found: cob_mimic" + "/common/" + req.mimic + '.mp4'
         return
-      #command = "animate -loop 0 %s "  % file_localition
-      
-       
-      if ( req.speed == 0 ):
-        self.speed = 1
-      else:
-        self.speed = req.speed
         
       if (req.repeat == 0 ):
-        self.ServiceCalled == False
         self.default_mimic = req.mimic
-        self.default_speed = self.speed
+        self.default_speed = req.speed
+        self.ServiceCalled = False
       else: 
         for i in range(0,req.repeat):
-          command = "vlc --fullscreen --rate %d %s"  % (self.speed,file_localition)
-          os.system(command)
-          
+          command = "vlc --one-instance --playlist-enqueue --no-video-title-show --rate %f %s"  % (req.speed,file_localition) #--fullscreen --video-filter 'rotate{angle=90}'
+          os.system(command)   
       os.system(self.quit_command)
       return
       
   def defaultMimic(self):
     while not rospy.is_shutdown():
       file_localition = roslib.packages.get_pkg_dir('cob_mimic') + '/common/' + self.default_mimic + '.mp4'
-      command = "vlc --fullscreen --rate %d --loop %s"  % (self.default_speed,file_localition) 
+      if(not os.path.isfile(file_localition)):
+        print "File not found: cob_mimic" + "/common/" + self.default_mimic + '.mp4' 
+        return
+      command = "vlc --loop --one-instance --playlist-enqueue --no-video-title-show --rate %f  %s"  % (self.default_speed,file_localition) # --fullscreen --video-filter 'rotate{angle=90}'
       os.system(command)
-      self.ServiceCalled = False
+
       
       
   def main(self):
     rospy.init_node('mimic')
     self.ServiceCalled = False
-    self.default_speed = 1
-    self.default_mimic = "default"
-    self.quit_command = "vlc vlc://quit"
+    self.default_speed = 1.0
+    self.default_mimic = "test"
+    self.quit_command = "vlc --one-instance --playlist-enqueue vlc://quit"
     
     s=rospy.Service('mimic',SetMimic, self.set_mimic)
     
