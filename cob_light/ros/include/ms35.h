@@ -67,6 +67,7 @@ public:
   MS35(SerialIO* serialIO);
   virtual ~MS35();
 
+  bool init();
   void setColor(color::rgba color);
   void setColorMulti(std::vector<color::rgba> &colors);
 

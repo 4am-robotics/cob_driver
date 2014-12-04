@@ -113,6 +113,10 @@ public:
   LightControl() :
     _invertMask(0), _topic_priority(0)
   {
+  }
+  bool init()
+  {
+    bool ret = true;
     bool invert_output;
     XmlRpc::XmlRpcValue param_list;
     std::string startup_mode;
@@ -200,17 +204,30 @@ public:
       if(_serialIO.openPort(_deviceString, _baudrate) != -1)
       {
         ROS_INFO("Serial connection on %s succeeded.", _deviceString.c_str());
+        status.level = 0;
+        status.message = "light controller running";
+
         if(_deviceDriver == "cob_ledboard")
           p_colorO = new ColorO(&_serialIO);
         else if(_deviceDriver == "ms-35")
           p_colorO = new MS35(&_serialIO);
         else if(_deviceDriver == "stageprofi")
           p_colorO = new StageProfi(&_serialIO, _num_leds);
-        if(p_colorO)
-          p_colorO->setMask(_invertMask);
-
-        status.level = 0;
-        status.message = "light controller running";
+        else
+        {
+          ROS_ERROR_STREAM("Unsupported devicedriver ["<<_deviceDriver<<"], falling back to sim mode");
+          p_colorO = new ColorOSim(&_nh);
+          status.level = 2;
+          status.message = "Unsupported devicedriver. Running in simulation mode";
+        }
+        p_colorO->setMask(_invertMask);
+        if(!p_colorO->init())
+        {
+          status.level = 3;
+          status.message = "Initializing connection to driver failed";
+          ROS_ERROR("Initializing connection to driver failed. Exiting");
+          ret = false;
+        }
       }
       else
       {
@@ -235,6 +252,9 @@ public:
     _pubDiagnostic.publish(_diagnostics);
     _diagnostics.status.resize(0);
 
+    if(!ret)
+      return false;
+
     if(_bPubMarker)
       p_colorO->signalColorSet()->connect(boost::bind(&LightControl::markerCallback, this, _1));
 
@@ -247,6 +267,8 @@ public:
     }
     else
       p_modeExecutor->execute(mode);
+
+    return true;
   }
 
   ~LightControl()
@@ -433,18 +455,20 @@ int main(int argc, char** argv)
 
   // create LightControl instance
   LightControl *lightControl = new LightControl();
-
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
-
-  while (!gShutdownRequest)
+  if(lightControl->init())
   {
-    ros::Duration(0.05).sleep();
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
+
+    while (!gShutdownRequest)
+    {
+      ros::Duration(0.05).sleep();
+    }
+
+    delete lightControl;
+
+    ros::shutdown();
   }
-
-  delete lightControl;
-
-  ros::shutdown();
 
   return 0;
 }
