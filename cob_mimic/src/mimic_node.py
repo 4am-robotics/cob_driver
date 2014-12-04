@@ -69,26 +69,59 @@ import Image
 
 from cob_mimic.srv import *
 
+class Mimic:
+  def set_mimic(self,req):
+      self.ServiceCalled = True
+      #os.system(self.quit_command)
 
-def set_mimic(req):
-    print "Mimic: %s" % req.mimic.data
-    file_localition = roslib.packages.get_pkg_dir('cob_mimic') + '/common/' + req.mimic.data + '.gif'
-    if(not os.path.isfile(file_localition)):
-      print "File not found: cob_mimic" + "/common/" + req.mimic.data + '.gif'
-      return
-    command = "animate -loop 0 %s"  % file_localition
-    #command = "vlc --fullscreen %s"  % file_localition
-    os.system(command)
+      print "Mimic: %s" % req.mimic
+      file_localition = roslib.packages.get_pkg_dir('cob_mimic') + '/common/' + req.mimic + '.mp4'
+      if(not os.path.isfile(file_localition)):
+        print "File not found: cob_mimic" + "/common/" + req.mimic + '.mp4'
+        return
+        
+      if (req.repeat == 0 ):
+        self.default_mimic = req.mimic
+        self.default_speed = req.speed
+        self.ServiceCalled = False
+      else: 
+        for i in range(0,req.repeat):
+          command = "export DISPLAY=:0 && vlc --fullscreen --video-filter 'rotate{angle=0}' --one-instance --playlist-enqueue --no-video-title-show --rate %f %s"  % (req.speed,file_localition) #--fullscreen --video-filter 'rotate{angle=90}'
+          os.system(command)   
+      os.system(self.quit_command)
+      return SetMimicResponse()
+      
+  def defaultMimic(self):
+    while not rospy.is_shutdown():
+      file_localition = roslib.packages.get_pkg_dir('cob_mimic') + '/common/' + self.default_mimic + '.mp4'
+      if(not os.path.isfile(file_localition)):
+        print "File not found: cob_mimic" + "/common/" + self.default_mimic + '.mp4' 
+        return
+      command = "export DISPLAY=:0 && vlc --fullscreen --video-filter 'rotate{angle=0}' --loop --one-instance --playlist-enqueue --no-video-title-show --rate %f  %s"  % (self.default_speed,file_localition) # --fullscreen --video-filter 'rotate{angle=90}'
+      os.system(command)
 
-def main():
+      
+      
+  def main(self):
     rospy.init_node('mimic')
-    s=rospy.Service('mimic',SetMimic, set_mimic)
-    rospy.spin()
+    self.ServiceCalled = False
+    self.default_speed = 1.0
+    self.default_mimic = "default"
+    self.quit_command = "export DISPLAY=:0 && vlc --one-instance --playlist-enqueue vlc://quit"
     
+    s=rospy.Service('mimic',SetMimic, self.set_mimic)
+    
+    while ( self.ServiceCalled == False):
+      self.defaultMimic()
+        
+    rospy.spin()
+
+
  
 if __name__ == "__main__":
   try:
-    main()
+    mimic = Mimic()
+    mimic.main()
   except KeyboardInterrupt, e:
     pass
   print "exiting"

@@ -11,17 +11,14 @@ add_service_files(DIRECTORY srv FILES
   SetMimic.srv
 )
 
-generate_messages(
-  DEPENDENCIES std_msgs
-)
-
+generate_messages(DEPENDENCIES std_msgs)
 
 ###################################
 ## catkin specific configuration ##
 ###################################
 
 catkin_package(
-    CATKIN_DEPENDS rospy std_msgs message_runtime # TODO
+    CATKIN_DEPENDS rospy std_msgs message_runtime# TODO
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )
@@ -42,6 +39,6 @@ install(PROGRAMS src/mimic_node.py
 )
 
 install(DIRECTORY common
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/common
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
