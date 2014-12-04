@@ -69,7 +69,7 @@ enum State{INIT_SEQ,CROSSFADE,HOLD,NEXT,BEGIN};
 class SequenceMode : public Mode
 {
 public:
-  SequenceMode(std::vector<seq_t> sequences, int priority = 0, double freq = 1, int pulses = 0, double timeout = 0)
+  SequenceMode(std::vector<seq_t> sequences, int priority = 0, double freq = 0.25, int pulses = 0, double timeout = 0)
     :Mode(priority, freq, pulses, timeout), _init(true), _int_inc(0.0), _int_count(0.0)
   {
     _seqences = sequences;

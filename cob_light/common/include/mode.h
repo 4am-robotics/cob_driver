@@ -127,6 +127,7 @@ protected:
 	color::rgba _color;
 	std::vector<color::rgba> _colors;
 	color::rgba _actualColor;
+	color::rgba _init_color;
 
 	static const unsigned int UPDATE_RATE_HZ = 100;
 
