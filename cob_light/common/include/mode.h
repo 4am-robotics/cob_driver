@@ -125,6 +125,7 @@ protected:
 
 	color::rgba _color;
 	color::rgba _actualColor;
+	color::rgba _init_color;
 
 	static const unsigned int UPDATE_RATE_HZ = 100;
 
