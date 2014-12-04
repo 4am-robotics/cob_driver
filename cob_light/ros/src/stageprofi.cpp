@@ -165,6 +165,8 @@ void StageProfi::setColorMulti(std::vector<color::rgba> &colors)
 
 bool StageProfi::sendDMX(uint16_t start, const char* buf, unsigned int length)
 {
+  bool ret = false;
+  std::string recv;
   char msg[MAX_CHANNELS + HEADER_SIZE];
 
   unsigned int len = std::min((unsigned int) MAX_CHANNELS, length);
@@ -177,7 +179,12 @@ bool StageProfi::sendDMX(uint16_t start, const char* buf, unsigned int length)
   memcpy(msg + HEADER_SIZE, buf, len);
 
   const int bytes_to_send = len + HEADER_SIZE;
-  return _serialIO->sendData(msg, bytes_to_send) == bytes_to_send;
+
+  //send color command to controller
+  ret = _serialIO->sendData(msg, bytes_to_send) == bytes_to_send;
+  //receive ack
+  ret &= _serialIO->readData(recv, 1) == 1;
+  return ret;
 }
 
 bool StageProfi::recover()
