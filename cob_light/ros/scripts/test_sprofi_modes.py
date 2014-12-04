@@ -61,7 +61,7 @@ from cob_light.msg import *
 def changeColor():
   rospy.wait_for_service('/light_controller/mode')
   control_lights = rospy.ServiceProxy('/light_controller/mode', SetLightMode)
-  
+  rospy.init_node('light_test')
   light_mode = LightMode()
   #color in rgb color space ranging from 0 to 1
   red = ColorRGBA()
