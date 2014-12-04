@@ -69,7 +69,7 @@ ModeExecutor::~ModeExecutor()
 
 void ModeExecutor::execute(cob_light::LightMode requestedMode)
 {
-	Mode* mode = ModeFactory::create(requestedMode);
+	Mode* mode = ModeFactory::create(requestedMode, _colorO);
 	// check if mode was correctly created
 	if(mode != NULL)
 		execute(mode);
@@ -86,6 +86,7 @@ void ModeExecutor::execute(Mode* mode)
 			_activeMode->stop();
 			_activeMode = mode;
 			_activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1));
+			_activeMode->signalColorsReady()->connect(boost::bind(&IColorO::setColorMulti, _colorO, _1));
 			_activeMode->signalModeFinished()->connect(boost::bind(&ModeExecutor::onModeFinishedReceived, this));
 			_activeMode->setActualColor(_activeColor);
 			_activeMode->start();
@@ -100,6 +101,7 @@ void ModeExecutor::execute(Mode* mode)
 	{
 		_activeMode = mode;
 		_activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1));
+		_activeMode->signalColorsReady()->connect(boost::bind(&IColorO::setColorMulti, _colorO, _1));
 		_activeMode->signalModeFinished()->connect(boost::bind(&ModeExecutor::onModeFinishedReceived, this));
 		_activeMode->setActualColor(_activeColor);
 		_activeMode->start();

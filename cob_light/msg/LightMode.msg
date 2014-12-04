@@ -7,6 +7,8 @@ uint8 BREATH_COLOR =   4           # will change the LEDs smoothly with "frequen
 						                       # and flips color in time
 uint8 FADE_COLOR =     5           # will fade the colors in rainbow
 uint8 SEQ =            6           # executes one sequence after another as definied in sequences array
+uint8 CIRCLE_COLORS =  7           # circle through specific colors, if one color is set only one color will circle
+                                   # if more than one color is set, that this colors will circle through
 
 std_msgs/ColorRGBA     color       #the color which will be used
 float32                frequency   # in Hz

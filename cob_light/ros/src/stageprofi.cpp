@@ -57,10 +57,10 @@
 #include <boost/integer.hpp>
 #include <algorithm>
 
-StageProfi::StageProfi(SerialIO* serialIO, unsigned int leds) :
-    _num_leds(leds)
+StageProfi::StageProfi(SerialIO* serialIO, unsigned int leds)
 {
   _serialIO = serialIO;
+  _num_leds = leds;
   const char init_data[] =
   { 'C', '?' };
   int init_len = sizeof(init_data) / sizeof(init_data[0]);
@@ -126,9 +126,9 @@ void StageProfi::setColorMulti(std::vector<color::rgba> &colors)
 
   for (int i = 0; i < _num_leds || i < colors.size(); i++)
   {
-    color_tmp.r *= colors[i].a;
-    color_tmp.g *= colors[i].a;
-    color_tmp.b *= colors[i].a;
+    color_tmp.r = colors[i].r * colors[i].a;
+    color_tmp.g = colors[i].g * colors[i].a;
+    color_tmp.b = colors[i].b * colors[i].a;
 
     color_tmp.r = fabs(color_tmp.r * 255);
     color_tmp.g = fabs(color_tmp.g * 255);
