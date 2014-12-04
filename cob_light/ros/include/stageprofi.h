@@ -74,7 +74,6 @@ private:
   std::stringstream _ssOut;
   static const unsigned int HEADER_SIZE = 4;
   static const unsigned int MAX_CHANNELS = 255;
-  unsigned int _num_leds;
 
   bool sendDMX(uint16_t start, const char* buf, unsigned int length);
 };

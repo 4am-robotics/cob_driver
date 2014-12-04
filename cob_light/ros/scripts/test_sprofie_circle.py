@@ -96,9 +96,9 @@ def changeColor():
 
   green = ColorRGBA()
   green.r = 0
-  green.g = 1
+  green.g = 1.0
   green.b = 0
-  green.a = 1
+  green.a = 1.0
 
   blue = ColorRGBA()
   blue.r = 0
@@ -112,32 +112,69 @@ def changeColor():
   white.b = 0.3
   white.a = 1
 
-  light_mode.mode = 6
-  light_mode.frequency=100
-  seq1 = Sequence()
-  seq1.color = blue
-  seq1.hold_time = 4;
-  seq1.cross_time = 1;
-  light_mode.sequences.append(seq1);
-  
-  seq2 = Sequence()
-  seq2.color = red;
-  seq2.hold_time = 4;
-  seq2.cross_time = 1;  
-  light_mode.sequences.append(seq2);
-  
- # seq3 = Sequence()
- # seq3.color = off;
- # seq3.hold_time = 0.06;
- # seq3.cross_time = 0.05;
- # light_mode.sequences.append(seq3);
-  
- # seq4 = Sequence()
- # seq4.color = light_red;
- # seq4.hold_time = 0.08;
- # seq4.cross_time = 0.05;
- # light_mode.sequences.append(seq4);
- # 
+  light_mode.mode = 7
+  light_mode.frequency=40
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);  
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);  
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);  
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);  
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);  
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);  
+  light_mode.colors.append(green);
+  light_mode.colors.append(green);
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
+  light_mode.colors.append(blue);  
   try:
     resp1 = control_lights(light_mode)
     print resp1
