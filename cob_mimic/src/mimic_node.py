@@ -98,7 +98,7 @@ class Mimic:
         self.ServiceCalled = False
       else: 
         for i in range(0,repeat):
-          command = "export DISPLAY=:0 && vlc --fullscreen --video-filter 'rotate{angle=0}' --one-instance --playlist-enqueue --no-video-title-show --rate %f %s"  % (speed,file_location) #--fullscreen --video-filter 'rotate{angle=90}'
+          command = "export DISPLAY=:0 && vlc --video-wallpaper --video-filter 'rotate{angle=0}' --one-instance --playlist-enqueue --no-video-title-show --rate %f %s"  % (speed,file_location) #--fullscreen --video-filter 'rotate{angle=90}'
           os.system(command)
       os.system(self.quit_command)
       return True
@@ -110,7 +110,7 @@ class Mimic:
         print "File not found: " + file_location
         rospy.sleep(1)
         return
-      command = "export DISPLAY=:0 && vlc --fullscreen --video-filter 'rotate{angle=0}' --loop --one-instance --playlist-enqueue --no-video-title-show --rate %f  %s"  % (self.default_speed,file_location) # --fullscreen --video-filter 'rotate{angle=90}'
+      command = "export DISPLAY=:0 && vlc --video-wallpaper --video-filter 'rotate{angle=0}' --loop --one-instance --playlist-enqueue --no-video-title-show --rate %f  %s"  % (self.default_speed,file_location) # --fullscreen --video-filter 'rotate{angle=90}'
       os.system(command)
 
       
