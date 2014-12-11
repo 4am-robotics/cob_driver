@@ -72,8 +72,12 @@
 #include <control_msgs/JointTrajectoryControllerState.h>
 
 // external includes
-#include <cob_undercarriage_ctrl/UndercarriageCtrlGeom.h>
+//#include <cob_undercarriage_ctrl/UndercarriageCtrlGeom.h>
+// /home/mig-jg/indigo_workspace/src/cob_control/cob_omni_drive_controller/include/cob_omni_drive_controller/UndercarriageCtrlGeom.h
+#include <cob_omni_drive_controller/UndercarriageCtrlGeom.h>
 #include <cob_utilities/IniFile.h>
+#include <vector>
+#include "yaml-cpp/yaml.h"
 //#include <cob_utilities/MathSup.h>
 
 //####################
@@ -121,6 +125,8 @@ class NodeClass
     double max_vel_trans_, max_vel_rot_;
 
     int m_iNumJoints;
+
+    YAML::Node* yaml_conf_node;
 
     diagnostic_msgs::DiagnosticStatus diagnostic_status_lookup_; // used to access defines for warning levels
 
@@ -201,8 +207,14 @@ class NodeClass
       iniFile.SetFileName(sIniDirectory + "Platform.ini", "PltfHardwareCoB3.h");
       iniFile.GetKeyInt("Config", "NumberOfMotors", &m_iNumJoints, true);
 
-      ucar_ctrl_ = new UndercarriageCtrlGeom(sIniDirectory);
+      std::vector<UndercarriageCtrlGeom::WheelParams> wps;
 
+
+      yaml_conf_node = new YAML::Node();
+      // TODO: read config and create wheelparam instances
+
+
+      ucar_ctrl_ = new UndercarriageCtrlGeom(wps);
 
       // implementation of topics
       // published topics
@@ -289,13 +301,13 @@ class NodeClass
             msg->linear.x, msg->linear.y, msg->angular.z);
 
         // Set desired value for Plattform Velocity to UndercarriageCtrl (setpoint setting)
-        ucar_ctrl_->SetDesiredPltfVelocity(vx_cmd_mms, vy_cmd_mms, w_cmd_rads, 0.0);
+//        ucar_ctrl_->SetDesiredPltfVelocity(vx_cmd_mms, vy_cmd_mms, w_cmd_rads, 0.0);
         // ToDo: last value (0.0) is not used anymore --> remove from interface
       }
       else
       {	
         // Set desired value for Plattform Velocity to zero (setpoint setting)
-        ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
+//        ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
         // ToDo: last value (0.0) is not used anymore --> remove from interface
         ROS_DEBUG("Forced platform-velocity cmds to zero");
       }
@@ -313,7 +325,7 @@ class NodeClass
         // Reset EM flag in Ctrlr
         if (is_initialized_bool_) 
         {
-          ucar_ctrl_->setEMStopActive(false);
+//          ucar_ctrl_->setEMStopActive(false);
           ROS_DEBUG("Undercarriage Controller EM-Stop released");
           // reset only done, when system initialized
           // -> allows to stop ctrlr during init, reset and shutdown
@@ -324,12 +336,12 @@ class NodeClass
         ROS_DEBUG("Undercarriage Controller stopped due to EM-Stop");
 
         // Set desired value for Plattform Velocity to zero (setpoint setting)
-        ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
+//        ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
         // ToDo: last value (0.0) is not used anymore --> remove from interface
         ROS_DEBUG("Forced platform-velocity cmds to zero");
 
         // Set EM flag and stop Ctrlr
-        ucar_ctrl_->setEMStopActive(true);
+//        ucar_ctrl_->setEMStopActive(true);
       }
     }
 
@@ -378,10 +390,10 @@ class NodeClass
           ROS_DEBUG("drive chain not availlable: halt Controller");
 
           // Set EM flag to Ctrlr (resets internal states)
-          ucar_ctrl_->setEMStopActive(true);
+//          ucar_ctrl_->setEMStopActive(true);
 
           // Set desired value for Plattform Velocity to zero (setpoint setting)
-          ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
+//          ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
           // ToDo: last value (0.0) is not used anymore --> remove from interface
           ROS_DEBUG("Forced platform-velocity cmds to zero");
 
@@ -483,8 +495,8 @@ class NodeClass
       }
 
       // Set measured Wheel Velocities and Angles to Controler Class (implements inverse kinematic)
-      ucar_ctrl_->SetActualWheelValues(drive_joint_vel_rads, steer_joint_vel_rads,
-          drive_joint_ang_rad, steer_joint_ang_rad);
+//      ucar_ctrl_->SetActualWheelValues(drive_joint_vel_rads, steer_joint_vel_rads,
+//          drive_joint_ang_rad, steer_joint_ang_rad);
 
 
       // calculate odometry every time
@@ -517,7 +529,7 @@ int main(int argc, char** argv)
   NodeClass nodeClass;
 
   // automatically do initializing of controller, because it's not directly depending any hardware components
-  nodeClass.ucar_ctrl_->InitUndercarriageCtrl();
+//  nodeClass.ucar_ctrl_->InitUndercarriageCtrl();
   nodeClass.is_initialized_bool_ = true;
 
   if( nodeClass.is_initialized_bool_ ) {
@@ -561,7 +573,7 @@ void NodeClass::CalcCtrlStep()
     // perform one control step,
     // get the resulting cmd's for the wheel velocities and -angles from the controller class
     // and output the achievable pltf velocity-cmds (if velocity limits where exceeded)
-    ucar_ctrl_->GetNewCtrlStateSteerDriveSetValues(drive_jointvel_cmds_rads,  steer_jointvel_cmds_rads, steer_jointang_cmds_rad, vx_cmd_ms, vy_cmd_ms, w_cmd_rads, dummy);
+//    ucar_ctrl_->GetNewCtrlStateSteerDriveSetValues(drive_jointvel_cmds_rads,  steer_jointvel_cmds_rads, steer_jointang_cmds_rad, vx_cmd_ms, vy_cmd_ms, w_cmd_rads, dummy);
     // ToDo: adapt interface of controller class --> remove last values (not used anymore)
 
     // if drives not operating nominal -> force commands to zero
@@ -649,8 +661,8 @@ void NodeClass::UpdateOdometry()
     // !Careful! Controller internally calculates with mm instead of m
     // ToDo: change internal calculation to SI-Units
     // ToDo: last values are not used anymore --> remove from interface
-    ucar_ctrl_->GetActualPltfVelocity(delta_x_rob_m, delta_y_rob_m, delta_theta_rob_rad, dummy1,
-        vel_x_rob_ms, vel_y_rob_ms, rot_rob_rads, dummy2);
+//    ucar_ctrl_->GetActualPltfVelocity(delta_x_rob_m, delta_y_rob_m, delta_theta_rob_rad, dummy1,
+//        vel_x_rob_ms, vel_y_rob_ms, rot_rob_rads, dummy2);
 
     // convert variables to SI-Units
     vel_x_rob_ms = vel_x_rob_ms/1000.0;
