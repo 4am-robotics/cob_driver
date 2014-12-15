@@ -2,6 +2,49 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.2 (2014-12-15)
+------------------
+* fix warning message
+* Merge pull request `#188 <https://github.com/ipa320/cob_driver/issues/188>`_ from ipa-bnm/feature/newCircleMode
+  feature/new-circle-mode and bugfixes
+* Merge branch 'feature/newCircleMode' of https://github.com/ipa-bnm/cob_driver into indigo_new_structure
+* change default frequency and fix breath mode
+* Merge branch 'indigo_dev' of https://github.com/ipa-nhg/cob_driver into ipa-nhg-indigo_dev
+* added circle color mode test script
+* fixed circle color mode
+* implemented new circular mode
+* defined 1Hz startup frecuency
+* frequency corresponds to choosen mode
+* fix
+* removed debug output
+* fixes to stagedriver and some refactoring
+* write stageprofi colors for all dmx channels within one command
+* cleanup
+* queue messages
+* added concurrent queue
+* merge conflict
+* typo fix
+* Tested on cob4-2 for all modes
+* Changes for the LED driver without led numbers
+* Tested on cob4-2
+* Temporary commit for tests
+* CHanges for array of leds
+* Merge branch 'indigo_dev' of https://github.com/ipa320/cob_driver into indigo_dev
+  Conflicts:
+  cob_light/ros/src/ms35.cpp
+* Removed unecessary debug
+* fix minor compiler warning
+* new line at end of file
+* Changes formatting
+* Support for the StageProfi board on cob_light
+* Contributors: Benjamin Maidel, Florian Weisshardt, bnm, ipa-cob4-2, ipa-fmw, ipa-fxm, ipa-nhg, thiagodefreitas
+
+0.6.1 (2014-09-17)
+------------------
+
+0.6.0 (2014-09-09)
+------------------
+
 0.5.7 (2014-08-26)
 ------------------
 * Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev
