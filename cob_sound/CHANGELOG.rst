@@ -2,6 +2,13 @@
 Changelog for package cob_sound
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'indigo_dev' into indigo_release_candidate
+* missed dependency
+* missed dependency
+* Contributors: Florian Weisshardt, ipa-cob4-2, ipa-nhg
+
 0.6.1 (2014-09-17)
 ------------------
 

@@ -2,6 +2,13 @@
 Changelog for package cob_voltage_control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix install tag
+* Tested on cob4-2
+* make record current and voltage generic
+* Contributors: ipa-cob4-2
+
 0.6.1 (2014-09-17)
 ------------------
 * merge conflict

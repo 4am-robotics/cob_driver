@@ -2,6 +2,9 @@
 Changelog for package cob_phidgets
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.1 (2014-09-17)
 ------------------
 * Fixes the weird Jenkins release problem

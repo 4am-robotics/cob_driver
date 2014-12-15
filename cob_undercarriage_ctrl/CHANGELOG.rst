@@ -2,6 +2,9 @@
 Changelog for package cob_undercarriage_ctrl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.1 (2014-09-17)
 ------------------
 

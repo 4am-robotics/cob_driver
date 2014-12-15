@@ -2,6 +2,11 @@
 Changelog for package cob_base_drive_chain
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* remove joint_states publisher for simulation - using JointStateController anyway
+* Contributors: ipa-fxm
+
 0.6.1 (2014-09-17)
 ------------------
 
