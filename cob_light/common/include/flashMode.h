@@ -60,8 +60,8 @@
 class FlashMode : public Mode
 {
 public:
-	FlashMode(color::rgba color, int priority = 0, double freq = 5, int pulses = 0, double timeout = 0)
-		:Mode(priority, freq, pulses, timeout), _toggle(false)
+	FlashMode(color::rgba color, int priority = 0, double freq = 0.25, int pulses = 0, double timeout = 0)
+		:Mode(priority, freq, pulses, timeout), _toggle(false), _timer_inc(0)
 	{
 		_color = color;
 		if(_pulses != 0)
@@ -69,6 +69,7 @@ public:
 			_pulses *=2;
 			_pulses +=1;
 		}
+		_inc = (1. / UPDATE_RATE_HZ) * _freq;
 	}
 
 	void execute()
@@ -77,18 +78,24 @@ public:
 		col.r = _color.r;
 		col.g = _color.g;
 		col.b = _color.b;
-		col.a = _color.a * (int)_toggle;
-		
-		_pulsed++;
-		_toggle = !_toggle;
-		
-		m_sigColorReady(col);
+		if(_timer_inc >= 1.0)
+		{
+		  col.a = _color.a * (int)_toggle;
+		  _pulsed++;
+		  _toggle = !_toggle;
+		  m_sigColorReady(col);
+		  _timer_inc = 0.0;
+		}
+		else
+		  _timer_inc += _inc;
 	}
 
 	std::string getName(){ return std::string("FlashMode"); }
 
 private:
 	bool _toggle;
+	double _timer_inc;
+	double _inc;
 };
 
 #endif

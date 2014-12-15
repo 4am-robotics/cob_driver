@@ -41,7 +41,7 @@
 # License, or (at your option) any later version.
 # 
 # This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; withouself.ser = serial.Serial('/dev/ttyUSB0', 230400)t even the implied warranty of
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Lesser General Public License LGPL for more details.
 # 
@@ -89,7 +89,7 @@ def changeColor():
 	white.r = 0.3
 	white.g = 1
 	white.b = 0.3
-	white.g = 1
+	white.a = 1
 	
 	for color in [red,yellow,green,white,blue,green]:
 		rospy.loginfo("Setting rgb to %s [%d, %d, %d]",color.r,color.g,color.b,color.a)

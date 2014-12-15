@@ -59,17 +59,17 @@ ModeExecutor::ModeExecutor(IColorO* colorO)
 : _stopRequested(false), default_priority(0)
 {
 	_colorO = colorO;
+	_colorO->signalColorSet()->connect(boost::bind(&ModeExecutor::onColorSetReceived, this, _1));
 	_activeMode = NULL;
 }
 
 ModeExecutor::~ModeExecutor()
 {
-	
 }
 
 void ModeExecutor::execute(cob_light::LightMode requestedMode)
 {
-	Mode* mode = ModeFactory::create(requestedMode);
+	Mode* mode = ModeFactory::create(requestedMode, _colorO);
 	// check if mode was correctly created
 	if(mode != NULL)
 		execute(mode);
@@ -83,10 +83,13 @@ void ModeExecutor::execute(Mode* mode)
 		// check if priority from requested mode is higher or the same
 		if(_activeMode->getPriority() <= mode->getPriority())
 		{
-			stop();
+			_activeMode->stop();
 			_activeMode = mode;
 			_activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1));
-			_thread_ptr.reset(new boost::thread(boost::lambda::bind(&ModeExecutor::run, this)));
+			_activeMode->signalColorsReady()->connect(boost::bind(&IColorO::setColorMulti, _colorO, _1));
+			_activeMode->signalModeFinished()->connect(boost::bind(&ModeExecutor::onModeFinishedReceived, this));
+			_activeMode->setActualColor(_activeColor);
+			_activeMode->start();
 			ROS_INFO("Executing new mode: %s",_activeMode->getName().c_str() );
 			ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %f pulses: %i ",
 				ModeFactory::type(mode), mode->getPriority(), mode->getFrequency(), mode->getTimeout(), mode->getPulses());
@@ -98,7 +101,10 @@ void ModeExecutor::execute(Mode* mode)
 	{
 		_activeMode = mode;
 		_activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1));
-		_thread_ptr.reset(new boost::thread(boost::lambda::bind(&ModeExecutor::run, this)));
+		_activeMode->signalColorsReady()->connect(boost::bind(&IColorO::setColorMulti, _colorO, _1));
+		_activeMode->signalModeFinished()->connect(boost::bind(&ModeExecutor::onModeFinishedReceived, this));
+		_activeMode->setActualColor(_activeColor);
+		_activeMode->start();
 		ROS_INFO("Executing new mode: %s",_activeMode->getName().c_str() );
 		ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %f pulses: %i ",
 				ModeFactory::type(mode), mode->getPriority(), mode->getFrequency(), mode->getTimeout(), mode->getPulses());
@@ -106,59 +112,27 @@ void ModeExecutor::execute(Mode* mode)
 
 }
 
-void ModeExecutor::run()
-{
-	ros::Rate r(10);
-	if(_activeMode->getFrequency() != 0.0)
-		r = ros::Rate(_activeMode->getFrequency());
-	else
-		_activeMode->setFrequency(10);
-
-	ros::Time timeStart = ros::Time::now();
-
-	while(!isStopRequested() && !ros::isShuttingDown())
-	{
-		_activeMode->execute();
-
-		if((_activeMode->getPulses() != 0) && 
-			(_activeMode->getPulses() <= _activeMode->pulsed()))
-			break;
-
-		if(_activeMode->getTimeout() != 0)
-		{
-			ros::Duration timePassed = ros::Time::now() - timeStart;
-			if(timePassed.toSec() >= _activeMode->getTimeout())
-				break;
-		}
-		r.sleep();
-	}
-	ROS_INFO("Mode %s finished",_activeMode->getName().c_str());
-	delete _activeMode;
-	_activeMode = NULL;
-}
-
 void ModeExecutor::stop()
 {
-	_mutex.lock();
-	_stopRequested = true;
-	_mutex.unlock();
-
-	if (_thread_ptr)
-		_thread_ptr->join();
-
-	_mutex.lock();
-	_stopRequested = false;
-	_mutex.unlock();
-
+	if(_activeMode != NULL)
+	{
+		_activeMode->stop();
+		delete _activeMode;
+		_activeMode = NULL;
+	}
+}
+void ModeExecutor::onModeFinishedReceived()
+{
+	if(_activeMode !=  NULL)
+	{
+		delete _activeMode;
+		_activeMode = NULL;
+	}
 }
 
-bool ModeExecutor::isStopRequested()
+void ModeExecutor::onColorSetReceived(color::rgba color)
 {
-	bool ret;
-	_mutex.lock();
-	ret =_stopRequested;
-	_mutex.unlock();
-	return ret;
+  _activeColor = color;
 }
 
 int ModeExecutor::getExecutingMode()

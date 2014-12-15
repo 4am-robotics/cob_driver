@@ -60,7 +60,7 @@
 class FadeColorMode : public Mode
 {
 public:
-	FadeColorMode(color::rgba color, int priority = 0, double freq = 25, int pulses = 0, double timeout = 0)
+	FadeColorMode(color::rgba color, int priority = 0, double freq = 0.25, int pulses = 0, double timeout = 0)
 		:Mode(priority, freq, pulses, timeout)
 	{
 		_color = color;
@@ -69,6 +69,8 @@ public:
 		h = 0.0;
 		h_s = 0.0;
 		h_t = 0.0;
+
+		_inc = (1. / UPDATE_RATE_HZ) * _freq;
 	}
 
 	void execute()
@@ -89,8 +91,8 @@ public:
 
 		color::Color::hsv2rgb(h, 1.0, 1.0, r, g, b);
 
-		h += 0.0025;
-		h_t += 0.0025;
+		h += _inc;
+		h_t += _inc;
 		if(h > 1.0)
 			h = 0.0;
 
@@ -115,6 +117,7 @@ private:
 	float h;
 	float h_s;
 	float h_t;
+	double _inc;
 };
 
 #endif

@@ -55,16 +55,35 @@
 #ifndef MODE_H
 #define MODE_H
 
+#include <ros/ros.h>
 #include <colorUtils.h>
 #include <boost/signals2.hpp>
+#include <boost/thread.hpp>
 
 class Mode
 {
 public:
 	Mode(int priority = 0, double freq = 0, int pulses = 0, double timeout = 0)
 		: _priority(priority), _freq(freq), _pulses(pulses), _timeout(timeout),
-		  _finished(false), _pulsed(0){}
+		  _finished(false), _pulsed(0), _isStopRequested(false){}
 	virtual ~Mode(){}
+
+	void start()
+	{
+		if(_thread == NULL)
+			_thread.reset(new boost::thread(&Mode::run, this));
+	}
+
+	void stop()
+	{
+		std::cout<<"stopping mode"<<std::endl;
+		_mutex.lock();
+		_isStopRequested = true;
+		_mutex.unlock();
+		_thread->join();
+		_thread.reset();
+		_isStopRequested = false;
+	}
 
 	virtual void execute() = 0;
 
@@ -89,7 +108,12 @@ public:
 	void setColor(color::rgba color){ _color = color; }
 	color::rgba getColor(){ return _color; }
 
+	void setActualColor(color::rgba color){ _actualColor = color; }
+	color::rgba getActualColor(){ return _color; }
+
 	boost::signals2::signal<void (color::rgba color)>* signalColorReady(){ return &m_sigColorReady; }
+	boost::signals2::signal<void (std::vector<color::rgba> colors)>* signalColorsReady(){ return &m_sigColorsReady; }
+	boost::signals2::signal<void ()>* signalModeFinished(){ return &m_sigFinished; }
 
 protected:
 	int _priority;
@@ -101,8 +125,60 @@ protected:
 	int _pulsed;
 
 	color::rgba _color;
+	std::vector<color::rgba> _colors;
+	color::rgba _actualColor;
+	color::rgba _init_color;
+
+	static const unsigned int UPDATE_RATE_HZ = 100;
 
 	boost::signals2::signal<void (color::rgba color)> m_sigColorReady;
+	boost::signals2::signal<void (std::vector<color::rgba> colors)> m_sigColorsReady;
+	boost::signals2::signal<void ()> m_sigFinished;
+
+private:
+	boost::shared_ptr<boost::thread> _thread;
+	boost::mutex _mutex;
+	bool _isStopRequested;
+
+
+	bool isStopRequested()
+	{
+		bool ret;
+		_mutex.lock();
+		ret = _isStopRequested;
+		_mutex.unlock();
+		return ret;
+	}
+
+protected:
+	virtual void run()
+	{
+		ros::Rate r(UPDATE_RATE_HZ);
+		if(this->getFrequency() == 0.0)
+		  this->setFrequency(1);
+
+		ros::Time timeStart = ros::Time::now();
+
+		while(!isStopRequested() && !ros::isShuttingDown())
+		{
+			this->execute();
+
+			if((this->getPulses() != 0) &&
+				(this->getPulses() <= this->pulsed()))
+				break;
+
+			if(this->getTimeout() != 0)
+			{
+				ros::Duration timePassed = ros::Time::now() - timeStart;
+				if(timePassed.toSec() >= this->getTimeout())
+					break;
+			}
+			r.sleep();
+		}
+		ROS_INFO("Mode %s finished",this->getName().c_str());
+		if(!isStopRequested())
+			m_sigFinished();
+	}
 };
 
 #endif

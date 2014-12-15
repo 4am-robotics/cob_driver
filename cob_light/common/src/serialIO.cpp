@@ -57,6 +57,8 @@
 #include <iostream>
 #include <cstring>
 
+#include <ros/ros.h>
+
 SerialIO::SerialIO() :
 	 _fd(-1)
 {
@@ -64,6 +66,7 @@ SerialIO::SerialIO() :
 
 SerialIO::~SerialIO()
 {
+	stop();
 	closePort();
 }
 
@@ -93,6 +96,7 @@ int SerialIO::openPort(std::string devicestring, int baudrate)
 // Send Data to Serial Port
 int SerialIO::sendData(std::string value)
 {
+	boost::mutex::scoped_lock lock(_mutex);
 	int wrote = -1;
 	if(_fd != -1)
 		wrote = write(_fd, value.c_str(), value.length());
@@ -102,6 +106,7 @@ int SerialIO::sendData(std::string value)
 // Send Data to Serial Port
 int SerialIO::sendData(const char* data, size_t len)
 {
+	boost::mutex::scoped_lock lock(_mutex);
 	int wrote = -1;
 	if(_fd != -1)
 		wrote = write(_fd, data, len);
@@ -111,6 +116,7 @@ int SerialIO::sendData(const char* data, size_t len)
 // Read Data from Serial Port
 int SerialIO::readData(std::string &value, size_t nBytes)
 {
+	boost::mutex::scoped_lock lock(_mutex);
 	fd_set fds;
 	FD_ZERO(&fds);
 	FD_SET(_fd, &fds);
@@ -120,10 +126,54 @@ int SerialIO::readData(std::string &value, size_t nBytes)
 	if(select(_fd+1, &fds, NULL, NULL, &timeout))
 	{
 		rec = read(_fd, buffer, nBytes);
-		value = std::string(buffer);
+		value = std::string(buffer, rec);
 	}
 	
 	return rec;
+}
+
+void SerialIO::start()
+{
+	if(_thread == NULL)
+		_thread.reset(new boost::thread(&SerialIO::run, this));
+}
+
+void SerialIO::stop()
+{
+	if(_thread != NULL)
+	{
+		_thread->interrupt();
+		_thread->join();
+		_thread.reset();
+	}
+}
+
+void SerialIO::run()
+{
+	ros::Rate r(maxUpdateRate);
+	std::vector<ioData_t> data;
+	while(true)
+	{
+		_oQueue.wait_pop(data);
+		for(size_t i = 0; i < data.size(); i++)
+			this->sendData(data[i].buf, data[i].len);
+		r.sleep();
+	}
+}
+
+bool SerialIO::enqueueData(std::vector<ioData_t> data)
+{
+	_oQueue.push(data);
+}
+
+bool SerialIO::enqueueData(const char* buf, size_t len)
+{
+	struct ioData data;
+	data.buf=buf;
+	data.len=len;
+	std::vector<ioData_t> vec;
+	vec.push_back(data);
+	_oQueue.push(vec);
 }
 
 // Check if Serial Port is opened
