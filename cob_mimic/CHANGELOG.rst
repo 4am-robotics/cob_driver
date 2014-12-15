@@ -2,8 +2,8 @@
 Changelog for package cob_mimic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.2 (2014-12-15)
+------------------
 * new names for mimic
 * use wallpaper instead of fullscreen
 * add tired mimic

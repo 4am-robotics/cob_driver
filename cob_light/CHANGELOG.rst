@@ -2,8 +2,8 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.2 (2014-12-15)
+------------------
 * fix warning message
 * Merge pull request `#188 <https://github.com/ipa320/cob_driver/issues/188>`_ from ipa-bnm/feature/newCircleMode
   feature/new-circle-mode and bugfixes

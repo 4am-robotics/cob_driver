@@ -2,8 +2,8 @@
 Changelog for package cob_sound
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.2 (2014-12-15)
+------------------
 * Merge branch 'indigo_dev' into indigo_release_candidate
 * missed dependency
 * missed dependency
