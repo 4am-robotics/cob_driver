@@ -77,6 +77,7 @@
 #include <cob_omni_drive_controller/UndercarriageCtrlGeom.h>
 #include <cob_utilities/IniFile.h>
 #include <vector>
+#include <fstream>
 #include "yaml-cpp/yaml.h"
 //#include <cob_utilities/MathSup.h>
 
@@ -113,6 +114,7 @@ class NodeClass
     // member variables
     UndercarriageCtrlGeom * ucar_ctrl_;	// instantiate undercarriage controller
     std::string sIniDirectory;
+    std::string sYamlDirectory;
     bool is_initialized_bool_;			// flag wether node is already up and running
     bool broadcast_tf_;			// flag wether to broadcast the tf from odom to base_link
     int drive_chain_diagnostic_;		// flag whether base drive chain is operating normal 
@@ -203,14 +205,33 @@ class NodeClass
         n.getParam("broadcast_tf", broadcast_tf_);
       }
 
-      IniFile iniFile;
-      iniFile.SetFileName(sIniDirectory + "Platform.ini", "PltfHardwareCoB3.h");
-      iniFile.GetKeyInt("Config", "NumberOfMotors", &m_iNumJoints, true);
+//      IniFile iniFile;
+//      iniFile.SetFileName(sIniDirectory + "Platform.ini", "PltfHardwareCoB3.h");
+//      iniFile.GetKeyInt("Config", "NumberOfMotors", &m_iNumJoints, true);
 
       std::vector<UndercarriageCtrlGeom::WheelParams> wps;
 
+      //TODO: init via ros param server
+     sIniDirectory = "/home/mig-jg/git/src/cob_robots/cob_hardware_config/raw3-1/config/base/";
+     sYamlDirectory = sIniDirectory + "Platform.yaml";
 
-      yaml_conf_node = new YAML::Node();
+     yaml_conf_node = new YAML::Node();
+
+     try {
+        // Load yaml-config-file
+        (*yaml_conf_node) = YAML::LoadFile(sYamlDirectory);
+        m_iNumJoints = (*yaml_conf_node)["Config"]["NumberOfMotors"].as<int>();
+        std::cout << "m_iNumJoints: " << (*yaml_conf_node)["Config"]["NumberOfMotors"].as<int>() << std::endl;
+
+     } catch(YAML::ParserException& e) {
+        std::cout << e.what() << std::endl;
+     } catch(YAML::BadDereference& e) {
+        std::cout << e.what() << " -- Can't access >> Config << Parameter in yaml-file " << std::endl;
+     } catch (std::exception e) {
+        std::cerr << e.what() << std::endl;
+     }
+
+
       // TODO: read config and create wheelparam instances
 
 

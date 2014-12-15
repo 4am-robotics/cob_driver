@@ -30,6 +30,8 @@ target_link_libraries(${PROJECT_NAME}_node #${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
 
+target_link_libraries(${PROJECT_NAME}_node yaml-cpp)
+
 #target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})
 
 #Geom Controller for one-wheel-COB3_5
