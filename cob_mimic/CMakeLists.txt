@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_mimic)
 
-find_package(catkin REQUIRED COMPONENTS actionlib_msgs rospy std_msgs message_generation)
+find_package(catkin REQUIRED COMPONENTS actionlib actionlib_msgs rospy std_msgs message_generation)
 
 #######################################
 ## Declare ROS messages and services ##
