@@ -79,6 +79,7 @@
 #include <vector>
 #include <fstream>
 #include "yaml-cpp/yaml.h"
+#include <angles/angles.h>
 //#include <cob_utilities/MathSup.h>
 
 //####################
@@ -128,7 +129,8 @@ class NodeClass
 
     int m_iNumJoints;
 
-    YAML::Node* yaml_conf_node;
+    YAML::Node* plt_conf;
+    YAML::Node* motion_conf;
 
     diagnostic_msgs::DiagnosticStatus diagnostic_status_lookup_; // used to access defines for warning levels
 
@@ -205,37 +207,17 @@ class NodeClass
         n.getParam("broadcast_tf", broadcast_tf_);
       }
 
-//      IniFile iniFile;
-//      iniFile.SetFileName(sIniDirectory + "Platform.ini", "PltfHardwareCoB3.h");
-//      iniFile.GetKeyInt("Config", "NumberOfMotors", &m_iNumJoints, true);
-
-      std::vector<UndercarriageCtrlGeom::WheelParams> wps;
-
       //TODO: init via ros param server
-     sIniDirectory = "/home/mig-jg/git/src/cob_robots/cob_hardware_config/raw3-1/config/base/";
-     sYamlDirectory = sIniDirectory + "Platform.yaml";
+     sIniDirectory = "/home/mig-jg/indigo_workspace/src/cob_robots/cob_hardware_config/raw3-1/config/base/";
 
-     yaml_conf_node = new YAML::Node();
+     // vector of wheels
+     std::vector<UndercarriageCtrlGeom::WheelParams> wps;
 
-     try {
-        // Load yaml-config-file
-        (*yaml_conf_node) = YAML::LoadFile(sYamlDirectory);
-        m_iNumJoints = (*yaml_conf_node)["Config"]["NumberOfMotors"].as<int>();
-        std::cout << "m_iNumJoints: " << (*yaml_conf_node)["Config"]["NumberOfMotors"].as<int>() << std::endl;
+     // load configguration from yaml files
+     if(loadYamlConfig(sIniDirectory))
+         if(parseYamlConfig(wps))
+            ucar_ctrl_ = new UndercarriageCtrlGeom(wps);
 
-     } catch(YAML::ParserException& e) {
-        std::cout << e.what() << std::endl;
-     } catch(YAML::BadDereference& e) {
-        std::cout << e.what() << " -- Can't access >> Config << Parameter in yaml-file " << std::endl;
-     } catch (std::exception e) {
-        std::cerr << e.what() << std::endl;
-     }
-
-
-      // TODO: read config and create wheelparam instances
-
-
-      ucar_ctrl_ = new UndercarriageCtrlGeom(wps);
 
       // implementation of topics
       // published topics
@@ -261,6 +243,94 @@ class NodeClass
       //set up timer to cyclically call controller-step
       timer_ctrl_step_ = n.createTimer(ros::Duration(sample_time_), &NodeClass::timerCallbackCtrlStep, this);
 
+    }
+
+    bool loadYamlConfig(std::string path){
+
+        bool load_done = false;
+
+        try{
+            plt_conf = new YAML::Node();
+            motion_conf = new YAML::Node();
+
+            (*plt_conf) = YAML::LoadFile((path + "Platform.yaml"));
+            (*motion_conf) = YAML::LoadFile((path + "MotionCtrl.yaml"));
+            load_done = true;
+
+        }
+        catch(YAML::ParserException& e) {
+            ROS_FATAL_STREAM("Error opening YAML-File! -- Can't access Platform.yaml or MotionCtrl.yaml -- " << e.what());
+        } catch(YAML::BadDereference& e) {
+            ROS_FATAL_STREAM("Error opening YAML-File! -- Can't access Platform.yaml or MotionCtrl.yaml -- " << e.what());
+        } catch(YAML::Exception& e) {
+            ROS_FATAL_STREAM("Error opening YAML-File! -- Can't access Platform.yaml or MotionCtrl.yaml -- " << e.what());
+        } catch (std::exception e) {
+            ROS_FATAL_STREAM("Error opening YAML-File! -- Can't access Platform.yaml or MotionCtrl.yaml -- " << e.what());
+        }
+
+
+        return load_done;
+
+    }
+
+    bool parseYamlConfig(std::vector<UndercarriageCtrlGeom::WheelParams>& wps){
+        bool parsing_done = false;
+
+        // clear vector in case of reinititialization
+        wps.clear();
+
+        try {
+
+           // general config
+           m_iNumJoints = (*plt_conf)["Config"]["NumberOfMotors"].as<int>(0);
+
+           for(int i=0; i < (*plt_conf)["Geom"]["Wheels"].size(); i++){
+
+              std::stringstream ss;
+              ss << i;
+
+              UndercarriageCtrlGeom::WheelParams param;
+
+              // Prms of Impedance-Ctrlr with default values
+              param.dSpring = (*motion_conf)["SteerCtrl"]["Spring"].as<double>(10.0);
+              param.dDamp = (*motion_conf)["SteerCtrl"]["Damp"].as<double>(2.5);
+              param.dVirtM = (*motion_conf)["SteerCtrl"]["VirtMass"].as<double>(0.1);
+              param.dDPhiMax = (*motion_conf)["SteerCtrl"]["dDPhiMax"].as<double>(12.0);
+              param.dDDPhiMax = (*motion_conf)["SteerCtrl"]["DDPhiMax"].as<double>(100.0);
+
+              param.dRadiusWheelMM  = (*plt_conf)["Geom"]["RadiusWheeL"].as<double>(0.0);
+              param.dDistSteerAxisToDriveWheelMM = (*plt_conf)["Geom"]["DistSteerAxisToDriveWheelCenter"].as<double>(0.0);
+              param.dMaxDriveRateRadpS = (*plt_conf)["Geom"]["MaxDriveRate"].as<double>(0.0);
+              param.dMaxSteerRateRadpS = (*plt_conf)["Geom"]["MaxSteerRate"].as<double>(0.0);
+
+              param.dWheelXPosMM = (*plt_conf)["Geom"]["Wheels"][ss.str()]["xPos"].as<int>();
+              param.dWheelYPosMM = (*plt_conf)["Geom"]["Wheels"][ss.str()]["yPos"].as<int>();
+              double deg = (*plt_conf)["Geom"]["Wheels"][ss.str()]["NeutralPosition"].as<double>(0.0);
+              double coupling = (*plt_conf)["Geom"]["Wheels"][ss.str()]["SteerDriveCoupling"].as<double>(0.0);
+
+              param.dWheelNeutralPos = angles::from_degrees(deg);
+              param.dFactorVel = - coupling + param.dDistSteerAxisToDriveWheelMM / param.dRadiusWheelMM;
+
+              // add wheel to vecor of wheels
+              wps.push_back(param);
+
+//              std::cout << "dSpring: " << param.dSpring << std::endl;
+//              std::cout << "dFactorVel: " << param.dFactorVel  << std::endl;
+           }
+
+           parsing_done = true;
+
+        } catch(YAML::ParserException& e) {
+           ROS_FATAL_STREAM("Error converting from YAML! -- Can't find Parameter Platform.yaml or MotionCtrl.yaml -- " << e.what());
+        } catch(YAML::BadDereference& e) {
+           ROS_FATAL_STREAM("Error converting from YAML! -- Can't find Parameter Platform.yaml or MotionCtrl.yaml -- " << e.what());
+        } catch(YAML::Exception& e) {
+           ROS_FATAL_STREAM("Error converting from YAML! -- Can't find Parameter Platform.yaml or MotionCtrl.yaml -- " << e.what());
+        } catch (std::exception e) {
+           ROS_FATAL_STREAM("Error converting from YAML! -- Can't find Parameter Platform.yaml or MotionCtrl.yaml -- " << e.what());
+        }
+
+        return parsing_done;
     }
 
     // Destructor
@@ -567,7 +637,7 @@ int main(int argc, char** argv)
      - timer callback -> calculate controller step at a rate of sample_time_ (timerCallbackCtrlStep)
      - other topic callbacks (diagnostics, command, em_stop_state)
      */
-  ros::spin();
+//  ros::spin();
 
   return 0;
 }
