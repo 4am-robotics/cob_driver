@@ -128,9 +128,14 @@ class NodeClass
     double max_vel_trans_, max_vel_rot_;
 
     int m_iNumJoints;
+    int m_iNumWheels;
+    double dCmdRateS;
+    bool m_bEMStopActive;
 
     YAML::Node* plt_conf;
     YAML::Node* motion_conf;
+
+
 
     diagnostic_msgs::DiagnosticStatus diagnostic_status_lookup_; // used to access defines for warning levels
 
@@ -283,8 +288,10 @@ class NodeClass
 
            // general config
            m_iNumJoints = (*plt_conf)["Config"]["NumberOfMotors"].as<int>(0);
+           m_iNumWheels = (*plt_conf)["Geom"]["Wheels"].size();
+           dCmdRateS = (*plt_conf)["Thread"]["ThrUCarrCycleTimeS"].as<double>(0.0);
 
-           for(int i=0; i < (*plt_conf)["Geom"]["Wheels"].size(); i++){
+           for(int i=0; i < m_iNumWheels; i++){
 
               std::stringstream ss;
               ss << i;
@@ -351,6 +358,7 @@ class NodeClass
     void topicCallbackTwistCmd(const geometry_msgs::Twist::ConstPtr& msg)
     {
       double vx_cmd_mms, vy_cmd_mms, w_cmd_rads;
+      UndercarriageCtrlGeom::PlatformState pltState;
 
       if( (fabs(msg->linear.x) > max_vel_trans_) || (fabs(msg->linear.y) > max_vel_trans_) || (fabs(msg->angular.z) > max_vel_rot_))
       {
@@ -370,17 +378,20 @@ class NodeClass
           ROS_DEBUG_STREAM("Recevied cmdVelTh: " << msg->angular.z << 
               ", which is bigger than the maximal allowed rotational velocity: " << max_vel_rot_ << " so stop the robot");
         }
-        vx_cmd_mms = 0.0;
-        vy_cmd_mms = 0.0;
-        w_cmd_rads = 0.0;
+//X        vx_cmd_mms = 0.0;
+//X        vy_cmd_mms = 0.0;
+//X        w_cmd_rads = 0.0;
       }
       else
       {
         // controller expects velocities in mm/s, ROS works with SI-Units -> convert
         // ToDo: rework Controller Class to work with SI-Units
-        vx_cmd_mms = msg->linear.x*1000.0;	
-        vy_cmd_mms = msg->linear.y*1000.0;
-        w_cmd_rads = msg->angular.z;
+//X        vx_cmd_mms = msg->linear.x*1000.0;
+//X        vy_cmd_mms = msg->linear.y*1000.0;
+//X        w_cmd_rads = msg->angular.z;
+        pltState.set_vel_x(msg->linear.x);
+        pltState.set_vel_y(msg->linear.y);
+        pltState.dRotRobRadS = msg->angular.z;
       }
 
       iwatchdog_ = 0;
@@ -392,14 +403,19 @@ class NodeClass
             msg->linear.x, msg->linear.y, msg->angular.z);
 
         // Set desired value for Plattform Velocity to UndercarriageCtrl (setpoint setting)
-//        ucar_ctrl_->SetDesiredPltfVelocity(vx_cmd_mms, vy_cmd_mms, w_cmd_rads, 0.0);
-        // ToDo: last value (0.0) is not used anymore --> remove from interface
+//X        ucar_ctrl_->SetDesiredPltfVelocity(vx_cmd_mms, vy_cmd_mms, w_cmd_rads, 0.0);
+//X        // ToDo: last value (0.0) is not used anymore --> remove from interface
+        ucar_ctrl_->setTarget(pltState);
+
       }
       else
       {	
         // Set desired value for Plattform Velocity to zero (setpoint setting)
-//        ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
-        // ToDo: last value (0.0) is not used anymore --> remove from interface
+//X        ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
+//X        // ToDo: last value (0.0) is not used anymore --> remove from interface
+          pltState = UndercarriageCtrlGeom::PlatformState();
+          ucar_ctrl_->setTarget(pltState);
+
         ROS_DEBUG("Forced platform-velocity cmds to zero");
       }
 
@@ -416,7 +432,7 @@ class NodeClass
         // Reset EM flag in Ctrlr
         if (is_initialized_bool_) 
         {
-//          ucar_ctrl_->setEMStopActive(false);
+//?          ucar_ctrl_->setEMStopActive(false);
           ROS_DEBUG("Undercarriage Controller EM-Stop released");
           // reset only done, when system initialized
           // -> allows to stop ctrlr during init, reset and shutdown
@@ -427,12 +443,15 @@ class NodeClass
         ROS_DEBUG("Undercarriage Controller stopped due to EM-Stop");
 
         // Set desired value for Plattform Velocity to zero (setpoint setting)
-//        ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
-        // ToDo: last value (0.0) is not used anymore --> remove from interface
+//X        ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
+//X        // ToDo: last value (0.0) is not used anymore --> remove from interface
+        UndercarriageCtrlGeom::PlatformState pltState;
+        ucar_ctrl_->setTarget(pltState);
+
         ROS_DEBUG("Forced platform-velocity cmds to zero");
 
         // Set EM flag and stop Ctrlr
-//        ucar_ctrl_->setEMStopActive(true);
+//?        ucar_ctrl_->setEMStopActive(true);
       }
     }
 
@@ -481,11 +500,14 @@ class NodeClass
           ROS_DEBUG("drive chain not availlable: halt Controller");
 
           // Set EM flag to Ctrlr (resets internal states)
-//          ucar_ctrl_->setEMStopActive(true);
+//?          ucar_ctrl_->setEMStopActive(true);
 
           // Set desired value for Plattform Velocity to zero (setpoint setting)
-//          ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
-          // ToDo: last value (0.0) is not used anymore --> remove from interface
+//X          ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
+//X          // ToDo: last value (0.0) is not used anymore --> remove from interface
+          UndercarriageCtrlGeom::PlatformState pltState;
+          ucar_ctrl_->setTarget(pltState);
+
           ROS_DEBUG("Forced platform-velocity cmds to zero");
 
           // if is not Initializing
@@ -511,6 +533,11 @@ class NodeClass
     void topicCallbackJointControllerStates(const control_msgs::JointTrajectoryControllerState::ConstPtr& msg) {
       int num_joints;
       int iter_k, iter_j;
+
+      // replaces the vectors per parameter with a vector of wheelStates which combines the wheel specfic params
+      std::vector<UndercarriageCtrlGeom::WheelState> wStates;
+      wStates.assign(m_iNumWheels, UndercarriageCtrlGeom::WheelState());
+
       std::vector<double> drive_joint_ang_rad, drive_joint_vel_rads, drive_joint_effort_NM;
       std::vector<double> steer_joint_ang_rad, steer_joint_vel_rads, steer_joint_effort_NM;
 
@@ -537,57 +564,72 @@ class NodeClass
         // ToDo: specify this globally (Prms-File or config-File or via msg-def.)	
         if(msg->joint_names[i] ==  "fl_caster_r_wheel_joint")
         {
-          drive_joint_ang_rad[0] = msg->actual.positions[i]; 
-          drive_joint_vel_rads[0] = msg->actual.velocities[i];
+//X          drive_joint_ang_rad[0] = msg->actual.positions[i];
+//X          drive_joint_vel_rads[0] = msg->actual.velocities[i];
+          wStates[0].dVelGearDriveRadS = msg->actual.velocities[i];
           //drive_joint_effort_NM[0] = msg->effort[i];
         }
         if(msg->joint_names[i] ==  "bl_caster_r_wheel_joint")
         {
-          drive_joint_ang_rad[1] = msg->actual.positions[i]; 
-          drive_joint_vel_rads[1] = msg->actual.velocities[i];
+//X          drive_joint_ang_rad[1] = msg->actual.positions[i];
+//X          drive_joint_vel_rads[1] = msg->actual.velocities[i];
+          wStates[1].dVelGearDriveRadS = msg->actual.velocities[i];
           //drive_joint_effort_NM[1] = msg->effort[i];
         }
         if(msg->joint_names[i] ==  "br_caster_r_wheel_joint")
         {
-          drive_joint_ang_rad[2] = msg->actual.positions[i]; 
-          drive_joint_vel_rads[2] = msg->actual.velocities[i];
+//X          drive_joint_ang_rad[1] = msg->actual.positions[i];
+//X          drive_joint_vel_rads[1] = msg->actual.velocities[i];
+          wStates[2].dVelGearDriveRadS = msg->actual.velocities[i];
           //drive_joint_effort_NM[2] = msg->effort[i];
         }
         if(msg->joint_names[i] ==  "fr_caster_r_wheel_joint")
         {
-          drive_joint_ang_rad[3] = msg->actual.positions[i]; 
-          drive_joint_vel_rads[3] = msg->actual.velocities[i];
+//X          drive_joint_ang_rad[1] = msg->actual.positions[i];
+//X          drive_joint_vel_rads[1] = msg->actual.velocities[i];
+          wStates[3].dVelGearDriveRadS = msg->actual.velocities[i];
           //drive_joint_effort_NM[3] = msg->effort[i];
         }
         if(msg->joint_names[i] ==  "fl_caster_rotation_joint")
         {
-          steer_joint_ang_rad[0] = msg->actual.positions[i]; 
-          steer_joint_vel_rads[0] = msg->actual.velocities[i];
+//X          steer_joint_ang_rad[0] = msg->actual.positions[i];
+//X          steer_joint_vel_rads[0] = msg->actual.velocities[i];
+          wStates[0].dAngGearSteerRad = msg->actual.positions[i];
+          wStates[0].dVelGearSteerRadS = msg->actual.velocities[i];
           //steer_joint_effort_NM[0] = msg->effort[i];
         }
         if(msg->joint_names[i] ==  "bl_caster_rotation_joint")
         { 
-          steer_joint_ang_rad[1] = msg->actual.positions[i]; 
-          steer_joint_vel_rads[1] = msg->actual.velocities[i];
+//X          steer_joint_ang_rad[1] = msg->actual.positions[i];
+//X          steer_joint_vel_rads[1] = msg->actual.velocities[i];
+            wStates[1].dAngGearSteerRad = msg->actual.positions[i];
+            wStates[1].dVelGearSteerRadS = msg->actual.velocities[i];
           //steer_joint_effort_NM[1] = msg->effort[i];
         }
         if(msg->joint_names[i] ==  "br_caster_rotation_joint")
         {
-          steer_joint_ang_rad[2] = msg->actual.positions[i]; 
-          steer_joint_vel_rads[2] = msg->actual.velocities[i];
+//          steer_joint_ang_rad[2] = msg->actual.positions[i];
+//          steer_joint_vel_rads[2] = msg->actual.velocities[i];
+            wStates[2].dAngGearSteerRad = msg->actual.positions[i];
+            wStates[2].dVelGearSteerRadS = msg->actual.velocities[i];
           //steer_joint_effort_NM[2] = msg->effort[i];
         }
         if(msg->joint_names[i] ==  "fr_caster_rotation_joint")
         {
-          steer_joint_ang_rad[3] = msg->actual.positions[i]; 
-          steer_joint_vel_rads[3] = msg->actual.velocities[i];
+//X          steer_joint_ang_rad[3] = msg->actual.positions[i];
+//X          steer_joint_vel_rads[3] = msg->actual.velocities[i];
+            wStates[3].dAngGearSteerRad = msg->actual.positions[i];
+            wStates[3].dVelGearSteerRadS = msg->actual.velocities[i];
           //steer_joint_effort_NM[3] = msg->effort[i];
         }
       }
 
       // Set measured Wheel Velocities and Angles to Controler Class (implements inverse kinematic)
-//      ucar_ctrl_->SetActualWheelValues(drive_joint_vel_rads, steer_joint_vel_rads,
-//          drive_joint_ang_rad, steer_joint_ang_rad);
+//X      ucar_ctrl_->SetActualWheelValues(drive_joint_vel_rads, steer_joint_vel_rads,
+//X          drive_joint_ang_rad, steer_joint_ang_rad);
+
+
+      ucar_ctrl_->updateWheelStates(wStates);
 
 
       // calculate odometry every time
@@ -607,6 +649,10 @@ class NodeClass
     // acquires the current undercarriage configuration from base_drive_chain
     // calculates odometry from current measurement values and publishes it via an odometry topic and the tf broadcaster
     void UpdateOdometry();
+
+    // set EM Flag and stop ctrlr if active
+    void setEMStopActive(bool bEMStopActive);
+
 };
 
 //#######################
@@ -620,7 +666,9 @@ int main(int argc, char** argv)
   NodeClass nodeClass;
 
   // automatically do initializing of controller, because it's not directly depending any hardware components
-//  nodeClass.ucar_ctrl_->InitUndercarriageCtrl();
+
+//X  nodeClass.ucar_ctrl_->InitUndercarriageCtrl();
+
   nodeClass.is_initialized_bool_ = true;
 
   if( nodeClass.is_initialized_bool_ ) {
@@ -637,7 +685,7 @@ int main(int argc, char** argv)
      - timer callback -> calculate controller step at a rate of sample_time_ (timerCallbackCtrlStep)
      - other topic callbacks (diagnostics, command, em_stop_state)
      */
-//  ros::spin();
+  ros::spin();
 
   return 0;
 }
@@ -649,7 +697,13 @@ int main(int argc, char** argv)
 void NodeClass::CalcCtrlStep()
 {
   double vx_cmd_ms, vy_cmd_ms, w_cmd_rads, dummy;
+
+  // DELETE NEXT LINE
   std::vector<double> drive_jointvel_cmds_rads, steer_jointvel_cmds_rads, steer_jointang_cmds_rad;
+
+  std::vector<UndercarriageCtrlGeom::WheelState> wStates;
+  wStates.assign(m_iNumWheels, UndercarriageCtrlGeom::WheelState());
+
   control_msgs::JointTrajectoryControllerState joint_state_cmd;
   int j, k;
   iwatchdog_ += 1;	
@@ -664,7 +718,9 @@ void NodeClass::CalcCtrlStep()
     // perform one control step,
     // get the resulting cmd's for the wheel velocities and -angles from the controller class
     // and output the achievable pltf velocity-cmds (if velocity limits where exceeded)
-//    ucar_ctrl_->GetNewCtrlStateSteerDriveSetValues(drive_jointvel_cmds_rads,  steer_jointvel_cmds_rads, steer_jointang_cmds_rad, vx_cmd_ms, vy_cmd_ms, w_cmd_rads, dummy);
+//X    ucar_ctrl_->GetNewCtrlStateSteerDriveSetValues(drive_jointvel_cmds_rads,  steer_jointvel_cmds_rads, steer_jointang_cmds_rad, vx_cmd_ms, vy_cmd_ms, w_cmd_rads, dummy);
+
+    ucar_ctrl_->calcControlStep(wStates, dCmdRateS, false);
     // ToDo: adapt interface of controller class --> remove last values (not used anymore)
 
     // if drives not operating nominal -> force commands to zero
@@ -708,15 +764,18 @@ void NodeClass::CalcCtrlStep()
         // for steering motors
         if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the Msg
         {
-          joint_state_cmd.desired.positions[i] = steer_jointang_cmds_rad[j];
-          joint_state_cmd.desired.velocities[i] = steer_jointvel_cmds_rads[j];
+//X          joint_state_cmd.desired.positions[i] = steer_jointang_cmds_rad[j];
+//X          joint_state_cmd.desired.velocities[i] = steer_jointvel_cmds_rads[j];
+            joint_state_cmd.desired.positions[i] = wStates[j].dAngGearSteerRad;
+            joint_state_cmd.desired.velocities[i] = wStates[j].dVelGearSteerRadS;
           //joint_state_cmd.effort[i] = 0.0;
           j = j + 1;
         }
         else
         {
           joint_state_cmd.desired.positions[i] = 0.0;
-          joint_state_cmd.desired.velocities[i] = drive_jointvel_cmds_rads[k];
+//X          joint_state_cmd.desired.velocities[i] = drive_jointvel_cmds_rads[k];
+          joint_state_cmd.desired.velocities[i] = wStates[k].dVelGearDriveRadS;
           //joint_state_cmd.effort[i] = 0.0;
           k = k + 1;
         }
@@ -752,14 +811,18 @@ void NodeClass::UpdateOdometry()
     // !Careful! Controller internally calculates with mm instead of m
     // ToDo: change internal calculation to SI-Units
     // ToDo: last values are not used anymore --> remove from interface
-//    ucar_ctrl_->GetActualPltfVelocity(delta_x_rob_m, delta_y_rob_m, delta_theta_rob_rad, dummy1,
-//        vel_x_rob_ms, vel_y_rob_ms, rot_rob_rads, dummy2);
+//X    ucar_ctrl_->GetActualPltfVelocity(delta_x_rob_m, delta_y_rob_m, delta_theta_rob_rad, dummy1,
+//X        vel_x_rob_ms, vel_y_rob_ms, rot_rob_rads, dummy2);
+
+    UndercarriageCtrlGeom::PlatformState pltState;
+    ucar_ctrl_->setTarget(pltState);
 
     // convert variables to SI-Units
-    vel_x_rob_ms = vel_x_rob_ms/1000.0;
-    vel_y_rob_ms = vel_y_rob_ms/1000.0;
-    delta_x_rob_m = delta_x_rob_m/1000.0;
-    delta_y_rob_m = delta_y_rob_m/1000.0;
+    vel_x_rob_ms = pltState.get_vel_x(); // vel_x_rob_ms/1000.0;
+    vel_y_rob_ms = pltState.get_vel_y(); // vel_y_rob_ms/1000.0;
+    delta_x_rob_m = vel_x_rob_ms * dCmdRateS; // delta_x_rob_m/1000.0;
+    delta_y_rob_m = vel_y_rob_ms * dCmdRateS; // delta_y_rob_m/1000.0;
+    rot_rob_rads = pltState.dRotRobRadS;
 
     ROS_DEBUG("Odmonetry delta is: x=%f, y=%f, th=%f", delta_x_rob_m, delta_y_rob_m, rot_rob_rads);
   }
@@ -840,6 +903,33 @@ void NodeClass::UpdateOdometry()
   topic_pub_odometry_.publish(odom_top);
 }
 
+// set EM Flag and stop ctrlr if active
+void NodeClass::setEMStopActive(bool bEMStopActive)
+{
+    m_bEMStopActive = bEMStopActive;
+
+    std::vector<UndercarriageCtrlGeom::WheelState> wStates;
+    wStates.assign(m_iNumWheels, UndercarriageCtrlGeom::WheelState());
+
+    // if emergency stop reset ctrlr to zero
+    if(m_bEMStopActive)
+    {
+//?        // Steermodules
+//?        for(int i=0; i<wStates.size(); i++)
+//?        {
+//?            for(int j=0; j< 2; j++)
+//?            {
+//?                m_vdCtrlVal[i][j] = 0.0;
+//?            }
+//?        }
+
+        // reset current wheel states
+        ucar_ctrl_->calcControlStep(wStates, dCmdRateS, true);
+
+        // set current wheel states
+        ucar_ctrl_->updateWheelStates(wStates);
+    }
+}
 
 
 
