@@ -357,6 +357,7 @@ class NodeClass
     // Listen for Pltf Cmds
     void topicCallbackTwistCmd(const geometry_msgs::Twist::ConstPtr& msg)
     {
+      std::cout << "Blubber" << msg->linear.x << std::endl;
       double vx_cmd_mms, vy_cmd_mms, w_cmd_rads;
       UndercarriageCtrlGeom::PlatformState pltState;
 
@@ -424,6 +425,7 @@ class NodeClass
     // Listen for Emergency Stop
     void topicCallbackEMStop(const cob_msgs::EmergencyStopState::ConstPtr& msg)
     {
+
       int EM_state;
       EM_state = msg->emergency_state;
 
@@ -433,6 +435,7 @@ class NodeClass
         if (is_initialized_bool_) 
         {
 //?          ucar_ctrl_->setEMStopActive(false);
+          setEMStopActive(false);
           ROS_DEBUG("Undercarriage Controller EM-Stop released");
           // reset only done, when system initialized
           // -> allows to stop ctrlr during init, reset and shutdown
@@ -452,6 +455,7 @@ class NodeClass
 
         // Set EM flag and stop Ctrlr
 //?        ucar_ctrl_->setEMStopActive(true);
+        setEMStopActive(true);
       }
     }
 
@@ -501,6 +505,8 @@ class NodeClass
 
           // Set EM flag to Ctrlr (resets internal states)
 //?          ucar_ctrl_->setEMStopActive(true);
+          setEMStopActive(true);
+
 
           // Set desired value for Plattform Velocity to zero (setpoint setting)
 //X          ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
@@ -533,6 +539,8 @@ class NodeClass
     void topicCallbackJointControllerStates(const control_msgs::JointTrajectoryControllerState::ConstPtr& msg) {
       int num_joints;
       int iter_k, iter_j;
+
+      std::cout << "JointTrajectoryControllerState" << std::endl;
 
       // replaces the vectors per parameter with a vector of wheelStates which combines the wheel specfic params
       std::vector<UndercarriageCtrlGeom::WheelState> wStates;
@@ -914,6 +922,7 @@ void NodeClass::setEMStopActive(bool bEMStopActive)
     // if emergency stop reset ctrlr to zero
     if(m_bEMStopActive)
     {
+        std::cout << "NASE" << "True" << std::endl;
 //?        // Steermodules
 //?        for(int i=0; i<wStates.size(); i++)
 //?        {
@@ -929,6 +938,8 @@ void NodeClass::setEMStopActive(bool bEMStopActive)
         // set current wheel states
         ucar_ctrl_->updateWheelStates(wStates);
     }
+    else
+        std::cout << "NASE" << "False" << std::endl;
 }
 
 
