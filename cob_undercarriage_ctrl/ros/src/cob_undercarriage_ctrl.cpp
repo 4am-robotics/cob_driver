@@ -357,39 +357,32 @@ class NodeClass
     // Listen for Pltf Cmds
     void topicCallbackTwistCmd(const geometry_msgs::Twist::ConstPtr& msg)
     {
-      std::cout << "Blubber" << msg->linear.x << std::endl;
-      double vx_cmd_mms, vy_cmd_mms, w_cmd_rads;
+      std::cout << "TwistCmd: " << msg->linear.x << std::endl;
+      std::cout << "TwistCmd: " << msg->linear.y << std::endl;
+      std::cout << "TwistCmd: " << msg->angular.z << std::endl;
+
+      // create instance of pltState which is initialized with zero values
       UndercarriageCtrlGeom::PlatformState pltState;
 
-      if( (fabs(msg->linear.x) > max_vel_trans_) || (fabs(msg->linear.y) > max_vel_trans_) || (fabs(msg->angular.z) > max_vel_rot_))
-      {
-        if(fabs(msg->linear.x) > max_vel_trans_)
-        {
-          ROS_DEBUG_STREAM("Recevied cmdVelX: " << msg->linear.x << 
-              ", which is bigger than the maximal allowed translational velocity: " <<  max_vel_trans_ << " so stop the robot");
+      if( (fabs(msg->linear.x) > max_vel_trans_) || (fabs(msg->linear.y) > max_vel_trans_) || (fabs(msg->angular.z) > max_vel_rot_)){
+        if(fabs(msg->linear.x) > max_vel_trans_){
+            ROS_DEBUG_STREAM("Recevied cmdVelX: " << msg->linear.x <<
+                             ", which is bigger than the maximal allowed translational velocity: " <<  max_vel_trans_ << " so stop the robot");
         }
-        if(fabs(msg->linear.y) > max_vel_trans_)
-        {
-          ROS_DEBUG_STREAM("Recevied cmdVelY: " << msg->linear.x << 
-              ", which is bigger than the maximal allowed translational velocity: " <<  max_vel_trans_ << " so stop the robot");
+        if(fabs(msg->linear.y) > max_vel_trans_){
+            ROS_DEBUG_STREAM("Recevied cmdVelY: " << msg->linear.x <<
+                             ", which is bigger than the maximal allowed translational velocity: " <<  max_vel_trans_ << " so stop the robot");
+        }
+        if(fabs(msg->angular.z) > max_vel_rot_){
+            ROS_DEBUG_STREAM("Recevied cmdVelTh: " << msg->angular.z <<
+                             ", which is bigger than the maximal allowed rotational velocity: " << max_vel_rot_ << " so stop the robot");
         }
 
-        if(fabs(msg->angular.z) > max_vel_rot_)
-        {
-          ROS_DEBUG_STREAM("Recevied cmdVelTh: " << msg->angular.z << 
-              ", which is bigger than the maximal allowed rotational velocity: " << max_vel_rot_ << " so stop the robot");
-        }
-//X        vx_cmd_mms = 0.0;
-//X        vy_cmd_mms = 0.0;
-//X        w_cmd_rads = 0.0;
+        // pltState is initialized with zero values, so it isnt necessary to set them explicitly
+
       }
-      else
-      {
-        // controller expects velocities in mm/s, ROS works with SI-Units -> convert
-        // ToDo: rework Controller Class to work with SI-Units
-//X        vx_cmd_mms = msg->linear.x*1000.0;
-//X        vy_cmd_mms = msg->linear.y*1000.0;
-//X        w_cmd_rads = msg->angular.z;
+      else{
+        // setter-methods convert SI-Units (m/s) to mm/s because controller works with those
         pltState.set_vel_x(msg->linear.x);
         pltState.set_vel_y(msg->linear.y);
         pltState.dRotRobRadS = msg->angular.z;
@@ -398,28 +391,21 @@ class NodeClass
       iwatchdog_ = 0;
 
       // only process if controller is already initialized
-      if (is_initialized_bool_ && drive_chain_diagnostic_==diagnostic_status_lookup_.OK)
-      {
-        ROS_DEBUG("received new velocity command [cmdVelX=%3.5f,cmdVelY=%3.5f,cmdVelTh=%3.5f]", 
-            msg->linear.x, msg->linear.y, msg->angular.z);
+      if (is_initialized_bool_ && drive_chain_diagnostic_ == diagnostic_status_lookup_.OK){
+        ROS_DEBUG("received new velocity command [cmdVelX=%3.5f,cmdVelY=%3.5f,cmdVelTh=%3.5f]",
+                  msg->linear.x, msg->linear.y, msg->angular.z);
 
-        // Set desired value for Plattform Velocity to UndercarriageCtrl (setpoint setting)
-//X        ucar_ctrl_->SetDesiredPltfVelocity(vx_cmd_mms, vy_cmd_mms, w_cmd_rads, 0.0);
-//X        // ToDo: last value (0.0) is not used anymore --> remove from interface
+        // Set desired values for Plattform State to UndercarriageCtrl (setpoint setting)
         ucar_ctrl_->setTarget(pltState);
-
       }
-      else
-      {	
-        // Set desired value for Plattform Velocity to zero (setpoint setting)
-//X        ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
-//X        // ToDo: last value (0.0) is not used anymore --> remove from interface
-          pltState = UndercarriageCtrlGeom::PlatformState();
-          ucar_ctrl_->setTarget(pltState);
+      else{
+        // Set desired values for Plattform State to zero (setpoint setting)
+        // pltState will be initialized with zero values
+        pltState = UndercarriageCtrlGeom::PlatformState();
+        ucar_ctrl_->setTarget(pltState);
 
         ROS_DEBUG("Forced platform-velocity cmds to zero");
       }
-
     }
 
     // Listen for Emergency Stop
@@ -462,6 +448,7 @@ class NodeClass
     // Listens for status of underlying hardware (base drive chain)
     void topicCallbackDiagnostic(const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg)
     {
+      std::cout << "Diagnostic: " << msg->name << " , " << msg->message << std::endl;
       control_msgs::JointTrajectoryControllerState joint_state_cmd;
 
       // prepare joint_cmds for heartbeat (compose header)
@@ -540,7 +527,7 @@ class NodeClass
       int num_joints;
       int iter_k, iter_j;
 
-      std::cout << "JointTrajectoryControllerState" << std::endl;
+      std::cout << "JointControllerStates: " << msg->header.frame_id << std::endl;
 
       // replaces the vectors per parameter with a vector of wheelStates which combines the wheel specfic params
       std::vector<UndercarriageCtrlGeom::WheelState> wStates;
@@ -922,7 +909,8 @@ void NodeClass::setEMStopActive(bool bEMStopActive)
     // if emergency stop reset ctrlr to zero
     if(m_bEMStopActive)
     {
-        std::cout << "NASE" << "True" << std::endl;
+        std::cout << "EMStop: " << "Active" << std::endl;
+
 //?        // Steermodules
 //?        for(int i=0; i<wStates.size(); i++)
 //?        {
@@ -932,14 +920,14 @@ void NodeClass::setEMStopActive(bool bEMStopActive)
 //?            }
 //?        }
 
-        // reset current wheel states
+        // reset and update current wheel states but keep current dAngGearSteerRad per wheelState
         ucar_ctrl_->calcControlStep(wStates, dCmdRateS, true);
 
-        // set current wheel states
+        // set current wheel states with previous reset and updated wheelStates
         ucar_ctrl_->updateWheelStates(wStates);
     }
     else
-        std::cout << "NASE" << "False" << std::endl;
+        std::cout << "EMStop: " << "Inactive" << std::endl;
 }
 
 
