@@ -253,24 +253,30 @@ class NodeClass
     bool loadYamlConfig(std::string path){
 
         bool load_done = false;
+        std::string exception_detailed_file_info = "";
 
         try{
             plt_conf = new YAML::Node();
             motion_conf = new YAML::Node();
 
+            exception_detailed_file_info = path + "Platform.yaml";
             (*plt_conf) = YAML::LoadFile((path + "Platform.yaml"));
+
+            exception_detailed_file_info = path + "MotionCtrl.yaml";
             (*motion_conf) = YAML::LoadFile((path + "MotionCtrl.yaml"));
+
+            // s
             load_done = true;
 
         }
         catch(YAML::ParserException& e) {
-            ROS_FATAL_STREAM("Error opening YAML-File! -- Can't access Platform.yaml or MotionCtrl.yaml -- " << e.what());
+            ROS_FATAL_STREAM("Error while opening YAML-File: >>> " << exception_detailed_file_info << " <<< -- " << e.what());
         } catch(YAML::BadDereference& e) {
-            ROS_FATAL_STREAM("Error opening YAML-File! -- Can't access Platform.yaml or MotionCtrl.yaml -- " << e.what());
+            ROS_FATAL_STREAM("Error while opening YAML-File: >>> " << exception_detailed_file_info << " <<< -- " << e.what());
         } catch(YAML::Exception& e) {
-            ROS_FATAL_STREAM("Error opening YAML-File! -- Can't access Platform.yaml or MotionCtrl.yaml -- " << e.what());
+            ROS_FATAL_STREAM("Error while opening YAML-File: >>> " << exception_detailed_file_info << " <<< -- " << e.what());
         } catch (std::exception e) {
-            ROS_FATAL_STREAM("Error opening YAML-File! -- Can't access Platform.yaml or MotionCtrl.yaml -- " << e.what());
+            ROS_FATAL_STREAM("Error while opening YAML-File: >>> " << exception_detailed_file_info << " <<< -- " << e.what());
         }
 
 
@@ -280,61 +286,100 @@ class NodeClass
 
     bool parseYamlConfig(std::vector<UndercarriageCtrlGeom::WheelParams>& wps){
         bool parsing_done = false;
-
+        std::string exception_detailed_param_info = "";
         // clear vector in case of reinititialization
         wps.clear();
 
         try {
 
            // general config
-           m_iNumJoints = (*plt_conf)["Config"]["NumberOfMotors"].as<int>(0);
+           exception_detailed_param_info = "Config/NumberOfMotors";
+           m_iNumJoints = (*plt_conf)["Config"]["NumberOfMotors"].as<int>();
+
+           exception_detailed_param_info = "Geom/Wheels";
            m_iNumWheels = (*plt_conf)["Geom"]["Wheels"].size();
-           dCmdRateS = (*plt_conf)["Thread"]["ThrUCarrCycleTimeS"].as<double>(0.0);
+
+           exception_detailed_param_info = "Thread/ThrUCarrCycleTimeS";
+           dCmdRateS = (*plt_conf)["Thread"]["ThrUCarrCycleTimeS"].as<double>();
+
 
            for(int i=0; i < m_iNumWheels; i++){
 
               std::stringstream ss;
               ss << i;
 
+              std::string fix_exception_info_per_wheel = "wheel-" + ss.str() + ": ";
+
               UndercarriageCtrlGeom::WheelParams param;
 
               // Prms of Impedance-Ctrlr with default values
-              param.dSpring = (*motion_conf)["SteerCtrl"]["Spring"].as<double>(10.0);
-              param.dDamp = (*motion_conf)["SteerCtrl"]["Damp"].as<double>(2.5);
-              param.dVirtM = (*motion_conf)["SteerCtrl"]["VirtMass"].as<double>(0.1);
-              param.dDPhiMax = (*motion_conf)["SteerCtrl"]["dDPhiMax"].as<double>(12.0);
-              param.dDDPhiMax = (*motion_conf)["SteerCtrl"]["DDPhiMax"].as<double>(100.0);
+              // SteerCtrl-Parameters
+              exception_detailed_param_info =  fix_exception_info_per_wheel + "SteerCtrl/Spring";
+              param.dSpring = (*motion_conf)["SteerCtrl"]["Spring"].as<double>();
 
-              param.dRadiusWheelMM  = (*plt_conf)["Geom"]["RadiusWheeL"].as<double>(0.0);
-              param.dDistSteerAxisToDriveWheelMM = (*plt_conf)["Geom"]["DistSteerAxisToDriveWheelCenter"].as<double>(0.0);
-              param.dMaxDriveRateRadpS = (*plt_conf)["Geom"]["MaxDriveRate"].as<double>(0.0);
-              param.dMaxSteerRateRadpS = (*plt_conf)["Geom"]["MaxSteerRate"].as<double>(0.0);
+              exception_detailed_param_info =  fix_exception_info_per_wheel + "SteerCtrl/Damp";
+              param.dDamp = (*motion_conf)["SteerCtrl"]["Damp"].as<double>();
 
+              exception_detailed_param_info =  fix_exception_info_per_wheel + "SteerCtrl/VirtMass";
+              param.dVirtM = (*motion_conf)["SteerCtrl"]["VirtMass"].as<double>();
+
+              exception_detailed_param_info =  fix_exception_info_per_wheel + "SteerCtrl/dDPhiMax";
+              param.dDPhiMax = (*motion_conf)["SteerCtrl"]["DPhiMax"].as<double>();
+
+              exception_detailed_param_info =  fix_exception_info_per_wheel + "SteerCtrl/DDPhiMax";
+              param.dDDPhiMax = (*motion_conf)["SteerCtrl"]["DDPhiMax"].as<double>();
+
+              // Geom-Parameters
+              exception_detailed_param_info =  fix_exception_info_per_wheel + "Geom/RadiusWheeL";
+              param.dRadiusWheelMM  = (*plt_conf)["Geom"]["RadiusWheeL"].as<double>(); //0.0
+
+              exception_detailed_param_info =  fix_exception_info_per_wheel + "Geom/DistSteerAxisToDriveWheelCenter";
+              param.dDistSteerAxisToDriveWheelMM = (*plt_conf)["Geom"]["DistSteerAxisToDriveWheelCenter"].as<double>(); //0.0
+
+              // DrivePrms
+              exception_detailed_param_info =  fix_exception_info_per_wheel + "DrivePrms/MaxDriveRate";
+              param.dMaxDriveRateRadpS = (*plt_conf)["DrivePrms"]["MaxDriveRate"].as<double>(); //0.0
+
+              exception_detailed_param_info =  fix_exception_info_per_wheel + "DrivePrms/MaxSteerRate";
+              param.dMaxSteerRateRadpS = (*plt_conf)["DrivePrms"]["MaxSteerRate"].as<double>(); //0.0
+
+              // Wheel specific Geom-Parameters
+              exception_detailed_param_info =  fix_exception_info_per_wheel + "Geom/xPos";
               param.dWheelXPosMM = (*plt_conf)["Geom"]["Wheels"][ss.str()]["xPos"].as<int>();
-              param.dWheelYPosMM = (*plt_conf)["Geom"]["Wheels"][ss.str()]["yPos"].as<int>();
-              double deg = (*plt_conf)["Geom"]["Wheels"][ss.str()]["NeutralPosition"].as<double>(0.0);
-              double coupling = (*plt_conf)["Geom"]["Wheels"][ss.str()]["SteerDriveCoupling"].as<double>(0.0);
 
+              exception_detailed_param_info =  fix_exception_info_per_wheel + "SteerCtrl/yPos";
+              param.dWheelYPosMM = (*plt_conf)["Geom"]["Wheels"][ss.str()]["yPos"].as<int>();
+
+              exception_detailed_param_info =  fix_exception_info_per_wheel + "Geom/NeutralPosition";
+              double deg = (*plt_conf)["Geom"]["Wheels"][ss.str()]["NeutralPosition"].as<double>(); //0.0
+
+              exception_detailed_param_info =  fix_exception_info_per_wheel + "Geom/SteerDriveCoupling";
+              double coupling = (*plt_conf)["Geom"]["Wheels"][ss.str()]["SteerDriveCoupling"].as<double>(); //0.0
+
+              // calculate specific parameters
               param.dWheelNeutralPos = angles::from_degrees(deg);
               param.dFactorVel = - coupling + param.dDistSteerAxisToDriveWheelMM / param.dRadiusWheelMM;
 
               // add wheel to vecor of wheels
               wps.push_back(param);
 
+//              std::cout << "exception_detailed_param_info: " <<  exception_detailed_param_info << std::endl;
 //              std::cout << "dSpring: " << param.dSpring << std::endl;
 //              std::cout << "dFactorVel: " << param.dFactorVel  << std::endl;
            }
-
+           // set correct parsing flag
            parsing_done = true;
 
         } catch(YAML::ParserException& e) {
-           ROS_FATAL_STREAM("Error converting from YAML! -- Can't find Parameter Platform.yaml or MotionCtrl.yaml -- " << e.what());
+           ROS_FATAL_STREAM("Error while parsing YAML-Parameter: >>> " << exception_detailed_param_info << " <<< in YAML-File Platform.yaml or MotionCtrl.yaml -- " << e.what());
         } catch(YAML::BadDereference& e) {
-           ROS_FATAL_STREAM("Error converting from YAML! -- Can't find Parameter Platform.yaml or MotionCtrl.yaml -- " << e.what());
+           ROS_FATAL_STREAM("Error while referencing YAML-Parameter: >>> " << exception_detailed_param_info << " <<< in YAML-File Platform.yaml or MotionCtrl.yaml -- " << e.what());
+        } catch(YAML::BadConversion& e) {
+           ROS_FATAL_STREAM("Error while converting YAML-Parameter: >>> " << exception_detailed_param_info << " <<< in YAML-File Platform.yaml or MotionCtrl.yaml -- " << e.what());
         } catch(YAML::Exception& e) {
-           ROS_FATAL_STREAM("Error converting from YAML! -- Can't find Parameter Platform.yaml or MotionCtrl.yaml -- " << e.what());
+           ROS_FATAL_STREAM("Error while parsing YAML-Parameter: >>> " << exception_detailed_param_info << " <<< in YAML-File Platform.yaml or MotionCtrl.yaml -- " << e.what());
         } catch (std::exception e) {
-           ROS_FATAL_STREAM("Error converting from YAML! -- Can't find Parameter Platform.yaml or MotionCtrl.yaml -- " << e.what());
+           ROS_FATAL_STREAM("Error while parsing YAML-Parameter: >>> " << exception_detailed_param_info << " <<< in YAML-File Platform.yaml or MotionCtrl.yaml -- " << e.what());
         }
 
         return parsing_done;
