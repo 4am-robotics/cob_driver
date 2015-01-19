@@ -84,6 +84,7 @@ bool StageProfi::init()
   }
   else
     ROS_ERROR("Sending init command to stageprofi failed");
+  return ret;
 }
 
 void StageProfi::setColor(color::rgba color)
