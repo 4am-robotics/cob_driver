@@ -294,11 +294,11 @@ class NodeClass
         try {
 
            // general config
-           exception_detailed_param_info = "Config/NumberOfMotors";
-           m_iNumJoints = (*plt_conf)["Config"]["NumberOfMotors"].as<int>();
-
            exception_detailed_param_info = "Geom/Wheels";
            m_iNumWheels = (*plt_conf)["Geom"]["Wheels"].size();
+
+           exception_detailed_param_info = "Config/NumberOfMotors";
+           m_iNumJoints = m_iNumWheels * 2; //(*plt_conf)["Config"]["NumberOfMotors"].as<int>();
 
            exception_detailed_param_info = "Thread/ThrUCarrCycleTimeS";
            dCmdRateS = (*plt_conf)["Thread"]["ThrUCarrCycleTimeS"].as<double>();
@@ -535,12 +535,6 @@ class NodeClass
             ucar_ctrl_->setTarget(pltState);
 
             ROS_DEBUG("Forced platform-velocity cmds to zero");
-
-//X            // if is not Initializing
-//X            if (drive_chain_diagnostic_ != diagnostic_status_lookup_.WARN){
-//X                // publish zero-vel. jointcmds to avoid Watchdogs stopping ctrlr
-//X                // this is already done in CalcControlStep within the setEMStopActive method
-//X            }
         }
       }
       // ... while controller is not initialized send heartbeats to keep motors alive
@@ -724,19 +718,14 @@ void NodeClass::CalcCtrlStep()
         // for steering motors
         if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the Msg
         {
-//X          joint_state_cmd.desired.positions[i] = steer_jointang_cmds_rad[j];
-//X          joint_state_cmd.desired.velocities[i] = steer_jointvel_cmds_rads[j];
             joint_state_cmd.desired.positions[i] = wStates[j].dAngGearSteerRad;
             joint_state_cmd.desired.velocities[i] = wStates[j].dVelGearSteerRadS;
-          //joint_state_cmd.effort[i] = 0.0;
           j = j + 1;
         }
         else
         {
           joint_state_cmd.desired.positions[i] = 0.0;
-//X          joint_state_cmd.desired.velocities[i] = drive_jointvel_cmds_rads[k];
           joint_state_cmd.desired.velocities[i] = wStates[k].dVelGearDriveRadS;
-          //joint_state_cmd.effort[i] = 0.0;
           k = k + 1;
         }
       }
@@ -744,7 +733,6 @@ void NodeClass::CalcCtrlStep()
       {
         joint_state_cmd.desired.positions[i] = 0.0;
         joint_state_cmd.desired.velocities[i] = 0.0;
-        //joint_state_cmd.effort[i] = 0.0;
       }
     }
 
@@ -758,8 +746,7 @@ void NodeClass::CalcCtrlStep()
 // and publishes it via an odometry topic and the tf broadcaster
 void NodeClass::UpdateOdometry()
 {
-  double vel_x_rob_ms, vel_y_rob_ms, vel_rob_ms, rot_rob_rads, delta_x_rob_m, delta_y_rob_m; //X, delta_theta_rob_rad;
-//X  double dummy1, dummy2;
+  double vel_x_rob_ms, vel_y_rob_ms, rot_rob_rads, delta_x_rob_m, delta_y_rob_m;
   double dt;
   ros::Time current_time;
 
@@ -767,21 +754,18 @@ void NodeClass::UpdateOdometry()
   //if (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK)
   if (is_initialized_bool_)
   {
+    UndercarriageCtrlGeom::PlatformState pltState;
+
     // Get resulting Pltf Velocities from Ctrl-Class (result of forward kinematics)
     // !Careful! Controller internally calculates with mm instead of m
     // ToDo: change internal calculation to SI-Units
-    // ToDo: last values are not used anymore --> remove from interface
-//    ucar_ctrl_->GetActualPltfVelocity(delta_x_rob_m, delta_y_rob_m, delta_theta_rob_rad, dummy1,
-//        vel_x_rob_ms, vel_y_rob_ms, rot_rob_rads, dummy2);
-
-    UndercarriageCtrlGeom::PlatformState pltState;
     ucar_ctrl_->calcDirect(pltState);
 
     // convert variables to SI-Units
-    vel_x_rob_ms = pltState.get_vel_x(); // vel_x_rob_ms/1000.0;
-    vel_y_rob_ms = pltState.get_vel_y(); // vel_y_rob_ms/1000.0;
-    delta_x_rob_m = pltState.get_vel_x() * dCmdRateS; // delta_x_rob_m/1000.0;
-    delta_y_rob_m = pltState.get_vel_y() * dCmdRateS; // delta_y_rob_m/1000.0;
+    vel_x_rob_ms = pltState.get_vel_x();
+    vel_y_rob_ms = pltState.get_vel_y();
+    delta_x_rob_m = pltState.get_vel_x() * dCmdRateS;
+    delta_y_rob_m = pltState.get_vel_y() * dCmdRateS;
     rot_rob_rads = pltState.dRotRobRadS;
 
 
@@ -804,8 +788,6 @@ void NodeClass::UpdateOdometry()
   current_time = ros::Time::now();
   dt = current_time.toSec() - last_time_.toSec();
   last_time_ = current_time;
-  // TODO: not used -> delete?
-  vel_rob_ms = sqrt(vel_x_rob_ms*vel_x_rob_ms + vel_y_rob_ms*vel_y_rob_ms);
 
   // calculation from ROS odom publisher tutorial http://www.ros.org/wiki/navigation/Tutorials/RobotSetup/Odom, using now midpoint integration
   x_rob_m_ = x_rob_m_ + ((vel_x_rob_ms+vel_x_rob_last_)/2.0 * cos(theta_rob_rad_) - (vel_y_rob_ms+vel_y_rob_last_)/2.0 * sin(theta_rob_rad_)) * dt;
@@ -880,15 +862,6 @@ void NodeClass::setEMStopActive(bool bEMStopActive)
     if(m_bEMStopActive)
     {
         std::cout << "EMStop: " << "Active" << std::endl;
-
-//?        // Steermodules
-//?        for(int i=0; i<wStates.size(); i++)
-//?        {
-//?            for(int j=0; j< 2; j++)
-//?            {
-//?                m_vdCtrlVal[i][j] = 0.0;
-//?            }
-//?        }
 
         // reset and update current wheel states but keep current dAngGearSteerRad per wheelState
         ucar_ctrl_->calcControlStep(wStates, dCmdRateS, true);
