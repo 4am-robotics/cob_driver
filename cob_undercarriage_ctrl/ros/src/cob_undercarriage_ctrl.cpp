@@ -218,11 +218,12 @@ class NodeClass
      // vector of wheels
      std::vector<UndercarriageCtrlGeom::WheelParams> wps;
 
-     // load configguration from yaml files
+     // configuration of ucar_ctrl by yaml-files
      if(loadYamlConfig(sIniDirectory))
-         if(parseYamlConfig(wps))
-            ucar_ctrl_ = new UndercarriageCtrlGeom(wps);
-
+         if(parseYamlConfig(wps)){
+             ucar_ctrl_ = new UndercarriageCtrlGeom(wps);
+             is_initialized_bool_ = true;
+         }
 
       // implementation of topics
       // published topics
@@ -265,7 +266,7 @@ class NodeClass
             exception_detailed_file_info = path + "MotionCtrl.yaml";
             (*motion_conf) = YAML::LoadFile((path + "MotionCtrl.yaml"));
 
-            // s
+            // set correct file-loading-flag
             load_done = true;
 
         }
@@ -640,20 +641,16 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "undercarriage_ctrl");
 
   // construct nodeClass
+  // automatically do initializing of controller, because it's not directly depending any hardware components
   NodeClass nodeClass;
 
-  // automatically do initializing of controller, because it's not directly depending any hardware components
-
-//X  nodeClass.ucar_ctrl_->InitUndercarriageCtrl();
-
-  nodeClass.is_initialized_bool_ = true;
-
+  // verify init status
   if( nodeClass.is_initialized_bool_ ) {
     nodeClass.last_time_ = ros::Time::now();
     ROS_INFO("Undercarriage control successfully initialized.");
   } else {
     ROS_FATAL("Undercarriage control initialization failed!");
-    throw std::runtime_error("Undercarriage control initialization failed, check ini-Files!");
+    throw std::runtime_error("Undercarriage control initialization failed, check yaml-Files!");
   }
 
   /* 
@@ -673,51 +670,39 @@ int main(int argc, char** argv)
 // perform one control step, calculate inverse kinematics and publish updated joint cmd's (if no EMStop occurred)
 void NodeClass::CalcCtrlStep()
 {
-  double vx_cmd_ms, vy_cmd_ms, w_cmd_rads, dummy;
-
-  // DELETE NEXT LINE
-  std::vector<double> drive_jointvel_cmds_rads, steer_jointvel_cmds_rads, steer_jointang_cmds_rad;
-
   std::vector<UndercarriageCtrlGeom::WheelState> wStates;
   wStates.assign(m_iNumWheels, UndercarriageCtrlGeom::WheelState());
 
+  // create control_msg
   control_msgs::JointTrajectoryControllerState joint_state_cmd;
-  int j, k;
+
+  int j = 0, k = 0;
   iwatchdog_ += 1;	
 
   // if controller is initialized and underlying hardware is operating normal
-  if (is_initialized_bool_) //&& (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK))
+  if (is_initialized_bool_) //?  && (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK))
   {
     // as soon as (but only as soon as) platform drive chain is initialized start to send velocity commands
-    // Note: topicCallbackDiagnostic checks whether drives are operating nominal.
-    //       -> if warning or errors are issued target velocity is set to zero
+//? Note: topicCallbackDiagnostic checks whether drives are operating nominal.
+//? -> if warning or errors are issued target velocity is set to zero
 
     // perform one control step,
     // get the resulting cmd's for the wheel velocities and -angles from the controller class
     // and output the achievable pltf velocity-cmds (if velocity limits where exceeded)
-//X    ucar_ctrl_->GetNewCtrlStateSteerDriveSetValues(drive_jointvel_cmds_rads,  steer_jointvel_cmds_rads, steer_jointang_cmds_rad, vx_cmd_ms, vy_cmd_ms, w_cmd_rads, dummy);
-
     ucar_ctrl_->calcControlStep(wStates, dCmdRateS, false);
-    // ToDo: adapt interface of controller class --> remove last values (not used anymore)
 
-    // if drives not operating nominal -> force commands to zero
-    if(drive_chain_diagnostic_ != diagnostic_status_lookup_.OK)
-    {
-      steer_jointang_cmds_rad.assign(m_iNumJoints, 0.0);
-      steer_jointvel_cmds_rads.assign(m_iNumJoints, 0.0);
-    }
+    // compose jointcmds of control_msg
 
-    // convert variables to SI-Units
-    vx_cmd_ms = vx_cmd_ms/1000.0;
-    vy_cmd_ms = vy_cmd_ms/1000.0;
-
-    // compose jointcmds
-    // compose header
+    // compose header of control_msg
     joint_state_cmd.header.stamp = ros::Time::now();
-    //joint_state_cmd.header.frame_id = frame_id; //Where to get this id from?
+
+    //Where to get this id from?
+    //joint_state_cmd.header.frame_id = frame_id;
+
     // ToDo: configure over Config-File (number of motors) and Msg
     // assign right size to JointState data containers
-    //joint_state_cmd.set_name_size(m_iNumMotors);
+    //joint_state_cmd.set_name_size(m_iNumJoints);
+
     joint_state_cmd.desired.positions.resize(m_iNumJoints);
     joint_state_cmd.desired.velocities.resize(m_iNumJoints);            
     //joint_state_cmd.effort.resize(m_iNumJoints);
@@ -731,9 +716,7 @@ void NodeClass::CalcCtrlStep()
     joint_state_cmd.joint_names.push_back("fr_caster_rotation_joint");
     joint_state_cmd.joint_names.resize(m_iNumJoints);
 
-    // compose data body
-    j = 0;
-    k = 0;
+    // compose data body of control_msg
     for(int i = 0; i<m_iNumJoints; i++)
     {
       if(iwatchdog_ < (int) std::floor(timeout_/sample_time_) )
@@ -775,8 +758,8 @@ void NodeClass::CalcCtrlStep()
 // and publishes it via an odometry topic and the tf broadcaster
 void NodeClass::UpdateOdometry()
 {
-  double vel_x_rob_ms, vel_y_rob_ms, vel_rob_ms, rot_rob_rads, delta_x_rob_m, delta_y_rob_m, delta_theta_rob_rad;
-  double dummy1, dummy2;
+  double vel_x_rob_ms, vel_y_rob_ms, vel_rob_ms, rot_rob_rads, delta_x_rob_m, delta_y_rob_m; //X, delta_theta_rob_rad;
+//X  double dummy1, dummy2;
   double dt;
   ros::Time current_time;
 
@@ -788,18 +771,22 @@ void NodeClass::UpdateOdometry()
     // !Careful! Controller internally calculates with mm instead of m
     // ToDo: change internal calculation to SI-Units
     // ToDo: last values are not used anymore --> remove from interface
-//X    ucar_ctrl_->GetActualPltfVelocity(delta_x_rob_m, delta_y_rob_m, delta_theta_rob_rad, dummy1,
-//X        vel_x_rob_ms, vel_y_rob_ms, rot_rob_rads, dummy2);
+//    ucar_ctrl_->GetActualPltfVelocity(delta_x_rob_m, delta_y_rob_m, delta_theta_rob_rad, dummy1,
+//        vel_x_rob_ms, vel_y_rob_ms, rot_rob_rads, dummy2);
 
     UndercarriageCtrlGeom::PlatformState pltState;
-    ucar_ctrl_->setTarget(pltState);
+    ucar_ctrl_->calcDirect(pltState);
 
     // convert variables to SI-Units
     vel_x_rob_ms = pltState.get_vel_x(); // vel_x_rob_ms/1000.0;
     vel_y_rob_ms = pltState.get_vel_y(); // vel_y_rob_ms/1000.0;
-    delta_x_rob_m = vel_x_rob_ms * dCmdRateS; // delta_x_rob_m/1000.0;
-    delta_y_rob_m = vel_y_rob_ms * dCmdRateS; // delta_y_rob_m/1000.0;
+    delta_x_rob_m = pltState.get_vel_x() * dCmdRateS; // delta_x_rob_m/1000.0;
+    delta_y_rob_m = pltState.get_vel_y() * dCmdRateS; // delta_y_rob_m/1000.0;
     rot_rob_rads = pltState.dRotRobRadS;
+
+
+    std::cout << "ODOMETRY variables: " << vel_x_rob_ms << " , " << vel_y_rob_ms <<
+                 " , " << delta_x_rob_m << " , " << delta_y_rob_m << " , " << rot_rob_rads << std::endl;
 
     ROS_DEBUG("Odmonetry delta is: x=%f, y=%f, th=%f", delta_x_rob_m, delta_y_rob_m, rot_rob_rads);
   }
@@ -817,6 +804,7 @@ void NodeClass::UpdateOdometry()
   current_time = ros::Time::now();
   dt = current_time.toSec() - last_time_.toSec();
   last_time_ = current_time;
+  // TODO: not used -> delete?
   vel_rob_ms = sqrt(vel_x_rob_ms*vel_x_rob_ms + vel_y_rob_ms*vel_y_rob_ms);
 
   // calculation from ROS odom publisher tutorial http://www.ros.org/wiki/navigation/Tutorials/RobotSetup/Odom, using now midpoint integration
