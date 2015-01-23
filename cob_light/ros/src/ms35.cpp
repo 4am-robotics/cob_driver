@@ -61,6 +61,15 @@
 MS35::MS35(SerialIO* serialIO)
 {
   _serialIO = serialIO;
+}
+
+MS35::~MS35()
+{
+}
+
+bool MS35::init()
+{
+  bool ret = false;
   const char init_data[] = { 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd, 0xfd };
   int init_len = sizeof(init_data) / sizeof(init_data[0]);
   const char startup_data[] = { 0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
@@ -83,11 +92,9 @@ MS35::MS35(SerialIO* serialIO)
   memcpy(&init_buf[init_len], startup_data, startup_len);
   init_buf[init_len+startup_len] = ((char*)&crc)[1];
   init_buf[init_len+startup_len+1] = ((char*)&crc)[0];
-  sendData(init_buf, 18);
-}
-
-MS35::~MS35()
-{
+  if(sendData(init_buf, 18) == 18)
+    ret = true;
+  return ret;
 }
 
 unsigned short int MS35::getChecksum(const char* data, size_t len)

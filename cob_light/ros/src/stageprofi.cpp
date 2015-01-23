@@ -61,25 +61,30 @@ StageProfi::StageProfi(SerialIO* serialIO, unsigned int leds)
 {
   _serialIO = serialIO;
   _num_leds = leds;
-  const char init_data[] =
-  { 'C', '?' };
+}
+
+StageProfi::~StageProfi()
+{
+}
+
+bool StageProfi::init()
+{
+  bool ret = false;
+  const char init_data[] = { 'C', '?' };
   int init_len = sizeof(init_data) / sizeof(init_data[0]);
 
   char init_buf[2];
 
   memcpy(&init_buf, init_data, init_len);
-  if (serialIO->sendData(init_buf, 2))
+  if (_serialIO->sendData(init_buf, 2) == 2)
   {
     std::string rec;
-    _serialIO->readData(rec, 1);
-    serialIO->start();
+    if(_serialIO->readData(rec, 1) == 1)
+      ret = true;
   }
   else
-    std::cout << "StageProfi Error sending init" << std::endl;
-}
-
-StageProfi::~StageProfi()
-{
+    ROS_ERROR("Sending init command to stageprofi failed");
+  return ret;
 }
 
 void StageProfi::setColor(color::rgba color)
@@ -112,9 +117,12 @@ void StageProfi::setColor(color::rgba color)
     if (sendDMX(index, channelbuffer + index, size))
       index += size;
     else
-      std::cout << "Error sending stageprofi" << std::endl;
+    {
+      ROS_ERROR("Sending color to stageprofi failed");
+      this->recover();
+      break;
+    }
   }
-
   m_sigColorSet(color);
 }
 
@@ -147,14 +155,19 @@ void StageProfi::setColorMulti(std::vector<color::rgba> &colors)
     if (sendDMX(index, channelbuffer + index, size))
       index += size;
     else
-      std::cout << "Error sending stageprofi" << std::endl;
+    {
+      ROS_ERROR("Sending color to stageprofi failed");
+      this->recover();
+      break;
+    }
   }
-
   m_sigColorSet(colors[0]);
 }
 
 bool StageProfi::sendDMX(uint16_t start, const char* buf, unsigned int length)
 {
+  bool ret = false;
+  std::string recv;
   char msg[MAX_CHANNELS + HEADER_SIZE];
 
   unsigned int len = std::min((unsigned int) MAX_CHANNELS, length);
@@ -166,8 +179,20 @@ bool StageProfi::sendDMX(uint16_t start, const char* buf, unsigned int length)
 
   memcpy(msg + HEADER_SIZE, buf, len);
 
-  // This needs to be an int, as m_descriptor->Send() below returns an int
   const int bytes_to_send = len + HEADER_SIZE;
-  return _serialIO->sendData(msg, bytes_to_send) == bytes_to_send;
+
+  //send color command to controller
+  ret = _serialIO->sendData(msg, bytes_to_send) == bytes_to_send;
+  //receive ack
+  ret &= _serialIO->readData(recv, 1) == 1;
+  return ret;
 }
 
+bool StageProfi::recover()
+{
+  ROS_WARN("Trying to recover stagedriver");
+  if(_serialIO->recover() && this->init())
+    return true;
+  else
+    return false;
+}
