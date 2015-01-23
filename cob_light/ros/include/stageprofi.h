@@ -66,6 +66,8 @@ public:
   StageProfi(SerialIO* serialIO, unsigned int leds);
   virtual ~StageProfi();
 
+  bool init();
+
   void setColor(color::rgba color);
   void setColorMulti(std::vector<color::rgba> &colors);
 
@@ -75,6 +77,7 @@ private:
   static const unsigned int HEADER_SIZE = 4;
   static const unsigned int MAX_CHANNELS = 255;
 
+  bool recover();
   bool sendDMX(uint16_t start, const char* buf, unsigned int length);
 };
 

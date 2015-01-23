@@ -65,6 +65,11 @@ ColorOSim::~ColorOSim()
 {
 }
 
+bool ColorOSim::init()
+{
+  return true;
+}
+
 void ColorOSim::setColor(color::rgba color)
 {
   std_msgs::ColorRGBA _color;
