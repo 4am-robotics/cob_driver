@@ -252,6 +252,7 @@ class NodeClass
 
       // check for NaN value in Twist message
       if(isnan(msg->linear.x) || isnan(msg->linear.y) || isnan(msg->angular.z)) {
+        iwatchdog_ = 0;
         ROS_FATAL("Received NaN-value in Twist message. Stopping the robot.");
         // force platform velocity commands to zero;
         ucar_ctrl_->SetDesiredPltfVelocity(0.0, 0.0, 0.0, 0.0);
