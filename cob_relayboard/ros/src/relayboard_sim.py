@@ -60,7 +60,7 @@ def relayboard_sim():
 
 	srv = rospy.Service('~toggle_emergency_button_stop', Empty, relayboard_sim.toggle_emergency_button_stop)
 	srv = rospy.Service('~toggle_scanner_stop', Empty, relayboard_sim.toggle_scanner_stop)
-	srv = rospy.Service('~relayboard_sim/toggle_emergency_state', Empty, relayboard_sim.toggle_emergency_state)
+	srv = rospy.Service('~toggle_emergency_state', Empty, relayboard_sim.toggle_emergency_state)
 
 	while not rospy.is_shutdown():
 
