@@ -215,7 +215,7 @@ public:
       else
       {
         ROS_WARN("Serial connection on %s failed.", _deviceString.c_str());
-        ROS_INFO("Simulation Mode Enabled");
+        ROS_WARN("Simulation mode enabled");
         p_colorO = new ColorOSim(&_nh);
 
         status.level = 2;
@@ -224,7 +224,7 @@ public:
     }
     else
     {
-      ROS_INFO("Simulation Mode Enabled");
+      ROS_INFO("Simulation mode enabled");
       p_colorO = new ColorOSim(&_nh);
       status.level = 0;
       status.message = "light controller running in simulation";
