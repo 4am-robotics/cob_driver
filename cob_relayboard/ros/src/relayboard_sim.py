@@ -23,30 +23,34 @@ class RelayboardSim:
 
 	def __init__(self):
 
+		# initial values for simulation
 		self.msg_em.emergency_button_stop = False
 		self.msg_em.scanner_stop = False
 		self.msg_em.emergency_state = 0
 
 		self.msg_power_board.header.stamp = rospy.Time.now()
 		self.msg_power_board.run_stop = True
-		self.msg_power_board.wireless_stop = True #for cob the wireless stop field is misused as laser stop field
+		self.msg_power_board.wireless_stop = True # for cob the wireless stop field is misused as laser stop field
 
 		self.msg_voltage.data = 48.0 # in simulation battery is always full
 
+	# simulates emergency stop by emergency stop button (see cob_msgs/EmergencyStopState.msg)
 	def toggle_emergency_button_stop(self, req):
 		
 		self.msg_em.emergency_button_stop = not self.msg_em.emergency_button_stop
 		return ()
 
+	# simulates emergency stop by laser scanner (see cob_msgs/EmergencyStopState.msg)
 	def toggle_scanner_stop(self, req):	
 
 		self.msg_em.scanner_stop = not self.msg_em.scanner_stop
 		return ()		
 
+	# simulates emergency stop confirmation (see cob_msgs/EmergencyStopState.msg)
 	def toggle_emergency_state(self, req):
 
-		if self.msg_em.emergency_state == 0:
-			self.msg_em.emergency_state = 1
+		if self.msg_em.emergency_state != 2:
+			self.msg_em.emergency_state = 2
 		else:
 			self.msg_em.emergency_state = 0
 
@@ -54,16 +58,21 @@ class RelayboardSim:
 
 def relayboard_sim():
 
+	# start up node
 	rospy.init_node('cob_relayboard_sim')
-
 	relayboard_sim = RelayboardSim()
 
+	# advertise services
 	srv = rospy.Service('~toggle_emergency_button_stop', Empty, relayboard_sim.toggle_emergency_button_stop)
 	srv = rospy.Service('~toggle_scanner_stop', Empty, relayboard_sim.toggle_scanner_stop)
 	srv = rospy.Service('~toggle_emergency_state', Empty, relayboard_sim.toggle_emergency_state)
 
 	while not rospy.is_shutdown():
 
+		# emergency state switches automatically in state '1' if emergency stop is activated
+		if relayboard_sim.msg_em.emergency_button_stop == 1 or relayboard_sim.msg_em.scanner_stop == 1:
+                        relayboard_sim.msg_em.emergency_state = 1
+		
 		relayboard_sim.pub_em_stop.publish(relayboard_sim.msg_em)
 		relayboard_sim.pub_power_board.publish(relayboard_sim.msg_power_board)
 		relayboard_sim.pub_voltage.publish(relayboard_sim.msg_voltage)
