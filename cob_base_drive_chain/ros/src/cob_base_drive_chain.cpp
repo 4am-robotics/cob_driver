@@ -469,11 +469,13 @@ class NodeClass
 				if(m_bisInitialized)
 				{
 		   			ROS_INFO("base initialized");
+		   			return true;
 				}
 				else
 				{
 					res.error_message.data = "initialization of base failed";
 				  	ROS_ERROR("Initializing base failed");
+				  	return false;
 				}
 			}
 			else
@@ -481,8 +483,8 @@ class NodeClass
 				ROS_WARN("...base already initialized...");
 				res.success.data = true;
 				res.error_message.data = "platform already initialized";
+				return true;
 			}
-			return true;
 		}
 		
 		bool srvCallback_ElmoRecorderConfig(cob_base_drive_chain::ElmoRecorderConfig::Request &req,
