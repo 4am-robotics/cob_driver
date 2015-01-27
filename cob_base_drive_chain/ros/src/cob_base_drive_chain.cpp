@@ -220,7 +220,7 @@ class NodeClass
 				m_iNumMotors = 8;
 				m_iNumDrives = 4;
 			}
-			
+
 #ifdef __SIM__
 			bl_caster_pub = n.advertise<std_msgs::Float64>("/base_bl_caster_r_wheel_controller/command", 1);
 			br_caster_pub = n.advertise<std_msgs::Float64>("/base_br_caster_r_wheel_controller/command", 1);

@@ -403,9 +403,9 @@ class NodeClass
     // Listen for Pltf Cmds
     void topicCallbackTwistCmd(const geometry_msgs::Twist::ConstPtr& msg)
     {
-      std::cout << "TwistCmd: " << msg->linear.x << std::endl;
-      std::cout << "TwistCmd: " << msg->linear.y << std::endl;
-      std::cout << "TwistCmd: " << msg->angular.z << std::endl;
+//      std::cout << "TwistCmd: " << msg->linear.x << std::endl;
+//      std::cout << "TwistCmd: " << msg->linear.y << std::endl;
+//      std::cout << "TwistCmd: " << msg->angular.z << std::endl;
 
       // create instance of pltState which is initialized with zero values
       UndercarriageCtrlGeom::PlatformState pltState;
@@ -441,10 +441,12 @@ class NodeClass
         ROS_DEBUG("received new velocity command [cmdVelX=%3.5f,cmdVelY=%3.5f,cmdVelTh=%3.5f]",
                   msg->linear.x, msg->linear.y, msg->angular.z);
 
+        std::cout << "PLT_VELO_NEW: " << pltState.dVelLongMMS << " , " << pltState.dVelLatMMS << " , " << pltState.dRotRobRadS << std::endl;
         // Set desired values for Plattform State to UndercarriageCtrl (setpoint setting)
         ucar_ctrl_->setTarget(pltState);
       }
       else{
+        std::cout << "PLT_VELO_NEW: " << pltState.dVelLongMMS << " , " << pltState.dVelLatMMS << " , " << pltState.dRotRobRadS << std::endl;
         // Set desired values for Plattform State to zero (setpoint setting)
         // pltState will be initialized with zero values
         pltState = UndercarriageCtrlGeom::PlatformState();
@@ -484,7 +486,7 @@ class NodeClass
     // Listens for status of underlying hardware (base drive chain)
     void topicCallbackDiagnostic(const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg)
     {
-      std::cout << "Diagnostic: " << msg->name << " , " << msg->message << std::endl;
+//      std::cout << "Diagnostic: " << msg->name << " , " << msg->message << std::endl;
       control_msgs::JointTrajectoryControllerState joint_state_cmd;
 
       // prepare joint_cmds for heartbeat (compose header)
@@ -552,7 +554,7 @@ class NodeClass
     void topicCallbackJointControllerStates(const control_msgs::JointTrajectoryControllerState::ConstPtr& msg) {
       int num_joints = msg->joint_names.size();
 
-      std::cout << "JointControllerStates: " << msg->header.frame_id << std::endl;
+//      std::cout << "JointControllerStates: " << msg->header.frame_id << std::endl;
 
       // replaces the vectors per parameter with a vector of wheelStates which combines the wheel specfic params
       std::vector<UndercarriageCtrlGeom::WheelState> wStates;
@@ -769,8 +771,8 @@ void NodeClass::UpdateOdometry()
     rot_rob_rads = pltState.dRotRobRadS;
 
 
-    std::cout << "ODOMETRY variables: " << vel_x_rob_ms << " , " << vel_y_rob_ms <<
-                 " , " << delta_x_rob_m << " , " << delta_y_rob_m << " , " << rot_rob_rads << std::endl;
+//    std::cout << "ODOMETRY variables: " << vel_x_rob_ms << " , " << vel_y_rob_ms <<
+//                 " , " << delta_x_rob_m << " , " << delta_y_rob_m << " , " << rot_rob_rads << std::endl;
 
     ROS_DEBUG("Odmonetry delta is: x=%f, y=%f, th=%f", delta_x_rob_m, delta_y_rob_m, rot_rob_rads);
   }
@@ -861,7 +863,7 @@ void NodeClass::setEMStopActive(bool bEMStopActive)
     // if emergency stop reset ctrlr to zero
     if(m_bEMStopActive)
     {
-        std::cout << "EMStop: " << "Active" << std::endl;
+//        std::cout << "EMStop: " << "Active" << std::endl;
 
         // reset and update current wheel states but keep current dAngGearSteerRad per wheelState
         ucar_ctrl_->calcControlStep(wStates, dCmdRateS, true);
@@ -869,8 +871,8 @@ void NodeClass::setEMStopActive(bool bEMStopActive)
         // set current wheel states with previous reset and updated wheelStates
         ucar_ctrl_->updateWheelStates(wStates);
     }
-    else
-        std::cout << "EMStop: " << "Inactive" << std::endl;
+//    else
+//        std::cout << "EMStop: " << "Inactive" << std::endl;
 }
 
 
