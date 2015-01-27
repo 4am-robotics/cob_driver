@@ -436,7 +436,11 @@ class NodeClass
 		// listen for emergency state
 		void topicCallbackEMState(const cob_msgs::EmergencyStopState::ConstPtr& msg) {
       		
-      		m_bEMState = msg->emergency_state;
+      		// check if system is operating normal
+      		if (msg->emergency_state != 0)
+      			m_bEMState = false;
+      		else
+      			m_bEMState = true;
 
     	}
 
