@@ -37,10 +37,9 @@ class RelayboardSim:
 		self.msg_voltage.data = 48.0 # in simulation battery is always full
 
 		# advertise services
-		srv = rospy.Service('~toggle_emergency_button_stop', Empty, relayboard_sim.toggle_emergency_button_stop)
-		srv = rospy.Service('~toggle_scanner_stop', Empty, relayboard_sim.toggle_scanner_stop)
-		srv = rospy.Service('~toggle_emergency_state', Empty, relayboard_sim.toggle_emergency_state)
-
+		srv = rospy.Service('~toggle_emergency_button_stop', Empty, self.toggle_emergency_button_stop)
+		srv = rospy.Service('~toggle_scanner_stop', Empty, self.toggle_scanner_stop)
+		
 	# service callback to simulate emergency button stop
 	def toggle_emergency_button_stop(self, req):
 		
@@ -66,24 +65,24 @@ def relayboard_sim():
 
 			if relayboard_sim.msg_em.emergency_button_stop == 1 or relayboard_sim.msg_em.scanner_stop == 1:
 				relayboard_sim.msg_em.emergency_state = 1
-				ROS_ERROR("Emergency stop issued.")
+				rospy.logerr("Emergency stop issued.")
 
 		# initial situation: emergency stop was issued
 		if relayboard_sim.msg_em.emergency_state == 1:
 
 			if relayboard_sim.msg_em.emergency_button_stop == 0 and relayboard_sim.msg_em.scanner_stop == 0:
 				relayboard_sim.msg_em.emergency_state = 2 # emergency stop was confirmed
-				ROS_INFO("Emergency stop confirmed.")
+				rospy.loginfo("Emergency stop confirmed.")
 
 		if relayboard_sim.msg_em.emergency_state == 2:
 
 			if relayboard_sim.msg_em.emergency_button_stop == 1 or relayboard_sim.msg_em.scanner_stop == 1:
 				relayboard_sim.msg_em.emergency_state = 1
-				ROS_ERROR("Emergency stop issued.")
+				rospy.logerr("Emergency stop issued.")
 
 			else:
 				relayboard_sim.msg_em.emergency_state = 0
-				ROS_INFO("Emergency stop released.")
+				rospy.loginfo("Emergency stop released.")
 	
 		# publish topics
 		relayboard_sim.pub_em_stop.publish(relayboard_sim.msg_em)
