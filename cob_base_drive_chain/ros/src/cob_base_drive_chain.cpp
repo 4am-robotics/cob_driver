@@ -456,7 +456,7 @@ class NodeClass
 				ROS_ERROR("Emergency stop issued or not released yet.");
 				res.success.data = false;
 				res.error_message.data = "Emergency stop issued or not released yet.";
-				return true;
+				return false;
 			}
 
 			ROS_DEBUG("Service Callback init");
@@ -531,7 +531,7 @@ class NodeClass
 				ROS_ERROR("Emergency stop issued or not released yet.");
 				res.success.data = false;
 				res.error_message.data = "Emergency stop issued or not released yet.";
-				return true;
+				return false;
 			}
 
 			if(m_bisInitialized)
