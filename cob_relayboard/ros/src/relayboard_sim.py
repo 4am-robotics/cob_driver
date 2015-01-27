@@ -28,7 +28,7 @@ class RelayboardSim:
 
 		self.msg_em.emergency_button_stop = False
 		self.msg_em.scanner_stop = False
-		self.msg_em.emergency_state = 0
+		self.msg_em.emergency_state = 0 # system is operating normal
 
 		self.msg_power_board.header.stamp = rospy.Time.now()
 		self.msg_power_board.run_stop = True
@@ -53,16 +53,6 @@ class RelayboardSim:
 		self.msg_em.scanner_stop = not self.msg_em.scanner_stop
 		return ()		
 
-	# service callback to simulate emergency stop confirmation (see cob_msgs/EmergencyStopState.msg)
-	def toggle_emergency_state(self, req):
-
-		if self.msg_em.emergency_state != 2:
-			self.msg_em.emergency_state = 2
-		else:
-			self.msg_em.emergency_state = 0
-
-		return ()
-
 def relayboard_sim():
 
 	# start up node
@@ -71,16 +61,36 @@ def relayboard_sim():
 
 	while not rospy.is_shutdown():
 
-		# emergency state switches automatically in state '1' if emergency stop is activated
-		if relayboard_sim.msg_em.emergency_button_stop == 1 or relayboard_sim.msg_em.scanner_stop == 1:
-                        relayboard_sim.msg_em.emergency_state = 1
-		
+		# initial situation: system operating normal
+		if relayboard_sim.msg_em.emergency_state == 0:
+
+			if relayboard_sim.msg_em.emergency_button_stop == 1 or relayboard_sim.msg_em.scanner_stop == 1:
+				relayboard_sim.msg_em.emergency_state = 1
+				ROS_ERROR("Emergency stop issued.")
+
+		# initial situation: emergency stop was issued
+		if relayboard_sim.msg_em.emergency_state == 1:
+
+			if relayboard_sim.msg_em.emergency_button_stop == 0 and relayboard_sim.msg_em.scanner_stop == 0:
+				relayboard_sim.msg_em.emergency_state = 2 # emergency stop was confirmed
+				ROS_INFO("Emergency stop confirmed.")
+
+		if relayboard_sim.msg_em.emergency_state == 2:
+
+			if relayboard_sim.msg_em.emergency_button_stop == 1 or relayboard_sim.msg_em.scanner_stop == 1:
+				relayboard_sim.msg_em.emergency_state = 1
+				ROS_ERROR("Emergency stop issued.")
+
+			else:
+				relayboard_sim.msg_em.emergency_state = 0
+				ROS_INFO("Emergency stop released.")
+	
 		# publish topics
 		relayboard_sim.pub_em_stop.publish(relayboard_sim.msg_em)
 		relayboard_sim.pub_power_board.publish(relayboard_sim.msg_power_board)
 		relayboard_sim.pub_voltage.publish(relayboard_sim.msg_voltage)
 
-		rospy.sleep(1.0)
+		rospy.sleep(0.5)
 
 if __name__ == '__main__':
 	
