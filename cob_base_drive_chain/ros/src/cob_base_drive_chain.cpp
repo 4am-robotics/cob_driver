@@ -67,6 +67,7 @@
 #include <diagnostic_msgs/DiagnosticArray.h>
 #include <control_msgs/JointTrajectoryControllerState.h>
 #include <control_msgs/JointControllerState.h>
+#include <cob_msgs/EmergencyStopState.h>
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
@@ -86,6 +87,10 @@
 */
 class NodeClass
 {
+	private:
+
+		bool m_bEMState;
+
 	public:
 		// create a handle for this node, initialize node
 		ros::NodeHandle n;
@@ -111,6 +116,10 @@ class NodeClass
 		* The node subscribes to the topic "JointStateCmd" and performs the requested motor commands
 		*/
 		ros::Subscriber topicSub_JointStateCmd;
+		/**
+		* The node subscribes to the topic "emergency_stop_state"; (possible states: free, active, confirmed; see cob_msgs/EmergencyStopState.msg)
+		*/
+		ros::Subscriber topicSub_EMState;
 
 		// service servers
 		/**
@@ -248,6 +257,7 @@ class NodeClass
 			topicPub_Diagnostic = n.advertise<diagnostic_msgs::DiagnosticStatus>("diagnostic", 1);
 			// subscribed topics
 			topicSub_JointStateCmd = n.subscribe("joint_command", 1, &NodeClass::topicCallback_JointStateCmd, this);
+			topicSub_EMState = n.subscribe("/emergency_stop_state", 1, &NodeClass::topicCallbackEMState, this);
 
 			// implementation of service servers
 			srvServer_Init = n.advertiseService("init", &NodeClass::srvCallback_Init, this);
@@ -423,6 +433,17 @@ class NodeClass
 			}
 		}
 
+		// listen for emergency state
+		void topicCallbackEMState(const cob_msgs::EmergencyStopState::ConstPtr& msg) {
+      		
+      		// check if system is operating normal
+      		if (msg->emergency_state != 0)
+      			m_bEMState = false;
+      		else
+      			m_bEMState = true;
+
+    	}
+
 		// service callback functions
 		// function will be called when a service is querried
 
@@ -430,6 +451,14 @@ class NodeClass
 		bool srvCallback_Init(cob_srvs::Trigger::Request &req,
 							  cob_srvs::Trigger::Response &res )
 		{
+
+			if(!m_bEMState){
+				ROS_ERROR("Emergency stop issued or not released yet.");
+				res.success.data = false;
+				res.error_message.data = "Emergency stop issued or not released yet.";
+				return false;
+			}
+
 			ROS_DEBUG("Service Callback init");
 			if(m_bisInitialized == false)
 			{
@@ -440,11 +469,13 @@ class NodeClass
 				if(m_bisInitialized)
 				{
 		   			ROS_INFO("base initialized");
+		   			return true;
 				}
 				else
 				{
 					res.error_message.data = "initialization of base failed";
 				  	ROS_ERROR("Initializing base failed");
+				  	return false;
 				}
 			}
 			else
@@ -452,8 +483,8 @@ class NodeClass
 				ROS_WARN("...base already initialized...");
 				res.success.data = true;
 				res.error_message.data = "platform already initialized";
+				return true;
 			}
-			return true;
 		}
 		
 		bool srvCallback_ElmoRecorderConfig(cob_base_drive_chain::ElmoRecorderConfig::Request &req,
@@ -498,6 +529,13 @@ class NodeClass
 		bool srvCallback_Recover(cob_srvs::Trigger::Request &req,
 									 cob_srvs::Trigger::Response &res )
 		{
+			if(!m_bEMState){
+				ROS_ERROR("Emergency stop issued or not released yet.");
+				res.success.data = false;
+				res.error_message.data = "Emergency stop issued or not released yet.";
+				return false;
+			}
+
 			if(m_bisInitialized)
 			{
 				ROS_DEBUG("Service callback reset");
