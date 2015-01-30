@@ -249,6 +249,16 @@ class NodeClass
     {
       double vx_cmd_mms, vy_cmd_mms, w_cmd_rads;
 
+      // check for NaN value in Twist message
+      if(isnan(msg->linear.x) || isnan(msg->linear.y) || isnan(msg->angular.z)) {
+        iwatchdog_ = 0;
+        ROS_FATAL("Received NaN-value in Twist message. Stopping the robot.");
+        // force platform velocity commands to zero;
+        ucar_ctrl_->SetDesiredPltfVelocity(0.0, 0.0, 0.0, 0.0);
+        ROS_DEBUG("Forced platform velocity commands to zero");
+        return;
+      }
+
       if( (fabs(msg->linear.x) > max_vel_trans_) || (fabs(msg->linear.y) > max_vel_trans_) || (fabs(msg->angular.z) > max_vel_rot_))
       {
         if(fabs(msg->linear.x) > max_vel_trans_)
