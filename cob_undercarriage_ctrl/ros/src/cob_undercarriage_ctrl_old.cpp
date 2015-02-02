@@ -197,6 +197,7 @@ class NodeClass
         n.getParam("broadcast_tf", broadcast_tf_);
       }
 
+      //TODO: init via ros param server
       sIniDirectory = "/home/mig-jg/indigo_workspace/src/cob_robots/cob_hardware_config/raw3-1/config/base/";
 
       IniFile iniFile;

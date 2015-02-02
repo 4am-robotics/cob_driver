@@ -212,7 +212,7 @@ class NodeClass
         n.getParam("broadcast_tf", broadcast_tf_);
       }
 
-      //TODO: init via ros param server
+     //TODO: init via ros param server
      sIniDirectory = "/home/mig-jg/indigo_workspace/src/cob_robots/cob_hardware_config/raw3-1/config/base/";
 
      // vector of wheels
@@ -364,9 +364,6 @@ class NodeClass
               // add wheel to vecor of wheels
               wps.push_back(param);
 
-//              std::cout << "exception_detailed_param_info: " <<  exception_detailed_param_info << std::endl;
-//              std::cout << "dSpring: " << param.dSpring << std::endl;
-//              std::cout << "dFactorVel: " << param.dFactorVel  << std::endl;
            }
            // set correct parsing flag
            parsing_done = true;
@@ -486,7 +483,6 @@ class NodeClass
     // Listens for status of underlying hardware (base drive chain)
     void topicCallbackDiagnostic(const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg)
     {
-//      std::cout << "Diagnostic: " << msg->name << " , " << msg->message << std::endl;
       control_msgs::JointTrajectoryControllerState joint_state_cmd;
 
       // prepare joint_cmds for heartbeat (compose header)
@@ -553,8 +549,6 @@ class NodeClass
 
     void topicCallbackJointControllerStates(const control_msgs::JointTrajectoryControllerState::ConstPtr& msg) {
       int num_joints = msg->joint_names.size();
-
-//      std::cout << "JointControllerStates: " << msg->header.frame_id << std::endl;
 
       // replaces the vectors per parameter with a vector of wheelStates which combines the wheel specfic params
       std::vector<UndercarriageCtrlGeom::WheelState> wStates;
