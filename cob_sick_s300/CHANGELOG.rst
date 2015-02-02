@@ -2,6 +2,17 @@
 Changelog for package cob_sick_s300
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.2 (2014-12-15)
+------------------
+
+0.6.1 (2014-09-17)
+------------------
+* undo
+* Contributors: ipa-cob4-2
+
+0.6.0 (2014-09-09)
+------------------
+
 0.5.7 (2014-08-26)
 ------------------
 * Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev

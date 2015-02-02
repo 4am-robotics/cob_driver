@@ -103,6 +103,8 @@ public:
 	// Close Serial Port
 	void closePort();
 
+	bool recover();
+
 	void start();
 	void stop();
 
@@ -118,6 +120,10 @@ private:
 	int _fd;
 	// serial port settings
 	struct termios port_settings;
+	// device string
+	std::string _device_string;
+	// baudrate
+	int _baudrate;
 
 	// resolve int to baudrate
 	speed_t getBaudFromInt(int baud);
