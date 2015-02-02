@@ -198,7 +198,7 @@ class NodeClass
       }
 
       //TODO: init via ros param server
-      sIniDirectory = "/home/mig-jg/indigo_workspace/src/cob_robots/cob_hardware_config/raw3-1/config/base/";
+      //sIniDirectory = "/home/mig-jg/indigo_workspace/src/cob_robots/cob_hardware_config/raw3-1/config/base/";
 
       IniFile iniFile;
       iniFile.SetFileName(sIniDirectory + "Platform.ini", "PltfHardwareCoB3.h");

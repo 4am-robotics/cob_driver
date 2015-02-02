@@ -213,7 +213,7 @@ class NodeClass
       }
 
      //TODO: init via ros param server
-     sIniDirectory = "/home/mig-jg/indigo_workspace/src/cob_robots/cob_hardware_config/raw3-1/config/base/";
+     //sIniDirectory = "/home/mig-jg/indigo_workspace/src/cob_robots/cob_hardware_config/raw3-1/config/base/";
 
      // vector of wheels
      std::vector<UndercarriageCtrlGeom::WheelParams> wps;
@@ -438,12 +438,12 @@ class NodeClass
         ROS_DEBUG("received new velocity command [cmdVelX=%3.5f,cmdVelY=%3.5f,cmdVelTh=%3.5f]",
                   msg->linear.x, msg->linear.y, msg->angular.z);
 
-        std::cout << "PLT_VELO_NEW: " << pltState.dVelLongMMS << " , " << pltState.dVelLatMMS << " , " << pltState.dRotRobRadS << std::endl;
+        //std::cout << "PLT_VELO_NEW: " << pltState.dVelLongMMS << " , " << pltState.dVelLatMMS << " , " << pltState.dRotRobRadS << std::endl;
         // Set desired values for Plattform State to UndercarriageCtrl (setpoint setting)
         ucar_ctrl_->setTarget(pltState);
       }
       else{
-        std::cout << "PLT_VELO_NEW: " << pltState.dVelLongMMS << " , " << pltState.dVelLatMMS << " , " << pltState.dRotRobRadS << std::endl;
+        //std::cout << "PLT_VELO_NEW: " << pltState.dVelLongMMS << " , " << pltState.dVelLatMMS << " , " << pltState.dRotRobRadS << std::endl;
         // Set desired values for Plattform State to zero (setpoint setting)
         // pltState will be initialized with zero values
         pltState = UndercarriageCtrlGeom::PlatformState();
