@@ -335,16 +335,15 @@ class NodeClass
               param.dRadiusWheelMM  = (*plt_conf)["Geom"]["RadiusWheeL"].as<double>(); //0.0
 
               exception_detailed_param_info =  fix_exception_info_per_wheel + "Geom/DistSteerAxisToDriveWheelCenter";
-              param.dDistSteerAxisToDriveWheelMM = (*plt_conf)["Geom"]["DistSteerAxisToDriveWheelCenter"].as<double>(); //0.0
-
-              // DrivePrms
-              exception_detailed_param_info =  fix_exception_info_per_wheel + "DrivePrms/MaxDriveRate";
-              param.dMaxDriveRateRadpS = (*plt_conf)["DrivePrms"]["MaxDriveRate"].as<double>(); //0.0
-
-              exception_detailed_param_info =  fix_exception_info_per_wheel + "DrivePrms/MaxSteerRate";
-              param.dMaxSteerRateRadpS = (*plt_conf)["DrivePrms"]["MaxSteerRate"].as<double>(); //0.0
+              param.dDistSteerAxisToDriveWheelMM = (*plt_conf)["Geom"]["DistSteerAxisToDriveWheelCenter"].as<double>();
 
               // Wheel specific Geom-Parameters
+              exception_detailed_param_info =  fix_exception_info_per_wheel + "Geom/MaxDriveRate";
+              param.dMaxDriveRateRadpS = (*plt_conf)["Geom"]["Wheels"][ss.str()]["MaxDriveRate"].as<double>();
+
+              exception_detailed_param_info =  fix_exception_info_per_wheel + "Geom/MaxSteerRate";
+              param.dMaxSteerRateRadpS = (*plt_conf)["Geom"]["Wheels"][ss.str()]["MaxSteerRate"].as<double>();
+
               exception_detailed_param_info =  fix_exception_info_per_wheel + "Geom/xPos";
               param.dWheelXPosMM = (*plt_conf)["Geom"]["Wheels"][ss.str()]["xPos"].as<int>();
 
@@ -352,10 +351,10 @@ class NodeClass
               param.dWheelYPosMM = (*plt_conf)["Geom"]["Wheels"][ss.str()]["yPos"].as<int>();
 
               exception_detailed_param_info =  fix_exception_info_per_wheel + "Geom/NeutralPosition";
-              double deg = (*plt_conf)["Geom"]["Wheels"][ss.str()]["NeutralPosition"].as<double>(); //0.0
-
+              double deg = (*plt_conf)["Geom"]["Wheels"][ss.str()]["NeutralPosition"].as<double>();
+              std::cout << "NeutralPosition " << ss.str() << ": " << deg << std::endl;
               exception_detailed_param_info =  fix_exception_info_per_wheel + "Geom/SteerDriveCoupling";
-              double coupling = (*plt_conf)["Geom"]["Wheels"][ss.str()]["SteerDriveCoupling"].as<double>(); //0.0
+              double coupling = (*plt_conf)["Geom"]["Wheels"][ss.str()]["SteerDriveCoupling"].as<double>();
 
               // calculate specific parameters
               param.dWheelNeutralPos = angles::from_degrees(deg);
@@ -660,6 +659,7 @@ int main(int argc, char** argv)
 // perform one control step, calculate inverse kinematics and publish updated joint cmd's (if no EMStop occurred)
 void NodeClass::CalcCtrlStep()
 {
+  // WheelStates will be initialized with zero-values
   std::vector<UndercarriageCtrlGeom::WheelState> wStates;
   wStates.assign(m_iNumWheels, UndercarriageCtrlGeom::WheelState());
 
@@ -680,6 +680,14 @@ void NodeClass::CalcCtrlStep()
     // get the resulting cmd's for the wheel velocities and -angles from the controller class
     // and output the achievable pltf velocity-cmds (if velocity limits where exceeded)
     ucar_ctrl_->calcControlStep(wStates, dCmdRateS, false);
+
+    // if drives not operating nominal -> force commands to zero
+    if(drive_chain_diagnostic_ != diagnostic_status_lookup_.OK){
+        for(int i = 0; i < wStates.size(); i++){
+            wStates[i].dAngGearSteerRad = 0.0;
+            wStates[i].dVelGearSteerRadS = 0.0;
+        }
+    }
 
     // compose jointcmds of control_msg
 
@@ -716,7 +724,7 @@ void NodeClass::CalcCtrlStep()
         {
             joint_state_cmd.desired.positions[i] = wStates[j].dAngGearSteerRad;
             joint_state_cmd.desired.velocities[i] = wStates[j].dVelGearSteerRadS;
-          j = j + 1;
+            j = j + 1;
         }
         else
         {
@@ -777,6 +785,7 @@ void NodeClass::UpdateOdometry()
     vel_y_rob_ms = 0.0;
     delta_x_rob_m = 0.0;
     delta_y_rob_m = 0.0;
+    rot_rob_rads = 0.0;
   }
 
   // calc odometry (from startup)
