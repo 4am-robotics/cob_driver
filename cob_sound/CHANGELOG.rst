@@ -2,6 +2,19 @@
 Changelog for package cob_sound
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.2 (2014-12-15)
+------------------
+* Merge branch 'indigo_dev' into indigo_release_candidate
+* missed dependency
+* missed dependency
+* Contributors: Florian Weisshardt, ipa-cob4-2, ipa-nhg
+
+0.6.1 (2014-09-17)
+------------------
+
+0.6.0 (2014-09-09)
+------------------
+
 0.5.7 (2014-08-26)
 ------------------
 * Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev

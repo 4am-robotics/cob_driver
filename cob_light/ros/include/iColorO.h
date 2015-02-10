@@ -61,9 +61,10 @@
 class IColorO
 {
 public:
-  IColorO() : _invertMask(0), _num_leds(1){;}
+  IColorO() : _initialized(false), _invertMask(0), _num_leds(1){;}
   virtual ~IColorO(){;}
 
+  virtual bool init() = 0;
   virtual void setColor(color::rgba color) = 0;
   virtual void setColorMulti(std::vector<color::rgba> &colors) = 0;
 
@@ -75,6 +76,7 @@ public:
   boost::signals2::signal<void (std::vector<color::rgba> colors) >* signalColorsSet(){ return &m_sigColorsSet; }
 
 protected:
+  bool _initialized;
   int _invertMask;
   int _num_leds;
   boost::signals2::signal<void (color::rgba color)> m_sigColorSet;

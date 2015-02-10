@@ -2,6 +2,20 @@
 Changelog for package cob_generic_can
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.2 (2014-12-15)
+------------------
+
+0.6.1 (2014-09-17)
+------------------
+
+0.6.0 (2014-09-09)
+------------------
+* Fixed typo
+* Extended with ReciveMsgTimeout method.
+* Correction...
+* Extended CanPeakSysUSB for usage without (obsolete) Ini-file, some stuff clearly written
+* Contributors: Denis Štogl
+
 0.5.7 (2014-08-26)
 ------------------
 * Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev

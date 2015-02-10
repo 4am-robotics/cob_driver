@@ -2,6 +2,29 @@
 Changelog for package cob_relayboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.2 (2014-12-15)
+------------------
+
+0.6.1 (2014-09-17)
+------------------
+* Deleted CurrentMeasurement.msg
+* Re-add relayboard_sim
+* fix install tags
+* Current Measurement
+* Current measurement
+* Removed emergency model and custom Relayboard
+* Merge branch 'groovy_dev' of https://github.com/ipa320/cob_driver into groovy_dev
+  Conflicts:
+  cob_relayboard/ros/src/new_method.py
+  cob_relayboard/ros/src/relayboard_sim.py
+* Thrash
+* Emergency stop modeling
+  * First Working Version for the Care-o-Bot
+* Contributors: Thiago de Freitas, ipa-cob4-2, ipa-nhg, thiagodefreitas, thiagodefreitas@gmail.com
+
+0.6.0 (2014-09-09)
+------------------
+
 0.5.7 (2014-08-26)
 ------------------
 * Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev

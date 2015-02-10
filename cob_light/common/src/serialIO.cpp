@@ -60,7 +60,7 @@
 #include <ros/ros.h>
 
 SerialIO::SerialIO() :
-	 _fd(-1)
+	 _fd(-1), _device_string(""), _baudrate(9600)
 {
 }
 
@@ -74,6 +74,9 @@ SerialIO::~SerialIO()
 int SerialIO::openPort(std::string devicestring, int baudrate)
 {
 	if(_fd != -1) return _fd;
+
+	_device_string = devicestring;
+	_baudrate = baudrate;
 
 	speed_t baud = getBaudFromInt(baudrate);
 	std::memset(&port_settings,0,sizeof(port_settings));
@@ -186,7 +189,23 @@ bool SerialIO::isOpen()
 void SerialIO::closePort()
 {
 	if(_fd != -1)
+	{
 		close(_fd);
+		_fd = -1;
+	}
+}
+
+bool SerialIO::recover()
+{
+  closePort();
+  if(openPort(_device_string, _baudrate))
+  {
+    usleep(50000);
+    tcflush(_fd, TCIOFLUSH);
+    return true;
+  }
+  else
+    return false;
 }
 
 

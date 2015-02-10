@@ -66,38 +66,51 @@ import subprocess
 
 import rospy
 import Image
+import actionlib
 
 from cob_mimic.srv import *
+from cob_mimic.msg import *
 
 class Mimic:
-  def set_mimic(self,req):
+  def service_cb(self, req):
+      self.set_mimic(req.mimic, req.speed, req.repeat)
+      return SetMimicResponse()
+
+  def action_cb(self, goal):
+      if self.set_mimic(goal.mimic, goal.speed, goal.repeat):
+          self._as.set_succeeded()
+      else:
+          self._as.set_aborted()
+
+  def set_mimic(self, mimic, speed, repeat):
       self.ServiceCalled = True
       #os.system(self.quit_command)
 
-      print "Mimic: %s" % req.mimic
-      file_localition = roslib.packages.get_pkg_dir('cob_mimic') + '/common/' + req.mimic + '.mp4'
-      if(not os.path.isfile(file_localition)):
-        print "File not found: cob_mimic" + "/common/" + req.mimic + '.mp4'
-        return
+      print "Mimic: %s" % mimic
+      file_location = '/tmp/mimic/' + mimic + '.mp4'
+      if(not os.path.isfile(file_location)):
+        print "File not found: " + file_location
+        return False
         
-      if (req.repeat == 0 ):
-        self.default_mimic = req.mimic
-        self.default_speed = req.speed
+      if (repeat == 0 ):
+        self.default_mimic = mimic
+        self.default_speed = speed
         self.ServiceCalled = False
       else: 
-        for i in range(0,req.repeat):
-          command = "export DISPLAY=:0 && vlc --fullscreen --video-filter 'rotate{angle=0}' --one-instance --playlist-enqueue --no-video-title-show --rate %f %s"  % (req.speed,file_localition) #--fullscreen --video-filter 'rotate{angle=90}'
-          os.system(command)   
+        for i in range(0,repeat):
+          command = "export DISPLAY=:0 && vlc --video-wallpaper --video-filter 'rotate{angle=0}' --one-instance --playlist-enqueue --no-video-title-show --rate %f %s"  % (speed,file_location) #--fullscreen --video-filter 'rotate{angle=90}'
+          os.system(command)
       os.system(self.quit_command)
-      return SetMimicResponse()
-      
+      return True
+
   def defaultMimic(self):
     while not rospy.is_shutdown():
-      file_localition = roslib.packages.get_pkg_dir('cob_mimic') + '/common/' + self.default_mimic + '.mp4'
-      if(not os.path.isfile(file_localition)):
-        print "File not found: cob_mimic" + "/common/" + self.default_mimic + '.mp4' 
+      file_location = '/tmp/mimic/' + self.default_mimic + '.mp4'
+      if(not os.path.isfile(file_location)):
+        print "File not found: " + file_location
+        rospy.sleep(1)
         return
-      command = "export DISPLAY=:0 && vlc --fullscreen --video-filter 'rotate{angle=0}' --loop --one-instance --playlist-enqueue --no-video-title-show --rate %f  %s"  % (self.default_speed,file_localition) # --fullscreen --video-filter 'rotate{angle=90}'
+      command = "export DISPLAY=:0 && vlc --video-wallpaper --video-filter 'rotate{angle=0}' --loop --one-instance --playlist-enqueue --no-video-title-show --rate %f  %s"  % (self.default_speed,file_location) # --fullscreen --video-filter 'rotate{angle=90}'
       os.system(command)
 
       
@@ -109,10 +122,20 @@ class Mimic:
     self.default_mimic = "default"
     self.quit_command = "export DISPLAY=:0 && vlc --one-instance --playlist-enqueue vlc://quit"
     
-    s=rospy.Service('mimic',SetMimic, self.set_mimic)
+    s=rospy.Service('set_mimic',SetMimic, self.service_cb)
+    self._as = actionlib.SimpleActionServer('set_mimic_action', cob_mimic.msg.SetMimicAction, execute_cb=self.action_cb, auto_start = False)
+    self._as.start()
+    
+    # copy all videos to /tmp
+    rospy.loginfo("copying all mimic files to /tmp/mimic...")
+    file_location = roslib.packages.get_pkg_dir('cob_mimic') + '/common/*.mp4'
+    os.system("mkdir -p /tmp/mimic")
+    os.system("cp " + file_location + " /tmp/mimic")
+    rospy.loginfo("...copied all mimic files to /tmp/mimic")
     
     while ( self.ServiceCalled == False):
       self.defaultMimic()
+      rospy.sleep(1)
         
     rospy.spin()
 

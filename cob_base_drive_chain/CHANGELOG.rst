@@ -2,6 +2,17 @@
 Changelog for package cob_base_drive_chain
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.2 (2014-12-15)
+------------------
+* remove joint_states publisher for simulation - using JointStateController anyway
+* Contributors: ipa-fxm
+
+0.6.1 (2014-09-17)
+------------------
+
+0.6.0 (2014-09-09)
+------------------
+
 0.5.7 (2014-08-26)
 ------------------
 * Merge pull request `#163 <https://github.com/ipa320/cob_driver/issues/163>`_ from ipa320/hydro_dev

@@ -64,6 +64,11 @@ ColorO::~ColorO()
 {
 }
 
+bool ColorO::init()
+{
+  return true;
+}
+
 void ColorO::setColorMulti(std::vector<color::rgba> &colors)
 {
 
