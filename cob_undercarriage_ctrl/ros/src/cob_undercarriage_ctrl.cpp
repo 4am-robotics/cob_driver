@@ -135,7 +135,7 @@ class NodeClass
     YAML::Node* plt_conf;
     YAML::Node* motion_conf;
 
-
+    bool has_target;
 
     diagnostic_msgs::DiagnosticStatus diagnostic_status_lookup_; // used to access defines for warning levels
 
@@ -156,6 +156,7 @@ class NodeClass
       vel_theta_rob_last_ = 0.0;
       // set status of drive chain to WARN by default
       drive_chain_diagnostic_ = diagnostic_status_lookup_.OK; //WARN; <- THATS FOR DEBUGGING ONLY!
+      has_target = false;     
 
       // Parameters are set within the launch file
       // read in timeout for watchdog stopping the controller.
@@ -438,7 +439,8 @@ class NodeClass
                   msg->linear.x, msg->linear.y, msg->angular.z);
 
         //std::cout << "PLT_VELO_NEW: " << pltState.dVelLongMMS << " , " << pltState.dVelLatMMS << " , " << pltState.dRotRobRadS << std::endl;
-        // Set desired values for Plattform State to UndercarriageCtrl (setpoint setting)
+        // Set desired values for Plattform State to UndercarriageCtrl (setpoint setting
+        has_target =  msg->linear.x!= 0 ||  msg->linear.y!=0 ||  msg->angular.z  != 0;
         ucar_ctrl_->setTarget(pltState);
       }
       else{
@@ -520,6 +522,7 @@ class NodeClass
       if (is_initialized_bool_){
         // ... but underlying drive chain is not yet operating normal
         if (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK){
+            has_target = false;
             // halt controller
             ROS_DEBUG("drive chain not availlable: halt Controller");
 
@@ -717,7 +720,7 @@ void NodeClass::CalcCtrlStep()
     // compose data body of control_msg
     for(int i = 0; i<m_iNumJoints; i++)
     {
-      if(iwatchdog_ < (int) std::floor(timeout_/sample_time_) )
+      if(iwatchdog_ < (int) std::floor(timeout_/sample_time_) && has_target)
       {
         // for steering motors
         if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the Msg
@@ -867,7 +870,7 @@ void NodeClass::setEMStopActive(bool bEMStopActive)
     if(m_bEMStopActive)
     {
 //        std::cout << "EMStop: " << "Active" << std::endl;
-
+        has_target = false;
         // reset and update current wheel states but keep current dAngGearSteerRad per wheelState
         ucar_ctrl_->calcControlStep(wStates, dCmdRateS, true);
 
