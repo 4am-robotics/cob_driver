@@ -430,7 +430,7 @@ class NodeClass
 		bool srvCallback_Init(cob_srvs::Trigger::Request &req,
 							  cob_srvs::Trigger::Response &res )
 		{
-			ROS_DEBUG("Service callback /base_controller/init");
+			ROS_DEBUG("Service callback init");
 			if(m_bisInitialized == false)
 			{
 				m_bisInitialized = initDrives();
@@ -500,7 +500,7 @@ class NodeClass
 		{
 			if(m_bisInitialized)
 			{
-				ROS_DEBUG("Service callback /base_controller/recover");
+				ROS_DEBUG("Service callback recover");
 #ifdef __SIM__
 				res.success.data = true;
 #else
