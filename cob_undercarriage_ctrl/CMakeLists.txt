@@ -23,28 +23,28 @@ catkin_package(
 # add include search paths
 include_directories(common/include ${catkin_INCLUDE_DIRS})
 
-# add project - libs create lib for cob_undercarriage_ctrl_old
-add_library(${PROJECT_NAME}_old common/src/UndercarriageCtrlGeom.cpp)
+# add project - libs create lib for cob_undercarriage_ctrl_new
+add_library(${PROJECT_NAME}_new common/src/UndercarriageCtrlGeom.cpp)
 
-# add executable for cob_undercarriage_ctrl_node and cob_undercarriage_ctrl_node_old
+# add executable for cob_undercarriage_ctrl_node and cob_undercarriage_ctrl_node_new
 add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp)
-add_executable(${PROJECT_NAME}_node_old ros/src/${PROJECT_NAME}_old.cpp)
+add_executable(${PROJECT_NAME}_node_new ros/src/${PROJECT_NAME}_new.cpp)
 
 # link libraries for executable cob_undercarriage_ctrl_node
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
   yaml-cpp
 )
-# link libraries for executable cob_undercarriage_ctrl_node_old
-target_link_libraries(${PROJECT_NAME}_node_old
-  ${PROJECT_NAME}_old
+# link libraries for executable cob_undercarriage_ctrl_node_new
+target_link_libraries(${PROJECT_NAME}_node_new
+  ${PROJECT_NAME}_new
   ${catkin_LIBRARIES}
   yaml-cpp
 )
 
 
 #target_link_libraries(${PROJECT_NAME}_node yaml-cpp)
-#target_link_libraries(${PROJECT_NAME}_node_old yaml-cpp)
+#target_link_libraries(${PROJECT_NAME}_node_new yaml-cpp)
 
 #target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})
 
@@ -65,7 +65,7 @@ install(TARGETS ${PROJECT_NAME}_node #${PROJECT_NAME}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(TARGETS ${PROJECT_NAME}_node_old ${PROJECT_NAME}_old
+install(TARGETS ${PROJECT_NAME}_node_new ${PROJECT_NAME}_new
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
