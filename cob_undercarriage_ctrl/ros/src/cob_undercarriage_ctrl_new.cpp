@@ -78,7 +78,6 @@
 #include <cob_utilities/IniFile.h>
 #include <vector>
 #include <fstream>
-#include "yaml-cpp/yaml.h"
 #include <angles/angles.h>
 //#include <cob_utilities/MathSup.h>
 #include <XmlRpc.h>
@@ -89,7 +88,7 @@ class NodeClass
   //
   public:
     // create a handle for this node, initialize node
-    ros::NodeHandle n;
+    ros::NodeHandle n("~"); // parameter are uploaded to private space
 
     // topics to publish
     ros::Publisher topic_pub_joint_state_cmd_;	// cmd issued for single joints of undercarriage
@@ -264,7 +263,7 @@ class NodeClass
         double deg, coupling;
 
         // general config
-        if (n.getParam("/base_controller/undercarriage_ctrl_node_new/Geom/Wheels", wheel_list)){
+        if (n.getParam("Geom/Wheels", wheel_list)){
             m_iNumWheels = wheel_list.size();
         }else{
             ROS_ERROR("Error while parsing YAML-Parameter: Geom/Wheels");
@@ -274,7 +273,7 @@ class NodeClass
         // calc numebr of Joints
         m_iNumJoints = m_iNumWheels * 2;
 
-        if (n.getParam("/base_controller/undercarriage_ctrl_node_new/Thread/ThrUCarrCycleTimeS", dCmdRateS)){
+        if (n.getParam("Thread/ThrUCarrCycleTimeS", dCmdRateS)){
         }else{
             ROS_ERROR("Error while parsing YAML-Parameter: Thread/ThrUCarrCycleTimeS");
             return false;
@@ -289,31 +288,31 @@ class NodeClass
           // SteerCtrl-Parameters
           // --------------------
 
-          if (n.getParam("/base_controller/undercarriage_ctrl_node_new/SteerCtrl/Spring", param.dSpring)){
+          if (n.getParam("SteerCtrl/Spring", param.dSpring)){
           }else{
               ROS_ERROR("Error while parsing YAML-Parameter: SteerCtrl/Spring");
               return false;
           }
 
-          if (n.getParam("/base_controller/undercarriage_ctrl_node_new/SteerCtrl/Damp", param.dDamp)){
+          if (n.getParam("SteerCtrl/Damp", param.dDamp)){
           }else{
               ROS_ERROR("Error while parsing YAML-Parameter: SteerCtrl/Damp");
               return false;
           }
 
-          if (n.getParam("/base_controller/undercarriage_ctrl_node_new/SteerCtrl/VirtMass", param.dVirtM)){
+          if (n.getParam("SteerCtrl/VirtMass", param.dVirtM)){
           }else{
               ROS_ERROR("Error while parsing YAML-Parameter: SteerCtrl/VirtMass");
               return false;
           }
 
-          if (n.getParam("/base_controller/undercarriage_ctrl_node_new/SteerCtrl/DPhiMax", param.dDPhiMax)){
+          if (n.getParam("SteerCtrl/DPhiMax", param.dDPhiMax)){
           }else{
               ROS_ERROR("Error while parsing YAML-Parameter: SteerCtrl/DPhiMax");
               return false;
           }
 
-          if (n.getParam("/base_controller/undercarriage_ctrl_node_new/SteerCtrl/DDPhiMax", param.dDDPhiMax)){
+          if (n.getParam("SteerCtrl/DDPhiMax", param.dDDPhiMax)){
           }else{
               ROS_ERROR("Error while parsing YAML-Parameter: SteerCtrl/DDPhiMax");
               return false;
@@ -323,13 +322,13 @@ class NodeClass
           // Geom-Parameters
           // ---------------
 
-          if (n.getParam("/base_controller/undercarriage_ctrl_node_new/Geom/RadiusWheeL", param.dRadiusWheelMM)){
+          if (n.getParam("Geom/RadiusWheeL", param.dRadiusWheelMM)){
           }else{
               ROS_ERROR("Error while parsing YAML-Parameter: Geom/RadiusWheeL");
               return false;
           }
 
-          if (n.getParam("/base_controller/undercarriage_ctrl_node_new/Geom/DistSteerAxisToDriveWheelCenter", param.dDistSteerAxisToDriveWheelMM)){
+          if (n.getParam("Geom/DistSteerAxisToDriveWheelCenter", param.dDistSteerAxisToDriveWheelMM)){
           }else{
               ROS_ERROR("Error while parsing YAML-Parameter: Geom/DistSteerAxisToDriveWheelCenter");
               return false;
