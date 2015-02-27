@@ -23,28 +23,28 @@ catkin_package(
 # add include search paths
 include_directories(common/include ${catkin_INCLUDE_DIRS})
 
-# add project - libs create lib for cob_undercarriage_ctrl_new
-add_library(${PROJECT_NAME}_new common/src/UndercarriageCtrlGeom.cpp)
+# add project - libs create lib for cob_undercarriage_ctrl
+add_library(${PROJECT_NAME} common/src/UndercarriageCtrlGeom.cpp)
 
-# add executable for cob_undercarriage_ctrl_node and cob_undercarriage_ctrl_node_new
-add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp)
+# add executable for cob_undercarriage_ctrl_node and cob_undercarriage_ctrl_node
 add_executable(${PROJECT_NAME}_node_new ros/src/${PROJECT_NAME}_new.cpp)
+add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp)
 
 # link libraries for executable cob_undercarriage_ctrl_node
-target_link_libraries(${PROJECT_NAME}_node
-  ${catkin_LIBRARIES}
-  yaml-cpp
-)
-# link libraries for executable cob_undercarriage_ctrl_node_new
 target_link_libraries(${PROJECT_NAME}_node_new
-  ${PROJECT_NAME}_new
+  ${catkin_LIBRARIES}
+  yaml-cpp
+)
+# link libraries for executable cob_undercarriage_ctrl_node
+target_link_libraries(${PROJECT_NAME}_node
+  ${PROJECT_NAME}
   ${catkin_LIBRARIES}
   yaml-cpp
 )
 
 
-#target_link_libraries(${PROJECT_NAME}_node yaml-cpp)
 #target_link_libraries(${PROJECT_NAME}_node_new yaml-cpp)
+#target_link_libraries(${PROJECT_NAME}_node yaml-cpp)
 
 #target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})
 
@@ -59,19 +59,19 @@ target_link_libraries(${PROJECT_NAME}_node_new
 #############
 
 ## Mark executables and/or libraries for installation
-install(TARGETS ${PROJECT_NAME}_node #${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME}_node_new #${PROJECT_NAME}_new
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(TARGETS ${PROJECT_NAME}_node_new ${PROJECT_NAME}_new
+install(TARGETS ${PROJECT_NAME}_node ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(DIRECTORY common/include/${PROJECT_NAME}/
+install(DIRECTORY common/include/${PROJECT_NAME}_new/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
