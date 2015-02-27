@@ -129,7 +129,6 @@ class NodeClass
 
     int m_iNumJoints;
     int m_iNumWheels;
-    double dCmdRateS;
     bool m_bEMStopActive;
 
     bool has_target;
@@ -145,7 +144,7 @@ class NodeClass
       broadcast_tf_ = true;
       iwatchdog_ = 0;
       last_time_ = ros::Time::now();
-      sample_time_ = 0.020;
+      sample_time_ = 0.020; // TODO: read from parameter server
       x_rob_m_ = 0.0;
       y_rob_m_ = 0.0;
       theta_rob_rad_ = 0.0;
@@ -270,12 +269,6 @@ class NodeClass
 
         // calc numebr of Joints
         m_iNumJoints = m_iNumWheels * 2;
-
-        if (nh_priv.getParam("Thread/ThrUCarrCycleTimeS", dCmdRateS)){
-        }else{
-            ROS_ERROR("Error while parsing YAML-Parameter: Thread/ThrUCarrCycleTimeS");
-            return false;
-        }
 
         for(int i=0; i < m_iNumWheels; i++){
 
@@ -681,7 +674,7 @@ void NodeClass::CalcCtrlStep()
     // perform one control step,
     // get the resulting cmd's for the wheel velocities and -angles from the controller class
     // and output the achievable pltf velocity-cmds (if velocity limits where exceeded)
-    ucar_ctrl_->calcControlStep(wStates, dCmdRateS, false);
+    ucar_ctrl_->calcControlStep(wStates, sample_time_, false);
 
     // if drives not operating nominal -> force commands to zero
     if(drive_chain_diagnostic_ != diagnostic_status_lookup_.OK){
@@ -770,8 +763,8 @@ void NodeClass::UpdateOdometry()
     // convert variables to SI-Units
     vel_x_rob_ms = pltState.get_vel_x();
     vel_y_rob_ms = pltState.get_vel_y();
-    delta_x_rob_m = pltState.get_vel_x() * dCmdRateS;
-    delta_y_rob_m = pltState.get_vel_y() * dCmdRateS;
+    delta_x_rob_m = pltState.get_vel_x() * sample_time_;
+    delta_y_rob_m = pltState.get_vel_y() * sample_time_;
     rot_rob_rads = pltState.dRotRobRadS;
 
 
@@ -871,7 +864,7 @@ void NodeClass::setEMStopActive(bool bEMStopActive)
 //        std::cout << "EMStop: " << "Active" << std::endl;
         has_target = false;
         // reset and update current wheel states but keep current dAngGearSteerRad per wheelState
-        ucar_ctrl_->calcControlStep(wStates, dCmdRateS, true);
+        ucar_ctrl_->calcControlStep(wStates, sample_time_, true);
 
         // set current wheel states with previous reset and updated wheelStates
         ucar_ctrl_->updateWheelStates(wStates);
