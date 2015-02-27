@@ -72,15 +72,10 @@
 #include <control_msgs/JointTrajectoryControllerState.h>
 
 // external includes
-//#include <cob_undercarriage_ctrl/UndercarriageCtrlGeom.h>
-// /home/mig-jg/indigo_workspace/src/cob_control/cob_omni_drive_controller/include/cob_omni_drive_controller/UndercarriageCtrlGeom.h
 #include <cob_omni_drive_controller/UndercarriageCtrlGeom.h>
-#include <cob_utilities/IniFile.h>
 #include <vector>
-#include <fstream>
 #include <angles/angles.h>
-//#include <cob_utilities/MathSup.h>
-#include <XmlRpc.h>
+
 //####################
 //#### node class ####
 class NodeClass
@@ -113,8 +108,6 @@ class NodeClass
 
     // member variables
     UndercarriageCtrlGeom * ucar_ctrl_;	// instantiate undercarriage controller
-    std::string sIniDirectory;
-    std::string sYamlDirectory;
     bool is_initialized_bool_;			// flag wether node is already up and running
     bool is_ucarr_geom_initialized_bool_;
     bool broadcast_tf_;			// flag wether to broadcast the tf from odom to base_link
@@ -171,18 +164,6 @@ class NodeClass
       {
         ROS_WARN("Specified timeout < sample_time. Setting timeout to sample_time = %fs", sample_time_);
         timeout_ = sample_time_;
-      }
-
-      // Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
-      if (n.hasParam("IniDirectory"))
-      {
-        n.getParam("IniDirectory", sIniDirectory);
-        ROS_INFO("IniDirectory loaded from Parameter-Server is: %s", sIniDirectory.c_str());
-      }
-      else
-      {
-        sIniDirectory = "Platform/IniFiles/";
-        ROS_WARN("IniDirectory not found on Parameter-Server, using default value: %s", sIniDirectory.c_str());
       }
 
       if (n.hasParam("max_trans_velocity"))
@@ -748,6 +729,8 @@ void NodeClass::UpdateOdometry()
   double vel_x_rob_ms, vel_y_rob_ms, rot_rob_rads, delta_x_rob_m, delta_y_rob_m;
   double dt;
   ros::Time current_time;
+
+  // TODO: migrate to cob_omni_drive_controller/OdometryTracker  
 
   // if drive chain already initialized process joint data
   //if (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK)
