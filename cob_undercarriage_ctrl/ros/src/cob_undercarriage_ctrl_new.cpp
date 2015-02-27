@@ -132,9 +132,6 @@ class NodeClass
     double dCmdRateS;
     bool m_bEMStopActive;
 
-    YAML::Node* plt_conf;
-    YAML::Node* motion_conf;
-
     bool has_target;
 
     diagnostic_msgs::DiagnosticStatus diagnostic_status_lookup_; // used to access defines for warning levels
