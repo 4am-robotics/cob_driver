@@ -72,15 +72,10 @@
 #include <control_msgs/JointTrajectoryControllerState.h>
 
 // external includes
-//#include <cob_undercarriage_ctrl/UndercarriageCtrlGeom.h>
-// /home/mig-jg/indigo_workspace/src/cob_control/cob_omni_drive_controller/include/cob_omni_drive_controller/UndercarriageCtrlGeom.h
 #include <cob_omni_drive_controller/UndercarriageCtrlGeom.h>
-#include <cob_utilities/IniFile.h>
 #include <vector>
-#include <fstream>
 #include <angles/angles.h>
-//#include <cob_utilities/MathSup.h>
-#include <XmlRpc.h>
+
 //####################
 //#### node class ####
 class NodeClass
@@ -88,7 +83,7 @@ class NodeClass
   //
   public:
     // create a handle for this node, initialize node
-    ros::NodeHandle n("~"); // parameter are uploaded to private space
+    ros::NodeHandle n; // parameter are uploaded to private space
 
     // topics to publish
     ros::Publisher topic_pub_joint_state_cmd_;	// cmd issued for single joints of undercarriage
@@ -113,8 +108,6 @@ class NodeClass
 
     // member variables
     UndercarriageCtrlGeom * ucar_ctrl_;	// instantiate undercarriage controller
-    std::string sIniDirectory;
-    std::string sYamlDirectory;
     bool is_initialized_bool_;			// flag wether node is already up and running
     bool is_ucarr_geom_initialized_bool_;
     bool broadcast_tf_;			// flag wether to broadcast the tf from odom to base_link
@@ -129,11 +122,7 @@ class NodeClass
 
     int m_iNumJoints;
     int m_iNumWheels;
-    double dCmdRateS;
     bool m_bEMStopActive;
-
-    YAML::Node* plt_conf;
-    YAML::Node* motion_conf;
 
     bool has_target;
 
@@ -148,7 +137,7 @@ class NodeClass
       broadcast_tf_ = true;
       iwatchdog_ = 0;
       last_time_ = ros::Time::now();
-      sample_time_ = 0.020;
+      sample_time_ = 0.020; // TODO: read from parameter server
       x_rob_m_ = 0.0;
       y_rob_m_ = 0.0;
       theta_rob_rad_ = 0.0;
@@ -175,18 +164,6 @@ class NodeClass
       {
         ROS_WARN("Specified timeout < sample_time. Setting timeout to sample_time = %fs", sample_time_);
         timeout_ = sample_time_;
-      }
-
-      // Read number of drives from iniFile and pass IniDirectory to CobPlatfCtrl.
-      if (n.hasParam("IniDirectory"))
-      {
-        n.getParam("IniDirectory", sIniDirectory);
-        ROS_INFO("IniDirectory loaded from Parameter-Server is: %s", sIniDirectory.c_str());
-      }
-      else
-      {
-        sIniDirectory = "Platform/IniFiles/";
-        ROS_WARN("IniDirectory not found on Parameter-Server, using default value: %s", sIniDirectory.c_str());
       }
 
       if (n.hasParam("max_trans_velocity"))
@@ -252,6 +229,7 @@ class NodeClass
     }
 
     bool parseYamlConfig(std::vector<UndercarriageCtrlGeom::WheelParams>& wps){
+        ros::NodeHandle nh_priv("~");
         bool parsing_done = false;
         std::string exception_detailed_param_info = "";
         // clear vector in case of reinititialization
@@ -263,7 +241,7 @@ class NodeClass
         double deg, coupling;
 
         // general config
-        if (n.getParam("Geom/Wheels", wheel_list)){
+        if (nh_priv.getParam("Geom/Wheels", wheel_list)){
             m_iNumWheels = wheel_list.size();
         }else{
             ROS_ERROR("Error while parsing YAML-Parameter: Geom/Wheels");
@@ -272,12 +250,6 @@ class NodeClass
 
         // calc numebr of Joints
         m_iNumJoints = m_iNumWheels * 2;
-
-        if (n.getParam("Thread/ThrUCarrCycleTimeS", dCmdRateS)){
-        }else{
-            ROS_ERROR("Error while parsing YAML-Parameter: Thread/ThrUCarrCycleTimeS");
-            return false;
-        }
 
         for(int i=0; i < m_iNumWheels; i++){
 
@@ -288,31 +260,31 @@ class NodeClass
           // SteerCtrl-Parameters
           // --------------------
 
-          if (n.getParam("SteerCtrl/Spring", param.dSpring)){
+          if (nh_priv.getParam("SteerCtrl/Spring", param.dSpring)){
           }else{
               ROS_ERROR("Error while parsing YAML-Parameter: SteerCtrl/Spring");
               return false;
           }
 
-          if (n.getParam("SteerCtrl/Damp", param.dDamp)){
+          if (nh_priv.getParam("SteerCtrl/Damp", param.dDamp)){
           }else{
               ROS_ERROR("Error while parsing YAML-Parameter: SteerCtrl/Damp");
               return false;
           }
 
-          if (n.getParam("SteerCtrl/VirtMass", param.dVirtM)){
+          if (nh_priv.getParam("SteerCtrl/VirtMass", param.dVirtM)){
           }else{
               ROS_ERROR("Error while parsing YAML-Parameter: SteerCtrl/VirtMass");
               return false;
           }
 
-          if (n.getParam("SteerCtrl/DPhiMax", param.dDPhiMax)){
+          if (nh_priv.getParam("SteerCtrl/DPhiMax", param.dDPhiMax)){
           }else{
               ROS_ERROR("Error while parsing YAML-Parameter: SteerCtrl/DPhiMax");
               return false;
           }
 
-          if (n.getParam("SteerCtrl/DDPhiMax", param.dDDPhiMax)){
+          if (nh_priv.getParam("SteerCtrl/DDPhiMax", param.dDDPhiMax)){
           }else{
               ROS_ERROR("Error while parsing YAML-Parameter: SteerCtrl/DDPhiMax");
               return false;
@@ -322,13 +294,13 @@ class NodeClass
           // Geom-Parameters
           // ---------------
 
-          if (n.getParam("Geom/RadiusWheeL", param.dRadiusWheelMM)){
+          if (nh_priv.getParam("Geom/RadiusWheeL", param.dRadiusWheelMM)){
           }else{
               ROS_ERROR("Error while parsing YAML-Parameter: Geom/RadiusWheeL");
               return false;
           }
 
-          if (n.getParam("Geom/DistSteerAxisToDriveWheelCenter", param.dDistSteerAxisToDriveWheelMM)){
+          if (nh_priv.getParam("Geom/DistSteerAxisToDriveWheelCenter", param.dDistSteerAxisToDriveWheelMM)){
           }else{
               ROS_ERROR("Error while parsing YAML-Parameter: Geom/DistSteerAxisToDriveWheelCenter");
               return false;
@@ -683,7 +655,7 @@ void NodeClass::CalcCtrlStep()
     // perform one control step,
     // get the resulting cmd's for the wheel velocities and -angles from the controller class
     // and output the achievable pltf velocity-cmds (if velocity limits where exceeded)
-    ucar_ctrl_->calcControlStep(wStates, dCmdRateS, false);
+    ucar_ctrl_->calcControlStep(wStates, sample_time_, false);
 
     // if drives not operating nominal -> force commands to zero
     if(drive_chain_diagnostic_ != diagnostic_status_lookup_.OK){
@@ -758,6 +730,8 @@ void NodeClass::UpdateOdometry()
   double dt;
   ros::Time current_time;
 
+  // TODO: migrate to cob_omni_drive_controller/OdometryTracker  
+
   // if drive chain already initialized process joint data
   //if (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK)
   if (is_initialized_bool_)
@@ -772,8 +746,8 @@ void NodeClass::UpdateOdometry()
     // convert variables to SI-Units
     vel_x_rob_ms = pltState.get_vel_x();
     vel_y_rob_ms = pltState.get_vel_y();
-    delta_x_rob_m = pltState.get_vel_x() * dCmdRateS;
-    delta_y_rob_m = pltState.get_vel_y() * dCmdRateS;
+    delta_x_rob_m = pltState.get_vel_x() * sample_time_;
+    delta_y_rob_m = pltState.get_vel_y() * sample_time_;
     rot_rob_rads = pltState.dRotRobRadS;
 
 
@@ -873,7 +847,7 @@ void NodeClass::setEMStopActive(bool bEMStopActive)
 //        std::cout << "EMStop: " << "Active" << std::endl;
         has_target = false;
         // reset and update current wheel states but keep current dAngGearSteerRad per wheelState
-        ucar_ctrl_->calcControlStep(wStates, dCmdRateS, true);
+        ucar_ctrl_->calcControlStep(wStates, sample_time_, true);
 
         // set current wheel states with previous reset and updated wheelStates
         ucar_ctrl_->updateWheelStates(wStates);
