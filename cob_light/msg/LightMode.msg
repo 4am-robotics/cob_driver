@@ -21,3 +21,4 @@ int8                   priority    # priority [-20,20] default = 0. Modes with s
                                    # be executed.
 std_msgs/ColorRGBA[]   colors      # array of colors for setting all the LEDs
 cob_light/Sequence[]   sequences   # an array of sequence definitions, used only if mode is set to SEQ
+
