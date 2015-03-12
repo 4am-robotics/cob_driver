@@ -13,6 +13,7 @@ add_message_files(
   FILES
   LightMode.msg
   Sequence.msg
+  ColorRGBAArray.msg
 )
 
 add_service_files(
