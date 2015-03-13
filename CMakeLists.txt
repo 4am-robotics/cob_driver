@@ -27,16 +27,12 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS 
-    include
-#  LIBRARIES cob_scan_unifier
   CATKIN_DEPENDS 
     laser_geometry 
     roscpp 
     rospy 
     sensor_msgs 
     tf
-#  DEPENDS system_lib
 )
 
 ###########
