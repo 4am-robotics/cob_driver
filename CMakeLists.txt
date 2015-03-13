@@ -47,7 +47,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 # include_directories(include)
 include_directories(
-  include/cob_scan_unifier
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -83,5 +83,4 @@ install(TARGETS scan_unifier_node
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
-
 
