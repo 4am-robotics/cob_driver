@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-
-  <!-- start sound -->
-  <node pkg="cob_sound" type="sound" name="sound_node" ns="sound_controller" cwd="node" respawn="false" output="screen" />
-
-</launch>
