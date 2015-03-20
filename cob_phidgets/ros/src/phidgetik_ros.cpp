@@ -76,7 +76,7 @@ PhidgetIKROS::PhidgetIKROS(ros::NodeHandle nh, int serial_num, std::string board
 	_srvDataRate = nodeHandle.advertiseService("set_data_rate", &PhidgetIKROS::setDataRateCallback, this);
 	_srvTriggerValue = nodeHandle.advertiseService("set_trigger_value", &PhidgetIKROS::setTriggerValueCallback, this);
 
-    _srvDigitalIn = nodeHandle.advertiseService("get_digital", &PhidgetIKROS::getDigitalCallback, this);
+	_srvDigitalIn = nodeHandle.advertiseService("get_digital", &PhidgetIKROS::getDigitalCallback, this);
 
 	if(init(_serial_num) != EPHIDGET_OK)
 	{
@@ -224,7 +224,7 @@ auto PhidgetIKROS::update() -> void
 		if(_indexNameMapItr != _indexNameMapDigitalIn.end())
 			name = (*_indexNameMapItr).second;
 		names.push_back(name);
-        states.push_back(!this->getInputState(i)); // Inverted by the board for unknown reasons
+		states.push_back(!this->getInputState(i)); // Inverted by the board for unknown reasons
 	}
 	msg_digit.header.stamp = ros::Time::now();
 	msg_digit.uri = names;
@@ -330,7 +330,7 @@ auto PhidgetIKROS::sensorChangeHandler(int index, int sensorValue) -> int
 auto PhidgetIKROS::setDigitalOutCallback(cob_phidgets::SetDigitalSensor::Request &req,
 										cob_phidgets::SetDigitalSensor::Response &res) -> bool
 {
-    bool ret = false;
+	bool ret = false;
 	_mutex.lock();
 	_outputChanged.updated=false;
 	_outputChanged.index=-1;
@@ -342,14 +342,14 @@ auto PhidgetIKROS::setDigitalOutCallback(cob_phidgets::SetDigitalSensor::Request
 	if(_indexNameMapRevItr != _indexNameMapDigitalOutRev.end())
 	{
 		ROS_INFO("Setting digital output %i to state %i", _indexNameMapDigitalOutRev[req.uri], req.state);
-        int lastError = this->setOutputState(_indexNameMapDigitalOutRev[req.uri], req.state);
+		int lastError = this->setOutputState(_indexNameMapDigitalOutRev[req.uri], req.state);
 
-        if (lastError != EPHIDGET_OK)
-        {
-            ROS_ERROR("Phidget Error: %i (look up in phidget header file phidget21.h)", lastError);
-        }
+		if (lastError != EPHIDGET_OK)
+		{
+			ROS_ERROR("Phidget Error: %i (look up in phidget header file phidget21.h)", lastError);
+		}
 
-        ros::Time start = ros::Time::now();
+		ros::Time start = ros::Time::now();
 		while((ros::Time::now().toSec() - start.toSec()) < 1.0)
 		{
 			_mutex.lock();
@@ -363,11 +363,11 @@ auto PhidgetIKROS::setDigitalOutCallback(cob_phidgets::SetDigitalSensor::Request
 			ros::Duration(0.025).sleep();
 		}
 		_mutex.lock();
-        res.uri = req.uri;
-        res.state = this->getOutputState(_indexNameMapDigitalOutRev[req.uri]);// _outputChanged.state;
+		res.uri = req.uri;
+		res.state = this->getOutputState(_indexNameMapDigitalOutRev[req.uri]);// _outputChanged.state;
 		ROS_DEBUG("Sending response: updated: %u, index: %d, state: %d",_outputChanged.updated, _outputChanged.index, _outputChanged.state);
-        _mutex.unlock();
-        ret = (lastError == EPHIDGET_OK && res.state == req.state);
+		_mutex.unlock();
+		ret = (lastError == EPHIDGET_OK && res.state == req.state);
 
 	}
 	else
@@ -382,38 +382,38 @@ auto PhidgetIKROS::setDigitalOutCallback(cob_phidgets::SetDigitalSensor::Request
 }
 
 auto PhidgetIKROS::getDigitalCallback(cob_phidgets::SetDigitalSensor::Request &req,
-                                        cob_phidgets::SetDigitalSensor::Response &res) -> bool
+									cob_phidgets::SetDigitalSensor::Response &res) -> bool
 {
-    bool ret = false;
-    res.uri = req.uri;
-    res.state = -1;
+	bool ret = false;
+	res.uri = req.uri;
+	res.state = -1;
 
-    // this check is nessesary because [] operator on Maps inserts an element if it is not found
-    _indexNameMapRevItr = _indexNameMapDigitalInRev.find(req.uri);
-    if(_indexNameMapRevItr != _indexNameMapDigitalInRev.end())
-    {
-        ROS_DEBUG("Getting digital input %i value", _indexNameMapDigitalInRev[req.uri]);
+	// this check is nessesary because [] operator on Maps inserts an element if it is not found
+	_indexNameMapRevItr = _indexNameMapDigitalInRev.find(req.uri);
+	if(_indexNameMapRevItr != _indexNameMapDigitalInRev.end())
+	{
+		ROS_DEBUG("Getting digital input %i value", _indexNameMapDigitalInRev[req.uri]);
 
-        res.state = !this->getInputState(_indexNameMapDigitalInRev[req.uri]); // inverted by the board for unknown reasons
-        ret = true;
-    }
-    else
-    {
-        _indexNameMapRevItr = _indexNameMapDigitalOutRev.find(req.uri);
-        if(_indexNameMapRevItr != _indexNameMapDigitalOutRev.end())
-        {
-            ROS_DEBUG("Getting digital output %i value", _indexNameMapDigitalOutRev[req.uri]);
+		res.state = !this->getInputState(_indexNameMapDigitalInRev[req.uri]); // inverted by the board for unknown reasons
+		ret = true;
+	}
+	else
+	{
+		_indexNameMapRevItr = _indexNameMapDigitalOutRev.find(req.uri);
+		if(_indexNameMapRevItr != _indexNameMapDigitalOutRev.end())
+		{
+			ROS_DEBUG("Getting digital output %i value", _indexNameMapDigitalOutRev[req.uri]);
 
-            res.state = this->getOutputState(_indexNameMapDigitalOutRev[req.uri]);
-            ret = true;
-        }
-        else
-        {
-            ROS_DEBUG("Could not find uri '%s' inside port uri mapping", req.uri.c_str());
-            ret = false;
-        }
-    }
-    return ret;
+			res.state = this->getOutputState(_indexNameMapDigitalOutRev[req.uri]);
+			ret = true;
+		}
+		else
+		{
+			ROS_DEBUG("Could not find uri '%s' inside port uri mapping", req.uri.c_str());
+			ret = false;
+		}
+	}
+	return ret;
 }
 
 
@@ -492,10 +492,10 @@ auto PhidgetIKROS::attachHandler() -> int
 auto PhidgetIKROS::detachHandler() -> int
 {
 	int serial_number;
-    const char *device_name;
+	const char *device_name;
 
-    CPhidget_getDeviceName ((CPhidgetHandle)_iKitHandle, &device_name);
-    CPhidget_getSerialNumber((CPhidgetHandle)_iKitHandle, &serial_number);
-    ROS_INFO("%s Serial number %d detached!", device_name, serial_number);
-    return 0;
+	CPhidget_getDeviceName ((CPhidgetHandle)_iKitHandle, &device_name);
+	CPhidget_getSerialNumber((CPhidgetHandle)_iKitHandle, &serial_number);
+	ROS_INFO("%s Serial number %d detached!", device_name, serial_number);
+	return 0;
 }
