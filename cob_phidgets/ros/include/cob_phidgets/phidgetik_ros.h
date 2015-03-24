@@ -89,7 +89,8 @@ private:
 	ros::ServiceServer _srvDigitalIn;
 
 	int _serial_num;
-
+	std::string _board_name;
+	
 	struct OutputCompare
 	{
 		bool updated;

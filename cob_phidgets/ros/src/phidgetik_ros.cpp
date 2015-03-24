@@ -60,7 +60,7 @@
 #include <cob_phidgets/phidgetik_ros.h>
 
 PhidgetIKROS::PhidgetIKROS(ros::NodeHandle nh, int serial_num, std::string board_name, XmlRpc::XmlRpcValue* sensor_params, SensingMode mode)
-	:PhidgetIK(mode), _nh(nh), _serial_num(serial_num)
+	:PhidgetIK(mode), _nh(nh), _serial_num(serial_num), _board_name(board_name)
 {
 	ros::NodeHandle tmpHandle("~");
 	ros::NodeHandle nodeHandle(tmpHandle, board_name);
@@ -149,7 +149,7 @@ auto PhidgetIKROS::readParams(XmlRpc::XmlRpcValue* sensor_params) -> void
 		if(_indexNameMapItr == _indexNameMapDigitalIn.end())
 		{
 			std::stringstream ss;
-			ss << getDeviceSerialNumber() << "/" << "in/" << i;
+			ss << _board_name << "/" << "in/" << i;
 			_indexNameMapDigitalIn.insert(std::make_pair(i, ss.str()));
 		}
 	}
@@ -160,7 +160,7 @@ auto PhidgetIKROS::readParams(XmlRpc::XmlRpcValue* sensor_params) -> void
 		if(_indexNameMapItr == _indexNameMapDigitalOut.end())
 		{
 			std::stringstream ss;
-			ss << getDeviceSerialNumber() << "/" << "out/" << i;
+			ss << _board_name << "/" << "out/" << i;
 			_indexNameMapDigitalOut.insert(std::make_pair(i, ss.str()));
 		}
 	}
@@ -171,7 +171,7 @@ auto PhidgetIKROS::readParams(XmlRpc::XmlRpcValue* sensor_params) -> void
 		if(_indexNameMapItr == _indexNameMapAnalog.end())
 		{
 			std::stringstream ss;
-			ss << getDeviceSerialNumber() << "/" << i;
+			ss << _board_name << "/" << i;
 			_indexNameMapAnalog.insert(std::make_pair(i, ss.str()));
 		}
 	}
@@ -184,7 +184,7 @@ auto PhidgetIKROS::readParams(XmlRpc::XmlRpcValue* sensor_params) -> void
 		if(_indexNameMapItr != _indexNameMapDigitalIn.end())
 		{
 			std::stringstream ss;
-			ss << getDeviceSerialNumber() << "/" << "in/" << i;
+			ss << _board_name << "/" << "in/" << i;
 
 			_indexNameMapDigitalInRev.insert(std::make_pair(_indexNameMapDigitalIn[i],i));
 		}
@@ -275,7 +275,7 @@ auto PhidgetIKROS::update() -> void
 
 auto PhidgetIKROS::inputChangeHandler(int index, int inputState) -> int
 {
-	ROS_DEBUG("Board %d: Digital Input %d changed to State: %d", _serial_num, index, inputState);
+	ROS_DEBUG("Board %d: Digital Input %d changed to State: %d", _board_name.c_str(), index, inputState);
 	cob_phidgets::DigitalSensor msg;
 	std::vector<std::string> names;
 	std::vector<signed char> states;
@@ -297,7 +297,7 @@ auto PhidgetIKROS::inputChangeHandler(int index, int inputState) -> int
 
 auto PhidgetIKROS::outputChangeHandler(int index, int outputState) -> int
 {
-	ROS_DEBUG("Board %d: Digital Output %d changed to State: %d", _serial_num, index, outputState);
+	ROS_DEBUG("Board %d: Digital Output %d changed to State: %d", _board_name.c_str(), index, outputState);
 	std::lock_guard<std::mutex> lock{_mutex};
 	_outputChanged.updated = true;
 	_outputChanged.index = index;
@@ -306,7 +306,7 @@ auto PhidgetIKROS::outputChangeHandler(int index, int outputState) -> int
 }
 auto PhidgetIKROS::sensorChangeHandler(int index, int sensorValue) -> int
 {
-	ROS_DEBUG("Board %d: Analog Input %d changed to Value: %d", _serial_num, index, sensorValue);
+	ROS_DEBUG("Board %d: Analog Input %d changed to Value: %d", _board_name.c_str(), index, sensorValue);
 	cob_phidgets::AnalogSensor msg;
 	std::vector<std::string> names;
 	std::vector<short int> values;
