@@ -286,7 +286,7 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
           ROS_DEBUG("rejected for angle %f not in range (%f, %f)\n", angle, unified_scan.angle_min, unified_scan.angle_max);
           continue;
         }
-        int index = (angle - unified_scan.angle_min) / unified_scan.angle_increment;
+        int index = std::floor(0.5 + (angle - unified_scan.angle_min) / unified_scan.angle_increment);
         double range_sq = y*y+x*x;
         //printf ("index xyz( %f %f %f) angle %f index %d range %f\n", x, y, z, angle, index, sqrt(range_sq));
         if( (unified_scan.ranges.at(index) == 0) || (sqrt(range_sq) <= unified_scan.ranges.at(index)) )
