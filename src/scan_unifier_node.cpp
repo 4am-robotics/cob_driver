@@ -255,9 +255,9 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
     ROS_DEBUG("Creating message header");
     unified_scan.header = vec_laser_struct_.at(0).current_scan_msg.header;
     unified_scan.header.frame_id = "base_link";
-    unified_scan.angle_min = -M_PI+0.1;
-    unified_scan.angle_max = M_PI-0.1;
     unified_scan.angle_increment = M_PI/180.0/2.0;
+    unified_scan.angle_min = -M_PI + unified_scan.angle_increment*0.01;
+    unified_scan.angle_max =  M_PI - unified_scan.angle_increment*0.01;
     unified_scan.time_increment = 0.0;
     unified_scan.scan_time = vec_laser_struct_.at(0).current_scan_msg.scan_time;
     unified_scan.range_min = vec_laser_struct_.at(0).current_scan_msg.range_min;
