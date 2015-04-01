@@ -287,6 +287,8 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
           continue;
         }
         int index = std::floor(0.5 + (angle - unified_scan.angle_min) / unified_scan.angle_increment);
+        if(index<0 || index>=unified_scan.ranges.size()) continue;
+        
         double range_sq = y*y+x*x;
         //printf ("index xyz( %f %f %f) angle %f index %d range %f\n", x, y, z, angle, index, sqrt(range_sq));
         if( (unified_scan.ranges.at(index) == 0) || (sqrt(range_sq) <= unified_scan.ranges.at(index)) )
