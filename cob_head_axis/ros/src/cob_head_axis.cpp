@@ -158,7 +158,7 @@ class NodeClass
     // implementation of topics to publish
     topicPub_JointState_ = n_.advertise<sensor_msgs::JointState>("joint_states", 1);
     topicPub_ControllerState_ = n_.advertise<control_msgs::JointTrajectoryControllerState>("state", 1);
-    topicPub_Diagnostic_ = n_.advertise<diagnostic_msgs::DiagnosticArray>("diagnostics", 1);
+    topicPub_Diagnostic_ = n_.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 
 
     // implementation of topics to subscribe
