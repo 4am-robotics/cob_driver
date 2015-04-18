@@ -67,7 +67,7 @@
 #include <diagnostic_msgs/DiagnosticArray.h>
 
 // ROS service includes
-#include <cob_srvs/Trigger.h>
+#include <std_srvs/Trigger.h>
 #include <cob_srvs/SetString.h>
 #include <cob_srvs/SetFloat.h>
 
@@ -302,8 +302,8 @@ class NodeClass
 
   // service callback functions
   // function will be called when a service is querried
-  bool srvCallback_Init(cob_srvs::Trigger::Request &req,
-          cob_srvs::Trigger::Response &res )
+  bool srvCallback_Init(std_srvs::Trigger::Request &req,
+          std_srvs::Trigger::Response &res )
   {
     if (isInitialized_ == false) {
       ROS_INFO("...initializing camera axis...");
@@ -313,28 +313,28 @@ class NodeClass
         CamAxis_->setGearPosVelRadS(0.0f, MaxVel_);
         ROS_INFO("Initializing of camera axis successfully");
         isInitialized_ = true;
-        res.success.data = true;
-        res.error_message.data = "initializing camera axis successfully";
+        res.success = true;
+        res.message = "initializing camera axis successfully";
       }
       else
       {
         ROS_ERROR("Initializing camera axis not successfully \n");
-        res.success.data = false;
-        res.error_message.data = "initializing camera axis not successfully";
+        res.success = false;
+        res.message = "initializing camera axis not successfully";
       }
       }
       else
       {
         ROS_WARN("...camera axis already initialized...");
-        res.success.data = true;
-        res.error_message.data = "camera axis already initialized";
+        res.success = true;
+        res.message = "camera axis already initialized";
     }
     
     return true;
   }
 
-  bool srvCallback_Stop(cob_srvs::Trigger::Request &req,
-          cob_srvs::Trigger::Response &res )
+  bool srvCallback_Stop(std_srvs::Trigger::Request &req,
+          std_srvs::Trigger::Response &res )
   {
     ROS_INFO("Stopping camera axis");
     if(isInitialized_)
@@ -342,20 +342,20 @@ class NodeClass
       // stopping all movements
       if (CamAxis_->Stop()) {
         ROS_INFO("Stopping camera axis successfully");
-        res.success.data = true;
-        res.error_message.data = "camera axis stopped successfully";
+        res.success = true;
+        res.message = "camera axis stopped successfully";
       }
       else {
         ROS_ERROR("Stopping camera axis not successfully. error");
-        res.success.data = false;
-        res.error_message.data = "stopping camera axis not successfully";
+        res.success = false;
+        res.message = "stopping camera axis not successfully";
       }
     }
     return true;
   }
   
-  bool srvCallback_Recover(cob_srvs::Trigger::Request &req,
-             cob_srvs::Trigger::Response &res )
+  bool srvCallback_Recover(std_srvs::Trigger::Request &req,
+             std_srvs::Trigger::Response &res )
   {
     if (isInitialized_) {
       ROS_INFO("Recovering camera axis");
@@ -363,17 +363,17 @@ class NodeClass
       // stopping all arm movements
       if (CamAxis_->RecoverAfterEmergencyStop()) {
         ROS_INFO("Recovering camera axis successfully");
-        res.success.data = true;
-        res.error_message.data = "camera axis successfully recovered";
+        res.success = true;
+        res.message = "camera axis successfully recovered";
       } else {
         ROS_ERROR("Recovering camera axis not successfully. error");
-        res.success.data = false;
-        res.error_message.data = "recovering camera axis failed";
+        res.success = false;
+        res.message = "recovering camera axis failed";
       }
     } else {
       ROS_WARN("...camera axis already recovered...");
-      res.success.data = true;
-      res.error_message.data = "camera axis already recovered";
+      res.success = true;
+      res.message = "camera axis already recovered";
     }
 
     return true;

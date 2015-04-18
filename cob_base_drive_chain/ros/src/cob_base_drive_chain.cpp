@@ -69,7 +69,7 @@
 #include <control_msgs/JointControllerState.h>
 
 // ROS service includes
-#include <cob_srvs/Trigger.h>
+#include <std_srvs/Trigger.h>
 #include <cob_base_drive_chain/ElmoRecorderReadout.h>
 #include <cob_base_drive_chain/ElmoRecorderConfig.h>
 
@@ -114,17 +114,17 @@ class NodeClass
 
 		// service servers
 		/**
-		* Service requests cob_srvs::Trigger and initializes platform and motors
+		* Service requests std_srvs::Trigger and initializes platform and motors
 		*/
 		ros::ServiceServer srvServer_Init;
 
 		/**
-		* Service requests cob_srvs::Trigger and resets platform and motors
+		* Service requests std_srvs::Trigger and resets platform and motors
 		*/
 		ros::ServiceServer srvServer_Recover;
 
 		/**
-		* Service requests cob_srvs::Trigger and shuts down platform and motors
+		* Service requests std_srvs::Trigger and shuts down platform and motors
 		*/
 		ros::ServiceServer srvServer_Shutdown;
 
@@ -427,8 +427,8 @@ class NodeClass
 		// function will be called when a service is querried
 
 		// Init Can-Configuration
-		bool srvCallback_Init(cob_srvs::Trigger::Request &req,
-							  cob_srvs::Trigger::Response &res )
+		bool srvCallback_Init(std_srvs::Trigger::Request &req,
+							  std_srvs::Trigger::Response &res )
 		{
 			ROS_DEBUG("Service callback init");
 			if(m_bisInitialized == false)
@@ -436,22 +436,22 @@ class NodeClass
 				m_bisInitialized = initDrives();
 				//ROS_INFO("...initializing can-nodes...");
 				//m_bisInitialized = m_CanCtrlPltf->initPltf();
-				res.success.data = m_bisInitialized;
+				res.success = m_bisInitialized;
 				if(m_bisInitialized)
 				{
 		   			ROS_INFO("base initialized");
 				}
 				else
 				{
-					res.error_message.data = "initialization of base failed";
+					res.message = "initialization of base failed";
 				  	ROS_ERROR("Initializing base failed");
 				}
 			}
 			else
 			{
 				ROS_WARN("...base already initialized...");
-				res.success.data = true;
-				res.error_message.data = "platform already initialized";
+				res.success = true;
+				res.message = "platform already initialized";
 			}
 			return true;
 		}
@@ -495,44 +495,44 @@ class NodeClass
 		
 		
 		// reset Can-Configuration
-		bool srvCallback_Recover(cob_srvs::Trigger::Request &req,
-									 cob_srvs::Trigger::Response &res )
+		bool srvCallback_Recover(std_srvs::Trigger::Request &req,
+									 std_srvs::Trigger::Response &res )
 		{
 			if(m_bisInitialized)
 			{
 				ROS_DEBUG("Service callback recover");
 #ifdef __SIM__
-				res.success.data = true;
+				res.success = true;
 #else
-				res.success.data = m_CanCtrlPltf->resetPltf();
+				res.success = m_CanCtrlPltf->resetPltf();
 #endif
-				if (res.success.data) {
+				if (res.success) {
 		   			ROS_INFO("base resetted");
 				} else {
-					res.error_message.data = "reset of base failed";
+					res.message = "reset of base failed";
 					ROS_WARN("Resetting base failed");
 				}
 			}
 			else
 			{
 				ROS_WARN("Base not yet initialized.");
-				res.success.data = false;
-				res.error_message.data = "Base not yet initialized.";
+				res.success = false;
+				res.message = "Base not yet initialized.";
 			}
 			return true;
 		}
 		
 		// shutdown Drivers and Can-Node
-		bool srvCallback_Shutdown(cob_srvs::Trigger::Request &req,
-									 cob_srvs::Trigger::Response &res )
+		bool srvCallback_Shutdown(std_srvs::Trigger::Request &req,
+									 std_srvs::Trigger::Response &res )
 		{
 			ROS_DEBUG("Service callback shutdown");
 #ifdef __SIM__
-			res.success.data = true;
+			res.success = true;
 #else
-			res.success.data = m_CanCtrlPltf->shutdownPltf();
+			res.success = m_CanCtrlPltf->shutdownPltf();
 #endif
-			if (res.success.data)
+			if (res.success)
 	   			ROS_INFO("Drives shut down");
 			else
 	   			ROS_INFO("Shutdown of Drives FAILED");

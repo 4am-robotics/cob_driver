@@ -15,9 +15,9 @@
   <build_depend>roscpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>std_msgs</build_depend>
+  <build_depend>std_srvs</build_depend>
   <build_depend>diagnostic_msgs</build_depend>
   <build_depend>control_msgs</build_depend>
-  <build_depend>cob_srvs</build_depend>
   <build_depend>cob_generic_can</build_depend>
   <build_depend>cob_canopen_motor</build_depend>
   <build_depend>cob_utilities</build_depend>
@@ -29,9 +29,9 @@
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>std_msgs</run_depend>
+  <run_depend>std_srvs</run_depend>
   <run_depend>diagnostic_msgs</run_depend>
   <run_depend>control_msgs</run_depend>
-  <run_depend>cob_srvs</run_depend>
   <run_depend>cob_generic_can</run_depend>
   <run_depend>cob_canopen_motor</run_depend>
   <run_depend>cob_utilities</run_depend>

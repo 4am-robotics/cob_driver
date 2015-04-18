@@ -2,7 +2,7 @@
 #include <actionlib/server/simple_action_server.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
 #include <std_msgs/String.h>
-#include <cob_srvs/Trigger.h>
+#include <std_srvs/Trigger.h>
 #include <cob_sound/SayAction.h>
 #include <cob_sound/SayText.h>
 
@@ -65,19 +65,19 @@ public:
     say(msg->data.c_str());
   }
 
-  bool service_cb_mute(cob_srvs::Trigger::Request &req,
-                       cob_srvs::Trigger::Response &res )
+  bool service_cb_mute(std_srvs::Trigger::Request &req,
+                       std_srvs::Trigger::Response &res )
   {
     mute_ = true;
-    res.success.data = true;
+    res.success = true;
     return true;
   }
 
-  bool service_cb_unmute(cob_srvs::Trigger::Request &req,
-                         cob_srvs::Trigger::Response &res )
+  bool service_cb_unmute(std_srvs::Trigger::Request &req,
+                         std_srvs::Trigger::Response &res )
   {
     mute_ = false;
-    res.success.data = true;
+    res.success = true;
     return true;
   }
 
