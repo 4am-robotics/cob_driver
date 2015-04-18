@@ -68,8 +68,8 @@
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
-#include <cob_srvs/SetOperationMode.h>
-#include <cob_srvs/SetDefaultVel.h>
+#include <cob_srvs/SetString.h>
+#include <cob_srvs/SetFloat.h>
 
 // external includes
 #include <cob_head_axis/ElmoCtrl.h>
@@ -386,12 +386,12 @@ class NodeClass
   * \param req Service request
   * \param res Service response
   */
-  bool srvCallback_SetOperationMode( cob_srvs::SetOperationMode::Request &req,
-                    cob_srvs::SetOperationMode::Response &res )
+  bool srvCallback_SetOperationMode( cob_srvs::SetString::Request &req,
+                    cob_srvs::SetString::Response &res )
   {
-    ROS_INFO("Set operation mode to [%s]", req.operation_mode.data.c_str());
-    n_.setParam("operation_mode", req.operation_mode.data.c_str());
-    res.success.data = true; // 0 = true, else = false
+    ROS_INFO("Set operation mode to [%s]", req.data.c_str());
+    n_.setParam("operation_mode", req.data.c_str());
+    res.success = true; // 0 = true, else = false
     return true;
   }
 
@@ -402,14 +402,14 @@ class NodeClass
   * \param req Service request
   * \param res Service response
   */
-  bool srvCallback_SetDefaultVel( cob_srvs::SetDefaultVel::Request &req,
-                  cob_srvs::SetDefaultVel::Response &res )
+  bool srvCallback_SetDefaultVel( cob_srvs::SetFloat::Request &req,
+                  cob_srvs::SetFloat::Response &res )
   {
-    ROS_INFO("Set default velocity to [%f]", req.default_vel);
-    MaxVel_ = req.default_vel;
+    ROS_INFO("Set default velocity to [%f]", req.data);
+    MaxVel_ = req.data;
     CamAxisParams_->SetMaxVel(MaxVel_);
     CamAxis_->setMaxVelocity(MaxVel_);
-    res.success.data = true; // 0 = true, else = false
+    res.success = true; // 0 = true, else = false
     return true;
   }
 
