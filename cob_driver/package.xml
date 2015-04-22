@@ -21,6 +21,7 @@
   <run_depend>cob_generic_can</run_depend>
   <run_depend>cob_head_axis</run_depend>
   <run_depend>cob_light</run_depend>
+  <run_depend>cob_light_sim</run_depend>
   <run_depend>cob_mimic</run_depend>
   <run_depend>cob_phidgets</run_depend>
   <run_depend>cob_relayboard</run_depend>
