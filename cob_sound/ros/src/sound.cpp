@@ -143,7 +143,7 @@ int main(int argc, char** argv)
   ros::Rate r(10);
   while (ros::ok())
   {
-    if (ros::Time::now() - say.diagnostics_.header.stamp >= ros::Duration(10))
+    if (ros::Time::now() - say.diagnostics_.header.stamp >= ros::Duration(1))
     {
       // publishing diagnotic messages
       diagnostic_msgs::DiagnosticStatus status;
