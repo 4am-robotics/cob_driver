@@ -149,6 +149,7 @@ int main(int argc, char** argv)
       diagnostic_msgs::DiagnosticStatus status;
       status.level = 0;
       status.name = "sound";
+      status.hardware_id = "none";
       status.message = "sound controller running";
       say.diagnostics_.status.push_back(status);
       say.diagnostics_.header.stamp = ros::Time::now();
