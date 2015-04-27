@@ -59,7 +59,7 @@ public:
       _timer_inc += _inc;
   }
 
-  std::string getName(){ return std::string("CircleColorMode"); }
+  std::string getName(){ return std::string("SweepColorMode"); }
 
 private:
   bool _toggle;

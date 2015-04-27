@@ -149,11 +149,9 @@ Mode* ModeFactory::create(cob_light::LightMode requestMode, IColorO* colorO)
 
     case cob_light::LightMode::SWEEP:
     {
-        std::cout<<"Factory generting Sweep Colors";
         std::vector<color::rgba> colors;
         if(requestMode.colors.empty())
         {
-          std::cout<<"Colors is empty"<<std::endl;
           colors.push_back(color);
         }
         else
