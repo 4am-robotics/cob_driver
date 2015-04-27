@@ -234,6 +234,7 @@ public:
         ROS_WARN("Serial connection on %s failed.", _deviceString.c_str());
         ROS_WARN("Simulation mode enabled");
         p_colorO = new ColorOSim(&_nh);
+        p_colorO->setNumLeds(_num_leds);
 
         status.level = 2;
         status.message = "Serial connection failed. Running in simulation mode";
@@ -243,6 +244,7 @@ public:
     {
       ROS_INFO("Simulation mode enabled");
       p_colorO = new ColorOSim(&_nh);
+      p_colorO->setNumLeds(_num_leds);
       status.level = 0;
       status.message = "light controller running in simulation";
     }
