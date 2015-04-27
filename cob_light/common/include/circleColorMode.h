@@ -12,7 +12,6 @@ public:
     :Mode(priority, freq, pulses, timeout), _toggle(false), _timer_inc(0), _num_leds(num_leds)
   {
     _colors = colors;
-    std::cout<<"Colors size: "<<_colors.size()<<std::endl;
     _colors.resize(num_leds);
     if(_pulses != 0)
     {
