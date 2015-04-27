@@ -68,8 +68,8 @@
 
 // ROS service includes
 #include <cob_srvs/Trigger.h>
-#include <cob_srvs/SetOperationMode.h>
-#include <cob_srvs/SetDefaultVel.h>
+#include <cob_srvs/SetString.h>
+#include <cob_srvs/SetFloat.h>
 
 // external includes
 #include <cob_head_axis/ElmoCtrl.h>
@@ -84,6 +84,7 @@ class NodeClass
   public:
   // create a handle for this node, initialize node
   ros::NodeHandle n_;
+  ros::NodeHandle n_private_;
     
   // declaration of topics to publish
   ros::Publisher topicPub_JointState_;
@@ -140,13 +141,12 @@ class NodeClass
   unsigned int traj_point_nr_;
 
   // Constructor
-  NodeClass(std::string name):
-    as_(n_, name, boost::bind(&NodeClass::executeCB, this, _1), false),
-    action_name_(name)
+  NodeClass():
+    as_(n_, "joint_trajectory_controller/follow_joint_trajectory", boost::bind(&NodeClass::executeCB, this, _1), false),
+    action_name_("follow_joint_trajectory")
   {
-    n_ = ros::NodeHandle("~");
-    as_.start();
-
+    n_private_ = ros::NodeHandle("~");
+    
     isInitialized_ = false;
     isError_ = false;
     ActualPos_=0.0;
@@ -156,54 +156,50 @@ class NodeClass
     CamAxisParams_ = new ElmoCtrlParams();
 
     // implementation of topics to publish
-    topicPub_JointState_ = n_.advertise<sensor_msgs::JointState>("/joint_states", 1);
+    topicPub_JointState_ = n_.advertise<sensor_msgs::JointState>("joint_states", 1);
     topicPub_ControllerState_ = n_.advertise<control_msgs::JointTrajectoryControllerState>("state", 1);
-    topicPub_Diagnostic_ = n_.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
+    topicPub_Diagnostic_ = n_.advertise<diagnostic_msgs::DiagnosticArray>("diagnostics", 1);
 
 
     // implementation of topics to subscribe
     
     // implementation of service servers
-    srvServer_Init_ = n_.advertiseService("init", &NodeClass::srvCallback_Init, this);
-    srvServer_Stop_ = n_.advertiseService("stop", &NodeClass::srvCallback_Stop, this);
-    srvServer_Recover_ = n_.advertiseService("recover", &NodeClass::srvCallback_Recover, this);
-    srvServer_SetOperationMode_ = n_.advertiseService("set_operation_mode", &NodeClass::srvCallback_SetOperationMode, this);
-    srvServer_SetDefaultVel_ = n_.advertiseService("set_default_vel", &NodeClass::srvCallback_SetDefaultVel, this);
+    srvServer_Init_ = n_.advertiseService("driver/init", &NodeClass::srvCallback_Init, this);
+    srvServer_Stop_ = n_.advertiseService("driver/stop", &NodeClass::srvCallback_Stop, this);
+    srvServer_Recover_ = n_.advertiseService("driver/recover", &NodeClass::srvCallback_Recover, this);
+    srvServer_SetOperationMode_ = n_.advertiseService("driver/set_operation_mode", &NodeClass::srvCallback_SetOperationMode, this);
+    srvServer_SetDefaultVel_ = n_.advertiseService("driver/set_default_vel", &NodeClass::srvCallback_SetDefaultVel, this);
     
     // implementation of service clients
     //--
 
     // read parameters from parameter server
-    if(!n_.hasParam("EnoderIncrementsPerRevMot")) ROS_WARN("cob_head_axis: couldn't find parameter EnoderIncrementsPerRevMot, check if ALL parameters have been set correctly");
+    ROS_INFO("Namespace: %s", n_private_.getNamespace().c_str());
+    if(!n_private_.hasParam("EnoderIncrementsPerRevMot")) ROS_WARN("cob_head_axis: couldn't find parameter EnoderIncrementsPerRevMot, check if ALL parameters have been set correctly");
 
-    n_.param<std::string>("CanDevice", CanDevice_, "PCAN");
-    n_.param<int>("CanBaudrate", CanBaudrate_, 500);
-    n_.param<int>("HomingDir", HomingDir_, 1);
-    n_.param<int>("HomingDigIn", HomingDigIn_, 11);
-    n_.param<int>("ModId",ModID_, 17);
-    n_.param<std::string>("JointName",JointName_, "head_axis_joint");
-    n_.param<std::string>("CanIniFile",CanIniFile_, "/");
-    n_.param<std::string>("operation_mode",operationMode_, "position");
-    n_.param<int>("MotorDirection",MotorDirection_, 1);
-    n_.param<double>("GearRatio",GearRatio_, 62.5);
-    n_.param<int>("EnoderIncrementsPerRevMot",EnoderIncrementsPerRevMot_, 4096);
+    n_private_.param<std::string>("CanDevice", CanDevice_, "PCAN");
+    n_private_.param<int>("CanBaudrate", CanBaudrate_, 500);
+    n_private_.param<int>("HomingDir", HomingDir_, 1);
+    n_private_.param<int>("HomingDigIn", HomingDigIn_, 11);
+    n_private_.param<int>("ModId",ModID_, 17);
+    n_private_.param<std::string>("JointName",JointName_, "head_axis_joint");
+    n_private_.param<std::string>("CanIniFile",CanIniFile_, "/");
+    n_private_.param<std::string>("operation_mode",operationMode_, "position");
+    n_private_.param<int>("MotorDirection",MotorDirection_, 1);
+    n_private_.param<double>("GearRatio",GearRatio_, 62.5);
+    n_private_.param<int>("EnoderIncrementsPerRevMot",EnoderIncrementsPerRevMot_, 4096);
     
     ROS_INFO("CanDevice=%s, CanBaudrate=%d, ModID=%d, HomingDigIn=%d",CanDevice_.c_str(),CanBaudrate_,ModID_,HomingDigIn_);
-    
+     
     
     // load parameter server string for robot/model
-    std::string param_name = "/robot_description";
-    std::string full_param_name;
     std::string xml_string;
-    n_.searchParam(param_name,full_param_name);
-    n_.getParam(full_param_name.c_str(),xml_string);
-    ROS_INFO("full_param_name=%s",full_param_name.c_str());
+    n_.getParam("/robot_description",xml_string);
     if (xml_string.size()==0)
     {
       ROS_ERROR("Unable to load robot model from param server robot_description\n");
       exit(2);
     }
-    ROS_DEBUG("%s content\n%s", full_param_name.c_str(), xml_string.c_str());
     
     // extract limits and velocitys from urdf model
     urdf::Model model;
@@ -243,12 +239,11 @@ class NodeClass
     CamAxisParams_->SetMotorDirection(MotorDirection_);
     CamAxisParams_->SetEncoderIncrements(EnoderIncrementsPerRevMot_);
     
-    
-    
-
     CamAxisParams_->Init(CanDevice_, CanBaudrate_, ModID_);
     
-
+    
+    //finally start action_server
+    as_.start();
   }
   
   // Destructor
@@ -273,7 +268,7 @@ class NodeClass
       // check that preempt has not been requested by the client
       if (as_.isPreemptRequested())
       {
-        ROS_INFO("%s: Preempted", action_name_.c_str());
+        ROS_INFO("%s: Preempted %s", n_.getNamespace().c_str(), action_name_.c_str());
         // set the action state to preempted
         as_.setPreempted();
       }
@@ -284,7 +279,7 @@ class NodeClass
       {
         if (as_.isNewGoalAvailable())
         {
-          ROS_WARN("%s: Aborted", action_name_.c_str());
+          ROS_WARN("%s: Aborted %s", n_.getNamespace().c_str(), action_name_.c_str());
           as_.setAborted();
           return;
         }
@@ -295,7 +290,7 @@ class NodeClass
 
       // set the action state to succeed
       //result_.result.data = "executing trajectory";
-      ROS_INFO("%s: Succeeded", action_name_.c_str());
+      ROS_INFO("%s: Succeeded %s", n_.getNamespace().c_str(), action_name_.c_str());
       // set the action state to succeeded
       as_.setSucceeded(result_);
     
@@ -391,12 +386,12 @@ class NodeClass
   * \param req Service request
   * \param res Service response
   */
-  bool srvCallback_SetOperationMode( cob_srvs::SetOperationMode::Request &req,
-                    cob_srvs::SetOperationMode::Response &res )
+  bool srvCallback_SetOperationMode( cob_srvs::SetString::Request &req,
+                    cob_srvs::SetString::Response &res )
   {
-    ROS_INFO("Set operation mode to [%s]", req.operation_mode.data.c_str());
-    n_.setParam("operation_mode", req.operation_mode.data.c_str());
-    res.success.data = true; // 0 = true, else = false
+    ROS_INFO("Set operation mode to [%s]", req.data.c_str());
+    n_.setParam("operation_mode", req.data.c_str());
+    res.success = true; // 0 = true, else = false
     return true;
   }
 
@@ -407,14 +402,14 @@ class NodeClass
   * \param req Service request
   * \param res Service response
   */
-  bool srvCallback_SetDefaultVel( cob_srvs::SetDefaultVel::Request &req,
-                  cob_srvs::SetDefaultVel::Response &res )
+  bool srvCallback_SetDefaultVel( cob_srvs::SetFloat::Request &req,
+                  cob_srvs::SetFloat::Response &res )
   {
-    ROS_INFO("Set default velocity to [%f]", req.default_vel);
-    MaxVel_ = req.default_vel;
+    ROS_INFO("Set default velocity to [%f]", req.data);
+    MaxVel_ = req.data;
     CamAxisParams_->SetMaxVel(MaxVel_);
     CamAxis_->setMaxVelocity(MaxVel_);
-    res.success.data = true; // 0 = true, else = false
+    res.success = true; // 0 = true, else = false
     return true;
   }
 
@@ -575,8 +570,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "cob_camera_axis");
   
   // create nodeClass
-  //NodeClass nodeClass(ros::this_node::getName() + "/joint_trajectory_action");
-  NodeClass nodeClass(ros::this_node::getName() + "/follow_joint_trajectory");
+  NodeClass nodeClass;
  
   // main loop
   ros::Rate loop_rate(10); // Hz

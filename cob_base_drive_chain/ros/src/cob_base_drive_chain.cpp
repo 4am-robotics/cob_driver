@@ -430,7 +430,7 @@ class NodeClass
 		bool srvCallback_Init(cob_srvs::Trigger::Request &req,
 							  cob_srvs::Trigger::Response &res )
 		{
-			ROS_DEBUG("Service Callback init");
+			ROS_DEBUG("Service callback init");
 			if(m_bisInitialized == false)
 			{
 				m_bisInitialized = initDrives();
@@ -500,7 +500,7 @@ class NodeClass
 		{
 			if(m_bisInitialized)
 			{
-				ROS_DEBUG("Service callback reset");
+				ROS_DEBUG("Service callback recover");
 #ifdef __SIM__
 				res.success.data = true;
 #else
@@ -515,11 +515,10 @@ class NodeClass
 			}
 			else
 			{
-				ROS_WARN("...base already recovered...");
-				res.success.data = true;
-				res.error_message.data = "base already recovered";
+				ROS_WARN("Base not yet initialized.");
+				res.success.data = false;
+				res.error_message.data = "Base not yet initialized.";
 			}
-
 			return true;
 		}
 		
