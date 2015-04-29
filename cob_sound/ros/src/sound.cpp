@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
+#include <visualization_msgs/Marker.h>
 #include <std_msgs/String.h>
 #include <cob_srvs/Trigger.h>
 #include <cob_sound/SayAction.h>
@@ -23,6 +24,7 @@ public:
   diagnostic_msgs::DiagnosticArray diagnostics_;
   ros::Publisher diagnostics_pub_;
   ros::Timer diagnostics_timer_;
+  ros::Publisher pubMarker_;
 
   SayAction(std::string name) :
     as_(nh_, name, boost::bind(&SayAction::as_cb, this, _1), false),
@@ -35,6 +37,7 @@ public:
     sub_ = nh_.subscribe("/say", 1000, &SayAction::topic_cb, this);
     diagnostics_pub_ = nh_.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
     diagnostics_timer_ = nh_.createTimer(ros::Duration(1.0), &SayAction::timer_cb, this);
+    pubMarker_ = nh_.advertise<visualization_msgs::Marker>("marker",1); //Advertise visualization marker topic
     mute_ = false;
   }
 
@@ -92,6 +95,9 @@ public:
     }
 
     ROS_INFO("Saying: %s", text.c_str());
+
+    publish_marker(text);
+    
     std::string mode;
     std::string command;
     std::string cepstral_conf;
@@ -140,6 +146,33 @@ public:
     diagnostics_.status.resize(0);
   }
 
+  void publish_marker(std::string text)
+  {
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = "base_link";
+    marker.header.stamp = ros::Time();
+    marker.ns = "color";
+    marker.id = 0;
+    marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+    marker.action = visualization_msgs::Marker::ADD;
+    marker.lifetime = ros::Duration(std::max(text.size()*0.15, 2.0));
+    marker.text = text;
+    marker.pose.position.x = 0.0;
+    marker.pose.position.y = 0.0;
+    marker.pose.position.z = 1.8;
+    marker.pose.orientation.x = 0.0;
+    marker.pose.orientation.y = 0.0;
+    marker.pose.orientation.z = 0.0;
+    marker.pose.orientation.w = 1.0;
+    marker.scale.x = 0.1;
+    marker.scale.y = 0.1;
+    marker.scale.z = 0.1;
+    marker.color.a = 1.0;
+    marker.color.r = 1.0;
+    marker.color.g = 1.0;
+    marker.color.b = 1.0;
+    pubMarker_.publish(marker);
+  }
 
 };
 
