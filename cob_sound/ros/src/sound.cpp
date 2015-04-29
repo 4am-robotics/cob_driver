@@ -21,7 +21,8 @@ protected:
 
 public:
   diagnostic_msgs::DiagnosticArray diagnostics_;
-  ros::Publisher topicPub_Diagnostic_;
+  ros::Publisher diagnostics_pub_;
+  ros::Timer diagnostics_timer_;
 
   SayAction(std::string name) :
     as_(nh_, name, boost::bind(&SayAction::as_cb, this, _1), false),
@@ -32,7 +33,8 @@ public:
     srvServer_mute_ = nh_.advertiseService("mute", &SayAction::service_cb_mute, this);
     srvServer_unmute_ = nh_.advertiseService("unmute", &SayAction::service_cb_unmute, this);
     sub_ = nh_.subscribe("/say", 1000, &SayAction::topic_cb, this);
-    topicPub_Diagnostic_ = nh_.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
+    diagnostics_pub_ = nh_.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
+    diagnostics_timer_ = nh_.createTimer(ros::Duration(1.0), &SayAction::timer_cb, this);
     mute_ = false;
   }
 
@@ -112,14 +114,30 @@ public:
       status.name = "sound";
       status.message = "command say failed to play sound using mode " + mode;
       diagnostics_.status.push_back(status);
+      
       diagnostics_.header.stamp = ros::Time::now();
-      topicPub_Diagnostic_.publish(diagnostics_);
+      diagnostics_pub_.publish(diagnostics_);
+      
       diagnostics_.status.resize(0);
       return false;
     }
-
-    diagnostics_.header.stamp = ros::Time::now();
     return true;
+  }
+  
+  
+  void timer_cb(const ros::TimerEvent&)
+  {
+    diagnostic_msgs::DiagnosticStatus status;
+    status.level = 0;
+    status.name = "sound";
+    status.hardware_id = "none";
+    status.message = "sound controller running";
+    diagnostics_.status.push_back(status);
+    
+    diagnostics_.header.stamp = ros::Time::now();
+    diagnostics_pub_.publish(diagnostics_);
+    
+    diagnostics_.status.resize(0);
   }
 
 
@@ -131,35 +149,8 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "cob_sound");
 
   SayAction say("say");
-
-  // HACK: wait for ros::Time to be initialized
-  ros::Rate loop_rate(10);
-  while (ros::Time::now().toSec() <= 1.0)
-  {
-    loop_rate.sleep();
-  }
-  say.diagnostics_.header.stamp = ros::Time::now();
-
-  ros::Rate r(10);
-  while (ros::ok())
-  {
-    if (ros::Time::now() - say.diagnostics_.header.stamp >= ros::Duration(1))
-    {
-      // publishing diagnotic messages
-      diagnostic_msgs::DiagnosticStatus status;
-      status.level = 0;
-      status.name = "sound";
-      status.hardware_id = "none";
-      status.message = "sound controller running";
-      say.diagnostics_.status.push_back(status);
-      say.diagnostics_.header.stamp = ros::Time::now();
-      say.topicPub_Diagnostic_.publish(say.diagnostics_);
-      say.diagnostics_.status.resize(0);
-    }
-
-    ros::spinOnce();  
-    r.sleep();
-  }
+  
+  ros::spin();
   return 0;
 }
 
