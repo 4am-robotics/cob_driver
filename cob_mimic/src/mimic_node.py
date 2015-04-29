@@ -123,7 +123,7 @@ class Mimic:
     self.quit_command = "export DISPLAY=:0 && vlc --one-instance --playlist-enqueue vlc://quit"
     
     s=rospy.Service('set_mimic',SetMimic, self.service_cb)
-    self._as = actionlib.SimpleActionServer('set_mimic_action', cob_mimic.msg.SetMimicAction, execute_cb=self.action_cb, auto_start = False)
+    self._as = actionlib.SimpleActionServer('~set_mimic', cob_mimic.msg.SetMimicAction, execute_cb=self.action_cb, auto_start = False)
     self._as.start()
     
     # copy all videos to /tmp
