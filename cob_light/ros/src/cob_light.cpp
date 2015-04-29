@@ -124,6 +124,7 @@ public:
     p_modeExecutor = NULL;
     //diagnostics
     _pubDiagnostic = _nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
+    _diagnostics_timer = _nh.createTimer(ros::Duration(1.0), &LightControl::publish_diagnostics_cb, this);
 
     diagnostic_msgs::DiagnosticStatus status;
     status.name = ros::this_node::getName();
@@ -150,6 +151,10 @@ public:
     if(!_nh.hasParam("pubmarker"))
       ROS_WARN("Parameter 'pubmarker' is missing. Using default Value: true");
     _nh.param<bool>("pubmarker",_bPubMarker,true);
+    
+    if(!_nh.hasParam("marker_frame"))
+      ROS_WARN("Parameter 'marker_frame' is missing. Using default Value: /base_link");
+    _nh.param<std::string>("marker_frame",_sMarkerFrame,"base_link");
 
     if(!_nh.hasParam("sim_enabled"))
       ROS_WARN("Parameter 'sim_enabled' is missing. Using default Value: false");
@@ -385,7 +390,7 @@ public:
     }
   }
   
-  void publish_diagnostics()
+  void publish_diagnostics_cb(const ros::TimerEvent&)
   {
     _diagnostics.header.stamp = ros::Time::now();
     _pubDiagnostic.publish(_diagnostics);
@@ -394,15 +399,15 @@ public:
   void markerCallback(color::rgba color)
   {
     visualization_msgs::Marker marker;
-    marker.header.frame_id = "/base_link";
+    marker.header.frame_id = _sMarkerFrame;
     marker.header.stamp = ros::Time();
     marker.ns = "color";
     marker.id = 0;
     marker.type = visualization_msgs::Marker::SPHERE;
     marker.action = visualization_msgs::Marker::ADD;
-    marker.pose.position.x = 0;
-    marker.pose.position.y = 0;
-    marker.pose.position.z = 1.5;
+    marker.pose.position.x = 0.5;
+    marker.pose.position.y = 0.0;
+    marker.pose.position.z = 0.0;
     marker.pose.orientation.x = 0.0;
     marker.pose.orientation.y = 0.0;
     marker.pose.orientation.z = 0.0;
@@ -423,6 +428,7 @@ private:
   int _baudrate;
   int _invertMask;
   bool _bPubMarker;
+  std::string _sMarkerFrame;
   bool _bSimEnabled;
   int _num_leds;
 
@@ -436,6 +442,7 @@ private:
 
   diagnostic_msgs::DiagnosticArray _diagnostics;
   ros::Publisher _pubDiagnostic;
+  ros::Timer _diagnostics_timer;
 
   typedef actionlib::SimpleActionServer<cob_light::SetLightModeAction> ActionServer;
   ActionServer *_as;
@@ -466,7 +473,6 @@ int main(int argc, char** argv)
 
     while (!gShutdownRequest)
     {
-      lightControl->publish_diagnostics();
       ros::Duration(0.05).sleep();
     }
 
