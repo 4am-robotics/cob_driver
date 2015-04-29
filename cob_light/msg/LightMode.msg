@@ -9,6 +9,7 @@ uint8 FADE_COLOR =     5           # will fade the colors in rainbow
 uint8 SEQ =            6           # executes one sequence after another as definied in sequences array
 uint8 CIRCLE_COLORS =  7           # circle through specific colors, if one color is set only one color will circle
                                    # if more than one color is set, that this colors will circle through
+uint8 SWEEP =          8           # circle color from front to back on both sides
 
 std_msgs/ColorRGBA     color       #the color which will be used
 float32                frequency   # in Hz
@@ -20,3 +21,4 @@ int8                   priority    # priority [-20,20] default = 0. Modes with s
                                    # be executed.
 std_msgs/ColorRGBA[]   colors      # array of colors for setting all the LEDs
 cob_light/Sequence[]   sequences   # an array of sequence definitions, used only if mode is set to SEQ
+
