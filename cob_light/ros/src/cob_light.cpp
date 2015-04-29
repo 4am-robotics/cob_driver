@@ -126,8 +126,7 @@ public:
     _pubDiagnostic = _nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 
     diagnostic_msgs::DiagnosticStatus status;
-    status.name = "light";
-
+    status.name = ros::this_node::getName();
 
     //Get Parameter from Parameter Server
     _nh = ros::NodeHandle("~");
@@ -250,9 +249,6 @@ public:
     }
 
     _diagnostics.status.push_back(status);
-    _diagnostics.header.stamp = ros::Time::now();
-    _pubDiagnostic.publish(_diagnostics);
-    _diagnostics.status.resize(0);
 
     if(!ret)
       return false;
@@ -388,6 +384,12 @@ public:
       _as->setSucceeded(result, "Mode switched");
     }
   }
+  
+  void publish_diagnostics()
+  {
+    _diagnostics.header.stamp = ros::Time::now();
+    _pubDiagnostic.publish(_diagnostics);
+  }
 
   void markerCallback(color::rgba color)
   {
@@ -464,6 +466,7 @@ int main(int argc, char** argv)
 
     while (!gShutdownRequest)
     {
+      lightControl->publish_diagnostics();
       ros::Duration(0.05).sleep();
     }
 
