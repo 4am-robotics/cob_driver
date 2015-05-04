@@ -14,7 +14,7 @@ from cob_sound.msg import *
 def say_client():
 	# Creates the SimpleActionClient, passing the type of the action
 	# (FibonacciAction) to the constructor.
-	client = actionlib.SimpleActionClient('sound_controller/say', SayAction)
+	client = actionlib.SimpleActionClient('say', SayAction)
 
 	# Waits until the action server has started up and started
 	# listening for goals.
@@ -38,7 +38,7 @@ if __name__ == '__main__':
 	try:
 		# Initializes a rospy node so that the SimpleActionClient can
 		# publish and subscribe over ROS.
-		rospy.init_node('say_client')
+		rospy.init_node('sound')
 		result = say_client()
 	except rospy.ROSInterruptException:
 		print "program interrupted before completion"

@@ -189,13 +189,13 @@ public:
     _sub = _nh.subscribe("command", 1, &LightControl::topicCallback, this);
 
     //Subscribe to LightController Command Topic
-    _sub_mode = _nh.subscribe("command_mode", 1, &LightControl::topicCallbackMode, this);
+    _sub_mode = _nh.subscribe("light", 1, &LightControl::topicCallbackMode, this);
 
     //Advertise light mode Service
-    _srvServer = _nh.advertiseService("mode", &LightControl::serviceCallback, this);
+    _srvServer = _nh.advertiseService("set_light", &LightControl::serviceCallback, this);
 
     //Start light mode Action Server
-    _as = new ActionServer(_nh, "set_lightmode", boost::bind(&LightControl::actionCallback, this, _1), false);
+    _as = new ActionServer(_nh, "set_light", boost::bind(&LightControl::actionCallback, this, _1), false);
     _as->start();
 
     //Advertise visualization marker topic

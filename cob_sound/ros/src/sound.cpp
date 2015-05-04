@@ -31,11 +31,11 @@ public:
     action_name_(name)
   {
     as_.start();
-    srvServer_ = nh_.advertiseService("/say", &SayAction::service_cb, this);
+    srvServer_ = nh_.advertiseService("say", &SayAction::service_cb, this);
     srvServer_mute_ = nh_.advertiseService("mute", &SayAction::service_cb_mute, this);
     srvServer_unmute_ = nh_.advertiseService("unmute", &SayAction::service_cb_unmute, this);
-    sub_ = nh_.subscribe("/say", 1000, &SayAction::topic_cb, this);
-    diagnostics_pub_ = nh_.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
+    sub_ = nh_.subscribe("say", 1000, &SayAction::topic_cb, this);
+    diagnostics_pub_ = nh_.advertise<diagnostic_msgs::DiagnosticArray>("diagnostics", 1);
     diagnostics_timer_ = nh_.createTimer(ros::Duration(1.0), &SayAction::timer_cb, this);
     pubMarker_ = nh_.advertise<visualization_msgs::Marker>("marker",1); //Advertise visualization marker topic
     mute_ = false;
@@ -182,6 +182,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "cob_sound");
 
   SayAction say("say");
+  ROS_INFO("sound node started");
   
   ros::spin();
   return 0;
