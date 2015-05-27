@@ -124,10 +124,10 @@ public:
     p_modeExecutor = NULL;
     //diagnostics
     _pubDiagnostic = _nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
+    _diagnostics_timer = _nh.createTimer(ros::Duration(1.0), &LightControl::publish_diagnostics_cb, this);
 
     diagnostic_msgs::DiagnosticStatus status;
-    status.name = "light";
-
+    status.name = ros::this_node::getName();
 
     //Get Parameter from Parameter Server
     _nh = ros::NodeHandle("~");
@@ -151,6 +151,10 @@ public:
     if(!_nh.hasParam("pubmarker"))
       ROS_WARN("Parameter 'pubmarker' is missing. Using default Value: true");
     _nh.param<bool>("pubmarker",_bPubMarker,true);
+    
+    if(!_nh.hasParam("marker_frame"))
+      ROS_WARN("Parameter 'marker_frame' is missing. Using default Value: /base_link");
+    _nh.param<std::string>("marker_frame",_sMarkerFrame,"base_link");
 
     if(!_nh.hasParam("sim_enabled"))
       ROS_WARN("Parameter 'sim_enabled' is missing. Using default Value: false");
@@ -185,13 +189,13 @@ public:
     _sub = _nh.subscribe("command", 1, &LightControl::topicCallback, this);
 
     //Subscribe to LightController Command Topic
-    _sub_mode = _nh.subscribe("command_mode", 1, &LightControl::topicCallbackMode, this);
+    _sub_mode = _nh.subscribe("light", 1, &LightControl::topicCallbackMode, this);
 
     //Advertise light mode Service
-    _srvServer = _nh.advertiseService("mode", &LightControl::serviceCallback, this);
+    _srvServer = _nh.advertiseService("set_light", &LightControl::serviceCallback, this);
 
     //Start light mode Action Server
-    _as = new ActionServer(_nh, "set_lightmode", boost::bind(&LightControl::actionCallback, this, _1), false);
+    _as = new ActionServer(_nh, "set_light", boost::bind(&LightControl::actionCallback, this, _1), false);
     _as->start();
 
     //Advertise visualization marker topic
@@ -234,6 +238,7 @@ public:
         ROS_WARN("Serial connection on %s failed.", _deviceString.c_str());
         ROS_WARN("Simulation mode enabled");
         p_colorO = new ColorOSim(&_nh);
+        p_colorO->setNumLeds(_num_leds);
 
         status.level = 2;
         status.message = "Serial connection failed. Running in simulation mode";
@@ -243,14 +248,12 @@ public:
     {
       ROS_INFO("Simulation mode enabled");
       p_colorO = new ColorOSim(&_nh);
+      p_colorO->setNumLeds(_num_leds);
       status.level = 0;
       status.message = "light controller running in simulation";
     }
 
     _diagnostics.status.push_back(status);
-    _diagnostics.header.stamp = ros::Time::now();
-    _pubDiagnostic.publish(_diagnostics);
-    _diagnostics.status.resize(0);
 
     if(!ret)
       return false;
@@ -386,19 +389,25 @@ public:
       _as->setSucceeded(result, "Mode switched");
     }
   }
+  
+  void publish_diagnostics_cb(const ros::TimerEvent&)
+  {
+    _diagnostics.header.stamp = ros::Time::now();
+    _pubDiagnostic.publish(_diagnostics);
+  }
 
   void markerCallback(color::rgba color)
   {
     visualization_msgs::Marker marker;
-    marker.header.frame_id = "/base_link";
+    marker.header.frame_id = _sMarkerFrame;
     marker.header.stamp = ros::Time();
     marker.ns = "color";
     marker.id = 0;
     marker.type = visualization_msgs::Marker::SPHERE;
     marker.action = visualization_msgs::Marker::ADD;
-    marker.pose.position.x = 0;
-    marker.pose.position.y = 0;
-    marker.pose.position.z = 1.5;
+    marker.pose.position.x = 0.5;
+    marker.pose.position.y = 0.0;
+    marker.pose.position.z = 0.0;
     marker.pose.orientation.x = 0.0;
     marker.pose.orientation.y = 0.0;
     marker.pose.orientation.z = 0.0;
@@ -419,6 +428,7 @@ private:
   int _baudrate;
   int _invertMask;
   bool _bPubMarker;
+  std::string _sMarkerFrame;
   bool _bSimEnabled;
   int _num_leds;
 
@@ -432,6 +442,7 @@ private:
 
   diagnostic_msgs::DiagnosticArray _diagnostics;
   ros::Publisher _pubDiagnostic;
+  ros::Timer _diagnostics_timer;
 
   typedef actionlib::SimpleActionServer<cob_light::SetLightModeAction> ActionServer;
   ActionServer *_as;

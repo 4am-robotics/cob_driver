@@ -60,6 +60,7 @@
 #include <fadeColorMode.h>
 #include <sequenceMode.h>
 #include <circleColorMode.h>
+#include <sweepColorMode.h>
 
 ModeFactory::ModeFactory()
 {
@@ -126,13 +127,11 @@ Mode* ModeFactory::create(cob_light::LightMode requestMode, IColorO* colorO)
 
 		case cob_light::LightMode::CIRCLE_COLORS:
 		{
-	std::cout<<"Factory generting Circle_Colors";
-        std::vector<color::rgba> colors;
-        if(requestMode.colors.empty())
-	{
-	  std::cout<<"Colors is empty"<<std::endl;
-          colors.push_back(color);
-	}
+      std::vector<color::rgba> colors;
+      if(requestMode.colors.empty())
+      {
+        colors.push_back(color);
+      }
         else
         {
           for(size_t i = 0; i < requestMode.colors.size(); i++)
@@ -141,12 +140,34 @@ Mode* ModeFactory::create(cob_light::LightMode requestMode, IColorO* colorO)
             color.g = requestMode.colors[i].g;
             color.b = requestMode.colors[i].b;
             color.a = requestMode.colors[i].a;
-	    colors.push_back(color);
+            colors.push_back(color);
           }
         }
 		    mode = new CircleColorMode(colors, colorO->getNumLeds(), requestMode.priority, requestMode.frequency, requestMode.pulses, requestMode.timeout);
 		}
 		break;
+
+    case cob_light::LightMode::SWEEP:
+    {
+        std::vector<color::rgba> colors;
+        if(requestMode.colors.empty())
+        {
+          colors.push_back(color);
+        }
+        else
+        {
+          for(size_t i = 0; i < requestMode.colors.size(); i++)
+          {
+            color.r = requestMode.colors[i].r;
+            color.g = requestMode.colors[i].g;
+            color.b = requestMode.colors[i].b;
+            color.a = requestMode.colors[i].a;
+            colors.push_back(color);
+          }
+        }
+        mode = new SweepColorMode(colors, colorO->getNumLeds(), requestMode.priority, requestMode.frequency, requestMode.pulses, requestMode.timeout);
+    }
+    break;
 
 		default:
 			mode = NULL;
@@ -206,6 +227,10 @@ int ModeFactory::type(Mode *mode)
 		ret = cob_light::LightMode::FADE_COLOR;
   else if(dynamic_cast<SequenceMode*>(mode) != NULL)
     ret = cob_light::LightMode::SEQ;
+  else if(dynamic_cast<CircleColorMode*>(mode) != NULL)
+    ret = cob_light::LightMode::CIRCLE_COLORS;
+  else if(dynamic_cast<SweepColorMode*>(mode) != NULL)
+    ret = cob_light::LightMode::SWEEP;
 	else
 		ret = cob_light::LightMode::NONE;
 
