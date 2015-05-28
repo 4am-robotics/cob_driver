@@ -51,6 +51,9 @@ target_link_libraries(${PROJECT_NAME}_sim_node ${PROJECT_NAME} )
 target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_sim_node ${catkin_LIBRARIES})
 
+add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(${PROJECT_NAME}_sim_node ${PROJECT_NAME}_generate_messages_cpp)
+
 #############
 ## Install ##
 #############
