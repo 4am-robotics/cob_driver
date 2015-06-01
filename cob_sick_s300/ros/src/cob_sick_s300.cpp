@@ -61,6 +61,7 @@
 #include <ros/ros.h>
 
 // ROS message includes
+#include <std_msgs/Bool.h>
 #include <sensor_msgs/LaserScan.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
 
@@ -86,7 +87,8 @@ class NodeClass
 		ros::NodeHandle nh;   
 		// topics to publish
 		ros::Publisher topicPub_LaserScan;
-        ros::Publisher topicPub_Diagnostic_;
+		ros::Publisher topicPub_InStandby;
+		ros::Publisher topicPub_Diagnostic_;
 		
 		// topics to subscribe, callback is called for new messages arriving
 		//--
@@ -109,6 +111,7 @@ class NodeClass
 		bool debug_;
 		ScannerSickS300 scanner_;
 		ros::Time loop_rate_;
+		std_msgs::Bool inStandby_;
 
 		// Constructor
 		NodeClass() 
@@ -194,6 +197,7 @@ class NodeClass
 
 			// implementation of topics to publish
 			topicPub_LaserScan = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
+			topicPub_InStandby = nh.advertise<std_msgs::Bool>("scan_standby", 1);
 			topicPub_Diagnostic_ = nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 
 			loop_rate_ = ros::Time::now(); // Hz
@@ -206,8 +210,17 @@ class NodeClass
 		void receiveScan() {
 			std::vector< double > ranges, rangeAngles, intensities;
 			unsigned int iSickTimeStamp, iSickNow;
-			if(scanner_.getScan(ranges, rangeAngles, intensities, iSickTimeStamp, iSickNow, debug_))
+			if(scanner_.isInStandby())
+			{
+				publishWarn("scanner in standby");
+				ROS_WARN_THROTTLE(30, "scanner on port %s in standby", port.c_str());
+				publishStandby(true);
+			}
+			else if(scanner_.getScan(ranges, rangeAngles, intensities, iSickTimeStamp, iSickNow, debug_))
+			{
+				publishStandby(false);
 				publishLaserScan(ranges, rangeAngles, intensities, iSickTimeStamp, iSickNow);
+			}
 		}
 		
 		// Destructor
@@ -215,6 +228,12 @@ class NodeClass
 		{
 		}
 		
+		void publishStandby(bool inStandby)
+		{
+			this->inStandby_.data = inStandby;
+			topicPub_InStandby.publish(this->inStandby_);
+		}
+
 		// other function declarations
 		void publishLaserScan(std::vector<double> vdDistM, std::vector<double> vdAngRAD, std::vector<double> vdIntensAU, unsigned int iSickTimeStamp, unsigned int iSickNow)
 		{
@@ -305,6 +324,15 @@ class NodeClass
 					diagnostics.status[0].level = 2;
 					diagnostics.status[0].name = nh.getNamespace();
 					diagnostics.status[0].message = error_str;
+					topicPub_Diagnostic_.publish(diagnostics);     
+				}
+
+				void publishWarn(std::string warn_str) {
+					diagnostic_msgs::DiagnosticArray diagnostics;
+					diagnostics.status.resize(1);
+					diagnostics.status[0].level = 1;
+					diagnostics.status[0].name = nh.getNamespace();
+					diagnostics.status[0].message = warn_str;
 					topicPub_Diagnostic_.publish(diagnostics);     
 				}
 };
