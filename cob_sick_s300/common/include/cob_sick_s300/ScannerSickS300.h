@@ -101,7 +101,6 @@
  *	   --> Telegram length (read from telegram) is 1104 bytes (iDataLength)
  *
  *	   if the scanner is in standby, the measurements are 0x4004 according to the Sick Support
- *	   (we better check 0x0440 as well to be on the safe side)
  */
 
 class ScannerSickS300
