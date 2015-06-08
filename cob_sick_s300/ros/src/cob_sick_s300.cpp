@@ -101,6 +101,7 @@ class NodeClass
 		
 		// global variables
 		std::string port;
+		std::string node_name;
 		int baud, scan_id, publish_frequency;
 		bool inverted;
 		double scan_duration, scan_cycle_time;
@@ -195,6 +196,8 @@ class NodeClass
 			syncedROSTime = ros::Time::now();
 			syncedTimeReady = false;
 
+			node_name = ros::this_node::getName();
+
 			// implementation of topics to publish
 			topicPub_LaserScan = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
 			topicPub_InStandby = nh.advertise<std_msgs::Bool>("scan_standby", 1);
@@ -210,16 +213,20 @@ class NodeClass
 		void receiveScan() {
 			std::vector< double > ranges, rangeAngles, intensities;
 			unsigned int iSickTimeStamp, iSickNow;
-			if(scanner_.isInStandby())
+
+			if(scanner_.getScan(ranges, rangeAngles, intensities, iSickTimeStamp, iSickNow, debug_))
 			{
-				publishWarn("scanner in standby");
-				ROS_WARN_THROTTLE(30, "scanner on port %s in standby", port.c_str());
-				publishStandby(true);
-			}
-			else if(scanner_.getScan(ranges, rangeAngles, intensities, iSickTimeStamp, iSickNow, debug_))
-			{
-				publishStandby(false);
-				publishLaserScan(ranges, rangeAngles, intensities, iSickTimeStamp, iSickNow);
+				if(scanner_.isInStandby())
+				{
+					publishWarn("scanner in standby");
+					ROS_WARN_THROTTLE(30, "scanner %s on port %s in standby", node_name.c_str(), port.c_str());
+					publishStandby(true);
+				}
+				else
+				{
+					publishStandby(false);
+					publishLaserScan(ranges, rangeAngles, intensities, iSickTimeStamp, iSickNow);
+				}
 			}
 		}
 		

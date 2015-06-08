@@ -268,8 +268,8 @@ void ScannerSickS300::convertScanToPolar(const PARAM_MAP::const_iterator param, 
 	{
 		dDist = double ((viScanRaw[i] & 0x1FFF) * param->second.dScale);
 
-		// if not all values are 0x4004 (or 0x0440), we are not in standby
-		if (!((viScanRaw[i] == 0x4004) || (viScanRaw[i] == 0x0440)))
+		// if not all values are 0x4004 , we are not in standby
+		if ( !(viScanRaw[i] == 0x4004) )
 			bInStandby = false;
 
 		dAngle = param->second.dStartAngle + i*dAngleStep;
