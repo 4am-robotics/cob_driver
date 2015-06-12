@@ -123,6 +123,8 @@ ScannerSickS300::ScannerSickS300()
 	
 	m_actualBufferSize = 0;
 
+	m_bInStandby = true;
+
 }
 
 
@@ -190,7 +192,6 @@ void ScannerSickS300::stopScanner()
 {
 }
 
-
 //-----------------------------------------------
 bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<double> &vdAngleRAD, std::vector<double> &vdIntensityAU, unsigned int &iTimestamp, unsigned int &iTimeNow, const bool debug)
 {
@@ -257,13 +258,19 @@ void ScannerSickS300::convertScanToPolar(const PARAM_MAP::const_iterator param, 
 	double dDist;
 	double dAngle, dAngleStep;
 	double dIntens;
+	bool bInStandby = true;
 
 	vecScanPolar.resize(viScanRaw.size());
 	dAngleStep = fabs(param->second.dStopAngle - param->second.dStartAngle) / double(viScanRaw.size() - 1) ;
 	
+
 	for(size_t i=0; i<viScanRaw.size(); i++)
 	{
 		dDist = double ((viScanRaw[i] & 0x1FFF) * param->second.dScale);
+
+		// if not all values are 0x4004 , we are not in standby
+		if ( !(viScanRaw[i] == 0x4004) )
+			bInStandby = false;
 
 		dAngle = param->second.dStartAngle + i*dAngleStep;
 		dIntens = double(viScanRaw[i] & 0x2000);
@@ -272,4 +279,6 @@ void ScannerSickS300::convertScanToPolar(const PARAM_MAP::const_iterator param, 
 		vecScanPolar[i].da = dAngle;
 		vecScanPolar[i].di = dIntens;
 	}
+
+	m_bInStandby = bInStandby;
 }
