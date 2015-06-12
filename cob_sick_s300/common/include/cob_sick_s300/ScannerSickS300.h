@@ -99,6 +99,8 @@
  *	   --> Headerlength = 24 bytes (iHeaderLength)
  *	   --> Total length in buffer is 1108 bytes
  *	   --> Telegram length (read from telegram) is 1104 bytes (iDataLength)
+ *
+ *	   if the scanner is in standby, the measurements are 0x4004 according to the Sick Support
  */
 
 class ScannerSickS300
@@ -153,6 +155,9 @@ public:
 	void stopScanner();
 	//sick_lms.Uninitialize();
 
+	// whether the scanner is currently in Standby or not
+	bool isInStandby() {return m_bInStandby;};
+
 	void purgeScanBuf();
 
 	bool getScan(std::vector<double> &vdDistanceM, std::vector<double> &vdAngleRAD, std::vector<double> &vdIntensityAU, unsigned int &iTimestamp, unsigned int &iTimeNow, const bool debug);
@@ -177,6 +182,7 @@ private:
 	int m_iPosReadBuf2;
 	static unsigned char m_iScanId;
 	int m_actualBufferSize;
+	bool m_bInStandby;
 
 	// Components
 	SerialIO m_SerialIO;

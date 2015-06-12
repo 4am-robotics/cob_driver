@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_sick_s300)
 
-find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs diagnostic_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs std_msgs diagnostic_msgs)
 
 ###################################
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-    CATKIN_DEPENDS roscpp sensor_msgs diagnostic_msgs
+    CATKIN_DEPENDS roscpp sensor_msgs std_msgs diagnostic_msgs
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )
