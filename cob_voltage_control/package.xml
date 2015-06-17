@@ -1,6 +1,6 @@
 <package>
   <name>cob_voltage_control</name>
-  <version>0.6.2</version>
+  <version>0.6.3</version>
   <description>Interface to IO board that manages emergency stop and battery voltage on rob@work 3</description>
  
   <license>LGPL</license>

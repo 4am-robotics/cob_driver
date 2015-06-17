@@ -2,8 +2,8 @@
 Changelog for package cob_base_drive_chain
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.3 (2015-06-17)
+------------------
 * add_dependencies to generate_messages_cpp
 * use new Trigger from std_srvs
 * changed hardcoded namespace

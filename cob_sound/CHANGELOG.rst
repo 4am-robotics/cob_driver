@@ -2,8 +2,8 @@
 Changelog for package cob_sound
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.3 (2015-06-17)
+------------------
 * merge with ipa320
 * adapt test script for sound
 * use component namespaces for light, mimic and say

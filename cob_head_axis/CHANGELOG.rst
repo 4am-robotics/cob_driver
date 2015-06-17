@@ -2,8 +2,8 @@
 Changelog for package cob_head_axis
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.3 (2015-06-17)
+------------------
 * fix topic names
 * use new Trigger from std_srvs
 * cleanup cob_srvs

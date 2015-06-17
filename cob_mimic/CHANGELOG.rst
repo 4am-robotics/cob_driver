@@ -2,8 +2,8 @@
 Changelog for package cob_mimic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.3 (2015-06-17)
+------------------
 * use component namespaces for light, mimic and say
 * catkin_lint'ing
 * Contributors: Florian Weisshardt, ipa-fmw

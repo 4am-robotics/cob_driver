@@ -2,8 +2,8 @@
 Changelog for package cob_phidgets
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.3 (2015-06-17)
+------------------
 * catkin_lint'ing
 * Contributors: Florian Weisshardt
 
