@@ -2,6 +2,11 @@
 Changelog for package cob_undercarriage_ctrl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* now checking for NaN-values in Twist message
+* Contributors: Thorsten Kannacher
+
 0.6.2 (2014-12-15)
 ------------------
 
