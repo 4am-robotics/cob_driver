@@ -2,8 +2,8 @@
 Changelog for package cob_scan_unifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.2 (2015-06-17)
+------------------
 * cob_scan_unifier: get rid of exported but uninstalled include path
 * cob_scan_unifier: fix include folder stuff
 * Contributors: ipa-mig
