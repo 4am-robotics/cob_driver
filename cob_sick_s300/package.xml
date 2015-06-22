@@ -1,6 +1,6 @@
 <package>
   <name>cob_sick_s300</name>
-  <version>0.6.2</version>
+  <version>0.6.3</version>
   <description>This package published a laser scan message out of a Sick S300 laser scanner.</description>
 
   <license>LGPL</license>

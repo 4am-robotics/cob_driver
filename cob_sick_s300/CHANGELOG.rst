@@ -2,6 +2,13 @@
 Changelog for package cob_sick_s300
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.3 (2015-06-17)
+------------------
+* cob_sick_s300: fix check for standby and only check for correct value
+* cob_sick_s300: handle scanner in standby; publish std_msgs::Bool indicating status
+* do not use private NodeHandle
+* Contributors: ipa-fxm, ipa-mig
+
 0.6.2 (2014-12-15)
 ------------------
 

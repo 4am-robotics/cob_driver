@@ -2,6 +2,26 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.3 (2015-06-17)
+------------------
+* use component namespaces for light, mimic and say
+* make visualization marker frame configurable
+* publish contiuous diagnostics
+* small fixes
+* Merge branch 'feature/newCircleMode' into feature/newSweepMode
+  Conflicts:
+  cob_light/common/src/modeFactory.cpp
+* added color array msg
+* modified message description
+* added new sweep color mode
+* Merge pull request `#190 <https://github.com/ipa320/cob_driver/issues/190>`_ from ipa-bnm/bug/infinit-send-error
+  bugfix infinit-send-error
+* Merge branch 'bug/infinit-send-error' into indigo_dev
+* fix stageprofi init
+* check for acknowledge message from controller
+* recover serial connection and driver if there was an error during sending
+* Contributors: Benjamin Maidel, Florian Weisshardt, ipa-fmw
+
 0.6.2 (2014-12-15)
 ------------------
 * fix warning message

@@ -2,6 +2,14 @@
 Changelog for package cob_base_drive_chain
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.3 (2015-06-17)
+------------------
+* add_dependencies to generate_messages_cpp
+* use new Trigger from std_srvs
+* changed hardcoded namespace
+* changed wrong ROS output
+* Contributors: Thorsten Kannacher, ipa-fxm
+
 0.6.2 (2014-12-15)
 ------------------
 * remove joint_states publisher for simulation - using JointStateController anyway

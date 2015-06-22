@@ -2,6 +2,19 @@
 Changelog for package cob_sound
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.3 (2015-06-17)
+------------------
+* merge with ipa320
+* adapt test script for sound
+* use component namespaces for light, mimic and say
+* add visualization marker to sound
+* use Timer for diagnostics
+* add hardware_id to sound
+* reduce diagnostics frequency to 1Hz
+* use new Trigger from std_srvs
+* move cob_sound launch file to cob_bringup
+* Contributors: ipa-fmw, ipa-fxm
+
 0.6.2 (2014-12-15)
 ------------------
 * Merge branch 'indigo_dev' into indigo_release_candidate

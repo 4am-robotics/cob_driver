@@ -2,6 +2,13 @@
 Changelog for package cob_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.3 (2015-06-17)
+------------------
+* Merge pull request `#199 <https://github.com/ipa320/cob_driver/issues/199>`_ from ipa-nhg/indigo_dev
+  added cob_mimic package
+* added cob_mimic package
+* Contributors: Florian Weisshardt, ipa-nhg
+
 0.6.2 (2014-12-15)
 ------------------
 

@@ -2,6 +2,14 @@
 Changelog for package cob_head_axis
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.3 (2015-06-17)
+------------------
+* fix topic names
+* use new Trigger from std_srvs
+* cleanup cob_srvs
+* adapt cob_head_axis to new namespaces
+* Contributors: ipa-fxm, ipa-nhg
+
 0.6.2 (2014-12-15)
 ------------------
 
