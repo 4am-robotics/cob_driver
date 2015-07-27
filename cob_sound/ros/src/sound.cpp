@@ -73,7 +73,7 @@ public:
   bool service_cb_play(cob_sound::PlayFile::Request &req,
                   cob_sound::PlayFile::Response &res )
   {
-    play(req.file);
+    play(req.filename);
     return true;
   }
 
@@ -147,7 +147,7 @@ public:
     return true;
   }
   
-  bool play(std::string file)
+  bool play(std::string filename)
   {
     if (mute_)
     {
@@ -155,12 +155,12 @@ public:
       return true;
     }
     std::string command;
-    ROS_INFO("Playing: %s", file.c_str());
-    command = "aplay -q " + file;
+    ROS_INFO("Playing: %s", filename.c_str());
+    command = "aplay -q " + filename;
 
     if (system(command.c_str()) != 0)
     {
-      ROS_ERROR("Could not play file %s", file.c_str());
+      ROS_ERROR("Could not play file %s", filename.c_str());
       // publishing diagnotic error if output fails
       diagnostic_msgs::DiagnosticStatus status;
       status.level = 2;
