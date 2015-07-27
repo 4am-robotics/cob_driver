@@ -10,9 +10,11 @@ find_package(catkin REQUIRED COMPONENTS message_generation rospy roscpp actionli
 
 add_service_files(DIRECTORY srv FILES
   SayText.srv
+  PlayFile.srv
 )
 add_action_files(DIRECTORY action FILES
-   Say.action 	
+  Say.action 
+  Play.action	
 )
 
 generate_messages(

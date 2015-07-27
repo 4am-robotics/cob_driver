@@ -6,6 +6,8 @@
 #include <std_srvs/Trigger.h>
 #include <cob_sound/SayAction.h>
 #include <cob_sound/SayText.h>
+#include <cob_sound/PlayAction.h>
+#include <cob_sound/PlayFile.h>
 
 class SayAction
 {
@@ -17,6 +19,7 @@ protected:
   ros::ServiceServer srvServer_mute_;
   ros::ServiceServer srvServer_unmute_;
   ros::Subscriber sub_;
+  ros::Subscriber sub_play_;
   std::string action_name_;
   bool mute_;
 
@@ -32,9 +35,11 @@ public:
   {
     as_.start();
     srvServer_ = nh_.advertiseService("say", &SayAction::service_cb, this);
+    srvServer_ = nh_.advertiseService("play", &SayAction::service_cb_play, this);
     srvServer_mute_ = nh_.advertiseService("mute", &SayAction::service_cb_mute, this);
     srvServer_unmute_ = nh_.advertiseService("unmute", &SayAction::service_cb_unmute, this);
     sub_ = nh_.subscribe("say", 1000, &SayAction::topic_cb, this);
+    sub_play_ = nh_.subscribe("play", 1000, &SayAction::topic_cb_play, this);
     diagnostics_pub_ = nh_.advertise<diagnostic_msgs::DiagnosticArray>("diagnostics", 1);
     diagnostics_timer_ = nh_.createTimer(ros::Duration(1.0), &SayAction::timer_cb, this);
     pubMarker_ = nh_.advertise<visualization_msgs::Marker>("marker",1); //Advertise visualization marker topic
@@ -65,9 +70,21 @@ public:
     return true;
   }
 
+  bool service_cb_play(cob_sound::PlayFile::Request &req,
+                  cob_sound::PlayFile::Response &res )
+  {
+    play(req.file);
+    return true;
+  }
+
   void topic_cb(const std_msgs::String::ConstPtr& msg)
   {
     say(msg->data.c_str());
+  }
+  
+  void topic_cb_play(const std_msgs::String::ConstPtr& msg)
+  {
+    play(msg->data.c_str());
   }
 
   bool service_cb_mute(std_srvs::Trigger::Request &req,
@@ -130,6 +147,35 @@ public:
     return true;
   }
   
+  bool play(std::string file)
+  {
+    if (mute_)
+    {
+      ROS_WARN("Sound is set to mute. You will hear nothing.");
+      return true;
+    }
+    std::string command;
+    ROS_INFO("Playing: %s", file.c_str());
+    command = "aplay -q " + file;
+
+    if (system(command.c_str()) != 0)
+    {
+      ROS_ERROR("Could not play file %s", file.c_str());
+      // publishing diagnotic error if output fails
+      diagnostic_msgs::DiagnosticStatus status;
+      status.level = 2;
+      status.name = "sound";
+      status.message = "command play failed";
+      diagnostics_.status.push_back(status);
+      
+      diagnostics_.header.stamp = ros::Time::now();
+      diagnostics_pub_.publish(diagnostics_);
+      
+      diagnostics_.status.resize(0);
+      return false;
+    }
+    return true;
+  }
   
   void timer_cb(const ros::TimerEvent&)
   {
