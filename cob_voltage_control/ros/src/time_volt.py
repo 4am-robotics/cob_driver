@@ -56,26 +56,22 @@
 # If not, see < http://www.gnu.org/licenses/>.
 #
 #################################################################
-import pickle
 
+import pickle
 import csv
 import pylab
 import sys
 import getopt
 
-import savitzky
-
-import numpy as np
-
-from numpy import *
 from math import *
 from scipy import *
+from numpy import *
+import numpy as np
 
-import roslib; roslib.load_manifest('cob_bringup')
 import rospy
 import rosparam
-
 import yaml
+import savitzky
 
 def main(argv):
     rospy.init_node('csv_proc')

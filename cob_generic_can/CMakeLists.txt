@@ -3,20 +3,13 @@ project(cob_generic_can)
 
 find_package(catkin REQUIRED COMPONENTS roscpp cob_utilities libpcan libntcan)
 
-###################################
-## catkin specific configuration ##
-###################################
-
 catkin_package(
-    CATKIN_DEPENDS roscpp cob_utilities libpcan libntcan
-    INCLUDE_DIRS common/include
-    LIBRARIES ${PROJECT_NAME}_peaksysusb ${PROJECT_NAME}_peaksys ${PROJECT_NAME}_esd 
+  CATKIN_DEPENDS roscpp cob_utilities libpcan libntcan
+  INCLUDE_DIRS common/include
+  LIBRARIES ${PROJECT_NAME}_peaksysusb ${PROJECT_NAME}_peaksys ${PROJECT_NAME}_esd
 )
 
-###########
-## Build ##
-###########
-
+### BUILD ###
 include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 # add project libs
@@ -29,28 +22,13 @@ target_link_libraries(${PROJECT_NAME}_peaksysusb ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_peaksys ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_esd ${catkin_LIBRARIES})
 
-
-
-#############
-## Install ##
-#############
-
-## Mark executables and/or libraries for installation
-install(TARGETS ${PROJECT_NAME}_peaksysusb
+### INSTALL ###
+install(TARGETS ${PROJECT_NAME}_peaksysusb ${PROJECT_NAME}_peaksys ${PROJECT_NAME}_esd
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
-install(TARGETS ${PROJECT_NAME}_peaksys
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-install(TARGETS ${PROJECT_NAME}_esd
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+
 install(DIRECTORY common/include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )

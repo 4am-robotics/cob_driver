@@ -124,72 +124,72 @@ class cob_voltage_control_ros
             }
             if(got_message)
             {
-				if( (front_em_active && rear_em_active) && (!last_front_em_state && !last_rear_em_state))
-				{
-					component_data_.out_pub_relayboard_state.emergency_button_stop = true;
-					em_caused_by_button = true;
-				}
-				else if((!front_em_active && !rear_em_active) && (last_front_em_state && last_rear_em_state))
-				{
-					component_data_.out_pub_relayboard_state.emergency_button_stop = false;
-					em_caused_by_button = false;
-				}
-				else if((front_em_active != rear_em_active) && em_caused_by_button)
-				{
-					component_data_.out_pub_relayboard_state.emergency_button_stop = false;
-					em_caused_by_button = false;
-					component_data_.out_pub_relayboard_state.scanner_stop = (bool)(front_em_active | rear_em_active);
-				}
-				else
-				{
-					component_data_.out_pub_relayboard_state.scanner_stop = (bool)(front_em_active | rear_em_active);
-					ROS_INFO_STREAM("scanner_stop: "<<component_data_.out_pub_relayboard_state.scanner_stop);
-				}
+                if( (front_em_active && rear_em_active) && (!last_front_em_state && !last_rear_em_state))
+                {
+                    component_data_.out_pub_relayboard_state.emergency_button_stop = true;
+                    em_caused_by_button = true;
+                }
+                else if((!front_em_active && !rear_em_active) && (last_front_em_state && last_rear_em_state))
+                {
+                    component_data_.out_pub_relayboard_state.emergency_button_stop = false;
+                    em_caused_by_button = false;
+                }
+                else if((front_em_active != rear_em_active) && em_caused_by_button)
+                {
+                    component_data_.out_pub_relayboard_state.emergency_button_stop = false;
+                    em_caused_by_button = false;
+                    component_data_.out_pub_relayboard_state.scanner_stop = (bool)(front_em_active | rear_em_active);
+                }
+                else
+                {
+                    component_data_.out_pub_relayboard_state.scanner_stop = (bool)(front_em_active | rear_em_active);
+                    ROS_INFO_STREAM("scanner_stop: "<<component_data_.out_pub_relayboard_state.scanner_stop);
+                }
 
-				EM_signal = component_data_.out_pub_relayboard_state.scanner_stop | component_data_.out_pub_relayboard_state.emergency_button_stop;
+                EM_signal = component_data_.out_pub_relayboard_state.scanner_stop | component_data_.out_pub_relayboard_state.emergency_button_stop;
 
-				switch (EM_stop_status_)
-				{
-					case ST_EM_FREE:
-					{
-						if (EM_signal == true)
-						{
-							ROS_INFO("Emergency stop was issued");
-							EM_stop_status_ = EM_msg.EMSTOP;
-						}
-						break;
-					}
-					case ST_EM_ACTIVE:
-					{
-						if (EM_signal == false)
-						{
-							ROS_INFO("Emergency stop was confirmed");
-							EM_stop_status_ = EM_msg.EMCONFIRMED;
-						}
-						break;
-					}
-					case ST_EM_CONFIRMED:
-					{
-						if (EM_signal == true)
-						{
-							ROS_INFO("Emergency stop was issued");
-							EM_stop_status_ = EM_msg.EMSTOP;
-						}
-						else
-						{
-							ROS_INFO("Emergency stop released");
-							EM_stop_status_ = EM_msg.EMFREE;
-						}
-						break;
-					}
-				};
+                switch (EM_stop_status_)
+                {
+                    case ST_EM_FREE:
+                    {
+                        if (EM_signal == true)
+                        {
+                            ROS_INFO("Emergency stop was issued");
+                            EM_stop_status_ = EM_msg.EMSTOP;
+                        }
+                        break;
+                    }
+                    case ST_EM_ACTIVE:
+                    {
+                        if (EM_signal == false)
+                        {
+                            ROS_INFO("Emergency stop was confirmed");
+                            EM_stop_status_ = EM_msg.EMCONFIRMED;
+                        }
+                        break;
+                    }
+                    case ST_EM_CONFIRMED:
+                    {
+                        if (EM_signal == true)
+                        {
+                            ROS_INFO("Emergency stop was issued");
+                            EM_stop_status_ = EM_msg.EMSTOP;
+                        }
+                        else
+                        {
+                            ROS_INFO("Emergency stop released");
+                            EM_stop_status_ = EM_msg.EMFREE;
+                        }
+                        break;
+                    }
+                };
 
 
-				component_data_.out_pub_relayboard_state.emergency_state = EM_stop_status_;
+                component_data_.out_pub_relayboard_state.emergency_state = EM_stop_status_;
 
-				last_front_em_state = front_em_active;
-				last_rear_em_state = rear_em_active;
-			}
+                last_front_em_state = front_em_active;
+                last_rear_em_state = rear_em_active;
+            }
         }
 };
 

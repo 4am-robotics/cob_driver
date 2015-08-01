@@ -2,22 +2,15 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_relayboard)
 
-find_package(catkin REQUIRED COMPONENTS roscpp rostest std_msgs cob_utilities cob_msgs)
-
-
-###################################
-## catkin specific configuration ##
-###################################
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs cob_msgs)
 
 catkin_package(
-    CATKIN_DEPENDS roscpp rostest std_msgs cob_utilities cob_msgs
-    INCLUDE_DIRS common/include
-    LIBRARIES SerialIO ${PROJECT_NAME}
+  CATKIN_DEPENDS roscpp rospy std_msgs cob_msgs 
+  INCLUDE_DIRS common/include
+  LIBRARIES SerialIO ${PROJECT_NAME}
 )
 
-###########
-## Build ##
-###########
+### BUILD ###
 include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_library(SerialIO common/src/SerialIO.cpp)
@@ -33,22 +26,17 @@ target_link_libraries(cob_relayboard_node ${PROJECT_NAME})
 target_link_libraries(cob_relayboard_node ${catkin_LIBRARIES})
 add_dependencies(cob_relayboard_node cob_msgs_gencpp)
 
-#############
-## Install ##
-#############
-
-## Mark executables and/or libraries for installation
+### INSTALL ###
 install(TARGETS cob_relayboard_node SerialIO ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(PROGRAMS ros/src/relayboard_sim.py ros/src/new_method.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/ros/src
-)
-
 install(DIRECTORY common/include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
+install(PROGRAMS ros/src/relayboard_sim.py ros/src/new_method.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

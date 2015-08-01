@@ -11,9 +11,9 @@
 # Project name: care-o-bot
 # ROS stack name: cob_driver
 # ROS package name: cob_light
-#								
+#
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#			
+#
 # Author: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
 # Supervised by: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
 #
@@ -52,8 +52,7 @@
 #****************************************************************
 
 import time
-import roslib
-roslib.load_manifest('cob_light')
+
 import rospy
 from std_msgs.msg import ColorRGBA
 

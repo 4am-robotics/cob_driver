@@ -1,10 +1,8 @@
 #!/usr/bin/env python
-import roslib; roslib.load_manifest('cob_relayboard')
+
 import rospy
-import time
-from cob_msgs.msg import EmergencyStopState
-from cob_msgs.msg import PowerBoardState
 from std_msgs.msg import Float64
+from cob_msgs.msg import EmergencyStopState, PowerBoardState
 
 def relayboard_sim():
 	rospy.init_node('cob_relayboard_sim')

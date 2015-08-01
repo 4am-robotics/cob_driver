@@ -56,16 +56,14 @@
 # If not, see < http://www.gnu.org/licenses/>.
 #
 #################################################################
-import roslib; roslib.load_manifest('cob_voltage_control')
-import rospy
-import time
-import csv
-from cob_msgs.msg import EmergencyStopState
-from std_msgs.msg import Float64
-import savitzky
-import numpy as np
+
 from math import *
-from cob_msgs.msg import PowerState
+import numpy as np
+
+import rospy
+import savitzky
+from std_msgs.msg import Float64
+from cob_msgs.msg import EmergencyStopState, PowerState
 
 class volts_filter():
     
@@ -129,9 +127,4 @@ if __name__ == '__main__':
     vf = volts_filter()
 
     while not rospy.is_shutdown():
-    
-        
         rospy.sleep(1.0)
-
-
-

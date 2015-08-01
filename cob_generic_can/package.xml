@@ -22,8 +22,7 @@
   <run_depend>libpcan</run_depend>
   <run_depend>libntcan</run_depend>
 
-
   <export>
-    <cpp lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_generic_can_peaksysusb -lcob_generic_can_peaksys -lcob_generic_can_esd" cflags="-I${prefix}/common/include"/>
+    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_generic_can_peaksysusb -lcob_generic_can_peaksys -lcob_generic_can_esd"/>
   </export>
 </package>

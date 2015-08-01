@@ -26,14 +26,14 @@
   <run_depend>roscpp</run_depend>
   <run_depend>nav_msgs</run_depend>
   <run_depend>geometry_msgs</run_depend>
+  <run_depend>control_msgs</run_depend>
   <run_depend>diagnostic_msgs</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>cob_msgs</run_depend>
   <run_depend>cob_utilities</run_depend>
   <run_depend>diagnostic_updater</run_depend>
 
-
   <export>
-    <cpp lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_undercarriage_ctrl" cflags="-I${prefix}/common/include"/>
+    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_undercarriage_ctrl"/>
   </export>
 </package>

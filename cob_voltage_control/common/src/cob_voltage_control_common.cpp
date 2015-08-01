@@ -5,8 +5,6 @@
 #include <cob_msgs/EmergencyStopState.h>
 #include <std_msgs/Float64.h>
 
-//#include <libphidgets/phidget21.h>
-
 
 class cob_voltage_control_config
 {

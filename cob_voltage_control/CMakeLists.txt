@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_voltage_control)
 
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs cob_msgs libphidgets cob_msgs rospy dynamic_reconfigure cob_phidgets)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs cob_msgs dynamic_reconfigure cob_phidgets)
 
 ###################################
 ## Dynamic reconfigure ##
@@ -14,7 +14,7 @@ generate_dynamic_reconfigure_options(cfg/cob_voltage_control.cfg)
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-    CATKIN_DEPENDS roscpp libphidgets cob_msgs rospy dynamic_reconfigure cob_phidgets
+    CATKIN_DEPENDS roscpp rospy std_msgs cob_msgs dynamic_reconfigure cob_phidgets
     INCLUDE_DIRS 
     LIBRARIES 
 )
