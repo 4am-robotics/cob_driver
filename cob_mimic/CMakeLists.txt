@@ -15,7 +15,7 @@ add_action_files(DIRECTORY action FILES
 generate_messages(DEPENDENCIES actionlib_msgs)
 
 catkin_package(
-  CATKIN_DEPENDS rospy std_msgs actionlib actionlib_msgs message_runtime
+  CATKIN_DEPENDS actionlib_msgs actionlib message_runtime rospy std_msgs
 )
 
 ### INSTALL ###

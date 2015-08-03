@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_base_drive_chain)
 
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs std_srvs sensor_msgs message_generation diagnostic_msgs cob_generic_can cob_canopen_motor cob_utilities libpcan libntcan control_msgs)
+find_package(catkin REQUIRED COMPONENTS cob_canopen_motor cob_generic_can cob_utilities control_msgs diagnostic_msgs libntcan libpcan message_generation roscpp sensor_msgs std_msgs std_srvs)
 
 ### Message Generatioin ###
 add_service_files(
@@ -14,32 +14,25 @@ generate_messages(
   DEPENDENCIES
 )
 
-
 catkin_package(
-    CATKIN_DEPENDS roscpp control_msgs cob_generic_can cob_canopen_motor cob_utilities libpcan std_msgs std_srvs sensor_msgs diagnostic_msgs message_runtime INCLUDE_DIRS common/include LIBRARIES ${PROJECT_NAME}
+    CATKIN_DEPENDS cob_canopen_motor cob_generic_can cob_utilities control_msgs diagnostic_msgs libntcan libpcan message_runtime roscpp sensor_msgs std_msgs std_srvs
+    INCLUDE_DIRS common/include 
+    LIBRARIES ${PROJECT_NAME}
 )
 
-
 ### BUILD ###
-# add include search paths
 include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
-# add project libs
 add_library(${PROJECT_NAME} common/src/CanCtrlPltfCOb3.cpp)
 
-# add executable
 add_executable(${PROJECT_NAME}_node ros/src/${PROJECT_NAME}.cpp)
+add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_generate_messages_cpp)
+target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME} ${catkin_LIBRARIES})
+
 add_executable(${PROJECT_NAME}_sim_node ros/src/${PROJECT_NAME}.cpp)
 set_target_properties(${PROJECT_NAME}_sim_node PROPERTIES COMPILE_FLAGS "-D__SIM__")
-
-target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME})
-target_link_libraries(${PROJECT_NAME}_sim_node ${PROJECT_NAME})
-
-target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})
-target_link_libraries(${PROJECT_NAME}_sim_node ${catkin_LIBRARIES})
-
-add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_generate_messages_cpp)
 add_dependencies(${PROJECT_NAME}_sim_node ${PROJECT_NAME}_generate_messages_cpp)
+target_link_libraries(${PROJECT_NAME}_sim_node ${PROJECT_NAME} ${catkin_LIBRARIES})
 
 ### INSTALL ###
 install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node ${PROJECT_NAME}_sim_node

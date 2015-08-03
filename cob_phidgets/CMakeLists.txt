@@ -16,7 +16,7 @@ else(CMAKE_COMPILER_IS_GNUCXX)
    add_definitions("-std=c++0x")
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs message_generation libphidgets)
+find_package(catkin REQUIRED COMPONENTS libphidgets message_generation roscpp sensor_msgs std_msgs)
 
 ### Message Generation ###
 add_message_files(
@@ -35,10 +35,9 @@ add_service_files(
 generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(
-  CATKIN_DEPENDS roscpp rospy std_msgs sensor_msgs message_runtime libphidgets
-  INCLUDE_DIRS common/include
+  CATKIN_DEPENDS libphidgets message_runtime roscpp rospy sensor_msgs std_msgs
+  INCLUDE_DIRS common/include ros/include
 )
-
 
 ### BUILD ###
 include_directories(${PROJECT_SOURCE_DIR}/ros/include ${PROJECT_SOURCE_DIR}/common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
@@ -59,7 +58,6 @@ add_executable(phidget_sensors
   ros/src/phidgetik_ros.cpp)
 add_dependencies(phidget_sensors ${PROJECT_NAME}_gencpp)
 target_link_libraries(phidget_sensors ${catkin_LIBRARIES})
-
 
 ### INSTALL ###
 install(TARGETS range_sensors phidget_sensors device_name

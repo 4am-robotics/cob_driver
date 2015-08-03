@@ -13,6 +13,7 @@
   <author email="fmw@ipa.fhg.de">Florian Weisshardt</author>
 
   <buildtool_depend>catkin</buildtool_depend>
+
   <run_depend>cob_base_drive_chain</run_depend>
   <run_depend>cob_camera_sensors</run_depend>
   <run_depend>cob_canopen_motor</run_depend>

@@ -2,10 +2,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_relayboard)
 
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs cob_msgs)
+find_package(catkin REQUIRED COMPONENTS cob_msgs roscpp std_msgs)
 
 catkin_package(
-  CATKIN_DEPENDS roscpp rospy std_msgs cob_msgs 
+  CATKIN_DEPENDS cob_msgs roscpp rospy std_msgs
   INCLUDE_DIRS common/include
   LIBRARIES SerialIO ${PROJECT_NAME}
 )

@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_generic_can)
 
-find_package(catkin REQUIRED COMPONENTS roscpp cob_utilities libpcan libntcan)
+find_package(catkin REQUIRED COMPONENTS cob_utilities libntcan libpcan roscpp)
 
 catkin_package(
-  CATKIN_DEPENDS roscpp cob_utilities libpcan libntcan
+  CATKIN_DEPENDS cob_utilities libntcan libpcan roscpp
   INCLUDE_DIRS common/include
   LIBRARIES ${PROJECT_NAME}_peaksysusb ${PROJECT_NAME}_peaksys ${PROJECT_NAME}_esd
 )
@@ -12,12 +12,10 @@ catkin_package(
 ### BUILD ###
 include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
-# add project libs
 add_library(${PROJECT_NAME}_peaksysusb common/src/CanPeakSysUSB.cpp)
 add_library(${PROJECT_NAME}_peaksys common/src/CanPeakSys.cpp)
 add_library(${PROJECT_NAME}_esd common/src/CanESD.cpp)
 
-# link libraries
 target_link_libraries(${PROJECT_NAME}_peaksysusb ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_peaksys ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_esd ${catkin_LIBRARIES})

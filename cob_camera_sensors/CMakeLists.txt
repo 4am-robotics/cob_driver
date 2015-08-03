@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_camera_sensors)
 
-find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs message_generation message_filters cob_vision_utils cv_bridge image_transport polled_camera)
+find_package(catkin REQUIRED COMPONENTS cob_vision_utils cv_bridge image_transport message_filters message_generation polled_camera roscpp sensor_msgs)
 
 ### Message Generation ###
 add_service_files(
@@ -14,9 +14,8 @@ generate_messages(
    DEPENDENCIES sensor_msgs
 )
 
-
 catkin_package(
-  CATKIN_DEPENDS roscpp rospy sensor_msgs message_runtime message_filters cob_vision_utils cv_bridge image_transport polled_camera
+  CATKIN_DEPENDS cob_vision_utils cv_bridge image_transport message_filters message_runtime polled_camera roscpp rospy sensor_msgs
   INCLUDE_DIRS common/include
 )
 
@@ -32,4 +31,3 @@ install(FILES common/scripts/generateYAMLparameterFile.m
 install(PROGRAMS ros/scripts/set_camera_info.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
-

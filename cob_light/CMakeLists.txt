@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_light)
 
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs visualization_msgs diagnostic_msgs actionlib_msgs message_generation actionlib)
+find_package(catkin REQUIRED COMPONENTS actionlib_msgs actionlib diagnostic_msgs message_generation roscpp std_msgs visualization_msgs)
+
 find_package(Boost REQUIRED COMPONENTS thread)
 
 ### Message Generation ###
@@ -27,8 +28,8 @@ generate_messages(
 )
 
 catkin_package(
-  CATKIN_DEPENDS roscpp rospy std_msgs visualization_msgs diagnostic_msgs actionlib_msgs message_runtime actionlib
-  INCLUDE_DIRS common/include
+  CATKIN_DEPENDS actionlib_msgs actionlib diagnostic_msgs message_runtime roscpp rospy std_msgs visualization_msgs
+  INCLUDE_DIRS common/include ros/include
 )
 
 ### BUILD ###

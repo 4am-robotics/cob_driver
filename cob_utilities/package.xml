@@ -13,10 +13,9 @@
   <author>Christian Connette</author>
 
   <buildtool_depend>catkin</buildtool_depend>
+
   <build_depend>roscpp</build_depend>
+
   <run_depend>roscpp</run_depend>
 
-  <export>
-    <cpp cflags="-I${prefix}/common/include" lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_utilities"/>
-  </export>
 </package>
