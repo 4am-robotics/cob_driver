@@ -1,9 +1,6 @@
 #!/usr/bin/env python
-import roslib; roslib.load_manifest('cob_voltage_control')
+
 import rospy
-import time
-import csv
-from std_msgs.msg import Float64
 from cob_phidgets.msg import *
 
 def callback(data):

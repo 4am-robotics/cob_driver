@@ -1,8 +1,6 @@
 #!/usr/bin/env python
-import roslib; roslib.load_manifest('cob_phidgets')
+
 import rospy
-import math
-from geometry_msgs.msg import *
 from sensor_msgs.msg import *
 
 class GazeboVirtualRangeSensor():

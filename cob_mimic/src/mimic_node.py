@@ -58,14 +58,10 @@
 #################################################################
 
 import sys
-import roslib
-roslib.load_manifest('cob_mimic')
-
 import os
 import subprocess
 
 import rospy
-import Image
 import actionlib
 
 from cob_mimic.srv import *
