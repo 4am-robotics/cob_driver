@@ -21,7 +21,6 @@ protected:
   ros::ServiceServer srvServer_unmute_;
   ros::Subscriber sub_say_;
   ros::Subscriber sub_play_;
-  std::string action_name_;
   bool mute_;
 
 public:
@@ -32,8 +31,7 @@ public:
 
   SoundAction(std::string name) :
     as_say_(nh_, "say", boost::bind(&SoundAction::as_cb_say_, this, _1), false),
-    as_play_(nh_, "play", boost::bind(&SoundAction::as_cb_play_, this, _1), false),
-    action_name_(name)
+    as_play_(nh_, "play", boost::bind(&SoundAction::as_cb_play_, this, _1), false)
   {
     as_say_.start();
     as_play_.start();
@@ -41,8 +39,8 @@ public:
     srvServer_play_ = nh_.advertiseService("play", &SoundAction::service_cb_play, this);
     srvServer_mute_ = nh_.advertiseService("mute", &SoundAction::service_cb_mute, this);
     srvServer_unmute_ = nh_.advertiseService("unmute", &SoundAction::service_cb_unmute, this);
-    sub_say_ = nh_.subscribe("say", 1000, &SoundAction::topic_cb_say, this);
-    sub_play_ = nh_.subscribe("play", 1000, &SoundAction::topic_cb_play, this);
+    sub_say_ = nh_.subscribe("say", 1, &SoundAction::topic_cb_say, this);
+    sub_play_ = nh_.subscribe("play", 1, &SoundAction::topic_cb_play, this);
     diagnostics_pub_ = nh_.advertise<diagnostic_msgs::DiagnosticArray>("diagnostics", 1);
     diagnostics_timer_ = nh_.createTimer(ros::Duration(1.0), &SoundAction::timer_cb, this);
     pubMarker_ = nh_.advertise<visualization_msgs::Marker>("marker",1); //Advertise visualization marker topic
@@ -170,18 +168,10 @@ public:
       ROS_WARN("Sound is set to mute. You will hear nothing.");
       return true;
     }
-    if(!nh_.hasParam("audio_file_path"))
-    {
-      ROS_ERROR("Parameter 'audio_file_path' not set");
-      return false;
-    }
     std::string command;
-    std::string audio_file_path;
-    nh_.getParam("audio_file_path",audio_file_path);
-    std::string audio_file= audio_file_path +"/"+filename+".wav";
 
-    ROS_INFO("Playing: %s", audio_file.c_str());
-    command = "aplay -q " + audio_file;
+    ROS_INFO("Playing: %s", filename.c_str());
+    command = "aplay -q " + filename;
 
     if (system(command.c_str()) != 0)
     {
@@ -199,7 +189,7 @@ public:
       diagnostics_.status.resize(0);
       return false;
     }
-    return false;
+    return true;
   }
 
   void timer_cb(const ros::TimerEvent&)
