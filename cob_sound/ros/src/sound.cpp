@@ -29,7 +29,7 @@ public:
   ros::Timer diagnostics_timer_;
   ros::Publisher pubMarker_;
 
-  SoundAction(std::string name) :
+  SoundAction():
     as_say_(nh_, "say", boost::bind(&SoundAction::as_cb_say_, this, _1), false),
     as_play_(nh_, "play", boost::bind(&SoundAction::as_cb_play_, this, _1), false)
   {
@@ -242,7 +242,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "cob_sound");
 
-  SoundAction sound("sound");
+  SoundAction sound;
   ROS_INFO("sound node started");
   
   ros::spin();
