@@ -4,12 +4,9 @@ project(cob_sound)
 
 find_package(catkin REQUIRED COMPONENTS actionlib_msgs actionlib diagnostic_msgs message_generation roscpp std_msgs std_srvs visualization_msgs)
 
-### Message Generation ###
-add_service_files(DIRECTORY srv FILES
-  SayText.srv
-)
 add_action_files(DIRECTORY action FILES
    Say.action
+   Play.action
 )
 
 generate_messages(
