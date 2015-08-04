@@ -11,9 +11,9 @@
 # Project name: care-o-bot
 # ROS stack name: cob_driver
 # ROS package name: cob_light
-#								
+#
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#			
+#
 # Author: Thiago de Freitas, email:tdf@ipa.fhg.de
 # Supervised by: Thiago de Freitas, email:tdf@ipa.fhg.de
 #
@@ -51,8 +51,7 @@
 #****************************************************************
 
 import time
-import roslib
-roslib.load_manifest('cob_light')
+
 import rospy
 from std_msgs.msg import ColorRGBA
 from cob_light.srv import *
