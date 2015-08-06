@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>cob_relayboard</name>
   <version>0.6.3</version>
   <description>cob_relayboard</description>
@@ -12,13 +12,10 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>cob_msgs</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>std_msgs</build_depend>
+  <depend>cob_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
 
-  <run_depend>cob_msgs</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>std_msgs</run_depend>
+  <exec_depend>rospy</exec_depend>
 
 </package>

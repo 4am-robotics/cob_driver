@@ -15,7 +15,7 @@ generate_messages(
 )
 
 catkin_package(
-  CATKIN_DEPENDS cob_vision_utils cv_bridge image_transport message_filters message_runtime polled_camera roscpp rospy sensor_msgs
+  CATKIN_DEPENDS cob_vision_utils message_runtime roscpp sensor_msgs
   INCLUDE_DIRS common/include
 )
 

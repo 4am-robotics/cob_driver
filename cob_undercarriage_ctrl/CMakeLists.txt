@@ -4,7 +4,7 @@ project(cob_undercarriage_ctrl)
 find_package(catkin REQUIRED COMPONENTS cob_msgs cob_utilities control_msgs diagnostic_msgs diagnostic_updater geometry_msgs nav_msgs roscpp tf)
 
 catkin_package(
-  CATKIN_DEPENDS cob_msgs cob_utilities control_msgs diagnostic_msgs diagnostic_updater geometry_msgs nav_msgs roscpp tf
+  CATKIN_DEPENDS cob_utilities
   LIBRARIES ${PROJECT_NAME}
   INCLUDE_DIRS common/include
 )

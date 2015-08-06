@@ -4,7 +4,7 @@ project(cob_sick_s300)
 find_package(catkin REQUIRED COMPONENTS diagnostic_msgs roscpp sensor_msgs std_msgs)
 
 catkin_package(
-  CATKIN_DEPENDS diagnostic_msgs roscpp sensor_msgs std_msgs
+  CATKIN_DEPENDS roscpp
 )
 
 ### BUILD ###

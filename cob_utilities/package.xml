@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>cob_utilities</name>
   <version>0.6.3</version>
   <description>Deprecated
@@ -13,9 +13,5 @@
   <author>Christian Connette</author>
 
   <buildtool_depend>catkin</buildtool_depend>
-
-  <build_depend>roscpp</build_depend>
-
-  <run_depend>roscpp</run_depend>
 
 </package>

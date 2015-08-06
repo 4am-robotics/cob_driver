@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_generic_can)
 
-find_package(catkin REQUIRED COMPONENTS cob_utilities libntcan libpcan roscpp)
+find_package(catkin REQUIRED COMPONENTS cob_utilities libntcan libpcan)
 
 catkin_package(
-  CATKIN_DEPENDS cob_utilities libntcan libpcan roscpp
+  CATKIN_DEPENDS cob_utilities libntcan libpcan
   INCLUDE_DIRS common/include
   LIBRARIES ${PROJECT_NAME}_peaksysusb ${PROJECT_NAME}_peaksys ${PROJECT_NAME}_esd
 )

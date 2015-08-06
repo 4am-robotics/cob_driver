@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>cob_light</name>
   <version>0.6.3</version>
   <description>This package contains scripts to operate the LED lights on Care-O-bot.</description>
@@ -13,21 +13,16 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>actionlib_msgs</build_depend>
-  <build_depend>actionlib</build_depend>
-  <build_depend>diagnostic_msgs</build_depend>
   <build_depend>message_generation</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>visualization_msgs</build_depend>
+  <exec_depend>message_runtime</exec_depend>
 
-  <run_depend>actionlib_msgs</run_depend>
-  <run_depend>actionlib</run_depend>
-  <run_depend>diagnostic_msgs</run_depend>
-  <run_depend>message_runtime</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>visualization_msgs</run_depend>
+  <depend>actionlib_msgs</depend>
+  <depend>actionlib</depend>
+  <depend>diagnostic_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>visualization_msgs</depend>
+
+  <exec_depend>rospy</exec_depend>
 
 </package>

@@ -35,7 +35,7 @@ add_service_files(
 generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(
-  CATKIN_DEPENDS libphidgets message_runtime roscpp rospy sensor_msgs std_msgs
+  CATKIN_DEPENDS libphidgets message_runtime roscpp std_msgs
   INCLUDE_DIRS common/include ros/include
 )
 

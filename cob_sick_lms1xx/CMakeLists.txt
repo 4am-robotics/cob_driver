@@ -3,9 +3,7 @@ project(cob_sick_lms1xx)
 
 find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs)
 
-catkin_package(
-    CATKIN_DEPENDS roscpp sensor_msgs
-)
+catkin_package()
 
 ### BUILD ###
 include_directories(common/include ${catkin_INCLUDE_DIRS})

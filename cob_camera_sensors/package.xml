@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>cob_camera_sensors</name>
   <version>0.6.3</version>
   <description>For more information read the readme.htm file located in</description>
@@ -13,23 +13,17 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>cob_vision_utils</build_depend>
-  <build_depend>cv_bridge</build_depend>
-  <build_depend>image_transport</build_depend>
-  <build_depend>message_filters</build_depend>
   <build_depend>message_generation</build_depend>
-  <build_depend>polled_camera</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>sensor_msgs</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+
+  <depend>cob_vision_utils</depend>
+  <depend>cv_bridge</depend>
+  <depend>image_transport</depend>
+  <depend>message_filters</depend>
+  <depend>polled_camera</depend>
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
   
-  <run_depend>cob_vision_utils</run_depend>
-  <run_depend>cv_bridge</run_depend>
-  <run_depend>image_transport</run_depend>
-  <run_depend>message_filters</run_depend>
-  <run_depend>message_runtime</run_depend>
-  <run_depend>polled_camera</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>sensor_msgs</run_depend>
+  <exec_depend>rospy</exec_depend>
 
 </package>

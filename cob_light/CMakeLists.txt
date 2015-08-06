@@ -28,7 +28,7 @@ generate_messages(
 )
 
 catkin_package(
-  CATKIN_DEPENDS actionlib_msgs actionlib diagnostic_msgs message_runtime roscpp rospy std_msgs visualization_msgs
+  CATKIN_DEPENDS actionlib_msgs message_runtime roscpp std_msgs
   INCLUDE_DIRS common/include ros/include
 )
 
@@ -36,15 +36,13 @@ catkin_package(
 #pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
 #pkg_check_modules(GTHREAD REQUIRED gthread-2.0)
 
-include_directories(${PROJECT_SOURCE_DIR}/ros/include ${PROJECT_SOURCE_DIR}/common/include ${catkin_INCLUDE_DIRS})
-include_directories(${Boost_INCLUDE_DIRS})
+include_directories(${PROJECT_SOURCE_DIR}/ros/include ${PROJECT_SOURCE_DIR}/common/include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 add_executable(cob_light ros/src/cob_light.cpp ros/src/colorO.cpp ros/src/colorOSim.cpp ros/src/ms35.cpp ros/src/stageprofi.cpp
                          common/src/serialIO.cpp common/src/modeExecutor.cpp common/src/modeFactory.cpp)
-add_dependencies(cob_light ${PROJECT_NAME}_generate_messages_cpp ${PROJECT_NAME}_gencpp)
+add_dependencies(cob_light ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-target_link_libraries(cob_light ${Boost_LIBRARIES})
-target_link_libraries(cob_light ${catkin_LIBRARIES})
+target_link_libraries(cob_light ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 ### INSTALL ###
 install(TARGETS cob_light
