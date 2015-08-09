@@ -21,7 +21,7 @@ catkin_package(
 include_directories(${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_executable(sound ros/src/sound.cpp)
-add_dependencies(sound ${PROJECT_NAME}_gencpp)
+add_dependencies(sound ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(sound ${Boost_LIBRARIES} ${catkin_LIBRARIES})
 
 ### INSTALL ###

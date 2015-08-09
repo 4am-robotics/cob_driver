@@ -22,6 +22,10 @@ set(OODL_SickS300_SRC
 
 add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp ${OODL_SickS300_SRC})
 add_executable(cob_scan_filter ros/src/cob_scan_filter.cpp)
+
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+add_dependencies(cob_scan_filter ${catkin_EXPORTED_TARGETS})
+
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 target_link_libraries(cob_scan_filter ${catkin_LIBRARIES})
 

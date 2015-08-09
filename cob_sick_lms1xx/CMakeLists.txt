@@ -14,6 +14,8 @@ add_executable(lms1xx_test common/src/test.cpp)
 add_executable(lms100 ros/src/lms1xx_node.cpp)
 add_executable(set_config ros/src/set_config.cpp)
 
+add_dependencies(lms100 ${catkin_EXPORTED_TARGETS})
+
 target_link_libraries(lms1xx_test lms1xx ${catkin_LIBRARIES})
 target_link_libraries(lms100 lms1xx ${catkin_LIBRARIES})
 target_link_libraries(set_config lms1xx ${catkin_LIBRARIES})
