@@ -16,7 +16,7 @@ generate_messages(
 
 catkin_package(
     CATKIN_DEPENDS cob_canopen_motor cob_generic_can cob_utilities message_runtime
-    INCLUDE_DIRS common/include 
+    INCLUDE_DIRS common/include
     LIBRARIES ${PROJECT_NAME}
 )
 

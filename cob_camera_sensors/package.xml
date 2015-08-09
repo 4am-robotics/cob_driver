@@ -8,7 +8,7 @@
   <url type="website">http://ros.org/wiki/cob_camera_sensors</url>
   <!-- <url type="bugtracker"></url> -->
 
-  <maintainer email="jsf@ipa.fhg.de">Jan Fischer</maintainer> 
+  <maintainer email="jsf@ipa.fhg.de">Jan Fischer</maintainer>
   <author email="jsf@ipa.fhg.de">Jan Fischer</author>
 
   <buildtool_depend>catkin</buildtool_depend>
@@ -23,7 +23,7 @@
   <depend>polled_camera</depend>
   <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
-  
+
   <exec_depend>rospy</exec_depend>
 
 </package>

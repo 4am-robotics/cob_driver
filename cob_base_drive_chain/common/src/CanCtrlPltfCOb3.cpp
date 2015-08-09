@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -11,9 +11,9 @@
  * ROS stack name: cob_drivers
  * ROS package name: cob_base_drive_chain
  * Description: This is a sample implementation of a can-bus with several nodes. In this case it implements the drive-chain of the Care-O-bot3 mobile base. yet, this can be used as template for using the generic_can and canopen_motor packages to implement arbitrary can-setups.
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Christian Connette, email:christian.connette@ipa.fhg.de
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
@@ -33,23 +33,23 @@
  *	 * Redistributions in binary form must reproduce the above copyright
  *	   notice, this list of conditions and the following disclaimer in the
  *	   documentation and/or other materials provided with the distribution.
- *	 * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *	 * Neither the name of the Fraunhofer Institute for Manufacturing
  *	   Engineering and Automation (IPA) nor the names of its
  *	   contributors may be used to endorse or promote products derived from
  *	   this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -69,7 +69,7 @@
 //-----------------------------------------------
 
 CanCtrlPltfCOb3::CanCtrlPltfCOb3(std::string iniDirectory)
-{	
+{
 	sIniDirectory = iniDirectory;
 	IniFile iniFile;
 	iniFile.SetFileName(sIniDirectory + "Platform.ini", "PltfHardwareCoB3.h");
@@ -138,12 +138,12 @@ CanCtrlPltfCOb3::CanCtrlPltfCOb3(std::string iniDirectory)
 	m_Param.iHasIOBoard = 0;
 	m_Param.iHasUSBoard = 0;
 	m_Param.iHasGyroBoard = 0;
-	m_Param.iHasRadarBoard = 0;	
+	m_Param.iHasRadarBoard = 0;
 
 	m_bWatchdogErr = false;
-	
+
 	// ------------ CanIds
-	
+
 	// ------------ For CanOpen (Harmonica)
 	// Wheel 1
 	// can adresse motor 1
@@ -257,7 +257,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	DriveParam DriveParamW3SteerMotor;
 	DriveParam DriveParamW4DriveMotor;
 	DriveParam DriveParamW4SteerMotor;
-	
+
 	std::string strTypeDrive;
 	std::string strTypeSteer;
 
@@ -283,7 +283,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	m_IniFile.SetFileName(sIniDirectory + "CanCtrl.ini", "CanCtrlPltfCOb3.cpp");
 
 	std::cout << "Can configuration of the platform:" << std::endl;
-	
+
 	// read Configuration of the Can-Network (CanCtrl.ini)
 	m_IniFile.GetKeyInt("TypeCan", "Can", &iTypeCan, true);
 	if (iTypeCan == 0)
@@ -328,7 +328,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxSDO_W1Steer", &m_CanOpenIDParam.TxSDO_W1Steer, true);
 		m_IniFile.GetKeyInt("CanOpenIDs", "RxSDO_W1Steer", &m_CanOpenIDParam.RxSDO_W1Steer, true);
 	}
-	
+
 	// Wheel 2
 	// DriveMotor
 	if(m_iNumDrives >= 2)
@@ -348,7 +348,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxSDO_W2Steer", &m_CanOpenIDParam.TxSDO_W2Steer, true);
 		m_IniFile.GetKeyInt("CanOpenIDs", "RxSDO_W2Steer", &m_CanOpenIDParam.RxSDO_W2Steer, true);
 	}
-	
+
 	// Wheel 3
 	// DriveMotor
 	if(m_iNumDrives >= 3)
@@ -368,7 +368,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyInt("CanOpenIDs", "TxSDO_W3Steer", &m_CanOpenIDParam.TxSDO_W3Steer, true);
 		m_IniFile.GetKeyInt("CanOpenIDs", "RxSDO_W3Steer", &m_CanOpenIDParam.RxSDO_W3Steer, true);
 	}
-	
+
 	// Wheel 4
 	// DriveMotor
 	if(m_iNumDrives >= 4)
@@ -391,7 +391,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 
 	// read configuration of the Drives (CanCtrl.ini)
 	/* Drivemotor1-Parameters Old
-	m_IniFile.GetKeyString("TypeDrive", "Drive1", &strTypeDrive, true);	
+	m_IniFile.GetKeyString("TypeDrive", "Drive1", &strTypeDrive, true);
 	m_IniFile.GetKeyInt(strTypeDrive.c_str(), "EncIncrPerRevMot", &(m_GearMotDrive1.iEncIncrPerRevMot), true);
 	m_IniFile.GetKeyDouble(strTypeDrive.c_str(), "VelMeasFrqHz", &(m_GearMotDrive1.dVelMeasFrqHz), true);
 	m_IniFile.GetKeyDouble(strTypeDrive.c_str(), "BeltRatio", &(m_GearMotDrive1.dBeltRatio), true);
@@ -403,7 +403,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 	m_IniFile.GetKeyDouble(strTypeDrive.c_str(), "EncOffsetIncr",&(m_GearMotDrive1.iEncOffsetIncr),true);
 	*/
 
-	// "Drive Motor Type1" drive parameters	
+	// "Drive Motor Type1" drive parameters
 	if(m_iNumDrives >= 1)
 	{
 		m_IniFile.GetKeyInt("Drive1", "EncIncrPerRevMot", &(m_GearMotDrive1.iEncIncrPerRevMot), true);
@@ -421,7 +421,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyInt("Drive1", "HomingDigIn", &(m_GearMotDrive1.iHomingDigIn), false);
 	}
 
-	// "Drive Motor Type2" drive parameters	
+	// "Drive Motor Type2" drive parameters
 	if(m_iNumDrives >= 2)
 	{
 		m_IniFile.GetKeyInt("Drive2", "EncIncrPerRevMot", &(m_GearMotDrive2.iEncIncrPerRevMot), true);
@@ -439,7 +439,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyInt("Drive2", "HomingDigIn", &(m_GearMotDrive2.iHomingDigIn), false);
 	}
 
-	// "Drive Motor Type3" drive parameters	
+	// "Drive Motor Type3" drive parameters
 	if(m_iNumDrives >= 3)
 	{
 		m_IniFile.GetKeyInt("Drive3", "EncIncrPerRevMot", &(m_GearMotDrive3.iEncIncrPerRevMot), true);
@@ -457,7 +457,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyInt("Drive3", "HomingDigIn", &(m_GearMotDrive3.iHomingDigIn), false);
 	}
 
-	// "Drive Motor Type4" drive parameters	
+	// "Drive Motor Type4" drive parameters
 	if(m_iNumDrives == 4)
 	{
 		m_IniFile.GetKeyInt("Drive4", "EncIncrPerRevMot", &(m_GearMotDrive4.iEncIncrPerRevMot), true);
@@ -475,7 +475,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyInt("Drive4", "HomingDigIn", &(m_GearMotDrive4.iHomingDigIn), false);
 	}
 
-	// "Steer Motor Type1" drive parameters	
+	// "Steer Motor Type1" drive parameters
 	if(m_iNumDrives >= 1)
 	{
 		m_IniFile.GetKeyInt("Steer1", "EncIncrPerRevMot", &(m_GearMotSteer1.iEncIncrPerRevMot), true);
@@ -493,7 +493,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyInt("Steer1", "HomingDigIn", &(m_GearMotSteer1.iHomingDigIn), false);
 	}
 
-	// "Steer Motor Type2" drive parameters	
+	// "Steer Motor Type2" drive parameters
 	if(m_iNumDrives >= 2)
 	{
 		m_IniFile.GetKeyInt("Steer2", "EncIncrPerRevMot", &(m_GearMotSteer2.iEncIncrPerRevMot), true);
@@ -511,7 +511,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyInt("Steer2", "HomingDigIn", &(m_GearMotSteer2.iHomingDigIn), false);
 	}
 
-	// "Steer Motor Type3" drive parameters	
+	// "Steer Motor Type3" drive parameters
 	if(m_iNumDrives >= 3)
 	{
 		m_IniFile.GetKeyInt("Steer3", "EncIncrPerRevMot", &(m_GearMotSteer3.iEncIncrPerRevMot), true);
@@ -529,7 +529,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 		m_IniFile.GetKeyInt("Steer3", "HomingDigIn", &(m_GearMotSteer3.iHomingDigIn), false);
 	}
 
-	// "Steer Motor Type4" drive parameters	
+	// "Steer Motor Type4" drive parameters
 	if(m_iNumDrives == 4)
 	{
 		m_IniFile.GetKeyInt("Steer4", "EncIncrPerRevMot", &(m_GearMotSteer4.iEncIncrPerRevMot), true);
@@ -565,7 +565,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotDrive1.dCurrMax,
 			m_GearMotDrive1.iHomingDigIn);
 	}
-	
+
 	if(m_iNumDrives >= 1)
 	{
 		DriveParamW1SteerMotor.setParam(
@@ -603,7 +603,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotDrive2.dCurrMax,
 			m_GearMotDrive2.iHomingDigIn);
 	}
-	
+
 	if(m_iNumDrives >= 2)
 	{
 		DriveParamW2SteerMotor.setParam(
@@ -641,7 +641,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotDrive3.dCurrMax,
 			m_GearMotDrive3.iHomingDigIn);
 	}
-	
+
 	if(m_iNumDrives >= 3)
 	{
 		DriveParamW3SteerMotor.setParam(
@@ -679,7 +679,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotDrive4.dCurrMax,
 			m_GearMotDrive4.iHomingDigIn);
 	}
-	
+
 	if(m_iNumDrives == 4)
 	{
 		DriveParamW4SteerMotor.setParam(
@@ -698,7 +698,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 			m_GearMotSteer4.dCurrMax,
 			m_GearMotSteer4.iHomingDigIn);
 	}
-	
+
 	m_IniFile.GetKeyDouble("US", "ScaleToMM", &dScaleToMM, true);
 
 
@@ -751,7 +751,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 
 		}
 	}
-	
+
 	// ------ WHEEL 2 ------ //
 	// --- Motor Wheel 2 Drive
 	if(m_iNumDrives >= 2)
@@ -797,7 +797,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 
 		}
 	}
-	
+
 	// ------ WHEEL 3 ------ //
 	// --- Motor Wheel 3 Drive
 	if(m_iNumDrives >= 3)
@@ -843,7 +843,7 @@ void CanCtrlPltfCOb3::readConfiguration()
 
 		}
 	}
-	
+
 	// ------ WHEEL 4 ------ //
 	// --- Motor Wheel 4 Drive
 	if(m_iNumDrives == 4)
@@ -900,7 +900,7 @@ int CanCtrlPltfCOb3::evalCanBuffer()
 {
 	bool bRet;
 //	char cBuf[200];
-	
+
 	m_Mutex.lock();
 
 	// as long as there is something in the can buffer -> read out next message
@@ -917,9 +917,9 @@ int CanCtrlPltfCOb3::evalCanBuffer()
 		if (bRet == false)
 		{
 			std::cout << "evalCanBuffer(): Received CAN_Message with unknown identifier " << m_CanMsgRec.m_iID << std::endl;
-		}		
+		}
 	};
-	
+
 
 	m_Mutex.unlock();
 
@@ -928,10 +928,10 @@ int CanCtrlPltfCOb3::evalCanBuffer()
 
 //-----------------------------------------------
 bool CanCtrlPltfCOb3::initPltf()
-{	
+{
 	// read Configuration parameters from Inifile
 	readConfiguration();
-		
+
 	// Vectors for drive objects and return values
 	std::vector<bool> vbRetDriveMotor;
 	std::vector<bool> vbRetSteerMotor;
@@ -944,7 +944,7 @@ bool CanCtrlPltfCOb3::initPltf()
 	vbRetDriveMotor.assign(m_iNumDrives,0);
 	vbRetSteerMotor.assign(m_iNumDrives,0);
 
-	// Homing is done on a wheel-module base (steering and driving needs to be synchronized) 
+	// Homing is done on a wheel-module base (steering and driving needs to be synchronized)
 	// copy Motor-Pointer into Steer/Drive vector for more insight
 	for(int i=0; i<=m_iNumMotors; i+=2)
 		vpDriveMotor.push_back(m_vpMotor[i]);
@@ -966,10 +966,10 @@ bool CanCtrlPltfCOb3::initPltf()
 	// Start can open network
 	std::cout << "StartCanOpen" << std::endl;
 	sendNetStartCanOpen();
-	
+
 
 	// initialize drives
-	
+
 	// 1st init watchdogs
 	std::cout << "Initialization of Watchdogs" << std::endl;
 	for(int i=0; i<m_iNumMotors; i++)
@@ -986,7 +986,7 @@ bool CanCtrlPltfCOb3::initPltf()
 	m_vpMotor[7]->startWatchdog(true);
 */
 	usleep(10000);
-	
+
 	// 2nd send watchdogs to bed while initializing drives
 	for(int i=0; i<m_iNumMotors; i++)
 	{
@@ -1033,8 +1033,8 @@ bool CanCtrlPltfCOb3::initPltf()
 			// Just to be sure: Set vel to zero
 			vpDriveMotor[i]->setGearVelRadS(0);
 			vpSteerMotor[i]->setGearVelRadS(0);
-		}	
-		
+		}
+
 		// perform homing only when ALL drives are ERROR-Free
 //		if (vbRetDriveMotor[0] && vbRetDriveMotor[1] && vbRetDriveMotor[2] && vbRetDriveMotor[3] &&
 //			vbRetSteerMotor[0] && vbRetSteerMotor[1] && vbRetSteerMotor[2] && vbRetSteerMotor[3])
@@ -1058,8 +1058,8 @@ bool CanCtrlPltfCOb3::initPltf()
 
 			// initialize homing procedure
 			for (int i = 0; i<m_iNumDrives; i++)
-				vpSteerMotor[i]->initHoming();						
-			
+				vpSteerMotor[i]->initHoming();
+
 			// make motors move
 			for (int i = 0; i<m_iNumDrives; i++)
 			{
@@ -1080,7 +1080,7 @@ bool CanCtrlPltfCOb3::initPltf()
 			for (int i = 0; i<m_iNumDrives; i++)
 				vpSteerMotor[i]->IntprtSetInt(8, 'H', 'M', 1, 1);
 
-			// wait until all steers are homed			
+			// wait until all steers are homed
 			bool bAllDone, bTimeOut=false;
 			int iCnt = 0;
 			do
@@ -1088,7 +1088,7 @@ bool CanCtrlPltfCOb3::initPltf()
 				// send request for homing status
 				for (int i = 0; i<m_iNumDrives; i++)
 					vpSteerMotor[i]->IntprtSetInt(4, 'H', 'M', 1, 0);
-				
+
 				// eval Can Messages
 				evalCanBuffer();
 
@@ -1102,14 +1102,14 @@ bool CanCtrlPltfCOb3::initPltf()
 						vpDriveMotor[i]->setGearVelRadS(0);
 					}
 					bAllDone = bAllDone && vpSteerMotor[i]->getStatusLimitSwitch();
-				}	
+				}
 
 				// increment timeout counter
 				if (iCnt++ > 1000) //cpc-ck has 500 for Cob 3.5 here
 					bTimeOut = true;
 
 				// Sleep: To avoid can overload
-			usleep(20000);				
+			usleep(20000);
 			}
 			while(!bAllDone && !bTimeOut);
 
@@ -1135,15 +1135,15 @@ bool CanCtrlPltfCOb3::initPltf()
 			if (bTimeOut == false)
 			{
 				do
-				{	
+				{
 					bAllDone = true;
 					for (int i = 0; i<m_iNumDrives; i++)
 					{
 						// get current position of steer
 						double dCurrentPosRad;
 						vpSteerMotor[i]->getGearPosRad(&dCurrentPosRad);
-						// P-Ctrl					
-						double dDeltaPhi = 0.0 - dCurrentPosRad; 
+						// P-Ctrl
+						double dDeltaPhi = 0.0 - dCurrentPosRad;
 						// check if steer is at pos zero
 						if (fabs(dDeltaPhi) < 0.03)	//alter Wert=0.03
 						{
@@ -1151,7 +1151,7 @@ bool CanCtrlPltfCOb3::initPltf()
 						}
 						else
 						{
-							bAllDone = false;	
+							bAllDone = false;
 						}
 						double dVelCmd = m_d0 * dDeltaPhi;
 						// set Outputs
@@ -1208,7 +1208,7 @@ bool CanCtrlPltfCOb3::resetPltf()
 {
 	bool bRetMotor = true;
 	bool bRet = true;
-	
+
 	for(unsigned int i = 0; i < m_vpMotor.size(); i++)
 	{
 		bRetMotor = m_vpMotor[i]->start();
@@ -1325,7 +1325,7 @@ void CanCtrlPltfCOb3::sendNetStartCanOpen()
 
 //-----------------------------------------------
 int CanCtrlPltfCOb3::setVelGearRadS(int iCanIdent, double dVelGearRadS)
-{		
+{
 	m_Mutex.lock();
 
 	// If an error was detected and processed in isPltfErr().
@@ -1344,9 +1344,9 @@ int CanCtrlPltfCOb3::setVelGearRadS(int iCanIdent, double dVelGearRadS)
 			m_vpMotor[i]->setGearVelRadS(dVelGearRadS);
 		}
 	}
-	
+
 	m_Mutex.unlock();
-	
+
 	return 0;
 }
 
@@ -1363,7 +1363,7 @@ int CanCtrlPltfCOb3::requestMotPosVel(int iCanIdent)
 			m_vpMotor[i]->requestPosVel();
 		}
 	}
-	
+
 	m_Mutex.unlock();
 
 	return 0;
@@ -1398,7 +1398,7 @@ int CanCtrlPltfCOb3::getGearPosVelRadS(int iCanIdent, double* pdAngleGearRad, do
 			m_vpMotor[i]->getGearPosVelRadS(pdAngleGearRad, pdVelGearRadS);
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -1451,7 +1451,7 @@ void CanCtrlPltfCOb3::requestMotorTorque()
 	}
 
 	m_Mutex.unlock();
-}	
+}
 
 //-----------------------------------------------
 void CanCtrlPltfCOb3::getMotorTorque(int iCanIdent, double* pdTorqueNm)
@@ -1494,7 +1494,7 @@ void CanCtrlPltfCOb3::setMotorTorque(int iCanIdent, double dTorqueNm)
 int CanCtrlPltfCOb3::ElmoRecordings(int iFlag, int iParam, std::string sString) {
 	int tempRet = 0;
 	int bRet = 0;
-	
+
 	switch(iFlag) {
 		case 0: //Flag = 0 means reset recorder and configure it
 			for(unsigned int i = 0; i < m_vpMotor.size(); i++) {
@@ -1504,24 +1504,24 @@ int CanCtrlPltfCOb3::ElmoRecordings(int iFlag, int iParam, std::string sString) 
 
 		case 1: //Flag = 1 means start readout process, mustn't be called too early (while Rec is in process..)
 			for(unsigned int i = 0; i < m_vpMotor.size(); i++) {
-				if((tempRet = m_vpMotor[i]->setRecorder(1, iParam, sString)) > bRet) { 
+				if((tempRet = m_vpMotor[i]->setRecorder(1, iParam, sString)) > bRet) {
 					bRet = tempRet; //Query Readout of Index to Log Directory
 				}
 			}
 			return bRet;
-		
+
 		case 99:
 			for(unsigned int i = 0; i < m_vpMotor.size(); i++) {
 				m_vpMotor[i]->setRecorder(99, 0); //Stop any ongoing SDO transfer and clear corresponding data.
 			}
 			return 0;
-			
+
 		case 100:
 			for(unsigned int i = 0; i < m_vpMotor.size(); i++) {
 				bRet += m_vpMotor[i]->setRecorder(2, 0); //Request state of transmission
 			}
 			return bRet;
-		
+
 		default:
 			return -1;
 	}

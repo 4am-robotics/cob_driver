@@ -12,7 +12,7 @@ include_directories(common/src ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_executable(cob_voltage_control ros/src/cob_voltage_control_ros.cpp)
 add_dependencies(cob_voltage_control ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(cob_voltage_control ${catkin_LIBRARIES}) 
+target_link_libraries(cob_voltage_control ${catkin_LIBRARIES})
 
 ### INSTALL ###
 install(TARGETS cob_voltage_control

@@ -53,7 +53,7 @@
 
 /// @file VirtualRangeCam.h
 /// Virtual range camera representation.
-/// @author Jan Fischer 
+/// @author Jan Fischer
 /// @date 2009
 
 #ifndef __IPA_VIRTUALRANGECAM_H__
@@ -144,7 +144,7 @@ private:
 
 	unsigned long GetCalibratedZMatlab(int u, int v, float zRaw, float& zCalibrated);
 	unsigned long GetCalibratedXYMatlab(int u, int v, float z, float& x, float& y);
-	
+
 	/// Load general range camera parameters .
 	/// @param filename Configuration file-path and file-name.
 	/// @param cameraIndex The index of the camera within the configuration file

@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -11,9 +11,9 @@
  * ROS stack name: cob_driver
  * ROS package name: cob_sick_s300
  * Description:
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Christian Connette, email:christian.connette@ipa.fhg.de
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
@@ -30,23 +30,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -66,12 +66,12 @@
 #include <cob_sick_s300/SerialIO.h>
 #include <cob_sick_s300/TelegramS300.h>
 
-/** 
+/**
  * Driver class for the laser scanner SICK S300 Professional.
  * This driver only supports use with 500KBaud in cont. mode
  *
  * S300 header format in continuous mode:
- *	   
+ *
  *      | 00 00 00 00 |   4 byte reply header
  *
  *		Now starts the actual telegram
@@ -87,14 +87,14 @@
  *      | 11 11 |         fixed
  *	       ...            data
  *      | xx xx |         CRC
- *	   
+ *
  * 	   Readout of buffer starts with Reply-Header
  *	   Reply-Header:byte 0 to 3 = 4 bytes
  *	   Telegram (as it is stored in the Buffer):	Position in the telegram
  *	   Header: 		bytes 4 to 23 = 20 bytes		bytes 0 to 19
  *	   Data:   		bytes 24 to 1105 = 1082 bytes	bytes 20 to 1101
  *	   CRC:    		bytes 1106, 1107 = 2 bytes		bytes 1102, 1103
- * 
+ *
  *	   for easier parsing Reply-Header and Telegram-Header are combined in the folllowing
  *	   --> Headerlength = 24 bytes (iHeaderLength)
  *	   --> Total length in buffer is 1108 bytes
@@ -137,7 +137,7 @@ public:
 	// Destructor
 	~ScannerSickS300();
 
-	/** 
+	/**
 	 * Opens serial port.
 	 * @param pcPort used "COMx" or "/dev/tty1"
 	 * @param iBaudRate baud rate

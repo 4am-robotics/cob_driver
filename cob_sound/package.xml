@@ -2,7 +2,7 @@
   <name>cob_sound</name>
   <version>0.6.3</version>
   <description>This package implements a sound play module using text2wave and aplay through python.</description>
-  
+
   <license>LGPL</license>
 
   <url type="website">http://ros.org/wiki/cob_sound</url>

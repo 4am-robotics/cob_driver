@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -10,9 +10,9 @@
  * Project name: care-o-bot
  * ROS stack name: cob_driver
  * ROS package name: cob_camera_sensors
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Jan Fischer, email:jan.fischer@ipa.fhg.de
  * Supervised by: Jan Fischer, email:jan.fischer@ipa.fhg.de
  *
@@ -29,23 +29,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -85,9 +85,9 @@ private:
 	AbstractColorCameraPtr left_color_camera_;	///< Color camera instance
 	AbstractColorCameraPtr right_color_camera_;	///< Color camera instance
 	AbstractRangeImagingSensorPtr tof_camera_;	///< Time-of-flight camera instance
-	
+
 	std::string config_directory_;	///< Directory of the configuration files
-		
+
 	std::string left_color_camera_ns_; ///< Namespace name of left color camera
 	std::string right_color_camera_ns_; ///< Namespace name of left color camera
 	std::string tof_camera_ns_; ///< Namespace name of left color camera
@@ -152,7 +152,7 @@ public:
 			ROS_INFO("[all_cameras] Shutting down tof camera (0)");
 			tof_camera_->Close();
 		}
-	} 
+	}
 
 	/// Opens the camera sensor
 	bool init()
@@ -162,7 +162,7 @@ public:
 			ROS_ERROR("[all_cameras] Could not read parameters from launch file");
 			return false;
 		}
-		
+
 		if (left_color_camera_ && (left_color_camera_->Init(config_directory_, 1) & ipa_CameraSensors::RET_FAILED))
 		{
 			ROS_WARN("[all_cameras] Initialization of left camera (1) failed");
@@ -184,11 +184,11 @@ public:
 			int color_sensor_width = cameraProperty.cameraResolution.xResolution;
 			int color_sensor_height = cameraProperty.cameraResolution.yResolution;
 			cv::Size color_image_size(color_sensor_width, color_sensor_height);
-			
+
 			/// Setup camera toolbox
 			ipa_CameraSensors::CameraSensorToolboxPtr color_sensor_toolbox = ipa_CameraSensors::CreateCameraSensorToolbox();
 			color_sensor_toolbox->Init(config_directory_, left_color_camera_->GetCameraType(), camera_index, color_image_size);
-	
+
 			cv::Mat d = color_sensor_toolbox->GetDistortionParameters(left_color_camera_intrinsic_type_, left_color_camera_intrinsic_id_);
 			left_color_camera_info_msg_.header.stamp = ros::Time::now();
 			left_color_camera_info_msg_.header.frame_id = "head_color_camera_l_link";
@@ -197,7 +197,7 @@ public:
 			left_color_camera_info_msg_.D[2] = d.at<double>(0, 2);
 			left_color_camera_info_msg_.D[3] = d.at<double>(0, 3);
 			left_color_camera_info_msg_.D[4] = 0;
-	
+
 			cv::Mat k = color_sensor_toolbox->GetIntrinsicMatrix(left_color_camera_intrinsic_type_, left_color_camera_intrinsic_id_);
 			left_color_camera_info_msg_.K[0] = k.at<double>(0, 0);
 			left_color_camera_info_msg_.K[1] = k.at<double>(0, 1);
@@ -208,9 +208,9 @@ public:
 			left_color_camera_info_msg_.K[6] = k.at<double>(2, 0);
 			left_color_camera_info_msg_.K[7] = k.at<double>(2, 1);
 			left_color_camera_info_msg_.K[8] = k.at<double>(2, 2);
-	
-			left_color_camera_info_msg_.width = color_sensor_width;		
-			left_color_camera_info_msg_.height = color_sensor_height;		
+
+			left_color_camera_info_msg_.width = color_sensor_width;
+			left_color_camera_info_msg_.height = color_sensor_height;
 		}
 
 		if (right_color_camera_ && (right_color_camera_->Init(config_directory_, 0) & ipa_CameraSensors::RET_FAILED))
@@ -238,7 +238,7 @@ public:
 			/// Setup camera toolbox
 			ipa_CameraSensors::CameraSensorToolboxPtr color_sensor_toolbox = ipa_CameraSensors::CreateCameraSensorToolbox();
 			color_sensor_toolbox->Init(config_directory_, left_color_camera_->GetCameraType(), camera_index, color_image_size);
-	
+
 			cv::Mat d = color_sensor_toolbox->GetDistortionParameters(right_color_camera_intrinsic_type_, right_color_camera_intrinsic_id_);
 			right_color_camera_info_msg_.header.stamp = ros::Time::now();
 			right_color_camera_info_msg_.header.frame_id = "head_color_camera_r_link";
@@ -247,7 +247,7 @@ public:
 			right_color_camera_info_msg_.D[2] = d.at<double>(0, 2);
 			right_color_camera_info_msg_.D[3] = d.at<double>(0, 3);
 			right_color_camera_info_msg_.D[4] = 0;
-	
+
 			cv::Mat k = color_sensor_toolbox->GetIntrinsicMatrix(right_color_camera_intrinsic_type_, right_color_camera_intrinsic_id_);
 			right_color_camera_info_msg_.K[0] = k.at<double>(0, 0);
 			right_color_camera_info_msg_.K[1] = k.at<double>(0, 1);
@@ -258,9 +258,9 @@ public:
 			right_color_camera_info_msg_.K[6] = k.at<double>(2, 0);
 			right_color_camera_info_msg_.K[7] = k.at<double>(2, 1);
 			right_color_camera_info_msg_.K[8] = k.at<double>(2, 2);
-	
-			right_color_camera_info_msg_.width = color_sensor_width;		
-			right_color_camera_info_msg_.height = color_sensor_height;		
+
+			right_color_camera_info_msg_.width = color_sensor_width;
+			right_color_camera_info_msg_.height = color_sensor_height;
 		}
 
 		if (tof_camera_ && (tof_camera_->Init(config_directory_) & ipa_CameraSensors::RET_FAILED))
@@ -284,7 +284,7 @@ public:
 			int range_sensor_width = cameraProperty.cameraResolution.xResolution;
 			int range_sensor_height = cameraProperty.cameraResolution.yResolution;
 			cv::Size rangeImageSize(range_sensor_width, range_sensor_height);
-	
+
 			/// Setup camera toolbox
 			ipa_CameraSensors::CameraSensorToolboxPtr tof_sensor_toolbox = ipa_CameraSensors::CreateCameraSensorToolbox();
 			tof_sensor_toolbox->Init(config_directory_, tof_camera_->GetCameraType(), camera_index, rangeImageSize);
@@ -302,7 +302,7 @@ public:
 			tof_camera_info_msg_.D[2] = d.at<double>(0, 2);
 			tof_camera_info_msg_.D[3] = d.at<double>(0, 3);
 			tof_camera_info_msg_.D[4] = 0;
-	
+
 			cv::Mat k = tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_intrinsic_type_, tof_camera_intrinsic_id_);
 			tof_camera_info_msg_.K[0] = k.at<double>(0, 0);
 			tof_camera_info_msg_.K[1] = k.at<double>(0, 1);
@@ -314,12 +314,12 @@ public:
 			tof_camera_info_msg_.K[7] = k.at<double>(2, 1);
 			tof_camera_info_msg_.K[8] = k.at<double>(2, 2);
 
-			tof_camera_info_msg_.width = range_sensor_width;		
-			tof_camera_info_msg_.height = range_sensor_height;		
+			tof_camera_info_msg_.width = range_sensor_width;
+			tof_camera_info_msg_.height = range_sensor_height;
 		}
-	
+
 		/// Topics and Services to publish
-		if (left_color_camera_) 
+		if (left_color_camera_)
 		{
 			// Adapt name according to camera type
 			left_color_image_publisher_ = image_transport_.advertiseCamera(left_color_camera_ns_ + "/left/image_color", 1);
@@ -337,7 +337,7 @@ public:
 			xyz_tof_image_publisher_ = image_transport_.advertiseCamera(tof_camera_ns_ + "/image_xyz", 1);
 			tof_camera_info_service_ = node_handle_.advertiseService(tof_camera_ns_ + "/set_camera_info", &CobAllCamerasNode::setCameraInfo, this);
 		}
-	
+
 		return true;
 	}
 
@@ -350,7 +350,7 @@ public:
 	{
 		/// @TODO: Enable the setting of intrinsic parameters
 		//camera_info_message_ = req.camera_info;
-    
+
 		rsp.success = false;
 	        rsp.status_message = "[all_cameras] Setting camera parameters through ROS not implemented";
 
@@ -369,14 +369,14 @@ public:
 			sensor_msgs::Image left_color_image_msg;
 			sensor_msgs::Image xyz_tof_image_msg;
 			sensor_msgs::Image grey_tof_image_msg;
-		
+
 			// ROS camera information messages
 			sensor_msgs::CameraInfo right_color_image_info;
 			sensor_msgs::CameraInfo left_color_image_info;
 			sensor_msgs::CameraInfo tof_image_info;
-	
+
 			ros::Time now = ros::Time::now();
-	
+
 			// Acquire right color image
 			if (right_color_camera_)
 			{
@@ -398,24 +398,24 @@ public:
 					ROS_ERROR("[all_cameras] Could not convert right IplImage to ROS message");
 					break;
 				}
-				right_color_image_msg.header.stamp = now; 
-				right_color_image_msg.encoding = "bgr8"; 
-				right_color_image_msg.header.frame_id = "head_color_camera_r_link";   
-		
+				right_color_image_msg.header.stamp = now;
+				right_color_image_msg.encoding = "bgr8";
+				right_color_image_msg.header.frame_id = "head_color_camera_r_link";
+
 				right_color_image_info = right_color_camera_info_msg_;
 				right_color_image_info.width = right_color_image_8U3_.cols;
 				right_color_image_info.height = right_color_image_8U3_.rows;
 				right_color_image_info.header.stamp = now;
 				right_color_image_info.header.frame_id = "head_color_camera_r_link";
-	
+
 				right_color_image_publisher_.publish(right_color_image_msg, right_color_image_info);
 			}
-		
+
 			// Acquire left color image
 			if (left_color_camera_)
 			{
 				//ROS_INFO("[all_cameras] LEFT");
-		
+
 				/// Acquire new image
 				if (left_color_camera_->GetColorImage(&left_color_image_8U3_, false) & ipa_Utils::RET_FAILED)
 				{
@@ -433,20 +433,20 @@ public:
 					ROS_ERROR("[all_cameras] Could not convert left IplImage to ROS message");
 					break;
 				}
-				left_color_image_msg.header.stamp = now;    
+				left_color_image_msg.header.stamp = now;
 				left_color_image_msg.encoding = "bgr8";
-				left_color_image_msg.header.frame_id = "head_color_camera_l_link"; 
-		
+				left_color_image_msg.header.frame_id = "head_color_camera_l_link";
+
 				left_color_image_info = left_color_camera_info_msg_;
 				left_color_image_info.width = left_color_image_8U3_.cols;
 				left_color_image_info.height = left_color_image_8U3_.rows;
 				left_color_image_info.header.stamp = now;
-				left_color_image_info.header.frame_id = "head_color_camera_l_link"; 
-	
+				left_color_image_info.header.frame_id = "head_color_camera_l_link";
+
 				left_color_image_publisher_.publish(left_color_image_msg, left_color_image_info);
 			}
-	
-			// Acquire image from tof camera	
+
+			// Acquire image from tof camera
 			if (tof_camera_)
 			{
 				//ROS_INFO("[all_cameras] TOF");
@@ -455,13 +455,13 @@ public:
 					ROS_ERROR("[all_cameras] Tof image acquisition failed");
 					tof_camera_->Close();
 		      tof_camera_ = AbstractRangeImagingSensorPtr();
-					break;	
+					break;
 				}
-	
+
 				try
 		                {
-					IplImage grey_img = grey_tof_image_32F1_; 
-					IplImage xyz_img = xyz_tof_image_32F3_; 
+					IplImage grey_img = grey_tof_image_32F1_;
+					IplImage xyz_img = xyz_tof_image_32F3_;
 		                        xyz_tof_image_msg = *(sensor_msgs::CvBridge::cvToImgMsg(&xyz_img, "passthrough"));
 		                        grey_tof_image_msg = *(sensor_msgs::CvBridge::cvToImgMsg(&grey_img, "passthrough"));
 		                }
@@ -470,25 +470,25 @@ public:
 		                        ROS_ERROR("[all_cameras] Could not convert tof IplImage to ROS message");
 					break;
 		                }
-	
-				xyz_tof_image_msg.header.stamp = now;   
-				xyz_tof_image_msg.header.frame_id = "head_tof_link"; 
-				grey_tof_image_msg.header.stamp = now;    
+
+				xyz_tof_image_msg.header.stamp = now;
+				xyz_tof_image_msg.header.frame_id = "head_tof_link";
+				grey_tof_image_msg.header.stamp = now;
 				grey_tof_image_msg.header.frame_id = "head_tof_link";
-		
+
 				tof_image_info = tof_camera_info_msg_;
 				tof_image_info.width = grey_tof_image_32F1_.cols;
 				tof_image_info.height = grey_tof_image_32F1_.rows;
 				tof_image_info.header.stamp = now;
 				tof_image_info.header.frame_id = "head_tof_link";
-				
+
 				grey_tof_image_publisher_.publish(grey_tof_image_msg, tof_image_info);
 				xyz_tof_image_publisher_.publish(xyz_tof_image_msg, tof_image_info);
 			}
-			
+
 			ros::spinOnce();
 			rate.sleep();
-	
+
 		} // END while-loop
 	}
 
@@ -519,7 +519,7 @@ public:
 			left_color_camera_ns_ = "pike_145C";
 			right_color_camera_ns_ = "pike_145C";
 		}
-		else if (tmp_string == "CAM_VIRTUAL") 
+		else if (tmp_string == "CAM_VIRTUAL")
 		{
 			right_color_camera_ = ipa_CameraSensors::CreateColorCamera_VirtualCam();
 			left_color_camera_ = ipa_CameraSensors::CreateColorCamera_VirtualCam();
@@ -542,12 +542,12 @@ public:
 			ROS_ERROR("[all_cameras] tof camera type not specified");
 			return false;
 		}
-		if (tmp_string == "CAM_SWISSRANGER") 
+		if (tmp_string == "CAM_SWISSRANGER")
 		{
 			tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_Swissranger();
 			tof_camera_ns_ = "sr4000";
 		}
-		else if (tmp_string == "CAM_VIRTUAL") 
+		else if (tmp_string == "CAM_VIRTUAL")
 		{
 			tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_VirtualCam();
 			tof_camera_ns_ = "sr4000";
@@ -557,7 +557,7 @@ public:
 			std::string str = "[all_cameras] Camera type '" + tmp_string + "' unknown, try 'CAM_SWISSRANGER'";
 			ROS_ERROR("%s", str.c_str());
 		}
-		
+
 		ROS_INFO("Tof camera type: %s", tmp_string.c_str());
 
 		// There are several intrinsic matrices, optimized to different cameras
@@ -574,19 +574,19 @@ public:
 		else if (tmp_string == "CAM_PROSILICA")
 		{
 			left_color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_PROSILICA;
-		} 
+		}
 		else if (tmp_string == "CAM_SWISSRANGER")
 		{
 			left_color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_SWISSRANGER;
-		} 
+		}
 		else if (tmp_string == "CAM_VIRTUALRANGE")
 		{
 			left_color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALRANGE;
-		} 
+		}
 		else if (tmp_string == "CAM_VIRTUALCOLOR")
 		{
 			left_color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALCOLOR;
-		} 
+		}
 		else
 		{
 			std::string str = "[all_cameras] Camera type '" + tmp_string + "' for intrinsics  of left camera unknown, try 'CAM_AVTPIKE','CAM_PROSILICA' or 'CAM_SWISSRANGER'";
@@ -599,7 +599,7 @@ public:
 			return false;
 		}
 
-		
+
 		ROS_INFO("Intrinsic for left color camera: %s_%d", tmp_string.c_str(), left_color_camera_intrinsic_id_);
 
 		// There are several intrinsic matrices, optimized to different cameras
@@ -616,19 +616,19 @@ public:
 		else if (tmp_string == "CAM_PROSILICA")
 		{
 			right_color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_PROSILICA;
-		} 
+		}
 		else if (tmp_string == "CAM_SWISSRANGER")
 		{
 			right_color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_SWISSRANGER;
-		} 
+		}
 		else if (tmp_string == "CAM_VIRTUALRANGE")
 		{
 			right_color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALRANGE;
-		} 
+		}
 		else if (tmp_string == "CAM_VIRTUALCOLOR")
 		{
 			right_color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALCOLOR;
-		} 
+		}
 		else
 		{
 			std::string str = "[all_cameras] Camera type '" + tmp_string + "' for intrinsics  of right camera unknown, try 'CAM_AVTPIKE','CAM_PROSILICA' or 'CAM_SWISSRANGER'";
@@ -657,19 +657,19 @@ public:
 		else if (tmp_string == "CAM_PROSILICA")
 		{
 			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_PROSILICA;
-		} 
+		}
 		else if (tmp_string == "CAM_SWISSRANGER")
 		{
 			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_SWISSRANGER;
-		} 
+		}
 		else if (tmp_string == "CAM_VIRTUALRANGE")
 		{
 			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALRANGE;
-		} 
+		}
 		else if (tmp_string == "CAM_VIRTUALCOLOR")
 		{
 			tof_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALCOLOR;
-		} 
+		}
 		else
 		{
 			std::string str = "[all_cameras] Camera type '" + tmp_string + "' for intrinsics  unknown, try 'CAM_AVTPIKE','CAM_PROSILICA' or 'CAM_SWISSRANGER'";
@@ -683,7 +683,7 @@ public:
 		}
 
 		ROS_INFO("Intrinsic for tof camera: %s_%d", tmp_string.c_str(), tof_camera_intrinsic_id_);
-	
+
 		return true;
 	}
 };
@@ -697,8 +697,8 @@ int main(int argc, char** argv)
 
 	/// Create a handle for this node, initialize node
 	ros::NodeHandle nh;
-	
-	/// Create camera node class instance	
+
+	/// Create camera node class instance
 	CobAllCamerasNode camera_node(nh);
 
 	/// initialize camera node
@@ -713,6 +713,6 @@ int main(int argc, char** argv)
 	}
 
 	camera_node.spin();
-	
+
 	return 0;
 }

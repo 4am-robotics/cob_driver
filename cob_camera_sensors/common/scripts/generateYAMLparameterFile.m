@@ -48,7 +48,7 @@ end
 % generates two YAML files from the calibration data after calibrating a
 % stereo rig
 function saveCameraParametersYAMLStereo(additionalFilename)
-% save left camera 
+% save left camera
 filename = ['left_', additionalFilename, '_ros.yaml'];
 writeParameterFile(filename, 'left', evalin('base', 'fc_left'), evalin('base', 'cc_left'), evalin('base', 'alpha_c_left'), evalin('base', 'kc_left'));
 

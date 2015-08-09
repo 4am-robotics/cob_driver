@@ -27,7 +27,7 @@ add_message_files(
 
 add_service_files(
   FILES
-  SetDataRate.srv 
+  SetDataRate.srv
   SetDigitalSensor.srv
   SetTriggerValue.srv
 )
@@ -50,11 +50,11 @@ add_executable(device_name ros/src/set_device_name.cpp)
 add_dependencies(device_name ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(device_name ${catkin_LIBRARIES})
 
-add_executable(phidget_sensors 
+add_executable(phidget_sensors
   ros/src/phidget_sensors_node.cpp
-  ros/src/phidget_manager.cpp 
-  common/src/phidget.cpp 
-  common/src/phidgetik.cpp 
+  ros/src/phidget_manager.cpp
+  common/src/phidget.cpp
+  common/src/phidgetik.cpp
   ros/src/phidgetik_ros.cpp)
 add_dependencies(phidget_sensors ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(phidget_sensors ${catkin_LIBRARIES})

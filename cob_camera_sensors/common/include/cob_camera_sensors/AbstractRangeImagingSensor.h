@@ -107,7 +107,7 @@ public:
 		std::stringstream m_Interface;				///< Interface, the camera is connected to (i.e. USB or ETHERNET)
 		std::stringstream m_IP;						///< IP address of the camera
 	};
-	
+
 	/// Destructor
 	virtual ~AbstractRangeImagingSensor();
 
@@ -117,9 +117,9 @@ public:
 	///	       One may use the camera index to apply different configuration files to each of them.
 	/// @return Return code.
 	virtual unsigned long Init(std::string directory, int cameraIndex = 0) = 0;
-	
+
 	/// Opens the camera device.
-	/// All camera specific parameters for opening the camera should have been 
+	/// All camera specific parameters for opening the camera should have been
 	/// set within the <code>Init()</code> function.
 	/// @return Return code.
 	virtual unsigned long Open() = 0;
@@ -151,7 +151,7 @@ public:
 	/// @param grayImage OpenCV conform image with grayscale information.
 	/// @param cartesianImage OpenCV conform image with cartesian (x,y,z) information in meters.
 	/// @param getLatestFrame Set true to acquire a new image on calling instead of returning the one acquired last time
-	/// @param useCalibratedZ Calibrate z values 
+	/// @param useCalibratedZ Calibrate z values
 	/// @param grayImageType Either gray image data is filled with amplitude image or intensity image
 	/// @throw IPA_Exception Throws an exception, if camera access failed
 	virtual unsigned long AcquireImages(cv::Mat* rangeImage = 0, cv::Mat* intensityImage = 0,
@@ -167,11 +167,11 @@ public:
 	/// @param grayImage character array  with intensity (grayscale) information.
 	/// @param cartesianImage character array  with cartesian (x,y,z) information in meters.
 	/// @param getLatestFrame Set true to acquire a new image on calling instead of returning the one acquired last time
-	/// @param useCalibratedZ Calibrate z values 
+	/// @param useCalibratedZ Calibrate z values
 	/// @param grayImageType Either gray image data is filled with amplitude image or intensity image
 	/// @return Return code.
 	virtual unsigned long AcquireImages(int widthStepRange, int widthStepGray, int widthStepCartesian, char* rangeImage=NULL, char* grayImage=NULL,
-		char* cartesianImage=NULL, bool getLatestFrame=true, bool undistort=true, 
+		char* cartesianImage=NULL, bool getLatestFrame=true, bool undistort=true,
 		ipa_CameraSensors::t_ToFGrayImageType grayImageType = ipa_CameraSensors::INTENSITY_32F1) = 0;
 
 	/// Save camera parameters.
@@ -179,7 +179,7 @@ public:
 	/// @param filename Configuration file name.
 	/// @return Return code.
 	virtual unsigned long SaveParameters(const char* filename) = 0;
-	
+
 	/// Determines if range imaging camera has successfully been initialized.
 	/// @return True if camera is initialized, false otherwise.
 	virtual bool isInitialized() = 0;
@@ -199,7 +199,7 @@ public:
 
 	/// Assignes intrinsics to the range sensor.
 	/// Intrinsics are read from the configuration file by the camera toolbox.
-	/// Intrinsics are needed to calculat range values 
+	/// Intrinsics are needed to calculat range values
 	/// based on own calibration.
 	/// @param intrinsicMatrix The intrinsic matrix
 	/// @param undistortMapX undistortMapX The undistortion map for x direction
@@ -221,7 +221,7 @@ public:
 	unsigned int m_ImageCounter; ///< Holds the index of the image that is extracted during the next call of <code>AcquireImages</code>
 
 protected:
-		
+
 	t_CalibrationMethod m_CalibrationMethod; ///< Calibration method MATLAB, MATLAB_NO_Z or SWISSRANGER
 	t_RangeCameraParameters m_RangeCameraParameters; ///< Storage for xml configuration file parmeters
 	t_cameraType m_CameraType; ///< Camera Type
@@ -236,7 +236,7 @@ protected:
 	cv::Mat m_undistortMapY;		///< The output array of Y coordinates for the undistortion map
 
 private:
-	
+
 	/// Load general SR31 parameters and previously determined calibration parameters.
 	/// @param filename Range imaging sensor parameter path and file name.
 	/// @param cameraIndex It is possible to have several cameras of the same type on the system.

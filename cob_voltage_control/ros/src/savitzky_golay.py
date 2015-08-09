@@ -66,7 +66,7 @@ from std_msgs.msg import Float64
 from cob_msgs.msg import EmergencyStopState, PowerState
 
 class volts_filter():
-    
+
     def __init__(self):
         self.volts = 0.
         self.wsize = 61
@@ -78,25 +78,25 @@ class volts_filter():
         self.sg = savitzky.savitzky_golay(window_size=self.wsize, order=self.filter_order)
         size = 2*self.wsize+1
         self.volt_filt = 48000*np.ones(size)
-        
+
         rospy.Subscriber("/power_board/voltage", Float64, self.callback)
-        
+
         self.pub_power = rospy.Publisher('/power_state', PowerState, queue_size=1)
         self.msg_power = PowerState()
-        
+
     def callback(self, data):
-    
+
         self.volts = data.data
         self.volts = self.volts*1000
-        
+
         if(self.volts <= 44000):
             self.volts = 44000
             time_r = 0.
         elif(self.volts >= 48000):
-            self.volts = 48000      
+            self.volts = 48000
 
         self.process_voltage()
-        
+
     def process_voltage(self):
 
         self.volt_filt = np.insert(self.volt_filt, 0, self.volts)
@@ -110,18 +110,18 @@ class volts_filter():
 
         self.t_est = vfilt[self.wsize]*sin(self.theta) + self.t_est*cos(self.theta)
         self.t_est = self.t_est + self.off_y
-        
+
         if(self.t_est <0):
             self.t_est = 0
-        
+
         self.msg_power.header.stamp = rospy.Time.now()
         self.msg_power.time_remaining.secs = self.t_est
         self.msg_power.prediction_method = '3rd_order_polynom'
         self.msg_power.relative_capacity = (self.t_est/self.maximum_time) * 100
         self.msg_power.AC_present = 0
-        
+
         self.pub_power.publish(self.msg_power)
-            
+
 if __name__ == '__main__':
     rospy.init_node('volt_filt')
     vf = volts_filter()

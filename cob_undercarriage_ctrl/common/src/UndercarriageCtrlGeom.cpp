@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -11,9 +11,9 @@
  * ROS stack name: cob_driver
  * ROS package name: cob_undercarriage_ctrl
  * Description:
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Christian Connette, email:christian.connette@ipa.fhg.de
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
@@ -30,23 +30,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -57,10 +57,10 @@
 UndercarriageCtrlGeom::UndercarriageCtrlGeom(std::string sIniDirectory)
 {
 	m_sIniDirectory = sIniDirectory;
-	
+
 	// init EMStop flag
 	m_bEMStopActive = false;
-	
+
 	IniFile iniFile;
 	iniFile.SetFileName(m_sIniDirectory + "Platform.ini", "UnderCarriageCtrlGeom.cpp");
 	iniFile.GetKeyInt("Config", "NumberOfWheels", &m_iNumberOfDrives, true);
@@ -100,13 +100,13 @@ UndercarriageCtrlGeom::UndercarriageCtrlGeom(std::string sIniDirectory)
 	m_dCmdVelLatMMS = 0;
 	m_dCmdRotRobRadS = 0;
 	m_dCmdRotVelRadS = 0;
-	
+
 	m_UnderCarriagePrms.WheelNeutralPos.assign(4,0);
 	m_UnderCarriagePrms.vdSteerDriveCoupling.assign(4,0);
 	m_UnderCarriagePrms.vdFactorVel.assign(4,0);
-	
+
 	m_vdCtrlVal.assign( 4, std::vector<double> (2,0.0) );
-	
+
 	//m_vdDeltaAngIntpRad.assign(4,0);
 	//m_vdDeltaDriveIntpRadS.assign(4,0);
 
@@ -185,18 +185,18 @@ void UndercarriageCtrlGeom::InitUndercarriageCtrl(void)
 	iniFile.GetKeyDouble("DrivePrms", "Wheel2NeutralPosition", &m_UnderCarriagePrms.WheelNeutralPos[1], true);
 	iniFile.GetKeyDouble("DrivePrms", "Wheel3NeutralPosition", &m_UnderCarriagePrms.WheelNeutralPos[2], true);
 	iniFile.GetKeyDouble("DrivePrms", "Wheel4NeutralPosition", &m_UnderCarriagePrms.WheelNeutralPos[3], true);
-	
+
 	for(int i = 0; i<4; i++)
-	{	
+	{
 		m_UnderCarriagePrms.WheelNeutralPos[i] = MathSup::convDegToRad(m_UnderCarriagePrms.WheelNeutralPos[i]);
 		// provisorial --> skip interpolation
 		m_vdAngGearSteerCmdRad[i] = m_UnderCarriagePrms.WheelNeutralPos[i];
 		//m_vdAngGearSteerIntpRad[i] = m_UnderCarriagePrms.WheelNeutralPos[i];
-		
+
 		// also Init choosen Target angle
 		m_vdAngGearSteerTargetRad[i] = m_UnderCarriagePrms.WheelNeutralPos[i];
 	}
-	
+
 	iniFile.GetKeyDouble("Thread", "ThrUCarrCycleTimeS", &m_UnderCarriagePrms.dCmdRateS, true);
 
 	// Read Values for Steering Position Controller from IniFile
@@ -229,7 +229,7 @@ void UndercarriageCtrlGeom::InitUndercarriageCtrl(void)
 
 // Set desired value for Plattfrom Velocity to UndercarriageCtrl (Sollwertvorgabe)
 void UndercarriageCtrlGeom::SetDesiredPltfVelocity(double dCmdVelLongMMS, double dCmdVelLatMMS, double dCmdRotRobRadS, double dCmdRotVelRadS)
-{	
+{
 	// declare auxiliary variables
 	double dCurrentPosWheelRAD;
 	double dtempDeltaPhi1RAD, dtempDeltaPhi2RAD;	// difference between possible steering angels and current steering angle
@@ -250,7 +250,7 @@ void UndercarriageCtrlGeom::SetDesiredPltfVelocity(double dCmdVelLongMMS, double
 		// Normalize Actual Wheel Position before calculation
 		dCurrentPosWheelRAD = m_vdAngGearSteerRad[i];
 		MathSup::normalizePi(dCurrentPosWheelRAD);
-		
+
 		// Calculate differences between current config to possible set-points
 		dtempDeltaPhi1RAD = m_vdAngGearSteerTarget1Rad[i] - dCurrentPosWheelRAD;
 		dtempDeltaPhi2RAD = m_vdAngGearSteerTarget2Rad[i] - dCurrentPosWheelRAD;
@@ -261,7 +261,7 @@ void UndercarriageCtrlGeom::SetDesiredPltfVelocity(double dCmdVelLongMMS, double
 		dtempDeltaPhiCmd2RAD = m_vdAngGearSteerTarget2Rad[i] - m_vdAngGearSteerTargetRad[i];
 		MathSup::normalizePi(dtempDeltaPhiCmd1RAD);
 		MathSup::normalizePi(dtempDeltaPhiCmd2RAD);
-		
+
 		// determine optimal setpoint value
 		// 1st which set point is closest to current cinfog
 		//     but: avoid permanent switching (if next target is about PI/2 from current config)
@@ -284,7 +284,7 @@ void UndercarriageCtrlGeom::SetDesiredPltfVelocity(double dCmdVelLongMMS, double
 			m_vdVelGearDriveTargetRadS[i] = m_vdVelGearDriveTarget2RadS[i];
 			m_vdAngGearSteerTargetRad[i] = m_vdAngGearSteerTarget2Rad[i];
 		}
-		
+
 		// provisorial --> skip interpolation and always take Target1
 		//m_vdVelGearDriveCmdRadS[i] = m_vdVelGearDriveTarget1RadS[i];
 		//m_vdAngGearSteerCmdRad[i] = m_vdAngGearSteerTarget1Rad[i];
@@ -318,7 +318,7 @@ void UndercarriageCtrlGeom::SetDesiredPltfVelocity(double dCmdVelLongMMS, double
 		}*/
 	}
 
-	/*// Logging for debugging	
+	/*// Logging for debugging
 	// get current time
 	m_RawTime.SetNow();
 	m_dNowTime = m_RawTime - m_StartTime;
@@ -344,7 +344,7 @@ void UndercarriageCtrlGeom::SetActualWheelValues(std::vector<double> vdVelGearDr
 
 	// calc exact Wheel Positions (taking into account lever arm)
 	CalcExWheelPos();
-	
+
 	// Peform calculation of direct kinematics (approx.) based on corrected Wheel Positions
 	CalcDirect();
 }
@@ -380,7 +380,7 @@ void UndercarriageCtrlGeom::GetNewCtrlStateSteerDriveSetValues(std::vector<doubl
 	dRotRobRadS = m_dCmdRotRobRadS;
 	dRotVelRadS = m_dCmdRotVelRadS;
 
-	/*// Logging for debugging		
+	/*// Logging for debugging
 	// get current time
 	m_RawTime.SetNow();
 	m_dNowTime = m_RawTime - m_StartTime;
@@ -410,9 +410,9 @@ void UndercarriageCtrlGeom::GetActualPltfVelocity(double & dDeltaLongMM, double 
 
 // calculate inverse kinematics
 void UndercarriageCtrlGeom::CalcInverse(void)
-{	
+{
 	// help variable to store velocities of the steering axis in mm/s
-	double dtempAxVelXRobMMS, dtempAxVelYRobMMS;	
+	double dtempAxVelXRobMMS, dtempAxVelYRobMMS;
 
 	// check if zero movement commanded -> keep orientation of wheels, set wheel velocity to zero
 	if((m_dCmdVelLongMMS == 0) && (m_dCmdVelLatMMS == 0) && (m_dCmdRotRobRadS == 0) && (m_dCmdRotVelRadS == 0))
@@ -429,7 +429,7 @@ void UndercarriageCtrlGeom::CalcInverse(void)
 
 	// calculate sets of possible Steering Angle // Drive-Velocity combinations
 	for (int i = 0; i<4; i++)
-	{	
+	{
 		// calculate velocity and direction of single wheel motion
 		// Translational Portion
 		dtempAxVelXRobMMS = m_dCmdVelLongMMS;
@@ -437,16 +437,16 @@ void UndercarriageCtrlGeom::CalcInverse(void)
 		// Rotational Portion
 		dtempAxVelXRobMMS += m_dCmdRotRobRadS * m_vdExWheelDistMM[i] * -sin(m_vdExWheelAngRad[i]);
 		dtempAxVelYRobMMS += m_dCmdRotRobRadS * m_vdExWheelDistMM[i] * cos(m_vdExWheelAngRad[i]);
-		
-		// calculate resulting steering angle 
-		// Wheel has to move in direction of resulting velocity vector of steering axis 
+
+		// calculate resulting steering angle
+		// Wheel has to move in direction of resulting velocity vector of steering axis
 		m_vdAngGearSteerTarget1Rad[i] = MathSup::atan4quad(dtempAxVelYRobMMS, dtempAxVelXRobMMS);
 		// calculate corresponding angle in opposite direction (+180 degree)
 		m_vdAngGearSteerTarget2Rad[i] = m_vdAngGearSteerTarget1Rad[i] + MathSup::PI;
 		MathSup::normalizePi(m_vdAngGearSteerTarget2Rad[i]);
-		
+
 		// calculate absolute value of rotational rate of driving wheels in rad/s
-		m_vdVelGearDriveTarget1RadS[i] = sqrt( (dtempAxVelXRobMMS * dtempAxVelXRobMMS) + 
+		m_vdVelGearDriveTarget1RadS[i] = sqrt( (dtempAxVelXRobMMS * dtempAxVelXRobMMS) +
 						   (dtempAxVelYRobMMS * dtempAxVelYRobMMS) ) / (double)m_UnderCarriagePrms.iRadiusWheelMM;
 		// now adapt to direction (forward/backward) of wheel
 		m_vdVelGearDriveTarget2RadS[i] = - m_vdVelGearDriveTarget1RadS[i];
@@ -463,7 +463,7 @@ void UndercarriageCtrlGeom::CalcDirect(void)
 	double dtempDiffXMM;		// Difference in X-Coordinate of two wheels in mm
 	double dtempDiffYMM;		// Difference in Y-Coordinate of two wheels in mm
 	double dtempRelPhiWheelsRAD;	// Angle between axis of two wheels w.r.t the X-Axis of the Robot-Coordinate-System in rad
-	double dtempRelDistWheelsMM;	// distance of two wheels in mm 
+	double dtempRelDistWheelsMM;	// distance of two wheels in mm
 	double dtempRelPhiWheel1RAD;	// Steering Angle of (im math. pos. direction) first Wheel w.r.t. the linking axis of the two wheels
 	double dtempRelPhiWheel2RAD;	// Steering Angle of (im math. pos. direction) first Wheel w.r.t. the linking axis of the two wheels
 	std::vector<double> vdtempVelWheelMMS(4);	// Wheel-Velocities (all Wheels) in mm/s
@@ -527,7 +527,7 @@ void UndercarriageCtrlGeom::CalcDirect(void)
 	m_dVelLongMMS = dtempVelXRobMMS/m_iNumberOfDrives;
 	m_dVelLatMMS = dtempVelYRobMMS/m_iNumberOfDrives;
 
-	
+
 
 }
 
@@ -540,10 +540,10 @@ void UndercarriageCtrlGeom::CalcExWheelPos(void)
 		// calculate current geometry of robot (exact wheel position, taking into account steering offset of wheels)
 		m_vdExWheelXPosMM[i] = m_vdWheelXPosMM[i] + m_UnderCarriagePrms.iDistSteerAxisToDriveWheelMM * sin(m_vdAngGearSteerRad[i]);
 		m_vdExWheelYPosMM[i] = m_vdWheelYPosMM[i] - m_UnderCarriagePrms.iDistSteerAxisToDriveWheelMM * cos(m_vdAngGearSteerRad[i]);
-				
+
 		// calculate distance from platform center to wheel center
 		m_vdExWheelDistMM[i] = sqrt( (m_vdExWheelXPosMM[i] * m_vdExWheelXPosMM[i]) + (m_vdExWheelYPosMM[i] * m_vdExWheelYPosMM[i]) );
-		
+
 		// calculate direction of rotational vector
 		m_vdExWheelAngRad[i] = MathSup::atan4quad( m_vdExWheelYPosMM[i], m_vdExWheelXPosMM[i]);
 	}
@@ -551,7 +551,7 @@ void UndercarriageCtrlGeom::CalcExWheelPos(void)
 
 // perform one discrete Control Step (controls steering angle)
 void UndercarriageCtrlGeom::CalcControlStep(void)
-{	
+{
 	// check if zero movement commanded -> keep orientation of wheels, set steer velocity to zero
 	if ((m_dCmdVelLongMMS == 0) && (m_dCmdVelLatMMS == 0) && (m_dCmdRotRobRadS == 0) && (m_dCmdRotVelRadS == 0))
 	{
@@ -571,7 +571,7 @@ void UndercarriageCtrlGeom::CalcControlStep(void)
 	double dCurrentPosWheelRAD;
 	double dDeltaPhi;
 	double dForceDamp, dForceProp, dAccCmd, dVelCmdInt; // PI- and Impedance-Ctrl
-	
+
 	for (int i=0; i<4; i++)
 	{
 		// provisorial --> skip interpolation and always take Target
@@ -637,7 +637,7 @@ void UndercarriageCtrlGeom::CalcControlStep(void)
 				m_vdVelGearSteerCmdRadS[i] = -m_UnderCarriagePrms.dMaxSteerRateRadpS;
 		}
 	}
-	
+
 	// Correct Driving-Wheel-Velocity, because of coupling and axis-offset
 	for (int i = 0; i<4; i++)
 	{

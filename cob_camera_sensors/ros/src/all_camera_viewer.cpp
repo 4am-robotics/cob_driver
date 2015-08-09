@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -10,9 +10,9 @@
  * Project name: care-o-bot
  * ROS stack name: cob_drivers
  * ROS package name: cob_camera_sensors
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Jan Fischer, email:jan.fischer@ipa.fhg.de
  * Supervised by: Jan Fischer, email:jan.fischer@ipa.fhg.de
  *
@@ -29,23 +29,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -107,7 +107,7 @@ private:
 	message_filters::Subscriber<sensor_msgs::CameraInfo> left_camera_info_sub_;	///< Left camera information service
 	message_filters::Subscriber<sensor_msgs::CameraInfo> right_camera_info_sub_;	///< Right camera information service
 	image_transport::Subscriber sub;
-	
+
 #ifdef __ROS_1_1__
 	message_filters::Synchronizer<ThreeImageSyncPolicy> shared_sub_sync_;
 	message_filters::Synchronizer<TwoImageSyncPolicy> stereo_sub_sync_;
@@ -185,7 +185,7 @@ public:
 	/// Destructor.
 	~AllCameraViewer()
 	{
-	} 
+	}
 
 	/// Initialize sensor fusion node.
 	/// Setup publisher of point cloud and corresponding color data,
@@ -239,7 +239,7 @@ public:
 	/// Subscribe to camera topics if not already done.
 	void connectCallback()
 	{
-		if (sub_counter_ == 0) 
+		if (sub_counter_ == 0)
 		{
 			sub_counter_++;
 			ROS_DEBUG("[all_camera_viewer] Subscribing to camera topics");
@@ -304,7 +304,7 @@ public:
 
 			tmp = left_color_image_8U3_;
 			left_color_mat_8U3_ = tmp.clone();
-			
+
 			tmp = grey_image_32F1_;
 			grey_mat_32F1_ = tmp.clone();
 		}
@@ -322,7 +322,7 @@ public:
 		cv::Mat right_color_8U3;
 		cv::resize(right_color_mat_8U3_, right_color_8U3, cv::Size(), 0.5, 0.5);
 		cv::imshow("Right color data", right_color_8U3);
-		
+
 		cv::Mat left_color_8U3;
 		cv::resize(left_color_mat_8U3_, left_color_8U3, cv::Size(), 0.5, 0.5);
 		cv::imshow("Left color data", left_color_8U3);
@@ -431,11 +431,11 @@ public:
 		{
 			ROS_ERROR("[all_camera_viewer] Could not convert stereo images with cv_bridge.");
 		}
-		
+
 		cv::Mat right_color_8U3;
 		cv::resize(right_color_mat_8U3_, right_color_8U3, cv::Size(), 0.5, 0.5);
 		cv::imshow("Right color data", right_color_8U3);
-		
+
 		cv::Mat left_color_8U3;
 		cv::resize(left_color_mat_8U3_, left_color_8U3, cv::Size(), 0.5, 0.5);
 		cv::imshow("Left color data", left_color_8U3);
@@ -469,7 +469,7 @@ public:
 			cv::imwrite(absolute_output_directory_path_ + ss.str(), right_color_mat_8U3_);
 			ROS_INFO("[all_camera_viewer] Saved right color image %d to %s", image_counter_, ss.str().c_str());
 		}
-			
+
 		if (use_left_color_camera_ && left_color_mat_8U3_.empty())
 		{
 			ROS_INFO("[all_camera_viewer] Left color image not available");
@@ -485,7 +485,7 @@ public:
 			ROS_INFO("[all_camera_viewer] Saved left color image %d to %s", image_counter_, ss.str().c_str());
 		}
 
-		
+
 		if (use_tof_camera_ && grey_mat_8U1_.empty())
 		{
 			ROS_INFO("[all_camera_viewer] Tof grayscale image not available");
@@ -553,8 +553,8 @@ int main(int argc, char** argv)
 
 	/// Create a handle for this node, initialize node
 	ros::NodeHandle nh;
-	
-	/// Create camera node class instance	
+
+	/// Create camera node class instance
 	AllCameraViewer camera_node(nh);
 
 	/// Initialize camera node

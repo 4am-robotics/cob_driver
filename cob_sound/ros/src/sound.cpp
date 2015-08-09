@@ -128,7 +128,7 @@ public:
     ROS_INFO("Saying: %s", data.c_str());
 
     publish_marker(data);
-    
+
     std::string mode;
     std::string command;
     std::string cepstral_conf;
@@ -151,16 +151,16 @@ public:
       status.name = "sound";
       status.message = "command say failed to play sound using mode " + mode;
       diagnostics_.status.push_back(status);
-      
+
       diagnostics_.header.stamp = ros::Time::now();
       diagnostics_pub_.publish(diagnostics_);
-      
+
       diagnostics_.status.resize(0);
       return false;
     }
     return true;
   }
-  
+
   bool play(std::string filename)
   {
     if (mute_)
@@ -182,10 +182,10 @@ public:
       status.name = "sound";
       status.message = "command play failed";
       diagnostics_.status.push_back(status);
-      
+
       diagnostics_.header.stamp = ros::Time::now();
       diagnostics_pub_.publish(diagnostics_);
-      
+
       diagnostics_.status.resize(0);
       return false;
     }
@@ -200,10 +200,10 @@ public:
     status.hardware_id = "none";
     status.message = "sound controller running";
     diagnostics_.status.push_back(status);
-    
+
     diagnostics_.header.stamp = ros::Time::now();
     diagnostics_pub_.publish(diagnostics_);
-    
+
     diagnostics_.status.resize(0);
   }
 
@@ -244,7 +244,7 @@ int main(int argc, char** argv)
 
   SoundAction sound;
   ROS_INFO("sound node started");
-  
+
   ros::spin();
   return 0;
 }

@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -10,9 +10,9 @@
  * Project name: care-o-bot
  * ROS stack name: cob_driver
  * ROS package name: cob_camera_sensors
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Jan Fischer, email:jan.fischer@ipa.fhg.de
  * Supervised by: Jan Fischer, email:jan.fischer@ipa.fhg.de
  *
@@ -29,23 +29,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -81,13 +81,13 @@ private:
 
 	sensor_msgs::CvBridge cv_bridge_0_;
 	sensor_msgs::CvBridge cv_bridge_1_;
-	
+
 	IplImage* xyz_image_32F3_;	/// OpenCV image holding the 32bit point cloud
 	cv::Mat xyz_mat_8U3_;		/// OpenCV image holding the transformed 8bit RGB point cloud
 	IplImage* grey_image_32F1_;	/// OpenCV image holding the 32bit amplitude values
 	cv::Mat grey_mat_8U3_;	/// OpenCV image holding the transformed 8bit RGB amplitude values
 
-	int grey_image_counter_; 
+	int grey_image_counter_;
 
 public:
 	/// Constructor.
@@ -109,7 +109,7 @@ public:
         {
 		/// Do not release <code>m_GrayImage32F3</code>
 		/// Do not release <code>xyz_image_32F3_</code>
-		/// Image allocation is managed by Cv_Bridge object 
+		/// Image allocation is managed by Cv_Bridge object
 
 		if(cvGetWindowHandle("z data"))cvDestroyWindow("z data");
 		if(cvGetWindowHandle("grey data"))cvDestroyWindow("grey data");
@@ -121,8 +121,8 @@ public:
 	{
 		/// Create viewer windows
 		cvStartWindowThread();
-		cv::namedWindow("z data");		
-		cv::namedWindow("grey data");		
+		cv::namedWindow("z data");
+		cv::namedWindow("grey data");
 
 		xyz_image_subscriber_ = image_transport_.subscribe("image_xyz", 1, &CobTofCameraViewerNode::xyzImageCallback, this);
 		grey_image_subscriber_ = image_transport_.subscribe("image_grey", 1, &CobTofCameraViewerNode::greyImageCallback, this);
@@ -130,13 +130,13 @@ public:
 		return true;
 	}
 
-	/// Topic callback functions. 
+	/// Topic callback functions.
 	/// Function will be called when a new message arrives on a topic.
 	/// @param grey_image_msg The gray values of point cloud, saved in a 32bit, 1 channel OpenCV IplImage
 	void greyImageCallback(const sensor_msgs::ImageConstPtr& grey_image_msg)
 	{
 		/// Do not release <code>m_GrayImage32F3</code>
-		/// Image allocation is managed by Cv_Bridge object 
+		/// Image allocation is managed by Cv_Bridge object
 		ROS_INFO("Grey Image Callback");
 
 		try
@@ -168,18 +168,18 @@ public:
 		ROS_INFO("Image Processed");
 	}
 
-	/// Topic callback functions. 
+	/// Topic callback functions.
 	/// Function will be called when a new message arrives on a topic.
 	/// @param xyz_image_msg The point cloud, saved in a 32bit, 3 channel OpenCV IplImage
 	void xyzImageCallback(const sensor_msgs::ImageConstPtr& xyz_image_msg)
 	{
 		/// Do not release <code>xyz_image_32F3_</code>
-		/// Image allocation is managed by Cv_Bridge object 
+		/// Image allocation is managed by Cv_Bridge object
 
 		try
 		{
 			xyz_image_32F3_ = cv_bridge_1_.imgMsgToCv(xyz_image_msg, "passthrough");
-			
+
 			cv::Mat xyz_mat_32F3 = xyz_image_32F3_;
 			ipa_Utils::ConvertToShowImage(xyz_mat_32F3, xyz_mat_8U3_, 3);
 			cv::imshow("z data", xyz_mat_8U3_);
@@ -202,7 +202,7 @@ int main(int argc, char** argv)
         /// Create a handle for this node, initialize node
         ros::NodeHandle nh;
 
-        /// Create camera node class instance   
+        /// Create camera node class instance
         CobTofCameraViewerNode camera_viewer_node(nh);
 
 
@@ -218,9 +218,9 @@ int main(int argc, char** argv)
 /*
  int numPoints = image->width*image->height;
  sensor_msgs::PointCloud pc_msg;
- pc_msg.header.stamp = ros::Time::now(); 
+ pc_msg.header.stamp = ros::Time::now();
  pc_msg.points.resize(numPoints);
-               
+
  /// Convert OpenCV image to PointCloud
  for (int i = 0; i < numPoints; i++)
  {
