@@ -5,6 +5,7 @@ find_package(catkin REQUIRED COMPONENTS actionlib cob_canopen_motor cob_generic_
 
 catkin_package(
   CATKIN_DEPENDS actionlib cob_canopen_motor cob_generic_can cob_utilities
+  INCLUDE_DIRS common/include
 )
 
 ### BUILD ###

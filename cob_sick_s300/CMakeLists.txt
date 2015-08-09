@@ -5,6 +5,7 @@ find_package(catkin REQUIRED COMPONENTS diagnostic_msgs roscpp sensor_msgs std_m
 
 catkin_package(
   CATKIN_DEPENDS roscpp
+  INCLUDE_DIRS common/include
 )
 
 ### BUILD ###
