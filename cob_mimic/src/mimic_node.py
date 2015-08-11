@@ -61,6 +61,7 @@ import sys
 import os
 import subprocess
 
+import roslib
 import rospy
 import actionlib
 

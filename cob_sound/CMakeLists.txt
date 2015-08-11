@@ -10,7 +10,7 @@ add_action_files(DIRECTORY action FILES
 )
 
 generate_messages(
-  DEPENDENCIES actionlib_msgs std_msgs
+  DEPENDENCIES actionlib_msgs
 )
 
 catkin_package(
