@@ -136,7 +136,7 @@ public:
     nh_.param<std::string>("/sound_controller/cepstral_settings",cepstral_conf,"\"speech/rate=170\"");
     if (mode == "cepstral")
     {
-      command = "swift -p " + cepstral_conf + " " + data;
+      command = "aoss swift -p " + cepstral_conf + " " + data;
     }
     else
     {

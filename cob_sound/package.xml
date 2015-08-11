@@ -24,6 +24,7 @@
   <depend>std_srvs</depend>
   <depend>visualization_msgs</depend>
 
+  <exec_depend>alsa-oss</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>sound_play</exec_depend>
 
