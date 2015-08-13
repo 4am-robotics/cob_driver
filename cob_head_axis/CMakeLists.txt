@@ -3,8 +3,11 @@ project(cob_head_axis)
 
 find_package(catkin REQUIRED COMPONENTS actionlib cob_canopen_motor cob_generic_can cob_srvs cob_utilities control_msgs diagnostic_msgs roscpp sensor_msgs std_srvs urdf)
 
+find_package(Boost REQUIRED COMPONENTS system)
+
 catkin_package(
   CATKIN_DEPENDS actionlib cob_canopen_motor cob_generic_can cob_utilities
+  DEPENDS Boost
   INCLUDE_DIRS common/include
 )
 

@@ -9,7 +9,7 @@ catkin_package(
 )
 
 ### BUILD ###
-include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+include_directories(common/include ${catkin_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME}_SerialIO common/src/SerialIO.cpp)
 add_library(${PROJECT_NAME} common/src/SerRelayBoard.cpp common/src/StrUtil.cpp)

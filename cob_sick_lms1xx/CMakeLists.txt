@@ -3,13 +3,15 @@ project(cob_sick_lms1xx)
 
 find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs)
 
+find_package(Boost REQUIRED COMPONENTS system)
+
 catkin_package(
   INCLUDE_DIRS common/include
   LIBRARIES lms1xx
 )
 
 ### BUILD ###
-include_directories(common/include ${catkin_INCLUDE_DIRS})
+include_directories(common/include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 add_library(lms1xx common/src/lms1xx.cpp)
 

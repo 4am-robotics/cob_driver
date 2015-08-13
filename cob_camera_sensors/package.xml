@@ -16,6 +16,8 @@
   <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
 
+  <depend>boost</depend>
+  <depend>cmake_modules</depend>
   <depend>cob_vision_utils</depend>
   <depend>cv_bridge</depend>
   <depend>image_transport</depend>

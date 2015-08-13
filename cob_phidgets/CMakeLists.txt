@@ -40,7 +40,7 @@ catkin_package(
 )
 
 ### BUILD ###
-include_directories(${PROJECT_SOURCE_DIR}/ros/include ${PROJECT_SOURCE_DIR}/common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+include_directories(${PROJECT_SOURCE_DIR}/ros/include ${PROJECT_SOURCE_DIR}/common/include ${catkin_INCLUDE_DIRS})
 
 add_executable(range_sensors ros/src/phidgets_range_sensors.cpp)
 add_dependencies(range_sensors ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

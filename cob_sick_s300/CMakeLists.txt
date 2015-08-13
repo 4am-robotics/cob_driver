@@ -3,8 +3,11 @@ project(cob_sick_s300)
 
 find_package(catkin REQUIRED COMPONENTS diagnostic_msgs roscpp sensor_msgs std_msgs)
 
+find_package(Boost REQUIRED COMPONENTS date_time thread)
+
 catkin_package(
   CATKIN_DEPENDS roscpp
+  DEPENDS Boost
   INCLUDE_DIRS common/include
 )
 

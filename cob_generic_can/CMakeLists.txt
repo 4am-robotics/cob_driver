@@ -10,7 +10,7 @@ catkin_package(
 )
 
 ### BUILD ###
-include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+include_directories(common/include ${catkin_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME}_peaksysusb common/src/CanPeakSysUSB.cpp)
 add_library(${PROJECT_NAME}_peaksys common/src/CanPeakSys.cpp)
