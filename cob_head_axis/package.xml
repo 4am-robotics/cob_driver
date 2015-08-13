@@ -20,7 +20,6 @@
   <depend>cob_utilities</depend>
   <depend>control_msgs</depend>
   <depend>diagnostic_msgs</depend>
-  <depend>libntcan</depend>
   <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
   <depend>std_srvs</depend>

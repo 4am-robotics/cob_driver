@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_head_axis)
 
-find_package(catkin REQUIRED COMPONENTS actionlib cob_canopen_motor cob_generic_can cob_srvs cob_utilities control_msgs diagnostic_msgs libntcan roscpp sensor_msgs std_srvs urdf)
+find_package(catkin REQUIRED COMPONENTS actionlib cob_canopen_motor cob_generic_can cob_srvs cob_utilities control_msgs diagnostic_msgs roscpp sensor_msgs std_srvs urdf)
 
 catkin_package(
   CATKIN_DEPENDS actionlib cob_canopen_motor cob_generic_can cob_utilities

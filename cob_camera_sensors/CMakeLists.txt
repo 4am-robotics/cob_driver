@@ -3,6 +3,8 @@ project(cob_camera_sensors)
 
 find_package(catkin REQUIRED COMPONENTS cob_vision_utils cv_bridge image_transport message_filters message_generation polled_camera roscpp sensor_msgs)
 
+find_package(OpenCV REQUIRED)
+
 ### Message Generation ###
 add_service_files(
   FILES
@@ -16,6 +18,7 @@ generate_messages(
 
 catkin_package(
   CATKIN_DEPENDS cob_vision_utils message_runtime roscpp sensor_msgs
+  DEPENDS OpenCV
   INCLUDE_DIRS common/include
 )
 
