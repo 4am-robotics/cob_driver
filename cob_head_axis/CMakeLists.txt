@@ -5,11 +5,7 @@ find_package(catkin REQUIRED COMPONENTS actionlib cob_canopen_motor cob_generic_
 
 find_package(Boost REQUIRED COMPONENTS system)
 
-catkin_package(
-  CATKIN_DEPENDS actionlib cob_canopen_motor cob_generic_can cob_utilities
-  DEPENDS Boost
-  INCLUDE_DIRS common/include
-)
+catkin_package()
 
 ### BUILD ###
 include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
@@ -23,10 +19,6 @@ install(TARGETS ${PROJECT_NAME}_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(DIRECTORY common/include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
 install(PROGRAMS ros/src/dummy_head.py

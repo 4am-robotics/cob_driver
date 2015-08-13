@@ -5,11 +5,7 @@ find_package(catkin REQUIRED COMPONENTS diagnostic_msgs roscpp sensor_msgs std_m
 
 find_package(Boost REQUIRED COMPONENTS date_time thread)
 
-catkin_package(
-  CATKIN_DEPENDS roscpp
-  DEPENDS Boost
-  INCLUDE_DIRS common/include
-)
+catkin_package()
 
 ### BUILD ###
 include_directories(common/include common/src ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
@@ -38,10 +34,6 @@ install(TARGETS ${PROJECT_NAME} cob_scan_filter
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(DIRECTORY common/include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
 install(DIRECTORY ros/test

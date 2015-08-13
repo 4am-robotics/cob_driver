@@ -35,8 +35,7 @@ add_service_files(
 generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(
-  CATKIN_DEPENDS libphidgets message_runtime roscpp std_msgs
-  INCLUDE_DIRS common/include ros/include
+  CATKIN_DEPENDS message_runtime std_msgs
 )
 
 ### BUILD ###
@@ -64,14 +63,6 @@ install(TARGETS range_sensors phidget_sensors device_name
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(DIRECTORY common/include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-)
-
-install(DIRECTORY ros/include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
 install(PROGRAMS ros/src/simulated_range_sensors.py

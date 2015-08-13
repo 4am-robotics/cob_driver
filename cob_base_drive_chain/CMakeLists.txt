@@ -15,9 +15,7 @@ generate_messages(
 )
 
 catkin_package(
-    CATKIN_DEPENDS cob_canopen_motor cob_generic_can cob_utilities message_runtime
-    INCLUDE_DIRS common/include
-    LIBRARIES ${PROJECT_NAME}
+    CATKIN_DEPENDS message_runtime
 )
 
 ### BUILD ###
@@ -35,12 +33,8 @@ add_dependencies(${PROJECT_NAME}_sim_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${
 target_link_libraries(${PROJECT_NAME}_sim_node ${PROJECT_NAME} ${catkin_LIBRARIES})
 
 ### INSTALL ###
-install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node ${PROJECT_NAME}_sim_node
+install(TARGETS ${PROJECT_NAME}_node ${PROJECT_NAME}_sim_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(DIRECTORY common/include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )

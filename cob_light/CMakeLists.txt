@@ -28,9 +28,7 @@ generate_messages(
 )
 
 catkin_package(
-  CATKIN_DEPENDS actionlib_msgs message_runtime roscpp std_msgs
-  DEPENDS Boost
-  INCLUDE_DIRS common/include ros/include
+  CATKIN_DEPENDS actionlib_msgs message_runtime std_msgs
 )
 
 ### BUILD ###
@@ -49,14 +47,6 @@ install(TARGETS cob_light
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(DIRECTORY common/include/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-)
-
-install(DIRECTORY ros/include/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
 install(PROGRAMS ros/scripts/test.py ros/scripts/test_sprofi_circle.py ros/scripts/test_sprofi_modes.py ros/scripts/test_sprofi_part.py
