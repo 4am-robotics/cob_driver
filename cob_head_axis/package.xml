@@ -14,7 +14,6 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>actionlib</depend>
-  <depend>boost</depend>
   <depend>cob_canopen_motor</depend>
   <depend>cob_generic_can</depend>
   <depend>cob_srvs</depend>

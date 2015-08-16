@@ -3,7 +3,7 @@ project(cob_camera_sensors)
 
 find_package(catkin REQUIRED COMPONENTS cmake_modules cob_vision_utils cv_bridge image_transport message_filters message_generation polled_camera roscpp sensor_msgs)
 
-find_package(Boost REQUIRED COMPONENTS system filesystem thread)
+find_package(Boost REQUIRED COMPONENTS filesystem thread)
 
 find_package(OpenCV REQUIRED)
 

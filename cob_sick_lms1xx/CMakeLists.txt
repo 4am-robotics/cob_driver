@@ -3,7 +3,7 @@ project(cob_sick_lms1xx)
 
 find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs)
 
-find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED)
 
 catkin_package()
 

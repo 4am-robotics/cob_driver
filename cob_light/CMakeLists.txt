@@ -3,7 +3,7 @@ project(cob_light)
 
 find_package(catkin REQUIRED COMPONENTS actionlib_msgs actionlib diagnostic_msgs message_generation roscpp std_msgs visualization_msgs)
 
-find_package(Boost REQUIRED COMPONENTS system thread)
+find_package(Boost REQUIRED COMPONENTS signals thread)
 
 ### Message Generation ###
 add_message_files(
