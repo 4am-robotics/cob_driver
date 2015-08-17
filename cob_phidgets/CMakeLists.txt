@@ -27,7 +27,7 @@ add_message_files(
 
 add_service_files(
   FILES
-  SetDataRate.srv 
+  SetDataRate.srv
   SetDigitalSensor.srv
   SetTriggerValue.srv
 )
@@ -35,28 +35,27 @@ add_service_files(
 generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(
-  CATKIN_DEPENDS libphidgets message_runtime roscpp rospy sensor_msgs std_msgs
-  INCLUDE_DIRS common/include ros/include
+  CATKIN_DEPENDS message_runtime std_msgs
 )
 
 ### BUILD ###
-include_directories(${PROJECT_SOURCE_DIR}/ros/include ${PROJECT_SOURCE_DIR}/common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+include_directories(${PROJECT_SOURCE_DIR}/ros/include ${PROJECT_SOURCE_DIR}/common/include ${catkin_INCLUDE_DIRS})
 
 add_executable(range_sensors ros/src/phidgets_range_sensors.cpp)
-add_dependencies(range_sensors ${PROJECT_NAME}_gencpp)
+add_dependencies(range_sensors ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(range_sensors ${catkin_LIBRARIES})
 
 add_executable(device_name ros/src/set_device_name.cpp)
-add_dependencies(device_name ${PROJECT_NAME}_gencpp)
+add_dependencies(device_name ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(device_name ${catkin_LIBRARIES})
 
-add_executable(phidget_sensors 
+add_executable(phidget_sensors
   ros/src/phidget_sensors_node.cpp
-  ros/src/phidget_manager.cpp 
-  common/src/phidget.cpp 
-  common/src/phidgetik.cpp 
+  ros/src/phidget_manager.cpp
+  common/src/phidget.cpp
+  common/src/phidgetik.cpp
   ros/src/phidgetik_ros.cpp)
-add_dependencies(phidget_sensors ${PROJECT_NAME}_gencpp)
+add_dependencies(phidget_sensors ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(phidget_sensors ${catkin_LIBRARIES})
 
 ### INSTALL ###
@@ -64,14 +63,6 @@ install(TARGETS range_sensors phidget_sensors device_name
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(DIRECTORY common/include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-)
-
-install(DIRECTORY ros/include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
 install(PROGRAMS ros/src/simulated_range_sensors.py

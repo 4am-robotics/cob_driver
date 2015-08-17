@@ -117,7 +117,7 @@ unsigned long VirtualRangeCam::Init(std::string directory, int cameraIndex)
 	{
 		// Load z-calibration files
 		std::string filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA0.xml";
-		CvMat* c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		CvMat* c_mat = (CvMat*)cvLoad(filename.c_str());
 		if (! c_mat)
 		{
 			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
@@ -133,7 +133,7 @@ unsigned long VirtualRangeCam::Init(std::string directory, int cameraIndex)
 		}
 
 		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA1.xml";
-		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		c_mat = (CvMat*)cvLoad(filename.c_str());
 		if (! c_mat)
 		{
 			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
@@ -149,7 +149,7 @@ unsigned long VirtualRangeCam::Init(std::string directory, int cameraIndex)
 		}
 
 		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA2.xml";
-		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		c_mat = (CvMat*)cvLoad(filename.c_str());
 		if (! c_mat)
 		{
 			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
@@ -165,7 +165,7 @@ unsigned long VirtualRangeCam::Init(std::string directory, int cameraIndex)
 		}
 
 		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA3.xml";
-		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		c_mat = (CvMat*)cvLoad(filename.c_str());
 		if (! c_mat)
 		{
 			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
@@ -181,7 +181,7 @@ unsigned long VirtualRangeCam::Init(std::string directory, int cameraIndex)
 		}
 
 		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA4.xml";
-		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		c_mat = (CvMat*)cvLoad(filename.c_str());
 		if (! c_mat)
 		{
 			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
@@ -197,7 +197,7 @@ unsigned long VirtualRangeCam::Init(std::string directory, int cameraIndex)
 		}
 
 		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA5.xml";
-		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		c_mat = (CvMat*)cvLoad(filename.c_str());
 		if (! c_mat)
 		{
 			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
@@ -213,7 +213,7 @@ unsigned long VirtualRangeCam::Init(std::string directory, int cameraIndex)
 		}
 
 		filename = directory + "MatlabCalibrationData/PMD/ZCoeffsA6.xml";
-		c_mat = (CvMat*)cvLoad(filename.c_str()); 
+		c_mat = (CvMat*)cvLoad(filename.c_str());
 		if (! c_mat)
 		{
 			std::cerr << "ERROR - PMDCamCube::LoadParameters:" << std::endl;
@@ -320,7 +320,7 @@ unsigned long VirtualRangeCam::Open()
 	{
 		std::cout << "INFO - VirtualRangeCam::Open   :" << std::endl;
 		std::cout << "\t ... Parsing directory '" << absoluteDirectoryName.directory_string() << "'" << std::endl;
-		
+
 		fs::directory_iterator end_iter;
 		for ( fs::directory_iterator dir_itr( absoluteDirectoryName ); dir_itr != end_iter; ++dir_itr )
 		{
@@ -610,7 +610,7 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepRange, int widthStepGr
 			std::cerr << "\t ... Wrong file format for file " << m_RangeImageFileNames[m_ImageCounter] << ".\n";
 			CV_Assert(false);
 		}
-		
+
 		if (!undistort)
 		{
 			// put data in corresponding IPLImage structures
@@ -697,7 +697,7 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepRange, int widthStepGr
 				CV_Assert(false);
 			}
 		}
-		
+
 		// process image
 		if (!undistort)
 		{
@@ -874,9 +874,9 @@ unsigned long VirtualRangeCam::AcquireImages(int widthStepRange, int widthStepGr
 
 int VirtualRangeCam::GetNumberOfImages()
 {
-	if (m_IntensityImageFileNames.size() == 0 && 
+	if (m_IntensityImageFileNames.size() == 0 &&
 		m_AmplitudeImageFileNames.size() == 0 &&
-		m_RangeImageFileNames.size() == 0 && 
+		m_RangeImageFileNames.size() == 0 &&
 		m_CoordinateImageFileNames.size() == 0)
 	{
 		return 0;
@@ -892,7 +892,7 @@ int VirtualRangeCam::GetNumberOfImages()
 	return min;
 }
 
-unsigned long VirtualRangeCam::SetPathToImages(std::string path) 
+unsigned long VirtualRangeCam::SetPathToImages(std::string path)
 {
 	m_CameraDataDirectory = path;
 	return ipa_Utils::RET_OK;
@@ -908,7 +908,7 @@ unsigned long VirtualRangeCam::SaveParameters(const char* filename)
 // Before calling <code>GetCalibratedZMatlab</code>
 unsigned long VirtualRangeCam::GetCalibratedZMatlab(int u, int v, float zRaw, float& zCalibrated)
 {
-	double c[7] = {m_CoeffsA0.at<double>(v,u), m_CoeffsA1.at<double>(v,u), m_CoeffsA2.at<double>(v,u), 
+	double c[7] = {m_CoeffsA0.at<double>(v,u), m_CoeffsA1.at<double>(v,u), m_CoeffsA2.at<double>(v,u),
 		m_CoeffsA3.at<double>(v,u), m_CoeffsA4.at<double>(v,u), m_CoeffsA5.at<double>(v,u), m_CoeffsA6.at<double>(v,u)};
 	double y = 0;
 

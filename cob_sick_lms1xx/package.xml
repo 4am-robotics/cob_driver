@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>cob_sick_lms1xx</name>
   <version>0.6.3</version>
   <description>This package published a laser scan message out of a Sick LMS1xx laser scanner.
@@ -14,11 +14,9 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>roscpp</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-
-  <run_depend>roscpp</run_depend>
-  <run_depend>sensor_msgs</run_depend>
+  <depend>boost</depend>
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
 
 </package>
 

@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>cob_sick_s300</name>
   <version>0.6.3</version>
   <description>This package published a laser scan message out of a Sick S300 laser scanner.</description>
@@ -13,14 +13,10 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>diagnostic_msgs</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>std_msgs</build_depend>
-
-  <run_depend>diagnostic_msgs</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>std_msgs</run_depend>
+  <depend>boost</depend>
+  <depend>diagnostic_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
 
 </package>

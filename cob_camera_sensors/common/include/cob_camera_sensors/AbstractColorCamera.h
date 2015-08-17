@@ -85,7 +85,7 @@ typedef boost::shared_ptr<AbstractColorCamera> AbstractColorCameraPtr;
 /// interoperability with the already existing code.
 class __DLL_LIBCAMERASENSORS__ AbstractColorCamera
 {
-	public: 
+	public:
 
 		/// Struct stores the values from the xml camera configuration file
 		/// All values may also be set to AUTO or DEFAULT
@@ -103,7 +103,7 @@ class __DLL_LIBCAMERASENSORS__ AbstractColorCamera
 			std::stringstream m_Hue;
 			std::stringstream m_Saturation;
 			std::stringstream m_Gamma;
-			std::stringstream m_ExposureTime;	
+			std::stringstream m_ExposureTime;
 			std::stringstream m_Gain;
 			std::stringstream m_Brightness;
 			std::stringstream m_ImageWidth;
@@ -120,7 +120,7 @@ class __DLL_LIBCAMERASENSORS__ AbstractColorCamera
 		///	       One may us the camera index to apply different configuration files to each of them
 		/// @return Return code.
 		virtual unsigned long Init(std::string directory, int cameraIndex = 0) =0;
-	
+
 		/// Returns true, when <code>Init()</code> has been called on the camera.
 		/// @return Camera initialized or not.
 		virtual bool isInitialized() {return m_initialized;}
@@ -138,7 +138,7 @@ class __DLL_LIBCAMERASENSORS__ AbstractColorCamera
 		/// Close camera device.
 		/// @return Return code.
 		virtual unsigned long Close() =0; //Save intrinsic params back to File
-		
+
 		/// Retrieves image data from the color camera.
 		/// @param colorImageData An array to be filled with image data
 		/// @param getLatestFrame True, when the latest picture has to be returned. Otherwise, the next picture
@@ -158,7 +158,7 @@ class __DLL_LIBCAMERASENSORS__ AbstractColorCamera
 		/// Returns the camera type.
 		/// @return The camera type
 		virtual t_cameraType GetCameraType();
-	
+
 		/// Function to set properties of the camera sensor.
 		/// @param propertyID The ID of the property.
 		/// @param cameraProperty The value of the property.
@@ -206,7 +206,7 @@ class __DLL_LIBCAMERASENSORS__ AbstractColorCamera
 		virtual ~AbstractColorCamera();
 
 	protected:
-		
+
 		bool m_initialized; ///< True, when the camera has sucessfully been initialized.
 		bool m_open;		///< True, when the camera has sucessfully been opend.
 

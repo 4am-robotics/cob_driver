@@ -51,7 +51,7 @@
 * If not, see <http://www.gnu.org/licenses/>.
 *
 ****************************************************************/
- 
+
 /// @file Swissranger.h
 /// Platform independent interface to MESA Swissranger camera. Implementation depends on
 /// libusbSR library.
@@ -100,7 +100,7 @@ namespace ipa_CameraSensors {
 /// @param msg the received message of type CM_XXX
 /// @param param is a message specific parameter
 /// @param is a message specific pointer
-/// @return 
+/// @return
 int LibMesaCallback(SRCAM srCam, unsigned int msg, unsigned int param, void* data);
 
 /// @ingroup RangeCameraDriver
@@ -153,7 +153,7 @@ private:
 	/// @param filename Swissranger parameter path and file name.
 	/// @param cameraIndex The index of the camera within the configuration file
 	///		   i.e. SR_CAM_0 or SR_CAM_1
-	/// @return Return value 
+	/// @return Return value
 	unsigned long LoadParameters(const char* filename, int cameraIndex);
 
 	/// Parses the data extracted by <code>LoadParameters</code> and calls the

@@ -1,4 +1,3 @@
-
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_sound)
 
@@ -10,19 +9,19 @@ add_action_files(DIRECTORY action FILES
 )
 
 generate_messages(
-  DEPENDENCIES actionlib_msgs std_msgs
+  DEPENDENCIES actionlib_msgs
 )
 
 catkin_package(
-  CATKIN_DEPENDS actionlib_msgs actionlib diagnostic_msgs message_runtime roscpp rospy sound_play std_msgs std_srvs visualization_msgs
+  CATKIN_DEPENDS actionlib_msgs message_runtime
 )
 
 ### BUILD ###
-include_directories(${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+include_directories(${catkin_INCLUDE_DIRS})
 
 add_executable(sound ros/src/sound.cpp)
-add_dependencies(sound ${PROJECT_NAME}_gencpp)
-target_link_libraries(sound ${Boost_LIBRARIES} ${catkin_LIBRARIES})
+add_dependencies(sound ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(sound ${catkin_LIBRARIES})
 
 ### INSTALL ###
 install(TARGETS sound

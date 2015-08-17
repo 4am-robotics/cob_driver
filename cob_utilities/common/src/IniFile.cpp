@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -11,9 +11,9 @@
  * ROS stack name: cob3_driver
  * ROS package name: sickS300
  * Description:
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Christian Connette, email:christian.connette@ipa.fhg.de
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
@@ -30,23 +30,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -72,7 +72,7 @@ IniFile::IniFile(std::string fileName): m_vectorSize(500), m_CurCharInd(0)
 {
 	m_bFileOK=false;
 	m_CurLine.resize(m_vectorSize);
-	if(fileName != "") 
+	if(fileName != "")
 		SetFileName(fileName);
 }
 //--------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ int IniFile::SetFileName(std::string fileName, std::string strIniFileUsedBy, boo
 	m_strIniFileUsedBy = strIniFileUsedBy;
 
 	if ((f = fopen(m_fileName.c_str(),"r")) == NULL)
-	{	
+	{
 		if (bCreate == true)
 		{
 			f = fopen(m_fileName.c_str(),"w");	// create new file
@@ -105,15 +105,15 @@ int IniFile::SetFileName(std::string fileName, std::string strIniFileUsedBy, boo
 }
 //--------------------------------------------------------------------------------
 int IniFile::WriteKeyString(const char* pSect, const char* pKey, const std::string* pStrToWrite, bool bWarnIfNotfound)
-{	
-	std::string StrWithDelimeters = '"' + *pStrToWrite + '"'; 
+{
+	std::string StrWithDelimeters = '"' + *pStrToWrite + '"';
 	return WriteKeyValue(pSect, pKey, StrWithDelimeters.c_str(), bWarnIfNotfound);
 }
 //--------------------------------------------------------------------------------
 int IniFile::WriteKeyValue(const char* szSect,const char* szKey,const char* szValue, bool bWarnIfNotfound)
 {
 	if (!m_bFileOK) return -1;
-	
+
 	FILE* ftemp;
 	int   lS,lK,i,bEoff;
 	int   bFoundSect,bFoundKey;
@@ -147,26 +147,26 @@ int IniFile::WriteKeyValue(const char* szSect,const char* szKey,const char* szVa
 
 /* ---------------------- search section and key */
 	if (FindSection(szSect, bWarnIfNotfound) != 0)
-	{	
+	{
 		bFoundSect = 0;
 	}
 	fpos = ftell(f);
 	if (bFoundSect)
 	{
 		if (!FindKey(szKey, false))	bFoundKey = 1;
-		fpos = ftell(f);			
+		fpos = ftell(f);
 	}
 	if (feof(f)) bEoff = 1;
 
 /* --------------------- updating the file */
 	fseek(f,0,SEEK_SET);
 	for (i=0;i<fpos;i++)
-	{ 
+	{
 		fscanf(f,"%c",&c);
 		fprintf(ftemp,"%c",c);
 		// MMB/23.02.2006: The counter i must not be incremented here on Linux machines!
 #ifdef WIN32
-		if (c=='\n') 
+		if (c=='\n')
 			i++;
 #endif
 	};
@@ -174,26 +174,26 @@ int IniFile::WriteKeyValue(const char* szSect,const char* szKey,const char* szVa
 	if (!bFoundSect) {
 		fprintf(ftemp,"\n\n[%s]\n",szSect);
 	}
-	if (bFoundSect && (!bFoundKey) && (bEoff)) 
+	if (bFoundSect && (!bFoundKey) && (bEoff))
 	{
 		fprintf(ftemp,"\n");
 	}
-		
-	
-	if (!bFoundKey) 
+
+
+	if (!bFoundKey)
 	{
 		fprintf(ftemp,"%s=",szKey);
 	}
-	
+
 	fprintf(ftemp,"%s",szValue);
 
 	if (bFoundKey) FindNextLine(m_CurLine, m_CurCharInd);
-	if (!(bEoff || feof(f))) 
+	if (!(bEoff || feof(f)))
 	{	fprintf(ftemp,"\n");
 		while (!feof(f))
-		{ 
+		{
 			fscanf(f,"%c",&c);
-			if (!feof(f)) 
+			if (!feof(f))
 			{
 				fprintf(ftemp,"%c",c);
 			}
@@ -216,7 +216,7 @@ int IniFile::WriteKeyValue(const char* szSect,const char* szKey,const char* szVa
 	}
 	fseek(ftemp,0,SEEK_SET);
 	for (i=0;i<fpos;i++)
-	{ 
+	{
 		fscanf(ftemp,"%c",&c);
 		fprintf(f,"%c",c);
 	};
@@ -248,7 +248,7 @@ int IniFile::WriteKeyDouble(const char* szSect,const char* szKey,double Value,
 	return WriteKeyValue(szSect,szKey, buff, bWarnIfNotfound);
 }
 //--------------------------------------------------------------------------------
-int IniFile::GetKeyBool(const char* pSect, const char* pKey, bool* pValue, 
+int IniFile::GetKeyBool(const char* pSect, const char* pKey, bool* pValue,
 							bool bWarnIfNotfound)
 {
 	std::string strRead;
@@ -274,7 +274,7 @@ int IniFile::GetKeyBool(const char* pSect, const char* pKey, bool* pValue,
 	return -1;
 }
 //--------------------------------------------------------------------------------
-int IniFile::GetKeyInt(const char* szSect,const char* szKey,int* pValue, 
+int IniFile::GetKeyInt(const char* szSect,const char* szKey,int* pValue,
 							bool bWarnIfNotfound)
 {
 	char buf[9];
@@ -287,7 +287,7 @@ int IniFile::GetKeyInt(const char* szSect,const char* szKey,int* pValue,
 				buf[i] = buf[i+1];
 			buf[7]='\0';
 		}
-	
+
  		if ((buf[0]=='0') && (buf[1] == 'x'))
                 {
 			int iNumLength = 0;
@@ -296,14 +296,14 @@ int IniFile::GetKeyInt(const char* szSect,const char* szKey,int* pValue,
 			{
 				//if its not a number..
 				if ((buf[z+2]<0x30) || (buf[z+2]>0x3A))
-				{ 	
+				{
 					iNumLength = z-1;
 					break;
 				}
 			}
 			*pValue = 0;
                         for (int i=0; i<=(iNumLength); i++)
-                        {	
+                        {
 				//convert hex-string from character into int
 				*pValue += (buf[i+2]-0x30) * (int)pow((double)16, (iNumLength-i));
                         }
@@ -318,7 +318,7 @@ int IniFile::GetKeyInt(const char* szSect,const char* szKey,int* pValue,
 	else return -1;
 }
 //--------------------------------------------------------------------------------
-int IniFile::GetKeyLong(const char* szSect,const char* szKey,long* pValue, 
+int IniFile::GetKeyLong(const char* szSect,const char* szKey,long* pValue,
 							bool bWarnIfNotfound)
 {
 	char buf[9];
@@ -330,21 +330,21 @@ int IniFile::GetKeyLong(const char* szSect,const char* szKey,long* pValue,
 	else return -1;
 }
 //--------------------------------------------------------------------------------
-int IniFile::GetKeyDouble(const char* szSect,const char* szKey,double* pValue, 
+int IniFile::GetKeyDouble(const char* szSect,const char* szKey,double* pValue,
 							bool bWarnIfNotfound)
 {
 	char buf[50];
 	if (GetKeyValue(szSect, szKey, buf, 50, bWarnIfNotfound) == -1)
 	{
 		if( bWarnIfNotfound )
-			std::cout << "Setting parameter " << szKey <<" = " << *pValue << " of section '" << szSect << 
+			std::cout << "Setting parameter " << szKey <<" = " << *pValue << " of section '" << szSect <<
 											"' in File '" << m_fileName.c_str() << std::endl;
 		return -1;
 	}
 
 	*pValue = atof(buf);
 	return 0;
-} 
+}
 //-----------------------------------------------
 int IniFile::GetKeyDouble(const char* pSect,const char* pKey,double* pValue,
 						  double dDefault, bool bWarnIfNotfound)
@@ -369,14 +369,14 @@ int IniFile::GetKeyValue(const char* szSect,const char* szKey,char* szBuf,
 		return -1;
 	}
 	if ( FindSection(szSect, bWarnIfNotfound) )
-	{	fclose(f); 
+	{	fclose(f);
 		return -1;
 	}
 	if ( FindKey(szKey, bWarnIfNotfound) )
-	{	fclose(f); 
+	{	fclose(f);
 		return -1;
 	}
-	
+
 	if (feof(f))
 	{
 		fclose(f);
@@ -400,13 +400,13 @@ int IniFile::GetKeyValue(const char* szSect,const char* szKey,char* szBuf,
 	{
 		StrLen = lenBuf-1;
 	}
-	szBuf[StrLen] = '\0';	
-	
+	szBuf[StrLen] = '\0';
+
 	fclose(f);
 	return StrLen;
 }
 //--------------------------------------------------------------------------------
-int IniFile::GetKeyString(const char* szSect,const char* szKey, std::string* pStrToRead, 
+int IniFile::GetKeyString(const char* szSect,const char* szKey, std::string* pStrToRead,
 							bool bWarnIfNotfound)
 {
 	if (!m_bFileOK) return -1;
@@ -422,14 +422,14 @@ int IniFile::GetKeyString(const char* szSect,const char* szKey, std::string* pSt
 		return -1;
 	}
 	if ( FindSection(szSect, bWarnIfNotfound) )
-	{	fclose(f); 
+	{	fclose(f);
 		return -1;
 	}
 	if ( FindKey(szKey, bWarnIfNotfound) )
-	{	fclose(f); 
+	{	fclose(f);
 		return -1;
 	}
-	
+
 	if (feof(f))
 	{
 		fclose(f);
@@ -450,9 +450,9 @@ int IniFile::GetKeyString(const char* szSect,const char* szKey, std::string* pSt
 	std::string strRead;
 	res = ReadLineUntil(f, '"', strRead); // read string
 	if(res == -1)
-	{	
+	{
 		if(bWarnIfNotfound)
-		{	
+		{
 			std::cout << "GetKeyString section " << szSect << " key " << szKey << " string not found" << std::endl;
 		}
 		fclose(f);
@@ -467,14 +467,14 @@ int IniFile::GetKeyString(const char* szSect,const char* szKey, std::string* pSt
 //--------------------------------------------------------------------------------
 int IniFile::SkipLineUntil(FILE* pFile, const char EndChar)
 {
-	int CharsRead = 0;			
+	int CharsRead = 0;
 	while (1)
 	{
 		int Char = fgetc(pFile);
-		
+
 		if (Char == EndChar)			// end found?
 			return CharsRead;			// read finished
-	
+
 		if (Char == EOF || Char == '\n')
 			return -1;				// end not found
 
@@ -484,14 +484,14 @@ int IniFile::SkipLineUntil(FILE* pFile, const char EndChar)
 //--------------------------------------------------------------------------------
 int IniFile::ReadLineUntil(FILE* pFile, const char EndChar, std::string& ReadIntoStr)
 {
-	int CharsRead = 0;			
+	int CharsRead = 0;
 	while (1)
 	{
 		int Char = fgetc(pFile);
-		
+
 		if (Char == EndChar)			// end found?
 			return CharsRead;			// read finished
-	
+
 		if (Char == EOF || Char == '\n')
 			return -1;				// end not found
 
@@ -539,7 +539,7 @@ int IniFile::FindNextSection(std::string* pSect, std::string prevSect, bool bWar
 		fseek(f,0,SEEK_SET);
 	}
 
-	FindNextLine(m_CurLine, m_CurCharInd); //read first line of file           
+	FindNextLine(m_CurLine, m_CurCharInd); //read first line of file
 	do
 	{
 		if (m_CurLine[0] == '[')
@@ -551,10 +551,10 @@ int IniFile::FindNextSection(std::string* pSect, std::string prevSect, bool bWar
 					for( int i=1; i<m_CurCharInd; ++i )
 						pSect->append(1, char(m_CurLine[i]));
 					return 0;
-				}	
+				}
 			}
 		}
-		else 
+		else
 		{
 			FindNextLine(m_CurLine, m_CurCharInd);
 		}
@@ -566,24 +566,24 @@ int IniFile::FindNextSection(std::string* pSect, std::string prevSect, bool bWar
 	return 0;
 }
 //--------------------------------------------------------------------------------
-int IniFile::FindSection(const char* sect, 
+int IniFile::FindSection(const char* sect,
 							bool bWarnIfNotfound)
 {
 	int   lS;
 	lS = strlen(sect);
 	if (feof(f)) return -1;
-  
-	FindNextLine(m_CurLine, m_CurCharInd); //read first line of file           
+
+	FindNextLine(m_CurLine, m_CurCharInd); //read first line of file
 	do
 	{
 		if (m_CurLine[0] == '[')
 		{
 			m_CurCharInd++;
 			if ((strncmp(&m_CurLine[m_CurCharInd], sect, lS) == 0) && (m_CurLine[m_CurCharInd+lS] == ']')) // if found section name equals searched one
-	        {                     
+	        {
 				return 0;
-			}	
-			else 
+			}
+			else
 			{
 				FindNextLine(m_CurLine, m_CurCharInd);
 			}
@@ -592,7 +592,7 @@ int IniFile::FindSection(const char* sect,
 		{
 			m_CurCharInd++;
 		}
-		else 
+		else
 		{
 			FindNextLine(m_CurLine, m_CurCharInd);
 		}
@@ -604,34 +604,34 @@ int IniFile::FindSection(const char* sect,
 		std::cout << "Section [" << sect << "] in IniFile " << m_fileName.c_str() << " used by "
 			<< m_strIniFileUsedBy << " not found" << std::endl;
 	}
-	
+
 	return -1;
 }
 //--------------------------------------------------------------------------------
-int IniFile::FindKey(const char* skey, 
+int IniFile::FindKey(const char* skey,
 							bool bWarnIfNotfound)
 {
 	int   lS;
 	long  fpos = 0l;
 	lS = strlen(skey);
 	if (feof(f)) return -1;
-	
+
 	do
 	{
 		fpos=ftell(f);// pointer to the begin of the last read line
 		FindNextLine(m_CurLine, m_CurCharInd);
-		
+
 		while ( m_CurLine[m_CurCharInd] == ' ' ) // skip blanks
 			{
 				m_CurCharInd++;
 				fpos++;
 			}
-		
+
 		if (m_CurLine[m_CurCharInd] == '[') // next section?
 			break; // not found
 
 		if (strncmp(&m_CurLine[m_CurCharInd], skey, lS) == 0) //Found
-		{   
+		{
 			m_CurCharInd+=lS;
 			fpos+=lS; // set file pointer to end of found key
             while ( m_CurLine[m_CurCharInd] == ' ' ) // skip blanks
@@ -642,13 +642,13 @@ int IniFile::FindKey(const char* skey,
 			if ( m_CurLine[m_CurCharInd] == '=' )
 			{
 				m_CurCharInd++; // set index to first char after the =
-				fpos++;         
+				fpos++;
 				fseek(f,fpos,SEEK_SET);// set file pointer to first char after the =
 				return 0;
 			}
-			
+
 		}
-		
+
 	}while (!feof(f));
 
 	if(bWarnIfNotfound)

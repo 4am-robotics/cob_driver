@@ -3,7 +3,7 @@
 // Phidgets devices to the PC.
 //
 // Copyright 2008 Phidgets Inc.  All rights reserved.
-// This work is licensed under the Creative Commons Attribution 2.5 Canada License. 
+// This work is licensed under the Creative Commons Attribution 2.5 Canada License.
 // view a copy of this license, visit http://creativecommons.org/licenses/by/2.5/ca/
 
 #include <ros/ros.h>
