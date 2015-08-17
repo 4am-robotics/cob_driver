@@ -23,7 +23,7 @@ target_link_libraries(lms100 lms1xx ${catkin_LIBRARIES})
 target_link_libraries(set_config lms1xx ${catkin_LIBRARIES})
 
 ### INSTALL ###
-install(TARGETS lms1xx_test lms100 set_config
+install(TARGETS lms1xx lms1xx_test lms100 set_config
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
