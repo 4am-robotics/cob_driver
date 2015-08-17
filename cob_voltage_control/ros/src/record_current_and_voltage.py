@@ -1,14 +1,11 @@
 #!/usr/bin/env python
-import roslib; roslib.load_manifest('cob_voltage_control')
+
 import rospy
-import time
-import csv
-from std_msgs.msg import Float64
 from cob_phidgets.msg import *
 
 def callback(data):
-	#print "voltage=", data.value[1] # voltage sensor is on the second port of the phidgets board 
-	#print "current=", data.value[0] # current sensor is on the first port of the phidgets board 
+	#print "voltage=", data.value[1] # voltage sensor is on the second port of the phidgets board
+	#print "current=", data.value[0] # current sensor is on the first port of the phidgets board
 	writer.writerow( ( round((rospy.Time.now() - starttime).to_sec(),5), data.value[1], data.value[0]) )
 
 def record():

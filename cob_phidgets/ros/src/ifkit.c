@@ -66,7 +66,7 @@ int test_interfacekit()
 	CPhidgetInterfaceKitHandle IFK = 0;
 
 	//CPhidget_enableLogging(PHIDGET_LOG_VERBOSE, NULL);
-	
+
 	CPhidgetInterfaceKit_create(&IFK);
 
 	CPhidgetInterfaceKit_set_OnInputChange_Handler(IFK, IFK_InputChangeHandler, NULL);
@@ -75,7 +75,7 @@ int test_interfacekit()
 	CPhidget_set_OnAttach_Handler((CPhidgetHandle)IFK, IFK_AttachHandler, NULL);
 	CPhidget_set_OnDetach_Handler((CPhidgetHandle)IFK, IFK_DetachHandler, NULL);
 	CPhidget_set_OnError_Handler((CPhidgetHandle)IFK, IFK_ErrorHandler, NULL);
-	
+
 	CPhidget_open((CPhidgetHandle)IFK, -1);
 
 	//wait 5 seconds for attachment
@@ -86,12 +86,12 @@ int test_interfacekit()
 		printf("Error waiting for attachment: (%d): %s\n",err,errStr);
 		goto exit;
 	}
-	
+
 	display_generic_properties((CPhidgetHandle)IFK);
 	CPhidgetInterfaceKit_getOutputCount((CPhidgetInterfaceKitHandle)IFK, &numOutputs);
 	CPhidgetInterfaceKit_getInputCount((CPhidgetInterfaceKitHandle)IFK, &numInputs);
 	CPhidgetInterfaceKit_getSensorCount((CPhidgetInterfaceKitHandle)IFK, &numSensors);
-	
+
 	CPhidgetInterfaceKit_setOutputState((CPhidgetInterfaceKitHandle)IFK, 0, 1);
 
 	printf("Sensors:%d Inputs:%d Outputs:%d\n", numSensors, numInputs, numOutputs);

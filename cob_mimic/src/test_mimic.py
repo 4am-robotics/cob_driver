@@ -34,7 +34,7 @@ if __name__ == '__main__':
         if len(sys.argv) != 2:
             print "Error: please specify mimic string as input"
             sys.exit(1)
-        
+
         rospy.init_node('mimic_test_node')
         result = mimic_client()
     except rospy.ROSInterruptException:

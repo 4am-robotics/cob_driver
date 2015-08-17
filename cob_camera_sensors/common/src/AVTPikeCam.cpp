@@ -88,7 +88,7 @@ AVTPikeCam::AVTPikeCam()
 #ifndef __LINUX__
 	m_Frame.pData = 0;
 #endif
- 					
+
 }
 
 AVTPikeCam::~AVTPikeCam()
@@ -132,17 +132,17 @@ unsigned long AVTPikeCam::Init(std::string directory, int cameraIndex)
 		{
 			m_IEEE1394Info = dc1394_new();
 		}
-		dc1394error_t err = dc1394_camera_enumerate(m_IEEE1394Info, &m_IEEE1394Cameras);                              
-		if (err!=DC1394_SUCCESS) 
-		{    
+		dc1394error_t err = dc1394_camera_enumerate(m_IEEE1394Info, &m_IEEE1394Cameras);
+		if (err!=DC1394_SUCCESS)
+		{
 			std::cerr << "ERROR - AVTPikeCam::Init:" << std::endl;
 			std::cerr << "\t ... Failed to enumerate cameras" << std::endl;
 			std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-			return RET_FAILED;                                         
-		}             
+			return RET_FAILED;
+		}
 
-		if (m_IEEE1394Cameras->num == 0) 
-		{                                                  
+		if (m_IEEE1394Cameras->num == 0)
+		{
 			std::cerr << "ERROR - AVTPikeCam::Init:" << std::endl;
 			std::cerr << "\t ... No cameras found" << std::endl;
 			return RET_FAILED;
@@ -185,8 +185,8 @@ unsigned long AVTPikeCam::Init(std::string directory, int cameraIndex)
 			return RET_FAILED;
 		}
 
-		if (m_NodeCnt <= 0) 
-		{                                                  
+		if (m_NodeCnt <= 0)
+		{
 			std::cout << "ERROR - AVTPikeCam::Init:" << std::endl;
 			std::cerr << "\t ... No cameras found." << std::endl;
 			return RET_FAILED;
@@ -218,10 +218,10 @@ unsigned long AVTPikeCam::Open()
 	}
 	m_open = false;
 
-  
+
 #ifdef __LINUX__
 	dc1394error_t err;
-	
+
 	// Connect with IEEE1394 node
 	unsigned int i=0;
 	for(; i<m_IEEE1394Cameras->num; i++)
@@ -229,7 +229,7 @@ unsigned long AVTPikeCam::Open()
 		uint64_t high = m_GUID.High;
 		uint64_t low = m_GUID.Low;
 		uint64_t guid = (high << 32) + low;
-		if (m_IEEE1394Cameras->ids[i].guid == guid) break; 
+		if (m_IEEE1394Cameras->ids[i].guid == guid) break;
 	}
 	// Check if specified GUID has been found
 	if (i == m_IEEE1394Cameras->num)
@@ -257,30 +257,30 @@ unsigned long AVTPikeCam::Open()
 
 	err = dc1394_capture_setup(m_cam, m_BufferSize, DC1394_CAPTURE_FLAGS_DEFAULT);
 	// Relase allocated bandwidth and retry
-	if (err!=DC1394_SUCCESS) 
-	{   
+	if (err!=DC1394_SUCCESS)
+	{
 		std::cout << "INFO - AVTPikeCam::Open:" << std::endl;
 		std::cout << "\t ... Releasing bandwdith and retrying to setup DMA capture" << std::endl;
 		uint32_t bandwidth = -1;
 		err = dc1394_video_get_bandwidth_usage(m_cam, &bandwidth);
-		if (err!=DC1394_SUCCESS) 
-		{    
+		if (err!=DC1394_SUCCESS)
+		{
 			std::cerr << "ERROR - AVTPikeCam::Open:" << std::endl;
 			std::cerr << "\t ... Failed to get bandwith usage of camera device" << std::endl;
 			std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
 			return RET_FAILED;
 		}
 		dc1394_iso_release_bandwidth(m_cam, bandwidth);
-		if (err!=DC1394_SUCCESS) 
-		{    
+		if (err!=DC1394_SUCCESS)
+		{
 			std::cerr << "ERROR - AVTPikeCam::Open:" << std::endl;
 			std::cerr << "\t ... Failed to relase requested bandwidth '" << bandwidth << "'" << std::endl;
 			std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
 			return RET_FAILED;
 		}
 		err = dc1394_capture_setup(m_cam, m_BufferSize, DC1394_CAPTURE_FLAGS_DEFAULT);
-		if (err!=DC1394_SUCCESS) 
-		{    
+		if (err!=DC1394_SUCCESS)
+		{
 			std::cerr << "ERROR - AVTPikeCam::Open:" << std::endl;
 			std::cerr << "\t ... Failed to setup cameras device" << std::endl;
 			std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
@@ -290,14 +290,14 @@ unsigned long AVTPikeCam::Open()
 
 
 	// Start transmission
-	err=dc1394_video_set_transmission(m_cam, DC1394_ON);                  
-	if (err!=DC1394_SUCCESS) 
-	{    
+	err=dc1394_video_set_transmission(m_cam, DC1394_ON);
+	if (err!=DC1394_SUCCESS)
+	{
 		std::cerr << "ERROR - AVTPikeCam::Open:" << std::endl;
 		std::cerr << "\t ... 'dc1394_video_set_transmission' failed." << std::endl;
 		std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-		return RET_FAILED;                                         
-	} 
+		return RET_FAILED;
+	}
 
 #else
 
@@ -307,7 +307,7 @@ unsigned long AVTPikeCam::Open()
 	unsigned int i=0;
 	for(; i<m_NodeCnt; i++)
 	{
-		if (m_nodeInfo[i].Guid.Low - m_GUID.Low == 0 && 
+		if (m_nodeInfo[i].Guid.Low - m_GUID.Low == 0 &&
 			m_nodeInfo[i].Guid.High - m_GUID.High == 0) break;
 	}
 	// Check if specified GUID has been found
@@ -336,7 +336,7 @@ unsigned long AVTPikeCam::Open()
 	if(err!=FCE_NOERROR)
 	{
 		std::cerr << "ERROR - AVTPikeCam::Open:" << std::endl;
-		std::cerr << "\t ... Could not set DMA buffer size to '"<< m_BufferSize 
+		std::cerr << "\t ... Could not set DMA buffer size to '"<< m_BufferSize
                   << "' ( error " << err << " )" << std::endl;
 		return RET_FAILED;
 	}
@@ -349,7 +349,7 @@ unsigned long AVTPikeCam::Open()
 		std::cerr << "\t ... Could not start DMA logic ( error " << err << " )" << std::endl;
 		return RET_FAILED;
 	}
-	
+
 	// Start image acquisition
 	err=m_cam.StartDevice();
 	if(err!=FCE_NOERROR)
@@ -369,7 +369,7 @@ unsigned long AVTPikeCam::Open()
 
 
 unsigned long AVTPikeCam::SaveParameters(const char* filename)
-{ 
+{
 	return RET_FAILED;
 }
 
@@ -389,15 +389,15 @@ unsigned long AVTPikeCam::Close()
 	{
 		// Stop transmission
 		dc1394error_t err;
-	    err=dc1394_video_set_transmission(m_cam, DC1394_OFF);                
-		if (err!=DC1394_SUCCESS) 
-		{    
+	    err=dc1394_video_set_transmission(m_cam, DC1394_OFF);
+		if (err!=DC1394_SUCCESS)
+		{
 			std::cerr << "ERROR - AVTPikeCam::Close:" << std::endl;
 			std::cerr << "\t ... 'dc1394_video_set_transmission' failed." << std::endl;
 			std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-			return RET_FAILED;                                         
-		} 
-	    dc1394_capture_stop(m_cam);                                      
+			return RET_FAILED;
+		}
+	    dc1394_capture_stop(m_cam);
 		dc1394_camera_free(m_cam);
 		m_cam = 0;
 	}
@@ -428,16 +428,16 @@ unsigned long AVTPikeCam::Close()
 		std::cerr << "\t ...  Could not disconnect camera. ( error " << err << " )" << std::endl;		return RET_FAILED;
 	}
 
-	
+
 #endif
 
 	m_open = false;
 	return RET_OK;
-} 
+}
 
 
 
-unsigned long AVTPikeCam::SetPropertyDefaults() 
+unsigned long AVTPikeCam::SetPropertyDefaults()
 {
 	return RET_FUNCTION_NOT_IMPLEMENTED;
 }
@@ -452,29 +452,29 @@ unsigned long AVTPikeCam::GetProperty(t_cameraProperty* cameraProperty)
 			cameraProperty->u_integerData = m_BufferSize;
 			return RET_OK;
 			break;
-		case PROP_CAMERA_RESOLUTION:	
+		case PROP_CAMERA_RESOLUTION:
 			if (isOpen())
-			{	
+			{
 				uint32_t imageWidth = -1;
 				uint32_t imageHeight = -1;
 				dc1394video_mode_t videoMode;
 				err=dc1394_video_get_mode(m_cam, &videoMode);
-				if (err!=DC1394_SUCCESS) 
-				{    
+				if (err!=DC1394_SUCCESS)
+				{
 					std::cerr << "ERROR - AVTPikeCam::GetProperty:" << std::endl;
 					std::cerr << "\t ... Failed to get video mode." << std::endl;
 					std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-					return RET_FAILED;                                         
-				} 
-	
+					return RET_FAILED;
+				}
+
 				err = dc1394_get_image_size_from_video_mode(m_cam, videoMode, &imageWidth, &imageHeight);
-				if (err!=DC1394_SUCCESS) 
-				{    
+				if (err!=DC1394_SUCCESS)
+				{
 					std::cerr << "ERROR - AVTPikeCam::GetProperty:" << std::endl;
 					std::cerr << "\t ... Failed to get image size." << std::endl;
 					std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-					return RET_FAILED;                                         
-				} 
+					return RET_FAILED;
+				}
 				cameraProperty->cameraResolution.xResolution = (int) imageWidth;
 				cameraProperty->cameraResolution.yResolution = (int) imageHeight;
 			}
@@ -490,7 +490,7 @@ unsigned long AVTPikeCam::GetProperty(t_cameraProperty* cameraProperty)
 
 			return RET_OK;
 			break;
-		default: 				
+		default:
 			std::cerr << "ERROR - AVTPikeCam::GetProperty:" << std::endl;
 			std::cerr << "\t ... Property " << cameraProperty->propertyID << " unspecified" << std::endl;
 			return RET_FAILED;
@@ -502,36 +502,36 @@ unsigned long AVTPikeCam::GetProperty(t_cameraProperty* cameraProperty)
 	UINT32 err;
 	switch (cameraProperty->propertyID)
 	{
-		case PROP_BRIGHTNESS:	
-			
+		case PROP_BRIGHTNESS:
+
 			break;
 		case PROP_EXPOSURE_TIME:
-			
+
 			break;
 		case PROP_WHITE_BALANCE_U:
-			
+
 			break;
-		case PROP_WHITE_BALANCE_V:	
-			
+		case PROP_WHITE_BALANCE_V:
+
 			break;
-		case PROP_HUE:	
-			
+		case PROP_HUE:
+
 			break;
-		case PROP_SATURATION:	
-			
+		case PROP_SATURATION:
+
 			break;
-		case PROP_GAMMA:	
-			
+		case PROP_GAMMA:
+
 			break;
-		case PROP_GAIN:	
-			
+		case PROP_GAIN:
+
 			break;
-		case PROP_CAMERA_RESOLUTION:	
+		case PROP_CAMERA_RESOLUTION:
 			if (isOpen())
-			{	
+			{
 				UINT32 x;
 				UINT32 y;
-	
+
 				err = m_cam.GetParameter(FGP_XSIZE, &x);
 				if(err!=FCE_NOERROR)
 				{
@@ -558,7 +558,7 @@ unsigned long AVTPikeCam::GetProperty(t_cameraProperty* cameraProperty)
 				cameraProperty->cameraResolution.yResolution = 1038;
 				cameraProperty->propertyType = TYPE_CAMERA_RESOLUTION;
 			}
-	
+
 			return RET_OK;
 			break;
 		case PROP_FW_OPERATION_MODE:
@@ -571,9 +571,9 @@ unsigned long AVTPikeCam::GetProperty(t_cameraProperty* cameraProperty)
 			return RET_OK;
 			break;
 		case PROP_ISO_SPEED:
-			
+
 			break;
-		default: 				
+		default:
 			std::cerr << "ERROR - AVTPikeCam::GetProperty:" << std::endl;
 			std::cerr << "\t ... Property " << cameraProperty->propertyID << " unspecified";
 			return RET_FAILED;
@@ -583,7 +583,7 @@ unsigned long AVTPikeCam::GetProperty(t_cameraProperty* cameraProperty)
 
 	return RET_OK;
 #endif
-} 
+}
 
 
 unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFrame)
@@ -595,19 +595,19 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 		return (RET_FAILED | RET_CAMERA_NOT_OPEN);
 	}
 #ifdef __LINUX__
-	
+
 	dc1394error_t err;
 
 	if (m_Frame)
 	{
 		// Release the buffer from previous function call
-		err=dc1394_capture_enqueue(m_cam, m_Frame);                            
-		if (err!=DC1394_SUCCESS) 
-		{    
+		err=dc1394_capture_enqueue(m_cam, m_Frame);
+		if (err!=DC1394_SUCCESS)
+		{
 			std::cerr << "AVTPikeCam::GetColorImage:" << std::endl;
 			std::cerr << "\t ... 'dc1394_capture_enqueue' failed." << std::endl;
 			std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-			return RET_FAILED;                                         
+			return RET_FAILED;
 		}
 	}
 
@@ -621,28 +621,28 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 		{
 			m_Frame = 0;
 			err=dc1394_capture_dequeue(m_cam, DC1394_CAPTURE_POLICY_POLL, &m_Frame);
-			if (err!=DC1394_SUCCESS) 
-			{    
+			if (err!=DC1394_SUCCESS)
+			{
 				std::cerr << "ERROR - AVTPikeCam::GetColorImage:" << std::endl;
 				std::cerr << "\t ... 'dc1394_capture_dequeue' failed." << std::endl;
 				std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-				return RET_FAILED;                                         
+				return RET_FAILED;
 			}
 
 			if (m_Frame == 0)
 			{
 				break;
 			}
-			
-			err=dc1394_capture_enqueue(m_cam, m_Frame);                            
-			if (err!=DC1394_SUCCESS) 
-			{    
+
+			err=dc1394_capture_enqueue(m_cam, m_Frame);
+			if (err!=DC1394_SUCCESS)
+			{
 				std::cerr << "ERROR - AVTPikeCam::GetColorImage:" << std::endl;
 				std::cerr << "\t ... 'dc1394_capture_enqueue' failed." << std::endl;
 				std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-				return RET_FAILED;                                         
+				return RET_FAILED;
 			}
-		} 
+		}
 		while (true);
 	}
 
@@ -651,16 +651,16 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 
 	// Capture
 	err=dc1394_capture_dequeue(m_cam, DC1394_CAPTURE_POLICY_WAIT, &m_Frame);
-	if (err!=DC1394_SUCCESS) 
-	{    
+	if (err!=DC1394_SUCCESS)
+	{
 		std::cerr << "ERROR - AVTPikeCam::GetColorImage:" << std::endl;
 		std::cerr << "\t ... 'dc1394_capture_dequeue' failed." << std::endl;
 		std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-		return RET_FAILED;                                         
-	} 
+		return RET_FAILED;
+	}
 	unsigned char * src = (unsigned char *)m_Frame->image;
 	unsigned char * dst = (unsigned char *)colorImageData;
-	
+
 	// Convert RGB to BGR
 	int width;
 	int height;
@@ -670,7 +670,7 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 	width = cameraProperty.cameraResolution.xResolution;
 	height = cameraProperty.cameraResolution.yResolution;
 
-	for (int i=0;i<width*height*3;i+=6) 
+	for (int i=0;i<width*height*3;i+=6)
 	{
 		dst[i]   = src[i+2];
 		dst[i+1] = src[i+1];
@@ -681,9 +681,9 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 	}
 
 	return RET_OK;
-	
+
 #else
-	
+
 	UINT32 err;
 
 	// Release previously acquired m_Frame
@@ -698,11 +698,11 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 			return RET_FAILED;
 		}
 	}
-		
+
 	if (getLatestFrame)
 	{
 		// One shot mode
-		// Reset image buffer to guarantee, that the latest images are returned 
+		// Reset image buffer to guarantee, that the latest images are returned
 		err = m_cam.DiscardFrames();
 		if(err!=FCE_NOERROR)
 		{
@@ -712,7 +712,7 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 		}
 	}
 
-	
+
 	// Blocking-Wait for the next m_Frame
 	err = m_cam.GetFrame(&m_Frame);
 	if(err!=FCE_NOERROR)
@@ -724,7 +724,7 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 
 	unsigned char * src = (unsigned char *)m_Frame.pData;
 	unsigned char * dst = (unsigned char *)colorImageData;
-	
+
 	// Convert RGB to BGR
 	int width;
 	int height;
@@ -734,7 +734,7 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 	width = cameraProperty.cameraResolution.xResolution;
 	height = cameraProperty.cameraResolution.yResolution;
 
-	for (int i=0; i<width*height*3; i+=6) 
+	for (int i=0; i<width*height*3; i+=6)
 	{
 		dst[i]   = src[i+2];
 		dst[i+1] = src[i+1];
@@ -743,9 +743,9 @@ unsigned long AVTPikeCam::GetColorImage(char* colorImageData, bool getLatestFram
 		dst[i+4] = src[i+4];
 		dst[i+5] = src[i+3];
 	}
-	
+
 	return RET_OK;
-	
+
 #endif
 }
 
@@ -841,7 +841,7 @@ unsigned long AVTPikeCam::PrintCameraInformation()
 			case 54: parameterName = "FGP_PACKETCOUNT"; break;		// Read only: Packet count
 			case 55: parameterName = "FGP_DO_MULTIBUSTRIGGER"; break;// Do trigger on several busses
 			case 56: parameterName = "FGP_LAST"; break;
-			
+
 			default: parameterName = "Unknown parameter";
 		}
 
@@ -859,7 +859,7 @@ unsigned long AVTPikeCam::PrintCameraInformation()
 	return RET_OK;
 }
 
-unsigned long AVTPikeCam::TestCamera(const char* filename) 
+unsigned long AVTPikeCam::TestCamera(const char* filename)
 {
 	if (AbstractColorCamera::TestCamera(filename) & RET_FAILED)
 	{
@@ -898,20 +898,20 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 		case PROP_MODULATION_FREQUENCY:
 			// Not implemented
 			break;
-		case PROP_SHUTTER:	
+		case PROP_SHUTTER:
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
 			{
 				if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_AUTO)
 				{
 #ifdef __LINUX__
 					err=dc1394_feature_set_mode(m_cam, DC1394_FEATURE_SHUTTER, DC1394_FEATURE_MODE_AUTO);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Failed to set shutter to AUTO mode." << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 #else
 					err = m_cam.SetParameter(FGP_SHUTTER, PVAL_AUTO);
 					if(err!=FCE_NOERROR)
@@ -942,28 +942,28 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				if ((cameraProperty->u_longData < min) | (cameraProperty->u_longData > max))
 				{
 					std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-					std::cerr << "\t ... Shutter time " << cameraProperty->u_longData 
+					std::cerr << "\t ... Shutter time " << cameraProperty->u_longData
 						<< " has to be a value between " << min << " and " << max << "." << std::endl;
 					return RET_FAILED;
 				}
 				else
 				{
 					err=dc1394_feature_set_value(m_cam, DC1394_FEATURE_SHUTTER, (uint32_t) cameraProperty->u_longData);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-						std::cerr << "\t ... Could not set shutter time " 
+						std::cerr << "\t ... Could not set shutter time "
 							<< cameraProperty->u_longData << " ( error " << err << " )" << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 				}
 #else
 				m_cam.GetParameterInfo(FGP_SHUTTER, &info);
 				if ((cameraProperty->u_longData < info.MinValue) | (cameraProperty->u_longData > info.MaxValue))
 				{
 					std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-					std::cerr << "\t ... Shutter time " << cameraProperty->u_longData 
+					std::cerr << "\t ... Shutter time " << cameraProperty->u_longData
 						<< " has to be a value between " << info.MinValue << " and " << info.MaxValue << "." << std::endl;
 					return RET_FAILED;
 				}
@@ -973,7 +973,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					if(err!=FCE_NOERROR)
 					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-						std::cerr << "\t ... Could not set shutter time " 
+						std::cerr << "\t ... Could not set shutter time "
 							<< cameraProperty->u_longData << " ( error " << err << " )" << std::endl;
 						return RET_FAILED;
 					}
@@ -997,13 +997,13 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				{
 #ifdef __LINUX__
 					err=dc1394_feature_set_mode(m_cam, DC1394_FEATURE_BRIGHTNESS, DC1394_FEATURE_MODE_AUTO);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Failed to set brightness to AUTO mode." << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 #else
 					err = m_cam.SetParameter(FGP_BRIGHTNESS, PVAL_AUTO);
 					if(err!=FCE_NOERROR)
@@ -1034,21 +1034,21 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				if ((cameraProperty->u_longData < min) | (cameraProperty->u_longData > max))
 				{
 					std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-					std::cerr << "\t ... Brighness " << cameraProperty->u_longData 
+					std::cerr << "\t ... Brighness " << cameraProperty->u_longData
 						<< " has to be a value between " << min << " and " << max << "." << std::endl;
 					return RET_FAILED;
 				}
 				else
 				{
 					err=dc1394_feature_set_value(m_cam, DC1394_FEATURE_BRIGHTNESS, (uint32_t) cameraProperty->u_longData);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-						std::cerr << "\t ... Could not set brighness " 
+						std::cerr << "\t ... Could not set brighness "
 							<< cameraProperty->u_longData << " ( error " << err << " )" << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 				}
 #else
 				m_cam.GetParameterInfo(FGP_BRIGHTNESS, &info);
@@ -1087,13 +1087,13 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				{
 #ifdef __LINUX__
 					err=dc1394_feature_set_mode(m_cam, DC1394_FEATURE_EXPOSURE, DC1394_FEATURE_MODE_AUTO);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Failed to set exposure time to AUTO mode." << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 #else
 					err = m_cam.SetParameter(FGP_AUTOEXPOSURE, PVAL_AUTO);
 					if(err!=FCE_NOERROR)
@@ -1124,28 +1124,28 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				if ((cameraProperty->u_longData < min) | (cameraProperty->u_longData > max))
 				{
 					std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-					std::cerr << "\t ... Exposure time " << cameraProperty->u_longData 
+					std::cerr << "\t ... Exposure time " << cameraProperty->u_longData
 						<< " has to be a value between " << min << " and " << max << "." << std::endl;
 					return RET_FAILED;
 				}
 				else
 				{
 					err=dc1394_feature_set_value(m_cam, DC1394_FEATURE_EXPOSURE, (uint32_t) cameraProperty->u_longData);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-						std::cerr << "\t ... Could not set exposure time " 
+						std::cerr << "\t ... Could not set exposure time "
 							<< cameraProperty->u_longData << " ( error " << err << " )" << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 				}
 #else
 				m_cam.GetParameterInfo(FGP_AUTOEXPOSURE, &info);
 				if ((cameraProperty->u_longData < info.MinValue) | (cameraProperty->u_longData > info.MaxValue))
 				{
 					std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-					std::cerr << "\t ... Exposure time " << cameraProperty->u_longData 
+					std::cerr << "\t ... Exposure time " << cameraProperty->u_longData
 						<< " has to be a value between " << info.MinValue << " and " << info.MaxValue << "." << std::endl;
 					return RET_FAILED;
 				}
@@ -1178,13 +1178,13 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				{
 #ifdef __LINUX__
 					err=dc1394_feature_set_mode(m_cam, DC1394_FEATURE_WHITE_BALANCE, DC1394_FEATURE_MODE_AUTO);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Failed to set white balance U to AUTO mode." << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 #else
 					err = m_cam.SetParameter(FGP_WHITEBALCB, PVAL_AUTO);
 					if(err!=FCE_NOERROR)
@@ -1215,7 +1215,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				if ((cameraProperty->u_longData < min) | (cameraProperty->u_longData > max))
 				{
 					std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-					std::cerr << "\t ... White balance U " << cameraProperty->u_longData 
+					std::cerr << "\t ... White balance U " << cameraProperty->u_longData
 						<< " has to be a value between " << min << " and " << max << "." << std::endl;
 					return RET_FAILED;
 				}
@@ -1225,21 +1225,21 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					uint32_t whiteV;
 					dc1394_feature_whitebalance_get_value(m_cam, &whiteU, &whiteV);
 					err=dc1394_feature_whitebalance_set_value(m_cam, (uint32_t) cameraProperty->u_longData, whiteV);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-						std::cerr << "\t ... Could not set white balance U " 
+						std::cerr << "\t ... Could not set white balance U "
 							<< cameraProperty->u_longData << " ( error " << err << " )" << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 				}
 #else
 				m_cam.GetParameterInfo(FGP_WHITEBALCB, &info);
 				if ((cameraProperty->u_longData < info.MinValue) | (cameraProperty->u_longData > info.MaxValue))
 				{
 					std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-					std::cerr << "\t ... White balance U value " << cameraProperty->u_longData 
+					std::cerr << "\t ... White balance U value " << cameraProperty->u_longData
 						<< " has to be a value between " << info.MinValue << " and " << info.MaxValue << "." << std::endl;
 					return RET_FAILED;
 				}
@@ -1265,20 +1265,20 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 ///====================================================================
 // PROP_WHITE_BALANCE_V
 ///====================================================================
-		case PROP_WHITE_BALANCE_V:	
+		case PROP_WHITE_BALANCE_V:
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
 			{
 				if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_AUTO)
 				{
 #ifdef __LINUX__
 					err=dc1394_feature_set_mode(m_cam, DC1394_FEATURE_WHITE_BALANCE, DC1394_FEATURE_MODE_AUTO);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Failed to set white balance V to AUTO mode." << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 #else
 					err = m_cam.SetParameter(FGP_WHITEBALCR, PVAL_AUTO);
 					if(err!=FCE_NOERROR)
@@ -1309,7 +1309,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				if ((cameraProperty->u_longData < min) | (cameraProperty->u_longData > max))
 				{
 					std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-					std::cerr << "\t ... white balance V " << cameraProperty->u_longData 
+					std::cerr << "\t ... white balance V " << cameraProperty->u_longData
 						<< " has to be a value between " << min << " and " << max << "." << std::endl;
 					return RET_FAILED;
 				}
@@ -1319,21 +1319,21 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					uint32_t whiteV;
 					dc1394_feature_whitebalance_get_value(m_cam, &whiteU, &whiteV);
 					err=dc1394_feature_whitebalance_set_value(m_cam, whiteU, (uint32_t) cameraProperty->u_longData);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-						std::cerr << "\t ... Could not set white balance V " 
+						std::cerr << "\t ... Could not set white balance V "
 							<< cameraProperty->u_longData << " ( error " << err << " )" << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 				}
 #else
 				m_cam.GetParameterInfo(FGP_WHITEBALCR, &info);
 				if ((cameraProperty->u_longData < info.MinValue) | (cameraProperty->u_longData > info.MaxValue))
 				{
 					std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-					std::cerr << "\t ... White balance V value " << cameraProperty->u_longData 
+					std::cerr << "\t ... White balance V value " << cameraProperty->u_longData
 						<< " has to be a value between " << info.MinValue << " and " << info.MaxValue << "." << std::endl;
 					return RET_FAILED;
 				}
@@ -1366,13 +1366,13 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				{
 #ifdef __LINUX__
 					err=dc1394_feature_set_mode(m_cam, DC1394_FEATURE_HUE, DC1394_FEATURE_MODE_AUTO);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Failed to set hue to AUTO mode." << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 #else
 					err = m_cam.SetParameter(FGP_HUE, PVAL_AUTO);
 					if(err!=FCE_NOERROR)
@@ -1403,28 +1403,28 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				if ((cameraProperty->u_longData < min) | (cameraProperty->u_longData > max))
 				{
 					std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-					std::cerr << "\t ... Hue " << cameraProperty->u_longData 
+					std::cerr << "\t ... Hue " << cameraProperty->u_longData
 						<< " has to be a value between " << min << " and " << max << "." << std::endl;
 					return RET_FAILED;
 				}
 				else
 				{
 					err=dc1394_feature_set_value(m_cam, DC1394_FEATURE_HUE, (uint32_t) cameraProperty->u_longData);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-						std::cerr << "\t ... Could not set hue " 
+						std::cerr << "\t ... Could not set hue "
 							<< cameraProperty->u_longData << " ( error " << err << " )" << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 				}
 #else
 				m_cam.GetParameterInfo(FGP_HUE, &info);
 				if ((cameraProperty->u_longData < info.MinValue) | (cameraProperty->u_longData > info.MaxValue))
 				{
 					std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-					std::cerr << "\t ... Hue " << cameraProperty->u_longData 
+					std::cerr << "\t ... Hue " << cameraProperty->u_longData
 						<< " has to be a value between " << info.MinValue << " and " << info.MaxValue << "." << std::endl;
 				}
 				else
@@ -1433,7 +1433,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					if(err!=FCE_NOERROR)
 					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-						std::cerr << "\t ... Could not set image hue to " << cameraProperty->u_longData 
+						std::cerr << "\t ... Could not set image hue to " << cameraProperty->u_longData
 						<< " ( error " << err << " )" << std::endl;
 						return RET_FAILED;
 					}
@@ -1450,20 +1450,20 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 ///====================================================================
 // PROP_SATURATION
 ///====================================================================
-		case PROP_SATURATION:	
+		case PROP_SATURATION:
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
 			{
 				if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_AUTO)
 				{
 #ifdef __LINUX__
 					err=dc1394_feature_set_mode(m_cam, DC1394_FEATURE_SATURATION, DC1394_FEATURE_MODE_AUTO);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Failed to set saturation to AUTO mode." << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 #else
 					err = m_cam.SetParameter(FGP_SATURATION, PVAL_AUTO);
 					if(err!=FCE_NOERROR)
@@ -1494,21 +1494,21 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				if ((cameraProperty->u_longData < min) | (cameraProperty->u_longData > max))
 				{
 					std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-					std::cerr << "\t ... Saturation " << cameraProperty->u_longData 
+					std::cerr << "\t ... Saturation " << cameraProperty->u_longData
 						<< " has to be a value between " << min << " and " << max << "." << std::endl;
 					return RET_FAILED;
 				}
 				else
 				{
 					err=dc1394_feature_set_value(m_cam, DC1394_FEATURE_SATURATION, (uint32_t) cameraProperty->u_longData);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-						std::cerr << "\t ... Could not set saturation " 
+						std::cerr << "\t ... Could not set saturation "
 							<< cameraProperty->u_longData << " ( error " << err << " )" << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 				}
 #else
 				m_cam.GetParameterInfo(FGP_SATURATION, &info);
@@ -1539,20 +1539,20 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 ///====================================================================
 // PROP_GAMMA
 ///====================================================================
-		case PROP_GAMMA:	
+		case PROP_GAMMA:
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
 			{
 				if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_AUTO)
 				{
 #ifdef __LINUX__
 					err=dc1394_feature_set_mode(m_cam, DC1394_FEATURE_GAMMA, DC1394_FEATURE_MODE_AUTO);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Failed to set gamma to AUTO mode." << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 #else
 					err = m_cam.SetParameter(FGP_GAMMA, PVAL_AUTO);
 					if(err!=FCE_NOERROR)
@@ -1583,21 +1583,21 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				if ((cameraProperty->u_longData < min) | (cameraProperty->u_longData > max))
 				{
 					std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-					std::cerr << "\t ... Gamma " << cameraProperty->u_longData 
+					std::cerr << "\t ... Gamma " << cameraProperty->u_longData
 						<< " has to be a value between " << min << " and " << max << "." << std::endl;
 					return RET_FAILED;
 				}
 				else
 				{
 					err=dc1394_feature_set_value(m_cam, DC1394_FEATURE_GAMMA, (uint32_t) cameraProperty->u_longData);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-						std::cerr << "\t ... Could not set gamma " 
+						std::cerr << "\t ... Could not set gamma "
 							<< cameraProperty->u_longData << " ( error " << err << " )" << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 				}
 #else
 				m_cam.GetParameterInfo(FGP_GAMMA, &info);
@@ -1616,7 +1616,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 						std::cerr << "\t ... << Could not set gamma to " << cameraProperty->u_longData << " ( error " << err << " )" << std::endl;
 						return RET_FAILED;
 					}
-				}	
+				}
 #endif
 			}
 			else
@@ -1628,21 +1628,21 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			break;
 ///====================================================================
 // PROP_GAIN
-///====================================================================			
-		case PROP_GAIN:		
+///====================================================================
+		case PROP_GAIN:
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
 			{
 				if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_AUTO)
 				{
 #ifdef __LINUX__
 					err=dc1394_feature_set_mode(m_cam, DC1394_FEATURE_GAIN, DC1394_FEATURE_MODE_AUTO);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Failed to set gamma to AUTO mode." << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 #else
 					err = m_cam.SetParameter(FGP_GAIN, PVAL_AUTO);
 					if(err!=FCE_NOERROR)
@@ -1673,21 +1673,21 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				if ((cameraProperty->u_longData < min) | (cameraProperty->u_longData > max))
 				{
 					std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-					std::cerr << "\t ... Gamma " << cameraProperty->u_longData 
+					std::cerr << "\t ... Gamma " << cameraProperty->u_longData
 						<< " has to be a value between " << min << " and " << max << "." << std::endl;
 					return RET_FAILED;
 				}
 				else
 				{
 					err=dc1394_feature_set_value(m_cam, DC1394_FEATURE_GAIN, (uint32_t) cameraProperty->u_longData);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-						std::cerr << "\t ... Could not set gamma " 
+						std::cerr << "\t ... Could not set gamma "
 							<< cameraProperty->u_longData << " ( error " << err << " )" << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 				}
 #else
 				m_cam.GetParameterInfo(FGP_GAIN, &info);
@@ -1718,11 +1718,11 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			break;
 ///====================================================================
 // VIDEO FORMAT, VIDEO MODE and COLOR CODING
-///====================================================================	
-		case PROP_VIDEO_ALL:		
+///====================================================================
+		case PROP_VIDEO_ALL:
 			if (cameraProperty->propertyType ==
-				(ipa_CameraSensors::TYPE_VIDEO_FORMAT | 
-				ipa_CameraSensors::TYPE_VIDEO_MODE | 
+				(ipa_CameraSensors::TYPE_VIDEO_FORMAT |
+				ipa_CameraSensors::TYPE_VIDEO_MODE |
 				ipa_CameraSensors::TYPE_COLOR_MODE))
 			{
 #ifdef __LINUX__
@@ -1756,12 +1756,12 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					}
 
 					err=dc1394_video_set_mode(m_cam, videoMode);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Failed to setup video mode for format 0" << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
+						return RET_FAILED;
 					}
 
 					break;
@@ -1794,12 +1794,12 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					}
 
 					err=dc1394_video_set_mode(m_cam, videoMode);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Failed to setup video for format 1" << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
+						return RET_FAILED;
 					}
 
 					break;
@@ -1823,12 +1823,12 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					}
 
 					err=dc1394_video_set_mode(m_cam, videoMode);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Failed to setup video for format 1" << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
+						return RET_FAILED;
 					}
 
 					break;
@@ -1897,23 +1897,23 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 						std::cerr << "\t ... Specified video mode not supported." << std::endl;
 						return RET_FAILED;
 					}
-					
-					
+
+
 					err = dc1394_video_set_mode(m_cam, videoMode);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Failed to setup video mode." << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 					err = dc1394_format7_set_color_coding(m_cam, videoMode, colorMode);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Failed to setup color coding." << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
+						return RET_FAILED;
 					}
 
 					break;
@@ -2133,7 +2133,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 
 ///====================================================================
 // PROP_FRAME_RATE
-///====================================================================	
+///====================================================================
 		case PROP_FRAME_RATE:
 #ifdef __LINUX__
 			dc1394video_mode_t videoMode;
@@ -2145,7 +2145,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
 				return RET_FAILED;
 			}
-			
+
 			// Format 7
 			// Bytes_per_packet = (fps * width * height * ByteDepth * 125microsec)/1000000
 			if (videoMode==DC1394_VIDEO_MODE_FORMAT7_0 ||
@@ -2167,7 +2167,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				std::cerr << "\t ... Could not read image format ( error " << err << " )" << std::endl;
 				return RET_FAILED;
 			}
-			
+
 			// Format 7
 			// Bytes_per_packet = (fps * width * height * ByteDepth * 125microsec)/1000000
 			if (IMGRES(imageFormat)==RES_SCALABLE)
@@ -2175,7 +2175,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 #endif
 				if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
 				{
-					if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_AUTO || 
+					if(cameraProperty->specialValue == ipa_CameraSensors::VALUE_AUTO ||
 						cameraProperty->specialValue == ipa_CameraSensors::VALUE_DEFAULT)
 					{
 						// Void
@@ -2185,16 +2185,16 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				{
 #ifdef __LINUX__
 					uint64_t bytesPerFrame;
-					
+
 					err = dc1394_format7_get_total_bytes(m_cam, videoMode, &bytesPerFrame);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Could not get bytes per image ( error " << err << " )" << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
-					
+						return RET_FAILED;
+					}
+
 					if (cameraProperty->floatData > 0 && cameraProperty->floatData <= 60)
 					{
 						double fps = cameraProperty->floatData;
@@ -2207,29 +2207,29 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 						dc1394speed_t isoSpeed;
 
 						err = dc1394_format7_get_packet_parameters(m_cam, videoMode, &min, &max);
-						if (err!=DC1394_SUCCESS) 
-						{    
+						if (err!=DC1394_SUCCESS)
+						{
 							std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 							std::cerr << "\t ... Could not get min/max bytes per packet ( error " << err << " )" << std::endl;
 							std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-							return RET_FAILED;                                         
-						} 
+							return RET_FAILED;
+						}
 						err = dc1394_format7_get_total_bytes(m_cam, videoMode, &bytesPerFrame);
-						if (err!=DC1394_SUCCESS) 
-						{    
+						if (err!=DC1394_SUCCESS)
+						{
 							std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 							std::cerr << "\t ... Could not get total bytes per frame ( error " << err << " )" << std::endl;
 							std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-							return RET_FAILED;                                         
+							return RET_FAILED;
 						}
 
 						err = dc1394_video_get_iso_speed(m_cam, &isoSpeed);
-						if (err!=DC1394_SUCCESS) 
-						{    
+						if (err!=DC1394_SUCCESS)
+						{
 							std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 							std::cerr << "\t ... Could not get iso speed ( error " << err << " )" << std::endl;
 							std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-							return RET_FAILED;                                         
+							return RET_FAILED;
 						}
 
 						if (isoSpeed == DC1394_ISO_SPEED_100)
@@ -2248,7 +2248,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 						{
 							busPeriodInSeconds = 62.5/1000000.0;
 						}
-						
+
 						packetsPerFrame = (int) (1.0/(busPeriodInSeconds*fps) + 0.5);
 						bytesPerPacket = (uint32_t) ((bytesPerFrame + packetsPerFrame - 1)/(packetsPerFrame));
 
@@ -2263,7 +2263,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 						bytesPerPacket = ((int)(bytesPerPacket/min))*min;
 
 						err = dc1394_format7_set_packet_size(m_cam, videoMode, bytesPerPacket);
-						if (err!=DC1394_SUCCESS) 
+						if (err!=DC1394_SUCCESS)
 						{
 							std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 							std::cerr << "\t ... Could not set packet size " << bytesPerPacket << " ( error " << err << " )" << std::endl;
@@ -2283,11 +2283,11 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					}
 
 					err = m_cam.GetParameter(FGP_PHYSPEED, &isoSpeed);
-					if (err!=FCE_NOERROR) 
-					{    
+					if (err!=FCE_NOERROR)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Could not read iso speed info ( error " << err << " )" << std::endl;
-						return RET_FAILED;                                         
+						return RET_FAILED;
 					}
 
 					if (isoSpeed == PS_100MBIT)
@@ -2306,7 +2306,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					{
 						busPeriodInSeconds = 62.5/1000000.0;
 					}
-					
+
 					if (cameraProperty->floatData > 0 && cameraProperty->floatData <= 60)
 					{
 						double fps = cameraProperty->floatData;
@@ -2326,7 +2326,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 							std::cout << "\t ... Desired packet size out of bounds. Resetting packet size to max value" << std::endl;
 							bytesPerPacket = packetSizeInfo.MaxValue;
 						}
-						
+
 						// Bytes per packet must be a multiple of min bytes
 						bytesPerPacket = ((int)(bytesPerPacket/packetSizeInfo.MinValue))*packetSizeInfo.MinValue;
 
@@ -2339,8 +2339,8 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 						}
 					}
 #endif
-					
-					else 
+
+					else
 					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Specified framerate out of range ( error " << err << " )" << std::endl;
@@ -2363,13 +2363,13 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					{
 #ifdef __LINUX__
 						err=dc1394_video_set_framerate(m_cam, DC1394_FRAMERATE_7_5);
-						if (err!=DC1394_SUCCESS) 
-						{    
+						if (err!=DC1394_SUCCESS)
+						{
 							std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 							std::cerr << "\t ... Failed to set framerate to AUTO mode." << std::endl;
 							std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-							return RET_FAILED;                                         
-						} 
+							return RET_FAILED;
+						}
 #else
 						err = m_cam.SetParameter(FGP_FRAMERATE, PVAL_AUTO);
 						if(err!=FCE_NOERROR)
@@ -2410,23 +2410,23 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					else if (cameraProperty->floatData <= 15)
 					{
 						framerate = DC1394_FRAMERATE_15;
-					}		
+					}
 					else if (cameraProperty->floatData <= 30)
-					{		
+					{
 						framerate = DC1394_FRAMERATE_30;
 					}
 					else if (cameraProperty->floatData <= 60)
 					{
 						framerate = DC1394_FRAMERATE_60;
 					}
-					else 
+					else
 					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Specified framerate " << cameraProperty->floatData << " out of range ( error " << err << " )" << std::endl;
 						return RET_FAILED;
 					}
 					err=dc1394_video_set_framerate(m_cam, framerate);
-					if (err!=DC1394_SUCCESS) 
+					if (err!=DC1394_SUCCESS)
 					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Could not set specified framerate " << cameraProperty->floatData << " ( error " << err << " )" << std::endl;
@@ -2449,16 +2449,16 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					else if (cameraProperty->floatData <= 15)
 					{
 						framerate = FR_15;
-					}		
+					}
 					else if (cameraProperty->floatData <= 30)
-					{		
+					{
 						framerate = FR_30;
 					}
 					else if (cameraProperty->floatData <= 60)
 					{
 						framerate = FR_60;
 					}
-					else 
+					else
 					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Specified framerate " << cameraProperty->floatData << " out of range ( error " << err << " )" << std::endl;
@@ -2484,7 +2484,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			break;
 ///====================================================================
 // PROP_FW_OPERATION_MODE
-///====================================================================	
+///====================================================================
 		case PROP_FW_OPERATION_MODE:
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
 			{
@@ -2513,7 +2513,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					m_operationMode_B = false;
 					return RET_OK;
 				}
-				else if (cameraProperty->stringData == "B") 
+				else if (cameraProperty->stringData == "B")
 				{
 					m_operationMode_B = true;
 					return RET_OK;
@@ -2534,7 +2534,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			break;
 ///====================================================================
 // PROP_ISO_SPEED
-///====================================================================	
+///====================================================================
 		case PROP_ISO_SPEED:
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
 			{
@@ -2542,13 +2542,13 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				{
 #ifdef __LINUX__
 					err=dc1394_video_set_iso_speed(m_cam, DC1394_ISO_SPEED_400);
-					if (err!=DC1394_SUCCESS) 
-					{    
+					if (err!=DC1394_SUCCESS)
+					{
 						std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 						std::cerr << "\t ... Failed to setup iso speed." << std::endl;
 						std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-						return RET_FAILED;                                         
-					} 
+						return RET_FAILED;
+					}
 #else
 					err = m_cam.SetParameter(FGP_PHYSPEED, PS_AUTO);
 					if(err!=FCE_NOERROR)
@@ -2599,13 +2599,13 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				{
 					err=dc1394_video_set_iso_speed(m_cam, DC1394_ISO_SPEED_800);
 				}
-				if (err!=DC1394_SUCCESS) 
-				{    
+				if (err!=DC1394_SUCCESS)
+				{
 					std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 					std::cerr << "\t ... Failed to setup iso speed " << cameraProperty->u_longData << std::endl;
 					std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-					return RET_FAILED;                                         
-				} 
+					return RET_FAILED;
+				}
 #else
 				err = 1;
 				if (cameraProperty->u_longData <= 100)
@@ -2627,7 +2627,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 				if(err!=FCE_NOERROR)
 				{
 					std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
-					std::cerr << "\t ... Could not set iso speed to " << 
+					std::cerr << "\t ... Could not set iso speed to " <<
 						cameraProperty->u_longData << " ( error " << err << " )" << std::endl;
 					return RET_FAILED;
 				}
@@ -2642,7 +2642,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			break;
 ///====================================================================
 // PROP_RESOLUTION
-///====================================================================	
+///====================================================================
 		case PROP_RESOLUTION:
 			if (cameraProperty->propertyType & ipa_CameraSensors::TYPE_SPECIAL)
 			{
@@ -2686,7 +2686,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					((unsigned int) cameraProperty->cameraResolution.xResolution > info.MaxValue))
 				{
 					std::cout << "WARNING - AVTPikeCam::SetProperty:" << std::endl;
-					std::cout << "\t ... x resolution " << cameraProperty->cameraResolution.xResolution 
+					std::cout << "\t ... x resolution " << cameraProperty->cameraResolution.xResolution
 						<< " has to be a value between " << info.MinValue << " and " << info.MaxValue << "." << std::endl;
 					std::cout << "\t ... Setting maximal x resolution" << std::endl;
 				}
@@ -2695,12 +2695,12 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					((unsigned int) cameraProperty->cameraResolution.yResolution > info.MaxValue))
 				{
 					std::cout << "WARNING - AVTPikeCam::SetProperty:" << std::endl;
-					std::cout << "\t ... y resolution " << cameraProperty->cameraResolution.yResolution 
+					std::cout << "\t ... y resolution " << cameraProperty->cameraResolution.yResolution
 						<< " has to be a value between " << info.MinValue << " and " << info.MaxValue << "." << std::endl;
 					std::cout << "\t ... Setting maximal y resolution" << std::endl;
 				}
 
-				// Set x/y resolution. If values are out of range, 
+				// Set x/y resolution. If values are out of range,
 				// the maximal possible reolution is set through the AVT library
 				err = m_cam.SetParameter(FGP_XSIZE, cameraProperty->cameraResolution.xResolution);
 				if(err!=FCE_NOERROR)
@@ -2716,7 +2716,7 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 					std::cout << "\t ... Could not set image height ( error " << err << " )" << std::endl;
 				}
 #endif
-				
+
 			}
 			else
 			{
@@ -2727,8 +2727,8 @@ unsigned long AVTPikeCam::SetProperty(t_cameraProperty* cameraProperty)
 			break;
 ///====================================================================
 // DEFAULT
-///====================================================================	
-		default: 
+///====================================================================
+		default:
 			std::cerr << "ERROR - VTPikeCam::SetProperty:" << std::endl;
 			std::cerr << "\t ... Property " << cameraProperty->propertyID << " unspecified." << std::endl;
 			return RET_FAILED;
@@ -2754,20 +2754,20 @@ unsigned long AVTPikeCam::SetParameters()
 		// Trigger OFF -> Edge mode 0, falling
 		dc1394error_t err;
 		err = dc1394_external_trigger_set_power(m_cam, DC1394_OFF);
-		if (err!=DC1394_SUCCESS) 
-		{    
+		if (err!=DC1394_SUCCESS)
+		{
 			std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 			std::cerr << "\t ... Failed to deactivate external trigger." << std::endl;
 			std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-			return RET_FAILED;                                         
+			return RET_FAILED;
 		}
 		err = dc1394_external_trigger_set_mode(m_cam, DC1394_TRIGGER_MODE_3);
-		if (err!=DC1394_SUCCESS) 
-		{    
+		if (err!=DC1394_SUCCESS)
+		{
 			std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 			std::cerr << "\t ... Failed to set trigger mode." << std::endl;
 			std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-			return RET_FAILED;                                         
+			return RET_FAILED;
 		}
 #else
 		UINT32 err;
@@ -2791,30 +2791,30 @@ unsigned long AVTPikeCam::SetParameters()
 		// Trigger ON, Trigger mode 0, low -> Edge mode 0, rizing
 		dc1394error_t err;
 		err = dc1394_external_trigger_set_power(m_cam, DC1394_ON);
-		if (err!=DC1394_SUCCESS) 
-		{    
+		if (err!=DC1394_SUCCESS)
+		{
 			std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 			std::cerr << "\t ... Failed to activate external trigger." << std::endl;
 			std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-			return RET_FAILED;                                         
+			return RET_FAILED;
 		}
-		
+
 		err = dc1394_external_trigger_set_polarity(m_cam, DC1394_TRIGGER_ACTIVE_HIGH);
-		if (err!=DC1394_SUCCESS) 
-		{    
+		if (err!=DC1394_SUCCESS)
+		{
 			std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 			std::cerr << "\t ... Failed to set trigger polarity." << std::endl;
 			std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-			return RET_FAILED;                                         
+			return RET_FAILED;
 		}
 
 		err = dc1394_external_trigger_set_mode(m_cam, DC1394_TRIGGER_MODE_0);
-		if (err!=DC1394_SUCCESS) 
-		{    
+		if (err!=DC1394_SUCCESS)
+		{
 			std::cerr << "ERROR - AVTPikeCam::SetProperty:" << std::endl;
 			std::cerr << "\t ... Failed to set trigger mode." << std::endl;
 			std::cerr << "\t ... " << dc1394_error_get_string(err) << std::endl;
-			return RET_FAILED;                                         
+			return RET_FAILED;
 		}
 #else
 		UINT32 err;
@@ -2871,13 +2871,13 @@ unsigned long AVTPikeCam::SetParameters()
 // Set video mode, video format and color mode
 // -----------------------------------------------------------------
 	cameraProperty.propertyID = ipa_CameraSensors::PROP_VIDEO_ALL;
-	cameraProperty.propertyType = (ipa_CameraSensors::TYPE_VIDEO_FORMAT | 
-				ipa_CameraSensors::TYPE_VIDEO_MODE | 
+	cameraProperty.propertyType = (ipa_CameraSensors::TYPE_VIDEO_FORMAT |
+				ipa_CameraSensors::TYPE_VIDEO_MODE |
 				ipa_CameraSensors::TYPE_COLOR_MODE);
 	std::string sVideoFormat = "";
 	std::string sVideoMode = "";
 	std::string sColorMode = "";
-	
+
 	m_ColorCameraParameters.m_VideoFormat.clear(); // Clear flags within stringstream
 	m_ColorCameraParameters.m_VideoFormat.seekg(0); // Set Pointer to position 0 within stringstream
 	m_ColorCameraParameters.m_VideoFormat >> sVideoFormat;
@@ -3385,7 +3385,7 @@ unsigned long AVTPikeCam::SetParameters()
 }
 
 unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
-{ 
+{
 	boost::shared_ptr<TiXmlDocument> p_configXmlDocument (new TiXmlDocument( filename ));
 
 	if (!p_configXmlDocument->LoadFile())
@@ -3405,7 +3405,7 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 //************************************************************************************
 //	BEGIN LibCameraSensors
 //************************************************************************************
-		// Tag element "LibCameraSensors" of Xml Inifile		
+		// Tag element "LibCameraSensors" of Xml Inifile
 		TiXmlElement *p_xmlElement_Root = NULL;
 		p_xmlElement_Root = p_configXmlDocument->FirstChildElement( "LibCameraSensors" );
 		if ( p_xmlElement_Root )
@@ -3414,7 +3414,7 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 //************************************************************************************
 //	BEGIN LibCameraSensors->AVTPikeCam
 //************************************************************************************
-			// Tag element "AVTPikeCam" of Xml Inifile		
+			// Tag element "AVTPikeCam" of Xml Inifile
 			TiXmlElement *p_xmlElement_Root_AVTPikeCam = NULL;
 			std::stringstream ss;
 			ss << "AVTPikeCam_" << cameraIndex;
@@ -3801,7 +3801,7 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 				}
 
 //************************************************************************************
-//	BEGIN LibCameraSensors->AVTPikeCam->PROP_WHITE_BALANCE_U 
+//	BEGIN LibCameraSensors->AVTPikeCam->PROP_WHITE_BALANCE_U
 //************************************************************************************
 				// Subtag element "SerialNumber" of Xml Inifile
 				p_xmlElement_Child = NULL;
@@ -3830,7 +3830,7 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 				}
 
 //************************************************************************************
-//	BEGIN LibCameraSensors->AVTPikeCam->PROP_WHITE_BALANCE_V 
+//	BEGIN LibCameraSensors->AVTPikeCam->PROP_WHITE_BALANCE_V
 //************************************************************************************
 				// Subtag element "SerialNumber" of Xml Inifile
 				p_xmlElement_Child = NULL;
@@ -3917,7 +3917,7 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 				}
 
 //************************************************************************************
-//	BEGIN LibCameraSensors->AVTPikeCam->PROP_GAMMA 
+//	BEGIN LibCameraSensors->AVTPikeCam->PROP_GAMMA
 //************************************************************************************
 				// Subtag element "SerialNumber" of Xml Inifile
 				p_xmlElement_Child = NULL;
@@ -3946,7 +3946,7 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 				}
 
 //************************************************************************************
-//	BEGIN LibCameraSensors->AVTPikeCam->PROP_GAIN 
+//	BEGIN LibCameraSensors->AVTPikeCam->PROP_GAIN
 //************************************************************************************
 				// Subtag element "PROP_GAIN" of Xml Inifile
 				p_xmlElement_Child = NULL;
@@ -3978,7 +3978,7 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 //************************************************************************************
 //	END LibCameraSensors->AVTPikeCam
 //************************************************************************************
-			else 
+			else
 			{
 				std::cerr << "ERROR - AVTPikeCam::LoadParameters:" << std::endl;
 				std::cerr << "\t ... Can't find tag '" << ss.str() << "'" << std::endl;
@@ -3989,7 +3989,7 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 //************************************************************************************
 //	END LibCameraSensors
 //************************************************************************************
-		else 
+		else
 		{
 			std::cerr << "ERROR - AVTPikeCam::LoadParameters:" << std::endl;
 			std::cerr << "\t ... Can't find tag 'LibCameraSensors'." << std::endl;
@@ -3997,7 +3997,7 @@ unsigned long AVTPikeCam::LoadParameters(const char* filename, int cameraIndex)
 		}
 	}
 
-	
+
 
 	return RET_OK;
 }

@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -10,9 +10,9 @@
  * Project name: care-o-bot
  * ROS stack name: cob3_driver
  * ROS package name: cob_head_axis
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Ulrich Reiser, email:ulrich.reiser@ipa.fhg.de
  *
  * Date of creation: Jul 2010
@@ -28,23 +28,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -88,27 +88,27 @@ class ElmoCtrlParams
 
 	public:
 		ElmoCtrlParams(){;}
-		
+
 		int Init(std::string CanDevice, int BaudRate, int ModuleID)
 		{
 			SetCanDevice(CanDevice);
-			SetBaudRate(BaudRate);	
+			SetBaudRate(BaudRate);
 			SetModuleID(ModuleID);
 			return 0;
 		}
-				
+
 		//Can Device
 		void SetCanDevice(std::string CanDevice){m_CanDevice = CanDevice;}
 		std::string GetCanDevice(){return m_CanDevice;}
-			
+
 		//BaudRate
 		void SetBaudRate(int BaudRate){m_BaudRate=BaudRate;}
 		int GetBaudRate(){return m_BaudRate;}
-	
+
 		//ModuleIDs
 		int GetModuleID(){return m_ModuleID;}
 		void SetModuleID(int id){m_ModuleID = id;}
-		
+
 		//Angular Constraints
 		void SetUpperLimit(double UpperLimit){m_UpperLimit = UpperLimit;}
 		void SetLowerLimit(double LowerLimit){m_LowerLimit = LowerLimit;}
@@ -128,29 +128,29 @@ class ElmoCtrlParams
 		//HomingDigIn
 		void SetHomingDigIn(int dig_in){m_HomingDigIn = dig_in;}
 		int GetHomingDigIn(){return m_HomingDigIn;}
-		
+
 		//CanIniFile
 		void SetCanIniFile(std::string iniFile){m_CanIniFile=iniFile;}
 		std::string GetCanIniFile(){return m_CanIniFile;}
-		
+
 		//Encoder increments
 		void SetEncoderIncrements(int enc_incr){m_EncIncrPerRevMot = enc_incr;}
 		int GetEncoderIncrements(){return m_EncIncrPerRevMot;}
-		
+
 		//Belt & Gear ratio in one
 		void SetGearRatio(double gear_ratio){m_GearRatio = gear_ratio;}
 		double GetGearRatio(){return m_GearRatio;}
-		
+
 		//Motor direction
 		void SetMotorDirection(int motor_dir){
 			if(motor_dir<0) m_MotorDirection = -1;
 			else m_MotorDirection = 1;
 		}
 		int GetMotorDirection(){return m_MotorDirection;}
-		
-		
-			
-		
+
+
+
+
 	private:
 		int m_ModuleID;
 		std::string  m_CanDevice;
@@ -179,7 +179,7 @@ public:
 
 
 	double MoveJointSpace (double PosRad);
-	
+
 
 	bool Home();
 
@@ -199,7 +199,7 @@ public:
 	 * @param pdVelGearRadS joint-velocity in radian per second
 	 */
 	int getGearPosVelRadS(double* pdAngleGearRad, double* pdVelGearRadS);
-	
+
 	/**
 	 * Sets required position and veolocity.
 	 * Use this function only in position mode.
@@ -218,9 +218,9 @@ public:
 
 
 	bool SetMotionCtrlType(int type);
-	int GetMotionCtrlType(); 
+	int GetMotionCtrlType();
 	bool isError() ;
-	
+
 
 	enum {
 		POS_CTRL,
@@ -233,13 +233,13 @@ public:
 	//bool m_ElmoCtrlThreadActive;
 	/// @brief joint mutexes
 	//pthread_mutex_t   m_cs_elmoCtrlIO;
-	CanDriveHarmonica * m_Joint;  
+	CanDriveHarmonica * m_Joint;
 
 private:
 
 	bool sendNetStartCanOpen(CanItf* canCtrl);
 
-	int m_MotionCtrlType;	
+	int m_MotionCtrlType;
 
 	DriveParam * m_JointParams;
 
@@ -259,7 +259,7 @@ private:
 	double  m_UpperLimit;
 	double  m_LowerLimit;
 	double  m_JointOffset;
-	/*	
+	/*
 	Jointd* m_CurrentAngularVelocity;
 	/// @brief current joint angles
 	Jointd* m_CurrentJointAngles;
@@ -274,8 +274,8 @@ private:
 	//ElmoThreadArgs * m_ElmoCtrlThreadArgs;
 	ElmoCtrlParams * m_Params;
 	CanMsg m_CanMsgRec;
-	
-	
+
+
 	/// @brief the logfile for debugging info & errors:
 
 };

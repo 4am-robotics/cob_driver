@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -10,9 +10,9 @@
  * Project name: care-o-bot
  * ROS stack name: cob_driver
  * ROS package name: cob_camera_sensors
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Jan Fischer, email:jan.fischer@ipa.fhg.de
  * Supervised by: Jan Fischer, email:jan.fischer@ipa.fhg.de
  *
@@ -29,23 +29,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -104,7 +104,7 @@ private:
 	ros::ServiceServer image_service_;
 
 	AbstractRangeImagingSensorPtr tof_camera_;     ///< Time-of-flight camera instance
-	
+
 	std::string config_directory_; ///< Directory of related IPA configuration file
 	int tof_camera_index_;	///< Camera index of the color camera for IPA configuration file
 	ipa_CameraSensors::t_cameraType tof_camera_type_; ///< Type of tof camera
@@ -136,7 +136,7 @@ public:
     {
             /// Void
     }
-	
+
 	/// Destructor
 	~CobTofCameraNode()
     {
@@ -151,8 +151,8 @@ public:
 		{
 			ROS_ERROR("[color_camera] Could not read all parameters from launch file");
 			return false;
-		}		
-		
+		}
+
 
 		if (tof_camera_->Init(config_directory_, tof_camera_index_) & ipa_CameraSensors::RET_FAILED)
 		{
@@ -165,7 +165,7 @@ public:
 			tof_camera_ = AbstractRangeImagingSensorPtr();
 			return false;
 		}
-	
+
 		if (tof_camera_->Open() & ipa_CameraSensors::RET_FAILED)
 		{
 			std::stringstream ss;
@@ -209,7 +209,7 @@ public:
 		camera_info_msg_.D[2] = d.at<double>(0, 2);
 		camera_info_msg_.D[3] = d.at<double>(0, 3);
 		camera_info_msg_.D[4] = 0;*/
-	
+
 		cv::Mat k = tof_sensor_toolbox->GetIntrinsicMatrix(tof_camera_type_, tof_camera_index_);
 		/*camera_info_msg_.K[0] = k.at<double>(0, 0);
 		camera_info_msg_.K[1] = k.at<double>(0, 1);
@@ -221,7 +221,7 @@ public:
 		camera_info_msg_.K[7] = k.at<double>(2, 1);
 		camera_info_msg_.K[8] = k.at<double>(2, 2);*/
 
-		camera_info_msg_.width = range_sensor_width;		
+		camera_info_msg_.width = range_sensor_width;
 		camera_info_msg_.height = range_sensor_height;
 
 		return true;
@@ -250,7 +250,7 @@ public:
 		sensor_msgs::Image::Ptr xyz_image_msg_ptr;
 		sensor_msgs::Image::Ptr grey_image_msg_ptr;
 		sensor_msgs::CameraInfo tof_image_info;
-	
+
 		if(tof_camera_->AcquireImages(0, &grey_image_32F1_, &xyz_image_32F3_, false, false, ipa_CameraSensors::INTENSITY_32F1) & ipa_Utils::RET_FAILED)
 		{
 			ROS_ERROR("[tof_camera] Tof image acquisition failed");
@@ -411,7 +411,7 @@ public:
 	bool loadParameters()
 	{
 		std::string tmp_string = "NULL";
-               
+
 		/// Parameters are set within the launch file
 		if (node_handle_.getParam("tof_camera/configuration_files", config_directory_) == false)
 		{
@@ -434,12 +434,12 @@ public:
 			ROS_ERROR("[tof_camera] 'tof_camera_type' not specified");
 			return false;
 		}
-		if (tmp_string == "CAM_SWISSRANGER") 
+		if (tmp_string == "CAM_SWISSRANGER")
 		{
 			tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_Swissranger();
 			tof_camera_type_ = ipa_CameraSensors::CAM_SWISSRANGER;
 		}
-		else if (tmp_string == "CAM_VIRTUAL") 
+		else if (tmp_string == "CAM_VIRTUAL")
 		{
 			tof_camera_ = ipa_CameraSensors::CreateRangeImagingSensor_VirtualCam();
 			tof_camera_type_ = ipa_CameraSensors::CAM_VIRTUALRANGE;
@@ -531,7 +531,7 @@ int main(int argc, char** argv)
     /// Create a handle for this node, initialize node
     ros::NodeHandle nh;
 
-    /// Create camera node class instance   
+    /// Create camera node class instance
     CobTofCameraNode camera_node(nh);
 
     /// Initialize camera node

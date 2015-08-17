@@ -69,7 +69,7 @@ namespace brics_oodl {
         error,
         fatal
     };
-    
+
     ///////////////////////////////////////////////////////////////////////////////
     /// Implementation logging to console and to a file
     ///////////////////////////////////////////////////////////////////////////////
@@ -82,7 +82,7 @@ namespace brics_oodl {
 
         Logger(const std::string &funcName, const int &lineNo, const std::string &fileName, severity_level level);
         ~Logger();
-        
+
         static bool toConsole;
         static bool toFile;
         static bool toROS;

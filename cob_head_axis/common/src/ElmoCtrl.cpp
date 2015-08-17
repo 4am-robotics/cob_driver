@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -10,9 +10,9 @@
  * Project name: care-o-bot
  * ROS stack name: cob3_driver
  * ROS package name: cob_head_axis
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Ulrich Reiser, email:ulrich.reiser@ipa.fhg.de
  *
  * Date of creation: Jul 2010
@@ -28,23 +28,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -60,7 +60,7 @@ using namespace std;
 void Sleep(int msecs){usleep(1000*msecs);}
 
 bool ElmoCtrl::sendNetStartCanOpen(CanItf* canCtrl) {
-	bool ret = false;	
+	bool ret = false;
 
 	CanMsg msg;
 
@@ -101,14 +101,14 @@ bool ElmoCtrl::Home()
 	if (m_Joint != NULL) {
 		//THIS is needed for head_axis on cob3-2!
 		//set input logic to 'general purpose'
-		m_Joint->IntprtSetInt(8, 'I', 'L', 2, 7);                      
-		usleep(20000);  
-		
+		m_Joint->IntprtSetInt(8, 'I', 'L', 2, 7);
+		usleep(20000);
+
 		//THIS is needed for cob3-3 (it's using DIN1):
 		//set input logic to 'general purpose'
-		m_Joint->IntprtSetInt(8, 'I', 'L', 1, 6);                       
-		usleep(20000);  
-		
+		m_Joint->IntprtSetInt(8, 'I', 'L', 1, 6);
+		usleep(20000);
+
 		m_Joint->initHoming();
 	}
 
@@ -127,7 +127,7 @@ bool ElmoCtrl::Home()
 
 int ElmoCtrl::evalCanBuffer() {
 	bool bRet;
-	
+
 	//pthread_mutex_lock(&(m_Mutex));
 
 	// as long as there is something in the can buffer -> read out next message
@@ -139,20 +139,20 @@ int ElmoCtrl::evalCanBuffer() {
 		if (bRet == true) {
 		} else std::cout << "cob_head_axis: Unknown CAN-msg: " << m_CanMsgRec.m_iID << "  " << (int)m_CanMsgRec.getAt(0) << " " << (int)m_CanMsgRec.getAt(1) << std::endl;
 	}
-	
+
 	//pthread_mutex_unlock(&(m_Mutex));
 
 	return 0;
 }
 
 bool ElmoCtrl::RecoverAfterEmergencyStop() {
-	
+
 	bool success = false;
 	printf("Resetting motor ...\n");
 	success = m_Joint->start();
 	if (!success) {
 		printf("failed!\n");
-	} else {	
+	} else {
 		printf("successful\n");
 		m_Joint->setGearVelRadS(0);
 	}
@@ -166,7 +166,7 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 	string CanIniFile;
 	string CanDevice;
 	int baudrate = 0;
-	
+
 	m_Params = params;
 
 	if (params == NULL) {
@@ -178,38 +178,38 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 
 	if (success) {
 		printf( "------------ ElmoCtrl Init ---------------\n");
-		
+
 		//Allocate memory and read params e.g. gotten from ROS parameter server
 		m_Joint = new CanDriveHarmonica();
 		m_JointParams = new DriveParam();
 		m_CanBaseAddress = params->GetModuleID();
-		CanIniFile = params->GetCanIniFile();	
+		CanIniFile = params->GetCanIniFile();
 		m_MaxVel = params->GetMaxVel();
 		m_HomingDir = params->GetHomingDir();
 		m_HomingDigIn = params->GetHomingDigIn();
-		
+
 		m_EncIncrPerRevMot = params->GetEncoderIncrements();
 		m_MotorDirection = params->GetMotorDirection();
 		m_GearRatio = params->GetGearRatio();
-		
-		if (CanIniFile.length() == 0) {	
+
+		if (CanIniFile.length() == 0) {
 			printf("%s,%d:Error: Parameter 'CanIniFile' not given!\n",__FILE__,__LINE__);
 			success = false;
 		}
-		
+
 		CanDevice = params->GetCanDevice();
-		if (CanDevice.length() == 0) {	
+		if (CanDevice.length() == 0) {
 			printf("%s,%d:Error: Parameter 'Can-Device' not given!\n",__FILE__,__LINE__);
 			success = false;
 		}
-		
+
 		baudrate = params->GetBaudRate();
-		if (baudrate == 0) {	
+		if (baudrate == 0) {
 			printf("%s,%d:Error: Parameter 'Baud-Rate' not given!\n",__FILE__,__LINE__);
 			success = false;
 		}
-		
-		//Setting motor model data		
+
+		//Setting motor model data
 		if (success) {
 			m_JointOffset = params->GetAngleOffset();
 			m_UpperLimit = params->GetUpperLimit();
@@ -228,9 +228,9 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 			printf("Offset/Limit(min/max)  %f/(%f,%f)\n",m_JointOffset,m_LowerLimit,m_UpperLimit);
 		}
 	}
-	
+
 	//Setting up CAN interface
-	
+
 	if (success) {
 	  //m_CanCtrl = new CanESD(CanIniFile.c_str(), false);
 		m_CanCtrl = new CANPeakSysUSB(CanIniFile.c_str());
@@ -239,7 +239,7 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 			success = false;
 		}
 	  }
-	
+
 	if (success) {
 			/* WRONG CAN-identifiers
 			//m_CanBaseAddress = params->GetModulID(i);
@@ -255,25 +255,25 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 			m_CanAddress.TxSDO = 0x581 + m_CanBaseAddress -1;
 			m_CanAddress.RxSDO = 0x601 + m_CanBaseAddress -1;
 			m_Joint->setCanItf(m_CanCtrl);
-			m_Joint->setCanOpenParam(m_CanAddress.TxPDO1, 
-							m_CanAddress.TxPDO2, 
-							m_CanAddress.RxPDO2, 
-							m_CanAddress.TxSDO, 
+			m_Joint->setCanOpenParam(m_CanAddress.TxPDO1,
+							m_CanAddress.TxPDO2,
+							m_CanAddress.RxPDO2,
+							m_CanAddress.TxSDO,
 							m_CanAddress.RxSDO );
-							
+
 			printf("CanAdresses set to %d (Base), %x, %x, %x, %x, %x...\n", m_CanBaseAddress,
 																		m_CanAddress.TxPDO1,
 																		m_CanAddress.TxPDO2,
 																		m_CanAddress.RxPDO2,
 																		m_CanAddress.TxSDO,
 																		m_CanAddress.RxSDO);
-		
+
 	  }
-	  
+
 	  if (success) {
 	  	success = sendNetStartCanOpen(m_CanCtrl);
 	  }
-	  
+
 	  if (success) {
 		//ToDo: Read from File!
 		/*
@@ -328,8 +328,8 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 					  		0, // double dm_HomingDigInCurrMax
 					  		m_HomingDigIn // int iHomingDigIn //cob3-2->11, cob3-1->9
 					  );
-		
-			  
+
+
 		m_Joint->setDriveParam(*m_JointParams);
 		}
 
@@ -342,11 +342,11 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 					  printf("failed!\n");
 			  }
 			  else
-			  {	
+			  {
 					  printf("successful\n");
 			  }
 	  }
-	  
+
 	  if (success)
 			  success = SetMotionCtrlType(m_MotionCtrlType);
 			  if(!success) std::cout << "Failed to SetMotionCtrlType to " << m_MotionCtrlType << std::endl;
@@ -360,7 +360,7 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 					  printf("failed!\n");
 			  }
 			  else
-			  {	
+			  {
 					  printf("successful\n");
 					  m_Joint->setGearVelRadS(0);
 			  }
@@ -386,17 +386,17 @@ bool ElmoCtrl::Init(ElmoCtrlParams * params, bool home) { //home = true by defau
 bool ElmoCtrl::SetMotionCtrlType(int type)
 {
 	m_MotionCtrlType = type;
-	bool success = false; 
+	bool success = false;
 	if (type == POS_CTRL)
 	{
 			success = m_Joint->shutdown();
 			if (success)
 					success = m_Joint->setTypeMotion(CanDriveHarmonica::MOTIONTYPE_POSCTRL);
-						
+
 			//ToDo: necessary?
 			Sleep(100);
 			success = m_Joint->start();
-	
+
 	}
 	else if (type == VEL_CTRL)
 	{
@@ -408,12 +408,12 @@ bool ElmoCtrl::SetMotionCtrlType(int type)
 };
 
 
-int ElmoCtrl::GetMotionCtrlType() 
+int ElmoCtrl::GetMotionCtrlType()
 {
 	return m_MotionCtrlType;
 }
 
-bool ElmoCtrl::isError() 
+bool ElmoCtrl::isError()
 {
 	return m_Joint->isError();
 }
@@ -427,7 +427,7 @@ int ElmoCtrl::getGearPosVelRadS( double* pdAngleGearRad, double* pdVelGearRadS)
 
 	m_Joint->getGearPosVelRadS(pdAngleGearRad, pdVelGearRadS);
 	*pdAngleGearRad = *pdAngleGearRad - m_JointOffset;
-	
+
 	return 0;
 }
 
@@ -443,14 +443,14 @@ int ElmoCtrl:: setGearPosVelRadS(double dPosRad, double dVelRadS)
 		std::cout << "Position over UpperBound -> set down" << std::endl;
 		dPosRad = m_UpperLimit;
 	}
-		
+
 	if(dVelRadS > m_MaxVel)
 		dVelRadS = m_MaxVel;
 	else if(dVelRadS < -m_MaxVel)
 		dVelRadS = -m_MaxVel;
 
 	//COB3-2: m_Joint->setGearPosVelRadS(dPosRad + m_JointOffset, dVelRadS);
-	
+
 	//COB3-1: m_Joint->setGearPosVelRadS(-3.141592654 - dPosRad + m_JointOffset, dVelRadS);
 	printf("ElmoCtrl:setGearPosVelRadS: dPosRad %f with vel %f\n",dPosRad, dVelRadS);
 	m_Joint->setGearPosVelRadS(m_HomingDir * dPosRad + m_JointOffset, dVelRadS);

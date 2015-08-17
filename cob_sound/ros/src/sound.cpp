@@ -5,19 +5,22 @@
 #include <std_msgs/String.h>
 #include <std_srvs/Trigger.h>
 #include <cob_sound/SayAction.h>
-#include <cob_sound/SayText.h>
+#include <cob_sound/PlayAction.h>
+#include <cob_srvs/SetString.h>
 
-class SayAction
+class SoundAction
 {
 protected:
 
   ros::NodeHandle nh_;
-  actionlib::SimpleActionServer<cob_sound::SayAction> as_;
-  ros::ServiceServer srvServer_;
+  actionlib::SimpleActionServer<cob_sound::SayAction> as_say_;
+  actionlib::SimpleActionServer<cob_sound::PlayAction> as_play_;
+  ros::ServiceServer srvServer_say_;
+  ros::ServiceServer srvServer_play_;
   ros::ServiceServer srvServer_mute_;
   ros::ServiceServer srvServer_unmute_;
-  ros::Subscriber sub_;
-  std::string action_name_;
+  ros::Subscriber sub_say_;
+  ros::Subscriber sub_play_;
   bool mute_;
 
 public:
@@ -26,48 +29,66 @@ public:
   ros::Timer diagnostics_timer_;
   ros::Publisher pubMarker_;
 
-  SayAction(std::string name) :
-    as_(nh_, name, boost::bind(&SayAction::as_cb, this, _1), false),
-    action_name_(name)
+  SoundAction():
+    as_say_(nh_, "say", boost::bind(&SoundAction::as_cb_say_, this, _1), false),
+    as_play_(nh_, "play", boost::bind(&SoundAction::as_cb_play_, this, _1), false)
   {
-    as_.start();
-    srvServer_ = nh_.advertiseService("say", &SayAction::service_cb, this);
-    srvServer_mute_ = nh_.advertiseService("mute", &SayAction::service_cb_mute, this);
-    srvServer_unmute_ = nh_.advertiseService("unmute", &SayAction::service_cb_unmute, this);
-    sub_ = nh_.subscribe("say", 1000, &SayAction::topic_cb, this);
+    as_say_.start();
+    as_play_.start();
+    srvServer_say_ = nh_.advertiseService("say", &SoundAction::service_cb_say, this);
+    srvServer_play_ = nh_.advertiseService("play", &SoundAction::service_cb_play, this);
+    srvServer_mute_ = nh_.advertiseService("mute", &SoundAction::service_cb_mute, this);
+    srvServer_unmute_ = nh_.advertiseService("unmute", &SoundAction::service_cb_unmute, this);
+    sub_say_ = nh_.subscribe("say", 1, &SoundAction::topic_cb_say, this);
+    sub_play_ = nh_.subscribe("play", 1, &SoundAction::topic_cb_play, this);
     diagnostics_pub_ = nh_.advertise<diagnostic_msgs::DiagnosticArray>("diagnostics", 1);
-    diagnostics_timer_ = nh_.createTimer(ros::Duration(1.0), &SayAction::timer_cb, this);
+    diagnostics_timer_ = nh_.createTimer(ros::Duration(1.0), &SoundAction::timer_cb, this);
     pubMarker_ = nh_.advertise<visualization_msgs::Marker>("marker",1); //Advertise visualization marker topic
     mute_ = false;
   }
 
-  ~SayAction(void)
+  ~SoundAction(void)
   {
   }
 
-  void as_cb(const cob_sound::SayGoalConstPtr &goal)
+  void as_cb_say_(const cob_sound::SayGoalConstPtr &goal)
   {
-    bool ret = say(goal->text.data);
+    bool ret = say(goal->text);
     if (ret)
     {
-        as_.setSucceeded();
+        as_say_.setSucceeded();
     }
     else
     {
-        as_.setAborted();
+        as_say_.setAborted();
     }
   }
 
-  bool service_cb(cob_sound::SayText::Request &req,
-                  cob_sound::SayText::Response &res )
+  void as_cb_play_(const cob_sound::PlayGoalConstPtr &goal)
   {
-    say(req.text);
+    bool ret = play(goal->filename);
+    if (ret)
+    {
+        as_play_.setSucceeded();
+    }
+    else
+    {
+        as_play_.setAborted();
+    }
+  }
+
+  bool service_cb_say(cob_srvs::SetString::Request &req,
+                  cob_srvs::SetString::Response &res )
+  {
+    say(req.data);
     return true;
   }
 
-  void topic_cb(const std_msgs::String::ConstPtr& msg)
+  bool service_cb_play(cob_srvs::SetString::Request &req,
+                  cob_srvs::SetString::Response &res )
   {
-    say(msg->data.c_str());
+    play(req.data);
+    return true;
   }
 
   bool service_cb_mute(std_srvs::Trigger::Request &req,
@@ -86,7 +107,17 @@ public:
     return true;
   }
 
-  bool say(std::string text)
+  void topic_cb_say(const std_msgs::String::ConstPtr& msg)
+  {
+    say(msg->data.c_str());
+  }
+
+  void topic_cb_play(const std_msgs::String::ConstPtr& msg)
+  {
+    play(msg->data.c_str());
+  }
+
+  bool say(std::string data)
   {
     if (mute_)
     {
@@ -94,10 +125,10 @@ public:
       return true;
     }
 
-    ROS_INFO("Saying: %s", text.c_str());
+    ROS_INFO("Saying: %s", data.c_str());
 
-    publish_marker(text);
-    
+    publish_marker(data);
+
     std::string mode;
     std::string command;
     std::string cepstral_conf;
@@ -105,11 +136,11 @@ public:
     nh_.param<std::string>("/sound_controller/cepstral_settings",cepstral_conf,"\"speech/rate=170\"");
     if (mode == "cepstral")
     {
-      command = "swift -p " + cepstral_conf + " " + text;
+      command = "aoss swift -p " + cepstral_conf + " " + data;
     }
     else
     {
-      command = "echo " + text + " | text2wave | aplay -q";
+      command = "echo " + data + " | text2wave | aplay -q";
     }
     if (system(command.c_str()) != 0)
     {
@@ -120,17 +151,47 @@ public:
       status.name = "sound";
       status.message = "command say failed to play sound using mode " + mode;
       diagnostics_.status.push_back(status);
-      
+
       diagnostics_.header.stamp = ros::Time::now();
       diagnostics_pub_.publish(diagnostics_);
-      
+
       diagnostics_.status.resize(0);
       return false;
     }
     return true;
   }
-  
-  
+
+  bool play(std::string filename)
+  {
+    if (mute_)
+    {
+      ROS_WARN("Sound is set to mute. You will hear nothing.");
+      return true;
+    }
+    std::string command;
+
+    ROS_INFO("Playing: %s", filename.c_str());
+    command = "aplay -q " + filename;
+
+    if (system(command.c_str()) != 0)
+    {
+      ROS_ERROR("Could not play file %s", filename.c_str());
+      // publishing diagnotic error if output fails
+      diagnostic_msgs::DiagnosticStatus status;
+      status.level = 2;
+      status.name = "sound";
+      status.message = "command play failed";
+      diagnostics_.status.push_back(status);
+
+      diagnostics_.header.stamp = ros::Time::now();
+      diagnostics_pub_.publish(diagnostics_);
+
+      diagnostics_.status.resize(0);
+      return false;
+    }
+    return true;
+  }
+
   void timer_cb(const ros::TimerEvent&)
   {
     diagnostic_msgs::DiagnosticStatus status;
@@ -139,14 +200,14 @@ public:
     status.hardware_id = "none";
     status.message = "sound controller running";
     diagnostics_.status.push_back(status);
-    
+
     diagnostics_.header.stamp = ros::Time::now();
     diagnostics_pub_.publish(diagnostics_);
-    
+
     diagnostics_.status.resize(0);
   }
 
-  void publish_marker(std::string text)
+  void publish_marker(std::string data)
   {
     visualization_msgs::Marker marker;
     marker.header.frame_id = "base_link";
@@ -155,8 +216,8 @@ public:
     marker.id = 0;
     marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
     marker.action = visualization_msgs::Marker::ADD;
-    marker.lifetime = ros::Duration(std::max(text.size()*0.15, 2.0));
-    marker.text = text;
+    marker.lifetime = ros::Duration(std::max(data.size()*0.15, 2.0));
+    marker.text = data;
     marker.pose.position.x = 0.0;
     marker.pose.position.y = 0.0;
     marker.pose.position.z = 1.8;
@@ -181,9 +242,9 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "cob_sound");
 
-  SayAction say("say");
+  SoundAction sound;
   ROS_INFO("sound node started");
-  
+
   ros::spin();
   return 0;
 }

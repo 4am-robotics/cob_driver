@@ -6,7 +6,7 @@ inverted: true
 scan_id: 7
 frame_id: /base_laser_front_link
 scan_intervals: [[-1.3526, 1.361357]] #[rad] these intervals are included to the scan
-fields: 
+fields:
   '1':
     scale: 1.0
     start_angle: -1.0

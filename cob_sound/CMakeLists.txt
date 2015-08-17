@@ -1,48 +1,29 @@
-
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_sound)
 
-find_package(catkin REQUIRED COMPONENTS message_generation rospy roscpp actionlib actionlib_msgs std_msgs std_srvs diagnostic_msgs visualization_msgs)
+find_package(catkin REQUIRED COMPONENTS actionlib_msgs actionlib diagnostic_msgs message_generation roscpp std_msgs std_srvs visualization_msgs)
 
-#######################################
-## Declare ROS messages and services ##
-#######################################
-
-add_service_files(DIRECTORY srv FILES
-  SayText.srv
-)
 add_action_files(DIRECTORY action FILES
-   Say.action 	
+   Say.action
+   Play.action
 )
 
 generate_messages(
-  DEPENDENCIES actionlib_msgs std_msgs
+  DEPENDENCIES actionlib_msgs
 )
-
-###################################
-## catkin specific configuration ##
-###################################
 
 catkin_package(
-    CATKIN_DEPENDS rospy roscpp actionlib actionlib_msgs std_msgs std_srvs diagnostic_msgs visualization_msgs message_runtime # TODO
-    INCLUDE_DIRS # TODO include
-    LIBRARIES # TODO
+  CATKIN_DEPENDS actionlib_msgs message_runtime
 )
 
-###########
-## Build ##
-###########
+### BUILD ###
+include_directories(${catkin_INCLUDE_DIRS})
 
-include_directories(${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 add_executable(sound ros/src/sound.cpp)
+add_dependencies(sound ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(sound ${catkin_LIBRARIES})
 
-target_link_libraries(sound ${Boost_LIBRARIES} ${catkin_LIBRARIES})
-add_dependencies(sound ${PROJECT_NAME}_gencpp)
-#############
-## Install ##
-#############
-
-## Mark executables and/or libraries for installation
+### INSTALL ###
 install(TARGETS sound
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
@@ -52,4 +33,3 @@ install(TARGETS sound
 install(PROGRAMS ros/src/test_client.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/ros/src
 )
-

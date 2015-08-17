@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -10,9 +10,9 @@
  * Project name: care-o-bot
  * ROS stack name: cob_driver
  * ROS package name: cob_camera_sensors
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Jan Fischer, email:jan.fischer@ipa.fhg.de
  * Supervised by: Jan Fischer, email:jan.fischer@ipa.fhg.de
  *
@@ -29,23 +29,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -108,7 +108,7 @@ public:
 	{
 		image_poll_server_.shutdown();
 		color_camera_->Close();
-	} 
+	}
 
 	/// Opens the camera sensor
 	bool init()
@@ -117,14 +117,14 @@ public:
 		{
 			ROS_ERROR("[color_camera] Could not read all parameters from launch file");
 			return false;
-		}		
-	
+		}
+
 		if (color_camera_->Init(config_directory_, camera_index_) & ipa_CameraSensors::RET_FAILED)
 		{
 			std::stringstream ss;
 			ss << "initialization of color camera ";
 			ss << camera_index_;
-			ss << " failed"; 
+			ss << " failed";
 			ROS_ERROR("[color_camera] %s", ss.str().c_str());
 			color_camera_->Close();
 			color_camera_ = AbstractColorCameraPtr();
@@ -140,8 +140,8 @@ public:
 			color_camera_->Close();
 			color_camera_ = AbstractColorCameraPtr();
 			return false;
-		} 
-		
+		}
+
 		/// Read camera properties of range tof sensor
 		ipa_CameraSensors::t_cameraProperty cameraProperty;
 		cameraProperty.propertyID = ipa_CameraSensors::PROP_CAMERA_RESOLUTION;
@@ -177,15 +177,15 @@ public:
 		camera_info_msg_.K[7] = k.at<double>(2, 1);
 		camera_info_msg_.K[8] = k.at<double>(2, 2);
 
-		camera_info_msg_.width = color_sensor_width;		
-		camera_info_msg_.height = color_sensor_height;		
+		camera_info_msg_.width = color_sensor_width;
+		camera_info_msg_.height = color_sensor_height;
 
 		/// Advertise service for other nodes to set intrinsic calibration parameters
 		camera_info_service_ = node_handle_.advertiseService("set_camera_info", &CobColorCameraNode::setCameraInfo, this);
-	
+
 		/// Topics to publish
 		image_poll_server_ = polled_camera::advertise(node_handle_, "request_image", &CobColorCameraNode::pollCallback, this);
-		
+
 		return true;
 	}
 
@@ -198,7 +198,7 @@ public:
 	{
 		/// @TODO: Enable the setting of intrinsic parameters
 		camera_info_msg_ = req.camera_info;
-    
+
 		rsp.success = false;
 	        rsp.status_message = "[color_camera] Setting camera parameters through ROS not implemented";
 
@@ -207,7 +207,7 @@ public:
 
 	/// Callback function for image requests on topic 'request_image'
 	void pollCallback(polled_camera::GetPolledImage::Request& req,
-			polled_camera::GetPolledImage::Response& res, 
+			polled_camera::GetPolledImage::Response& res,
 			sensor_msgs::Image& image_msg, sensor_msgs::CameraInfo& info)
 	{
 		/// Acquire new image
@@ -227,10 +227,10 @@ public:
 		{
 			ROS_ERROR("[color_camera] Could not convert IplImage to ROS message");
 		}
-	
+
 		/// Set time stamp
 		ros::Time now = ros::Time::now();
-		image_msg.header.stamp = now;   
+		image_msg.header.stamp = now;
 		if (camera_index_ == 0)
 			image_msg.header.frame_id = "head_color_camera_r_link";
 		else
@@ -268,7 +268,7 @@ public:
 			ROS_ERROR("[color_camera] Color camera index (0 or 1) not specified");
 			return false;
 		}
-	
+
 		/// Parameters are set within the launch file
 		if (node_handle_.getParam("color_camera_type", tmp_string) == false)
 		{
@@ -284,9 +284,9 @@ public:
 			ROS_ERROR("%s", str.c_str());
 			return false;
 		}
-		
+
 		ROS_INFO("Camera type: %s_%d", tmp_string.c_str(), camera_index_);
-		
+
 		// There are several intrinsic matrices, optimized to different cameras
 		// Here, we specified the desired intrinsic matrix for each camera
 		if (node_handle_.getParam("color_camera_intrinsic_type", tmp_string) == false)
@@ -301,11 +301,11 @@ public:
 		else if (tmp_string == "CAM_PROSILICA")
 		{
 			color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_PROSILICA;
-		} 
+		}
 		else if (tmp_string == "CAM_VIRTUALRANGE")
 		{
 			color_camera_intrinsic_type_ = ipa_CameraSensors::CAM_VIRTUALRANGE;
-		} 
+		}
 		else
 		{
 			std::string str = "[color_camera] Camera type '" + tmp_string + "' for intrinsics  unknown, try 'CAM_AVTPIKE','CAM_PROSILICA' or 'CAM_SWISSRANGER'";
@@ -316,10 +316,10 @@ public:
 		{
 			ROS_ERROR("[color_camera] Intrinsic camera id for color camera not specified");
 			return false;
-		}	
-		
+		}
+
 		ROS_INFO("Intrinsic for color camera: %s_%d", tmp_string.c_str(), color_camera_intrinsic_id_);
-		
+
 		return true;
 	}
 };
@@ -333,14 +333,14 @@ int main(int argc, char** argv)
 
 	/// Create a handle for this node, initialize node
 	ros::NodeHandle nh;
-	
-	/// Create camera node class instance	
+
+	/// Create camera node class instance
 	CobColorCameraNode camera_node(nh);
 
 	/// initialize camera node
 	if (!camera_node.init()) return 0;
 
 	ros::spin();
-	
+
 	return 0;
 }
