@@ -255,9 +255,9 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
     ROS_DEBUG("Creating message header");
     unified_scan.header = vec_laser_struct_.at(0).current_scan_msg.header;
     unified_scan.header.frame_id = "base_link";
-    unified_scan.angle_min = -M_PI+0.1;
-    unified_scan.angle_max = M_PI-0.1;
     unified_scan.angle_increment = M_PI/180.0/2.0;
+    unified_scan.angle_min = -M_PI + unified_scan.angle_increment*0.01;
+    unified_scan.angle_max =  M_PI - unified_scan.angle_increment*0.01;
     unified_scan.time_increment = 0.0;
     unified_scan.scan_time = vec_laser_struct_.at(0).current_scan_msg.scan_time;
     unified_scan.range_min = vec_laser_struct_.at(0).current_scan_msg.range_min;
@@ -286,7 +286,9 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
           ROS_DEBUG("rejected for angle %f not in range (%f, %f)\n", angle, unified_scan.angle_min, unified_scan.angle_max);
           continue;
         }
-        int index = (angle - unified_scan.angle_min) / unified_scan.angle_increment;
+        int index = std::floor(0.5 + (angle - unified_scan.angle_min) / unified_scan.angle_increment);
+        if(index<0 || index>=unified_scan.ranges.size()) continue;
+        
         double range_sq = y*y+x*x;
         //printf ("index xyz( %f %f %f) angle %f index %d range %f\n", x, y, z, angle, index, sqrt(range_sq));
         if( (unified_scan.ranges.at(index) == 0) || (sqrt(range_sq) <= unified_scan.ranges.at(index)) )
