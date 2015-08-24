@@ -217,12 +217,14 @@ class NodeClass
 
     // get UpperLimits out of urdf model
     UpperLimit_ = model.getJoint(JointName_.c_str())->limits->upper;
-      //std::cout << "LowerLimits[" << JointNames[i].c_str() << "] = " << LowerLimits[i] << std::endl;
+    //std::cout << "LowerLimits[" << JointNames[i].c_str() << "] = " << LowerLimits[i] << std::endl;
     CamAxisParams_->SetUpperLimit(UpperLimit_);
 
     // get Offset out of urdf model
-    Offset_ = model.getJoint(JointName_.c_str())->calibration->rising.get()[0];
-      //std::cout << "Offset[" << JointNames[i].c_str() << "] = " << Offsets[i] << std::endl;
+    //calibration rising no longer supported
+    //Offset_ = model.getJoint(JointName_.c_str())->calibration->rising.get()[0];
+    Offset_ = 0.0;
+    //std::cout << "Offset[" << JointNames[i].c_str() << "] = " << Offsets[i] << std::endl;
     CamAxisParams_->SetAngleOffset(Offset_);
 
     // get velocitiy out of urdf model
