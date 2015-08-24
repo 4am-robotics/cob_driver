@@ -64,7 +64,6 @@
 
 // standard includes
 #include <pthread.h>
-#include <boost/lexical_cast.hpp>
 #include <XmlRpc.h>
 #include <math.h>
 
