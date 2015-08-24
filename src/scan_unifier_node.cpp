@@ -87,9 +87,9 @@ scan_unifier_node::~scan_unifier_node(){}
  * @function getParams
  * @brief function to load parameters from ros parameter server
  *
- * input: - 
- * output: - 
- */ 
+ * input: -
+ * output: -
+ */
 void scan_unifier_node::getParams()
 {
 
@@ -107,7 +107,7 @@ void scan_unifier_node::getParams()
 
     if(topicList.getType() == XmlRpc::XmlRpcValue::TypeArray)
     {
-      for (int32_t i = 0; i < topicList.size(); ++i) 
+      for (int32_t i = 0; i < topicList.size(); ++i)
       {
         ROS_ASSERT(topicList[i].getType() == XmlRpc::XmlRpcValue::TypeString);
         config_.input_scan_topics.push_back(static_cast<std::string>(topicList[i]));
@@ -129,7 +129,7 @@ void scan_unifier_node::getParams()
  * @function getLoopRate
  * @brief getter function for the loop rate
  *
- * input: - 
+ * input: -
  * output:
  * @return the loop rate
  */
@@ -145,7 +145,7 @@ double scan_unifier_node::getLoopRate()
  * input:
  * @param message received information
  * @param scan id to find right scan in struct
- * output: - 
+ * output: -
  */
 void scan_unifier_node::set_new_msg_received(bool received, int scan_id)
 {
@@ -160,7 +160,7 @@ void scan_unifier_node::set_new_msg_received(bool received, int scan_id)
  *
  * input:
  * @param scan id to find right scan in struct
- * output: - 
+ * output: -
  * @return the new_msg_received variable
  */
 bool scan_unifier_node::get_new_msg_received(int scan_id)
@@ -174,9 +174,9 @@ bool scan_unifier_node::get_new_msg_received(int scan_id)
 /**
  * @function initLaserScanStructs
  * @brief initialize a vector of laser scan structs (member variable vec_laser_struct_) with a given number
- * (from parameter server, stored in config_ struct) 
+ * (from parameter server, stored in config_ struct)
  *
- * input: - 
+ * input: -
  * output: -
  */
 void scan_unifier_node::initLaserScanStructs()
@@ -199,10 +199,10 @@ void scan_unifier_node::initLaserScanStructs()
  * @function topicCallbackLaserScan
  * @brief callback function to subscribe to laser scan messages and store them in vec_laser_struct_
  *
- * input: 
+ * input:
  * @param: a laser scan msg pointer
  * @param: integer to trigger the storage in vec_laser_struct_
- * output: - 
+ * output: -
  */
 void scan_unifier_node::topicCallbackLaserScan(const sensor_msgs::LaserScan::ConstPtr& scan_in, int scan_id)
 {
@@ -223,7 +223,7 @@ void scan_unifier_node::topicCallbackLaserScan(const sensor_msgs::LaserScan::Con
  * @function unifieLaserScans
  * @brief unifie the scan information from all laser scans in vec_laser_struct_
  *
- * input: - 
+ * input: -
  * output:
  * @param: a laser scan message containing unified information from all scanners
  */
@@ -234,7 +234,7 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
   vec_cloud.assign(config_.number_input_scans, sensor_msgs::PointCloud());
 
   if(!vec_laser_struct_.empty())
-  {	
+  {
     ROS_DEBUG("start converting");
     for(int i=0; i < config_.number_input_scans; i++)
     {
@@ -242,7 +242,7 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
       ROS_DEBUG_STREAM("Converting scans to point clouds at index: " << i << ", at time: " << vec_laser_struct_.at(i).current_scan_msg.header.stamp << " now: " << ros::Time::now());
       try
       {
-        listener_.waitForTransform("/base_link", vec_laser_struct_.at(i).current_scan_msg.header.frame_id, 
+        listener_.waitForTransform("/base_link", vec_laser_struct_.at(i).current_scan_msg.header.frame_id,
             vec_laser_struct_.at(i).current_scan_msg.header.stamp, ros::Duration(3.0));
 
         ROS_DEBUG("now project to point_cloud");
@@ -288,7 +288,7 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
         }
         int index = std::floor(0.5 + (angle - unified_scan.angle_min) / unified_scan.angle_increment);
         if(index<0 || index>=unified_scan.ranges.size()) continue;
-        
+
         double range_sq = y*y+x*x;
         //printf ("index xyz( %f %f %f) angle %f index %d range %f\n", x, y, z, angle, index, sqrt(range_sq));
         if( (unified_scan.ranges.at(index) == 0) || (sqrt(range_sq) <= unified_scan.ranges.at(index)) )
@@ -307,10 +307,10 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
 
 /**
  * @function checkUnifieCondition
- * @brief check in every node-loop if the unifieConditions holds. A unified scan is only published if new laser 
+ * @brief check in every node-loop if the unifieConditions holds. A unified scan is only published if new laser
  * messages from all scanners have been received
  *
- * input: - 
+ * input: -
  * output: -
  */
 void scan_unifier_node::checkUnifieCondition()
@@ -349,7 +349,7 @@ int main(int argc, char** argv)
 
   scan_unifier_node my_scan_unifier_node;
 
-  // store initialization time of the node 
+  // store initialization time of the node
   ros::Time start = ros::Time::now();
 
   ros::Rate rate(my_scan_unifier_node.getLoopRate());

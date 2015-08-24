@@ -86,11 +86,11 @@ class scan_unifier_node
   private:
     /** @struct config_struct
      *  @brief This structure holds configuration parameters
-     *  @var config_struct::number_input_scans 
+     *  @var config_struct::number_input_scans
      *  Member 'number_input_scans' contains number of scanners to subscribe to
-     *  @var config_struct::loop_rate 
+     *  @var config_struct::loop_rate
      *  Member 'loop_rate' contains the loop rate of the ros node
-     *  @var config_struct::input_scan_topics 
+     *  @var config_struct::input_scan_topics
      *  Member 'input_scan_topics' contains the names of the input scan topics
      */
     struct config_struct{
@@ -101,11 +101,11 @@ class scan_unifier_node
 
     /** @struct laser_scan_struct
      *  @brief This structure holds the variables for one laser-scanner to be unified
-     *  @var laser_scan_struct::new_msg_received 
+     *  @var laser_scan_struct::new_msg_received
      *  Member 'new_msg_received' contains the information if a new message of this topic has been received
-     *  @var laser_scan_struct::scan_id 
+     *  @var laser_scan_struct::scan_id
      *  Member 'scan_id' contains the scan id to subscibe to
-     *  @var laser_scan_struct::scan_id 
+     *  @var laser_scan_struct::scan_id
      *  Member 'scan_topic' contains the topic of this scan
      *  @var laser_scan_struct::laser_sub
      *  Member 'laser_sub' contains ros subscriber for this laser-scan
@@ -157,9 +157,9 @@ class scan_unifier_node
      * @function getParams
      * @brief function to load parameters from ros parameter server
      *
-     * input: - 
-     * output: - 
-     */ 
+     * input: -
+     * output: -
+     */
     void getParams();
 
     /**
@@ -168,7 +168,7 @@ class scan_unifier_node
      *
      * input:
      * @param message received information
-     * output: - 
+     * output: -
      */
     void set_new_msg_received(bool received, int scan_id);
 
@@ -176,8 +176,8 @@ class scan_unifier_node
      * @function get_new_msg_received
      * @brief getter function for new_msg_received variable for checking wether a new msg has been received, triggering publishers accordingly
      *
-     * input: - 
-     * output: - 
+     * input: -
+     * output: -
      * @return the new_msg_received variable
      */
     bool get_new_msg_received(int scan_id);
@@ -186,7 +186,7 @@ class scan_unifier_node
      * @function getLoopRate
      * @brief getter function for the loop rate
      *
-     * input: - 
+     * input: -
      * output:
      * @return the loop rate
      */
@@ -195,9 +195,9 @@ class scan_unifier_node
     /**
      * @function initLaserScanStructs
      * @brief initialize a vector of laser scan structs (member variable vec_laser_struct_) with a given number
-     * (from parameter server, stored in config_ struct) 
+     * (from parameter server, stored in config_ struct)
      *
-     * input: - 
+     * input: -
      * output: -
      */
     void initLaserScanStructs();
@@ -206,19 +206,19 @@ class scan_unifier_node
      * @function topicCallbackLaserScan
      * @brief callback function to subscribe to laser scan messages and store them in vec_laser_struct_
      *
-     * input: 
+     * input:
      * @param: a laser scan msg pointer
      * @param: integer to trigger the storage in vec_laser_struct_
-     * output: - 
+     * output: -
      */
     void topicCallbackLaserScan(const sensor_msgs::LaserScan::ConstPtr& scan_in, int scan_id);
 
     /**
      * @function checkUnifieCondition
-     * @brief check in every node-loop if the unifieConditions holds. A unified scan is only published if new laser 
+     * @brief check in every node-loop if the unifieConditions holds. A unified scan is only published if new laser
      * messages from all scanners have been received
      *
-     * input: - 
+     * input: -
      * output: -
      */
     void checkUnifieCondition();
@@ -227,7 +227,7 @@ class scan_unifier_node
      * @function unifieLaserScans
      * @brief unifie the scan information from all laser scans in vec_laser_struct_
      *
-     * input: - 
+     * input: -
      * output:
      * @param: a laser scan message containing unified information from all scanners
      */
