@@ -2,8 +2,8 @@
 Changelog for package cob_head_axis
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.4 (2015-08-25)
+------------------
 * rising no longer supported
 * boost revision
 * do not install headers in executable-only packages

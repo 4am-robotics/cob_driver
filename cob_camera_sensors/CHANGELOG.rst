@@ -2,8 +2,8 @@
 Changelog for package cob_camera_sensors
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.4 (2015-08-25)
+------------------
 * boost revision
 * explicit dependency to boost
 * more cleanup

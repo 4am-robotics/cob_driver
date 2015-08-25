@@ -2,8 +2,8 @@
 Changelog for package cob_mimic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.4 (2015-08-25)
+------------------
 * cleanup
 * fixing dependencies
 * remove trailing whitespaces
