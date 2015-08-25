@@ -2,6 +2,16 @@
 Changelog for package cob_voltage_control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* explicit dependency to boost
+* remove trailing whitespaces
+* add_dependencies EXPORTED_TARGETS
+* migrate to package format 2
+* sort dependencies
+* critically review dependencies
+* Contributors: ipa-fxm
+
 0.6.3 (2015-06-17)
 ------------------
 

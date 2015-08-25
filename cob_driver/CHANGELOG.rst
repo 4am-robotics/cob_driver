@@ -2,6 +2,13 @@
 Changelog for package cob_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* migrate to package format 2
+* sort dependencies
+* critically review dependencies
+* Contributors: ipa-fxm
+
 0.6.3 (2015-06-17)
 ------------------
 * Merge pull request `#199 <https://github.com/ipa320/cob_driver/issues/199>`_ from ipa-nhg/indigo_dev
