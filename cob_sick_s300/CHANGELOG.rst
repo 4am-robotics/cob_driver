@@ -2,6 +2,9 @@
 Changelog for package cob_sick_s300
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.4 (2015-08-25)
 ------------------
 * do not install headers in executable-only packages

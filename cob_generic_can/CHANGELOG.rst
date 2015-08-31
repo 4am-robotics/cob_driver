@@ -2,6 +2,9 @@
 Changelog for package cob_generic_can
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.4 (2015-08-25)
 ------------------
 * explicit dependency to boost

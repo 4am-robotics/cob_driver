@@ -2,6 +2,9 @@
 Changelog for package cob_canopen_motor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.4 (2015-08-25)
 ------------------
 * explicit dependency to boost

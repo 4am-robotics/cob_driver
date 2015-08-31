@@ -2,6 +2,9 @@
 Changelog for package cob_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.4 (2015-08-25)
 ------------------
 * migrate to package format 2

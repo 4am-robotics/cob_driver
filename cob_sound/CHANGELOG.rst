@@ -2,6 +2,11 @@
 Changelog for package cob_sound
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix dependencies
+* Contributors: ipa-fxm
+
 0.6.4 (2015-08-25)
 ------------------
 * boost revision
