@@ -2,8 +2,8 @@
 Changelog for package cob_scan_unifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.3 (2015-08-31)
+------------------
 * remove trailing whitespace
 * migration to package format v2, indentation fixes
 * Merge remote-tracking branch 'origin-ipa320/hydro_dev' into indigo_dev
