@@ -18,6 +18,7 @@
 
   <depend>actionlib_msgs</depend>
   <depend>actionlib</depend>
+  <depend>cob_srvs</depend>
   <depend>diagnostic_msgs</depend>
   <depend>roscpp</depend>
   <depend>std_msgs</depend>

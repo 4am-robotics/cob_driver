@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_sound)
 
-find_package(catkin REQUIRED COMPONENTS actionlib_msgs actionlib diagnostic_msgs message_generation roscpp std_msgs std_srvs visualization_msgs)
+find_package(catkin REQUIRED COMPONENTS actionlib_msgs actionlib cob_srvs diagnostic_msgs message_generation roscpp std_msgs std_srvs visualization_msgs)
 
 add_action_files(DIRECTORY action FILES
    Say.action
