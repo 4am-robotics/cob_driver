@@ -2,6 +2,16 @@
 Changelog for package cob_scan_unifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* remove trailing whitespace
+* migration to package format v2, indentation fixes
+* Merge remote-tracking branch 'origin-ipa320/hydro_dev' into indigo_dev
+* reduced MAGIC NUMBER
+* check range values
+* round index
+* Contributors: ipa-josh, ipa-mig
+
 0.6.2 (2015-06-17)
 ------------------
 * cob_scan_unifier: get rid of exported but uninstalled include path
