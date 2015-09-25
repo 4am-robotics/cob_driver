@@ -82,6 +82,7 @@ class NodeClass
 public:
   // create a handle for this node, initialize node
   ros::NodeHandle n;
+  ros::NodeHandle n_priv;
 
   // topics to publish
   ros::Publisher topicPub_isEmergencyStop;
@@ -93,11 +94,12 @@ public:
   // Constructor
   NodeClass()
   {
-    n = ros::NodeHandle("~");
+    n = ros::NodeHandle();
+    n_priv = ros::NodeHandle("~");
 
-    topicPub_isEmergencyStop = n.advertise<cob_msgs::EmergencyStopState>("/emergency_stop_state", 1);
-    topicPub_PowerBoardState = n.advertise<cob_msgs::PowerBoardState>("/power_board/state", 1);
-    topicPub_Voltage = n.advertise<std_msgs::Float64>("/power_board/voltage", 10);
+    topicPub_isEmergencyStop = n.advertise<cob_msgs::EmergencyStopState>("emergency_stop_state", 1);
+    topicPub_PowerBoardState = n.advertise<cob_msgs::PowerBoardState>("power_board/state", 1);
+    topicPub_Voltage = n.advertise<std_msgs::Float64>("power_board/voltage", 10);
 
     // Make sure member variables have a defined state at the beginning
     EM_stop_status_ = ST_EM_FREE;
@@ -170,9 +172,9 @@ int main(int argc, char** argv)
 
 int NodeClass::init()
 {
-  if (n.hasParam("ComPort"))
+  if (n_priv.hasParam("ComPort"))
     {
-      n.getParam("ComPort", sComPort);
+      n_priv.getParam("ComPort", sComPort);
       ROS_INFO("Loaded ComPort parameter from parameter server: %s",sComPort.c_str());
     }
   else
@@ -181,8 +183,8 @@ int NodeClass::init()
       ROS_WARN("ComPort Parameter not available, using default Port: %s",sComPort.c_str());
     }
 
-  n.param("relayboard_timeout", relayboard_timeout_, 2.0);
-  n.param("protocol_version", protocol_version_, 1);
+  n_priv.param("relayboard_timeout", relayboard_timeout_, 2.0);
+  n_priv.param("protocol_version", protocol_version_, 1);
 
   m_SerRelayBoard = new SerRelayBoard(sComPort, protocol_version_);
   ROS_INFO("Opened Relayboard at ComPort = %s", sComPort.c_str());
