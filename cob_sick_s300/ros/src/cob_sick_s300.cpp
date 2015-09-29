@@ -199,7 +199,7 @@ class NodeClass
 			node_name = ros::this_node::getName();
 
 			// implementation of topics to publish
-			topicPub_LaserScan = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
+			topicPub_LaserScan = nh.advertise<sensor_msgs::LaserScan>("scan_raw", 1);
 			topicPub_InStandby = nh.advertise<std_msgs::Bool>("scan_standby", 1);
 			topicPub_Diagnostic_ = nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 

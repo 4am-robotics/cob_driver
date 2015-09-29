@@ -84,7 +84,7 @@ public:
 
 		// implementation of topics to publish
 		topicPub_laser_scan = nh.advertise<sensor_msgs::LaserScan>("scan_filtered", 1);
-		topicSub_laser_scan_raw = nh.subscribe("scan", 1, &NodeClass::scanCallback, this);
+		topicSub_laser_scan_raw = nh.subscribe("scan_raw", 1, &NodeClass::scanCallback, this);
 	}
 
 	void scanCallback(const sensor_msgs::LaserScan::ConstPtr& msg) {
