@@ -23,6 +23,7 @@
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
   <depend>visualization_msgs</depend>
+  <depend>sensor_msgs</depend>
 
   <exec_depend>rospy</exec_depend>
 

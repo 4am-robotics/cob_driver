@@ -289,22 +289,30 @@ public:
 
   void topicCallbackMode(cob_light::LightMode mode_msg)
   {
-    if(_deviceDriver == "stageprofi")
+    if(p_modeExecutor->getExecutingMode() <= mode_msg.priority)
     {
-      std::vector<color::rgba> colors;
-      for(size_t i=0; i<mode_msg.colors.size();i++)
-      {
-        _color.a = mode_msg.colors[i].a;
-        _color.r = mode_msg.colors[i].r;
-        _color.g = mode_msg.colors[i].g;
-        _color.b = mode_msg.colors[i].b;
-        colors.push_back(_color);
-      }
-      p_colorO->setColorMulti(colors);
-    }
-    else
-    {
-      p_colorO->setColor(_color);
+        p_modeExecutor->stop();
+        if(_deviceDriver == "stageprofi")
+        {
+          std::vector<color::rgba> colors;
+          for(size_t i=0; i<mode_msg.colors.size();i++)
+          {
+            _color.a = mode_msg.colors[i].a;
+            _color.r = mode_msg.colors[i].r;
+            _color.g = mode_msg.colors[i].g;
+            _color.b = mode_msg.colors[i].b;
+            colors.push_back(_color);
+          }
+          p_colorO->setColorMulti(colors);
+        }
+        else
+        {
+          _color.a = mode_msg.color.a;
+          _color.r = mode_msg.color.r;
+          _color.g = mode_msg.color.g;
+          _color.b = mode_msg.color.b;
+          p_colorO->setColor(_color);
+        }
     }
   }
 
