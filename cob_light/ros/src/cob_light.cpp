@@ -185,6 +185,9 @@ public:
 	    ROS_WARN("Parameter 'num_leds' is missing. Using default Value: 58");
  	  _nh.param<int>("num_leds", _num_leds, 58);
 
+    int led_offset;
+    _nh.param<int>("led_offset", led_offset, 0);
+
     //Subscribe to LightController Command Topic
     _sub = _nh.subscribe("command", 1, &LightControl::topicCallback, this);
 
@@ -216,7 +219,7 @@ public:
         else if(_deviceDriver == "ms-35")
           p_colorO = new MS35(&_serialIO);
         else if(_deviceDriver == "stageprofi")
-          p_colorO = new StageProfi(&_serialIO, _num_leds);
+          p_colorO = new StageProfi(&_serialIO, _num_leds, led_offset);
         else
         {
           ROS_ERROR_STREAM("Unsupported devicedriver ["<<_deviceDriver<<"], falling back to sim mode");
