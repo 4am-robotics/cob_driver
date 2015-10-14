@@ -132,6 +132,40 @@ public:
 		else if (i==4) {r = t;  g = p;  b = v;}
 		else if (i==5) {r = v;  g = p;  b = q;}
 	}
+
+    static float linearInterpolate(float a, float b, float t)
+    {
+      return a * (1 - t) + b * t;
+    }
+
+    static color::rgba interpolateColor(color::rgba start, color::rgba goal, float t)
+    {
+      color::hsv ca;
+      color::hsv cb;
+      color::hsv cr;
+      color::rgba a, b;
+      a = start;
+      b = goal;
+
+      a.r *= a.a;
+      a.g *= a.a;
+      a.b *= a.a;
+      b.r *= b.a;
+      b.g *= b.a;
+      b.b *= b.a;
+      color::Color::rgb2hsv(a.r, a.g, a.b, ca.h, ca.s, ca.v);
+      color::Color::rgb2hsv(b.r, b.g, b.b, cb.h, cb.s, cb.v);
+
+      cr.h = linearInterpolate(ca.h, cb.h, t);
+      cr.s = linearInterpolate(ca.s, cb.s, t);
+      cr.v = linearInterpolate(ca.v, cb.v, t);
+
+      color::rgba result;
+      color::Color::hsv2rgb(cr.h, cr.s, cr.v, result.r, result.g, result.b);
+      result.a = 1.0;
+
+      return result;
+    }
 };
 }
 #endif

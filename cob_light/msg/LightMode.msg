@@ -10,6 +10,7 @@ uint8 SEQ =            6           # executes one sequence after another as defi
 uint8 CIRCLE_COLORS =  7           # circle through specific colors, if one color is set only one color will circle
                                    # if more than one color is set, that this colors will circle through
 uint8 SWEEP =          8           # circle color from front to back on both sides
+uint8 DIST_APPROX =    9           # circle color from front to back on both sides
 
 std_msgs/ColorRGBA     color       #the color which will be used
 float32                frequency   # in Hz

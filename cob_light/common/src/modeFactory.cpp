@@ -61,6 +61,7 @@
 #include <sequenceMode.h>
 #include <circleColorMode.h>
 #include <sweepColorMode.h>
+#include <distApproxMode.h>
 
 ModeFactory::ModeFactory()
 {
@@ -107,67 +108,73 @@ Mode* ModeFactory::create(cob_light::LightMode requestMode, IColorO* colorO)
 
 		case cob_light::LightMode::SEQ:
 		{
-      std::vector<seq_t> seqs;
-      for(size_t i = 0; i < requestMode.sequences.size(); i++)
-      {
-        seq_t seq;
-        seq.color.r = requestMode.sequences[i].color.r;
-        seq.color.g = requestMode.sequences[i].color.g;
-        seq.color.b = requestMode.sequences[i].color.b;
-        seq.color.a = requestMode.sequences[i].color.a;
-        seq.holdtime = requestMode.sequences[i].hold_time;
-        seq.crosstime = requestMode.sequences[i].cross_time;
-        seqs.push_back(seq);
-        std::cout<<"got new seq: "<<seq.color.r<<" "<<seq.color.g<<" "<<seq.color.b<<std::endl;
-      }
-      mode = new SequenceMode(seqs, requestMode.priority, requestMode.frequency,\
-        requestMode.pulses, requestMode.timeout);
+            std::vector<seq_t> seqs;
+            for(size_t i = 0; i < requestMode.sequences.size(); i++)
+            {
+                seq_t seq;
+                seq.color.r = requestMode.sequences[i].color.r;
+                seq.color.g = requestMode.sequences[i].color.g;
+                seq.color.b = requestMode.sequences[i].color.b;
+                seq.color.a = requestMode.sequences[i].color.a;
+                seq.holdtime = requestMode.sequences[i].hold_time;
+                seq.crosstime = requestMode.sequences[i].cross_time;
+                seqs.push_back(seq);
+                std::cout<<"got new seq: "<<seq.color.r<<" "<<seq.color.g<<" "<<seq.color.b<<std::endl;
+            }
+            mode = new SequenceMode(seqs, requestMode.priority, requestMode.frequency,\
+            requestMode.pulses, requestMode.timeout);
 		}
-    break;
+        break;
 
 		case cob_light::LightMode::CIRCLE_COLORS:
 		{
-      std::vector<color::rgba> colors;
-      if(requestMode.colors.empty())
-      {
-        colors.push_back(color);
-      }
-        else
-        {
-          for(size_t i = 0; i < requestMode.colors.size(); i++)
-          {
-            color.r = requestMode.colors[i].r;
-            color.g = requestMode.colors[i].g;
-            color.b = requestMode.colors[i].b;
-            color.a = requestMode.colors[i].a;
-            colors.push_back(color);
-          }
-        }
+            std::vector<color::rgba> colors;
+            if(requestMode.colors.empty())
+            {
+                colors.push_back(color);
+            }
+            else
+            {
+              for(size_t i = 0; i < requestMode.colors.size(); i++)
+              {
+                color.r = requestMode.colors[i].r;
+                color.g = requestMode.colors[i].g;
+                color.b = requestMode.colors[i].b;
+                color.a = requestMode.colors[i].a;
+                colors.push_back(color);
+              }
+            }
 		    mode = new CircleColorMode(colors, colorO->getNumLeds(), requestMode.priority, requestMode.frequency, requestMode.pulses, requestMode.timeout);
 		}
 		break;
 
-    case cob_light::LightMode::SWEEP:
-    {
-        std::vector<color::rgba> colors;
-        if(requestMode.colors.empty())
+        case cob_light::LightMode::SWEEP:
         {
-          colors.push_back(color);
+            std::vector<color::rgba> colors;
+            if(requestMode.colors.empty())
+            {
+              colors.push_back(color);
+            }
+            else
+            {
+              for(size_t i = 0; i < requestMode.colors.size(); i++)
+              {
+                color.r = requestMode.colors[i].r;
+                color.g = requestMode.colors[i].g;
+                color.b = requestMode.colors[i].b;
+                color.a = requestMode.colors[i].a;
+                colors.push_back(color);
+              }
+            }
+            mode = new SweepColorMode(colors, colorO->getNumLeds(), requestMode.priority, requestMode.frequency, requestMode.pulses, requestMode.timeout);
         }
-        else
+        break;
+
+        case cob_light::LightMode::DIST_APPROX:
         {
-          for(size_t i = 0; i < requestMode.colors.size(); i++)
-          {
-            color.r = requestMode.colors[i].r;
-            color.g = requestMode.colors[i].g;
-            color.b = requestMode.colors[i].b;
-            color.a = requestMode.colors[i].a;
-            colors.push_back(color);
-          }
+            mode = new DistApproxMode(colorO->getNumLeds(), requestMode.priority, requestMode.frequency, requestMode.pulses, requestMode.timeout);
         }
-        mode = new SweepColorMode(colors, colorO->getNumLeds(), requestMode.priority, requestMode.frequency, requestMode.pulses, requestMode.timeout);
-    }
-    break;
+        break;
 
 		default:
 			mode = NULL;
@@ -225,12 +232,14 @@ int ModeFactory::type(Mode *mode)
 		ret = cob_light::LightMode::BREATH_COLOR;
 	else if(dynamic_cast<FadeColorMode*>(mode) != NULL)
 		ret = cob_light::LightMode::FADE_COLOR;
-  else if(dynamic_cast<SequenceMode*>(mode) != NULL)
-    ret = cob_light::LightMode::SEQ;
-  else if(dynamic_cast<CircleColorMode*>(mode) != NULL)
-    ret = cob_light::LightMode::CIRCLE_COLORS;
-  else if(dynamic_cast<SweepColorMode*>(mode) != NULL)
-    ret = cob_light::LightMode::SWEEP;
+    else if(dynamic_cast<SequenceMode*>(mode) != NULL)
+        ret = cob_light::LightMode::SEQ;
+    else if(dynamic_cast<CircleColorMode*>(mode) != NULL)
+        ret = cob_light::LightMode::CIRCLE_COLORS;
+    else if(dynamic_cast<SweepColorMode*>(mode) != NULL)
+        ret = cob_light::LightMode::SWEEP;
+    else if(dynamic_cast<DistApproxMode*>(mode) != NULL)
+        ret = cob_light::LightMode::DIST_APPROX;
 	else
 		ret = cob_light::LightMode::NONE;
 

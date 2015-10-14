@@ -57,6 +57,7 @@ set(HEADERS
     ${PROJECT_SOURCE_DIR}/common/include/serialIO.h
     ${PROJECT_SOURCE_DIR}/common/include/staticMode.h
     ${PROJECT_SOURCE_DIR}/common/include/sweepColorMode.h
+    ${PROJECT_SOURCE_DIR}/common/include/distApproxMode.h
 )
 
 
@@ -64,9 +65,6 @@ add_executable(cob_light ros/src/cob_light.cpp ros/src/colorO.cpp ros/src/colorO
                          common/src/serialIO.cpp common/src/modeExecutor.cpp common/src/modeFactory.cpp ${HEADERS})
 add_dependencies(cob_light ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(cob_light ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-
-add_executable(cob_light_approxiation ros/src/light_approximation.cpp)
-target_link_libraries(cob_light_approxiation ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 ### INSTALL ###
 install(TARGETS cob_light
