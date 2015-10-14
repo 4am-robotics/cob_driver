@@ -102,30 +102,21 @@ unsigned short int MS35::getChecksum(const char* data, size_t len)
   unsigned int ret;
   boost::crc_16_type checksum_agent;
   checksum_agent.process_bytes(data, len);
-  return checksum_agent.checksum();;
+  return checksum_agent.checksum();
 }
 
 int MS35::sendData(const char* data, size_t len)
 {
-  int ret = -1;
   int bytes_wrote = 0;
 
   bytes_wrote = _serialIO->sendData(data, len);
+
   if(bytes_wrote == -1)
-  {
     ROS_WARN("Can not write to serial port. Port closed!");
-    ret = -1;
-  }
   else
-  {
     ROS_DEBUG("Wrote [%s] with %i bytes from %lu bytes", data, bytes_wrote, len);
-    //std::string recv;
-    //ROS_INFO("Receiving");
-    //int byte_recv = _serialIO->readData(recv, 1);
-    //ROS_INFO_STREAM("Received "<<byte_recv<<" bytes after color set: "<<recv);
-    //ret = 1;
-  }
-  return ret;
+
+  return bytes_wrote;
 }
 
 void MS35::setColorMulti(std::vector<color::rgba> &colors)
@@ -143,6 +134,7 @@ void MS35::setColor(color::rgba color)
   color.g *= color.a;
   color.b *= color.a;
 
+  //shift values into 8 bit rgb space
   color.r = fabs(color.r * 255);
   color.g = fabs(color.g * 255);
   color.b = fabs(color.b * 255);
@@ -154,8 +146,9 @@ void MS35::setColor(color::rgba color)
   unsigned short int crc = getChecksum(buffer, 7);
   buffer[7] = ((char*)&crc)[1];
   buffer[8] = ((char*)&crc)[0];
-  //memcpy(&buffer[7], &crc, sizeof(unsigned short int));
-
-  if(sendData(buffer, PACKAGE_SIZE))
+  
+  if(sendData(buffer, PACKAGE_SIZE) == PACKAGE_SIZE)
     m_sigColorSet(color_tmp);
+  else
+    ROS_ERROR("Could not write to serial port");
 }
