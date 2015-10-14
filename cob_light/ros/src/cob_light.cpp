@@ -289,7 +289,7 @@ public:
 
   void topicCallbackMode(cob_light::LightMode mode_msg)
   {
-    if(p_modeExecutor->getExecutingMode() <= mode_msg.priority)
+    if(p_modeExecutor->getExecutingPriority() <= mode_msg.priority)
     {
         p_modeExecutor->stop();
         if(_deviceDriver == "stageprofi")

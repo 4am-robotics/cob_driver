@@ -74,12 +74,15 @@ void timerCallback(const ros::TimerEvent& event)
             sum += ranges.at(j);
         }
         sectors.at(i) = sum / sector_size;
+	
+	ROS_INFO_STREAM("sector "<<i<<": "<<sectors.at(i));
     }
 
     for(int i = 0; i < NUM_LEDS; i++)
     {
         std_msgs::ColorRGBA color;
         color::rgba col;
+
         if(sectors.at(i) > 2.5)
             col = c_green;
         else if(sectors.at(i) < 0.3)
@@ -88,18 +91,22 @@ void timerCallback(const ros::TimerEvent& event)
         {
             float mean = 0;
             if(i == 0)
-                mean = sectors.back()+sectors.at(i);
+                mean = sectors.back()+sectors.at(i)/2.0f;
             else
-                mean = (sectors.at(i)+sectors.at(i-1))/2;
+                mean = (sectors.at(i)+sectors.at(i-1))/2.0f;
 
             float t = (mean - 0.3)/(2.5 - 0.3);
             col = interpolateColor(c_red, c_green, t);
         }
-        color.a = 1;
+        color.a = col.a;
         color.r = col.r;
         color.g = col.g;
         color.b = col.b;
         mode_msg.colors.at(i) = color;
+	mode_msg.colors.at(NUM_LEDS/2).a = 1;
+	mode_msg.colors.at(NUM_LEDS/2).r = 1;
+	mode_msg.colors.at(NUM_LEDS/2).g = 0;
+	mode_msg.colors.at(NUM_LEDS/2).b = 0;
     }
     pubLight.publish(mode_msg);
 }
@@ -110,11 +117,11 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "light_approximation");
   ros::NodeHandle nh;
   ros::Subscriber sub_scan = nh.subscribe("/scan_unified", 1, scan_callback);
-  pubLight = nh.advertise<cob_light::LightMode>("/light/light", 1);
+  pubLight = nh.advertise<cob_light::LightMode>("/light_torso/light", 1);
   ros::Timer timer = nh.createTimer(ros::Duration(0.05), timerCallback);
   std_msgs::ColorRGBA color;
   mode_msg.colors.assign(NUM_LEDS, color);
-  mode_msg.priority = 0;
+  mode_msg.priority = 1;
   mode_msg.mode = 1;
 
   c_red.a = 1; c_red.r = 1; c_red.g = 0; c_red.b = 0;
