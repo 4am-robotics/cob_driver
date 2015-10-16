@@ -21,11 +21,15 @@ public:
     {
         ros::NodeHandle nh;
         sub_scan = nh.subscribe("/scan_unified", 1, &DistApproxMode::scan_callback, this);
-        _inc = (1. / UPDATE_RATE_HZ) * _freq;
+        //use static freq for this mode
+        _inc = (1. / UPDATE_RATE_HZ) * UPDATE_FREQ;
+
         _colors.resize(_num_leds);
+
         c_red.a = 1; c_red.r = 1; c_red.g = 0; c_red.b = 0;
         c_green.a = 1; c_green.r = 0; c_green.g = 1; c_green.b = 0;
         c_off.a = 0; c_off.r = 0; c_off.g = 0; c_off.b = 0;
+        c_default.a = 0.1; c_default.r = 0; c_default.g = 1.0; c_default.b = 0;
     }
 
     void scan_callback(const sensor_msgs::LaserScanConstPtr& msg)
@@ -73,9 +77,15 @@ public:
                 {
                     mean = (sectors.at(i)+sectors.at(i-1))/2.0f;
                 }
-
-                float t = (boost::algorithm::clamp(mean, 0.6, 2.0) - 0.6)/(2.0 - 0.6);
-                col = color::Color::interpolateColor(c_red, c_green, t);
+                if(mean > DIST_MAX)
+                {
+                    col = c_default;
+                }
+                else
+                {
+                    float t = (boost::algorithm::clamp(mean, DIST_MIN, DIST_MAX) - DIST_MIN)/(DIST_MAX - DIST_MIN);
+                    col = color::Color::interpolateColor(c_red, c_green, t);
+                }
 
                 _colors.at(i) = col;
             }
@@ -89,6 +99,10 @@ public:
 
     std::string getName(){ return std::string("DistApproxMode"); }
 
+    static const float DIST_MIN = 0.3f;
+    static const float DIST_MAX = 2.0f;
+    static const double UPDATE_FREQ = 50.0;
+
 private:
     double _timer_inc;
     double _inc;
@@ -101,7 +115,11 @@ private:
     color::rgba c_red;
     color::rgba c_green;
     color::rgba c_off;
-
+    color::rgba c_default;
 };
+
+const float DistApproxMode::DIST_MIN;
+const float DistApproxMode::DIST_MAX;
+const double DistApproxMode::UPDATE_FREQ;
 
 #endif
