@@ -50,7 +50,7 @@
 * If not, see <http://www.gnu.org/licenses/>.
 *
 ****************************************************************/
- 
+
 
 /// @file VirtualColorCam.h
 /// Virtual color camera representation.
@@ -94,7 +94,7 @@ class __DLL_LIBCAMERASENSORS__ VirtualColorCam : public AbstractColorCamera
 		///		   i.e. AVT_PIKE_CAM_0 or AVT_PIKE_CAM_1
 		/// @return Return value
 		unsigned long LoadParameters(const char* filename, int cameraIndex);
-		
+
 		unsigned long SetParameters(){return RET_OK;};
 
 	public:
@@ -124,7 +124,7 @@ class __DLL_LIBCAMERASENSORS__ VirtualColorCam : public AbstractColorCamera
 		//*******************************************************************************
 		// Camera specific functions
 		//*******************************************************************************
-		
+
 		/// Returns the number of images in the directory
 		/// @return The number of images in the directory
 		int GetNumberOfImages();

@@ -1,5 +1,5 @@
 # goal
-std_msgs/String text
+string text
 ---
 #result
 ---

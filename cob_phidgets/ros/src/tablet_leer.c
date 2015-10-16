@@ -41,7 +41,7 @@ int IFK_SensorChangeHandler(CPhidgetInterfaceKitHandle IFK, void *userptr, int I
 		//printf("Sensor0 manually is %d\n", wert[0]);
 	}
 
-	else 
+	else
 	{
 
 		//CPhidgetInterfaceKit_getSensorValue(IFK,1, &wert[1]);
@@ -55,12 +55,12 @@ int IFK_SensorChangeHandler(CPhidgetInterfaceKitHandle IFK, void *userptr, int I
 		wert[96] = ((wert[2] + wert[12]+wert[22]+wert[32]+wert[42]+wert[52]+wert[62]+wert[72]+wert[82]+wert[92]) / 10);
 		wert[97] = ((wert[3] + wert[13]+wert[23]+wert[33]+wert[43]+wert[53]+wert[63]+wert[73]+wert[83]+wert[93]) / 10);
 
-		if ((wert[94] < 120) && (wert[95] <300) && (wert[96] < 110) && (wert[97] < 120))  
+		if ((wert[94] < 120) && (wert[95] <300) && (wert[96] < 110) && (wert[97] < 120))
 		{
 			printf("Sensor0123 manually are %d %d %d %d ; \n", wert[94],wert[95],wert[96],wert[97]);
 			printf("tablet empty\n");
 		}
-		else 	
+		else
 		{
 			printf("Sensor0123 manually are %d %d %d %d ; \n", wert[94],wert[95],wert[96],wert[97]);
 			printf("tablet NOT empty!\n");
@@ -113,15 +113,15 @@ int test_interfacekit()
 
 	printf("Sensors:%d Inputs:%d Outputs:%d\n", numSensors, numInputs, numOutputs);
 
-	
+
 	//err = CPhidget_setDeviceLabel((CPhidgetHandle)IFK, "test");
 
-	
+
 	while(1)
 	{
 		sleep(1);
 	}
-	
+
 	while(1)
 	{
 		CPhidgetInterfaceKit_setOutputState(IFK, 7, 1);

@@ -74,10 +74,10 @@ unsigned long AbstractRangeImagingSensor::SetIntrinsics(cv::Mat& intrinsicMatrix
 	m_undistortMapX = undistortMapX.clone();
 	m_undistortMapY = undistortMapY.clone();
 
-	return RET_OK; 
+	return RET_OK;
 }
 
-unsigned long AbstractRangeImagingSensor::SetPathToImages(std::string path) 
+unsigned long AbstractRangeImagingSensor::SetPathToImages(std::string path)
 {
 	return ipa_Utils::RET_OK;
 };

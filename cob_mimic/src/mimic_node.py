@@ -58,14 +58,11 @@
 #################################################################
 
 import sys
-import roslib
-roslib.load_manifest('cob_mimic')
-
 import os
 import subprocess
 
+import roslib
 import rospy
-import Image
 import actionlib
 
 from cob_mimic.srv import *
@@ -91,12 +88,12 @@ class Mimic:
       if(not os.path.isfile(file_location)):
         print "File not found: " + file_location
         return False
-        
+
       if (repeat == 0 ):
         self.default_mimic = mimic
         self.default_speed = speed
         self.ServiceCalled = False
-      else: 
+      else:
         for i in range(0,repeat):
           command = "export DISPLAY=:0 && vlc --video-wallpaper --video-filter 'rotate{angle=0}' --one-instance --playlist-enqueue --no-video-title-show --rate %f %s"  % (speed,file_location) #--fullscreen --video-filter 'rotate{angle=90}'
           os.system(command)
@@ -113,34 +110,34 @@ class Mimic:
       command = "export DISPLAY=:0 && vlc --video-wallpaper --video-filter 'rotate{angle=0}' --loop --one-instance --playlist-enqueue --no-video-title-show --rate %f  %s"  % (self.default_speed,file_location) # --fullscreen --video-filter 'rotate{angle=90}'
       os.system(command)
 
-      
-      
+
+
   def main(self):
     rospy.init_node('mimic')
     self.ServiceCalled = False
     self.default_speed = 1.0
     self.default_mimic = "default"
     self.quit_command = "export DISPLAY=:0 && vlc --one-instance --playlist-enqueue vlc://quit"
-    
+
     s=rospy.Service('set_mimic',SetMimic, self.service_cb)
     self._as = actionlib.SimpleActionServer('~set_mimic', cob_mimic.msg.SetMimicAction, execute_cb=self.action_cb, auto_start = False)
     self._as.start()
-    
+
     # copy all videos to /tmp
     rospy.loginfo("copying all mimic files to /tmp/mimic...")
     file_location = roslib.packages.get_pkg_dir('cob_mimic') + '/common/*.mp4'
     os.system("mkdir -p /tmp/mimic")
     os.system("cp " + file_location + " /tmp/mimic")
     rospy.loginfo("...copied all mimic files to /tmp/mimic")
-    
+
     while ( self.ServiceCalled == False):
       self.defaultMimic()
       rospy.sleep(1)
-        
+
     rospy.spin()
 
 
- 
+
 if __name__ == "__main__":
   try:
     mimic = Mimic()

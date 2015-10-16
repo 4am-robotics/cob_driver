@@ -11,7 +11,7 @@ using namespace std;
 namespace brics_oodl {
 
 /**
- * \brief 
+ * \brief
  *
  */
 class Errors {

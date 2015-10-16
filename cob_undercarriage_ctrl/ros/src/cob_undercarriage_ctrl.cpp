@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -11,9 +11,9 @@
  * ROS stack name: cob_driver
  * ROS package name: cob_undercarriage_ctrl
  * Description:
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Christian Connette, email:christian.connette@ipa.fhg.de
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
@@ -32,23 +32,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -111,7 +111,7 @@ class NodeClass
     std::string sIniDirectory;
     bool is_initialized_bool_;			// flag wether node is already up and running
     bool broadcast_tf_;			// flag wether to broadcast the tf from odom to base_link
-    int drive_chain_diagnostic_;		// flag whether base drive chain is operating normal 
+    int drive_chain_diagnostic_;		// flag whether base drive chain is operating normal
     ros::Time last_time_;				// time Stamp for last odometry measurement
     ros::Time joint_state_odom_stamp_;	// time stamp of joint states used for current odometry calc
     double sample_time_, timeout_;
@@ -231,7 +231,7 @@ class NodeClass
     }
 
     // Destructor
-    ~NodeClass() 
+    ~NodeClass()
     {
     }
 
@@ -263,18 +263,18 @@ class NodeClass
       {
         if(fabs(msg->linear.x) > max_vel_trans_)
         {
-          ROS_DEBUG_STREAM("Recevied cmdVelX: " << msg->linear.x << 
+          ROS_DEBUG_STREAM("Recevied cmdVelX: " << msg->linear.x <<
               ", which is bigger than the maximal allowed translational velocity: " <<  max_vel_trans_ << " so stop the robot");
         }
         if(fabs(msg->linear.y) > max_vel_trans_)
         {
-          ROS_DEBUG_STREAM("Recevied cmdVelY: " << msg->linear.x << 
+          ROS_DEBUG_STREAM("Recevied cmdVelY: " << msg->linear.x <<
               ", which is bigger than the maximal allowed translational velocity: " <<  max_vel_trans_ << " so stop the robot");
         }
 
         if(fabs(msg->angular.z) > max_vel_rot_)
         {
-          ROS_DEBUG_STREAM("Recevied cmdVelTh: " << msg->angular.z << 
+          ROS_DEBUG_STREAM("Recevied cmdVelTh: " << msg->angular.z <<
               ", which is bigger than the maximal allowed rotational velocity: " << max_vel_rot_ << " so stop the robot");
         }
         vx_cmd_mms = 0.0;
@@ -285,7 +285,7 @@ class NodeClass
       {
         // controller expects velocities in mm/s, ROS works with SI-Units -> convert
         // ToDo: rework Controller Class to work with SI-Units
-        vx_cmd_mms = msg->linear.x*1000.0;	
+        vx_cmd_mms = msg->linear.x*1000.0;
         vy_cmd_mms = msg->linear.y*1000.0;
         w_cmd_rads = msg->angular.z;
       }
@@ -295,7 +295,7 @@ class NodeClass
       // only process if controller is already initialized
       if (is_initialized_bool_ && drive_chain_diagnostic_==diagnostic_status_lookup_.OK)
       {
-        ROS_DEBUG("received new velocity command [cmdVelX=%3.5f,cmdVelY=%3.5f,cmdVelTh=%3.5f]", 
+        ROS_DEBUG("received new velocity command [cmdVelX=%3.5f,cmdVelY=%3.5f,cmdVelTh=%3.5f]",
             msg->linear.x, msg->linear.y, msg->angular.z);
 
         // Set desired value for Plattform Velocity to UndercarriageCtrl (setpoint setting)
@@ -303,7 +303,7 @@ class NodeClass
         // ToDo: last value (0.0) is not used anymore --> remove from interface
       }
       else
-      {	
+      {
         // Set desired value for Plattform Velocity to zero (setpoint setting)
         ucar_ctrl_->SetDesiredPltfVelocity( 0.0, 0.0, 0.0, 0.0);
         // ToDo: last value (0.0) is not used anymore --> remove from interface
@@ -321,7 +321,7 @@ class NodeClass
       if (EM_state == msg->EMFREE)
       {
         // Reset EM flag in Ctrlr
-        if (is_initialized_bool_) 
+        if (is_initialized_bool_)
         {
           ucar_ctrl_->setEMStopActive(false);
           ROS_DEBUG("Undercarriage Controller EM-Stop released");
@@ -355,7 +355,7 @@ class NodeClass
       // assign right size to JointState data containers
       //joint_state_cmd.set_name_size(m_iNumMotors);
       joint_state_cmd.desired.positions.resize(m_iNumJoints);
-      joint_state_cmd.desired.velocities.resize(m_iNumJoints);            
+      joint_state_cmd.desired.velocities.resize(m_iNumJoints);
       //joint_state_cmd.desired.effort.resize(m_iNumJoints);
       joint_state_cmd.joint_names.push_back("fl_caster_r_wheel_joint");
       joint_state_cmd.joint_names.push_back("fl_caster_rotation_joint");
@@ -375,7 +375,7 @@ class NodeClass
         //joint_state_cmd.desired.effort[i] = 0.0;
       }
 
-      // set status of underlying drive chain to member variable 
+      // set status of underlying drive chain to member variable
       drive_chain_diagnostic_ = msg->level;
 
       // if controller is already started up ...
@@ -441,52 +441,52 @@ class NodeClass
       for(int i = 0; i < num_joints; i++)
       {
         // associate inputs to according steer and drive joints
-        // ToDo: specify this globally (Prms-File or config-File or via msg-def.)	
+        // ToDo: specify this globally (Prms-File or config-File or via msg-def.)
         if(msg->joint_names[i] ==  "fl_caster_r_wheel_joint")
         {
-          drive_joint_ang_rad[0] = msg->actual.positions[i]; 
+          drive_joint_ang_rad[0] = msg->actual.positions[i];
           drive_joint_vel_rads[0] = msg->actual.velocities[i];
           //drive_joint_effort_NM[0] = msg->effort[i];
         }
         if(msg->joint_names[i] ==  "bl_caster_r_wheel_joint")
         {
-          drive_joint_ang_rad[1] = msg->actual.positions[i]; 
+          drive_joint_ang_rad[1] = msg->actual.positions[i];
           drive_joint_vel_rads[1] = msg->actual.velocities[i];
           //drive_joint_effort_NM[1] = msg->effort[i];
         }
         if(msg->joint_names[i] ==  "br_caster_r_wheel_joint")
         {
-          drive_joint_ang_rad[2] = msg->actual.positions[i]; 
+          drive_joint_ang_rad[2] = msg->actual.positions[i];
           drive_joint_vel_rads[2] = msg->actual.velocities[i];
           //drive_joint_effort_NM[2] = msg->effort[i];
         }
         if(msg->joint_names[i] ==  "fr_caster_r_wheel_joint")
         {
-          drive_joint_ang_rad[3] = msg->actual.positions[i]; 
+          drive_joint_ang_rad[3] = msg->actual.positions[i];
           drive_joint_vel_rads[3] = msg->actual.velocities[i];
           //drive_joint_effort_NM[3] = msg->effort[i];
         }
         if(msg->joint_names[i] ==  "fl_caster_rotation_joint")
         {
-          steer_joint_ang_rad[0] = msg->actual.positions[i]; 
+          steer_joint_ang_rad[0] = msg->actual.positions[i];
           steer_joint_vel_rads[0] = msg->actual.velocities[i];
           //steer_joint_effort_NM[0] = msg->effort[i];
         }
         if(msg->joint_names[i] ==  "bl_caster_rotation_joint")
-        { 
-          steer_joint_ang_rad[1] = msg->actual.positions[i]; 
+        {
+          steer_joint_ang_rad[1] = msg->actual.positions[i];
           steer_joint_vel_rads[1] = msg->actual.velocities[i];
           //steer_joint_effort_NM[1] = msg->effort[i];
         }
         if(msg->joint_names[i] ==  "br_caster_rotation_joint")
         {
-          steer_joint_ang_rad[2] = msg->actual.positions[i]; 
+          steer_joint_ang_rad[2] = msg->actual.positions[i];
           steer_joint_vel_rads[2] = msg->actual.velocities[i];
           //steer_joint_effort_NM[2] = msg->effort[i];
         }
         if(msg->joint_names[i] ==  "fr_caster_rotation_joint")
         {
-          steer_joint_ang_rad[3] = msg->actual.positions[i]; 
+          steer_joint_ang_rad[3] = msg->actual.positions[i];
           steer_joint_vel_rads[3] = msg->actual.velocities[i];
           //steer_joint_effort_NM[3] = msg->effort[i];
         }
@@ -538,7 +538,7 @@ int main(int argc, char** argv)
     throw std::runtime_error("Undercarriage control initialization failed, check ini-Files!");
   }
 
-  /* 
+  /*
      CALLBACKS being executed are:
      - actual motor values -> calculating direct kinematics and doing odometry (topicCallbackJointControllerStates)
      - timer callback -> calculate controller step at a rate of sample_time_ (timerCallbackCtrlStep)
@@ -559,7 +559,7 @@ void NodeClass::CalcCtrlStep()
   std::vector<double> drive_jointvel_cmds_rads, steer_jointvel_cmds_rads, steer_jointang_cmds_rad;
   control_msgs::JointTrajectoryControllerState joint_state_cmd;
   int j, k;
-  iwatchdog_ += 1;	
+  iwatchdog_ += 1;
 
   // if controller is initialized and underlying hardware is operating normal
   if (is_initialized_bool_) //&& (drive_chain_diagnostic_ != diagnostic_status_lookup_.OK))
@@ -593,7 +593,7 @@ void NodeClass::CalcCtrlStep()
     // assign right size to JointState data containers
     //joint_state_cmd.set_name_size(m_iNumMotors);
     joint_state_cmd.desired.positions.resize(m_iNumJoints);
-    joint_state_cmd.desired.velocities.resize(m_iNumJoints);            
+    joint_state_cmd.desired.velocities.resize(m_iNumJoints);
     //joint_state_cmd.effort.resize(m_iNumJoints);
     joint_state_cmd.joint_names.push_back("fl_caster_r_wheel_joint");
     joint_state_cmd.joint_names.push_back("fl_caster_rotation_joint");

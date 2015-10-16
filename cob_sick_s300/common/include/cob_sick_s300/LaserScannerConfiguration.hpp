@@ -2,7 +2,7 @@
 #define BRICS_OODL_LASERSCANNERCONFIGURATION_H
 
 /**
- * \file 
+ * \file
  *
  * \author
  * \date
@@ -23,7 +23,7 @@ enum baud_rate {
 
 };
 /**
- * \brief 
+ * \brief
  *
  */
 class LaserScannerConfiguration {
@@ -64,7 +64,7 @@ class LaserScannerConfiguration {
     baud_rate baud;
 
     std::string devicePath;
-    
+
     int scannerID;
 
 };

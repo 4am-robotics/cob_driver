@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -11,9 +11,9 @@
  * ROS stack name: cob_driver
  * ROS package name: cob_base_drive_chain
  * Description: This node provides control of the care-o-bot platform drives to the ROS-"network". For this purpose it offers several services and publishes data on different topics.
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Christian Connette, email:christian.connette@ipa.fhg.de
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
@@ -30,23 +30,23 @@
  *	 * Redistributions in binary form must reproduce the above copyright
  *	   notice, this list of conditions and the following disclaimer in the
  *	   documentation and/or other materials provided with the distribution.
- *	 * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *	 * Neither the name of the Fraunhofer Institute for Manufacturing
  *	   Engineering and Automation (IPA) nor the names of its
  *	   contributors may be used to endorse or promote products derived from
  *	   this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -69,7 +69,7 @@
 #include <control_msgs/JointControllerState.h>
 
 // ROS service includes
-#include <cob_srvs/Trigger.h>
+#include <std_srvs/Trigger.h>
 #include <cob_base_drive_chain/ElmoRecorderReadout.h>
 #include <cob_base_drive_chain/ElmoRecorderConfig.h>
 
@@ -114,24 +114,24 @@ class NodeClass
 
 		// service servers
 		/**
-		* Service requests cob_srvs::Trigger and initializes platform and motors
+		* Service requests std_srvs::Trigger and initializes platform and motors
 		*/
 		ros::ServiceServer srvServer_Init;
 
 		/**
-		* Service requests cob_srvs::Trigger and resets platform and motors
+		* Service requests std_srvs::Trigger and resets platform and motors
 		*/
 		ros::ServiceServer srvServer_Recover;
 
 		/**
-		* Service requests cob_srvs::Trigger and shuts down platform and motors
+		* Service requests std_srvs::Trigger and shuts down platform and motors
 		*/
 		ros::ServiceServer srvServer_Shutdown;
 
 		ros::ServiceServer srvServer_SetMotionType;
 
 		/**
-		* Service requests cob_base_drive_chain::ElmoRecorderSetup. It is used to configure the Elmo Recorder to record predefined sources. 
+		* Service requests cob_base_drive_chain::ElmoRecorderSetup. It is used to configure the Elmo Recorder to record predefined sources.
 		* Parameters are:
 		* int64 recordinggap #Specify every which time quantum (4*90usec) a new data point (of 1024 points in total) is recorded. the recording process starts immediately.
 		*/
@@ -140,7 +140,7 @@ class NodeClass
 		/**
 		* Service requests cob_base_drive_chain::ElmoRecorderGet. It is used to start the read-out process of previously recorded data by the Elmo Recorder.
 		* Parameters are:
-		* int64 subindex 
+		* int64 subindex
 		* #As Subindex, set the recorded source you want to read out:
 		* #1: Main Speed
 		* #2: Main Position
@@ -164,7 +164,7 @@ class NodeClass
 		ros::Publisher bl_caster_pub;
 		ros::Publisher fr_caster_pub;
 		ros::Publisher fl_caster_pub;
-		
+
 		std::vector<double> m_gazeboPos;
 		std::vector<double> m_gazeboVel;
 		ros::Time m_gazeboStamp;
@@ -178,14 +178,14 @@ class NodeClass
 		int m_iNumDrives;
 
 		struct ParamType
-		{ 
+		{
 			double dMaxDriveRateRadpS;
 			double dMaxSteerRateRadpS;
 
 			std::vector<double> vdWheelNtrlPosRad;
 		};
 		ParamType m_Param;
-		
+
 		std::string sIniDirectory;
 		bool m_bPubEffort;
 		bool m_bReadoutElmo;
@@ -208,8 +208,8 @@ class NodeClass
 
 			n.param<bool>("PublishEffort", m_bPubEffort, false);
 			if(m_bPubEffort) ROS_INFO("You have choosen to publish effort of motors, that charges capacity of CAN");
-			
-			
+
+
 			IniFile iniFile;
 			iniFile.SetFileName(sIniDirectory + "Platform.ini", "PltfHardwareCoB3.h");
 
@@ -220,7 +220,7 @@ class NodeClass
 				m_iNumMotors = 8;
 				m_iNumDrives = 4;
 			}
-			
+
 #ifdef __SIM__
 			bl_caster_pub = n.advertise<std_msgs::Float64>("/base_bl_caster_r_wheel_controller/command", 1);
 			br_caster_pub = n.advertise<std_msgs::Float64>("/base_br_caster_r_wheel_controller/command", 1);
@@ -232,19 +232,19 @@ class NodeClass
 			fr_steer_pub = n.advertise<std_msgs::Float64>("/base_fr_caster_rotation_controller/command", 1);
 
 			topicSub_GazeboJointStates = n.subscribe("/joint_states", 1, &NodeClass::gazebo_joint_states_Callback, this);
-			
+
 			m_gazeboPos.resize(m_iNumMotors);
 			m_gazeboVel.resize(m_iNumMotors);
 #else
 			topicPub_JointState = n.advertise<sensor_msgs::JointState>("/joint_states", 1);
 			m_CanCtrlPltf = new CanCtrlPltfCOb3(sIniDirectory);
 #endif
-			
+
 			// implementation of topics
 			// published topics
 			topicPub_ControllerState = n.advertise<control_msgs::JointTrajectoryControllerState>("state", 1);
 			topicPub_DiagnosticGlobal_ = n.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
-			
+
 			topicPub_Diagnostic = n.advertise<diagnostic_msgs::DiagnosticStatus>("diagnostic", 1);
 			// subscribed topics
 			topicSub_JointStateCmd = n.subscribe("joint_command", 1, &NodeClass::topicCallback_JointStateCmd, this);
@@ -257,7 +257,7 @@ class NodeClass
 
 			srvServer_Recover = n.advertiseService("recover", &NodeClass::srvCallback_Recover, this);
 			srvServer_Shutdown = n.advertiseService("shutdown", &NodeClass::srvCallback_Shutdown, this);
-			
+
 			// initialization of variables
 #ifdef __SIM__
 			m_bisInitialized = initDrives();
@@ -268,7 +268,7 @@ class NodeClass
 		}
 
 		// Destructor
-		~NodeClass() 
+		~NodeClass()
 		{
 #ifdef __SIM__
 
@@ -277,7 +277,7 @@ class NodeClass
 #endif
 		}
 
-		// topic callback functions 
+		// topic callback functions
 		// function will be called when a new message arrives on a topic
 		void topicCallback_JointStateCmd(const control_msgs::JointTrajectoryControllerState::ConstPtr& msg)
 		{
@@ -290,13 +290,13 @@ class NodeClass
 				JointStateCmd.position.resize(m_iNumMotors);
 				JointStateCmd.velocity.resize(m_iNumMotors);
 				JointStateCmd.effort.resize(m_iNumMotors);
-				
+
 				for(unsigned int i = 0; i < msg->joint_names.size(); i++)
 				{
 					// associate inputs to according steer and drive joints
 					// ToDo: specify this globally (Prms-File or config-File or via msg-def.)
 					// check if velocities lie inside allowed boundaries
-					
+
 					//DRIVES
 					if(msg->joint_names[i] ==  "fl_caster_r_wheel_joint")
 					{
@@ -330,7 +330,7 @@ class NodeClass
 							//JointStateCmd.effort[1] = msg->effort[i];
 					}
 					else if(m_iNumDrives>=2 && msg->joint_names[i] ==  "bl_caster_rotation_joint")
-					{ 
+					{
 							JointStateCmd.position[3] = msg->desired.positions[i];
 							JointStateCmd.velocity[3] = msg->desired.velocities[i];
 							//JointStateCmd.effort[3] = msg->effort[i];
@@ -352,13 +352,13 @@ class NodeClass
 						ROS_ERROR("Unkown joint name %s", (msg->joint_names[i]).c_str());
 					}
 				}
-				
-			
+
+
 				// check if velocities lie inside allowed boundaries
 				for(int i = 0; i < m_iNumMotors; i++)
 				{
 #ifdef __SIM__
-#else	
+#else
 					// for steering motors
 					if( i == 1 || i == 3 || i == 5 || i == 7) // ToDo: specify this via the config-files
 					{
@@ -411,8 +411,8 @@ class NodeClass
 					m_CanCtrlPltf->setVelGearRadS(i, JointStateCmd.velocity[i]);
 					ROS_DEBUG("Successfully sent velicities to drives");
 #endif
-				}	
-					
+				}
+
 #ifdef __SIM__
 
 #else
@@ -427,8 +427,8 @@ class NodeClass
 		// function will be called when a service is querried
 
 		// Init Can-Configuration
-		bool srvCallback_Init(cob_srvs::Trigger::Request &req,
-							  cob_srvs::Trigger::Response &res )
+		bool srvCallback_Init(std_srvs::Trigger::Request &req,
+							  std_srvs::Trigger::Response &res )
 		{
 			ROS_DEBUG("Service callback init");
 			if(m_bisInitialized == false)
@@ -436,29 +436,29 @@ class NodeClass
 				m_bisInitialized = initDrives();
 				//ROS_INFO("...initializing can-nodes...");
 				//m_bisInitialized = m_CanCtrlPltf->initPltf();
-				res.success.data = m_bisInitialized;
+				res.success = m_bisInitialized;
 				if(m_bisInitialized)
 				{
 		   			ROS_INFO("base initialized");
 				}
 				else
 				{
-					res.error_message.data = "initialization of base failed";
+					res.message = "initialization of base failed";
 				  	ROS_ERROR("Initializing base failed");
 				}
 			}
 			else
 			{
 				ROS_WARN("...base already initialized...");
-				res.success.data = true;
-				res.error_message.data = "platform already initialized";
+				res.success = true;
+				res.message = "platform already initialized";
 			}
 			return true;
 		}
-		
+
 		bool srvCallback_ElmoRecorderConfig(cob_base_drive_chain::ElmoRecorderConfig::Request &req,
 							  cob_base_drive_chain::ElmoRecorderConfig::Response &res ){
-			if(m_bisInitialized) 
+			if(m_bisInitialized)
 			{
 #ifdef __SIM__
 				res.success = true;
@@ -471,7 +471,7 @@ class NodeClass
 
 			return true;
 		}
-		
+
 		bool srvCallback_ElmoRecorderReadout(cob_base_drive_chain::ElmoRecorderReadout::Request &req,
 							  cob_base_drive_chain::ElmoRecorderReadout::Response &res ){
 			if(m_bisInitialized) {
@@ -491,48 +491,48 @@ class NodeClass
 
 			return true;
 		}
-		
-		
-		
+
+
+
 		// reset Can-Configuration
-		bool srvCallback_Recover(cob_srvs::Trigger::Request &req,
-									 cob_srvs::Trigger::Response &res )
+		bool srvCallback_Recover(std_srvs::Trigger::Request &req,
+									 std_srvs::Trigger::Response &res )
 		{
 			if(m_bisInitialized)
 			{
 				ROS_DEBUG("Service callback recover");
 #ifdef __SIM__
-				res.success.data = true;
+				res.success = true;
 #else
-				res.success.data = m_CanCtrlPltf->resetPltf();
+				res.success = m_CanCtrlPltf->resetPltf();
 #endif
-				if (res.success.data) {
+				if (res.success) {
 		   			ROS_INFO("base resetted");
 				} else {
-					res.error_message.data = "reset of base failed";
+					res.message = "reset of base failed";
 					ROS_WARN("Resetting base failed");
 				}
 			}
 			else
 			{
 				ROS_WARN("Base not yet initialized.");
-				res.success.data = false;
-				res.error_message.data = "Base not yet initialized.";
+				res.success = false;
+				res.message = "Base not yet initialized.";
 			}
 			return true;
 		}
-		
+
 		// shutdown Drivers and Can-Node
-		bool srvCallback_Shutdown(cob_srvs::Trigger::Request &req,
-									 cob_srvs::Trigger::Response &res )
+		bool srvCallback_Shutdown(std_srvs::Trigger::Request &req,
+									 std_srvs::Trigger::Response &res )
 		{
 			ROS_DEBUG("Service callback shutdown");
 #ifdef __SIM__
-			res.success.data = true;
+			res.success = true;
 #else
-			res.success.data = m_CanCtrlPltf->shutdownPltf();
+			res.success = m_CanCtrlPltf->shutdownPltf();
 #endif
-			if (res.success.data)
+			if (res.success)
 	   			ROS_INFO("Drives shut down");
 			else
 	   			ROS_INFO("Shutdown of Drives FAILED");
@@ -557,7 +557,7 @@ class NodeClass
 			sensor_msgs::JointState jointstate;
 			diagnostic_msgs::DiagnosticStatus diagnostics;
 			control_msgs::JointTrajectoryControllerState controller_state;
-			
+
 			// get time stamp for header
 #ifdef __SIM__
 			jointstate.header.stamp = m_gazeboStamp;
@@ -581,7 +581,7 @@ class NodeClass
 				j = 0;
 				k = 0;
 
-				// set data to jointstate			
+				// set data to jointstate
 				for(int i = 0; i<m_iNumMotors; i++)
 				{
 					jointstate.position[i] = 0.0;
@@ -597,7 +597,7 @@ class NodeClass
 				jointstate.name.push_back("fr_caster_r_wheel_joint");
 				jointstate.name.push_back("fr_caster_rotation_joint");
 				jointstate.name.resize(m_iNumMotors);
-			
+
 			}
 			else
 			{
@@ -620,10 +620,10 @@ class NodeClass
 #else
 					m_CanCtrlPltf->getGearPosVelRadS(i,  &vdAngGearRad[i], &vdVelGearRad[i]);
 #endif
-					
+
 					//Get motor torque
 					if(m_bPubEffort) {
-						for(int i=0; i<m_iNumMotors; i++) 
+						for(int i=0; i<m_iNumMotors; i++)
 						{
 #ifdef __SIM__
 							//vdEffortGearNM[i] = m_gazeboEff[i];
@@ -650,7 +650,7 @@ class NodeClass
 					jointstate.velocity[i] = vdVelGearRad[i];
 					jointstate.effort[i] = vdEffortGearNM[i];
 				}
-				
+
 				jointstate.name.push_back("fl_caster_r_wheel_joint");
 				jointstate.name.push_back("fl_caster_rotation_joint");
 				jointstate.name.push_back("bl_caster_r_wheel_joint");
@@ -660,7 +660,7 @@ class NodeClass
 				jointstate.name.push_back("fr_caster_r_wheel_joint");
 				jointstate.name.push_back("fr_caster_rotation_joint");
 				jointstate.name.resize(m_iNumMotors);
-				
+
 			}
 
 			controller_state.joint_names = jointstate.name;
@@ -674,9 +674,9 @@ class NodeClass
 			topicPub_JointState.publish(jointstate);
 #endif
 			topicPub_ControllerState.publish(controller_state);
-			
+
 			ROS_DEBUG("published new drive-chain configuration (JointState message)");
-			
+
 
 			if(m_bisInitialized)
 			{
@@ -745,7 +745,7 @@ class NodeClass
 
 			return true;
 		}
-		
+
 		// other function declarations
 		bool initDrives();
 
@@ -770,7 +770,7 @@ class NodeClass
 					m_gazeboPos[6] = msg->position[i];
 					m_gazeboVel[6] = msg->velocity[i];
 				}
-				
+
 				//Steers
 				else if(msg->name[i] == "fl_caster_rotation_joint") {
 					m_gazeboPos[1] = msg->position[i];
@@ -805,15 +805,15 @@ int main(int argc, char** argv)
 	NodeClass nodeClass;
 
 	// specify looprate of control-cycle
- 	ros::Rate loop_rate(100); // Hz 
+ 	ros::Rate loop_rate(100); // Hz
 
 	while(nodeClass.n.ok())
 	{
 #ifdef __SIM__
 
 #else
-		//Read-out of CAN buffer is only necessary during read-out of Elmo Recorder		
-		if( nodeClass.m_bReadoutElmo ) 
+		//Read-out of CAN buffer is only necessary during read-out of Elmo Recorder
+		if( nodeClass.m_bReadoutElmo )
 		{
 			if(nodeClass.m_bisInitialized) nodeClass.m_CanCtrlPltf->evalCanBuffer();
 			if(nodeClass.m_CanCtrlPltf->ElmoRecordings(100, 0, "") == 0)
@@ -825,7 +825,7 @@ int main(int argc, char** argv)
 #endif
 
 		nodeClass.publish_JointStates();
-		
+
 		loop_rate.sleep();
 		ros::spinOnce();
 	}

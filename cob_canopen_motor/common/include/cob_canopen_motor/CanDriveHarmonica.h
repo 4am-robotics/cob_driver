@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -11,9 +11,9 @@
  * ROS stack name: cob_driver
  * ROS package name: cob_canopen_motor
  * Description:
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Christian Connette, email:christian.connette@ipa.fhg.de
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
@@ -32,23 +32,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -67,7 +67,7 @@
 
 /**
  * Driver class for the motor drive of type Harmonica.
- * \ingroup DriversCanModul	
+ * \ingroup DriversCanModul
  */
 class CanDriveHarmonica : public CanDriveItf
 {
@@ -80,7 +80,7 @@ public:
 	{
 		int iNumRetryOfSend;
 		int iDivForRequestStatus;
-		double dCanTimeout;	
+		double dCanTimeout;
 	};
 
 	/**
@@ -124,7 +124,7 @@ public:
 	 * @return true if initialization occured already, false if not.
 	 */
 	bool isInitialized() { return m_bIsInitialized; }
-			
+
 	/**
 	 * Enables the motor.
 	 * After calling the drive accepts velocity and position commands.
@@ -144,7 +144,7 @@ public:
 
 	/**
 	 * Shutdown the motor.
-	 */	 
+	 */
 	bool shutdown();
 
 	/**
@@ -164,7 +164,7 @@ public:
 	 * Performs homing procedure.
 	 */
 	bool execHoming();
-	
+
 	/**
 	 * Performs homing procedure
 	 * Drives wheel in neutral Position for Startup.
@@ -247,7 +247,7 @@ public:
 	 * Returns true if an error has been detected.
 	 */
 	bool isError();
-	
+
 	/**
 	 * Return a bitfield containing information about the pending errors.
 	 */
@@ -283,7 +283,7 @@ public:
 	 * @deprecated use the other functions instead.
 	 * @param pdPosGearRad position of the drive
 	 * @param pdVelGearRadS velocity of the drive
-	 * @param piTorqueCtrl torque 
+	 * @param piTorqueCtrl torque
 	 * @param piStatusCtrl
 	 */
 	void getData(double* pdPosGearRad, double* pdVelGearRadS,
@@ -298,23 +298,23 @@ public:
 	 * @param iRxSDO receive service data object
 	 */
 	void setCanOpenParam( int iTxPDO1, int iTxPDO2, int iRxPDO2, int iTxSDO, int iRxSDO);
-	
+
 	/**
 	 * Sends an integer value to the Harmonica using the built in interpreter.
 	 */
 	void IntprtSetInt(int iDataLen, char cCmdChar1, char cCmdChar2, int iIndex, int iData);
-	
+
 	/**
 	 * Sends a heartbeat to the CAN-network to keep all listening watchdogs sleeping
 	 */
 	void sendHeartbeat();
-	
+
 
 	bool setEMStop() {
 		std::cout << "The function setEMStop() is not implemented!!!" << std::endl;
 		return false;
 	}
-	
+
 	bool resetEMStop() {
 		std::cout << "The function resetEMStop() is not implemented!!!" << std::endl;
 		return false;
@@ -323,7 +323,7 @@ public:
     /**
 	 * Sets MotorTorque in Nm
 	 * By sending this command the status is requested, too
-	 */	
+	 */
 	void setMotorTorque(double dTorqueNm);
 
 	/**
@@ -335,7 +335,7 @@ public:
 	 *		    evalCanBuffer();
 	 */
 	void requestMotorTorque();
-	
+
 	/**
 	 * Return member variable m_MotorCurrent
 	 * To update this value call requestMotorCurrent at first
@@ -343,9 +343,9 @@ public:
 	void getMotorTorque(double* dTorqueNm);
 
 	/**
-	 * Provides several functions for drive information recording purposes using the built in ElmoRecorder, which allows to record drive information at a high frequency. 
+	 * Provides several functions for drive information recording purposes using the built in ElmoRecorder, which allows to record drive information at a high frequency.
 	 * @param iFlag To keep the interface slight, use iParam to command the recorder:
-	 * 0: Configure the Recorder to record the sources Main Speed(1), Main position(2), Active current(10), Speed command(16). With iParam = iRecordingGap you specify every which time quantum (4*90usec) a new data point (of 1024 points in total) is recorded; 
+	 * 0: Configure the Recorder to record the sources Main Speed(1), Main position(2), Active current(10), Speed command(16). With iParam = iRecordingGap you specify every which time quantum (4*90usec) a new data point (of 1024 points in total) is recorded;
 	 * 1: Query Upload of recorded source (1=Main Speed, 2=Main position, 10=Active Current, 16=Speed command) with iParam and log data to file sParam = file prefix. Filename is extended with _MotorNumber_RecordedSource.log
 	 * 2: Request status of ongoing readout process
 	 * 99: Abort and clear current SDO readout process
@@ -353,8 +353,8 @@ public:
 	 *
 	*/
 	int setRecorder(int iFlag, int iParam = 0, std::string sParam = "/home/MyLog_");
-	
-	
+
+
 	//--------------------------
 	//CanDriveHarmonica specific functions (not from CanDriveItf)
 	//--------------------------
@@ -367,7 +367,7 @@ public:
 	 * CANopen: Uploads a service data object (device to master). (in expedited transfer mode, means in only one message)
 	 */
 	void sendSDOUpload(int iObjIndex, int iObjSub);
-	
+
     /**
 	 * CANopen: This protocol cancels an active segmented transmission due to the given Error Code
 	 */
@@ -377,18 +377,18 @@ public:
 	 * CANopen: Downloads a service data object (master to device). (in expedited transfer mode, means in only one message)
 	 */
 	void sendSDODownload(int iObjIndex, int iObjSub, int iData);
-	
+
 	/**
 	 * CANopen: Evaluates a service data object and gives back object and sub-object ID
 	 */
 	void evalSDO(CanMsg& CMsg, int* pIndex, int* pSubindex);
-	
+
 	/**
 	 * Internal use.
 	 */
 	int getSDODataInt32(CanMsg& CMsg);
-	
-    
+
+
 protected:
 	// ------------------------- Parameters
 	ParamCanOpenType m_ParamCanOpen;
@@ -449,7 +449,7 @@ protected:
 
 	bool evalStatusRegister(int iStatus);
 	void evalMotorFailure(int iFailure);
-	
+
 	int m_iPartnerDriveRatio;
 	int m_iDistSteerAxisToDriveWheelMM;
 
@@ -466,10 +466,10 @@ protected:
 	 * Function is called, when any SDO transfer segment is received (by receivedSDODataSegment)
 	 */
 	void sendSDOUploadSegmentConfirmation(bool toggleBit);
-    
+
     /**
 	 * CANopen: Segment data is stored to the SDOSegmented container.
-	 * Function is called, when a segment during a segmented SDO transfer is received (by evalReceivedMsg). It analyzes the SDO transfer header to see, if the transfer is finished. If it's not finished, sendSDOUploadSegmentConfirmation is called to confirm the receive of the current segment and request the next one. 
+	 * Function is called, when a segment during a segmented SDO transfer is received (by evalReceivedMsg). It analyzes the SDO transfer header to see, if the transfer is finished. If it's not finished, sendSDOUploadSegmentConfirmation is called to confirm the receive of the current segment and request the next one.
 	 * -Currently only used for Elmo Recorder read-out
 	 * @see evalReceivedMsg()
 	 * @see sendSDOUploadSegmentConfirmation()
@@ -483,16 +483,16 @@ protected:
 	 * @see evalReceivedMsg()
 	 */
 	int receivedSDOSegmentedInitiation(CanMsg& msg);
-    
+
     /**
 	 * CANopen: Function is called by evalReceivedMsg when the current segmented SDO transfer is cancelled with an error code.
 	 * @see evalReceivedMsg()
 	 */
 	void receivedSDOTransferAbort(unsigned int iErrorCode);
-    
+
     /**
 	 * CANopen: Give the collected data of a finished segmented SDO transfer to an appropriate (depending on the current object ID) processing function.
-	 * Function is called by receivedSDODataSegment, when the transfer is finished. 
+	 * Function is called by receivedSDODataSegment, when the transfer is finished.
 	 * Currently, only Elmo Recorder data is uploaded segmented and is processed here.
 	 * @see receivedSDODataSegment()
 	 */

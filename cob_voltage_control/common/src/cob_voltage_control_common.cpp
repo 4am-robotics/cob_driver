@@ -5,8 +5,6 @@
 #include <cob_msgs/EmergencyStopState.h>
 #include <std_msgs/Float64.h>
 
-//#include <libphidgets/phidget21.h>
-
 
 class cob_voltage_control_config
 {
@@ -49,7 +47,7 @@ public:
     {
         //user specific code
     }
-    void configure() 
+    void configure()
     {
     }
     void update(cob_voltage_control_data &data, cob_voltage_control_config config)
@@ -66,7 +64,7 @@ public:
         ROS_DEBUG("Sensor: %d", voltageState);
         ROS_DEBUG("Sensor: %d", currentState);
 
-        //Calculation of real voltage 
+        //Calculation of real voltage
         //max_voltage = 70V ; max_counts = 999
         double max_counts = 725.0; // 3v => max
         double voltage = voltageState * config.max_voltage_res/max_counts;
@@ -89,7 +87,7 @@ public:
         data.out_pub_em_stop_state_.wireless_stop = false;
 
     }
-    
+
     void exit()
     {
     }

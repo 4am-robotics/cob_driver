@@ -151,7 +151,7 @@ public:
     if(!_nh.hasParam("pubmarker"))
       ROS_WARN("Parameter 'pubmarker' is missing. Using default Value: true");
     _nh.param<bool>("pubmarker",_bPubMarker,true);
-    
+
     if(!_nh.hasParam("marker_frame"))
       ROS_WARN("Parameter 'marker_frame' is missing. Using default Value: /base_link");
     _nh.param<std::string>("marker_frame",_sMarkerFrame,"base_link");
@@ -389,7 +389,7 @@ public:
       _as->setSucceeded(result, "Mode switched");
     }
   }
-  
+
   void publish_diagnostics_cb(const ros::TimerEvent&)
   {
     _diagnostics.header.stamp = ros::Time::now();

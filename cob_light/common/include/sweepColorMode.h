@@ -12,7 +12,7 @@ public:
     :Mode(priority, freq, pulses, timeout), _toggle(false), _timer_inc(0), _num_leds(num_leds)
   {
     _colors = colors;
-    
+
     _startcolor.r = 0.0;
     _startcolor.g = 0.4;
     _startcolor.b = 0.28;

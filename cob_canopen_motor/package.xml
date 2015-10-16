@@ -1,8 +1,7 @@
-<package>
+<package format="2">
   <name>cob_canopen_motor</name>
-  <version>0.6.2</version>
+  <version>0.6.5</version>
   <description>The package cob_canopen_motor implements a controller-drive component which is connected to a can-bus and works with a canopen-interface. "CanDriveItf" provides a - more or less - generic interface to the controller-drive components. "CanDrvie..." then implements a specific setup, e.g. an ELMO Harmonica Controller in case of the "CanDriveHarmonica".</description>
-  <!--  -->
 
   <license>LGPL</license>
 
@@ -13,14 +12,9 @@
   <author>Christian Connette</author>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>cob_generic_can</build_depend>
-  <build_depend>cob_utilities</build_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>cob_generic_can</run_depend>
-  <run_depend>cob_utilities</run_depend>
 
-  <export>
-    <cpp lflags="-Wl,-rpath,${prefix}/common/lib -L${prefix}/common/lib -lcob_canopen_motor_harmonica" cflags="-I${prefix}/common/include"/>
-  </export>
+  <depend>cob_generic_can</depend>
+  <depend>cob_utilities</depend>
+  <depend>roscpp</depend>
+
 </package>

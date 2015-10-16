@@ -28,23 +28,23 @@
  *   * Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in the
  *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *   * Neither the name of the Fraunhofer Institute for Manufacturing
  *     Engineering and Automation (IPA) nor the names of its
  *     contributors may be used to endorse or promote products derived from
  *     this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -67,7 +67,7 @@
 #include <diagnostic_msgs/DiagnosticArray.h>
 
 // ROS service includes
-#include <cob_srvs/Trigger.h>
+#include <std_srvs/Trigger.h>
 #include <cob_srvs/SetString.h>
 #include <cob_srvs/SetFloat.h>
 
@@ -85,22 +85,22 @@ class NodeClass
   // create a handle for this node, initialize node
   ros::NodeHandle n_;
   ros::NodeHandle n_private_;
-    
+
   // declaration of topics to publish
   ros::Publisher topicPub_JointState_;
   ros::Publisher topicPub_ControllerState_;
   ros::Publisher topicPub_Diagnostic_;
-  
+
   // declaration of topics to subscribe, callback is called for new messages arriving
   ros::Subscriber topicSub_JointCommand_;
-  
+
   // declaration of service servers
   ros::ServiceServer srvServer_Init_;
   ros::ServiceServer srvServer_Stop_;
   ros::ServiceServer srvServer_Recover_;
   ros::ServiceServer srvServer_SetOperationMode_;
   ros::ServiceServer srvServer_SetDefaultVel_;
-    
+
   // declaration of service clients
   //--
 
@@ -109,11 +109,11 @@ class NodeClass
   std::string action_name_;
   control_msgs::FollowJointTrajectoryFeedback feedback_;
   control_msgs::FollowJointTrajectoryResult result_;
-  
+
   // global variables
   ElmoCtrl * CamAxis_;
   ElmoCtrlParams* CamAxisParams_;
-  
+
   std::string CanDevice_;
   std::string CanIniFile_;
   int CanBaudrate_;
@@ -123,12 +123,12 @@ class NodeClass
   int ModID_;
   std::string operationMode_;
   double LowerLimit_;
-  double UpperLimit_; 
+  double UpperLimit_;
   double Offset_;
   int MotorDirection_;
   int EnoderIncrementsPerRevMot_;
   double GearRatio_;
-  
+
   std::string JointName_;
   bool isInitialized_;
   bool isError_;
@@ -146,7 +146,7 @@ class NodeClass
     action_name_("follow_joint_trajectory")
   {
     n_private_ = ros::NodeHandle("~");
-    
+
     isInitialized_ = false;
     isError_ = false;
     ActualPos_=0.0;
@@ -157,19 +157,19 @@ class NodeClass
 
     // implementation of topics to publish
     topicPub_JointState_ = n_.advertise<sensor_msgs::JointState>("joint_states", 1);
-    topicPub_ControllerState_ = n_.advertise<control_msgs::JointTrajectoryControllerState>("state", 1);
+    topicPub_ControllerState_ = n_.advertise<control_msgs::JointTrajectoryControllerState>("joint_trajectory_controller/state", 1);
     topicPub_Diagnostic_ = n_.advertise<diagnostic_msgs::DiagnosticArray>("diagnostics", 1);
 
 
     // implementation of topics to subscribe
-    
+
     // implementation of service servers
     srvServer_Init_ = n_.advertiseService("driver/init", &NodeClass::srvCallback_Init, this);
     srvServer_Stop_ = n_.advertiseService("driver/stop", &NodeClass::srvCallback_Stop, this);
     srvServer_Recover_ = n_.advertiseService("driver/recover", &NodeClass::srvCallback_Recover, this);
     srvServer_SetOperationMode_ = n_.advertiseService("driver/set_operation_mode", &NodeClass::srvCallback_SetOperationMode, this);
     srvServer_SetDefaultVel_ = n_.advertiseService("driver/set_default_vel", &NodeClass::srvCallback_SetDefaultVel, this);
-    
+
     // implementation of service clients
     //--
 
@@ -188,10 +188,10 @@ class NodeClass
     n_private_.param<int>("MotorDirection",MotorDirection_, 1);
     n_private_.param<double>("GearRatio",GearRatio_, 62.5);
     n_private_.param<int>("EnoderIncrementsPerRevMot",EnoderIncrementsPerRevMot_, 4096);
-    
+
     ROS_INFO("CanDevice=%s, CanBaudrate=%d, ModID=%d, HomingDigIn=%d",CanDevice_.c_str(),CanBaudrate_,ModID_,HomingDigIn_);
-     
-    
+
+
     // load parameter server string for robot/model
     std::string xml_string;
     n_.getParam("/robot_description",xml_string);
@@ -200,7 +200,7 @@ class NodeClass
       ROS_ERROR("Unable to load robot model from param server robot_description\n");
       exit(2);
     }
-    
+
     // extract limits and velocitys from urdf model
     urdf::Model model;
     if (!model.initString(xml_string))
@@ -217,14 +217,16 @@ class NodeClass
 
     // get UpperLimits out of urdf model
     UpperLimit_ = model.getJoint(JointName_.c_str())->limits->upper;
-      //std::cout << "LowerLimits[" << JointNames[i].c_str() << "] = " << LowerLimits[i] << std::endl;
+    //std::cout << "LowerLimits[" << JointNames[i].c_str() << "] = " << LowerLimits[i] << std::endl;
     CamAxisParams_->SetUpperLimit(UpperLimit_);
 
     // get Offset out of urdf model
-    Offset_ = model.getJoint(JointName_.c_str())->calibration->rising.get()[0];
-      //std::cout << "Offset[" << JointNames[i].c_str() << "] = " << Offsets[i] << std::endl;
+    //calibration rising no longer supported
+    //Offset_ = model.getJoint(JointName_.c_str())->calibration->rising.get()[0];
+    Offset_ = 0.0;
+    //std::cout << "Offset[" << JointNames[i].c_str() << "] = " << Offsets[i] << std::endl;
     CamAxisParams_->SetAngleOffset(Offset_);
-    
+
     // get velocitiy out of urdf model
     MaxVel_ = model.getJoint(JointName_.c_str())->limits->velocity;
     ROS_INFO("Successfully read limits from urdf");
@@ -238,16 +240,16 @@ class NodeClass
     CamAxisParams_->SetGearRatio(GearRatio_);
     CamAxisParams_->SetMotorDirection(MotorDirection_);
     CamAxisParams_->SetEncoderIncrements(EnoderIncrementsPerRevMot_);
-    
+
     CamAxisParams_->Init(CanDevice_, CanBaudrate_, ModID_);
-    
-    
+
+
     //finally start action_server
     as_.start();
   }
-  
+
   // Destructor
-  ~NodeClass() 
+  ~NodeClass()
   {
     delete CamAxis_;
   }
@@ -261,7 +263,7 @@ class NodeClass
       traj_point_ = traj_.points[traj_point_nr_];
       GoalPos_ = traj_point_.positions[0];
       finished_ = false;
-      
+
       // stoping axis to prepare for new trajectory
       CamAxis_->Stop();
 
@@ -272,9 +274,9 @@ class NodeClass
         // set the action state to preempted
         as_.setPreempted();
       }
-      
+
       usleep(2000000); // needed sleep until drive starts to change status from idle to moving
-      
+
       while (not finished_)
       {
         if (as_.isNewGoalAvailable())
@@ -284,7 +286,7 @@ class NodeClass
           return;
         }
           usleep(10000);
-        //feedback_ = 
+        //feedback_ =
         //as_.send feedback_
       }
 
@@ -293,7 +295,7 @@ class NodeClass
       ROS_INFO("%s: Succeeded %s", n_.getNamespace().c_str(), action_name_.c_str());
       // set the action state to succeeded
       as_.setSucceeded(result_);
-    
+
     } else {
       as_.setAborted();
       ROS_WARN("Camera_axis not initialized yet!");
@@ -302,39 +304,39 @@ class NodeClass
 
   // service callback functions
   // function will be called when a service is querried
-  bool srvCallback_Init(cob_srvs::Trigger::Request &req,
-          cob_srvs::Trigger::Response &res )
+  bool srvCallback_Init(std_srvs::Trigger::Request &req,
+          std_srvs::Trigger::Response &res )
   {
     if (isInitialized_ == false) {
       ROS_INFO("...initializing camera axis...");
-      // init axis 
+      // init axis
       if (CamAxis_->Init(CamAxisParams_))
       {
         CamAxis_->setGearPosVelRadS(0.0f, MaxVel_);
         ROS_INFO("Initializing of camera axis successfully");
         isInitialized_ = true;
-        res.success.data = true;
-        res.error_message.data = "initializing camera axis successfully";
+        res.success = true;
+        res.message = "initializing camera axis successfully";
       }
       else
       {
         ROS_ERROR("Initializing camera axis not successfully \n");
-        res.success.data = false;
-        res.error_message.data = "initializing camera axis not successfully";
+        res.success = false;
+        res.message = "initializing camera axis not successfully";
       }
       }
       else
       {
         ROS_WARN("...camera axis already initialized...");
-        res.success.data = true;
-        res.error_message.data = "camera axis already initialized";
+        res.success = true;
+        res.message = "camera axis already initialized";
     }
-    
+
     return true;
   }
 
-  bool srvCallback_Stop(cob_srvs::Trigger::Request &req,
-          cob_srvs::Trigger::Response &res )
+  bool srvCallback_Stop(std_srvs::Trigger::Request &req,
+          std_srvs::Trigger::Response &res )
   {
     ROS_INFO("Stopping camera axis");
     if(isInitialized_)
@@ -342,38 +344,38 @@ class NodeClass
       // stopping all movements
       if (CamAxis_->Stop()) {
         ROS_INFO("Stopping camera axis successfully");
-        res.success.data = true;
-        res.error_message.data = "camera axis stopped successfully";
+        res.success = true;
+        res.message = "camera axis stopped successfully";
       }
       else {
         ROS_ERROR("Stopping camera axis not successfully. error");
-        res.success.data = false;
-        res.error_message.data = "stopping camera axis not successfully";
+        res.success = false;
+        res.message = "stopping camera axis not successfully";
       }
     }
     return true;
   }
-  
-  bool srvCallback_Recover(cob_srvs::Trigger::Request &req,
-             cob_srvs::Trigger::Response &res )
+
+  bool srvCallback_Recover(std_srvs::Trigger::Request &req,
+             std_srvs::Trigger::Response &res )
   {
     if (isInitialized_) {
       ROS_INFO("Recovering camera axis");
-      
+
       // stopping all arm movements
       if (CamAxis_->RecoverAfterEmergencyStop()) {
         ROS_INFO("Recovering camera axis successfully");
-        res.success.data = true;
-        res.error_message.data = "camera axis successfully recovered";
+        res.success = true;
+        res.message = "camera axis successfully recovered";
       } else {
         ROS_ERROR("Recovering camera axis not successfully. error");
-        res.success.data = false;
-        res.error_message.data = "recovering camera axis failed";
+        res.success = false;
+        res.message = "recovering camera axis failed";
       }
     } else {
       ROS_WARN("...camera axis already recovered...");
-      res.success.data = true;
-      res.error_message.data = "camera axis already recovered";
+      res.success = true;
+      res.message = "camera axis already recovered";
     }
 
     return true;
@@ -425,9 +427,9 @@ class NodeClass
           if (fabs(ActualVel_) < 0.02)
           {
             //feedback_.isMoving = false;
-        
+
             ROS_DEBUG("next point is %d from %lu",traj_point_nr_,traj_.points.size());
-            
+
             if (traj_point_nr_ < traj_.points.size())
             {
               // if axis is not moving and not reached last point of trajectory, then send new target point
@@ -470,7 +472,7 @@ class NodeClass
         ROS_DEBUG("axis not initialized");
       }
     }
-  
+
   void publishJointState()
   {
 
@@ -494,7 +496,7 @@ class NodeClass
       msg.position.resize(DOF);
       msg.velocity.resize(DOF);
       msg.effort.resize(DOF);
-      
+
       msg.name[0] = JointName_;
       msg.position[0] = ActualPos_;
       msg.velocity[0] = ActualVel_;
@@ -502,7 +504,7 @@ class NodeClass
 
 
       //std::cout << "Joint " << msg.name[0] <<": pos="<<  msg.position[0] << " vel=" << msg.velocity[0] << std::endl;
-        
+
       // publish message
       topicPub_JointState_.publish(msg);
 
@@ -516,7 +518,7 @@ class NodeClass
       controllermsg.actual.velocities.resize(DOF);
       controllermsg.error.positions.resize(DOF);
       controllermsg.error.velocities.resize(DOF);
-      
+
       controllermsg.joint_names = msg.name;
       controllermsg.desired.positions = msg.position;
       controllermsg.desired.velocities = msg.velocity;
@@ -568,25 +570,25 @@ int main(int argc, char** argv)
 {
   // initialize ROS, spezify name of node
   ros::init(argc, argv, "cob_camera_axis");
-  
+
   // create nodeClass
   NodeClass nodeClass;
- 
+
   // main loop
   ros::Rate loop_rate(10); // Hz
   while(nodeClass.n_.ok()) {
-    
+
     // publish JointState
     nodeClass.publishJointState();
 
     // update commands
     nodeClass.updateCommands();
 
-    // sleep and waiting for messages, callbacks 
+    // sleep and waiting for messages, callbacks
     ros::spinOnce();
     loop_rate.sleep();
   }
-  
+
   return 0;
 }
 

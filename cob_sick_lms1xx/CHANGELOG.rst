@@ -2,6 +2,26 @@
 Changelog for package cob_sick_lms1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.5 (2015-08-31)
+------------------
+
+0.6.4 (2015-08-25)
+------------------
+* install tags for libraries
+* boost revision
+* do not install headers in executable-only packages
+* explicit dependency to boost
+* catkin_package according to install tags
+* remove trailing whitespaces
+* add_dependencies EXPORTED_TARGETS
+* migrate to package format 2
+* sort dependencies
+* critically review dependencies
+* Contributors: ipa-fxm
+
+0.6.3 (2015-06-17)
+------------------
+
 0.6.2 (2014-12-15)
 ------------------
 

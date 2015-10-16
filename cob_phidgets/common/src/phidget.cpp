@@ -68,7 +68,7 @@ Phidget::Phidget(CPhidgetHandle* handle, SensingMode mode)
 {
 }
 
-Phidget::~Phidget() 
+Phidget::~Phidget()
 {
 	CPhidget_close(*_phiHandle);
 	CPhidget_delete(*_phiHandle);
@@ -79,7 +79,7 @@ auto Phidget::open(int serial_number) -> int
 	return CPhidget_open(*_phiHandle, serial_number);
 }
 
-auto Phidget::close(int serial_number) -> int 
+auto Phidget::close(int serial_number) -> int
 {
 	return CPhidget_close(*_phiHandle);
 }

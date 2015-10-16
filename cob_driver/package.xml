@@ -1,8 +1,7 @@
-<package>
+<package format="2">
   <name>cob_driver</name>
-  <version>0.6.2</version>
+  <version>0.6.5</version>
   <description>The cob_driver stack includes packages that provide access to the Care-O-bot hardware through ROS messages, services and actions. E.g. for mobile base, arm, camera sensors, laser scanners, etc...</description>
-
 
   <license>LGPL</license>
 
@@ -13,27 +12,23 @@
   <maintainer email="nhg@ipa.fhg.de">Nadia Hammoudeh Garcia</maintainer>
   <author email="fmw@ipa.fhg.de">Florian Weisshardt</author>
 
-
   <buildtool_depend>catkin</buildtool_depend>
-  <run_depend>cob_base_drive_chain</run_depend>
-  <run_depend>cob_camera_sensors</run_depend>
-  <run_depend>cob_canopen_motor</run_depend>
-  <run_depend>cob_generic_can</run_depend>
-  <run_depend>cob_head_axis</run_depend>
-  <run_depend>cob_light</run_depend>
-  <run_depend>cob_mimic</run_depend>
-  <run_depend>cob_phidgets</run_depend>
-  <run_depend>cob_relayboard</run_depend>
-  <run_depend>cob_sick_lms1xx</run_depend>
-  <run_depend>cob_sick_s300</run_depend>
-  <run_depend>cob_sound</run_depend>
-  <run_depend>cob_undercarriage_ctrl</run_depend>
-  <run_depend>cob_utilities</run_depend>
-  <run_depend>cob_voltage_control</run_depend>
 
-
-
-
+  <exec_depend>cob_base_drive_chain</exec_depend>
+  <exec_depend>cob_camera_sensors</exec_depend>
+  <exec_depend>cob_canopen_motor</exec_depend>
+  <exec_depend>cob_generic_can</exec_depend>
+  <exec_depend>cob_head_axis</exec_depend>
+  <exec_depend>cob_light</exec_depend>
+  <exec_depend>cob_mimic</exec_depend>
+  <exec_depend>cob_phidgets</exec_depend>
+  <exec_depend>cob_relayboard</exec_depend>
+  <exec_depend>cob_sick_lms1xx</exec_depend>
+  <exec_depend>cob_sick_s300</exec_depend>
+  <exec_depend>cob_sound</exec_depend>
+  <exec_depend>cob_undercarriage_ctrl</exec_depend>
+  <exec_depend>cob_utilities</exec_depend>
+  <exec_depend>cob_voltage_control</exec_depend>
 
   <export>
     <metapackage/>

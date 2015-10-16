@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -11,9 +11,9 @@
  * ROS stack name: cob_driver
  * ROS package name: cob_sick_s300
  * Description:
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Christian Connette, email:christian.connette@ipa.fhg.de
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
@@ -30,23 +30,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -63,7 +63,7 @@
 /**
  * Wrapper class for serial communication.
  */
-class SerialIO  
+class SerialIO
 {
 public:
 	// ---------------------- Constants
@@ -76,9 +76,9 @@ public:
 	};
 
 	/// Constants for defining the parity bits.
-	enum ParityFlags 
-	{ 
-		PA_NONE, 
+	enum ParityFlags
+	{
+		PA_NONE,
 		PA_EVEN,
 		PA_ODD,
 // UNIX serial drivers only support even, odd, and no parity bit generation.
@@ -88,10 +88,10 @@ public:
 
 	/// Constants for defining the stop bits.
 	enum StopBits
-	{ 
-		SB_ONE, 
+	{
+		SB_ONE,
 		SB_ONE_5, // ????? returns an error ?????
-		SB_TWO 
+		SB_TWO
 	};
 
 	/// Default constructor
@@ -217,12 +217,12 @@ public:
 	/**
 	 * Clears the transmit buffer.
 	 * The content of the buffer will not be transmitted.
-	 */ 
+	 */
 	void purgeTx() {
 		tcflush(m_Device, TCOFLUSH);
 	}
 
-	/** 
+	/**
 	 * Sends the transmit buffer.
 	 * All bytes of the transmit buffer will be sent.
 	 */

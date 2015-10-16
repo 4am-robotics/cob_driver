@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -11,9 +11,9 @@
  * ROS stack name: cob_driver
  * ROS package name: cob_sick_s300
  * Description:
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
@@ -30,23 +30,23 @@
  *	 * Redistributions in binary form must reproduce the above copyright
  *	   notice, this list of conditions and the following disclaimer in the
  *	   documentation and/or other materials provided with the distribution.
- *	 * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *	 * Neither the name of the Fraunhofer Institute for Manufacturing
  *	   Engineering and Automation (IPA) nor the names of its
  *	   contributors may be used to endorse or promote products derived from
  *	   this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -61,6 +61,7 @@
 #include <ros/ros.h>
 
 // ROS message includes
+#include <std_msgs/Bool.h>
 #include <sensor_msgs/LaserScan.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
 
@@ -72,7 +73,7 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/thread.hpp>
-#include <boost/lexical_cast.hpp> 
+#include <boost/lexical_cast.hpp>
 
 #define ROS_LOG_FOUND
 
@@ -82,23 +83,25 @@ class NodeClass
 {
 	//
 	public:
-		  
-		ros::NodeHandle nh;   
+
+		ros::NodeHandle nh;
 		// topics to publish
 		ros::Publisher topicPub_LaserScan;
-        ros::Publisher topicPub_Diagnostic_;
-		
+		ros::Publisher topicPub_InStandby;
+		ros::Publisher topicPub_Diagnostic_;
+
 		// topics to subscribe, callback is called for new messages arriving
 		//--
-		
+
 		// service servers
 		//--
-			
+
 		// service clients
 		//--
-		
+
 		// global variables
 		std::string port;
+		std::string node_name;
 		int baud, scan_id, publish_frequency;
 		bool inverted;
 		double scan_duration, scan_cycle_time;
@@ -109,31 +112,32 @@ class NodeClass
 		bool debug_;
 		ScannerSickS300 scanner_;
 		ros::Time loop_rate_;
+		std_msgs::Bool inStandby_;
 
 		// Constructor
-		NodeClass() 
+		NodeClass()
 		{
 			// create a handle for this node, initialize node
 			//nh = ros::NodeHandle("~");
-			
+
 			if(!nh.hasParam("port")) ROS_WARN("Used default parameter for port");
 			nh.param("port", port, std::string("/dev/ttyUSB0"));
-			
+
 			if(!nh.hasParam("baud")) ROS_WARN("Used default parameter for baud");
 			nh.param("baud", baud, 500000);
-			
+
 			if(!nh.hasParam("scan_id")) ROS_WARN("Used default parameter for scan_id");
 			nh.param("scan_id", scan_id, 7);
-			
+
 			if(!nh.hasParam("inverted")) ROS_WARN("Used default parameter for inverted");
 			nh.param("inverted", inverted, false);
-			
+
 			if(!nh.hasParam("frame_id")) ROS_WARN("Used default parameter for frame_id");
 			nh.param("frame_id", frame_id, std::string("/base_laser_link"));
-			
+
 			if(!nh.hasParam("scan_duration")) ROS_WARN("Used default parameter for scan_duration");
 			nh.param("scan_duration", scan_duration, 0.025); //no info about that in SICK-docu, but 0.025 is believable and looks good in rviz
-			
+
 			if(!nh.hasParam("scan_cycle_time")) ROS_WARN("Used default parameter for scan_cycle_time");
 			nh.param("scan_cycle_time", scan_cycle_time, 0.040); //SICK-docu says S300 scans every 40ms
 
@@ -192,8 +196,11 @@ class NodeClass
 			syncedROSTime = ros::Time::now();
 			syncedTimeReady = false;
 
+			node_name = ros::this_node::getName();
+
 			// implementation of topics to publish
 			topicPub_LaserScan = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
+			topicPub_InStandby = nh.advertise<std_msgs::Bool>("scan_standby", 1);
 			topicPub_Diagnostic_ = nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 
 			loop_rate_ = ros::Time::now(); // Hz
@@ -206,49 +213,68 @@ class NodeClass
 		void receiveScan() {
 			std::vector< double > ranges, rangeAngles, intensities;
 			unsigned int iSickTimeStamp, iSickNow;
+
 			if(scanner_.getScan(ranges, rangeAngles, intensities, iSickTimeStamp, iSickNow, debug_))
-				publishLaserScan(ranges, rangeAngles, intensities, iSickTimeStamp, iSickNow);
+			{
+				if(scanner_.isInStandby())
+				{
+					publishWarn("scanner in standby");
+					ROS_WARN_THROTTLE(30, "scanner %s on port %s in standby", node_name.c_str(), port.c_str());
+					publishStandby(true);
+				}
+				else
+				{
+					publishStandby(false);
+					publishLaserScan(ranges, rangeAngles, intensities, iSickTimeStamp, iSickNow);
+				}
+			}
 		}
-		
+
 		// Destructor
-		~NodeClass() 
+		~NodeClass()
 		{
 		}
-		
+
+		void publishStandby(bool inStandby)
+		{
+			this->inStandby_.data = inStandby;
+			topicPub_InStandby.publish(this->inStandby_);
+		}
+
 		// other function declarations
 		void publishLaserScan(std::vector<double> vdDistM, std::vector<double> vdAngRAD, std::vector<double> vdIntensAU, unsigned int iSickTimeStamp, unsigned int iSickNow)
 		{
 			if(ros::Time::now()-loop_rate_.now()>=ros::Duration(1./publish_frequency))
 				return;
 			loop_rate_ = ros::Time::now();
-			
+
 			// fill message
 			int start_scan, stop_scan;
 			int num_readings = vdDistM.size(); // initialize with max scan size
 			start_scan = 0;
 			stop_scan = vdDistM.size();
-			
+
 			// Sync handling: find out exact scan time by using the syncTime-syncStamp pair:
 			// Timestamp: "This counter is internally incremented at each scan, i.e. every 40 ms (S300)"
 			if(iSickNow != 0) {
-				syncedROSTime = ros::Time::now() - ros::Duration(scan_cycle_time); 
+				syncedROSTime = ros::Time::now() - ros::Duration(scan_cycle_time);
 				syncedSICKStamp = iSickNow;
 				syncedTimeReady = true;
-				
+
 				ROS_DEBUG("Got iSickNow, store sync-stamp: %d", syncedSICKStamp);
 			} else syncedTimeReady = false;
-			
+
 			// create LaserScan message
 			sensor_msgs::LaserScan laserScan;
 			if(syncedTimeReady) {
 				double timeDiff = (int)(iSickTimeStamp - syncedSICKStamp) * scan_cycle_time;
 				laserScan.header.stamp = syncedROSTime + ros::Duration(timeDiff);
-				
+
 				ROS_DEBUG("Time::now() - calculated sick time stamp = %f",(ros::Time::now() - laserScan.header.stamp).toSec());
 			} else {
 				laserScan.header.stamp = ros::Time::now();
 			}
-			
+
 			// fill message
 			laserScan.header.frame_id = frame_id;
 			laserScan.angle_increment = vdAngRAD[start_scan + 1] - vdAngRAD[start_scan];
@@ -263,7 +289,7 @@ class NodeClass
    			laserScan.ranges.resize(num_readings);
 			laserScan.intensities.resize(num_readings);
 
-			
+
 			// check for inverted laser
 			if(inverted) {
 				// to be really accurate, we now invert time_increment
@@ -286,10 +312,10 @@ class NodeClass
 					laserScan.intensities[i] = vdIntensAU[start_scan + i];
 				}
 			}
-        
+
 			// publish Laserscan-message
 			topicPub_LaserScan.publish(laserScan);
-			
+
 			//Diagnostics
 			diagnostic_msgs::DiagnosticArray diagnostics;
 			diagnostics.status.resize(1);
@@ -305,7 +331,16 @@ class NodeClass
 					diagnostics.status[0].level = 2;
 					diagnostics.status[0].name = nh.getNamespace();
 					diagnostics.status[0].message = error_str;
-					topicPub_Diagnostic_.publish(diagnostics);     
+					topicPub_Diagnostic_.publish(diagnostics);
+				}
+
+				void publishWarn(std::string warn_str) {
+					diagnostic_msgs::DiagnosticArray diagnostics;
+					diagnostics.status.resize(1);
+					diagnostics.status[0].level = 1;
+					diagnostics.status[0].name = nh.getNamespace();
+					diagnostics.status[0].message = warn_str;
+					topicPub_Diagnostic_.publish(diagnostics);
 				}
 };
 
@@ -315,7 +350,7 @@ int main(int argc, char** argv)
 {
 	// initialize ROS, spezify name of node
 	ros::init(argc, argv, "sick_s300");
-	
+
 	NodeClass nodeClass;
 
 	bool bOpenScan = false;
