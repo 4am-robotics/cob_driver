@@ -51,16 +51,16 @@ int main(int argc, char **argv) {
 	ros::NodeHandle n;
 	//ros::Publisher canbus_pub = n.advertise<std_msgs::String>("canbus", 1000);
 	
-	size_t i = paramater_ids_list1_.size();
-	size_t j = paramater_ids_list2_.size();
+	size_t i = 0;
+	size_t j = 0;
 	
 	while (ros::ok())
     {
 	
 		pollBMSforCANids(paramater_ids_list1_.at(i), paramater_ids_list2_.at(j));
 		
-		(i==0) ? i = paramater_ids_list1_.size() : --i;
-		(j==0) ? j = paramater_ids_list2_.size() : --j;	
+		(i<paramater_ids_list1_.size()) ? ++i : i=0;
+		(j<paramater_ids_list1_.size()) ? ++j: j=0;	
   
 		ros::spinOnce();
     }
