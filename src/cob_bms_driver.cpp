@@ -5,18 +5,37 @@ BmsDriver::BmsDriver() {
 }
 
 BmsDriver::~BmsDriver()  {
-	driver.shutdown();
+	driver_.shutdown();
+}
+
+can::ThreadedSocketCANInterface& BmsDriver::getDriverRef() {
+	return driver_;
 }
 
 
 //function that polls all batteries (i.e. at CAN ID: 0x200) for two parameters at a time
-bool BmsDriver::pollBmsforParameters(const std::string data_req_id1, const std::string data_req_id2) {
+bool BmsDriver::pollBmsforParameters(const std::string first_parameter_id, const std::string second_parameter_id) {
 	
-	driver.send(can::toframe("200#"+data_req_id1+data_req_id2)); 
-	boost::this_thread::sleep_for(boost::chrono::seconds(1));
+	std::string msg = "200#"+first_parameter_id+second_parameter_id;
+	driver_.send(can::toframe(msg)); 
+	//ROS_INFO_STREAM("sending message: " << msg);
+	boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
 	
 	return true;
 
+}
+
+//function to initialize driver with device can0 and register handleFrames() function for handling ALL frames!
+bool BmsDriver::initializeDriver(std::string& err) {
+	
+	err = "OK";
+	if(!driver_.init("can0", false)) {
+		err = "could not initialize driver_ with can0 device";
+		return false;	
+	}
+	can::CommInterface::FrameListener::Ptr all_frames = driver_.createMsgListener(can::CommInterface::FrameDelegate(this, &BmsDriver::handleFrames));
+	//emcy_listener_ = interface->createMsgListener( emcy_id.header(), can::CommInterface::FrameDelegate(this, &EMCYHandler::handleEMCY));	
+	return true;
 }
 
 //handler for all frames
@@ -24,22 +43,10 @@ void BmsDriver::handleFrames(const can::Frame &f){
     LOG("got: " << can::tostring(f, true)); 
 }
 
-can::ThreadedSocketCANInterface& BmsDriver::getDriverRef() {
-	return driver;
-}
-
-void BmsDriver::setHandlerForAllFrames() {
-	
-	can::CommInterface::FrameListener::Ptr all_frames = driver.createMsgListener(can::CommInterface::FrameDelegate(this, &BmsDriver::handleFrames));
-	
-	//emcy_listener_ = interface->createMsgListener( emcy_id.header(), can::CommInterface::FrameDelegate(this, &EMCYHandler::handleEMCY));	
-	
-}
-
-
-
+//can::CommInterface::FrameListener::Ptr one_frame = driver_.createMsgListener(can::MsgHeader(0x123), handleFrame123); // handle only frames with CAN-ID 0x123
 
 /*void handleFrames(const can::Frame &f) {
 	//handle specific frame
 	LOG("123? " << can::tostring(f, true)); // lowercase: true
 }*/
+
