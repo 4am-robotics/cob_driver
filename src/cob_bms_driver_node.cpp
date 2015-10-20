@@ -23,12 +23,12 @@ std::vector<std::string> paramater_ids_list1_;
 std::vector<std::string> paramater_ids_list2_;
 
 //function that polls all batteries (i.e. at CAN ID: 0x200) for two parameters at a time
-bool pollBMSforCANids(const std::string first_parameter_id, const std::string second_parameter_id) {
+bool pollForParametersAtMax40Hz(const std::string first_parameter_id, const std::string second_parameter_id) {
 	
 	std::string msg = "200#"+first_parameter_id+second_parameter_id;
 	driver_.send(can::toframe(msg)); 
 	ROS_INFO_STREAM("sending message: " << msg);
-	boost::this_thread::sleep_for(boost::chrono::milliseconds(25));
+	boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
 	
 	return true;
 
@@ -53,19 +53,35 @@ int main(int argc, char **argv) {
 	
 	size_t i = 0;
 	size_t j = 0;
+
+	//ros::Rate loop_rate(20);
 	
 	while (ros::ok())
     {
 		
 		if (i>=paramater_ids_list1_.size()) i=0;
 		if (j>=paramater_ids_list2_.size()) j=0;
+
+		ROS_INFO_STREAM("reading paramater_ids_list1_ at: " <<i);
+		ROS_INFO_STREAM("reading paramater_ids_list2_ at: " <<j);
 		
-		pollBMSforCANids(paramater_ids_list1_.at(i), paramater_ids_list2_.at(j));
+		pollForParametersAtMax40Hz(paramater_ids_list1_.at(i), paramater_ids_list2_.at(j));
 		
 		++i;
 		++j;	
+
+
+
+		/*for(int i=0; i <10; ++i){  // send 10 messages, one per second
+        		driver_.send(can::toframe("200#01010115")); // cansend syntax
+       			
+   		*/
   
 		ros::spinOnce();
+
+		//loop_rate.sleep();
+
+
     }
     
     driver_.shutdown();
