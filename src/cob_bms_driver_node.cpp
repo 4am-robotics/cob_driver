@@ -56,11 +56,14 @@ int main(int argc, char **argv) {
 	
 	while (ros::ok())
     {
-	
+		
+		if (i>=paramater_ids_list1_.size()) i=0;
+		if (j>=paramater_ids_list2_.size()) j=0;
+		
 		pollBMSforCANids(paramater_ids_list1_.at(i), paramater_ids_list2_.at(j));
 		
-		(i<paramater_ids_list1_.size()) ? ++i : i=0;
-		(j<paramater_ids_list1_.size()) ? ++j: j=0;	
+		++i;
+		++j;	
   
 		ros::spinOnce();
     }
