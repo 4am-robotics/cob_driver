@@ -22,6 +22,8 @@ class BmsDriver {
 
 		//handler for all frames
 		void handleFrames(const can::Frame &f);
+
+		void handleAccuCurrent(const can::Frame &f);
 	
 		//function to initialize driver with device can0 and register handleFrames() function for handling all frames, returns false if initialization fails
 		bool initializeDriver();
@@ -32,6 +34,8 @@ class BmsDriver {
 	private:
 		can::ThreadedSocketCANInterface driver_;
 		void (*handleFrameCallback)(std::string&);
+		can::CommInterface::FrameListener::Ptr frame_listener_;
+		can::CommInterface::FrameListener::Ptr accu_current_listener_;
 };
 
 

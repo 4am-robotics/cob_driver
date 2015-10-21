@@ -13,7 +13,7 @@ std::vector<std::string> paramater_ids_list2_;
 
 void pollCallback (std::string& response_string) {
 	
-	ROS_INFO_STREAM(response_string);
+	ROS_INFO_STREAM("this is response: " << response_string);
 	
 }
 
@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
 	
 	//hardcoded parameter lists 
 	paramater_ids_list1_.push_back("0101"); paramater_ids_list1_.push_back("0102"); paramater_ids_list1_.push_back("0106");
+	
 	paramater_ids_list2_.push_back("0115"); paramater_ids_list2_.push_back("0116"); paramater_ids_list2_.push_back("0117"); 
 	paramater_ids_list2_.push_back("0118"); paramater_ids_list2_.push_back("0119"); paramater_ids_list2_.push_back("011A");
 	paramater_ids_list2_.push_back("011B");
