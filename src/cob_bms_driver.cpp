@@ -39,6 +39,9 @@ bool BmsDriver::initializeDriver() {
 
 //handler for all frames
 void BmsDriver::handleFrames(const can::Frame &f){
+	
+	ROS_INFO_STREAM ("got :" << can::tostring(f, true));
+		
     LOG("got: " << can::tostring(f, true)); 
 }
 

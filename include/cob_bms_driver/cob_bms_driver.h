@@ -7,7 +7,7 @@
 #include "socketcan_interface/socketcan.h"
 #include "socketcan_interface/threading.h"
 #include "socketcan_interface/string.h"
-
+#include "ros/ros.h"
 
 class BmsDriver {
 	
