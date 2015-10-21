@@ -185,6 +185,9 @@ public:
 	    ROS_WARN("Parameter 'num_leds' is missing. Using default Value: 58");
  	  _nh.param<int>("num_leds", _num_leds, 58);
 
+    int led_offset;
+    _nh.param<int>("led_offset", led_offset, 0);
+
     //Subscribe to LightController Command Topic
     _sub = _nh.subscribe("command", 1, &LightControl::topicCallback, this);
 
@@ -216,7 +219,7 @@ public:
         else if(_deviceDriver == "ms-35")
           p_colorO = new MS35(&_serialIO);
         else if(_deviceDriver == "stageprofi")
-          p_colorO = new StageProfi(&_serialIO, _num_leds);
+          p_colorO = new StageProfi(&_serialIO, _num_leds, led_offset);
         else
         {
           ROS_ERROR_STREAM("Unsupported devicedriver ["<<_deviceDriver<<"], falling back to sim mode");
@@ -289,22 +292,30 @@ public:
 
   void topicCallbackMode(cob_light::LightMode mode_msg)
   {
-    if(_deviceDriver == "stageprofi")
+    if(p_modeExecutor->getExecutingPriority() <= mode_msg.priority)
     {
-      std::vector<color::rgba> colors;
-      for(size_t i=0; i<mode_msg.colors.size();i++)
-      {
-        _color.a = mode_msg.colors[i].a;
-        _color.r = mode_msg.colors[i].r;
-        _color.g = mode_msg.colors[i].g;
-        _color.b = mode_msg.colors[i].b;
-        colors.push_back(_color);
-      }
-      p_colorO->setColorMulti(colors);
-    }
-    else
-    {
-      p_colorO->setColor(_color);
+        p_modeExecutor->stop();
+        if(_deviceDriver == "stageprofi")
+        {
+          std::vector<color::rgba> colors;
+          for(size_t i=0; i<mode_msg.colors.size();i++)
+          {
+            _color.a = mode_msg.colors[i].a;
+            _color.r = mode_msg.colors[i].r;
+            _color.g = mode_msg.colors[i].g;
+            _color.b = mode_msg.colors[i].b;
+            colors.push_back(_color);
+          }
+          p_colorO->setColorMulti(colors);
+        }
+        else
+        {
+          _color.a = mode_msg.color.a;
+          _color.r = mode_msg.color.r;
+          _color.g = mode_msg.color.g;
+          _color.b = mode_msg.color.b;
+          p_colorO->setColor(_color);
+        }
     }
   }
 

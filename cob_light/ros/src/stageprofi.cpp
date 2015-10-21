@@ -57,10 +57,11 @@
 #include <boost/integer.hpp>
 #include <algorithm>
 
-StageProfi::StageProfi(SerialIO* serialIO, unsigned int leds)
+StageProfi::StageProfi(SerialIO* serialIO, unsigned int leds, int led_offset)
 {
   _serialIO = serialIO;
   _num_leds = leds;
+  _led_offset = led_offset;
 }
 
 StageProfi::~StageProfi()
@@ -132,11 +133,21 @@ void StageProfi::setColorMulti(std::vector<color::rgba> &colors)
   unsigned int num_channels = _num_leds * 3;
   char channelbuffer[num_channels];
 
+  std::vector<color::rgba> color_out = colors;
+  //shift lex index by offset
+  if(_led_offset != 0)
+  {
+    if(_led_offset > 0)
+      std::rotate(color_out.begin(), color_out.begin()+_led_offset, color_out.end());
+    else
+      std::rotate(color_out.begin(), color_out.begin()+color_out.size()+_led_offset, color_out.end());
+  }
+
   for (int i = 0; i < _num_leds || i < colors.size(); i++)
   {
-    color_tmp.r = colors[i].r * colors[i].a;
-    color_tmp.g = colors[i].g * colors[i].a;
-    color_tmp.b = colors[i].b * colors[i].a;
+    color_tmp.r = color_out[i].r * color_out[i].a;
+    color_tmp.g = color_out[i].g * color_out[i].a;
+    color_tmp.b = color_out[i].b * color_out[i].a;
 
     color_tmp.r = fabs(color_tmp.r * 255);
     color_tmp.g = fabs(color_tmp.g * 255);
