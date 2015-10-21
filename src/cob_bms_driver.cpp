@@ -13,7 +13,7 @@ can::ThreadedSocketCANInterface& BmsDriver::getDriverRef() {
 }
 
 
-//function that polls all batteries (i.e. at CAN ID: 0x200) for two parameters at a time
+//function that polls all batteries (i.e. at CAN ID: 0x200) for two parameters at a time, TODO: check that parameter ids are valid
 bool BmsDriver::pollBmsforParameters(const std::string first_parameter_id, const std::string second_parameter_id) {
 	
 	std::string msg = "200#"+first_parameter_id+second_parameter_id;
@@ -25,18 +25,17 @@ bool BmsDriver::pollBmsforParameters(const std::string first_parameter_id, const
 
 }
 
-//function to initialize driver with device can0 and register handleFrames() function for handling ALL frames!
-bool BmsDriver::initializeDriver(std::string& err) {
+//function to initialize driver with device can0 and register handleFrames() function for handling all frames, returns false if initialization fails
+bool BmsDriver::initializeDriver() {
 	
-	err = "OK";
 	if(!driver_.init("can0", false)) {
-		err = "could not initialize driver_ with can0 device";
 		return false;	
 	}
 	can::CommInterface::FrameListener::Ptr all_frames = driver_.createMsgListener(can::CommInterface::FrameDelegate(this, &BmsDriver::handleFrames));
 	//emcy_listener_ = interface->createMsgListener( emcy_id.header(), can::CommInterface::FrameDelegate(this, &EMCYHandler::handleEMCY));	
 	return true;
 }
+
 
 //handler for all frames
 void BmsDriver::handleFrames(const can::Frame &f){

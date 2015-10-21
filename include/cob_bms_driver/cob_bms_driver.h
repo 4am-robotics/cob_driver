@@ -23,8 +23,8 @@ class BmsDriver {
 		//handler for all frames
 		void handleFrames(const can::Frame &f);
 	
-		//function to initialize driver with device can0 and register handleFrames() function for handling ALL frames!
-		bool initializeDriver(std::string& err);
+		//function to initialize driver with device can0 and register handleFrames() function for handling all frames, returns false if initialization fails
+		bool initializeDriver();
 		
 		BmsDriver();
 		~BmsDriver();

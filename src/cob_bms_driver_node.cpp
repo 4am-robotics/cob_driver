@@ -20,9 +20,8 @@ int main(int argc, char **argv) {
 	
 	BmsDriver bms_driver;
 	
-	std::string err = "";
-	if (bms_driver.initializeDriver(err) == false) {
-		ROS_ERROR_STREAM(err);
+	if (bms_driver.initializeDriver() == false) {
+		ROS_ERROR_STREAM("bms_driver initialization failed");
 		return 1;
 	}
 				
