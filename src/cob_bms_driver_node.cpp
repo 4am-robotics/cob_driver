@@ -10,6 +10,15 @@
 std::vector<std::string> paramater_ids_list1_;
 std::vector<std::string> paramater_ids_list2_;
 
+
+void pollCallback (std::string& response_string) {
+	
+	ROS_INFO_STREAM(response_string);
+	
+}
+
+
+
 int main(int argc, char **argv) {
 	
 	//hardcoded parameter lists 
@@ -43,7 +52,7 @@ int main(int argc, char **argv) {
 		ROS_INFO_STREAM("reading paramater_ids_list1_ at: " <<i);
 		ROS_INFO_STREAM("reading paramater_ids_list2_ at: " <<j);
 		
-		bms_driver.pollBmsforParameters(paramater_ids_list1_.at(i), paramater_ids_list2_.at(j));
+		bms_driver.pollBmsforParameters(paramater_ids_list1_.at(i), paramater_ids_list2_.at(j), pollCallback);
 		
 		++i;
 		++j;	

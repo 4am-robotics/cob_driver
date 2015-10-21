@@ -14,10 +14,13 @@ can::ThreadedSocketCANInterface& BmsDriver::getDriverRef() {
 
 
 //function that polls all batteries (i.e. at CAN ID: 0x200) for two parameters at a time, TODO: check that parameter ids are valid
-bool BmsDriver::pollBmsforParameters(const std::string first_parameter_id, const std::string second_parameter_id) {
+bool BmsDriver::pollBmsforParameters(const std::string first_parameter_id, const std::string second_parameter_id, void (*callback)(std::string&)){
+	
+	handleFrameCallback = callback;
 	
 	std::string msg = "200#"+first_parameter_id+second_parameter_id;
 	driver_.send(can::toframe(msg)); 
+	
 	//ROS_INFO_STREAM("sending message: " << msg);
 	boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
 	
@@ -40,9 +43,14 @@ bool BmsDriver::initializeDriver() {
 //handler for all frames
 void BmsDriver::handleFrames(const can::Frame &f){
 	
-	ROS_INFO_STREAM ("got :" << can::tostring(f, true));
-		
-    LOG("got: " << can::tostring(f, true)); 
+	std::string msg = "got: " + can::tostring(f, true);
+	
+	handleFrameCallback(msg);
+	
+	LOG(msg);
+	
+	//ROS_INFO_STREAM("got :" << can::tostring(f, true));	
+    //LOG("got: " << can::tostring(f, true)); 
 }
 
 //can::CommInterface::FrameListener::Ptr one_frame = driver_.createMsgListener(can::MsgHeader(0x123), handleFrame123); // handle only frames with CAN-ID 0x123

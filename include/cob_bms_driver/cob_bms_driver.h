@@ -15,7 +15,7 @@ class BmsDriver {
 	public:
 	
 		//function that polls all batteries (i.e. at CAN ID: 0x200) for two parameters at a time
-		bool pollBmsforParameters(const std::string first_parameter_id, const std::string second_parameter_id);
+		bool pollBmsforParameters(const std::string first_parameter_id, const std::string second_parameter_id, void (*callback)(std::string&));
 	
 		//function to return reference to driver instance
 		can::ThreadedSocketCANInterface& getDriverRef();
@@ -28,9 +28,10 @@ class BmsDriver {
 		
 		BmsDriver();
 		~BmsDriver();
-	
+
 	private:
-		can::ThreadedSocketCANInterface driver_;		
+		can::ThreadedSocketCANInterface driver_;
+		void (*handleFrameCallback)(std::string&);
 };
 
 
