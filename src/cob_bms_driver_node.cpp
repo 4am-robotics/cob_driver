@@ -7,26 +7,23 @@
 #include <vector>
 #include "cob_bms_driver/cob_bms_driver.h"
 
-std::vector<std::string> paramater_ids_list1_;
-std::vector<std::string> paramater_ids_list2_;
+std::vector<char> paramater_ids_list1_;
+std::vector<char> paramater_ids_list2_;
 
-
-void pollCallback (std::string& response_string) {
+/*void pollCallback (std::string& response_string) {
 	
 	ROS_INFO_STREAM("this is response: " << response_string);
 	
-}
-
-
+}*/
 
 int main(int argc, char **argv) {
 	
 	//hardcoded parameter lists 
-	paramater_ids_list1_.push_back("0101"); paramater_ids_list1_.push_back("0102"); paramater_ids_list1_.push_back("0106");
+	paramater_ids_list1_.push_back(0x01); paramater_ids_list1_.push_back(0x02); paramater_ids_list1_.push_back(0x06);
 	
-	paramater_ids_list2_.push_back("0115"); paramater_ids_list2_.push_back("0116"); paramater_ids_list2_.push_back("0117"); 
+	paramater_ids_list2_.push_back(0x15); /*paramater_ids_list2_.push_back("0116"); paramater_ids_list2_.push_back("0117"); 
 	paramater_ids_list2_.push_back("0118"); paramater_ids_list2_.push_back("0119"); paramater_ids_list2_.push_back("011A");
-	paramater_ids_list2_.push_back("011B");
+	paramater_ids_list2_.push_back("011B");*/
 	
 	BmsDriver bms_driver;
 	
@@ -34,6 +31,12 @@ int main(int argc, char **argv) {
 		ROS_ERROR_STREAM("bms_driver initialization failed");
 		return 1;
 	}
+	
+	//add dummy replies 
+	bms_driver.getDriverRef().add("c8#1010115", "101#00000020" ,false); 	//REMOVE LATER
+	bms_driver.getDriverRef().add("c8#1020115", "101#00000030" ,false);
+	
+	
 				
 	ros::init(argc, argv, "bms_driver_node");
 	ros::NodeHandle n;
@@ -53,7 +56,7 @@ int main(int argc, char **argv) {
 		ROS_INFO_STREAM("reading paramater_ids_list1_ at: " <<i);
 		ROS_INFO_STREAM("reading paramater_ids_list2_ at: " <<j);
 		
-		bms_driver.pollBmsforParameters(paramater_ids_list1_.at(i), paramater_ids_list2_.at(j), pollCallback);
+		bms_driver.pollBmsforParameters(paramater_ids_list1_.at(i), paramater_ids_list2_.at(j));
 		
 		++i;
 		++j;	
