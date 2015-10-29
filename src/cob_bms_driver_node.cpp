@@ -31,12 +31,6 @@ int main(int argc, char **argv) {
 		ROS_ERROR_STREAM("bms_driver initialization failed");
 		return 1;
 	}
-	
-	//add dummy replies 
-	bms_driver.getDriverRef().add("c8#1010115", "101#00000020" ,false); 	//REMOVE LATER
-	bms_driver.getDriverRef().add("c8#1020115", "101#00000030" ,false);
-	
-	
 				
 	ros::init(argc, argv, "bms_driver_node");
 	ros::NodeHandle n;

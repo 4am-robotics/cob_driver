@@ -22,9 +22,8 @@ class BmsDriver
 		bool pollBmsforParameters(const char first_parameter_id, const char second_parameter_id /*, void (*callback)(std::string&)*/);
 	
 		//function to return reference to driver instance
-		//can::ThreadedSocketCANInterface& getDriverRef(); UNCOMMENT LATER
-		can::DummyInterface& getDriverRef() ;
-
+		can::ThreadedSocketCANInterface& getDriverRef();
+		
 		//handler for all frames
 		void handleFrames(const can::Frame &f);
 
@@ -33,14 +32,12 @@ class BmsDriver
 		//function to initialize driver with device can0 and register handleFrames() function for handling all frames, returns false if initialization fails
 		bool initializeDriver();
 		
-		//BmsDriver(); UNCOMMENT LATER
-		//~BmsDriver();
-		
-		BmsDriver() : driver_(true) { }	// REMOVE LATER
+		BmsDriver();
+		~BmsDriver();
+	
 
 	private:
-		//can::ThreadedSocketCANInterface driver_; -- UNCOMMENT LATER
-		can::DummyInterface driver_;
+		can::ThreadedSocketCANInterface driver_;
 		
 		//void (*handleFrameCallback)(std::string&);
 		can::CommInterface::FrameListener::Ptr frame_listener_;

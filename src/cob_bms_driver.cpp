@@ -17,7 +17,7 @@ template<typename T> T read_value(const can::Frame &f, uint8_t offset){
 	return res;
 }
 
-/*BmsDriver::BmsDriver() {
+BmsDriver::BmsDriver() {
 
 }
 
@@ -26,10 +26,6 @@ BmsDriver::~BmsDriver()  {
 }
 
 can::ThreadedSocketCANInterface& BmsDriver::getDriverRef() {
-	return driver_;
-} -- UNCOMENT LATER */
-
-can::DummyInterface& BmsDriver::getDriverRef() {
 	return driver_;
 }
 
@@ -62,9 +58,9 @@ bool BmsDriver::initializeDriver() {
 	
 	BmsDriver::bms_id_ = 200;	
 	
-	/*if(!driver_.init("can0", false)) {	-- UNCOMMENT LATER
+	if(!driver_.init("can0", false)) {
 		return false;	
-	}*/
+	}
 	
 	//create listeners for CAN frames
 	frame_listener_  = driver_.createMsgListener(can::CommInterface::FrameDelegate(this, &BmsDriver::handleFrames));

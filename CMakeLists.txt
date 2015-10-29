@@ -107,8 +107,6 @@ include_directories(
 ## Declare a cpp executable
  add_executable(cob_bms_driver_node src/cob_bms_driver_node.cpp)
 
-## Declare a cpp executable
- add_executable(test_dummy src/test_dummy_interface.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
@@ -120,10 +118,6 @@ include_directories(
    cob_bms_driver
  )
 
- target_link_libraries(
-   test_dummy
-   ${catkin_LIBRARIES}
- )
 
  target_link_libraries(
    cob_bms_driver_node
