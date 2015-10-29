@@ -56,7 +56,7 @@ bool BmsDriver::pollBmsforParameters(const char first_parameter_id, const char s
 //function to initialize driver with device can0 and register handleFrames() function for handling all frames, returns false if initialization fails
 bool BmsDriver::initializeDriver() {
 	
-	BmsDriver::bms_id_ = 200;	
+	BmsDriver::bms_id_ = 0x200;	
 	
 	if(!driver_.init("can0", false)) {
 		return false;	
@@ -86,13 +86,13 @@ void BmsDriver::handleFrames(const can::Frame &f){
 	std::string msg = "handling: " + can::tostring(f, true);
 	LOG(msg);
 	
-	if(f.dlc >= 2) {
+	/*if(f.dlc >= 2) {
 				double accu_current = read_value<int16_t>(f,0) * 0.01;	
 				LOG("accu_current: " << accu_current); 
 				//accu_pub.publish(accu_current); --TODO			
 				//diagnostic_updater::DiagnosticStatusWrapper &stat	--TODO
 				//stat.add("accu_current", accu_current);
-	}
+	}*/
 			
 	switch(f.id) {
 		case 0x102:

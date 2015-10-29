@@ -19,7 +19,7 @@ std::vector<char> paramater_ids_list2_;
 int main(int argc, char **argv) {
 	
 	//hardcoded parameter lists 
-	paramater_ids_list1_.push_back(0x01); paramater_ids_list1_.push_back(0x02); paramater_ids_list1_.push_back(0x06);
+	paramater_ids_list1_.push_back(0x02); paramater_ids_list1_.push_back(0x03); paramater_ids_list1_.push_back(0x06);
 	
 	paramater_ids_list2_.push_back(0x15); /*paramater_ids_list2_.push_back("0116"); paramater_ids_list2_.push_back("0117"); 
 	paramater_ids_list2_.push_back("0118"); paramater_ids_list2_.push_back("0119"); paramater_ids_list2_.push_back("011A");
