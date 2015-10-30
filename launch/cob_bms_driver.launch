@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+
+	<node ns="cob_bms_ns" name="cob_bms_driver_node" pkg="cob_bms_driver" type="cob_bms_driver_node"/>
+
+	<rosparam ns="cob_bms_ns" command="load" file="$(find cob_bms_driver)/config/config.yaml"/>
+
+
+
+</launch>

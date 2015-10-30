@@ -9,8 +9,6 @@
 #include "socketcan_interface/string.h"
 #include "ros/ros.h"
 
-#include <socketcan_interface/dummy.h>	// -- REMOVE LATER
-
 class BmsDriver 
 {
 	public:

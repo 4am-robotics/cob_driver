@@ -3,8 +3,6 @@
 #include <stdint.h>
 #include <endian.h>
 
-
-
 template<int N> void big_endian_to_host(const void* in, void* out);
 template<> void big_endian_to_host<1>(const void* in, void* out){ *(uint8_t*)out = *(uint8_t*)in;}
 template<> void big_endian_to_host<2>(const void* in, void* out){ *(uint16_t*)out = be16toh(*(uint16_t*)in);}
@@ -121,19 +119,6 @@ void BmsDriver::handleFrames(const can::Frame &f){
 
 	//handleFrameCallback(msg);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 //can::CommInterface::FrameListener::Ptr one_frame = driver_.createMsgListener(can::MsgHeader(0x123), handleFrame123); // handle only frames with CAN-ID 0x123
 
