@@ -1,139 +1,193 @@
-#include "ros/ros.h"
-#include "std_msgs/String.h"
-#include <sstream>
-#include "socketcan_interface/socketcan.h"
-#include "socketcan_interface/threading.h"
-#include "socketcan_interface/string.h"
-#include <vector>
-#include "cob_bms_driver/cob_bms_driver.h"
+#include "cob_bms_driver/cob_bms_driver_node.h"
 
-std::vector<char> paramater_ids_list1_;
-std::vector<char> paramater_ids_list2_;
-
-void loadParameters(const& ros::NodeHandle nh) {
-	    
-    std::vector<XmlRpc::XmlRpcValue> xdiagnostics, xdiagnostic_elements, xfields;
-    std::map<std::string, XmlRpc::XmlRpcValue> xpair;
+void CobBmsDriverNode::loadParameters()
+{	 
+	//declarations
+    XmlRpc::XmlRpcValue diagnostics1, diagnostics2;
+    std::vector <std::string> topics;
     
-    std::vector<DiagnosticClass> diagnostics;
-    DiagnosticClass diagnostic_object;
+    if (!nh_.getParam("topics", topics)) 
+    {
+		ROS_INFO_STREAM("Did not find \"topics\" on parameter server");		
+	}    
+    loadTopics(topics);
     
-    nh.getParam("/diagnostics", xdiagnostics);
-    ROS_ASSERT(xdiagnostics.getType() == XmlRpc::XmlRpcValue::ValueArray);
+    if (!nh_.getParam("diagnostics1", diagnostics1)) 
+    {
+		ROS_INFO_STREAM("Did not find \"diagnostics1\" on parameter server");		
+	}
+	loadConfigMap(diagnostics1);
+	
+	 if (!nh_.getParam("diagnostics2", diagnostics2)) 
+	 {
+		ROS_INFO_STREAM("Did not find \"diagnostics2\" on parameter server");		
+	}
+	loadConfigMap(diagnostics2);
+	
+	//after loading both diagnostic lists, now load parameters into param_list1_ and param_list2_	
+	loadParameterLists();
+
+}
+
+void CobBmsDriverNode::loadTopics(std::vector<std::string> topics) 
+{	
+	topics_ = topics;
+	for (int i=0 ; i<topics.size(); ++i) 
+	{
+		ROS_INFO_STREAM("topics: " << topics.at(i));
+	}
+}
+
+void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue config_l0_array) 
+{
+	
+	XmlRpc::XmlRpcValue config_l1_struct, config_l2, config_l3_struct, xdiagnostics, xdiagnostic_elements, xfields, xpair,temp;
+    BmsVariable bms_variable;
+    int id;
+    std::map<int,BmsVariable> config_map;
     
-    for (int32_t i = 0; i < xdiagnostics.size(); ++i) {
+    ROS_ASSERT(config_l0_array.getType() == XmlRpc::XmlRpcValue::TypeArray);  
+	for (int32_t i = 0; i < config_l0_array.size(); ++i) 
+	{	
+		ROS_ASSERT(config_l0_array[i].getType() == XmlRpc::XmlRpcValue::TypeStruct);
+		config_l1_struct = config_l0_array[i];		
+		for (XmlRpc::XmlRpcValue::iterator it1=config_l1_struct.begin(); it1!=config_l1_struct.end(); ++it1) 
+		{
+			config_l2 = it1->second;
+			if (config_l2.getType()==XmlRpc::XmlRpcValue::TypeInt) 
+			{				
+				id = static_cast<int>(config_l2);
+			}
+			else if (config_l2.getType()==XmlRpc::XmlRpcValue::TypeArray) 
+			{			
+				for(int32_t j=0; j<config_l2.size(); ++j) 
+				{
+					ROS_ASSERT(config_l2[j].getType()==XmlRpc::XmlRpcValue::TypeStruct);
+					config_l3_struct = config_l2[j];
+					for (XmlRpc::XmlRpcValue::iterator it3=config_l3_struct.begin(); it3!=config_l3_struct.end(); ++it3) 
+					{
+						if (it3->first == "name") 
+						{
+							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeString);
+							bms_variable.name = static_cast<std::string>(it3->second);
+						}
+						else if (it3->first == "offset") 
+						{
+							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeInt);
+							bms_variable.offset = static_cast<int>(it3->second);
+						}
+						else if (it3->first == "len") 
+						{
+							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeInt);
+							bms_variable.length = static_cast<int>(it3->second);
+						}
+						else if (it3->first == "is_signed") 
+						{
+							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeBoolean);
+							bms_variable.is_signed = static_cast<bool>(it3->second);
+						}
+						else if (it3->first == "factor") 
+						{
+							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeDouble);
+							bms_variable.factor = static_cast<double>(it3->second);
+						}
+						else if (it3->first == "unit") 
+						{
+							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeString);
+							bms_variable.unit = static_cast<std::string>(it3->second);
+						} 
+						else ROS_ERROR_STREAM("Unexpected Key: " << it3->first);
+					}
+				}
+			}
+			else ROS_ERROR_STREAM("Config: Expected either XmlRpc Type: " << XmlRpc::XmlRpcValue::TypeArray << " or " << XmlRpc::XmlRpcValue::TypeInt << ". But found: " << config_l2.getType());
+		}
+		config_map[id] = bms_variable;
+	}
+	config_map_vec_.push_back(config_map);
+}
 
-		//get diagnostic_elements, i.e. id and fields
-		ROS_ASSERT(xdiagnostics[i].getType() == XmlRpc::XmlRpcValue::ValueArray);
-		xdiagnostic_elements = static_cast<std::vector<XmlRpc::XmlRpcValue>(xdiagnostics[i]);
-				
-		//get id 
-		ROS_ASSERT(xdiagnostic_elements[0].getType() == XmlRpc::XmlRpcValue::TypeStruct);
-		ROS_ASSERT(xdiagnostic_elements[0].second.getType() == XmlRpc::XmlRpcValue::TypeString);
-		diagnostic_object.id  = static_cast<std::string>(xdiagnostic_elements[0].second);	//save value of id from first diagnostic element //TODO: convert string to hex later
-			
-		//get fields
-		ROS_ASSERT(xdiagnostic_elements[1].getType() == XmlRpc::XmlRpcValue::ValueStruct);
-		ROS_ASSERT(xdiagnostic_elements[1].second.getType() == XmlRpc::XmlRpcValue::ValueArray);
-		xfields  = static_cast<std::vector<XmlRpcValue> xdiagnostic_elements[1].second;
-		
-		//extract data from fields
-		std::vector<DiagnosticClass::Field> fields(xfields.size(), DiagnosticClass::Field::Empty);
-		for (int32_t j = 0; j < xfields.size(); ++j) {
-			
-			//name
-			ROS_ASSERT(xfields[0].getType() == XmlRpc::XmlRpcValue::TypeStruct);
-			ROS_ASSERT(xfields[0].second.getType() == XmlRpc::XmlRpcValue::TypeString);
-			fields[j].name = static_cast<std::string> xfields[0].second;
-			
-			//offset
-			ROS_ASSERT(xfields[1].getType() == XmlRpc::XmlRpcValue::TypeStruct);
-			ROS_ASSERT(xfields[1].second.getType() == XmlRpc::XmlRpcValue::TypeInt);	//TODO: this should be unsigned. but no such option, check if this will not be a problem
-			fields[j].offset = static_cast<unsigned int> xfields[1].second;
-			
-			//length
-			ROS_ASSERT(xfields[2].getType() == XmlRpc::XmlRpcValue::TypeStruct);
-			ROS_ASSERT(xfields[2].second.getType() == XmlRpc::XmlRpcValue::TypeInt);	//TODO: this should be unsigned. but no such option, check if this will not be a problem
-			fields[j].length = static_cast<unsigned int> xfields[2].second;
-			
-			//sign flag
-			ROS_ASSERT(xfields[3].getType() == XmlRpc::XmlRpcValue::TypeStruct);
-			ROS_ASSERT(xfields[2].second.getType() == XmlRpc::XmlRpcValue::TypeBoolean);
-			fields[j].sign_flag = static_cast<bool> xfields[3].second;
-			
-			//factor
-			ROS_ASSERT(xfields[4].getType() == XmlRpc::XmlRpcValue::TypeStruct);
-			ROS_ASSERT(xfields[2].second.getType() == XmlRpc::XmlRpcValue::TypeInt);
-			fields[j].factor = static_cast<unsigned int> xfields[4].second;				//TODO: this should be unsigned. but no such option, check if this will not be a problem
-			
-			//unit
-			ROS_ASSERT(xfields[5].getType() == XmlRpc::XmlRpcValue::TypeStruct);
-			ROS_ASSERT(xfields[5].second.getType() == XmlRpc::XmlRpcValue::TypeString);
-			fields[j].unit = static_cast<std::string> xfields[5].second;
-
+void CobBmsDriverNode::loadParameterLists()
+{
+	std::map<int,BmsVariable>::iterator map_it;
+	std::map<int,BmsVariable> diagnostics1, diagnostics2;
+	
+	if (config_map_vec_.size() != 2) {
+		ROS_ERROR_STREAM("Config: There must be 2 diagnostic lists, found: " << config_map_vec_.size());
+		return;		
 	}
 	
+	diagnostics1 = config_map_vec_.at(0);
+	diagnostics2 = config_map_vec_.at(1);
 	
+	for (map_it = diagnostics1.begin(); map_it!=diagnostics1.end(); map_it++) 
+	{
+		param_list1_.push_back(map_it->first); //ids of diagnostics1
+		ROS_INFO_STREAM("Saving in paramameter list1, id: " << map_it->first);
+	}
+	
+	for (map_it = diagnostics2.begin(); map_it!=diagnostics2.end(); map_it++) 
+	{
+		param_list2_.push_back(map_it->first); //ids of diagnostics2
+		ROS_INFO_STREAM("Saving in paramameter list2, id: " << map_it->first);
+	}
+}
+
+void CobBmsDriverNode::pollNextInParamLists()
+{
+	//return to start if reached the end of parameter lists
+	if (param_list1_it_ == param_list1_.end()) param_list1_it_ = param_list1_.begin();
+	if (param_list2_it_ == param_list2_.end()) param_list2_it_ = param_list2_.begin();
+	
+	ROS_INFO_STREAM("polling paramaters at ids: " <<*param_list1_it_ << " and " << *param_list2_it_);
+	
+	//poll
+	bms_driver_.pollBmsforParameters(*param_list1_it_,*param_list1_it_);
+	
+	//increment iterators for next poll 
+	++param_list1_it_;
+	++param_list2_it_;
+}
+
+bool CobBmsDriverNode::prepare() {
+	
+	if (bms_driver_.initializeDriver() == false) {
+		ROS_ERROR_STREAM("bms_driver initialization failed");
+		//return 1;
+	}
+	
+	loadParameters();
+	
+	//initalize parameter list iterators
+	param_list1_it_ = param_list1_.begin();
+	param_list2_it_ = param_list2_.begin();
 	
 }
 
-/*void pollCallback (std::string& response_string) {
-	
-	ROS_INFO_STREAM("this is response: " << response_string);
-	
-}*/
-
-int main(int argc, char **argv) {
-	
+CobBmsDriverNode::CobBmsDriverNode() 
+{
 	//hardcoded parameter lists 
-	paramater_ids_list1_.push_back(0x02); paramater_ids_list1_.push_back(0x03); paramater_ids_list1_.push_back(0x06);
+	//param_list1_.push_back(0x02); param_list1_.push_back(0x03); param_list1_.push_back(0x06);
 	
-	paramater_ids_list2_.push_back(0x15); /*paramater_ids_list2_.push_back("0116"); paramater_ids_list2_.push_back("0117"); 
+	/*param_list2_.push_back(0x15); /*paramater_ids_list2_.push_back("0116"); paramater_ids_list2_.push_back("0117"); 
 	paramater_ids_list2_.push_back("0118"); paramater_ids_list2_.push_back("0119"); paramater_ids_list2_.push_back("011A");
 	paramater_ids_list2_.push_back("011B");*/
-	
-	BmsDriver bms_driver;
-	
-	/*if (bms_driver.initializeDriver() == false) {
-		ROS_ERROR_STREAM("bms_driver initialization failed");
-		return 1;
-	}*/
-				
+}
+
+CobBmsDriverNode::~CobBmsDriverNode() {}
+
+int main(int argc, char **argv) 
+{		
 	ros::init(argc, argv, "bms_driver_node");
-	ros::NodeHandle n;
-	//ros::Publisher canbus_pub = n.advertise<std_msgs::String>("canbus", 1000);
-	
-	size_t i = 0;
-	size_t j = 0;
-
-	//ros::Rate loop_rate(20);
-	
-	while (ros::ok())
-    {
 		
-		if (i>=paramater_ids_list1_.size()) i=0;
-		if (j>=paramater_ids_list2_.size()) j=0;
+	CobBmsDriverNode cob_bms_driver_node;
+	if (!cob_bms_driver_node.prepare()) return 1;	
 
-		ROS_INFO_STREAM("reading paramater_ids_list1_ at: " <<i);
-		ROS_INFO_STREAM("reading paramater_ids_list2_ at: " <<j);
-		
-		bms_driver.pollBmsforParameters(paramater_ids_list1_.at(i), paramater_ids_list2_.at(j));
-		
-		++i;
-		++j;	
-
-		/*for(int i=0; i <10; ++i){  // send 10 messages, one per second
-        		driver_.send(can::toframe("200#01010115")); // cansend syntax
-       			
-   		*/
-  
+	while (cob_bms_driver_node.nh_.ok())
+    {	
+		cob_bms_driver_node.pollNextInParamLists();		 
 		ros::spinOnce();
-
-		//loop_rate.sleep();
-
-
     }
     
     return 0;	
-
 }

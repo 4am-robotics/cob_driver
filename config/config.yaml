@@ -1,0 +1,141 @@
+diagnostics1:
+  - id: 0x0104
+    fields:
+      - name: "RemainingCapacity"
+        offset: 0
+        len: 2
+        is_signed: false
+        # factor: 1.0
+        unit: "mAh"
+      - name: "FullChargeCapacity"
+        offset: 2
+        len: 2
+        is_signed: false
+        unit: "mAh"
+      - name: "DesignCapacity"
+        offset: 6 # skip 4
+        len: 2
+        is_signed: false
+        unit: "mAh"
+  - id: 0x0105
+    fields:
+      - name: "RemainingCapacity"
+        offset: 0
+        len: 2
+        is_signed: false
+        # factor: 1.0
+        unit: "mAh"
+      - name: "FullChargeCapacity"
+        offset: 2
+        len: 2
+        is_signed: false
+        unit: "mAh"
+      - name: "DesignCapacity"
+        offset: 6 # skip 4
+        len: 2
+        is_signed: false
+        unit: "mAh"
+  - id: 0x0106
+    fields:
+      - name: "RemainingCapacity"
+        offset: 0
+        len: 2
+        is_signed: false
+        # factor: 1.0
+        unit: "mAh"
+      - name: "FullChargeCapacity"
+        offset: 2
+        len: 2
+        is_signed: false
+        unit: "mAh"
+      - name: "DesignCapacity"
+        offset: 6 # skip 4
+        len: 2
+        is_signed: false
+        unit: "mAh"
+  - id: 0x0107
+    fields:
+      - name: "RemainingCapacity"
+        offset: 0
+        len: 2
+        is_signed: false
+        # factor: 1.0
+        unit: "mAh"
+      - name: "FullChargeCapacity"
+        offset: 2
+        len: 2
+        is_signed: false
+        unit: "mAh"
+      - name: "DesignCapacity"
+        offset: 6 # skip 4
+        len: 2
+        is_signed: false
+        unit: "mAh"
+
+
+diagnostics2:
+  - id: 0x0102
+    fields:
+      - name: "RemainingCapacity"
+        offset: 0
+        len: 2
+        is_signed: false
+        # factor: 1.0
+        unit: "mAh"
+      - name: "FullChargeCapacity"
+        offset: 2
+        len: 2
+        is_signed: false
+        unit: "mAh"
+      - name: "DesignCapacity"
+        offset: 6 # skip 4
+        len: 2
+        is_signed: false
+        unit: "mAh"
+
+  - id: 0x0103
+    fields:
+      - name: "RemainingCapacity"
+        offset: 0
+        len: 2
+        is_signed: false
+        # factor: 1.0
+        unit: "mAh"
+      - name: "FullChargeCapacity"
+        offset: 2
+        len: 2
+        is_signed: false
+        unit: "mAh"
+      - name: "DesignCapacity"
+        offset: 6 # skip 4
+        len: 2
+        is_signed: false
+        unit: "mAh"
+
+  - id: 0x0104
+    fields:
+      - name: "RemainingCapacity"
+        offset: 0
+        len: 2
+        is_signed: false
+        # factor: 1.0
+        unit: "mAh"
+      - name: "FullChargeCapacity"
+        offset: 2
+        len: 2
+        is_signed: false
+        unit: "mAh"
+      - name: "DesignCapacity"
+        offset: 6 # skip 4
+        len: 2
+        is_signed: false
+        unit: "mAh"
+
+
+
+
+topics: ["AccuCurrent", "RemainingCapacity"]
+
+#topics:
+#  actual_current: "AccuCurrent"
+#  remaining_capacity: "RemainingCapacity"

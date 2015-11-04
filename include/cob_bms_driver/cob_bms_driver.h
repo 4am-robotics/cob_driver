@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <string>
+#include <stdint.h>
+#include <endian.h>
 //#include <sstream>
 #include "socketcan_interface/socketcan.h"
 #include "socketcan_interface/threading.h"

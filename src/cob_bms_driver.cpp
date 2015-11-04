@@ -1,8 +1,5 @@
 #include "cob_bms_driver/cob_bms_driver.h"
 
-#include <stdint.h>
-#include <endian.h>
-
 template<int N> void big_endian_to_host(const void* in, void* out);
 template<> void big_endian_to_host<1>(const void* in, void* out){ *(uint8_t*)out = *(uint8_t*)in;}
 template<> void big_endian_to_host<2>(const void* in, void* out){ *(uint16_t*)out = be16toh(*(uint16_t*)in);}

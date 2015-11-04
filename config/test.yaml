@@ -1,0 +1,22 @@
+controller_manager_ns: pr2_controller_manager
+controller_list:
+  - name: rarm_controller
+    action_ns: follow_joint_trajectory_action
+    default: true
+    joints:
+      - RARM_JOINT0
+      - RARM_JOINT1
+      - RARM_JOINT2
+      - RARM_JOINT3
+      - RARM_JOINT4
+      - RARM_JOINT5
+  - name: larm_controller
+    action_ns: follow_joint_trajectory_action
+    default: true
+    joints:
+      - LARM_JOINT0
+      - LARM_JOINT1
+      - LARM_JOINT2
+      - LARM_JOINT3
+      - LARM_JOINT4
+      - LARM_JOINT5
