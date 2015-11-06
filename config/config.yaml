@@ -1,140 +1,103 @@
 diagnostics1:
-  - id: 0x0104
+  - id: 0x0101
     fields:
-      - name: "RemainingCapacity"
+      - name: "AkkuStatusRegister"
         offset: 0
         len: 2
         is_signed: false
-        # factor: 1.0
-        unit: "mAh"
-      - name: "FullChargeCapacity"
+
+      - name: "AkkuStatusRegister_2"
         offset: 2
         len: 2
         is_signed: false
-        unit: "mAh"
-      - name: "DesignCapacity"
-        offset: 6 # skip 4
+
+      - name: "ProjectStatusRegister"
+        offset: 4
         len: 2
         is_signed: false
-        unit: "mAh"
-  - id: 0x0105
+
+      - name: "SystemStatusRegister"
+        offset: 6
+        len: 2
+        is_signed: false
+
+  - id: 0x0102
     fields:
-      - name: "RemainingCapacity"
+      - name: "AkkuCurrent"
+        offset: 0
+        len: 2
+        is_signed: true
+        factor: 0.01
+        unit: "A"
+
+  - id: 0x0103
+    fields:
+      - name: "AkkuPackVoltage"
         offset: 0
         len: 2
         is_signed: false
-        # factor: 1.0
-        unit: "mAh"
-      - name: "FullChargeCapacity"
-        offset: 2
-        len: 2
-        is_signed: false
-        unit: "mAh"
-      - name: "DesignCapacity"
-        offset: 6 # skip 4
-        len: 2
-        is_signed: false
-        unit: "mAh"
+        factor: 0.01
+        unit: "V"
+
   - id: 0x0106
     fields:
       - name: "RemainingCapacity"
         offset: 0
         len: 2
         is_signed: false
-        # factor: 1.0
+        factor: 1.0		#add default factor
         unit: "mAh"
-      - name: "FullChargeCapacity"
-        offset: 2
-        len: 2
-        is_signed: false
-        unit: "mAh"
-      - name: "DesignCapacity"
-        offset: 6 # skip 4
-        len: 2
-        is_signed: false
-        unit: "mAh"
-  - id: 0x0107
-    fields:
-      - name: "RemainingCapacity"
-        offset: 0
-        len: 2
-        is_signed: false
-        # factor: 1.0
-        unit: "mAh"
-      - name: "FullChargeCapacity"
-        offset: 2
-        len: 2
-        is_signed: false
-        unit: "mAh"
-      - name: "DesignCapacity"
-        offset: 6 # skip 4
-        len: 2
-        is_signed: false
-        unit: "mAh"
-
 
 diagnostics2:
-  - id: 0x0102
+
+  - id: 0x0114
     fields:
-      - name: "RemainingCapacity"
+      - name: "FETTemperature"
         offset: 0
         len: 2
-        is_signed: false
-        # factor: 1.0
-        unit: "mAh"
-      - name: "FullChargeCapacity"
+        is_signed: true
+        factor: 0.1
+        unit: "°C"
+
+      - name: "CellTemperature_1"
         offset: 2
         len: 2
-        is_signed: false
-        unit: "mAh"
-      - name: "DesignCapacity"
-        offset: 6 # skip 4
-        len: 2
-        is_signed: false
-        unit: "mAh"
+        is_signed: true
+        factor: 0.1
+        unit: "°C"
 
-  - id: 0x0103
+      - name: "CellTemperature_2"
+        offset: 4
+        len: 2
+        is_signed: true
+        factor: 0.1
+        unit: "°C"
+
+  - id: 0x0115
     fields:
-      - name: "RemainingCapacity"
+      - name: "CellTemperature_3"
         offset: 0
         len: 2
-        is_signed: false
-        # factor: 1.0
-        unit: "mAh"
-      - name: "FullChargeCapacity"
+        is_signed: true
+        factor: 0.1
+        unit: "°C"
+
+      - name: "CellTemperature_4"
         offset: 2
         len: 2
-        is_signed: false
-        unit: "mAh"
-      - name: "DesignCapacity"
-        offset: 6 # skip 4
+        is_signed: true
+        factor: 0.1
+        unit: "°C"
+
+      - name: "CellTemperature_5"
+        offset: 4
         len: 2
-        is_signed: false
-        unit: "mAh"
-
-  - id: 0x0104
-    fields:
-      - name: "RemainingCapacity"
-        offset: 0
-        len: 2
-        is_signed: false
-        # factor: 1.0
-        unit: "mAh"
-      - name: "FullChargeCapacity"
-        offset: 2
-        len: 2
-        is_signed: false
-        unit: "mAh"
-      - name: "DesignCapacity"
-        offset: 6 # skip 4
-        len: 2
-        is_signed: false
-        unit: "mAh"
+        is_signed: true
+        factor: 0.1
+        unit: "°C"
 
 
-
-
-topics: ["AccuCurrent", "RemainingCapacity"]
+topics: ["AccuCurrent", "RemainingCapacity", FETTemperature]
 
 #topics:
 #  actual_current: "AccuCurrent"
