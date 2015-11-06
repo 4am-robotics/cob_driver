@@ -10,6 +10,7 @@
 #include "socketcan_interface/threading.h"
 #include "socketcan_interface/string.h"
 #include "ros/ros.h"
+#include "cob_bms_driver/bms_parameter.h"
 
 class BmsDriver 
 {
@@ -31,12 +32,16 @@ class BmsDriver
 	
 		//function to initialize driver with device can0 and register handleFrames() function for handling all frames, returns false if initialization fails
 		bool initializeDriver();
+		//void setConfigMap(const std::vector<std::map<int, BmsParameter> >&);
 		
 		BmsDriver();
 		~BmsDriver();
 	
 
 	private:
+	
+		//const std::vector<std::map<int, BmsParameter> > &config_map_ref_;
+	
 		can::ThreadedSocketCANInterface driver_;
 		
 		//void (*handleFrameCallback)(std::string&);

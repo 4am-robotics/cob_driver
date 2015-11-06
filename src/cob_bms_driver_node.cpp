@@ -16,17 +16,14 @@ void CobBmsDriverNode::loadParameters()
     {
 		ROS_INFO_STREAM("Did not find \"diagnostics1\" on parameter server");		
 	}
-	loadConfigMap(diagnostics1);
+	//true for diagnostics1, false for diagnostics2
+	loadConfigMap(diagnostics1, true);	
 	
 	 if (!nh_.getParam("diagnostics2", diagnostics2)) 
 	 {
 		ROS_INFO_STREAM("Did not find \"diagnostics2\" on parameter server");		
 	}
-	loadConfigMap(diagnostics2);
-	
-	//after loading both diagnostic lists, now load parameters into param_list1_ and param_list2_	
-	loadParameterLists();
-
+	loadConfigMap(diagnostics2, false);
 }
 
 void CobBmsDriverNode::loadTopics(std::vector<std::string> topics) 
@@ -38,13 +35,12 @@ void CobBmsDriverNode::loadTopics(std::vector<std::string> topics)
 	}
 }
 
-void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue config_l0_array) 
+void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue config_l0_array, bool is_diagnostic1) 
 {
-	
 	XmlRpc::XmlRpcValue config_l1_struct, config_l2, config_l3_struct, xdiagnostics, xdiagnostic_elements, xfields, xpair,temp;
-    BmsVariable bms_variable;
+    BmsParameter bms_parameter;
     int id;
-    std::map<int,BmsVariable> config_map;
+    //std::map<int,BmsParameter> config_map;
     
     ROS_ASSERT(config_l0_array.getType() == XmlRpc::XmlRpcValue::TypeArray);  
 	for (int32_t i = 0; i < config_l0_array.size(); ++i) 
@@ -69,32 +65,32 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue config_l0_array)
 						if (it3->first == "name") 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeString);
-							bms_variable.name = static_cast<std::string>(it3->second);
+							bms_parameter.name = static_cast<std::string>(it3->second);
 						}
 						else if (it3->first == "offset") 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeInt);
-							bms_variable.offset = static_cast<int>(it3->second);
+							bms_parameter.offset = static_cast<int>(it3->second);
 						}
 						else if (it3->first == "len") 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeInt);
-							bms_variable.length = static_cast<int>(it3->second);
+							bms_parameter.length = static_cast<int>(it3->second);
 						}
 						else if (it3->first == "is_signed") 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeBoolean);
-							bms_variable.is_signed = static_cast<bool>(it3->second);
+							bms_parameter.is_signed = static_cast<bool>(it3->second);
 						}
 						else if (it3->first == "factor") 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeDouble);
-							bms_variable.factor = static_cast<double>(it3->second);
+							bms_parameter.factor = static_cast<double>(it3->second);
 						}
 						else if (it3->first == "unit") 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeString);
-							bms_variable.unit = static_cast<std::string>(it3->second);
+							bms_parameter.unit = static_cast<std::string>(it3->second);
 						} 
 						else ROS_ERROR_STREAM("Unexpected Key: " << it3->first);
 					}
@@ -102,34 +98,10 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue config_l0_array)
 			}
 			else ROS_ERROR_STREAM("Config: Expected either XmlRpc Type: " << XmlRpc::XmlRpcValue::TypeArray << " or " << XmlRpc::XmlRpcValue::TypeInt << ". But found: " << config_l2.getType());
 		}
-		config_map[id] = bms_variable;
-	}
-	config_map_vec_.push_back(config_map);
-}
-
-void CobBmsDriverNode::loadParameterLists()
-{
-	std::map<int,BmsVariable>::iterator map_it;
-	std::map<int,BmsVariable> diagnostics1, diagnostics2;
-	
-	if (config_map_vec_.size() != 2) {
-		ROS_ERROR_STREAM("Config: There must be 2 diagnostic lists, found: " << config_map_vec_.size());
-		return;		
-	}
-	
-	diagnostics1 = config_map_vec_.at(0);
-	diagnostics2 = config_map_vec_.at(1);
-	
-	for (map_it = diagnostics1.begin(); map_it!=diagnostics1.end(); map_it++) 
-	{
-		param_list1_.push_back(map_it->first); //ids of diagnostics1
-		ROS_INFO_STREAM("Saving in paramameter list1, id: " << map_it->first);
-	}
-	
-	for (map_it = diagnostics2.begin(); map_it!=diagnostics2.end(); map_it++) 
-	{
-		param_list2_.push_back(map_it->first); //ids of diagnostics2
-		ROS_INFO_STREAM("Saving in paramameter list2, id: " << map_it->first);
+		//save bms_parameter in config map for interpreting the parameters and diagnostics
+		config_map_[id] = bms_parameter;
+		//also save the id in parameter list for polling
+		is_diagnostic1 ? param_list1_.push_back(id) : param_list2_.push_back(id);
 	}
 }
 
@@ -151,16 +123,19 @@ void CobBmsDriverNode::pollNextInParamLists()
 
 bool CobBmsDriverNode::prepare() {
 	
-	if (bms_driver_.initializeDriver() == false) {
+	/*if (bms_driver_.initializeDriver() == false) {
 		ROS_ERROR_STREAM("bms_driver initialization failed");
-		//return 1;
-	}
+		return false;
+	}*/
 	
 	loadParameters();
+	//bms_driver_.setConfigMap(&config_map_);	
 	
 	//initalize parameter list iterators
 	param_list1_it_ = param_list1_.begin();
 	param_list2_it_ = param_list2_.begin();
+	
+	return true;
 	
 }
 

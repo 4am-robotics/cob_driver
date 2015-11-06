@@ -45,7 +45,7 @@ diagnostics1:
         offset: 0
         len: 2
         is_signed: false
-        factor: 1.0		#add default factor
+        factor: 1.0
         unit: "mAh"
 
 diagnostics2:

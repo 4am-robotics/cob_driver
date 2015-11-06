@@ -11,7 +11,7 @@
 #include "socketcan_interface/threading.h"
 #include "socketcan_interface/string.h"
 #include "cob_bms_driver/cob_bms_driver.h"
-#include "cob_bms_driver/bms_variable.h"
+#include "cob_bms_driver/bms_parameter.h"
 
 class CobBmsDriverNode
 {
@@ -22,13 +22,13 @@ class CobBmsDriverNode
 		std::vector<int>::iterator param_list1_it_;
 		std::vector<int>::iterator param_list2_it_;
 		BmsDriver bms_driver_;
-		std::vector<std::map<int, BmsVariable> > config_map_vec_;
+		std::map<int, BmsParameter> config_map_;
 		std::vector<std::string> topics_;
 		
-		void loadConfigMap(XmlRpc::XmlRpcValue);
+		void loadConfigMap(XmlRpc::XmlRpcValue, bool);
 		void loadTopics(std::vector<std::string>);
 		void loadParameters();
-		void loadParameterLists();
+		//void loadParameterLists();
 
 	public:
 	

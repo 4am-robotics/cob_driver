@@ -20,6 +20,11 @@ BmsDriver::~BmsDriver()  {
 	driver_.shutdown();
 }
 
+/*void BmsDriver::setConfigMap(const std::vector<std::map<int, BmsParameter> >& config_map_ref) 
+{
+	config_map_ref_ = config_map_ref;	
+}*/
+
 can::ThreadedSocketCANInterface& BmsDriver::getDriverRef() {
 	return driver_;
 }
@@ -90,6 +95,9 @@ void BmsDriver::handleFrames(const can::Frame &f){
 	}*/
 			
 	switch(f.id) {
+		
+		//config_map_ref_.find 
+		
 		case 0x102:
 			if(f.dlc >= 2) {
 				double accu_current = read_value<int16_t>(f,0) * 0.01;	
