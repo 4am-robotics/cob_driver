@@ -17,12 +17,12 @@ class CobBmsDriverNode
 {
 	private:
 	
-		std::vector<int> param_list1_;
-		std::vector<int> param_list2_;
-		std::vector<int>::iterator param_list1_it_;
-		std::vector<int>::iterator param_list2_it_;
+		std::vector<char> param_list1_;
+		std::vector<char> param_list2_;
+		std::vector<char>::iterator param_list1_it_;
+		std::vector<char>::iterator param_list2_it_;
 		BmsDriver bms_driver_;
-		std::map<int, BmsParameter> config_map_;
+		std::map<char, BmsParameter> config_map_;
 		std::vector<std::string> topics_;
 		
 		void loadConfigMap(XmlRpc::XmlRpcValue, bool);

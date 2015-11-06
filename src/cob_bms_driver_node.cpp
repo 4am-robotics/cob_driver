@@ -39,8 +39,7 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue config_l0_array, bool i
 {
 	XmlRpc::XmlRpcValue config_l1_struct, config_l2, config_l3_struct, xdiagnostics, xdiagnostic_elements, xfields, xpair,temp;
     BmsParameter bms_parameter;
-    int id;
-    //std::map<int,BmsParameter> config_map;
+    char id;		
     
     ROS_ASSERT(config_l0_array.getType() == XmlRpc::XmlRpcValue::TypeArray);  
 	for (int32_t i = 0; i < config_l0_array.size(); ++i) 
@@ -52,7 +51,7 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue config_l0_array, bool i
 			config_l2 = it1->second;
 			if (config_l2.getType()==XmlRpc::XmlRpcValue::TypeInt) 
 			{				
-				id = static_cast<int>(config_l2);
+				id = static_cast<char>(static_cast<int>(config_l2));
 			}
 			else if (config_l2.getType()==XmlRpc::XmlRpcValue::TypeArray) 
 			{			
@@ -114,7 +113,7 @@ void CobBmsDriverNode::pollNextInParamLists()
 	ROS_INFO_STREAM("polling paramaters at ids: " <<*param_list1_it_ << " and " << *param_list2_it_);
 	
 	//poll
-	bms_driver_.pollBmsforParameters(*param_list1_it_,*param_list1_it_);
+	bms_driver_.pollBmsforParameters(*param_list1_it_,*param_list1_it_); //
 	
 	//increment iterators for next poll 
 	++param_list1_it_;
