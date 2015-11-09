@@ -1,5 +1,5 @@
-diagnostics1:
-  - id: 0x0101
+diagnostics1: 
+  - id: 0x01
     fields:
       - name: "AkkuStatusRegister"
         offset: 0
@@ -21,7 +21,7 @@ diagnostics1:
         len: 2
         is_signed: false
 
-  - id: 0x0102
+  - id: 0x02
     fields:
       - name: "AkkuCurrent"
         offset: 0
@@ -30,7 +30,7 @@ diagnostics1:
         factor: 0.01
         unit: "A"
 
-  - id: 0x0103
+  - id: 0x03
     fields:
       - name: "AkkuPackVoltage"
         offset: 0
@@ -39,7 +39,7 @@ diagnostics1:
         factor: 0.01
         unit: "V"
 
-  - id: 0x0106
+  - id: 0x06
     fields:
       - name: "RemainingCapacity"
         offset: 0
@@ -50,7 +50,7 @@ diagnostics1:
 
 diagnostics2:
 
-  - id: 0x0114
+  - id: 0x14
     fields:
       - name: "FETTemperature"
         offset: 0
@@ -73,7 +73,7 @@ diagnostics2:
         factor: 0.1
         unit: "°C"
 
-  - id: 0x0115
+  - id: 0x15
     fields:
       - name: "CellTemperature_3"
         offset: 0
