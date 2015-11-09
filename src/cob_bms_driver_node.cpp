@@ -110,10 +110,10 @@ void CobBmsDriverNode::pollNextInParamLists()
 	if (param_list1_it_ == param_list1_.end()) param_list1_it_ = param_list1_.begin();
 	if (param_list2_it_ == param_list2_.end()) param_list2_it_ = param_list2_.begin();
 	
-	ROS_INFO_STREAM("polling paramaters at ids: " <<*param_list1_it_ << " and " << *param_list2_it_);
+	ROS_INFO_STREAM("polling paramaters at ids: " <<(int)*param_list1_it_ << " and " << (int) *param_list2_it_);
 	
 	//poll
-	bms_driver_.pollBmsforParameters(*param_list1_it_,*param_list1_it_); //
+	bms_driver_.pollBmsforParameters(*param_list1_it_,*param_list2_it_); //
 	
 	//increment iterators for next poll 
 	++param_list1_it_;
