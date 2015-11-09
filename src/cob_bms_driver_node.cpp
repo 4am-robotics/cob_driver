@@ -122,10 +122,11 @@ void CobBmsDriverNode::pollNextInParamLists()
 
 bool CobBmsDriverNode::prepare() {
 	
-	/*if (bms_driver_.initializeDriver() == false) {
+	//TODO: add check for initialization of driver before starting polls
+	if (bms_driver_.initializeDriver() == false) {
 		ROS_ERROR_STREAM("bms_driver initialization failed");
 		return false;
-	}*/
+	}
 	
 	loadParameters();
 	//bms_driver_.setConfigMap(&config_map_);	

@@ -32,12 +32,7 @@ can::ThreadedSocketCANInterface& BmsDriver::getDriverRef() {
 
 //function that polls all batteries (i.e. at CAN ID: 0x200) for two parameters at a time, TODO: check that parameter ids are valid
 bool BmsDriver::pollBmsforParameters(const char first_parameter_id, const char second_parameter_id/*, void (*callback)(std::string&)*/){
-	
-	//handleFrameCallback = callback;
-	
-	//std::string msg = "200#"+first_parameter_id+second_parameter_id;
-	//driver_.send(can::toframe(msg)); 
-	
+		
 	can::Frame f(can::Header(bms_id_,false,false,false),4);
 	f.data[0] = 0x01;
 	f.data[1] = first_parameter_id;
