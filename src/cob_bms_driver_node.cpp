@@ -134,6 +134,9 @@ void CobBmsDriverNode::pollNextInParamLists()
 
 bool CobBmsDriverNode::prepare() {
 	
+	//TODO: make this a parameter
+	bms_id_ = 0x200;
+	
 	if(!socketcan_interface_.init("can0", false)) {
 		ROS_ERROR_STREAM("bms_driver initialization failed");
 		return false;	
@@ -179,6 +182,23 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f){
 	std::string msg = "handling: " + can::tostring(f, true);
 	LOG(msg);
 	
+	//id to find in config map, TODO: make the following explicit (char only stores a part of int that is f.id)
+	char frame_id = f.id; // int to char!!
+	BmsParameter bms_parameter;
+	
+	std::map<char,BmsParameter>::iterator config_map_it;
+	
+	config_map_it = config_map_.find(frame_id);
+	if (config_map_it!=config_map_.end()) {
+		
+		bms_parameter=static_cast<BmsParameter>(config_map_it->second);
+		double parameter_value = read_value<int16_t> (f, bms_parameter.offset) * bms_parameter.factor;
+		
+		LOG(bms_parameter.name << ": " << parameter_value);
+	
+	}
+		
+	
 	/*if(f.dlc >= 2) {
 				double accu_current = read_value<int16_t>(f,0) * 0.01;	
 				LOG("accu_current: " << accu_current); 
@@ -187,7 +207,7 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f){
 				//stat.add("accu_current", accu_current);
 	}*/
 			
-	switch(f.id) {
+	/*switch(f.id) {
 		
 		//config_map_ref_.find 
 		
@@ -214,7 +234,7 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f){
 		
 			
 	}
-
+*/
 	//handleFrameCallback(msg);
 }
 
