@@ -1,5 +1,17 @@
 #include "cob_bms_driver/cob_bms_driver_node.h"
 
+template<int N> void big_endian_to_host(const void* in, void* out);
+template<> void big_endian_to_host<1>(const void* in, void* out){ *(uint8_t*)out = *(uint8_t*)in;}
+template<> void big_endian_to_host<2>(const void* in, void* out){ *(uint16_t*)out = be16toh(*(uint16_t*)in);}
+template<> void big_endian_to_host<4>(const void* in, void* out){ *(uint32_t*)out = be32toh(*(uint32_t*)in);}
+template<> void big_endian_to_host<8>(const void* in, void* out){ *(uint64_t*)out = be64toh(*(uint64_t*)in);}
+
+template<typename T> T read_value(const can::Frame &f, uint8_t offset){
+	T res;
+	big_endian_to_host<sizeof(T)>(&f.data[offset], &res);
+	return res;
+}
+
 void CobBmsDriverNode::loadParameters()
 {	 
 	//declarations
@@ -113,7 +125,7 @@ void CobBmsDriverNode::pollNextInParamLists()
 	ROS_INFO_STREAM("polling paramaters at ids: " <<(int)*param_list1_it_ << " and " << (int) *param_list2_it_);
 	
 	//poll
-	bms_driver_.pollBmsforParameters(*param_list1_it_,*param_list2_it_); //
+	pollBmsforParameters(*param_list1_it_,*param_list2_it_); //
 	
 	//increment iterators for next poll 
 	++param_list1_it_;
@@ -122,11 +134,14 @@ void CobBmsDriverNode::pollNextInParamLists()
 
 bool CobBmsDriverNode::prepare() {
 	
-	//TODO: add check for initialization of driver before starting polls
-	if (bms_driver_.initializeDriver() == false) {
+	if(!socketcan_interface_.init("can0", false)) {
 		ROS_ERROR_STREAM("bms_driver initialization failed");
-		return false;
+		return false;	
+
 	}
+	
+	//create listeners for CAN frames
+	frame_listener_  = socketcan_interface_.createMsgListener(can::CommInterface::FrameDelegate(this, &CobBmsDriverNode::handleFrames));
 	
 	loadParameters();
 	//bms_driver_.setConfigMap(&config_map_);	
@@ -139,6 +154,70 @@ bool CobBmsDriverNode::prepare() {
 	
 }
 
+//function that polls all batteries (i.e. at CAN ID: 0x200) for two parameters at a time, TODO: check that parameter ids are valid
+bool CobBmsDriverNode::pollBmsforParameters(const char first_parameter_id, const char second_parameter_id/*, void (*callback)(std::string&)*/){
+		
+	can::Frame f(can::Header(bms_id_,false,false,false),4);
+	f.data[0] = 0x01;
+	f.data[1] = first_parameter_id;
+	f.data[2] = 0x01;
+	f.data[3] = second_parameter_id;
+	
+	socketcan_interface_.send(f);
+	
+	//ROS_INFO_STREAM("sending message: " << msg);
+	boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
+	
+	return true;
+
+}
+
+//TODO: extend this to all frame types!!
+//handler for all frames
+void CobBmsDriverNode::handleFrames(const can::Frame &f){
+	
+	std::string msg = "handling: " + can::tostring(f, true);
+	LOG(msg);
+	
+	/*if(f.dlc >= 2) {
+				double accu_current = read_value<int16_t>(f,0) * 0.01;	
+				LOG("accu_current: " << accu_current); 
+				//accu_pub.publish(accu_current); --TODO			
+				//diagnostic_updater::DiagnosticStatusWrapper &stat	--TODO
+				//stat.add("accu_current", accu_current);
+	}*/
+			
+	switch(f.id) {
+		
+		//config_map_ref_.find 
+		
+		case 0x102:
+			if(f.dlc >= 2) {
+				double accu_current = read_value<int16_t>(f,0) * 0.01;	
+				LOG("accu_current: " << accu_current); 
+				//accu_pub.publish(accu_current); --TODO			
+				//diagnostic_updater::DiagnosticStatusWrapper &stat	--TODO
+				//stat.add("accu_current", accu_current);
+			}
+			break;
+			
+			
+		case 0x103:
+			if(f.dlc >= 2) {
+				double accu_pack_voltage = read_value<int16_t>(f,0) * 0.01;	
+				LOG("accu_pack_voltage: " << accu_pack_voltage); 
+				//accu_pub.publish(accu_current); --TODO			
+				//diagnostic_updater::DiagnosticStatusWrapper &stat	--TODO
+				//stat.add("accu_current", accu_current);
+			}
+			break;
+		
+			
+	}
+
+	//handleFrameCallback(msg);
+}
+
 CobBmsDriverNode::CobBmsDriverNode() 
 {
 	//hardcoded parameter lists 
@@ -149,7 +228,9 @@ CobBmsDriverNode::CobBmsDriverNode()
 	paramater_ids_list2_.push_back("011B");*/
 }
 
-CobBmsDriverNode::~CobBmsDriverNode() {}
+CobBmsDriverNode::~CobBmsDriverNode() {
+	socketcan_interface_.shutdown();	
+}
 
 int main(int argc, char **argv) 
 {		

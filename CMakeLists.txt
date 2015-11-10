@@ -82,7 +82,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES cob_bms_driver
+  #LIBRARIES cob_bms_driver
 #  CATKIN_DEPENDS roscpp std_msgs
 #  DEPENDS system_lib
 )
@@ -100,9 +100,9 @@ include_directories(
 )
 
 # Declare a cpp library
- add_library(cob_bms_driver
-   src/cob_bms_driver.cpp
- )
+# add_library(cob_bms_driver
+#   src/cob_bms_driver.cpp
+# )
 
 ## Declare a cpp executable
  add_executable(cob_bms_driver_node src/cob_bms_driver_node.cpp)
@@ -115,7 +115,7 @@ include_directories(
 
  target_link_libraries( cob_bms_driver_node
    ${catkin_LIBRARIES}
-   cob_bms_driver
+   #cob_bms_driver
  )
 
 #############
