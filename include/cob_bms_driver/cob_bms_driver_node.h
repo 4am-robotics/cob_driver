@@ -24,7 +24,7 @@ class CobBmsDriverNode
 	
 		//TODO
 		unsigned int bms_id_;
-	
+
 		std::vector<char> param_list1_;
 		std::vector<char> param_list2_;
 		std::vector<char>::iterator param_list1_it_;
@@ -33,7 +33,10 @@ class CobBmsDriverNode
 		can::ThreadedSocketCANInterface socketcan_interface_;
 		can::CommInterface::FrameListener::Ptr frame_listener_;
 		
-		std::map<char, BmsParameter> config_map_;
+		typedef std::map<char, std::vector<BmsParameter> > ConfigMap;
+		typedef std::vector<BmsParameter> BmsParameters;
+		
+		ConfigMap config_map_;
 		std::vector<std::string> topics_;
 		
 		void loadConfigMap(XmlRpc::XmlRpcValue, bool);

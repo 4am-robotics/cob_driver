@@ -50,67 +50,77 @@ void CobBmsDriverNode::loadTopics(std::vector<std::string> topics)
 void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue config_l0_array, bool is_diagnostic1) 
 {
 	XmlRpc::XmlRpcValue config_l1_struct, config_l2, config_l3_struct, xdiagnostics, xdiagnostic_elements, xfields, xpair,temp;
-    BmsParameter bms_parameter;
+    BmsParameters bms_parameters;
+    BmsParameter bms_parameter_temp;
     char id;		
     
     ROS_ASSERT(config_l0_array.getType() == XmlRpc::XmlRpcValue::TypeArray);  
+    //for each id in list of ids
 	for (int32_t i = 0; i < config_l0_array.size(); ++i) 
 	{	
 		ROS_ASSERT(config_l0_array[i].getType() == XmlRpc::XmlRpcValue::TypeStruct);
-		config_l1_struct = config_l0_array[i];		
+		config_l1_struct = config_l0_array[i];
 		for (XmlRpc::XmlRpcValue::iterator it1=config_l1_struct.begin(); it1!=config_l1_struct.end(); ++it1) 
 		{
 			config_l2 = it1->second;
+			//XmlRpcValue at config_l2 might be an id (TypeInt) or a list of fields (TypeArray)
 			if (config_l2.getType()==XmlRpc::XmlRpcValue::TypeInt) 
-			{				
+			{			
 				id = static_cast<char>(static_cast<int>(config_l2));
 			}
 			else if (config_l2.getType()==XmlRpc::XmlRpcValue::TypeArray) 
-			{			
+			{	
+				//for each field in field list. NOTE: each field is a parameter
 				for(int32_t j=0; j<config_l2.size(); ++j) 
 				{
 					ROS_ASSERT(config_l2[j].getType()==XmlRpc::XmlRpcValue::TypeStruct);
 					config_l3_struct = config_l2[j];
+					//for each element in a field
 					for (XmlRpc::XmlRpcValue::iterator it3=config_l3_struct.begin(); it3!=config_l3_struct.end(); ++it3) 
 					{
 						if (it3->first == "name") 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeString);
-							bms_parameter.name = static_cast<std::string>(it3->second);
+							bms_parameter_temp.name = static_cast<std::string>(it3->second);
 						}
 						else if (it3->first == "offset") 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeInt);
-							bms_parameter.offset = static_cast<int>(it3->second);
+							bms_parameter_temp.offset = static_cast<int>(it3->second);
 						}
 						else if (it3->first == "len") 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeInt);
-							bms_parameter.length = static_cast<int>(it3->second);
+							bms_parameter_temp.length = static_cast<int>(it3->second);
 						}
 						else if (it3->first == "is_signed") 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeBoolean);
-							bms_parameter.is_signed = static_cast<bool>(it3->second);
+							bms_parameter_temp.is_signed = static_cast<bool>(it3->second);
 						}
 						else if (it3->first == "factor") 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeDouble);
-							bms_parameter.factor = static_cast<double>(it3->second);
+							bms_parameter_temp.factor = static_cast<double>(it3->second);
 						}
 						else if (it3->first == "unit") 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeString);
-							bms_parameter.unit = static_cast<std::string>(it3->second);
+							bms_parameter_temp.unit = static_cast<std::string>(it3->second);
 						} 
 						else ROS_ERROR_STREAM("Unexpected Key: " << it3->first);
 					}
+					//bms_parameter_temp is properly filled at this point, so save it in bms_parameters
+					bms_parameters.push_back(bms_parameter_temp);
 				}
 			}
 			else ROS_ERROR_STREAM("Config: Expected either XmlRpc Type: " << XmlRpc::XmlRpcValue::TypeArray << " or " << XmlRpc::XmlRpcValue::TypeInt << ". But found: " << config_l2.getType());
 		}
-		//save bms_parameter in config map for interpreting the parameters and diagnostics
-		config_map_[id] = bms_parameter;
+		//save bms_parameters in config map for interpreting them later and producing diagnostics
+		config_map_[id] = bms_parameters;
+		ROS_INFO_STREAM("Saved "<< bms_parameters.size() << " parameters at ID: " << id );
+		//clear bms_parameters for processing next id
+		bms_parameters.clear();
 		//also save the id in parameter list for polling
 		is_diagnostic1 ? param_list1_.push_back(id) : param_list2_.push_back(id);
 	}
@@ -134,7 +144,7 @@ void CobBmsDriverNode::pollNextInParamLists()
 
 bool CobBmsDriverNode::prepare() {
 	
-	//TODO: make this a parameter
+	//TODO: find a better place to save this 
 	bms_id_ = 0x200;
 	
 	if(!socketcan_interface_.init("can0", false)) {
@@ -184,18 +194,21 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f){
 	
 	//id to find in config map, TODO: make the following explicit (char only stores a part of int that is f.id)
 	char frame_id = f.id; // int to char!!
-	BmsParameter bms_parameter;
+	BmsParameters bms_parameters;
 	
-	std::map<char,BmsParameter>::iterator config_map_it;
+	ConfigMap::iterator config_map_it;
 	
 	config_map_it = config_map_.find(frame_id);
 	if (config_map_it!=config_map_.end()) {
 		
-		bms_parameter=static_cast<BmsParameter>(config_map_it->second);
-		double parameter_value = read_value<int16_t> (f, bms_parameter.offset) * bms_parameter.factor;
+		bms_parameters = static_cast<BmsParameters>(config_map_it->second);
 		
-		LOG(bms_parameter.name << ": " << parameter_value);
-	
+		for (BmsParameters::iterator bms_parameters_it = bms_parameters.begin(); bms_parameters_it!=bms_parameters.end(); ++bms_parameters_it) {
+			
+			double parameter_value = read_value<int16_t> (f, bms_parameters_it->offset) * bms_parameters_it->factor;
+			LOG(bms_parameters_it->name << ": " << parameter_value);
+			
+		}	
 	}
 		
 	
