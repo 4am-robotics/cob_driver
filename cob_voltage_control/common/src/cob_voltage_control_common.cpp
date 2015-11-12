@@ -28,7 +28,7 @@ public:
     int in_phidget_current;
 
     //output data
-    cob_msgs::PowerBoardState out_pub_relayboard_state;
+    cob_msgs::PowerBoardState out_pub_powerboard_state;
     cob_msgs::PowerState out_pub_powerstate_;
     cob_msgs::EmergencyStopState out_pub_em_stop_state_;
     std_msgs::Float64 out_pub_voltage;
@@ -82,9 +82,9 @@ public:
         data.out_pub_powerstate_.time_remaining = ros::Duration(1000);
         data.out_pub_powerstate_.relative_capacity = percentage;
 
-        data.out_pub_relayboard_state.header.stamp = ros::Time::now();
-        data.out_pub_relayboard_state.run_stop = false;
-        data.out_pub_relayboard_state.wireless_stop = false;
+        data.out_pub_powerboard_state.header.stamp = ros::Time::now();
+        data.out_pub_powerboard_state.run_stop = false;
+        data.out_pub_powerboard_state.wireless_stop = false;
 
     }
 

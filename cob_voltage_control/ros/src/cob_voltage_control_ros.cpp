@@ -50,7 +50,7 @@ class cob_voltage_control_ros
 
         cob_voltage_control_ros()
         {
-            topicPub_powerstate = n_.advertise<cob_msgs::PowerBoardState>("relayboard_state", 1);
+            topicPub_powerstate = n_.advertise<cob_msgs::PowerBoardState>("powerboard_state", 1);
             topicPub_em_stop_state_ = n_.advertise<cob_msgs::EmergencyStopState>("em_stop_state", 1);
 
             topicPub_Current = n_.advertise<std_msgs::Float64>("current", 10);
@@ -83,7 +83,7 @@ class cob_voltage_control_ros
             component_implementation_.update(component_data_, component_config_);
             topicPub_Voltage.publish(component_data_.out_pub_voltage);
             topicPub_Current.publish(component_data_.out_pub_current);
-            topicPub_powerstate.publish(component_data_.out_pub_relayboard_state);
+            topicPub_powerstate.publish(component_data_.out_pub_powerboard_state);
             topicPub_em_stop_state_.publish(component_data_.out_pub_em_stop_state_);
         }
 
