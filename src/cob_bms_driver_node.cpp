@@ -12,39 +12,68 @@ template<typename T> T read_value(const can::Frame &f, uint8_t offset){
 	return res;
 }
 
+
+CobBmsDriverNode::CobBmsDriverNode()
+: nh_priv_("~")
+{}
+
+CobBmsDriverNode::~CobBmsDriverNode() {
+	socketcan_interface_.shutdown();	
+}
+
+
+bool CobBmsDriverNode::prepare() {
+	
+	//TODO: find a better place to save this 
+	bms_id_ = 0x200;
+	
+	if(!socketcan_interface_.init("can0", false)) {
+		ROS_ERROR_STREAM("bms_driver initialization failed");
+		return false;	
+
+	}
+	
+	//create listeners for CAN frames
+	frame_listener_  = socketcan_interface_.createMsgListener(can::CommInterface::FrameDelegate(this, &CobBmsDriverNode::handleFrames));
+	
+	loadParameters();
+	//bms_driver_.setConfigMap(&config_map_);	
+	
+	//initalize parameter list iterators
+	param_list1_it_ = param_list1_.begin();
+	param_list2_it_ = param_list2_.begin();
+	
+	updater_.setHardwareID("none"); 
+	updater_.add("BMS Diagnostics Updater", this, &CobBmsDriverNode::produceDiagnostics);
+	
+	return true;
+	
+}
+
 void CobBmsDriverNode::loadParameters()
 {	 
 	//declarations
     XmlRpc::XmlRpcValue diagnostics1, diagnostics2;
     std::vector <std::string> topics;
     
-    if (!nh_.getParam("topics", topics)) 
+    if (!nh_priv_.getParam("topics", topics)) 
     {
 		ROS_INFO_STREAM("Did not find \"topics\" on parameter server");		
 	}    
     loadTopics(topics);
     
-    if (!nh_.getParam("diagnostics1", diagnostics1)) 
+    if (!nh_priv_.getParam("diagnostics1", diagnostics1)) 
     {
 		ROS_INFO_STREAM("Did not find \"diagnostics1\" on parameter server");		
 	}
 	//true for diagnostics1, false for diagnostics2
 	loadConfigMap(diagnostics1, true);	
 	
-	 if (!nh_.getParam("diagnostics2", diagnostics2)) 
+	 if (!nh_priv_.getParam("diagnostics2", diagnostics2)) 
 	 {
 		ROS_INFO_STREAM("Did not find \"diagnostics2\" on parameter server");		
 	}
 	loadConfigMap(diagnostics2, false);
-}
-
-void CobBmsDriverNode::loadTopics(std::vector<std::string> topics) 
-{	
-	topics_ = topics;
-	for (int i=0 ; i<topics.size(); ++i) 
-	{
-		ROS_INFO_STREAM("topics: " << topics.at(i));
-	}
 }
 
 void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue config_l0_array, bool is_diagnostic1) 
@@ -126,53 +155,13 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue config_l0_array, bool i
 	}
 }
 
-void CobBmsDriverNode::pollNextInParamLists()
-{
-	//return to start if reached the end of parameter lists
-	if (param_list1_it_ == param_list1_.end()) param_list1_it_ = param_list1_.begin();
-	if (param_list2_it_ == param_list2_.end()) param_list2_it_ = param_list2_.begin();
-	
-	ROS_INFO_STREAM("polling paramaters at ids: " <<(int)*param_list1_it_ << " and " << (int) *param_list2_it_);
-	
-	//poll
-	pollBmsforParameters(*param_list1_it_,*param_list2_it_); //
-	
-	//increment iterators for next poll 
-	++param_list1_it_;
-	++param_list2_it_;
-}
-
-bool CobBmsDriverNode::prepare() {
-	
-	//TODO: find a better place to save this 
-	bms_id_ = 0x200;
-	
-	if(!socketcan_interface_.init("can0", false)) {
-		ROS_ERROR_STREAM("bms_driver initialization failed");
-		return false;	
-
+void CobBmsDriverNode::loadTopics(std::vector<std::string> topics) 
+{	
+	topics_ = topics;
+	for (int i=0 ; i<topics.size(); ++i) 
+	{
+		ROS_INFO_STREAM("topics: " << topics.at(i));
 	}
-	
-	//create listeners for CAN frames
-	frame_listener_  = socketcan_interface_.createMsgListener(can::CommInterface::FrameDelegate(this, &CobBmsDriverNode::handleFrames));
-	
-	loadParameters();
-	//bms_driver_.setConfigMap(&config_map_);	
-	
-	//initalize parameter list iterators
-	param_list1_it_ = param_list1_.begin();
-	param_list2_it_ = param_list2_.begin();
-	
-	updater_.setHardwareID("none"); 
-	updater_.add("BMS Diagnostics Updater", this, &CobBmsDriverNode::produceDiagnostics);
-	
-	return true;
-	
-}
-
-void CobBmsDriverNode::produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
-{
-	stat.values.insert(stat.values.begin(),stat_.values.begin(), stat_.values.end()); 
 }
 
 //function that polls all batteries (i.e. at CAN ID: 0x200) for two parameters at a time, TODO: check that parameter ids are valid
@@ -192,6 +181,23 @@ bool CobBmsDriverNode::pollBmsforParameters(const char first_parameter_id, const
 	return true;
 
 }
+
+void CobBmsDriverNode::pollNextInParamLists()
+{
+	//return to start if reached the end of parameter lists
+	if (param_list1_it_ == param_list1_.end()) param_list1_it_ = param_list1_.begin();
+	if (param_list2_it_ == param_list2_.end()) param_list2_it_ = param_list2_.begin();
+	
+	ROS_INFO_STREAM("polling paramaters at ids: " <<(int)*param_list1_it_ << " and " << (int) *param_list2_it_);
+	
+	//poll
+	pollBmsforParameters(*param_list1_it_,*param_list2_it_); //
+	
+	//increment iterators for next poll 
+	++param_list1_it_;
+	++param_list2_it_;
+}
+
 
 //TODO: extend this to all frame types!!
 //handler for all frames
@@ -224,12 +230,10 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 	}
 }
 
-CobBmsDriverNode::CobBmsDriverNode()
-: nh_priv_("~")
-{}
 
-CobBmsDriverNode::~CobBmsDriverNode() {
-	socketcan_interface_.shutdown();	
+void CobBmsDriverNode::produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
+{
+	stat.values.insert(stat.values.begin(),stat_.values.begin(),stat_.values.end()); 
 }
 
 int main(int argc, char **argv) 
