@@ -91,7 +91,6 @@ class cob_voltage_control_ros
         {
             for(int i = 0; i < msg->uri.size(); i++)
             {
-                std::cout << "u" << msg->uri[i] << std::endl;
                 if( msg->uri[i] == "bat1")
                 {
                     component_data_.in_phidget_voltage = msg->value[i];
@@ -143,7 +142,6 @@ class cob_voltage_control_ros
                 else
                 {
                     component_data_.out_pub_em_stop_state_.scanner_stop = (bool)(front_em_active | rear_em_active);
-                    ROS_INFO_STREAM("scanner_stop: "<<component_data_.out_pub_em_stop_state_.scanner_stop);
                 }
 
                 EM_signal = component_data_.out_pub_em_stop_state_.scanner_stop | component_data_.out_pub_em_stop_state_.emergency_button_stop;
