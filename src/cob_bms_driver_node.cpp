@@ -163,13 +163,21 @@ bool CobBmsDriverNode::prepare() {
 	param_list1_it_ = param_list1_.begin();
 	param_list2_it_ = param_list2_.begin();
 	
+	updater_.setHardwareID("none"); 
+	updater_.add("BMS Diagnostics Updater", this, &CobBmsDriverNode::produceDiagnostics);
+	
 	return true;
 	
 }
 
+void CobBmsDriverNode::produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
+{
+	stat.values.insert(stat.values.begin(),stat_.values.begin(), stat_.values.end()); 
+}
+
 //function that polls all batteries (i.e. at CAN ID: 0x200) for two parameters at a time, TODO: check that parameter ids are valid
-bool CobBmsDriverNode::pollBmsforParameters(const char first_parameter_id, const char second_parameter_id/*, void (*callback)(std::string&)*/){
-		
+bool CobBmsDriverNode::pollBmsforParameters(const char first_parameter_id, const char second_parameter_id/*, void (*callback)(std::string&)*/)
+{	
 	can::Frame f(can::Header(bms_id_,false,false,false),4);
 	f.data[0] = 0x01;
 	f.data[1] = first_parameter_id;
@@ -187,10 +195,13 @@ bool CobBmsDriverNode::pollBmsforParameters(const char first_parameter_id, const
 
 //TODO: extend this to all frame types!!
 //handler for all frames
-void CobBmsDriverNode::handleFrames(const can::Frame &f){
-	
+void CobBmsDriverNode::handleFrames(const can::Frame &f)
+{
 	std::string msg = "handling: " + can::tostring(f, true);
 	LOG(msg);
+	
+	//update diagnostics
+	updater_.update();
 	
 	//id to find in config map, TODO: make the following explicit (char only stores a part of int that is f.id)
 	char frame_id = f.id; // int to char!!
@@ -206,60 +217,16 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f){
 		for (BmsParameters::iterator bms_parameters_it = bms_parameters.begin(); bms_parameters_it!=bms_parameters.end(); ++bms_parameters_it) {
 			
 			double parameter_value = read_value<int16_t> (f, bms_parameters_it->offset) * bms_parameters_it->factor;
+			stat_.add(bms_parameters_it->name, parameter_value);
 			LOG(bms_parameters_it->name << ": " << parameter_value);
 			
 		}	
 	}
-		
-	
-	/*if(f.dlc >= 2) {
-				double accu_current = read_value<int16_t>(f,0) * 0.01;	
-				LOG("accu_current: " << accu_current); 
-				//accu_pub.publish(accu_current); --TODO			
-				//diagnostic_updater::DiagnosticStatusWrapper &stat	--TODO
-				//stat.add("accu_current", accu_current);
-	}*/
-			
-	/*switch(f.id) {
-		
-		//config_map_ref_.find 
-		
-		case 0x102:
-			if(f.dlc >= 2) {
-				double accu_current = read_value<int16_t>(f,0) * 0.01;	
-				LOG("accu_current: " << accu_current); 
-				//accu_pub.publish(accu_current); --TODO			
-				//diagnostic_updater::DiagnosticStatusWrapper &stat	--TODO
-				//stat.add("accu_current", accu_current);
-			}
-			break;
-			
-			
-		case 0x103:
-			if(f.dlc >= 2) {
-				double accu_pack_voltage = read_value<int16_t>(f,0) * 0.01;	
-				LOG("accu_pack_voltage: " << accu_pack_voltage); 
-				//accu_pub.publish(accu_current); --TODO			
-				//diagnostic_updater::DiagnosticStatusWrapper &stat	--TODO
-				//stat.add("accu_current", accu_current);
-			}
-			break;
-		
-			
-	}
-*/
-	//handleFrameCallback(msg);
 }
 
-CobBmsDriverNode::CobBmsDriverNode() 
-{
-	//hardcoded parameter lists 
-	//param_list1_.push_back(0x02); param_list1_.push_back(0x03); param_list1_.push_back(0x06);
-	
-	/*param_list2_.push_back(0x15); /*paramater_ids_list2_.push_back("0116"); paramater_ids_list2_.push_back("0117"); 
-	paramater_ids_list2_.push_back("0118"); paramater_ids_list2_.push_back("0119"); paramater_ids_list2_.push_back("011A");
-	paramater_ids_list2_.push_back("011B");*/
-}
+CobBmsDriverNode::CobBmsDriverNode()
+: nh_priv_("~")
+{}
 
 CobBmsDriverNode::~CobBmsDriverNode() {
 	socketcan_interface_.shutdown();	
@@ -268,8 +235,9 @@ CobBmsDriverNode::~CobBmsDriverNode() {
 int main(int argc, char **argv) 
 {		
 	ros::init(argc, argv, "bms_driver_node");
-		
+	
 	CobBmsDriverNode cob_bms_driver_node;
+			
 	if (!cob_bms_driver_node.prepare()) return 1;	
 
 	while (cob_bms_driver_node.nh_.ok())

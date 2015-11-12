@@ -17,6 +17,10 @@
 #include <XmlRpcValue.h>
 #include "ros/ros.h"
 #include "std_msgs/String.h"
+#include <diagnostic_updater/diagnostic_updater.h>
+#include <std_msgs/Bool.h>
+#include <diagnostic_updater/publisher.h>
+ 
 
 class CobBmsDriverNode
 {
@@ -39,6 +43,8 @@ class CobBmsDriverNode
 		ConfigMap config_map_;
 		std::vector<std::string> topics_;
 		
+		diagnostic_updater::DiagnosticStatusWrapper stat_;
+		
 		void loadConfigMap(XmlRpc::XmlRpcValue, bool);
 		void loadTopics(std::vector<std::string>);
 		void loadParameters();
@@ -52,11 +58,16 @@ class CobBmsDriverNode
 	public:
 	
 		ros::NodeHandle nh_;
+		ros::NodeHandle nh_priv_;
 		
 		CobBmsDriverNode();
 		~CobBmsDriverNode();
 		bool prepare();
 		void pollNextInParamLists();
+		
+		diagnostic_updater::Updater updater_;
+		void produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat);
+		
 	
 	
 };
