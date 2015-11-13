@@ -6,12 +6,11 @@ template<> void big_endian_to_host<2>(const void* in, void* out){ *(uint16_t*)ou
 template<> void big_endian_to_host<4>(const void* in, void* out){ *(uint32_t*)out = be32toh(*(uint32_t*)in);}
 template<> void big_endian_to_host<8>(const void* in, void* out){ *(uint64_t*)out = be64toh(*(uint64_t*)in);}
 
-template<typename T> T read_value(const can::Frame &f, uint8_t offset){
+template<typename T> T read_value(const can::Frame &f, uint8_t offset){	//TODO: check if this function is properly used for all cases of parameter types
 	T res;
 	big_endian_to_host<sizeof(T)>(&f.data[offset], &res);
 	return res;
 }
-
 
 CobBmsDriverNode::CobBmsDriverNode()
 : nh_priv_("~")
@@ -21,22 +20,17 @@ CobBmsDriverNode::~CobBmsDriverNode() {
 	socketcan_interface_.shutdown();	
 }
 
-
 bool CobBmsDriverNode::prepare() {
-	
-	//TODO: find a better place to save this 
-	bms_id_ = 0x200;
-	
-	if(!socketcan_interface_.init("can0", false)) {
+		
+	if(!socketcan_interface_.init(can_device_, false)) {
 		ROS_ERROR_STREAM("bms_driver initialization failed");
 		return false;	
-
 	}
 	
 	//create listeners for CAN frames
 	frame_listener_  = socketcan_interface_.createMsgListener(can::CommInterface::FrameDelegate(this, &CobBmsDriverNode::handleFrames));
 	
-	loadParameters();
+	getRosParameters();
 	//bms_driver_.setConfigMap(&config_map_);	
 	
 	//initalize parameter list iterators
@@ -50,11 +44,12 @@ bool CobBmsDriverNode::prepare() {
 	
 }
 
-void CobBmsDriverNode::loadParameters()
+void CobBmsDriverNode::getRosParameters()	//TODO: set default values
 {	 
 	//declarations
-    XmlRpc::XmlRpcValue diagnostics1, diagnostics2;
+    XmlRpc::XmlRpcValue diagnostics;
     std::vector <std::string> topics;
+    int poll_frequency;
     
     if (!nh_priv_.getParam("topics", topics)) 
     {
@@ -62,21 +57,39 @@ void CobBmsDriverNode::loadParameters()
 	}    
     loadTopics(topics);
     
-    if (!nh_priv_.getParam("diagnostics1", diagnostics1)) 
+    if (!nh_priv_.getParam("diagnostics", diagnostics)) 
     {
-		ROS_INFO_STREAM("Did not find \"diagnostics1\" on parameter server");		
+		ROS_INFO_STREAM("Did not find \"diagnostics\" on parameter server");		
 	}
-	//true for diagnostics1, false for diagnostics2
-	loadConfigMap(diagnostics1, true);	
+	loadConfigMap(diagnostics);	
 	
-	 if (!nh_priv_.getParam("diagnostics2", diagnostics2)) 
-	 {
-		ROS_INFO_STREAM("Did not find \"diagnostics2\" on parameter server");		
+	if (!nh_priv_.getParam("can_device", can_device_)) 
+    {
+		ROS_INFO_STREAM("Did not find \"can_device\" on parameter server");		
 	}
-	loadConfigMap(diagnostics2, false);
+	
+	if (!nh_priv_.getParam("can_id_to_poll", can_id_to_poll_)) 
+    {
+		ROS_INFO_STREAM("Did not find \"can_id_to_poll\" on parameter server");		
+	}
+	
+	if (!nh_priv_.getParam("poll_frequency", poll_frequency)) 
+    {
+		ROS_INFO_STREAM("Did not find \"poll_period_in_ms\" on parameter server");		
+	} 
+	else 
+	{
+		//check the validity of poll_frequency and set poll_period_for_two_parameters_in_ms_
+		if ((poll_frequency < 0) && (poll_frequency > 40)) 
+		{
+			ROS_WARN_STREAM("Invalid parameter value: poll_frequency = "<< poll_frequency << ". Setting poll_frequency to 40 Hz");
+			poll_frequency = 40;
+		}
+		poll_period_for_two_parameters_in_ms_ = (1/poll_frequency)*2;
+	}
 }
 
-void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue config_l0_array, bool is_diagnostic1) 
+void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue config_l0_array) 
 {
 	XmlRpc::XmlRpcValue config_l1_struct, config_l2, config_l3_struct, xdiagnostics, xdiagnostic_elements, xfields, xpair,temp;
     BmsParameters bms_parameters;
@@ -164,19 +177,42 @@ void CobBmsDriverNode::loadTopics(std::vector<std::string> topics)
 	}
 }
 
-//function that polls all batteries (i.e. at CAN ID: 0x200) for two parameters at a time, TODO: check that parameter ids are valid
-bool CobBmsDriverNode::pollBmsforParameters(const char first_parameter_id, const char second_parameter_id/*, void (*callback)(std::string&)*/)
+void CobBmsDriverNode::loadParameterLists() 
 {	
-	can::Frame f(can::Header(bms_id_,false,false,false),4);
+	if (!config_map_.empty()) 
+	{
+		if(!topics_.empty()) 
+		{
+			for (ConfigMap::iterator it = config_map_.begin(); it != config_map_.end(); ++it) 
+			{
+				topics_.find(it->first) != topics_.end()? param_list1_.push_back(it->first) : param_list2_.push_back(it->first);
+			}
+		}
+		else
+		{
+			//topics list is empty, so evenly fill param_list1_ and param_list2_ 
+			bool toggle = true;
+			for (ConfigMap::iterator it = config_map_.begin(); it != config_map_.end(); ++it) 
+			{
+				toggle? param_list1_.push_back(it->first) : param_list2_.push_back(it->first);
+				toggle = !toggle;
+			}
+		}
+	}
+}
+
+//function that polls for two parameters at a time
+bool CobBmsDriverNode::pollBmsforParameters(const char first_parameter_id, const char second_parameter_id)
+{	
+	can::Frame f(can::Header(can_id_to_poll_,false,false,false),4);
 	f.data[0] = 0x01;
 	f.data[1] = first_parameter_id;
 	f.data[2] = 0x01;
 	f.data[3] = second_parameter_id;
 	
 	socketcan_interface_.send(f);
-	
-	//ROS_INFO_STREAM("sending message: " << msg);
-	boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
+		
+	boost::this_thread::sleep_for(boost::chrono::milliseconds(poll_period_for_two_parameters_in_ms_));
 	
 	return true;
 

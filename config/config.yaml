@@ -48,8 +48,6 @@ diagnostics1:
         factor: 1.0
         unit: "mAh"
 
-diagnostics2:
-
   - id: 0x14
     fields:
       - name: "FETTemperature"

@@ -27,7 +27,10 @@ class CobBmsDriverNode
 	private:
 	
 		//TODO
-		unsigned int bms_id_;
+		std::string can_device_;
+		int can_id_to_poll_;
+		int poll_period_for_two_parameters_in_ms_;
+		
 
 		std::vector<char> param_list1_;
 		std::vector<char> param_list2_;
@@ -45,9 +48,10 @@ class CobBmsDriverNode
 		
 		diagnostic_updater::DiagnosticStatusWrapper stat_;
 		
+		void getRosParameters();
 		void loadConfigMap(XmlRpc::XmlRpcValue, bool);
 		void loadTopics(std::vector<std::string>);
-		void loadParameters();
+		void loadParameterLists();
 	
 		//function that polls all batteries (i.e. at CAN ID: 0x200) for two parameters at a time
 		bool pollBmsforParameters(const char first_parameter_id, const char second_parameter_id /*, void (*callback)(std::string&)*/);
