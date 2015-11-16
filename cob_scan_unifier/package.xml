@@ -4,7 +4,7 @@
   <version>0.6.3</version>
   <description>The cob_scan_unifier package holds code to unify two or more laser-scans to one unified scan-message</description>
 
-  <maintainer email="frm@ipa.fraunhofer.de">Florian Mirus</maintainer>
+  <maintainer email="bnm@ipa.fraunhofer.de">Benjamin Maidel</maintainer>
 
   <license>LGPL</license>
 
