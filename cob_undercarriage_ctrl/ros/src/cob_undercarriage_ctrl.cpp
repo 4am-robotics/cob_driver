@@ -723,7 +723,7 @@ void NodeClass::UpdateOdometry()
   nav_msgs::Odometry odom_top;
   // compose header
   odom_top.header.stamp = joint_state_odom_stamp_;
-  odom_top.header.frame_id = "/wheelodom";
+  odom_top.header.frame_id = "/odom_combined";
   odom_top.child_frame_id = "/base_footprint";
   // compose pose of robot
   odom_top.pose.pose.position.x = x_rob_m_;
