@@ -23,6 +23,7 @@
   <exec_depend>cob_mimic</exec_depend>
   <exec_depend>cob_phidgets</exec_depend>
   <exec_depend>cob_relayboard</exec_depend>
+  <exec_depend>cob_scan_unifier</exec_depend>
   <exec_depend>cob_sick_lms1xx</exec_depend>
   <exec_depend>cob_sick_s300</exec_depend>
   <exec_depend>cob_sound</exec_depend>

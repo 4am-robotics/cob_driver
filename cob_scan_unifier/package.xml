@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cob_scan_unifier</name>
+  <version>0.6.3</version>
+  <description>The cob_scan_unifier package holds code to unify two or more laser-scans to one unified scan-message</description>
+
+  <maintainer email="bnm@ipa.fraunhofer.de">Benjamin Maidel</maintainer>
+
+  <license>LGPL</license>
+
+  <author email="frm@ipa.fraunhofer.de">Florian Mirus</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>laser_geometry</depend>
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>tf</depend>
+
+</package>
