@@ -40,17 +40,18 @@ class CobBmsDriverNode
 		can::ThreadedSocketCANInterface socketcan_interface_;
 		can::CommInterface::FrameListener::Ptr frame_listener_;
 		
-		typedef std::map<char, std::vector<BmsParameter> > ConfigMap;
+		typedef std::map<char, std::vector<BmsParameter> > ConfigMap;	
 		typedef std::vector<BmsParameter> BmsParameters;
 		
+		//config_map_ stores all the information that is provided in the config.yaml file
 		ConfigMap config_map_;
-		std::vector<std::string> topics_;
+		std::vector<std::string> topics_; 	//TODO: check if this is actually needed
 		
 		diagnostic_updater::DiagnosticStatusWrapper stat_;
 		
 		void getRosParameters();
-		void loadConfigMap(XmlRpc::XmlRpcValue, bool);
-		void loadTopics(std::vector<std::string>);
+		void loadConfigMap(XmlRpc::XmlRpcValue, std::vector<std::string>);
+		void setTopics(std::vector<std::string>);
 		void loadParameterLists();
 	
 		//function that polls all batteries (i.e. at CAN ID: 0x200) for two parameters at a time
@@ -58,6 +59,9 @@ class CobBmsDriverNode
 		
 		//handler for all frames
 		void handleFrames(const can::Frame &f);
+		
+		//helper functions
+		bool isAlsoTopic(std::string paramater_name);
 
 	public:
 	

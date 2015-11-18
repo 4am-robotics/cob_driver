@@ -16,6 +16,7 @@ struct BmsParameter
 		bool is_signed;
 		double factor;
 		std::string unit;
+		bool is_topic;
 	//}
 	
 	double data;

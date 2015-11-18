@@ -13,7 +13,7 @@ template<typename T> T read_value(const can::Frame &f, uint8_t offset){	//TODO: 
 }
 
 CobBmsDriverNode::CobBmsDriverNode()
-: nh_priv_("~")
+//: nh_priv_("~")
 {}
 
 CobBmsDriverNode::~CobBmsDriverNode() {
@@ -22,16 +22,17 @@ CobBmsDriverNode::~CobBmsDriverNode() {
 
 bool CobBmsDriverNode::prepare() {
 		
-	if(!socketcan_interface_.init(can_device_, false)) {
-		ROS_ERROR_STREAM("bms_driver initialization failed");
-		return false;	
-	}
+	//if(!socketcan_interface_.init(can_device_, false)) {
+	//	ROS_ERROR_STREAM("bms_driver initialization failed");
+	//	return false;	
+	//}
 	
 	//create listeners for CAN frames
 	frame_listener_  = socketcan_interface_.createMsgListener(can::CommInterface::FrameDelegate(this, &CobBmsDriverNode::handleFrames));
 	
 	getRosParameters();
-	//bms_driver_.setConfigMap(&config_map_);	
+	
+	loadParameterLists();
 	
 	//initalize parameter list iterators
 	param_list1_it_ = param_list1_.begin();
@@ -55,13 +56,13 @@ void CobBmsDriverNode::getRosParameters()	//TODO: set default values
     {
 		ROS_INFO_STREAM("Did not find \"topics\" on parameter server");		
 	}    
-    loadTopics(topics);
+    setTopics(topics);
     
     if (!nh_priv_.getParam("diagnostics", diagnostics)) 
     {
 		ROS_INFO_STREAM("Did not find \"diagnostics\" on parameter server");		
 	}
-	loadConfigMap(diagnostics);	
+	loadConfigMap(diagnostics, topics);	//TODO: change name from configMap to DiagnosticsMap !!
 	
 	if (!nh_priv_.getParam("can_device", can_device_)) 
     {
@@ -70,12 +71,12 @@ void CobBmsDriverNode::getRosParameters()	//TODO: set default values
 	
 	if (!nh_priv_.getParam("can_id_to_poll", can_id_to_poll_)) 
     {
-		ROS_INFO_STREAM("Did not find \"can_id_to_poll\" on parameter server");		
+		ROS_INFO_STREAM("Did not find \"can_id_to_poll\" on parameter server");	//TODO: set defaults??	
 	}
 	
 	if (!nh_priv_.getParam("poll_frequency", poll_frequency)) 
     {
-		ROS_INFO_STREAM("Did not find \"poll_period_in_ms\" on parameter server");		
+		ROS_INFO_STREAM("Did not find \"poll_frequency\" on parameter server");		
 	} 
 	else 
 	{
@@ -85,16 +86,18 @@ void CobBmsDriverNode::getRosParameters()	//TODO: set default values
 			ROS_WARN_STREAM("Invalid parameter value: poll_frequency = "<< poll_frequency << ". Setting poll_frequency to 40 Hz");
 			poll_frequency = 40;
 		}
-		poll_period_for_two_parameters_in_ms_ = (1/poll_frequency)*2;
+		poll_period_for_two_parameters_in_ms_ = ((1/poll_frequency)*2)*1000;
 	}
 }
 
-void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue config_l0_array) 
+void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vector<std::string> topics) 
 {
-	XmlRpc::XmlRpcValue config_l1_struct, config_l2, config_l3_struct, xdiagnostics, xdiagnostic_elements, xfields, xpair,temp;
+	XmlRpc::XmlRpcValue config_l0_array, config_l1_struct, config_l2, config_l3_struct, xdiagnostics, xdiagnostic_elements, xfields, xpair,temp;
     BmsParameters bms_parameters;
     BmsParameter bms_parameter_temp;
-    char id;		
+    char id;	
+    
+    config_l0_array = diagnostics;
     
     ROS_ASSERT(config_l0_array.getType() == XmlRpc::XmlRpcValue::TypeArray);  
     //for each id in list of ids
@@ -152,53 +155,85 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue config_l0_array)
 						} 
 						else ROS_ERROR_STREAM("Unexpected Key: " << it3->first);
 					}
+					
+					//check if the parameter is also a topic
+					bms_parameter_temp.is_topic = (find(topics.begin(), topics.end(), bms_parameter_temp.name) != topics.end());
+					ROS_INFO_STREAM("bms_parameter_temp.is_topic: " << bms_parameter_temp.is_topic);
+					
 					//bms_parameter_temp is properly filled at this point, so save it in bms_parameters
 					bms_parameters.push_back(bms_parameter_temp);
 				}
 			}
 			else ROS_ERROR_STREAM("Config: Expected either XmlRpc Type: " << XmlRpc::XmlRpcValue::TypeArray << " or " << XmlRpc::XmlRpcValue::TypeInt << ". But found: " << config_l2.getType());
 		}
-		//save bms_parameters in config map for interpreting them later and producing diagnostics
+		//save bms_parameters in config map for interpreting them later and producing diagnostics as well as publishing data on topics
 		config_map_[id] = bms_parameters;
 		ROS_INFO_STREAM("Saved "<< bms_parameters.size() << " parameters at ID: " << id );
 		//clear bms_parameters for processing next id
 		bms_parameters.clear();
-		//also save the id in parameter list for polling
-		is_diagnostic1 ? param_list1_.push_back(id) : param_list2_.push_back(id);
 	}
 }
 
-void CobBmsDriverNode::loadTopics(std::vector<std::string> topics) 
+//helper function to check if a given parameter is also mentioned in the topic list in the configuration file
+bool CobBmsDriverNode::isAlsoTopic(std::string parameter_name) 
+{
+	for (size_t i=0; i<topics_.size(); ++i) 
+	{
+		if (topics_.at(i) == parameter_name)
+			return true;
+	}
+	return false;
+}
+
+void CobBmsDriverNode::setTopics(std::vector<std::string> topics) 
 {	
 	topics_ = topics;
-	for (int i=0 ; i<topics.size(); ++i) 
-	{
-		ROS_INFO_STREAM("topics: " << topics.at(i));
-	}
+	ROS_INFO_STREAM("Successfully saved topics: " << topics_.size());
 }
 
 void CobBmsDriverNode::loadParameterLists() 
-{	
-	if (!config_map_.empty()) 
+{
+	if (config_map_.empty()) 
 	{
-		if(!topics_.empty()) 
+		ROS_ERROR("config_map_ is empty! Can not load parameter lists!");
+		return;	
+	}
+		
+	if(topics_.empty()) 
+	{
+		//fill param_list1_ and param_list2_ such that all parameters are polled at equal intervals; accomplished by having parameter lists of same size
+		ROS_WARN("Topic list found to be empty. Polling all parameters at equal time intervals");
+		bool toggle = true;
+		for (ConfigMap::iterator it = config_map_.begin(); it != config_map_.end(); ++it) 
 		{
-			for (ConfigMap::iterator it = config_map_.begin(); it != config_map_.end(); ++it) 
-			{
-				topics_.find(it->first) != topics_.end()? param_list1_.push_back(it->first) : param_list2_.push_back(it->first);
-			}
+			toggle? param_list1_.push_back(it->first) : param_list2_.push_back(it->first);
+			toggle = !toggle;
 		}
-		else
+	}
+	else 
+	{
+		//fill param_list1_ and param_list2_ such that the parameters which are topics are polled faster; accomplished by saving topics in sa separate (shorter) list
+		for (ConfigMap::iterator it = config_map_.begin(); it != config_map_.end(); ++it) 
 		{
-			//topics list is empty, so evenly fill param_list1_ and param_list2_ 
-			bool toggle = true;
-			for (ConfigMap::iterator it = config_map_.begin(); it != config_map_.end(); ++it) 
+			BmsParameters current_parameter_list = it->second;
+			char parameter_can_id = it->first;
+			
+			for (size_t j=0; j<current_parameter_list.size(); ++j) 
 			{
-				toggle? param_list1_.push_back(it->first) : param_list2_.push_back(it->first);
-				toggle = !toggle;
+				if (current_parameter_list.at(j).is_topic) 
+				{
+					param_list1_.push_back(parameter_can_id);
+					break; //parameter_can_id needs to be saved only once
+				}
+				else
+				{
+					param_list2_.push_back(parameter_can_id);
+					break; //parameter_can_id needs to be saved only once
+				}
 			}
 		}
 	}
+	ROS_INFO_STREAM("Successfully loaded parameters, in param_list1_: "<<param_list1_.size()<<" and in param_list2_: "<<param_list2_.size());
 }
 
 //function that polls for two parameters at a time
@@ -224,7 +259,7 @@ void CobBmsDriverNode::pollNextInParamLists()
 	if (param_list1_it_ == param_list1_.end()) param_list1_it_ = param_list1_.begin();
 	if (param_list2_it_ == param_list2_.end()) param_list2_it_ = param_list2_.begin();
 	
-	ROS_INFO_STREAM("polling paramaters at ids: " <<(int)*param_list1_it_ << " and " << (int) *param_list2_it_);
+	//ROS_INFO_STREAM("polling paramaters at ids: " <<(int)*param_list1_it_ << " and " << (int) *param_list2_it_);
 	
 	//poll
 	pollBmsforParameters(*param_list1_it_,*param_list2_it_); //
@@ -262,6 +297,11 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 			stat_.add(bms_parameters_it->name, parameter_value);
 			LOG(bms_parameters_it->name << ": " << parameter_value);
 			
+			if (bms_parameters_it->is_topic) {
+				
+				//publish the value as ros topic
+				
+			}
 		}	
 	}
 }

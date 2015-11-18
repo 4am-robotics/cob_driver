@@ -1,4 +1,4 @@
-diagnostics1: 
+diagnostics: 
   - id: 0x01
     fields:
       - name: "AkkuStatusRegister"
