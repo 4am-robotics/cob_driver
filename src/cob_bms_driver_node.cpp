@@ -13,7 +13,7 @@ template<typename T> T read_value(const can::Frame &f, uint8_t offset){	//TODO: 
 }
 
 CobBmsDriverNode::CobBmsDriverNode()
-//: nh_priv_("~")
+: nh_priv_("~")
 {}
 
 CobBmsDriverNode::~CobBmsDriverNode() {
@@ -54,36 +54,36 @@ void CobBmsDriverNode::getRosParameters()	//TODO: set default values
     
     if (!nh_priv_.getParam("topics", topics)) 
     {
-		ROS_INFO_STREAM("Did not find \"topics\" on parameter server");		
+		ROS_INFO_STREAM("Did not find \"topics\" on parameter server.");		
 	}    
     setTopics(topics);
     
     if (!nh_priv_.getParam("diagnostics", diagnostics)) 
     {
-		ROS_INFO_STREAM("Did not find \"diagnostics\" on parameter server");		
+		ROS_INFO_STREAM("Did not find \"diagnostics\" on parameter server.");		
 	}
 	loadConfigMap(diagnostics, topics);	//TODO: change name from configMap to DiagnosticsMap !!
 	
 	if (!nh_priv_.getParam("can_device", can_device_)) 
     {
-		ROS_INFO_STREAM("Did not find \"can_device\" on parameter server");		
+		ROS_INFO_STREAM("Did not find \"can_device\" on parameter server.");		
 	}
 	
 	if (!nh_priv_.getParam("can_id_to_poll", can_id_to_poll_)) 
     {
-		ROS_INFO_STREAM("Did not find \"can_id_to_poll\" on parameter server");	//TODO: set defaults??	
+		ROS_INFO_STREAM("Did not find \"can_id_to_poll\" on parameter server.");	//TODO: set defaults??	
 	}
 	
 	if (!nh_priv_.getParam("poll_frequency", poll_frequency)) 
     {
-		ROS_INFO_STREAM("Did not find \"poll_frequency\" on parameter server");		
+		ROS_INFO_STREAM("Did not find \"poll_frequency\" on parameter server.");		
 	} 
 	else 
 	{
 		//check the validity of poll_frequency and set poll_period_for_two_parameters_in_ms_
 		if ((poll_frequency < 0) && (poll_frequency > 40)) 
 		{
-			ROS_WARN_STREAM("Invalid parameter value: poll_frequency = "<< poll_frequency << ". Setting poll_frequency to 40 Hz");
+			ROS_WARN_STREAM("Invalid parameter value: poll_frequency = "<< poll_frequency << ". Setting poll_frequency to 40 Hz.");
 			poll_frequency = 40;
 		}
 		poll_period_for_two_parameters_in_ms_ = ((1/poll_frequency)*2)*1000;
@@ -174,21 +174,14 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
 	}
 }
 
-//helper function to check if a given parameter is also mentioned in the topic list in the configuration file
-bool CobBmsDriverNode::isAlsoTopic(std::string parameter_name) 
-{
-	for (size_t i=0; i<topics_.size(); ++i) 
-	{
-		if (topics_.at(i) == parameter_name)
-			return true;
-	}
-	return false;
-}
-
 void CobBmsDriverNode::setTopics(std::vector<std::string> topics) 
 {	
 	topics_ = topics;
-	ROS_INFO_STREAM("Successfully saved topics: " << topics_.size());
+	for (std::vector<std::string>::iterator it_topic = topics_.begin(); it_topic!=topics_.end(); ++it_topic)
+	{
+		bms_diagnostics_publishers_[*it_topic] = nh_.advertise<std_msgs::Float64> (*it_topic, 100);
+		ROS_INFO_STREAM("Created topic: " << *it_topic);
+	}	
 }
 
 void CobBmsDriverNode::loadParameterLists() 
@@ -259,7 +252,7 @@ void CobBmsDriverNode::pollNextInParamLists()
 	if (param_list1_it_ == param_list1_.end()) param_list1_it_ = param_list1_.begin();
 	if (param_list2_it_ == param_list2_.end()) param_list2_it_ = param_list2_.begin();
 	
-	//ROS_INFO_STREAM("polling paramaters at ids: " <<(int)*param_list1_it_ << " and " << (int) *param_list2_it_);
+	ROS_INFO_STREAM("polling paramaters at ids: " <<(int)*param_list1_it_ << " and " << (int) *param_list2_it_);
 	
 	//poll
 	pollBmsforParameters(*param_list1_it_,*param_list2_it_); //
@@ -269,41 +262,44 @@ void CobBmsDriverNode::pollNextInParamLists()
 	++param_list2_it_;
 }
 
-
-//TODO: extend this to all frame types!!
 //handler for all frames
 void CobBmsDriverNode::handleFrames(const can::Frame &f)
 {
-	std::string msg = "handling: " + can::tostring(f, true);
-	LOG(msg);
-	
-	//update diagnostics
-	updater_.update();
+	//std::string msg = "handling: " + can::tostring(f, true);
+	//LOG(msg);
 	
 	//id to find in config map, TODO: make the following explicit (char only stores a part of int that is f.id)
-	char frame_id = f.id; // int to char!!
+	char frame_id = f.id; // int to char!! -b-
 	BmsParameters bms_parameters;
 	
-	ConfigMap::iterator config_map_it;
-	
-	config_map_it = config_map_.find(frame_id);
-	if (config_map_it!=config_map_.end()) {
+	ConfigMap::iterator config_map_it = config_map_.find(frame_id);
+	if (config_map_it==config_map_.end()) return;
 		
-		bms_parameters = static_cast<BmsParameters>(config_map_it->second);
+	bms_parameters = static_cast<BmsParameters>(config_map_it->second);
 		
-		for (BmsParameters::iterator bms_parameters_it = bms_parameters.begin(); bms_parameters_it!=bms_parameters.end(); ++bms_parameters_it) {
-			
-			double parameter_value = read_value<int16_t> (f, bms_parameters_it->offset) * bms_parameters_it->factor;
-			stat_.add(bms_parameters_it->name, parameter_value);
-			LOG(bms_parameters_it->name << ": " << parameter_value);
-			
-			if (bms_parameters_it->is_topic) {
-				
-				//publish the value as ros topic
-				
+	for (BmsParameters::iterator param = bms_parameters.begin(); param!=bms_parameters.end(); ++param) 
+	{
+		double data = read_value<int16_t> (f, param->offset) * param->factor;
+		stat_.add(param->name, data);
+		//LOG(param->name << ": " << data);
+		
+		if (param->is_topic)
+		{
+			std::map<std::string, ros::Publisher>::const_iterator it_pub = bms_diagnostics_publishers_.find(param->name);
+			if (it_pub != bms_diagnostics_publishers_.end())
+			{
+				std_msgs::Float64 float_msg;
+				float_msg.data = data;
+				(it_pub->second).publish(float_msg);
 			}
-		}	
-	}
+			else 
+			{
+				ROS_ERROR_STREAM("Could not find a publisher for: " << param->name);
+			}
+		}
+	}	
+	//update diagnostics
+	updater_.update();
 }
 
 

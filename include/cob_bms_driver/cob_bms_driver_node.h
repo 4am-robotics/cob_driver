@@ -16,7 +16,8 @@
 #include <XmlRpcException.h>
 #include <XmlRpcValue.h>
 #include "ros/ros.h"
-#include "std_msgs/String.h"
+#include "std_msgs/String.h"	//check if needed
+#include "std_msgs/Float64.h"
 #include <diagnostic_updater/diagnostic_updater.h>
 #include <std_msgs/Bool.h>
 #include <diagnostic_updater/publisher.h>
@@ -59,14 +60,13 @@ class CobBmsDriverNode
 		
 		//handler for all frames
 		void handleFrames(const can::Frame &f);
-		
-		//helper functions
-		bool isAlsoTopic(std::string paramater_name);
 
 	public:
 	
 		ros::NodeHandle nh_;
 		ros::NodeHandle nh_priv_;
+
+		std::map<std::string, ros::Publisher> bms_diagnostics_publishers_;
 		
 		CobBmsDriverNode();
 		~CobBmsDriverNode();
