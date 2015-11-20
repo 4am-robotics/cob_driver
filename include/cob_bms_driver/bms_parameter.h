@@ -11,8 +11,6 @@ struct BmsParameter
 	double factor;
 	std::string unit;
 	bool is_topic;
-	
-	//double data;
 };
 
 #endif

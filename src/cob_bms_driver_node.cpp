@@ -1,5 +1,9 @@
 #include "cob_bms_driver/cob_bms_driver_node.h"
 
+//for convenience only
+typedef std::vector<BmsParameter> BmsParameters;
+
+//templates to be used to read CAN frames received from the BMS 
 template<int N> void big_endian_to_host(const void* in, void* out);
 template<> void big_endian_to_host<1>(const void* in, void* out){ *(uint8_t*)out = *(uint8_t*)in;}
 template<> void big_endian_to_host<2>(const void* in, void* out){ *(uint16_t*)out = be16toh(*(uint16_t*)in);}
@@ -21,12 +25,12 @@ CobBmsDriverNode::~CobBmsDriverNode()
 	socketcan_interface_.shutdown();	
 }
 
-bool CobBmsDriverNode::prepare() {
-		
-	//if(!socketcan_interface_.init(can_device_, false)) {
-	//	ROS_ERROR_STREAM("bms_driver initialization failed");
-	//	return false;	
-	//}
+bool CobBmsDriverNode::prepare() 
+{
+	if(!socketcan_interface_.init(can_device_, false)) {
+		ROS_ERROR_STREAM("bms_driver initialization failed");
+		return false;	
+	}
 	
 	//create listeners for CAN frames
 	frame_listener_  = socketcan_interface_.createMsgListener(can::CommInterface::FrameDelegate(this, &CobBmsDriverNode::handleFrames));
@@ -35,7 +39,7 @@ bool CobBmsDriverNode::prepare() {
 	
 	loadPollingLists();
 	
-	//initalize parameter list iterators
+	//initalize polling lists iterators
 	polling_list1_it_ = polling_list1_.begin();
 	polling_list2_it_ = polling_list2_.begin();
 	
@@ -43,12 +47,11 @@ bool CobBmsDriverNode::prepare() {
 	updater_.add("BMS Diagnostics Updater", this, &CobBmsDriverNode::produceDiagnostics);
 	
 	return true;
-	
 }
 
 void CobBmsDriverNode::getParams()
 {	
-	//declarations
+	//local variables
 	XmlRpc::XmlRpcValue diagnostics;
 	std::vector <std::string> topics;
 	int poll_frequency;
@@ -227,7 +230,7 @@ void CobBmsDriverNode::loadPollingLists()
 	}
 	else 
 	{
-		//None of the BmsParameter is mentioned to be a topic, so load lists such that all ids are polled at equal intervals
+		//No BmsParameter is a topic, so load lists such that all ids are polled at equal intervals
 		ROS_INFO("Loading lists to poll at equal time intervals");
 		bool toggle = true;
 		for (ConfigMap::iterator it = config_map_.begin(); it != config_map_.end(); ++it) 
@@ -255,7 +258,7 @@ void CobBmsDriverNode::pollBmsForIds(const char first_id, const char second_id)
 
 void CobBmsDriverNode::pollNextInLists()
 {
-	//return to start if reached the end of parameter lists
+	//restart if reached the end of polling lists
 	if (polling_list1_it_ == polling_list1_.end()) polling_list1_it_ = polling_list1_.begin();
 	if (polling_list2_it_ == polling_list2_.end()) polling_list2_it_ = polling_list2_.begin();
 	
