@@ -3,23 +3,16 @@
 
 struct BmsParameter
 {	
-	//struct Address 
-	//{
-		//int can_id;
-		unsigned int offset;
-		unsigned int length;
-	//}
+	unsigned int offset;
+	unsigned int length;
 	
-	//struct Metadata 
-	//{
-		std::string name;
-		bool is_signed;
-		double factor;
-		std::string unit;
-		bool is_topic;
-	//}
+	std::string name;
+	bool is_signed;
+	double factor;
+	std::string unit;
+	bool is_topic;
 	
-	double data;
+	//double data;
 };
 
 #endif

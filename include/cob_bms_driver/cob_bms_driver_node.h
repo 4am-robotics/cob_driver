@@ -27,16 +27,14 @@ class CobBmsDriverNode
 {
 	private:
 	
-		//TODO
 		std::string can_device_;
-		int can_id_to_poll_;
-		int poll_period_for_two_parameters_in_ms_;
-		
+		int bms_id_to_poll_;
+		int poll_period_for_two_ids_in_ms_;
 
-		std::vector<char> param_list1_;
-		std::vector<char> param_list2_;
-		std::vector<char>::iterator param_list1_it_;
-		std::vector<char>::iterator param_list2_it_;
+		std::vector<char> polling_list1_;
+		std::vector<char> polling_list2_;
+		std::vector<char>::iterator polling_list1_it_;
+		std::vector<char>::iterator polling_list2_it_;
 		
 		can::ThreadedSocketCANInterface socketcan_interface_;
 		can::CommInterface::FrameListener::Ptr frame_listener_;
@@ -46,17 +44,17 @@ class CobBmsDriverNode
 		
 		//config_map_ stores all the information that is provided in the config.yaml file
 		ConfigMap config_map_;
-		std::vector<std::string> topics_; 	//TODO: check if this is actually needed
 		
 		diagnostic_updater::DiagnosticStatusWrapper stat_;
 		
-		void getRosParameters();
+		void getParams();
 		void loadConfigMap(XmlRpc::XmlRpcValue, std::vector<std::string>);
-		void setTopics(std::vector<std::string>);
-		void loadParameterLists();
+		void createPublishersFor(std::vector<std::string>);
+		void loadPollingLists();
+		void evaluatePollPeriodFrom(int poll_frequency);
 	
-		//function that polls all batteries (i.e. at CAN ID: 0x200) for two parameters at a time
-		bool pollBmsforParameters(const char first_parameter_id, const char second_parameter_id /*, void (*callback)(std::string&)*/);
+		//function that polls bms_id_to_poll_ for given parameters
+		void pollBmsForIds(const char first_id, const char second_id);
 		
 		//handler for all frames
 		void handleFrames(const can::Frame &f);
@@ -71,7 +69,7 @@ class CobBmsDriverNode
 		CobBmsDriverNode();
 		~CobBmsDriverNode();
 		bool prepare();
-		void pollNextInParamLists();
+		void pollNextInLists();
 		
 		diagnostic_updater::Updater updater_;
 		void produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat);

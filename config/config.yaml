@@ -95,8 +95,4 @@ diagnostics:
         unit: "°C"
 
 
-topics: ["AccuCurrent", "RemainingCapacity", FETTemperature]
-
-#topics:
-#  actual_current: "AccuCurrent"
-#  remaining_capacity: "RemainingCapacity"
+topics: ["AccuCurrent", "RemainingCapacity", "FETTemperature"]

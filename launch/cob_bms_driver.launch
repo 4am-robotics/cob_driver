@@ -3,7 +3,7 @@
 	<node name="cob_bms_driver_node" pkg="cob_bms_driver" type="cob_bms_driver_node" output="screen">
 		<rosparam command="load" file="$(find cob_bms_driver)/config/config.yaml"/>
 		<rosparam param="can_device">"can0"</rosparam> 
-		<rosparam param="can_id_to_poll">0x200</rosparam> 
+		<rosparam param="bms_id_to_poll">0x200</rosparam> 
 		<rosparam param="poll_frequency">40</rosparam> 
     </node>
 </launch>
