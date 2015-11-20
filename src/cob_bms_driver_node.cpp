@@ -49,36 +49,36 @@ bool CobBmsDriverNode::prepare() {
 void CobBmsDriverNode::getParams()
 {	
 	//declarations
-    XmlRpc::XmlRpcValue diagnostics;
-    std::vector <std::string> topics;
-    int poll_frequency;
-    
-    if (!nh_priv_.getParam("topics", topics)) 
-    {
+	XmlRpc::XmlRpcValue diagnostics;
+	std::vector <std::string> topics;
+	int poll_frequency;
+	
+	if (!nh_priv_.getParam("topics", topics)) 
+	{
 		ROS_INFO_STREAM("Did not find \"topics\" on parameter server");		
 	}    
-    createPublishersFor(topics);
-    
-    if (!nh_priv_.getParam("diagnostics", diagnostics)) 
-    {
+	createPublishersFor(topics);
+
+	if (!nh_priv_.getParam("diagnostics", diagnostics)) 
+	{
 		ROS_INFO_STREAM("Did not find \"diagnostics\" on parameter server");		
 	}
 	loadConfigMap(diagnostics, topics);	
 	
 	if (!nh_priv_.getParam("can_device", can_device_)) 
-    {
+	{
 		ROS_INFO_STREAM("Did not find \"can_device\" on parameter server. Using default value: can0");
 		can_device_ = "can0";		
 	}
 	
 	if (!nh_priv_.getParam("bms_id_to_poll", bms_id_to_poll_)) 
-    {
+	{
 		ROS_INFO_STREAM("Did not find \"bms_id_to_poll\" on parameter server. Using default value: 0x200");
 		bms_id_to_poll_ = 0x200;
 	}
 	
 	if (!nh_priv_.getParam("poll_frequency", poll_frequency)) 
-    {
+	{
 		ROS_INFO_STREAM("Did not find \"poll_frequency\" on parameter server. Using default value: 40 Hz");		
 		poll_frequency = 40;
 	} 
@@ -97,14 +97,14 @@ void CobBmsDriverNode::createPublishersFor(std::vector<std::string> topics)
 void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vector<std::string> topics) 
 {
 	XmlRpc::XmlRpcValue config_l0_array, config_l1_struct, config_l2, config_l3_struct, xdiagnostics, xdiagnostic_elements, xfields, xpair,temp;
-    BmsParameters bms_parameters;
-    BmsParameter bms_parameter_temp;
-    char id;	
-    
-    config_l0_array = diagnostics;
-    
-    ROS_ASSERT(config_l0_array.getType() == XmlRpc::XmlRpcValue::TypeArray);  
-    //for each id in list of ids
+	BmsParameters bms_parameters;
+	BmsParameter bms_parameter_temp;
+	char id;	
+	
+	config_l0_array = diagnostics;
+	
+	ROS_ASSERT(config_l0_array.getType() == XmlRpc::XmlRpcValue::TypeArray);  
+	//for each id in list of ids
 	for (int32_t i = 0; i < config_l0_array.size(); ++i) 
 	{	
 		ROS_ASSERT(config_l0_array[i].getType() == XmlRpc::XmlRpcValue::TypeStruct);
@@ -323,10 +323,10 @@ int main(int argc, char **argv)
 	if (!cob_bms_driver_node.prepare()) return 1;	
 
 	while (cob_bms_driver_node.nh_.ok())
-    {	
+	{	
 		cob_bms_driver_node.pollNextInLists();		 
 		ros::spinOnce();
-    }
-    
-    return 0;	
+	}
+	
+	return 0;	
 }
