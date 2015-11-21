@@ -99,7 +99,7 @@ public:
 
     topicPub_isEmergencyStop = n.advertise<cob_msgs::EmergencyStopState>("emergency_stop_state", 1);
     topicPub_PowerBoardState = n.advertise<cob_msgs::PowerBoardState>("power_board/state", 1);
-    topicPub_Voltage = n.advertise<std_msgs::Float64>("power_board/voltage", 10);
+    topicPub_Voltage = n.advertise<std_msgs::Float64>("power_board/voltage", 1);
 
     // Make sure member variables have a defined state at the beginning
     EM_stop_status_ = ST_EM_FREE;
