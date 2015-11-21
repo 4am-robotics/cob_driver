@@ -260,40 +260,40 @@ void NodeClass::sendEmergencyStopStates()
     {
     case ST_EM_FREE:
       {
-	if (EM_signal == true)
-	  {
-	    ROS_INFO("Emergency stop was issued");
-	    EM_stop_status_ = EM_msg.EMSTOP;
-	  }
-	break;
+      if (EM_signal == true)
+        {
+          ROS_INFO("Emergency stop was issued");
+          EM_stop_status_ = EM_msg.EMSTOP;
+        }
+      break;
       }
     case ST_EM_ACTIVE:
       {
-	if (EM_signal == false)
-	  {
-	    ROS_INFO("Emergency stop was confirmed");
-	    EM_stop_status_ = EM_msg.EMCONFIRMED;
-	    time_of_EM_confirmed_ = ros::Time::now();
-	  }
-	break;
+      if (EM_signal == false)
+        {
+          ROS_INFO("Emergency stop was confirmed");
+          EM_stop_status_ = EM_msg.EMCONFIRMED;
+          time_of_EM_confirmed_ = ros::Time::now();
+        }
+      break;
       }
     case ST_EM_CONFIRMED:
       {
-	if (EM_signal == true)
-	  {
-	    ROS_INFO("Emergency stop was issued");
-	    EM_stop_status_ = EM_msg.EMSTOP;
-	  }
-	else
-	  {
-	    duration_since_EM_confirmed = ros::Time::now() - time_of_EM_confirmed_;
-	    if( duration_since_EM_confirmed.toSec() > duration_for_EM_free_.toSec() )
-	      {
-		ROS_INFO("Emergency stop released");
-		EM_stop_status_ = EM_msg.EMFREE;
-	      }
-	  }
-	break;
+      if (EM_signal == true)
+        {
+          ROS_INFO("Emergency stop was issued");
+          EM_stop_status_ = EM_msg.EMSTOP;
+        }
+      else
+        {
+          duration_since_EM_confirmed = ros::Time::now() - time_of_EM_confirmed_;
+          if( duration_since_EM_confirmed.toSec() > duration_for_EM_free_.toSec() )
+            {
+            ROS_INFO("Emergency stop released");
+            EM_stop_status_ = EM_msg.EMFREE;
+            }
+        }
+      break;
       }
     };
 

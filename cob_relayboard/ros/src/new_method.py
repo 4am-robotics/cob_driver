@@ -26,12 +26,12 @@ class volts_filter():
             self.hvalue = data
             self.volt_filt = hvalue*np.ones(2*wsize+1)
 
-	    if(data <= 44000):
-	        self.volts = 44000
+            if(data <= 44000):
+                self.volts = 44000
             time_r = 0.
             return
         elif(data >= 48000):
-	        self.volts = 48000
+                self.volts = 48000
 
         else:
             self.volts = data
