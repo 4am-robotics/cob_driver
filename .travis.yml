@@ -11,6 +11,7 @@ env:
     - CATKIN_WS_UNDERLAY=~/catkin_ws_underlay
     - CATKIN_WS_UNDERLAY_SRC=${CATKIN_WS_UNDERLAY}/src
     - CI_ROS_DISTRO="indigo"
+    - ROS_PARALLEL_JOBS=-j1
     - DEFAULT_ROSINSTALL="https://raw.githubusercontent.com/ipa320/care-o-bot/${CI_ROS_DISTRO}_dev/.travis.rosinstall"
 install:
   - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu trusty main" > /etc/apt/sources.list.d/ros-latest.list'
@@ -37,5 +38,5 @@ script:
   - catkin_init_workspace
   - cd $CATKIN_WS
   - catkin_make -DCMAKE_BUILD_TYPE=Release
-  - catkin_make run_tests -j1
+  - catkin_make run_tests
   - catkin_test_results --verbose
