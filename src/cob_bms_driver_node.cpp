@@ -2,15 +2,15 @@
 
 //for convenience only
 typedef std::vector<BmsParameter> BmsParameters;
+typedef std::map<char, std::vector<BmsParameter> > ConfigMap;	
 
-//templates to be used to read CAN frames received from the BMS 
+//template to be used to read CAN frames received from the BMS 
 template<int N> void big_endian_to_host(const void* in, void* out);
 template<> void big_endian_to_host<1>(const void* in, void* out){ *(uint8_t*)out = *(uint8_t*)in;}
 template<> void big_endian_to_host<2>(const void* in, void* out){ *(uint16_t*)out = be16toh(*(uint16_t*)in);}
 template<> void big_endian_to_host<4>(const void* in, void* out){ *(uint32_t*)out = be32toh(*(uint32_t*)in);}
 template<> void big_endian_to_host<8>(const void* in, void* out){ *(uint64_t*)out = be64toh(*(uint64_t*)in);}
-
-template<typename T> T read_value(const can::Frame &f, uint8_t offset){	//TODO: check if this function is properly used for all cases of parameter types
+template<typename T> T read_value(const can::Frame &f, uint8_t offset){
 	T res;
 	big_endian_to_host<sizeof(T)>(&f.data[offset], &res);
 	return res;
@@ -25,18 +25,21 @@ CobBmsDriverNode::~CobBmsDriverNode()
 	socketcan_interface_.shutdown();	
 }
 
+//initlializes SocketCAN interface, calls functions to save all ROS parameters to their respective variables in this class, loads polling lists and sets up (diagnostics) updater_
 bool CobBmsDriverNode::prepare() 
 {
 	if(!socketcan_interface_.init(can_device_, false)) {
-		ROS_ERROR_STREAM("bms_driver initialization failed");
+		ROS_ERROR_STREAM("cob_bms_driver initialization failed");
 		return false;	
 	}
 	
 	//create listeners for CAN frames
 	frame_listener_  = socketcan_interface_.createMsgListener(can::CommInterface::FrameDelegate(this, &CobBmsDriverNode::handleFrames));
 	
+	//reads parameters from ROS parameter server and saves them in their respective destination: config_map_, poll_period_for_two_ids_in_ms_, can_device_, bms_id_to_poll_
 	getParams();
 	
+	//goes through config_map_ and loads the pollings lists 
 	loadPollingLists();
 	
 	//initalize polling lists iterators
@@ -49,6 +52,7 @@ bool CobBmsDriverNode::prepare()
 	return true;
 }
 
+//function to get parameters from parameter server
 void CobBmsDriverNode::getParams()
 {	
 	//local variables
@@ -88,6 +92,7 @@ void CobBmsDriverNode::getParams()
 	evaluatePollPeriodFrom(poll_frequency);
 }
 
+//function to create a publisher for each Topic that is listed in the configuration file
 void CobBmsDriverNode::createPublishersFor(std::vector<std::string> topics) 
 {
 	for (std::vector<std::string>::iterator it_topic = topics.begin(); it_topic!=topics.end(); ++it_topic)
@@ -97,6 +102,8 @@ void CobBmsDriverNode::createPublishersFor(std::vector<std::string> topics)
 	}	
 }
 
+
+//function to interpret the diagnostics XmlRpcValue and save data in config_map_
 void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vector<std::string> topics) 
 {
 	XmlRpc::XmlRpcValue config_l0_array, config_l1_struct, config_l2, config_l3_struct, xdiagnostics, xdiagnostic_elements, xfields, xpair,temp;
@@ -181,6 +188,7 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
 	}
 }
 
+//helper function to evaluate poll period from given poll frequency
 void CobBmsDriverNode::evaluatePollPeriodFrom(int poll_frequency)
 {
 	//check the validity of given poll_frequency
@@ -193,6 +201,7 @@ void CobBmsDriverNode::evaluatePollPeriodFrom(int poll_frequency)
 	poll_period_for_two_ids_in_ms_ = ((1/poll_frequency)*2)*1000;
 }
 
+//function that goes through config_map_ and fills polling_list1_ and polling_list2_. If topics are found on ROS Parameter Server, they are kept in list1 otherwise, all parameter id are divided between both lists.
 void CobBmsDriverNode::loadPollingLists() 
 {
 	if (config_map_.empty()) 
@@ -203,9 +212,6 @@ void CobBmsDriverNode::loadPollingLists()
 		
 	if(!bms_diagnostics_publishers_.empty())  
 	{
-		//Rule for loading polling lists: "If a diagnostic id contains a BmsParameter which is also a topic, then that id should be in the faster polling list." -endRule.
-		//However, "fast" polling list is indeed fast, ONLY if the list is smaller as compared to the other polling list!
-		//In extreme case that all diagnostic ids contain a BmsParameter which is also a topic, the behaviour should be such that polling lists are loaded in a way that all diagnostic ids are polled at equal intervals.
 		for (ConfigMap::iterator it = config_map_.begin(); it != config_map_.end(); ++it) 
 		{
 			BmsParameters current_parameter_list = it->second;
@@ -242,7 +248,7 @@ void CobBmsDriverNode::loadPollingLists()
 	ROS_INFO_STREAM("Successfully loaded parameters, in polling_list1_: "<<polling_list1_.size()<<" and in polling_list2_: "<<polling_list2_.size());
 }
 
-//function that polls for two diagnostic ids at a time
+//function that polls BMS for given ids
 void CobBmsDriverNode::pollBmsForIds(const char first_id, const char second_id)
 {
 	can::Frame f(can::Header(bms_id_to_poll_,false,false,false),4);
@@ -256,6 +262,7 @@ void CobBmsDriverNode::pollBmsForIds(const char first_id, const char second_id)
 	boost::this_thread::sleep_for(boost::chrono::milliseconds(poll_period_for_two_ids_in_ms_));
 }
 
+//cycles through polling lists and sends 2 ids at a time (one from each list) to the BMS
 void CobBmsDriverNode::pollNextInLists()
 {
 	//restart if reached the end of polling lists
@@ -264,15 +271,14 @@ void CobBmsDriverNode::pollNextInLists()
 	
 	ROS_DEBUG_STREAM("polling paramaters at ids: " <<(int)*polling_list1_it_ << " and " << (int) *polling_list2_it_);
 	
-	//poll
-	pollBmsForIds(*polling_list1_it_,*polling_list2_it_); //
+	pollBmsForIds(*polling_list1_it_,*polling_list2_it_); 
 	
 	//increment iterators for next poll 
 	++polling_list1_it_;
 	++polling_list2_it_;
 }
 
-//handler for all frames
+//callback function to handle all types of frames received from BMS
 void CobBmsDriverNode::handleFrames(const can::Frame &f)
 {
 	//std::string msg = "handling: " + can::tostring(f, true);
@@ -312,6 +318,7 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 	updater_.update();
 }
 
+//updates the diagnostics data with the new data received from BMS
 void CobBmsDriverNode::produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
 {
 	stat.values.insert(stat.values.begin(),stat_.values.begin(),stat_.values.end()); 
@@ -330,6 +337,5 @@ int main(int argc, char **argv)
 		cob_bms_driver_node.pollNextInLists();		 
 		ros::spinOnce();
 	}
-	
 	return 0;	
 }
