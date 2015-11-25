@@ -28,14 +28,6 @@ CobBmsDriverNode::~CobBmsDriverNode()
 //initlializes SocketCAN interface, calls functions to save all ROS parameters to their respective variables in this class, loads polling lists and sets up (diagnostics) updater_
 bool CobBmsDriverNode::prepare() 
 {
-	if(!socketcan_interface_.init(can_device_, false)) {
-		ROS_ERROR_STREAM("cob_bms_driver initialization failed");
-		return false;	
-	}
-	
-	//create listeners for CAN frames
-	frame_listener_  = socketcan_interface_.createMsgListener(can::CommInterface::FrameDelegate(this, &CobBmsDriverNode::handleFrames));
-	
 	//reads parameters from ROS parameter server and saves them in their respective destination: config_map_, poll_period_for_two_ids_in_ms_, can_device_, bms_id_to_poll_
 	getParams();
 	
@@ -48,6 +40,13 @@ bool CobBmsDriverNode::prepare()
 	
 	updater_.setHardwareID("none"); 
 	updater_.add("BMS Diagnostics Updater", this, &CobBmsDriverNode::produceDiagnostics);
+	if(!socketcan_interface_.init(can_device_, false)) {
+		ROS_ERROR_STREAM("cob_bms_driver initialization failed");
+		return false;	
+	}
+	
+	//create listeners for CAN frames
+	frame_listener_  = socketcan_interface_.createMsgListener(can::CommInterface::FrameDelegate(this, &CobBmsDriverNode::handleFrames));
 	
 	return true;
 }
@@ -198,7 +197,9 @@ void CobBmsDriverNode::evaluatePollPeriodFrom(int poll_frequency)
 		poll_frequency = 40;
 	}
 	//now evaluate and save poll period
-	poll_period_for_two_ids_in_ms_ = ((1/poll_frequency)*2)*1000;
+	poll_period_for_two_ids_in_ms_ = ((1/double(poll_frequency))*2)*1000;
+	ROS_INFO_STREAM("poll_period_for_two_ids_in_ms_: "<< poll_period_for_two_ids_in_ms_);
+
 }
 
 //function that goes through config_map_ and fills polling_list1_ and polling_list2_. If topics are found on ROS Parameter Server, they are kept in list1 otherwise, all parameter id are divided between both lists.
@@ -269,7 +270,7 @@ void CobBmsDriverNode::pollNextInLists()
 	if (polling_list1_it_ == polling_list1_.end()) polling_list1_it_ = polling_list1_.begin();
 	if (polling_list2_it_ == polling_list2_.end()) polling_list2_it_ = polling_list2_.begin();
 	
-	ROS_DEBUG_STREAM("polling paramaters at ids: " <<(int)*polling_list1_it_ << " and " << (int) *polling_list2_it_);
+	//ROS_INFO_STREAM("polling paramaters at ids: " <<(int)*polling_list1_it_ << " and " << (int) *polling_list2_it_);
 	
 	pollBmsForIds(*polling_list1_it_,*polling_list2_it_); 
 	
@@ -297,7 +298,7 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 	{
 		double data = read_value<int16_t> (f, param->offset) * param->factor;
 		stat_.add(param->name, data);
-		//LOG(param->name << ": " << data);
+		LOG(param->name << ": " << data);
 		
 		if (param->is_topic)
 		{
