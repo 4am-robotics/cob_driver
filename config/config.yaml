@@ -95,4 +95,4 @@ diagnostics:
         unit: "°C"
 
 
-topics: ["AccuCurrent", "RemainingCapacity", "FETTemperature"]
+topics: ["AkkuCurrent", "RemainingCapacity", "FETTemperature"]

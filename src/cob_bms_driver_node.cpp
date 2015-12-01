@@ -1,6 +1,5 @@
 #include "cob_bms_driver/cob_bms_driver_node.h"
 
-//for convenience only
 typedef std::vector<BmsParameter> BmsParameters;
 typedef std::map<char, std::vector<BmsParameter> > ConfigMap;	
 
@@ -25,10 +24,10 @@ CobBmsDriverNode::~CobBmsDriverNode()
 	socketcan_interface_.shutdown();	
 }
 
-//initlializes SocketCAN interface, calls functions to save all ROS parameters to their respective variables in this class, loads polling lists and sets up (diagnostics) updater_
+//initlializes SocketCAN interface, saves data from ROS parameter server, loads polling lists and sets up diagnostic updater
 bool CobBmsDriverNode::prepare() 
 {
-	//reads parameters from ROS parameter server and saves them in their respective destination: config_map_, poll_period_for_two_ids_in_ms_, can_device_, bms_id_to_poll_
+	//reads parameters from ROS parameter server and saves them in respective member variable: config_map_, poll_period_for_two_ids_in_ms_, can_device_, bms_id_to_poll_
 	getParams();
 	
 	//goes through config_map_ and loads the pollings lists 
@@ -40,12 +39,14 @@ bool CobBmsDriverNode::prepare()
 	
 	updater_.setHardwareID("none"); 
 	updater_.add("BMS Diagnostics Updater", this, &CobBmsDriverNode::produceDiagnostics);
+	
+	//initialize the socketcan interface
 	if(!socketcan_interface_.init(can_device_, false)) {
 		ROS_ERROR_STREAM("cob_bms_driver initialization failed");
 		return false;	
 	}
 	
-	//create listeners for CAN frames
+	//create listener for CAN frames
 	frame_listener_  = socketcan_interface_.createMsgListener(can::CommInterface::FrameDelegate(this, &CobBmsDriverNode::handleFrames));
 	
 	return true;
@@ -54,7 +55,7 @@ bool CobBmsDriverNode::prepare()
 //function to get parameters from parameter server
 void CobBmsDriverNode::getParams()
 {	
-	//local variables
+	//local declarations
 	XmlRpc::XmlRpcValue diagnostics;
 	std::vector <std::string> topics;
 	int poll_frequency;
@@ -311,9 +312,6 @@ void CobBmsDriverNode::pollNextInLists()
 //callback function to handle all types of frames received from BMS
 void CobBmsDriverNode::handleFrames(const can::Frame &f)
 {
-	//std::string msg = "handling: " + can::tostring(f, true);
-	//LOG(msg);
-	
 	//id to find in config map, TODO: make the following explicit (char only stores a part of int that is f.id)
 	char frame_id = f.id; // int to char!! -b-
 	BmsParameters bms_parameters;
@@ -327,7 +325,7 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 	{
 		double data = read_value<int16_t> (f, param->offset) * param->factor;
 		stat_.add(param->name, data);
-		LOG(param->name << ": " << data);
+		//LOG(param->name << ": " << data);
 		
 		if (param->is_topic)
 		{
@@ -335,7 +333,6 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 			std::map<std::string, ros::Publisher>::const_iterator it_pub = bms_diagnostics_publishers_.find(param->name);
 			if (it_pub != bms_diagnostics_publishers_.end())
 			{
-				//ROS_INFO_STREAM("publishing data on " << it_pub->second.getTopic());
 				std_msgs::Float64 float_msg;
 				float_msg.data = data;
 				(it_pub->second).publish(float_msg);
