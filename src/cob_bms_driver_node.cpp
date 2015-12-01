@@ -38,7 +38,7 @@ bool CobBmsDriverNode::prepare()
 	polling_list2_it_ = polling_list2_.begin();
 	
 	updater_.setHardwareID("none"); 
-	updater_.add("BMS Diagnostics Updater", this, &CobBmsDriverNode::produceDiagnostics);
+	updater_.add("cob_bms_dagnostics_updater", this, &CobBmsDriverNode::produceDiagnostics);
 	
 	//initialize the socketcan interface
 	if(!socketcan_interface_.init(can_device_, false)) {
@@ -58,7 +58,7 @@ void CobBmsDriverNode::getParams()
 	//local declarations
 	XmlRpc::XmlRpcValue diagnostics;
 	std::vector <std::string> topics;
-	int poll_frequency;
+	int poll_frequency_hz;
 	
 	if (!nh_priv_.getParam("topics", topics)) 
 	{
@@ -84,12 +84,12 @@ void CobBmsDriverNode::getParams()
 		bms_id_to_poll_ = 0x200;
 	}
 	
-	if (!nh_priv_.getParam("poll_frequency", poll_frequency)) 
+	if (!nh_priv_.getParam("poll_frequency_hz", poll_frequency_hz)) 
 	{
-		ROS_INFO_STREAM("Did not find \"poll_frequency\" on parameter server. Using default value: 40 Hz");		
-		poll_frequency = 40;
+		ROS_INFO_STREAM("Did not find \"poll_frequency\" on parameter server. Using default value: 20 Hz");		
+		poll_frequency_hz = 20;
 	} 
-	evaluatePollPeriodFrom(poll_frequency);
+	evaluatePollPeriodFrom(poll_frequency_hz);
 }
 
 //function to create a publisher for each Topic that is listed in the configuration file
@@ -131,7 +131,6 @@ void CobBmsDriverNode::createPublishersFor(std::vector<std::string> topics)
 	}	
 }
 
-
 //function to interpret the diagnostics XmlRpcValue and save data in config_map_
 void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vector<std::string> topics) 
 {
@@ -140,7 +139,7 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
 	BmsParameter bms_parameter_temp;
 	char id;	
 	
-	config_l0_array = diagnostics;
+	config_l0_array = diagnostics;	//just for better readability
 	
 	ROS_ASSERT(config_l0_array.getType() == XmlRpc::XmlRpcValue::TypeArray);  
 	//for each id in list of ids
@@ -166,7 +165,7 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
 					//for each element in a field
 					for (XmlRpc::XmlRpcValue::iterator it3=config_l3_struct.begin(); it3!=config_l3_struct.end(); ++it3) 
 					{
-						if (it3->first == "name") 
+						if (it3->first == "name") //TODO: force that name, offset, len and is_signed is set for each parameter!!
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeString);
 							bms_parameter_temp.name = static_cast<std::string>(it3->second);
@@ -194,7 +193,7 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
 						else if (it3->first == "unit") // TODO: use this 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeString);
-							bms_parameter_temp.unit = static_cast<std::string>(it3->second);
+							bms_parameter_temp.unit = "[" + static_cast<std::string>(it3->second) + "]";
 						} 
 						else ROS_ERROR_STREAM("Unexpected Key: " << it3->first);
 					}
@@ -211,24 +210,24 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
 		}
 		//save bms_parameters in config map for interpreting them later and producing diagnostics as well as publishing data on topics
 		config_map_[id] = bms_parameters;
-		ROS_INFO_STREAM("Saved "<< bms_parameters.size() << " parameters with CAN-ID: " << id);
+		ROS_INFO_STREAM("Saved "<< bms_parameters.size() << " parameters with CAN-ID: 0x" << std::hex << (unsigned int) id << std::dec);
 		//clear bms_parameters for processing next id
 		bms_parameters.clear();
 	}
 }
 
 //helper function to evaluate poll period from given poll frequency
-void CobBmsDriverNode::evaluatePollPeriodFrom(int poll_frequency)
+void CobBmsDriverNode::evaluatePollPeriodFrom(int poll_frequency_hz)
 {
-	//check the validity of given poll_frequency
-	if ((poll_frequency < 0) && (poll_frequency > 40)) 
+	//check the validity of given poll_frequency_hz
+	if ((poll_frequency_hz < 0) && (poll_frequency_hz > 20)) 
 	{
-		ROS_WARN_STREAM("Invalid parameter value: poll_frequency = "<< poll_frequency << ". Setting poll_frequency to 40 Hz");
-		poll_frequency = 40;
+		ROS_WARN_STREAM("Invalid parameter value: poll_frequency_hz = "<< poll_frequency_hz << ". Setting poll_frequency_hz to 20 Hz");
+		poll_frequency_hz = 20;
 	}
 	//now evaluate and save poll period
-	poll_period_for_two_ids_in_ms_ = ((1/double(poll_frequency))*2)*1000;
-	ROS_INFO_STREAM("Polling period(x2): "<< poll_period_for_two_ids_in_ms_ << " ms");
+	poll_period_for_two_ids_in_ms_ = (1/double(poll_frequency_hz))*1000;
+	ROS_INFO_STREAM("Evaluated polling period: "<< poll_period_for_two_ids_in_ms_ << " ms");
 }
 
 //function that goes through config_map_ and fills polling_list1_ and polling_list2_. If topics are found on ROS Parameter Server, they are kept in list1 otherwise, all parameter id are divided between both lists.
@@ -277,12 +276,13 @@ void CobBmsDriverNode::loadPollingLists()
 	}
 	ROS_INFO_STREAM("Loaded \'"<< polling_list1_.size() << "\' CAN-ID(s) in polling_list1_ and \'"<< polling_list2_.size() <<"\' CAN-ID(s) in polling_list2_: ");
 	if (polling_list1_.empty() || polling_list2_.empty()) ROS_ERROR("Can not continue with an empty polling list!. HINT: Make sure there are at least 2 paramters in the Configuration file.");
+	//TODO: dont have to have this weird restriction.. use 0 as a default CAN-ID.
 }
 
 //function that polls BMS for given ids
 void CobBmsDriverNode::pollBmsForIds(const char first_id, const char second_id)
 {
-	can::Frame f(can::Header(bms_id_to_poll_,false,false,false),4);
+	can::Frame f(can::Header(bms_id_to_poll_,false,false,false),4);	//TODO: use uint ... 
 	f.data[0] = 0x01;
 	f.data[1] = first_id;
 	f.data[2] = 0x01;
@@ -312,7 +312,7 @@ void CobBmsDriverNode::pollNextInLists()
 //callback function to handle all types of frames received from BMS
 void CobBmsDriverNode::handleFrames(const can::Frame &f)
 {
-	//id to find in config map, TODO: make the following explicit (char only stores a part of int that is f.id)
+	//id to find in config map, TODO: make the following explicit (char only stores a part of int that is f.id) //TODO: use uint.. !!
 	char frame_id = f.id; // int to char!! -b-
 	BmsParameters bms_parameters;
 	
@@ -324,7 +324,7 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 	for (BmsParameters::iterator param = bms_parameters.begin(); param!=bms_parameters.end(); ++param) 
 	{
 		double data = read_value<int16_t> (f, param->offset) * param->factor;
-		stat_.add(param->name, data);
+		stat_.add(param->name + param->unit, data);
 		//LOG(param->name << ": " << data);
 		
 		if (param->is_topic)

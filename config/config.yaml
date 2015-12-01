@@ -96,3 +96,7 @@ diagnostics:
 
 
 topics: ["AkkuCurrent", "RemainingCapacity", "FETTemperature"]
+
+can_device: "can0"
+bms_id_to_poll: 0x200
+poll_frequency_hz: 20
