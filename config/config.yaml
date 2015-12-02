@@ -1,26 +1,4 @@
 diagnostics: 
-  - id: 0x01
-    fields:
-      - name: "AkkuStatusRegister"
-        offset: 0
-        len: 2
-        is_signed: false
-
-      - name: "AkkuStatusRegister_2"
-        offset: 2
-        len: 2
-        is_signed: false
-
-      - name: "ProjectStatusRegister"
-        offset: 4
-        len: 2
-        is_signed: false
-
-      - name: "SystemStatusRegister"
-        offset: 6
-        len: 2
-        is_signed: false
-
   - id: 0x02
     fields:
       - name: "AkkuCurrent"

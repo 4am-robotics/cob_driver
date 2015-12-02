@@ -1,7 +1,7 @@
 #include "cob_bms_driver/cob_bms_driver_node.h"
 
 typedef std::vector<BmsParameter> BmsParameters;
-typedef std::map<char, std::vector<BmsParameter> > ConfigMap;	
+typedef std::map<uint8_t, std::vector<BmsParameter> > ConfigMap;	
 
 //template to be used to read CAN frames received from the BMS 
 template<int N> void big_endian_to_host(const void* in, void* out);
@@ -41,10 +41,10 @@ bool CobBmsDriverNode::prepare()
 	updater_.add("cob_bms_dagnostics_updater", this, &CobBmsDriverNode::produceDiagnostics);
 	
 	//initialize the socketcan interface
-	if(!socketcan_interface_.init(can_device_, false)) {
-		ROS_ERROR_STREAM("cob_bms_driver initialization failed");
-		return false;	
-	}
+	//if(!socketcan_interface_.init(can_device_, false)) {
+	//	ROS_ERROR_STREAM("cob_bms_driver initialization failed");
+	//	return false;	
+	//}
 	
 	//create listener for CAN frames
 	frame_listener_  = socketcan_interface_.createMsgListener(can::CommInterface::FrameDelegate(this, &CobBmsDriverNode::handleFrames));
@@ -52,7 +52,7 @@ bool CobBmsDriverNode::prepare()
 	return true;
 }
 
-//function to get parameters from parameter server
+//function to get ROS parameters from parameter server
 void CobBmsDriverNode::getParams()
 {	
 	//local declarations
@@ -105,7 +105,7 @@ void CobBmsDriverNode::createPublishersFor(std::vector<std::string> topics)
 	for (std::vector<std::string>::iterator it_topic = topics.begin(); it_topic!=topics.end(); ++it_topic)
 	{
 		bool match_already_found = false;
-		//verify that the topic name matches with a parameter name from config file
+		//verify that the topic name matches with a BmsParameter name from config file
 		ConfigMap::iterator it_map = config_map_.begin();
 		for (it_map; it_map!=config_map_.end(); ++it_map) 
 		{
@@ -126,7 +126,7 @@ void CobBmsDriverNode::createPublishersFor(std::vector<std::string> topics)
 		//no match found for current topic
 		if (it_map == config_map_.end())
 		{
-			ROS_WARN_STREAM("Didn't create publisher for: " << *it_topic << ". Make sure \"" << *it_topic << "\" matches a parameter name in the Configuration file.");
+			ROS_WARN_STREAM("Didn't create publisher for: " << *it_topic << ". Make sure \"" << *it_topic << "\" matches a BmsParameter name in the Configuration file.");
 		}
 	}	
 }
@@ -137,14 +137,16 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
 	XmlRpc::XmlRpcValue config_l0_array, config_l1_struct, config_l2, config_l3_struct, xdiagnostics, xdiagnostic_elements, xfields, xpair,temp;
 	BmsParameters bms_parameters;
 	BmsParameter bms_parameter_temp;
-	char id;	
+	uint8_t id;
 	
 	config_l0_array = diagnostics;	//just for better readability
 	
 	ROS_ASSERT(config_l0_array.getType() == XmlRpc::XmlRpcValue::TypeArray);  
 	//for each id in list of ids
-	for (int32_t i = 0; i < config_l0_array.size(); ++i) 
+	for (int32_t i = 0; i < config_l0_array.size(); ++i) //TODO: why int32_t ??
 	{	
+		bool has_id = false, has_bms_parameters = false; 
+		
 		ROS_ASSERT(config_l0_array[i].getType() == XmlRpc::XmlRpcValue::TypeStruct);
 		config_l1_struct = config_l0_array[i];
 		for (XmlRpc::XmlRpcValue::iterator it1=config_l1_struct.begin(); it1!=config_l1_struct.end(); ++it1) 
@@ -153,66 +155,95 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
 			//XmlRpcValue at config_l2 might be an id (TypeInt) or a list of fields (TypeArray)
 			if (config_l2.getType()==XmlRpc::XmlRpcValue::TypeInt) 
 			{			
-				id = static_cast<char>(static_cast<int>(config_l2));
-			}
-			else if (config_l2.getType()==XmlRpc::XmlRpcValue::TypeArray) 
-			{	
-				//for each field in field list. NOTE: each field is a parameter
+				//id = static_cast<char>(static_cast<int>(config_l2));
+				id = static_cast<uint8_t>(static_cast<int>(config_l2));				
+				has_id = true;
+			} 
+			else if (config_l2.getType()==XmlRpc::XmlRpcValue::TypeArray)
+			{					
+				//for each field in field list. (each field is a BMSParameter)
 				for(int32_t j=0; j<config_l2.size(); ++j) 
 				{
+					//booleans to help ensure that all required information is provided for a BMSParameter
+					bool has_name = false, has_offset = false, has_len = false, has_is_signed = false;
+					
 					ROS_ASSERT(config_l2[j].getType()==XmlRpc::XmlRpcValue::TypeStruct);
 					config_l3_struct = config_l2[j];
 					//for each element in a field
 					for (XmlRpc::XmlRpcValue::iterator it3=config_l3_struct.begin(); it3!=config_l3_struct.end(); ++it3) 
 					{
-						if (it3->first == "name") //TODO: force that name, offset, len and is_signed is set for each parameter!!
+						if (it3->first == "name" && !has_name) 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeString);
 							bms_parameter_temp.name = static_cast<std::string>(it3->second);
+							has_name = true;
 						}
-						else if (it3->first == "offset") 
+						else if (it3->first == "offset" && !has_offset) 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeInt);
 							bms_parameter_temp.offset = static_cast<int>(it3->second);
+							has_offset = true;
 						}
-						else if (it3->first == "len") 
+						else if (it3->first == "len" && !has_len) 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeInt);
 							bms_parameter_temp.length = static_cast<int>(it3->second);
+							has_len = true;
 						}
-						else if (it3->first == "is_signed") 
+						else if (it3->first == "is_signed" && !has_is_signed) 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeBoolean);
 							bms_parameter_temp.is_signed = static_cast<bool>(it3->second);
+							has_is_signed = true;
 						}
 						else if (it3->first == "factor") 
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeDouble);
 							bms_parameter_temp.factor = static_cast<double>(it3->second);
 						}
-						else if (it3->first == "unit") // TODO: use this 
+						else if (it3->first == "unit")
 						{
 							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeString);
 							bms_parameter_temp.unit = "[" + static_cast<std::string>(it3->second) + "]";
 						} 
-						else ROS_ERROR_STREAM("Unexpected Key: " << it3->first);
+						else ROS_ERROR_STREAM("Config: Unexpected Key: " << it3->first);
 					}
 					
-					//check if the parameter is also a topic
+					//save boolean for indicating that a BmsParameter is also a topic
 					bms_parameter_temp.is_topic = (find(topics.begin(), topics.end(), bms_parameter_temp.name) != topics.end());
-					ROS_DEBUG_STREAM("bms_parameter_temp.is_topic: " << bms_parameter_temp.is_topic);
 					
-					//bms_parameter_temp is properly filled at this point, so save it in bms_parameters
-					bms_parameters.push_back(bms_parameter_temp);
+					if (has_name && has_offset && has_len && has_is_signed)
+					{					
+						//bms_parameter_temp is properly filled at this point, so save it in bms_parameters
+						bms_parameters.push_back(bms_parameter_temp);
+						has_bms_parameters = true;
+					}
+					else 
+					{
+						ROS_WARN_STREAM("Config: id # " << i+1 << ", field # " << j+1 << " does not have all the required fields set. This field will not be used.");
+					}
 				}
 			}
 			else ROS_ERROR_STREAM("Config: Expected either XmlRpc Type: " << XmlRpc::XmlRpcValue::TypeArray << " or " << XmlRpc::XmlRpcValue::TypeInt << ". But found: " << config_l2.getType());
 		}
-		//save bms_parameters in config map for interpreting them later and producing diagnostics as well as publishing data on topics
-		config_map_[id] = bms_parameters;
-		ROS_INFO_STREAM("Saved "<< bms_parameters.size() << " parameters with CAN-ID: 0x" << std::hex << (unsigned int) id << std::dec);
-		//clear bms_parameters for processing next id
-		bms_parameters.clear();
+		
+		if (has_id && has_bms_parameters)
+		{			
+			//save bms_parameters in config map for interpreting them later and producing diagnostics as well as publishing data on topics
+			config_map_[id] = bms_parameters;
+			ROS_INFO_STREAM("Got "<< bms_parameters.size() << " BmsParameter(s) with CAN-ID: 0x" << std::hex << (unsigned int) id << std::dec);
+			//clear bms_parameters for processing next id
+			bms_parameters.clear();
+		}
+		else 
+		{
+			if (!has_id)
+				ROS_WARN_STREAM("Config: id # " << i+1 << ", \'id\' is missing.");
+			else if (!has_bms_parameters)
+				ROS_WARN_STREAM("Config: id # " << i+1 << ", valid \'field(s)\' is missing.");
+				
+			ROS_WARN_STREAM("Config: id # " << i+1 << " will not be used");
+		}
 	}
 }
 
@@ -222,7 +253,7 @@ void CobBmsDriverNode::evaluatePollPeriodFrom(int poll_frequency_hz)
 	//check the validity of given poll_frequency_hz
 	if ((poll_frequency_hz < 0) && (poll_frequency_hz > 20)) 
 	{
-		ROS_WARN_STREAM("Invalid parameter value: poll_frequency_hz = "<< poll_frequency_hz << ". Setting poll_frequency_hz to 20 Hz");
+		ROS_WARN_STREAM("Invalid ROS parameter value: poll_frequency_hz = "<< poll_frequency_hz << ". Setting poll_frequency_hz to 20 Hz");
 		poll_frequency_hz = 20;
 	}
 	//now evaluate and save poll period
@@ -244,7 +275,7 @@ void CobBmsDriverNode::loadPollingLists()
 		for (ConfigMap::iterator it = config_map_.begin(); it != config_map_.end(); ++it) 
 		{
 			BmsParameters current_parameter_list = it->second;
-			char parameter_can_id = it->first;
+			uint8_t parameter_can_id = it->first;
 			
 			for (size_t j=0; j<current_parameter_list.size(); ++j) 
 			{
@@ -275,18 +306,16 @@ void CobBmsDriverNode::loadPollingLists()
 		}
 	}
 	ROS_INFO_STREAM("Loaded \'"<< polling_list1_.size() << "\' CAN-ID(s) in polling_list1_ and \'"<< polling_list2_.size() <<"\' CAN-ID(s) in polling_list2_: ");
-	if (polling_list1_.empty() || polling_list2_.empty()) ROS_ERROR("Can not continue with an empty polling list!. HINT: Make sure there are at least 2 paramters in the Configuration file.");
-	//TODO: dont have to have this weird restriction.. use 0 as a default CAN-ID.
 }
 
 //function that polls BMS for given ids
-void CobBmsDriverNode::pollBmsForIds(const char first_id, const char second_id)
+void CobBmsDriverNode::pollBmsForIds(const uint16_t first_id, const uint16_t second_id)
 {
-	can::Frame f(can::Header(bms_id_to_poll_,false,false,false),4);	//TODO: use uint ... 
-	f.data[0] = 0x01;
-	f.data[1] = first_id;
-	f.data[2] = 0x01;
-	f.data[3] = second_id;
+	can::Frame f(can::Header(bms_id_to_poll_,false,false,false),4);
+	f.data[0] = first_id & 0xff; //low_byte
+	f.data[1] = first_id >> 8;	//high_byte
+	f.data[2] = second_id & 0xff;
+	f.data[3] = second_id >> 8;	
 	
 	socketcan_interface_.send(f);
 		
@@ -302,10 +331,13 @@ void CobBmsDriverNode::pollNextInLists()
 	
 	//ROS_INFO_STREAM("polling paramaters at ids: " <<(int)*polling_list1_it_ << " and " << (int) *polling_list2_it_);
 	
-	pollBmsForIds(*polling_list1_it_,*polling_list2_it_); 
+	uint16_t first_id = (polling_list1_it_ == polling_list1_.end()) ? 0 : (*polling_list1_it_ | 0x0100);
+	uint16_t second_id = (polling_list2_it_ == polling_list2_.end()) ? 0 : (*polling_list2_it_ | 0x0100);
+	
+	pollBmsForIds(first_id,second_id); 
 	
 	//increment iterators for next poll 
-	++polling_list1_it_;
+	++polling_list1_it_; 	//TODO: check if increment is not erronous for an empty container!!
 	++polling_list2_it_;
 }
 
@@ -313,7 +345,7 @@ void CobBmsDriverNode::pollNextInLists()
 void CobBmsDriverNode::handleFrames(const can::Frame &f)
 {
 	//id to find in config map, TODO: make the following explicit (char only stores a part of int that is f.id) //TODO: use uint.. !!
-	char frame_id = f.id; // int to char!! -b-
+	uint32_t frame_id = f.id; // int to uint8_t!! -b-
 	BmsParameters bms_parameters;
 	
 	ConfigMap::iterator config_map_it = config_map_.find(frame_id);
@@ -360,7 +392,8 @@ int main(int argc, char **argv)
 	CobBmsDriverNode cob_bms_driver_node;
 			
 	if (!cob_bms_driver_node.prepare()) return 1;	
-
+	
+	ROS_INFO("Started polling BMS...");
 	while (cob_bms_driver_node.nh_.ok())
 	{	
 		cob_bms_driver_node.pollNextInLists();		 

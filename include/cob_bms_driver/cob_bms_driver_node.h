@@ -25,16 +25,16 @@ class CobBmsDriverNode
 	private:
 
 		//ROS parameters
-		std::map<char, std::vector<BmsParameter> > config_map_;	//holds all the information that is provided in the configuration file
+		std::map<uint8_t, std::vector<BmsParameter> > config_map_;	//holds all the information that is provided in the configuration file
 		int poll_period_for_two_ids_in_ms_;
 		std::string can_device_;								
 		int bms_id_to_poll_;
 
 		//polling lists that contain CAN-ID(s) that are to be polled. Each CAN-ID corresponds to a group of BMS parameters
-		std::vector<char> polling_list1_;
-		std::vector<char> polling_list2_;
-		std::vector<char>::iterator polling_list1_it_;
-		std::vector<char>::iterator polling_list2_it_;
+		std::vector<uint8_t> polling_list1_;
+		std::vector<uint8_t> polling_list2_;
+		std::vector<uint8_t>::iterator polling_list1_it_;
+		std::vector<uint8_t>::iterator polling_list2_it_;
 
 		//interface to send and recieve CAN frames
 		can::ThreadedSocketCANInterface socketcan_interface_;
@@ -64,7 +64,7 @@ class CobBmsDriverNode
 	
 		//function that polls BMS (bms_id_to_poll_ is used here!).
 		//Also, this function sleeps for time given by poll_period_for_two_ids_in_ms_ to ensure BMS is polled at the desired frequency 
-		void pollBmsForIds(const char first_id, const char second_id);
+		void pollBmsForIds(const uint16_t first_id, const uint16_t second_id);
 		
 		//callback function to handle all types of frames received from BMS
 		void handleFrames(const can::Frame &f);
