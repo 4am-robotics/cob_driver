@@ -209,7 +209,7 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
 						else ROS_ERROR_STREAM("Config: Unexpected Key: " << it3->first);
 					}
 					
-					//save boolean for indicating that a BmsParameter is also a topic
+					//iff name of the BmsParameter matches with a name of a topic in the Configuration file, then mark this parameter as a topic
 					bms_parameter_temp.is_topic = (find(topics.begin(), topics.end(), bms_parameter_temp.name) != topics.end());
 					
 					if (has_name && has_offset && has_len && has_is_signed)
@@ -279,7 +279,7 @@ void CobBmsDriverNode::loadPollingLists()
 			
 			for (size_t j=0; j<current_parameter_list.size(); ++j) 
 			{
-				if ( (current_parameter_list.at(j).is_topic) && (polling_list1_.size() <= polling_list2_.size()) ) //polling_list1_ should always smaller or at most, equal to polling_list2_
+				if ((current_parameter_list.at(j).is_topic))
 				{
 					polling_list1_.push_back(parameter_can_id);
 					break; //parameter_can_id needs to be saved only once
@@ -291,8 +291,6 @@ void CobBmsDriverNode::loadPollingLists()
 				}
 			}
 		}
-		if (polling_list1_.size() > polling_list2_.size())
-			ROS_WARN_STREAM("Something went wrong! polling_list1_ should always be smaller or at most equal in size to polling_list2_. Polling for CAN-ID(s) which are also topics will be slow!");
 	}
 	else 
 	{
@@ -305,7 +303,7 @@ void CobBmsDriverNode::loadPollingLists()
 			toggle = !toggle;
 		}
 	}
-	ROS_INFO_STREAM("Loaded \'"<< polling_list1_.size() << "\' CAN-ID(s) in polling_list1_ and \'"<< polling_list2_.size() <<"\' CAN-ID(s) in polling_list2_: ");
+	ROS_INFO_STREAM("Loaded \'"<< polling_list1_.size() << "\' CAN-ID(s) in polling_list1_ and \'"<< polling_list2_.size() <<"\' CAN-ID(s) in polling_list2_");
 }
 
 //function that polls BMS for given ids
@@ -329,16 +327,16 @@ void CobBmsDriverNode::pollNextInLists()
 	if (polling_list1_it_ == polling_list1_.end()) polling_list1_it_ = polling_list1_.begin();
 	if (polling_list2_it_ == polling_list2_.end()) polling_list2_it_ = polling_list2_.begin();
 	
-	//ROS_INFO_STREAM("polling paramaters at ids: " <<(int)*polling_list1_it_ << " and " << (int) *polling_list2_it_);
-	
 	uint16_t first_id = (polling_list1_it_ == polling_list1_.end()) ? 0 : (*polling_list1_it_ | 0x0100);
 	uint16_t second_id = (polling_list2_it_ == polling_list2_.end()) ? 0 : (*polling_list2_it_ | 0x0100);
+
+	ROS_INFO_STREAM("polling BMS for CAN-IDs: 0x" << std::hex << (int)first_id << " and 0x" << (int) second_id << std::dec);
 	
 	pollBmsForIds(first_id,second_id); 
 	
 	//increment iterators for next poll 
-	++polling_list1_it_; 	//TODO: check if increment is not erronous for an empty container!!
-	++polling_list2_it_;
+	if (!polling_list1_.empty()) ++polling_list1_it_; 	//TODO: check if increment is not erronous for an empty container!!
+	if (!polling_list2_.empty()) ++polling_list2_it_;
 }
 
 //callback function to handle all types of frames received from BMS
