@@ -41,10 +41,10 @@ bool CobBmsDriverNode::prepare()
 	updater_.add("cob_bms_dagnostics_updater", this, &CobBmsDriverNode::produceDiagnostics);
 	
 	//initialize the socketcan interface
-	//if(!socketcan_interface_.init(can_device_, false)) {
-	//	ROS_ERROR_STREAM("cob_bms_driver initialization failed");
-	//	return false;	
-	//}
+	if(!socketcan_interface_.init(can_device_, false)) {
+		ROS_ERROR_STREAM("cob_bms_driver initialization failed");
+		return false;	
+	}
 	
 	//create listener for CAN frames
 	frame_listener_  = socketcan_interface_.createMsgListener(can::CommInterface::FrameDelegate(this, &CobBmsDriverNode::handleFrames));
@@ -312,10 +312,10 @@ void CobBmsDriverNode::loadPollingLists()
 void CobBmsDriverNode::pollBmsForIds(const uint16_t first_id, const uint16_t second_id)
 {
 	can::Frame f(can::Header(bms_id_to_poll_,false,false,false),4);
-	f.data[0] = first_id & 0xff; //low_byte
-	f.data[1] = first_id >> 8;	//high_byte
-	f.data[2] = second_id & 0xff;
-	f.data[3] = second_id >> 8;	
+	f.data[0] = first_id >> 8;	//high_byte
+	f.data[1] = first_id & 0xff;	//low_byte
+	f.data[2] = second_id >> 8;	
+	f.data[3] = second_id & 0xff;
 	
 	socketcan_interface_.send(f);
 		
