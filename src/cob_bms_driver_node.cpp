@@ -143,7 +143,7 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
 	
 	ROS_ASSERT(config_l0_array.getType() == XmlRpc::XmlRpcValue::TypeArray);  
 	//for each id in list of ids
-	for (int32_t i = 0; i < config_l0_array.size(); ++i) //TODO: why int32_t ??
+	for (size_t i = 0; i < config_l0_array.size(); ++i) 
 	{	
 		bool has_id = false, has_bms_parameters = false; 
 		
@@ -335,15 +335,15 @@ void CobBmsDriverNode::pollNextInLists()
 	pollBmsForIds(first_id,second_id); 
 	
 	//increment iterators for next poll 
-	if (!polling_list1_.empty()) ++polling_list1_it_; 	//TODO: check if increment is not erronous for an empty container!!
+	if (!polling_list1_.empty()) ++polling_list1_it_;
 	if (!polling_list2_.empty()) ++polling_list2_it_;
 }
 
 //callback function to handle all types of frames received from BMS
 void CobBmsDriverNode::handleFrames(const can::Frame &f)
 {
-	//id to find in config map, TODO: make the following explicit (char only stores a part of int that is f.id) //TODO: use uint.. !!
-	uint32_t frame_id = f.id; // int to uint8_t!! -b-
+	//id to find in config map
+	uint32_t frame_id = f.id;
 	BmsParameters bms_parameters;
 	
 	ConfigMap::iterator config_map_it = config_map_.find(frame_id);
@@ -355,8 +355,7 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 	{
 		double data = read_value<int16_t> (f, param->offset) * param->factor;
 		stat_.add(param->name + param->unit, data);
-		//LOG(param->name << ": " << data);
-		
+				
 		if (param->is_topic)
 		{
 			//find publisher for this topic in bms_diagnostics_publishers_ 

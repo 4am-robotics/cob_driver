@@ -17,7 +17,6 @@ struct BmsParameter
 	, unit("")
 	, is_topic(false)
 	{}
-	//TODO: write a setter to test if required members are set properly!
 };
 
 #endif
