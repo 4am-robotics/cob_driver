@@ -330,7 +330,7 @@ void CobBmsDriverNode::pollNextInLists()
 	uint16_t first_id = (polling_list1_it_ == polling_list1_.end()) ? 0 : (*polling_list1_it_ | 0x0100);
 	uint16_t second_id = (polling_list2_it_ == polling_list2_.end()) ? 0 : (*polling_list2_it_ | 0x0100);
 
-	ROS_INFO_STREAM("polling BMS for CAN-IDs: 0x" << std::hex << (int)first_id << " and 0x" << (int) second_id << std::dec);
+	ROS_DEBUG_STREAM("polling BMS for CAN-IDs: 0x" << std::hex << (int)first_id << " and 0x" << (int) second_id << std::dec);
 	
 	pollBmsForIds(first_id,second_id); 
 	

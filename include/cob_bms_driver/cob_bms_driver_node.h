@@ -45,7 +45,7 @@ class CobBmsDriverNode
 		//diagnostics data received from BMS
 		diagnostic_updater::DiagnosticStatusWrapper stat_;
 		
-		//function to get parameters from parameter server
+		//function to get ROS parameters from parameter server
 		void getParams();
 
 		//function to interpret the diagnostics XmlRpcValue and save data in config_map_

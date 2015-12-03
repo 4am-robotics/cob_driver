@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-	<node name="cob_bms_driver_node" pkg="cob_bms_driver" type="cob_bms_driver_node" output="screen">
+	<node name="cob_bms_driver_node" pkg="cob_bms_driver" type="cob_bms_driver_node" output="screen" clear_params="true">
 		<rosparam command="load" file="$(find cob_bms_driver)/config/config.yaml"/>
 	</node>
 </launch>
