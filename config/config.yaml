@@ -1,7 +1,7 @@
 diagnostics: 
   - id: 0x02
     fields:
-      - name: "AkkuCurrent"
+      - name: "current"
         offset: 0
         len: 2
         is_signed: true
@@ -10,7 +10,7 @@ diagnostics:
 
   - id: 0x03
     fields:
-      - name: "AkkuPackVoltage"
+      - name: "voltage"
         offset: 0
         len: 2
         is_signed: false
@@ -19,61 +19,61 @@ diagnostics:
 
   - id: 0x06
     fields:
-      - name: "RemainingCapacity"
+      - name: "remaining_capacity"
         offset: 0
         len: 2
         is_signed: false
-        factor: 1.0
-        unit: "mAh"
+        factor: 0.001
+        unit: "Ah"
 
   - id: 0x14
     fields:
-      - name: "FETTemperature"
+      - name: "temperature"
         offset: 0
         len: 2
         is_signed: true
         factor: 0.1
-        unit: "°C"
+        unit: "Celsius"
 
-      - name: "CellTemperature_1"
+      - name: "temperature_cell_1"
         offset: 2
         len: 2
         is_signed: true
         factor: 0.1
-        unit: "°C"
+        unit: "Celsius"
 
-      - name: "CellTemperature_2"
+      - name: "temperature_cell_2"
         offset: 4
         len: 2
         is_signed: true
         factor: 0.1
-        unit: "°C"
+        unit: "Celsius"
 
   - id: 0x15
     fields:
-      - name: "CellTemperature_3"
+      - name: "temperature_cell_3"
         offset: 0
         len: 2
         is_signed: true
         factor: 0.1
-        unit: "°C"
+        unit: "Celsius"
 
-      - name: "CellTemperature_4"
+      - name: "temperature_cell_4"
         offset: 2
         len: 2
         is_signed: true
         factor: 0.1
-        unit: "°C"
+        unit: "Celsius"
 
-      - name: "CellTemperature_5"
+      - name: "temperature_cell_5"
         offset: 4
         len: 2
         is_signed: true
         factor: 0.1
-        unit: "°C"
+        unit: "Celsius"
 
 
-topics: ["AkkuCurrent", "RemainingCapacity", "FETTemperature"]
+topics: ["current", "voltage", "remaining_capacity", "temperature"]
 
 can_device: "can0"
 bms_id_to_poll: 0x200
