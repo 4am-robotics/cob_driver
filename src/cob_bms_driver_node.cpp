@@ -115,7 +115,7 @@ void CobBmsDriverNode::createPublishersFor(std::vector<std::string> topics)
 				if (it_bms_vec->name == *it_topic)
 				{
 					//found a match, so create publisher
-					bms_diagnostics_publishers_[*it_topic] = nh_.advertise<std_msgs::Float64> (*it_topic, 100, true);
+					bms_diagnostics_publishers_[*it_topic] = nh_priv_.advertise<std_msgs::Float64> (*it_topic, 100, true);
 					ROS_INFO_STREAM("Created publisher for: " << *it_topic);
 					match_already_found = true;
 					break;	//dont need to look anymore in the config_map_
