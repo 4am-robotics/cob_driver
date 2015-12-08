@@ -40,6 +40,8 @@ bool CobBmsDriverNode::prepare()
 	updater_.setHardwareID("none"); 
 	updater_.add("cob_bms_dagnostics_updater", this, &CobBmsDriverNode::produceDiagnostics);
 	
+	updater_timer_ = nh_.createTimer(ros::Duration(updater_.getPeriod()), &CobBmsDriverNode::diagnosticsTimerCallback, this);
+	
 	//initialize the socketcan interface
 	if(!socketcan_interface_.init(can_device_, false)) {
 		ROS_ERROR_STREAM("cob_bms_driver initialization failed");
@@ -372,22 +374,27 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 			}
 		}
 	}	
-	//update diagnostics
-	updater_.update();
 }
 
 //updates the diagnostics data with the new data received from BMS
 void CobBmsDriverNode::produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
 {
+	//TODO: SET SUMMARY
 	stat.values.insert(stat.values.begin(),stat_.values.begin(),stat_.values.end()); 
 }
 
+void CobBmsDriverNode::diagnosticsTimerCallback(const ros::TimerEvent& event)
+{
+	//update diagnostics
+	updater_.update();
+}
+
 int main(int argc, char **argv) 
-{	
+{		
 	ros::init(argc, argv, "bms_driver_node");
 	
 	CobBmsDriverNode cob_bms_driver_node;
-			
+		
 	if (!cob_bms_driver_node.prepare()) return 1;	
 	
 	ROS_INFO("Started polling BMS...");

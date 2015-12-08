@@ -29,6 +29,7 @@ class CobBmsDriverNode
 		int poll_period_for_two_ids_in_ms_;
 		std::string can_device_;								
 		int bms_id_to_poll_;
+		ros::Timer updater_timer_;
 
 		//polling lists that contain CAN-ID(s) that are to be polled. Each CAN-ID corresponds to a group of BMS parameters
 		std::vector<uint8_t> polling_list1_;
@@ -91,6 +92,9 @@ class CobBmsDriverNode
 		
 		//updates the diagnostics data with the new data received from BMS
 		void produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat);	
+		
+		//calls update function of diagnostics_updater
+		void diagnosticsTimerCallback(const ros::TimerEvent&);
 };
 
 
