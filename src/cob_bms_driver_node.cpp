@@ -37,7 +37,7 @@ bool CobBmsDriverNode::prepare()
 	polling_list1_it_ = polling_list1_.begin();
 	polling_list2_it_ = polling_list2_.begin();
 	
-	updater_.setHardwareID("none"); 
+	updater_.setHardwareID("bms"); 
 	updater_.add("cob_bms_dagnostics_updater", this, &CobBmsDriverNode::produceDiagnostics);
 	
 	updater_timer_ = nh_.createTimer(ros::Duration(updater_.getPeriod()), &CobBmsDriverNode::diagnosticsTimerCallback, this);
