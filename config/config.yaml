@@ -26,7 +26,7 @@ diagnostics:
         factor: 0.001
         unit: "Ah"
 
-  - id: 0x14
+  - id: 0x04
     fields:
       - name: "temperature"
         offset: 0
@@ -49,7 +49,7 @@ diagnostics:
         factor: 0.1
         unit: "Celsius"
 
-  - id: 0x15
+  - id: 0x05
     fields:
       - name: "temperature_cell_3"
         offset: 0
