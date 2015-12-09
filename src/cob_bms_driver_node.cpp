@@ -379,7 +379,26 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 //updates the diagnostics data with the new data received from BMS
 void CobBmsDriverNode::produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
 {
-	//TODO: SET SUMMARY
+	can::State state = socketcan_interface_.getState();
+	switch (state.driver_state)
+	{
+		case can::State::closed: 
+			stat.summaryf(diagnostic_msgs::DiagnosticStatus::ERROR, "Driver State: Closed, Error Code: %i, Internal Error: %i", state.error_code, state.internal_error);
+			break;
+		
+		case can::State::open: 
+			stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Driver State: Opened");
+			break;
+		
+		case can::State::ready: 
+			stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Driver State: Ready");
+			break;
+	
+		default: 
+			stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "Driver State: Unknown");
+			break;
+	}		
+		
 	stat.values.insert(stat.values.begin(),stat_.values.begin(),stat_.values.end()); 
 }
 
