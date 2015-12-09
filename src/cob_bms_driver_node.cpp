@@ -328,6 +328,8 @@ void CobBmsDriverNode::pollNextInLists()
 	//restart if reached the end of polling lists
 	if (polling_list1_it_ == polling_list1_.end()) polling_list1_it_ = polling_list1_.begin();
 	if (polling_list2_it_ == polling_list2_.end()) polling_list2_it_ = polling_list2_.begin();
+	//clear stat_, so that it can be refilled with new data
+	stat_.clear()
 	
 	uint16_t first_id = (polling_list1_it_ == polling_list1_.end()) ? 0 : (*polling_list1_it_ | 0x0100);
 	uint16_t second_id = (polling_list2_it_ == polling_list2_.end()) ? 0 : (*polling_list2_it_ | 0x0100);
