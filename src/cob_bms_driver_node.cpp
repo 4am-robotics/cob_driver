@@ -43,10 +43,10 @@ bool CobBmsDriverNode::prepare()
 	updater_timer_ = nh_.createTimer(ros::Duration(updater_.getPeriod()), &CobBmsDriverNode::diagnosticsTimerCallback, this);
 	
 	//initialize the socketcan interface
-	//if(!socketcan_interface_.init(can_device_, false)) {
-	//	ROS_ERROR_STREAM("cob_bms_driver initialization failed");
-	//	return false;	
-	//}
+	if(!socketcan_interface_.init(can_device_, false)) {
+		ROS_ERROR_STREAM("cob_bms_driver initialization failed");
+		return false;	
+	}
 	
 	//create listener for CAN frames
 	frame_listener_  = socketcan_interface_.createMsgListener(can::CommInterface::FrameDelegate(this, &CobBmsDriverNode::handleFrames));
@@ -358,8 +358,25 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 				
 	for (BmsParameters::iterator param = config_map_it->second.begin(); param!=config_map_it->second.end(); ++param) 
 	{
-		// 8,16,32 + signed/unsigned TODO
-		double data = read_value<int16_t> (f, param->offset) * param->factor;
+		double data = 0;
+		switch (param->length)
+		{
+			case 1:
+				data = param->is_signed ? read_value<int8_t> (f, param->offset) * param->factor : read_value<uint8_t> (f, param->offset) * param->factor;
+				break;
+	
+			case 2:
+				data = param->is_signed ? read_value<int16_t> (f, param->offset) * param->factor : read_value<uint16_t> (f, param->offset) * param->factor;
+				break;
+				
+			case 4:
+				data = param->is_signed ? read_value<int32_t> (f, param->offset) * param->factor : read_value<uint32_t> (f, param->offset) * param->factor;
+				break;
+			
+			default: 
+				ROS_WARN_STREAM("Unknown length of BmsParameter: " << param->name << ". Cannot read data!");
+				return;	//only go on with next step if data was read successfully
+		}
 		
 		//save data for diagnostics updater
 		param->kv.value = boost::lexical_cast<std::string>(data);
