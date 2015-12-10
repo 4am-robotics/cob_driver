@@ -97,7 +97,7 @@ void CobBmsDriverNode::getParams()
 //function to create a publisher for each Topic that is listed in the configuration file
 void CobBmsDriverNode::createPublishersFor(std::vector<std::string> topics) 
 {
-	if (topics.empty())
+	if (topics.empty() || ((topics.size() == 1) && (topics.at(0).empty())))
 	{
 		ROS_INFO("Topic list is empty. No publisher created");
 		return;
@@ -114,7 +114,7 @@ void CobBmsDriverNode::createPublishersFor(std::vector<std::string> topics)
 			//find a matching name in std::vector<BmsParameter>
 			for (std::vector<BmsParameter>::iterator it_bms_vec = it_map->second.begin(); it_bms_vec != it_map->second.end(); ++it_bms_vec)
 			{
-				if (it_bms_vec->name == *it_topic)
+				if ((!it_topic->empty()) && (it_bms_vec->name == *it_topic))
 				{
 					//found a match, so create publisher
 					bms_diagnostics_publishers_[*it_topic] = nh_priv_.advertise<std_msgs::Float64> (*it_topic, 100, true);
