@@ -43,10 +43,10 @@ bool CobBmsDriverNode::prepare()
 	updater_timer_ = nh_.createTimer(ros::Duration(updater_.getPeriod()), &CobBmsDriverNode::diagnosticsTimerCallback, this);
 	
 	//initialize the socketcan interface
-	if(!socketcan_interface_.init(can_device_, false)) {
-		ROS_ERROR_STREAM("cob_bms_driver initialization failed");
-		return false;	
-	}
+	//if(!socketcan_interface_.init(can_device_, false)) {
+	//	ROS_ERROR_STREAM("cob_bms_driver initialization failed");
+	//	return false;	
+	//}
 	
 	//create listener for CAN frames
 	frame_listener_  = socketcan_interface_.createMsgListener(can::CommInterface::FrameDelegate(this, &CobBmsDriverNode::handleFrames));
@@ -285,7 +285,8 @@ void CobBmsDriverNode::loadPollingLists()
 			
 			for (size_t j=0; j<current_parameter_list.size(); ++j) 
 			{
-				if ((current_parameter_list.at(j).is_topic)) 
+				//second condition here is to ensure that the list1 is always smaller or equal to list2. This is important because otherwise BmsParameters which are topics would get slower updates (possible when topics list is large!).
+				if ((current_parameter_list.at(j).is_topic) && (polling_list1_.size() <= polling_list2_.size())) 
 				{
 					polling_list1_.push_back(parameter_can_id);
 					break; //parameter_can_id needs to be saved only once
