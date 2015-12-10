@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   roslaunch
   socketcan_interface
   std_msgs
+  diagnostic_msgs
 )
 
 catkin_package()

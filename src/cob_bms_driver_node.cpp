@@ -214,6 +214,10 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
 					//iff name of the BmsParameter matches with a name of a topic in the Configuration file, then mark this parameter as a topic
 					bms_parameter_temp.is_topic = (find(topics.begin(), topics.end(), bms_parameter_temp.name) != topics.end());
 					
+					//set diagnostic_msgs::KeyValue member of the BmsParameter
+					bms_parameter_temp.kv.key = bms_parameter_temp.name+bms_parameter_temp.unit;
+					bms_parameter_temp.kv.value = "";
+					
 					if (has_name && has_offset && has_len && has_is_signed)
 					{					
 						//bms_parameter_temp is properly filled at this point, so save it in bms_parameters
@@ -281,7 +285,7 @@ void CobBmsDriverNode::loadPollingLists()
 			
 			for (size_t j=0; j<current_parameter_list.size(); ++j) 
 			{
-				if ((current_parameter_list.at(j).is_topic))
+				if ((current_parameter_list.at(j).is_topic)) 
 				{
 					polling_list1_.push_back(parameter_can_id);
 					break; //parameter_can_id needs to be saved only once
@@ -346,18 +350,20 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 {
 	//id to find in config map
 	uint32_t frame_id = f.id;
-	BmsParameters bms_parameters;
 	
+	//find frame_id in config_map_
 	ConfigMap::iterator config_map_it = config_map_.find(frame_id);
 	if (config_map_it==config_map_.end()) return;
-		
-	bms_parameters = static_cast<BmsParameters>(config_map_it->second);
-		
-	for (BmsParameters::iterator param = bms_parameters.begin(); param!=bms_parameters.end(); ++param) 
-	{
-		double data = read_value<int16_t> (f, param->offset) * param->factor;
-		stat_.add(param->name + param->unit, data);
 				
+	for (BmsParameters::iterator param = config_map_it->second.begin(); param!=config_map_it->second.end(); ++param) 
+	{
+		// 8,16,32 + signed/unsigned TODO
+		double data = read_value<int16_t> (f, param->offset) * param->factor;
+		
+		//save data for diagnostics updater
+		param->kv.value = boost::lexical_cast<std::string>(data);
+		
+		//if the BmsParameter is a topic, publish data to the topic
 		if (param->is_topic)
 		{
 			//find publisher for this topic in bms_diagnostics_publishers_ 
@@ -397,9 +403,15 @@ void CobBmsDriverNode::produceDiagnostics(diagnostic_updater::DiagnosticStatusWr
 		default: 
 			stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "Driver State: Unknown");
 			break;
-	}		
-		
-	stat.values.insert(stat.values.begin(),stat_.values.begin(),stat_.values.end()); 
+	}	
+	
+	for (ConfigMap::iterator cm_it = config_map_.begin(); cm_it != config_map_.end(); ++cm_it)	
+	{
+		for (BmsParameters::iterator bp_it = cm_it->second.begin(); bp_it != cm_it->second.end(); ++bp_it)
+		{
+			stat.values.push_back(bp_it->kv);
+		}
+	}	
 }
 
 void CobBmsDriverNode::diagnosticsTimerCallback(const ros::TimerEvent& event)
