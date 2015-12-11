@@ -380,8 +380,8 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 				return;	//only go on with next step if data was read successfully
 		}
 		
-		//save data for diagnostics updater
-		param->kv.value = boost::lexical_cast<std::string>(data);
+		//save data for diagnostics updater (and round to two digits for readability)
+		param->kv.value = boost::lexical_cast<std::string>(boost::format("%.2f") % data);
 		
 		//if the BmsParameter is a topic, publish data to the topic
 		if (param->is_topic)
