@@ -14,7 +14,7 @@ struct BmsParameter
 	std::string unit;
 	bool is_topic;
 	
-	diagnostic_msgs::KeyValue kv;	//TODO make sure it is empty initially??
+	diagnostic_msgs::KeyValue kv;
 	
 	BmsParameter()
 	: factor(1.0)

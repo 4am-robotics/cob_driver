@@ -231,7 +231,6 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
 					
 					//set diagnostic_msgs::KeyValue member of the BmsParameter
 					bms_parameter_temp.kv.key = bms_parameter_temp.name+bms_parameter_temp.unit;
-					bms_parameter_temp.kv.value = "";
 					
 					if (has_name && has_offset && has_len && has_is_signed)
 					{					
