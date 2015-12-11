@@ -49,13 +49,13 @@ class CobBmsDriverNode
 		diagnostic_updater::DiagnosticStatusWrapper stat_;
 		
 		//function to get ROS parameters from parameter server
-		void getParams();
+		bool getParams();
 
 		//function to interpret the diagnostics XmlRpcValue and save data in config_map_
 		void loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vector<std::string> topics);
 
 		//function to create a publisher for each Topic that is listed in the configuration file
-		void createPublishersFor(std::vector<std::string> topics);
+		bool createPublishersFor(std::vector<std::string> topics);
 
 		//helper function to evaluate poll period from given poll frequency
 		void evaluatePollPeriodFrom(int poll_frequency);
