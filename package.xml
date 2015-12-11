@@ -17,5 +17,7 @@
   <depend>roslaunch</depend>
   <depend>socketcan_interface</depend>
   <depend>std_msgs</depend>
+  <depend>diagnostic_msgs</depend>
+
 
 </package>
