@@ -351,6 +351,8 @@ void CobBmsDriverNode::pollNextInLists()
 //callback function to handle all types of frames received from BMS
 void CobBmsDriverNode::handleFrames(const can::Frame &f)
 {
+	boost::mutex::scoped_lock lock(data_mutex_);
+	
 	//id to find in config map
 	uint32_t frame_id = f.id;
 	
@@ -405,6 +407,8 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 //updates the diagnostics data with the new data received from BMS
 void CobBmsDriverNode::produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
 {
+	boost::mutex::scoped_lock lock(data_mutex_);
+	
 	can::State state = socketcan_interface_.getState();
 	switch (state.driver_state)
 	{

@@ -30,6 +30,8 @@ class CobBmsDriverNode
 		std::string can_device_;								
 		int bms_id_to_poll_;
 		ros::Timer updater_timer_;
+		
+		boost::mutex data_mutex_;
 
 		//polling lists that contain CAN-ID(s) that are to be polled. Each CAN-ID corresponds to a group of BMS parameters
 		std::vector<uint8_t> polling_list1_;
