@@ -34,11 +34,16 @@ SocketCan::SocketCan(const char* device, int baudrate)
         recived = false;
 
         p_cDevice = device;
+        can::SocketCANInterface m_handle;
 }
 
 SocketCan::SocketCan(const char* device)
 {
         m_bInitialized = false;
+        recived = false;
+
+        p_cDevice = device;
+        can::SocketCANInterface m_handle;
 }
 
 //-----------------------------------------------
@@ -46,7 +51,7 @@ SocketCan::~SocketCan()
 {
         if (m_bInitialized)
         {
-               shutdown(); // welche aufgabe muss erledigt werden wenn dekonstrulieren
+               m_handle.shutdown(); // welche aufgabe muss erledigt werden wenn dekonstrulieren
         }
 }
 
@@ -56,15 +61,15 @@ bool SocketCan::init_ret()
         bool ret = true;
 
         // init() - part
-        if (!can::SocketCANInterface::init(p_cDevice, false))
+        if (!m_handle.init(p_cDevice, false))
         {
-                print_error(getState());
+                print_error(m_handle.getState());
                 ret = false;
         }
         else
         {
                 ret = initCAN();
-		run();
+		m_handle.run();
         }
 
         return ret;
@@ -89,7 +94,7 @@ bool SocketCan::transmitMsg(CanMsg CMsg, bool bBlocking)
 	for(int i=0; i<CMsg.getLength(); i++)
 	    message.data[i] = CMsg.getAt(i);
 
-	return send(message);
+	return m_handle.send(message);
 }
 
 //-------------------------------------------
@@ -193,6 +198,6 @@ void SocketCan::recive_frame(const can::Frame& frame){
 void SocketCan::print_error(const can::State & state){
      std::string err;
      std::cout << "ERROR: state=" << std::endl;
-    can::SocketCANInterface::translateError(state.internal_error, err);
+    m_handle.translateError(state.internal_error, err);
     std::cout << "ERROR: state=" << state.driver_state << " internal_error=" << state.internal_error << "('" << err << "') asio: " << state.error_code << std::endl;
 }

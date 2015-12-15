@@ -22,13 +22,10 @@
 #define CANPEAKSYSUSB_INCLUDEDEF_H
 //-----------------------------------------------
 #include <cob_generic_can/CanItf.h>
-#include <linux/can.h>
-#include <linux/can/raw.h>
-#include <cob_utilities/IniFile.h>
 #include <socketcan_interface/socketcan.h>
 //-----------------------------------------------
 
-class SocketCan : public can::SocketCANInterface
+class SocketCan : public CanItf
 {
 public:
 	// --------------- Interface
@@ -46,6 +43,8 @@ public:
 
 private:
 	// --------------- Types
+    can::SocketCANInterface m_handle;
+
 	bool m_bInitialized;
 	bool m_bSimuEnabled;
 	const char* p_cDevice;

@@ -64,6 +64,7 @@
 #define CANITFTYPE_CAN_ESD	2
 #define CANITFTYPE_CAN_DUMMY	3
 #define CANITFTYPE_CAN_BECKHOFF	4
+#define CANITFTYPE_SOCKET_CAN 5
 
 #define CANITFBAUD_1M 	0x0
 #define CANITFBAUD_500K	0x2
@@ -82,10 +83,11 @@ class CanItf
 public:
 	enum CanItfType {
 		CAN_PEAK = 0,
-		CAN_PEAK_USN = 1,
+		CAN_PEAK_USB = 1,
 		CAN_ESD = 2,
 		CAN_DUMMY = 3,
-		CAN_BECKHOFF = 4
+		CAN_BECKHOFF = 4,
+		CAN_SOCKETCAN = 5
 	};
 
 	/**
