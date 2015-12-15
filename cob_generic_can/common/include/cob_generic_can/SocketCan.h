@@ -18,8 +18,8 @@
  * along with this package. If not, see <http://www.gnu.org/licenses/>.
 *****************************************************************************/
 
-#ifndef CANPEAKSYSUSB_INCLUDEDEF_H
-#define CANPEAKSYSUSB_INCLUDEDEF_H
+#ifndef SOCKETCAN_INCLUDEDEF_H
+#define SOCKETCAN_INCLUDEDEF_H
 //-----------------------------------------------
 #include <cob_generic_can/CanItf.h>
 #include <socketcan_interface/socketcan.h>
@@ -30,7 +30,7 @@ class SocketCan : public CanItf
 public:
 	// --------------- Interface
 	SocketCan(const char* device, int baudrate);
-	SocketCan(const char* cIniFile);
+	SocketCan(const char* device);
 	~SocketCan();
 	bool init_ret();
 	void init();
