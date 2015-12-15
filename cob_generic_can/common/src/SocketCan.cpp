@@ -1,8 +1,22 @@
-/****************************************************************
+/*****************************************************************************
+ * Copyright 2015 Intelligent Industrial Robotics (IIROB) Group,
+ * Institute for Anthropomatics and Robotics (IAR) -
+ * Intelligent Process Control and Robotics (IPR),
+ * Karlsruhe Institute of Technology
 
- ****************************************************************/
+ * This package is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
 
-//#define __DEBUG__
+ * This package is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this package. If not, see <http://www.gnu.org/licenses/>.
+*****************************************************************************/
 
 #include <cob_generic_can/SocketCan.h>
 #include <stdlib.h>
@@ -14,32 +28,17 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <class_loader/class_loader.h>
-#include <socketcan_interface/socketcan.h>
-#include <boost/unordered_set.hpp>
-#include <boost/exception/diagnostic_information.hpp>
-#include <boost/make_shared.hpp>
-
-//-----------------------------------------------
-SocketCan::SocketCan(const char* device, int baudrate) : SocketCANInterface()
+SocketCan::SocketCan(const char* device, int baudrate)
 {
         m_bInitialized = false;
-	recived = false;
+        recived = false;
 
         p_cDevice = device;
-	
-	CommInterface::FrameListener::Ptr frame_reciver = g_driver->createMsgListener(SocketCan::recive_frame);
-	StateInterface::StateListener::Ptr error_reciver = g_driver->createStateListener(SocketCan::recive_error);
 }
 
-SocketCan::SocketCan(const char* cIniFile)
+SocketCan::SocketCan(const char* device)
 {
         m_bInitialized = false;
-
-        // read IniFile
-        m_IniFile.SetFileName(cIniFile, "SocktCan.cpp");
- 
-        init();
 }
 
 //-----------------------------------------------
@@ -57,9 +56,9 @@ bool SocketCan::init_ret()
         bool ret = true;
 
         // init() - part
-        if (!init(p_cDevice, false))
+        if (!can::SocketCANInterface::init(p_cDevice, false))
         {
-                std::cout << "Cannot open SocketCan: " << getState() << std::endl;
+                print_error(getState());
                 ret = false;
         }
         else
@@ -74,58 +73,41 @@ bool SocketCan::init_ret()
 //-----------------------------------------------
 void SocketCan::init()
 {
-        std::string sCanDevice;
-	
-
-        if( m_IniFile.GetKeyString( "TypeCan", "DevicePath", &sCanDevice, false) != 0) {
-                sCanDevice = "/dev/pcan32";
-        } else std::cout << "CAN-device path read from ini-File: " << sCanDevice << std::endl;
-
-        //m_handle = LINUX_CAN_Open("/dev/pcan32", O_RDWR | O_NONBLOCK);
-        //m_handle = LINUX_CAN_Open(sCanDevice.c_str(), O_RDWR);
-	m_handle = g_driver->init(sCanDevice.c_str(), false);
-
-        if (! m_handle)
+        if (!init_ret())
         {
-                // Fatal error
-                std::cout << "Cannot open CAN on USB: " << strerror(errno) << std::endl;
                 sleep(3);
                 exit(0);
         }
-
-        m_iBaudrateVal = 0;
-        m_IniFile.GetKeyInt( "CanCtrl", "BaudrateVal", &m_iBaudrateVal, true);
-
 }
 
 
 //-------------------------------------------
 bool SocketCan::transmitMsg(CanMsg CMsg, bool bBlocking)
 {
-	can::Frame message(CMsg.getID(), CMsg.getLength());
+    can::Header header(CMsg.getID(), false, false, false);
+	can::Frame message(header, CMsg.getLength());
 	for(int i=0; i<CMsg.getLength(); i++)
 	    message.data[i] = CMsg.getAt(i);
-	
+
 	return send(message);
 }
 
 //-------------------------------------------
 bool SocketCan::receiveMsg(CanMsg* pCMsg)
 {
-       if (m_bInitialized == false) return false;
+    if (m_bInitialized == false) return false;
 
-       bool bRet = false;
-       
-       if (recived) {
-	  
-	  pCMsg->setID(recived_frame.id);
-	  pCMsg->setLength(recived_frame.l);
-	  pCMsg->set(recived_frame.data[0], recived_frame.data[1], recived_frame.data[2], recived_frame.data[3],
+    bool bRet = false;
+
+    if (recived) {
+        pCMsg->setID(recived_frame.id);
+        pCMsg->setLength(recived_frame.dlc);
+        pCMsg->set(recived_frame.data[0], recived_frame.data[1], recived_frame.data[2], recived_frame.data[3],
                         recived_frame.data[4], recived_frame.data[5], recived_frame.data[6], recived_frame.data[7]);
-	  bRet = true;
+        bRet = true;
 	}
-	if (!recived){
-	  std::cout << "no message recived: " << std::endl;
+	else {
+	  std::cout << "No message recived: " << std::endl;
 	}
 	return bRet;
 }
@@ -133,78 +115,43 @@ bool SocketCan::receiveMsg(CanMsg* pCMsg)
 //-------------------------------------------
 bool SocketCan::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
 {
-        int i, iRet;
+    if (m_bInitialized == false) return false;
 
-        TPCANRdMsg TPCMsg;
-        TPCMsg.Msg.LEN = 8;
-        TPCMsg.Msg.MSGTYPE = 0;
-        TPCMsg.Msg.ID = 0;
-
-        if (m_bInitialized == false) return false;
-
-        // wait until msg in buffer
-        bool bRet = true;
-        iRet = CAN_ERR_OK;
-        i=0;
-        do
-        {
-                iRet = LINUX_CAN_Read_Timeout(m_handle, &TPCMsg, 0);
-
-                if(iRet == CAN_ERR_OK)
-                        break;
-
-                i++;
-                usleep(10000);
+    // wait until msg in buffer
+    bool bRet = false;
+    int i=0;
+    do
+    {
+        if (recived) {
+            pCMsg->setID(recived_frame.id);
+            pCMsg->setLength(recived_frame.dlc);
+            pCMsg->set(recived_frame.data[0], recived_frame.data[1], recived_frame.data[2], recived_frame.data[3],
+                            recived_frame.data[4], recived_frame.data[5], recived_frame.data[6], recived_frame.data[7]);
+            bRet = true;
+            break;
         }
-        while(i < iNrOfRetry);
-
-        // eval return value
-        if(iRet != CAN_ERR_OK)
-        {
-                std::cout << "SocketCan::receiveMsgRetry, errorcode= " << nGetLastError() << std::endl;
-                pCMsg->set(0, 0, 0, 0, 0, 0, 0, 0);
-                bRet = false;
-        }
-        else
-        {
-                pCMsg->setID(TPCMsg.Msg.ID);
-                pCMsg->setLength(TPCMsg.Msg.LEN);
-                pCMsg->set(TPCMsg.Msg.DATA[0], TPCMsg.Msg.DATA[1], TPCMsg.Msg.DATA[2], TPCMsg.Msg.DATA[3],
-                        TPCMsg.Msg.DATA[4], TPCMsg.Msg.DATA[5], TPCMsg.Msg.DATA[6], TPCMsg.Msg.DATA[7]);
-        }
-
-        return bRet;
+        i++;
+        usleep(10000);
+    }
+    while(i < iNrOfRetry);
+    return bRet;
 }
 
 //-------------------------------------------
 bool SocketCan::receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout)
 {
-    int iRet = CAN_ERR_OK;
-
-    TPCANRdMsg TPCMsg;
-    TPCMsg.Msg.LEN = 8;
-    TPCMsg.Msg.MSGTYPE = 0;
-    TPCMsg.Msg.ID = 0;
-
     if (m_bInitialized == false) return false;
 
-    bool bRet = true;
+    // wait until msg in buffer
+    bool bRet = false;
 
-    iRet = LINUX_CAN_Read_Timeout(m_handle, &TPCMsg, nSecTimeout);
-
-    // eval return value
-    if(iRet != CAN_ERR_OK)
-    {
-	std::cout << "SocketCan::receiveMsgTimeout, errorcode= " << nGetLastError() << std::endl;
-	pCMsg->set(0, 0, 0, 0, 0, 0, 0, 0);
-	bRet = false;
-    }
-    else
-    {
-	pCMsg->setID(TPCMsg.Msg.ID);
-	pCMsg->setLength(TPCMsg.Msg.LEN);
-	pCMsg->set(TPCMsg.Msg.DATA[0], TPCMsg.Msg.DATA[1], TPCMsg.Msg.DATA[2], TPCMsg.Msg.DATA[3],
-		    TPCMsg.Msg.DATA[4], TPCMsg.Msg.DATA[5], TPCMsg.Msg.DATA[6], TPCMsg.Msg.DATA[7]);
+    usleep(nSecTimeout/1000);
+    if (recived) {
+        pCMsg->setID(recived_frame.id);
+        pCMsg->setLength(recived_frame.dlc);
+        pCMsg->set(recived_frame.data[0], recived_frame.data[1], recived_frame.data[2], recived_frame.data[3],
+                        recived_frame.data[4], recived_frame.data[5], recived_frame.data[6], recived_frame.data[7]);
+        bRet = true;
     }
 
     return bRet;
@@ -216,8 +163,8 @@ bool SocketCan::initCAN() {
         return true;
 }
 
-void SocketCan::recive_frame(const Frame& frame){
-  
+void SocketCan::recive_frame(const can::Frame& frame){
+
     if(frame.is_error){
         std::cout << "E " << std::hex << frame.id << std::dec;
     }else if(frame.is_extended){
@@ -225,27 +172,27 @@ void SocketCan::recive_frame(const Frame& frame){
     }else{
         std::cout << "s " << std::hex << frame.id << std::dec;
     }
-    
+
     std::cout << "\t";
-    
+
     if(frame.is_rtr){
         std::cout << "r";
     }else{
         std::cout << (int) frame.dlc << std::hex;
-        
+
         for(int i=0; i < frame.dlc; ++i){
             std::cout << std::hex << " " << (int) frame.data[i];
         }
     }
-    
+
     std::cout << std::dec << std::endl;
     recived_frame = frame;
     recived = true;
 }
 
-void SocketCan::recive_error(const State & state){
+void SocketCan::print_error(const can::State & state){
      std::string err;
      std::cout << "ERROR: state=" << std::endl;
-    //g_driver->translateError(s.internal_error,err);
-    //std::cout << "ERROR: state=" << s.driver_state << " internal_error=" << s.internal_error << "('" << err << "') asio: " << s.error_code << std::endl;
+    can::SocketCANInterface::translateError(state.internal_error, err);
+    std::cout << "ERROR: state=" << state.driver_state << " internal_error=" << state.internal_error << "('" << err << "') asio: " << state.error_code << std::endl;
 }

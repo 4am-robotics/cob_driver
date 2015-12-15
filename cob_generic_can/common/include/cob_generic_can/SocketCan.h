@@ -1,6 +1,22 @@
-/****************************************************************
- 
- ****************************************************************/
+/*****************************************************************************
+ * Copyright 2015 Intelligent Industrial Robotics (IIROB) Group,
+ * Institute for Anthropomatics and Robotics (IAR) -
+ * Intelligent Process Control and Robotics (IPR),
+ * Karlsruhe Institute of Technology
+
+ * This package is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This package is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this package. If not, see <http://www.gnu.org/licenses/>.
+*****************************************************************************/
 
 #ifndef CANPEAKSYSUSB_INCLUDEDEF_H
 #define CANPEAKSYSUSB_INCLUDEDEF_H
@@ -13,7 +29,7 @@
 //-----------------------------------------------
 
 class SocketCan : public can::SocketCANInterface
-{ 
+{
 public:
 	// --------------- Interface
 	SocketCan(const char* device, int baudrate);
@@ -30,14 +46,11 @@ public:
 
 private:
 	// --------------- Types
-	HANDLE m_handle;
-
 	bool m_bInitialized;
-	IniFile m_IniFile;
 	bool m_bSimuEnabled;
 	const char* p_cDevice;
 	int m_iBaudrateVal;
-	
+
 	bool recived;
 	can::Frame recived_frame;
 
@@ -45,9 +58,9 @@ private:
 	static const int c_iPort;
 
 	bool initCAN();
-	
-	void recive_frame(const Frame & frame);
-	void recive_error(const State & state);
+
+	void recive_frame(const can::Frame & frame);
+	void print_error(const can::State & state);
 };
 //-----------------------------------------------
 #endif

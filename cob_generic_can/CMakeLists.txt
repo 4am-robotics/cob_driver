@@ -5,7 +5,7 @@ find_package(catkin REQUIRED COMPONENTS socketcan_interface cob_utilities libntc
 
 catkin_package(
   CATKIN_DEPENDS socketcan_interface cob_utilities libntcan libpcan
-  INCLUDE_DIRS common/include ../ros_canopen/socketcan_interface/include
+  INCLUDE_DIRS common/include
   LIBRARIES ${PROJECT_NAME}_peaksysusb ${PROJECT_NAME}_peaksys ${PROJECT_NAME}_esd ${PROJECT_NAME}_socketcan
 )
 
