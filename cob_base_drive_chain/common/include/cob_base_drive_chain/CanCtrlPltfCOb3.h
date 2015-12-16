@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -11,9 +11,9 @@
  * ROS stack name: cob_drivers
  * ROS package name: cob_base_drive_chain
  * Description: This is a sample implementation of a can-bus with several nodes. In this case it implements the drive-chain of the Care-O-bot3 mobile base. yet, this can be used as template for using the generic_can and canopen_motor packages to implement arbitrary can-setups.
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Christian Connette, email:christian.connette@ipa.fhg.de
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
@@ -33,23 +33,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -85,7 +85,7 @@ public:
 
 	//--------------------------------- Basic procedures
 
-	/** 
+	/**
 	 * Default constructor.
 	 */
 	CanCtrlPltfCOb3(std::string iniDirectory);
@@ -117,10 +117,10 @@ public:
 
 	//--------------------------------- Commands for all nodes on the bus
 
-	/** 
+	/**
 	 * Initializes all CAN nodes of the platfrom and performs homing procedure.
 	 * !! The homing routine is hardware-dependent (steering and driving is coupled) !!
-	 * !! If you use this code on other hardware -> make sure te remove or adapt homing sequence !! 
+	 * !! If you use this code on other hardware -> make sure te remove or adapt homing sequence !!
 	 */
 	bool initPltf();
 
@@ -160,7 +160,7 @@ public:
 	 * Status is requested, too.
 	 * @param iCanIdent choose a can node
 	 * @param dVelGearRadS joint-velocity in radian per second
-	 */	
+	 */
 	int setVelGearRadS(int iCanIdent, double dVelGearRadS);
 
 	/**
@@ -168,7 +168,7 @@ public:
 	 * Status is requested, too.
 	 * @param iCanIdent choose a can node
 	 * @param dTorqueNM motor-torque in Newtonmeter
-	 */	
+	 */
 	void setMotorTorque(int iCanIdent, double dTorqueNm);
 
 	/**
@@ -230,9 +230,9 @@ public:
 	// have to be implemented here, to keep the CanDriveItf generic
 
 	/**
-	 * Provides several functions for drive information recording purposes using the built in ElmoRecorder, which allows to record drive information at a high frequency. 
+	 * Provides several functions for drive information recording purposes using the built in ElmoRecorder, which allows to record drive information at a high frequency.
 	 * @param iFlag To keep the interface slight, use iParam to command the recorder:
-	 * 0: Configure the Recorder to record the sources Main Speed(1), Main position(2), Active current(10), Speed command(16). With iParam = iRecordingGap you specify every which time quantum (4*90usec) a new data point (of 1024 points in total) is recorded; 
+	 * 0: Configure the Recorder to record the sources Main Speed(1), Main position(2), Active current(10), Speed command(16). With iParam = iRecordingGap you specify every which time quantum (4*90usec) a new data point (of 1024 points in total) is recorded;
 	 * 1: Query Upload of recorded source (1=Main Speed, 2=Main position, 10=Active Current, 16=Speed command) with iParam and log data to file sParam = file prefix. Filename is extended with _MotorNumber_RecordedSource.log
 	 * 99: Abort and clear current SDO readout process
 	 * 100: Request status of readout. Gives back 0 if all transmissions have finished and no CAN polling is needed anymore.
@@ -249,7 +249,7 @@ public:
 protected:
 
 	//--------------------------------- internal functions
-	
+
 	/**
 	 * Reads configuration of can node and components from Inifile
 	 * (should be adapted to use ROS-Parameter file)
@@ -265,7 +265,7 @@ protected:
 
 
 	//--------------------------------- Types
-	
+
 	/**
 	 * Parameters of the class CanCtrlPltfCOb3.
 	 */
@@ -361,7 +361,7 @@ protected:
 	 * (actually this should be read from inifile)
 	 */
 	struct CanOpenIDType
-	{	
+	{
 		// Wheel 1
 		// can adresse motor 1
 		int TxPDO1_W1Drive;
@@ -388,8 +388,8 @@ protected:
 		int TxPDO2_W2Steer;
 		int RxPDO2_W2Steer;
 		int TxSDO_W2Steer;
-		int RxSDO_W2Steer;	
-		
+		int RxSDO_W2Steer;
+
 		// Wheel 3
 		// can adresse motor 5
 		int TxPDO1_W3Drive;
@@ -403,7 +403,7 @@ protected:
 		int RxPDO2_W3Steer;
 		int TxSDO_W3Steer;
 		int RxSDO_W3Steer;
-		
+
 		// Wheel 4
 		// can adresse motor 3
 		int TxPDO1_W4Drive;
@@ -416,7 +416,7 @@ protected:
 		int TxPDO2_W4Steer;
 		int RxPDO2_W4Steer;
 		int TxSDO_W4Steer;
-		int RxSDO_W4Steer;	
+		int RxSDO_W4Steer;
 	};
 
 	//--------------------------------- Parameter
@@ -428,7 +428,7 @@ protected:
 	GearMotorParamType m_GearMotDrive1;
 	GearMotorParamType m_GearMotDrive2;
 	GearMotorParamType m_GearMotDrive3;
-	GearMotorParamType m_GearMotDrive4;	
+	GearMotorParamType m_GearMotDrive4;
 	GearMotorParamType m_GearMotSteer1;
 	GearMotorParamType m_GearMotSteer2;
 	GearMotorParamType m_GearMotSteer3;

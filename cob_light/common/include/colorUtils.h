@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -12,9 +12,9 @@
  * ROS package name: cob_light
  * Description: Switch robots led color by sending data to
  * the led-µC over serial connection.
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Benjamin Maidel, email:benjamin.maidel@ipa.fraunhofer.de
  * Supervised by: Benjamin Maidel, email:benjamin.maidel@ipa.fraunhofer.de
  *
@@ -31,23 +31,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -67,6 +67,14 @@ struct rgba
 	float g;
 	float b;
 	float a;
+};
+
+struct rgb
+{
+  rgb(): r(0.0), g(0.0), b(0.0){}
+  float r;
+  float g;
+  float b;
 };
 
 struct hsv
@@ -124,6 +132,40 @@ public:
 		else if (i==4) {r = t;  g = p;  b = v;}
 		else if (i==5) {r = v;  g = p;  b = q;}
 	}
+
+    static float linearInterpolate(float a, float b, float t)
+    {
+      return a * (1 - t) + b * t;
+    }
+
+    static color::rgba interpolateColor(color::rgba start, color::rgba goal, float t)
+    {
+      color::hsv ca;
+      color::hsv cb;
+      color::hsv cr;
+      color::rgba a, b;
+      a = start;
+      b = goal;
+
+      a.r *= a.a;
+      a.g *= a.a;
+      a.b *= a.a;
+      b.r *= b.a;
+      b.g *= b.a;
+      b.b *= b.a;
+      color::Color::rgb2hsv(a.r, a.g, a.b, ca.h, ca.s, ca.v);
+      color::Color::rgb2hsv(b.r, b.g, b.b, cb.h, cb.s, cb.v);
+
+      cr.h = linearInterpolate(ca.h, cb.h, t);
+      cr.s = linearInterpolate(ca.s, cb.s, t);
+      cr.v = linearInterpolate(ca.v, cb.v, t);
+
+      color::rgba result;
+      color::Color::hsv2rgb(cr.h, cr.s, cr.v, result.r, result.g, result.b);
+      result.a = 1.0;
+
+      return result;
+    }
 };
 }
 #endif

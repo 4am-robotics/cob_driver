@@ -1,7 +1,5 @@
 #!/usr/bin/python
 
-import roslib
-roslib.load_manifest('cob_camera_sensors')
 import rospy
 from sensor_msgs.msg import *
 from sensor_msgs.srv import *

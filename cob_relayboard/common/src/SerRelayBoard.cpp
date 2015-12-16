@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -11,9 +11,9 @@
  * ROS stack name: cob_driver
  * ROS package name: cob_relayboard
  * Description: Class for communication with relayboard. The relayboard is mainly used for reading the Emergencystop and Laserscannerstop states.
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Philipp Koehler
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
@@ -30,23 +30,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -85,7 +85,7 @@ SerRelayBoard::SerRelayBoard(std::string ComPort, int ProtocolVersion)
 	else if(m_iProtocolVersion == 2)
 	{	m_NUM_BYTE_SEND = 79;
 		m_iTypeLCD = LCD_60CHAR_TEXT;
-	}	
+	}
 	else if(m_iProtocolVersion == 3)
 	{
 		m_NUM_BYTE_SEND = NUM_BYTE_SEND_RELAYBOARD_14;
@@ -119,7 +119,7 @@ int SerRelayBoard::evalRxBuffer()
 	{
 		iNumByteRec = NUM_BYTE_REC_RELAYBOARD_14;
 	}
-	
+
 	const int c_iNrBytesMin = NUM_BYTE_REC_HEADER + iNumByteRec + NUM_BYTE_REC_CHECKSUM;
 	const int c_iSizeBuffer = 4096;
 
@@ -143,7 +143,7 @@ int SerRelayBoard::evalRxBuffer()
 			siNoMsgCnt = 0;
 			errorFlag = NO_MESSAGES;
 		} else errorFlag = TOO_LESS_BYTES_IN_QUEUE;
-		
+
 		return errorFlag;
 	}
 	else
@@ -209,7 +209,7 @@ bool SerRelayBoard::shutdown()
 	m_SerIO.closeIO();
 
 	m_bComInit = false;
-	
+
 	return true;
 }
 
@@ -246,15 +246,15 @@ int SerRelayBoard::sendRequest() {
 	int iNrBytesWritten;
 
 	unsigned char cMsg[m_NUM_BYTE_SEND];
-	
+
 	m_Mutex.lock();
-	
+
 		convDataToSendMsg(cMsg);
 
 		m_SerIO.purgeTx();
 
 		iNrBytesWritten = m_SerIO.writeIO((char*)cMsg, m_NUM_BYTE_SEND);
-	
+
 		if(iNrBytesWritten < m_NUM_BYTE_SEND) {
 			//std::cerr << "Error in sending message to Relayboard over SerialIO, lost bytes during writing" << std::endl;
 			errorFlag = GENERAL_SENDING_ERROR;
@@ -273,7 +273,7 @@ int SerRelayBoard::setDigOut(int iChannel, bool bOn)
 
 		if(bOn) { m_iCmdRelayBoard |= CMD_SET_CHARGE_RELAY; }
 		else { m_iCmdRelayBoard &= ~CMD_SET_CHARGE_RELAY; }
-		
+
 		break;
 
 	case 1:
@@ -322,7 +322,7 @@ int SerRelayBoard::setDigOut(int iChannel, bool bOn)
 
 		return -1;
 	}
-	
+
 	return 0;
 }
 //-----------------------------------------------
@@ -352,7 +352,7 @@ void SerRelayBoard::convDataToSendMsg(unsigned char cMsg[])
 	static int j = 0;
 	int iCnt = 0;
 	int iChkSum = 0;
-	
+
 	if (m_cSoftEMStop & 0x02)
 	{
 		if (j == 1)
@@ -424,7 +424,7 @@ void SerRelayBoard::convDataToSendMsg(unsigned char cMsg[])
 			cMsg[iCnt++] = m_cTextDisplay[i];
 		}
 	}
-	
+
 	if(m_iTypeLCD == RELAY_BOARD_1_4)
 	{
 		cMsg[iCnt++] = m_cSoftEMStop;
@@ -435,10 +435,10 @@ void SerRelayBoard::convDataToSendMsg(unsigned char cMsg[])
 		iChkSum %= 0xFF00;
 		iChkSum += cMsg[i];
 	}
-		
+
 	cMsg[m_NUM_BYTE_SEND - 2] = iChkSum >> 8;
 	cMsg[m_NUM_BYTE_SEND - 1] = iChkSum;
-	
+
 	// reset flags
 	m_iCmdRelayBoard &= ~CMD_RESET_POS_CNT;
 
@@ -459,7 +459,7 @@ void SerRelayBoard::convDataToSendMsg(unsigned char cMsg[])
 
 	cMsg[iCnt++] = m_iCmdRelayBoard >> 8;
 	cMsg[iCnt++] = m_iCmdRelayBoard;
-	
+
 	// fill remaining msg with 0's
 	do
 	{
@@ -497,9 +497,9 @@ bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 	{
 		iNumByteRec = NUM_BYTE_REC_RELAYBOARD_14;
 	}
-	
+
 	const int c_iStartCheckSum = iNumByteRec;
-	
+
 	int i;
 	unsigned int iTxCheckSum;
 	unsigned int iCheckSum;
@@ -508,7 +508,7 @@ bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 
 	// test checksum: checksum should be sum of all bytes
 	iTxCheckSum = (cMsg[c_iStartCheckSum + 1] << 8) | cMsg[c_iStartCheckSum];
-	
+
 	iCheckSum = 0;
 	for(i = 0; i < c_iStartCheckSum; i++)
 	{
@@ -536,7 +536,7 @@ bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 	m_iRelBoardBattVoltage = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
 	iCnt += 2;
 
-	//unused at the moment	
+	//unused at the moment
 	m_iRelBoardKeyPad = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
 	iCnt += 2;
 
@@ -550,7 +550,7 @@ bool SerRelayBoard::convRecMsgToData(unsigned char cMsg[])
 	//unused at the moment
 	m_iRelBoardTempSensor = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];
 	iCnt += 2;
-	
+
 	//Digital Inputs
 	//unused at the moment
 	m_iDigIn = (cMsg[iCnt + 1] << 8) | cMsg[iCnt];

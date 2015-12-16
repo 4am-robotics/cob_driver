@@ -30,23 +30,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -114,7 +114,7 @@ bool CANPeakSysUSB::init_ret()
 //-----------------------------------------------
 void CANPeakSysUSB::init()
 {
-        std::string sCanDevice; 
+        std::string sCanDevice;
 
         if( m_IniFile.GetKeyString( "TypeCan", "DevicePath", &sCanDevice, false) != 0) {
                 sCanDevice = "/dev/pcan32";
@@ -152,7 +152,7 @@ bool CANPeakSysUSB::transmitMsg(CanMsg CMsg, bool bBlocking)
         for(int i=0; i<8; i++)
                 TPCMsg.DATA[i] = CMsg.getAt(i);
 
-        //TODO Hier stürtzt die Base ab.. verwende libpcan.h pcan.h um Fehler auszulesen, diagnostizieren, ausgeben und CAN_INIT erneut aufzurufen = neustart can-hardware. 
+        //TODO Hier stürtzt die Base ab.. verwende libpcan.h pcan.h um Fehler auszulesen, diagnostizieren, ausgeben und CAN_INIT erneut aufzurufen = neustart can-hardware.
 
         int iRet;
         //iRet = CAN_Write(m_handle, &TPCMsg);

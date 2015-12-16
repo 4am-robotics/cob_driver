@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -11,9 +11,9 @@
  * ROS stack name: cob_drivers
  * ROS package name: cob_generic_can
  * Description: This class implements the interface to an ESD can node
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Christian Connette, email:christian.connette@ipa.fhg.de
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
@@ -30,23 +30,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -88,12 +88,12 @@ bool CanESD::init_ret()
 
 //-----------------------------------------------
 void CanESD::initIntern()
-{	
-	int ret=0;	
+{
+	int ret=0;
 	ret = 0;
 	int iCanNet = 1;
 	m_IniFile.GetKeyInt( "CanCtrl", "NetESD", &iCanNet, true);
-	
+
 	int iBaudrateVal = 2;
 	m_IniFile.GetKeyInt( "CanCtrl", "BaudrateVal", &iBaudrateVal, true);
 
@@ -149,11 +149,11 @@ bool CanESD::transmitMsg(CanMsg CMsg, bool bBlocking)
 
 	for(int i=0; i<8; i++)
 		NTCANMsg.data[i] = CMsg.getAt(i);
-	
+
 	int ret;
 	int32_t len;
 	bool bRet = true;
-	
+
 	len = 1;
 
 	if (bBlocking)
@@ -179,13 +179,13 @@ bool CanESD::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
 	//int id = pCMsg->m_iID;
 	CMSG NTCANMsg;
 	NTCANMsg.len = 8;
-	
+
 	int32_t len;
 	int i, ret;
 	bool bRet = true;
-	
+
 	i=0;
-	
+
 	len = 1;
 
 	do
@@ -197,7 +197,7 @@ bool CanESD::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
 	}
 
 	while((len == 0) && (i < iNrOfRetry));
-	
+
 	if(i == iNrOfRetry)
 	{
 		if( ret != NTCAN_SUCCESS )
@@ -225,7 +225,7 @@ bool CanESD::receiveMsg(CanMsg* pCMsg)
 	int ret;
 	int32_t len;
 	bool bRet = true;
-	
+
 	len = 1;
 
 	// Debug valgrind
@@ -243,7 +243,7 @@ bool CanESD::receiveMsg(CanMsg* pCMsg)
 
 	pCMsg->set(0,0,0,0,0,0,0,0);
 
-	
+
 	if( !isObjectMode() ) {
 		pCMsg->m_iID = 0;
 	} else {
@@ -270,7 +270,7 @@ bool CanESD::receiveMsg(CanMsg* pCMsg)
 				// error
 				std::cout << "error in CANESD::receiveMsg: " << GetErrorStr(ret) << std::endl;
 			}
-	
+
 			pCMsg->m_iID = NTCANMsg.id;
 			pCMsg->set(0,0,0,0,0,0,0,0);
 
@@ -290,7 +290,7 @@ bool CanESD::receiveMsg(CanMsg* pCMsg)
 			bRet = true;
 		}
 	}
-	
+
 	if( NTCANMsg.msg_lost != 0 )
 		std::cout << (int)(NTCANMsg.msg_lost) << " messages lost!" << std::endl;
 
@@ -302,7 +302,7 @@ bool CanESD::receiveMsg(CanMsg* pCMsg)
 bool CanESD::receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout)
 {
     // Not implemented yet
-    return false;	
+    return false;
 }
 
 /**
@@ -360,7 +360,7 @@ std::string CanESD::GetErrorStr(int ntstatus) const
 	case NTCAN_INVALID_HANDLE:		return "NTCAN_INVALID_HANDLE";
 	case NTCAN_NET_NOT_FOUND:		return "NTCAN_NET_NOT_FOUND";
 	case NTCAN_INSUFFICIENT_RESOURCES:	return "NTCAN_INSUFFICIENT_RESOURCES";
-	
+
 	case NTCAN_OPERATION_ABORTED:		return "NTCAN_OPERATION_ABORTED";
 	}
 	char msg[100];
@@ -384,7 +384,7 @@ int CanESD::readEvent()
 	int ret;
 
 	ret = canReadEvent(m_Handle, &evmsg, NULL);
-	
+
 	if(ret == NTCAN_SUCCESS)
 	{
 		if( (int)evmsg.evid == NTCAN_EV_CAN_ERROR ) {

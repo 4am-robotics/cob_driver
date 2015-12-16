@@ -50,7 +50,7 @@
 * If not, see <http://www.gnu.org/licenses/>.
 *
 ****************************************************************/
-#include "../include/cob_camera_sensors/StdAfx.h" 
+#include "../include/cob_camera_sensors/StdAfx.h"
 
 #ifdef __LINUX__
 #include "cob_camera_sensors/VirtualColorCam.h"
@@ -110,7 +110,7 @@ unsigned long VirtualColorCam::Init(std::string directory, int cameraIndex)
 	}
 
 	m_CameraIndex = cameraIndex;
-		
+
 	m_initialized = true;
 	return RET_OK;
 
@@ -227,11 +227,11 @@ int VirtualColorCam::GetNumberOfImages()
 }
 
 unsigned long VirtualColorCam::SaveParameters(const char* filename)
-{ 
+{
 	return RET_FAILED;
 }
 
-unsigned long VirtualColorCam::SetPathToImages(std::string path) 
+unsigned long VirtualColorCam::SetPathToImages(std::string path)
 {
 	m_CameraDataDirectory = path;
 	return RET_OK;
@@ -247,7 +247,7 @@ unsigned long VirtualColorCam::Close()
 
 	m_open = false;
 	return RET_OK;
-} 
+}
 
 
 unsigned long VirtualColorCam::SetProperty(t_cameraProperty* cameraProperty)
@@ -264,7 +264,7 @@ unsigned long VirtualColorCam::SetProperty(t_cameraProperty* cameraProperty)
 			m_ImageWidth = cameraProperty->cameraResolution.xResolution;
 			m_ImageHeight = cameraProperty->cameraResolution.yResolution;
 			break;
-		default: 				
+		default:
 			std::cerr << "ERROR - VirtualColorCam::SetProperty:" << std::endl;
 			std::cerr << "\t ... Property " << cameraProperty->propertyID << " unspecified.";
 			return RET_FAILED;
@@ -281,7 +281,7 @@ unsigned long VirtualColorCam::GetProperty(t_cameraProperty* cameraProperty)
 {
 	switch (cameraProperty->propertyID)
 	{
-		case PROP_CAMERA_RESOLUTION:	
+		case PROP_CAMERA_RESOLUTION:
 			cameraProperty->cameraResolution.xResolution = m_ImageWidth;
 			cameraProperty->cameraResolution.yResolution = m_ImageHeight;
 			cameraProperty->propertyType = TYPE_CAMERA_RESOLUTION;
@@ -293,7 +293,7 @@ unsigned long VirtualColorCam::GetProperty(t_cameraProperty* cameraProperty)
 			return RET_OK;
 			break;
 
-		default: 				
+		default:
 			std::cerr << "ERROR - VirtualColorCam::SetProperty:" << std::endl;
 			std::cerr << "\t ... Property " << cameraProperty->propertyID << " unspecified.";
 			return RET_FAILED;
@@ -302,7 +302,7 @@ unsigned long VirtualColorCam::GetProperty(t_cameraProperty* cameraProperty)
 	}
 
 	return RET_OK;
-} 
+}
 
 
 unsigned long VirtualColorCam::GetColorImage(char* colorImageData, bool getLatestFrame)
@@ -313,7 +313,7 @@ unsigned long VirtualColorCam::GetColorImage(char* colorImageData, bool getLates
 		std::cerr << "\t ... Color camera not open." << std::endl;
 		return (RET_FAILED | RET_CAMERA_NOT_OPEN);
 	}
-	
+
 	IplImage* colorImage = (IplImage*) cvLoadImage(m_ColorImageFileNames[m_ImageCounter].c_str(), CV_LOAD_IMAGE_COLOR);
 
 	for(int row=0; row<m_ImageHeight; row++)
@@ -324,9 +324,9 @@ unsigned long VirtualColorCam::GetColorImage(char* colorImageData, bool getLates
 			((char*) (colorImageData + row*colorImage->widthStep))[col*3 + 0] = f_color_ptr[0];
 			((char*) (colorImageData + row*colorImage->widthStep))[col*3 + 1] = f_color_ptr[1];
 			((char*) (colorImageData + row*colorImage->widthStep))[col*3 + 2] = f_color_ptr[2];
-		}	
+		}
 	}
-	
+
 	cvReleaseImage(&colorImage);
 
 	m_ImageCounter++;
@@ -363,7 +363,7 @@ unsigned long VirtualColorCam::PrintCameraInformation()
 	return RET_FUNCTION_NOT_IMPLEMENTED;
 }
 
-unsigned long VirtualColorCam::TestCamera(const char* filename) 
+unsigned long VirtualColorCam::TestCamera(const char* filename)
 {
 	if (AbstractColorCamera::TestCamera(filename) & RET_FAILED)
 	{
@@ -393,7 +393,7 @@ unsigned long VirtualColorCam::LoadParameters(const char* filename, int cameraIn
 //************************************************************************************
 //	BEGIN LibCameraSensors
 //************************************************************************************
-		// Tag element "LibCameraSensors" of Xml Inifile		
+		// Tag element "LibCameraSensors" of Xml Inifile
 		TiXmlElement *p_xmlElement_Root = NULL;
 		p_xmlElement_Root = p_configXmlDocument->FirstChildElement( "LibCameraSensors" );
 		if ( p_xmlElement_Root )
@@ -402,7 +402,7 @@ unsigned long VirtualColorCam::LoadParameters(const char* filename, int cameraIn
 //************************************************************************************
 //	BEGIN LibCameraSensors->VirtualColorCam
 //************************************************************************************
-			// Tag element "VirtualColorCam" of Xml Inifile		
+			// Tag element "VirtualColorCam" of Xml Inifile
 			TiXmlElement *p_xmlElement_Root_VirtualColorCam = NULL;
 			std::stringstream ss;
 			ss << "VirtualColorCam_" << cameraIndex;
@@ -425,7 +425,7 @@ unsigned long VirtualColorCam::LoadParameters(const char* filename, int cameraIn
 						std::cerr << "VirtualColorCam::LoadParameters: Can't find attribute 'relativePath' of tag 'CameraDataDirectory'." << std::endl;
 						return (RET_FAILED | RET_XML_ATTR_NOT_FOUND);
 					}
-					
+
 					m_CameraDataDirectory = m_CameraDataDirectory + tempString + "/";
 				}
 				else
@@ -438,7 +438,7 @@ unsigned long VirtualColorCam::LoadParameters(const char* filename, int cameraIn
 //************************************************************************************
 //	END LibCameraSensors->VirtualColorCam
 //************************************************************************************
-			else 
+			else
 			{
 				std::cerr << "ERROR - VirtualColorCam::LoadParameters:" << std::endl;
 				std::cerr << "\t ... Can't find tag '" << ss.str() << "'" << std::endl;
@@ -449,7 +449,7 @@ unsigned long VirtualColorCam::LoadParameters(const char* filename, int cameraIn
 //************************************************************************************
 //	END LibCameraSensors
 //************************************************************************************
-		else 
+		else
 		{
 			std::cerr << "ERROR - VirtualColorCam::LoadParameters:" << std::endl;
 			std::cerr << "\t ... Can't find tag 'LibCameraSensors'." << std::endl;

@@ -50,7 +50,7 @@
 * If not, see <http://www.gnu.org/licenses/>.
 *
 ****************************************************************/
- 
+
 /// @file AVTPikeCam.h
 /// Interface to AVTPikeCam Firewire Camera.
 /// @author Jan Fischer
@@ -116,7 +116,7 @@ class __DLL_LIBCAMERASENSORS__ AVTPikeCam : public AbstractColorCamera
 	class AVTPikeCamDeleter
 	{
 	public:
-		~AVTPikeCamDeleter() 
+		~AVTPikeCamDeleter()
 		{
 #ifndef __LINUX__
 			FGExitModule();
@@ -136,16 +136,16 @@ class __DLL_LIBCAMERASENSORS__ AVTPikeCam : public AbstractColorCamera
 		dc1394_t* m_IEEE1394Info;	///< Hold information about IEEE1394 nodes, connected cameras and camera properties
 		dc1394camera_list_t* m_IEEE1394Cameras;	///< List holds all available firewire cameras
 		dc1394camera_t* m_cam; 		///< Opened camera instance.
-		dc1394video_modes_t m_availableVideoModes; ///< Struct holds all available video modes for the opened camera 
+		dc1394video_modes_t m_availableVideoModes; ///< Struct holds all available video modes for the opened camera
 
 		dc1394speed_t m_IsoSpeed;	 		///< ISO speed.
 		dc1394framerate_t m_FrameRate;		///< Frame rate.
 		dc1394video_mode_t m_VideoMode;		///< Comprise format and mode (i.e. DC1394_VIDEO_MODE_1280x960_RGB8 or DC1394_VIDEO_MODE_FORMAT7_0)
-		dc1394color_coding_t m_ColorCoding;	///< Necessary for Format 7 video mode. Here the color coding is not specified through the video mode   
+		dc1394color_coding_t m_ColorCoding;	///< Necessary for Format 7 video mode. Here the color coding is not specified through the video mode
 #endif
 
 #ifdef _WIN32
-		CFGCamera m_cam;			///< The camera object for AVT FireGrab (part of AVT FirePackage)		
+		CFGCamera m_cam;			///< The camera object for AVT FireGrab (part of AVT FirePackage)
 		FGNODEINFO m_nodeInfo[5];	///< Array holds information about all detected firewire nodes
 		UINT32 m_NodeCnt;			///< Number of detected IEEE1394 nodes
 		FGFRAME m_Frame; ///< The acquired latest frame from the camera
@@ -210,7 +210,7 @@ class __DLL_LIBCAMERASENSORS__ AVTPikeCam : public AbstractColorCamera
 		//*******************************************************************************
 		// Camera specific functions
 		//*******************************************************************************
-		
+
 };
 
 /// Creates, intializes and returns a smart pointer object for the camera.

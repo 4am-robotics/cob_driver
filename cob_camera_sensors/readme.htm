@@ -6,7 +6,7 @@ The <i>cob_camera_sensors</i> package is a collection of ROS compatible drivers 
 <p>
 Setting the camera parameters is different from the suggested ROS standard. Instead of setting all parameters within the ROS launch file, camera specific parameters are set within IPA specific configurations. This originates from IPA internal requirements to maintain backward compatibility to existing components. The ROS launch file only holds parameters related to the camera setup (e.g. 2 Pikes and 1 Swissranger) and a link to the IPA internal configuration file.
 </p>
-<h2>IPA configuration files</h2>	
+<h2>IPA configuration files</h2>
 <p>
 The IPA configuration file is located at <i>cob_driver/cob_camera_sensors/common/files</i> in a folder related to your sensor setup e.g. <i>cob3-1</i> or <i>cob3-2</i>. The configuration is XML-based. It holds one XML-tag for each camera e.g. <code>&lt;AVTPikeCam_0&gt;</code> for a AVT Pike C145 camera. The number within the tag-name is used to differentiate several camera of the same type. Here is an excerpt from the IPA configuration file of one of our Care-O-bot<sup>&#0174;</sup>s.
 </p>
@@ -36,13 +36,13 @@ The IPA configuration file is located at <i>cob_driver/cob_camera_sensors/common
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;!-- Valid values: MODE_0 - MODE_7, DEFAULT --&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;VideoMode type="MODE_0" /&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ...<br>
-  
+
 &lt;AVTPikeCam_0/&gt;
-</code>	
+</code>
 <p>
-Each tag within the IPA configuration file has a short explanation of its functionality. Please feel free to examine one of the Care-O-bot<sup>&#0174;</sup> configuration files to get an impression of the possible settings. 
+Each tag within the IPA configuration file has a short explanation of its functionality. Please feel free to examine one of the Care-O-bot<sup>&#0174;</sup> configuration files to get an impression of the possible settings.
 </p>
-Camera intrinsics may be set for each camera with the designated tags. The information is later published with the images using the ROS <code>CameraPublisher</code> from the <code>image_transport</code> package. The user has the possibility of specifying different intrinsic. This is related to stereo vision, where intrinsics are optimize to fit to another camera. If not other specified in the ROS launch file, intrinsic parameters not related to any other camera are published. Extrinsic specify the rotation and translation relative to another camera. These parameters are not yet published and for IPA internal usage only. 
+Camera intrinsics may be set for each camera with the designated tags. The information is later published with the images using the ROS <code>CameraPublisher</code> from the <code>image_transport</code> package. The user has the possibility of specifying different intrinsic. This is related to stereo vision, where intrinsics are optimize to fit to another camera. If not other specified in the ROS launch file, intrinsic parameters not related to any other camera are published. Extrinsic specify the rotation and translation relative to another camera. These parameters are not yet published and for IPA internal usage only.
 <p>
 For each camera their is also a related <code>&lt;VirtualXXXCam_X&gt;</code> tag. The also is related to backward compatibility issues and not used within ROS. Originally, it provided support for loading saved image data from disk and using it as if it came from a real camera device. However, ROS already provides more sophisticated means to record and play back data using <i>rosrecord</i>, <i>rosplay</i> and <i>bag files</i>.
 </p>
@@ -58,7 +58,7 @@ Knowing the fundamentals, we are now ready to start up the cameras.
 </p>
 
 <h2>AVT Pike C145</h2>
- 
+
 <p>
 To run the AVT Pike C145 cameras from Care-O-bot<sup>&#0174;</sup> 3 you must first ensure a proper setup of the camera hardware. At first ensure that the cameras are recognized by your Linux system, executing <i>dmesg</i>. When you now unplug and plugin the firewire cable you shod see some differences in the output, when repeatedly executing the <i>dmesg</i> command. On my pc the dmesg output is after plugging in the cameras is as follows:
 </p>
@@ -87,7 +87,7 @@ KERNEL=="raw1394*",GROUP="plugdev",MODE="0664"<br>
 KERNEL=="video1394*",GROUP="plugdev",MODE="0664"
 </code>
 <p>
-Check if the Linux groups <i>plugdev</i> and <i>video</i> exist and if not create them. Then, add your Linux user these groups and restart your computer to activate the changes (Maybe you know a better way, to update the udev rules?). To test your cameras, run <i>coriander</i>. If it does not start up, there are still some issues to be solved before proceeding. Check if your user's group settings and the settings of the firewire device files at <i>/dev/raw1394</i> and <i>/dev/video1394</i> coincide. Once coriander is running, we are ready to launch the ROS nodes of the cameras, explained here on the example of Care-O-bot<sup>&#0174;</sup> 3 number 1. 
+Check if the Linux groups <i>plugdev</i> and <i>video</i> exist and if not create them. Then, add your Linux user these groups and restart your computer to activate the changes (Maybe you know a better way, to update the udev rules?). To test your cameras, run <i>coriander</i>. If it does not start up, there are still some issues to be solved before proceeding. Check if your user's group settings and the settings of the firewire device files at <i>/dev/raw1394</i> and <i>/dev/video1394</i> coincide. Once coriander is running, we are ready to launch the ROS nodes of the cameras, explained here on the example of Care-O-bot<sup>&#0174;</sup> 3 number 1.
 <ol>
 	<li>Install dependencies (<code>rosdep install cob_camera_sensors</code>) and build <i>cob_camera_sensors</i> (<code>rosmake cob_camera_sensors</code>) </li>
 	<li>Launch the left IEEE1394 camera with <code>roslaunch cob_camera_sensors cob3-1_color_camera_left.launch</code> </li>
@@ -116,7 +116,7 @@ Both Swissranger versions 3000 and 4000 are supported. To run a Swissranger time
 	<li>Launch the Swissranger camera with <code>roslaunch cob_camera_sensors cob3-1_tof.launch</code></li>
 	<li>Launch the Tof image viewer with <code>roslaunch cob_camera_sensors tof_camera_viewer.launch</code></li>
 </ol>
-If your camera is connected via ethernet, skip the udev rules and enter the appropriate ethernet address in the IPA configuration file. 
+If your camera is connected via ethernet, skip the udev rules and enter the appropriate ethernet address in the IPA configuration file.
 </p>
 <p>
 All cameras are implemented using <i>image_transport</i> from ROS. Therefore, after launching the color camera and Swissranger nodes you will have the following topic available.

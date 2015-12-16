@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -11,9 +11,9 @@
  * ROS stack name: cob_driver
  * ROS package name: cob_canopen_motor
  * Description:
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Christian Connette, email:christian.connette@ipa.fhg.de
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
@@ -32,23 +32,23 @@
  *	 * Redistributions in binary form must reproduce the above copyright
  *	   notice, this list of conditions and the following disclaimer in the
  *	   documentation and/or other materials provided with the distribution.
- *	 * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *	 * Neither the name of the Fraunhofer Institute for Manufacturing
  *	   Engineering and Automation (IPA) nor the names of its
  *	   contributors may be used to endorse or promote products derived from
  *	   this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -56,7 +56,7 @@
 
 #include <assert.h>
 #include <cob_canopen_motor/CanDriveHarmonica.h>
-#include <unistd.h> 
+#include <unistd.h>
 
 //-----------------------------------------------
 CanDriveHarmonica::CanDriveHarmonica()
@@ -91,9 +91,9 @@ CanDriveHarmonica::CanDriveHarmonica()
 	m_StartTime.SetNow();
 
 	m_bOutputOfFailure = false;
-	
+
 	m_bIsInitialized = false;
-	
+
 
 	ElmoRec = new ElmoRecorder(this);
 
@@ -120,7 +120,7 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 
 	int iHomeDigIn = 0x0001; // 0x0001 for CoB3 steering drive homing input; 0x0400 for Scara
 	int iTemp1, iTemp2;
-	
+
 	m_CanMsgLast = msg;
 
 	//-----------------------
@@ -135,15 +135,15 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 
 		iTemp2 = (msg.getAt(7) << 24) | (msg.getAt(6) << 16)
 				| (msg.getAt(5) << 8) | (msg.getAt(4) );
-		
+
 		m_dVelGearMeasRadS = m_DriveParam.getSign() * m_DriveParam.
 			VelMotIncrPeriodToVelGearRadS(iTemp2);
 
 		m_WatchdogTime.SetNow();
 
 		bRet = true;
-	}	
-	
+	}
+
 	//-----------------------
 	// eval answers from binary interpreter
 	if (msg.m_iID == m_ParamCanOpen.iTxPDO2)
@@ -180,7 +180,7 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 			if( (iDigIn & iHomeDigIn) != 0x0000 )
 			{
 				m_bLimSwRight = true;
-			}			
+			}
 		}
 
 		else if( (msg.getAt(0) == 'S') && (msg.getAt(1) == 'R') ) // status
@@ -190,7 +190,7 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 
 			evalStatusRegister(m_iStatusCtrl);
 			ElmoRec->readoutRecorderTryStatus(m_iStatusCtrl, seg_Data);
-			
+
 		}
 
 		else if( (msg.getAt(0) == 'M') && (msg.getAt(1) == 'F') ) // motor failure
@@ -209,7 +209,7 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 
 			std::cout << "um " << iPara << std::endl;
 		}
-		
+
 		else if( (msg.getAt(0) == 'P') && (msg.getAt(1) == 'M') )
 		{
 			iPara = (msg.getAt(7) << 24) | (msg.getAt(6) << 16)
@@ -249,7 +249,7 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 				| (msg.getAt(5) << 8) | (msg.getAt(4) );
 			float* pfVal;
 			pfVal=(float*)&iVal;
-			m_dMotorCurr = *pfVal;			
+			m_dMotorCurr = *pfVal;
 		}
 
 		else
@@ -260,7 +260,7 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 
 		bRet = true;
 	}
-	
+
 	//-----------------------
 	// eval answer from SDO
 	if (msg.m_iID == m_ParamCanOpen.iTxSDO)
@@ -270,11 +270,11 @@ bool CanDriveHarmonica::evalReceivedMsg(CanMsg& msg)
 		if( (msg.getAt(0) >> 5) == 0) { //Received Upload SDO Segment (scs = 0)
 			//std::cout << "SDO Upload Segment received" << std::endl;
 			receivedSDODataSegment(msg);
-			
+
 		} else if( (msg.getAt(0) & 0xE2) == 0x40) { //Received Initiate SDO Upload, that is not expedited -> start segmented upload (scs = 2 AND expedited flag = 0)
 			//std::cout << "SDO Initiate Segmented Upload received, Object ID: " << (msg.getAt(1) | (msg.getAt(2) << 8) ) << std::endl;
 			receivedSDOSegmentedInitiation(msg);
-			
+
 		} else if( (msg.getAt(0) >> 5) == 4) { // Received an Abort SDO Transfer message, cs = 4
 			unsigned int iErrorNum = (msg.getAt(4) | msg.getAt(5) << 8 | msg.getAt(6) << 16 | msg.getAt(7) << 24);
 			receivedSDOTransferAbort(iErrorNum);
@@ -305,7 +305,7 @@ bool CanDriveHarmonica::init()
 	usleep(20000);
 	IntprtSetInt(8, 'X', 'M', 1, -iIncrRevWheel * 5000);
 	usleep(20000);
-	
+
 
 	setTypeMotion(MOTIONTYPE_VELCTRL);
 	// ---------- set position counter to zero
@@ -315,12 +315,12 @@ bool CanDriveHarmonica::init()
 	while(true)
 	{
 		m_pCanCtrl->receiveMsg(&Msg);
-	
+
 		if( (Msg.getAt(0) == 'P') && (Msg.getAt(1) == 'X') )
 		{
 			iPosCnt = (Msg.getAt(7) << 24) | (Msg.getAt(6) << 16)
 				| (Msg.getAt(5) << 8) | (Msg.getAt(4) );
-			
+
 			m_dPosGearMeasRad = m_DriveParam.getSign() * m_DriveParam.PosMotIncrToPosGearRad(iPosCnt);
 			m_dAngleGearRadMem  = m_dPosGearMeasRad;
 			break;
@@ -341,32 +341,32 @@ bool CanDriveHarmonica::init()
 	// Mapping of TPDO1:
 	// - position
 	// - velocity
-	
+
 	// stop all emissions of TPDO1
 	sendSDODownload(0x1A00, 0, 0);
-	
+
 	// position 4 byte of TPDO1
 	sendSDODownload(0x1A00, 1, 0x60640020);
 
 	// velocity 4 byte of TPDO1
 	sendSDODownload(0x1A00, 2, 0x60690020);
-	
+
 	// transmission type "synch"
 	sendSDODownload(0x1800, 2, 1);
-	
+
 	// activate mapped objects
 	sendSDODownload(0x1A00, 0, 2);
 
 	m_bWatchdogActive = false;
-	
+
 	if( bRet )
 		m_bIsInitialized = true;
-	 
-	return bRet;	
+
+	return bRet;
 }
 //-----------------------------------------------
 bool CanDriveHarmonica::stop()
-{	
+{
 	bool bRet = true;
 	// motor off
 	IntprtSetInt(8, 'M', 'O', 0, 0);
@@ -386,7 +386,7 @@ bool CanDriveHarmonica::start()
 	int iStatus;
 	CanMsg Msg;
 
-	//  clear the can buffer 
+	//  clear the can buffer
 	do
 	{
 		bRet = m_pCanCtrl->receiveMsg(&Msg);
@@ -395,17 +395,17 @@ bool CanDriveHarmonica::start()
 
 	// send request
 	IntprtSetInt(4, 'S', 'R', 0, 0);
-	
+
 	iCnt = 0;
 	while(true)
 	{
 		m_pCanCtrl->receiveMsg(&Msg);
-	
+
 		if( (Msg.getAt(0) == 'S') && (Msg.getAt(1) == 'R') )
 		{
 			iStatus = (Msg.getAt(7) << 24) | (Msg.getAt(6) << 16)
 				| (Msg.getAt(5) << 8) | (Msg.getAt(4) );
-			
+
 			bRet = evalStatusRegister(iStatus);
 			break;
 		}
@@ -432,7 +432,7 @@ bool CanDriveHarmonica::start()
 bool CanDriveHarmonica::reset()
 {
 	// repeat initialization
-	
+
 	// start network
 	CanMsg msg;
 	msg.m_iID  = 0;
@@ -466,16 +466,16 @@ bool CanDriveHarmonica::startWatchdog(bool bStarted)
 		// ------- init watchdog
 		// Harmonica checks PC hearbeat
 		// note: the COB-ID for a heartbeat message = 0x700 + Device ID
-		
+
 		const int c_iHeartbeatTimeMS = 1000;
 		const int c_iNMTNodeID = 0x00;
-		
+
 		// consumer (PC) heartbeat time
 		sendSDODownload(0x1016, 1, (c_iNMTNodeID << 16) | c_iHeartbeatTimeMS);
- 		
-		// error behavior after failure: 0=pre-operational, 1=no state change, 2=stopped"	
+
+		// error behavior after failure: 0=pre-operational, 1=no state change, 2=stopped"
 		sendSDODownload(0x1029, 1, 2);
-		
+
 		// motor behavior after heartbeat failre: "quick stop"
 		sendSDODownload(0x6007, 0, 3);
 
@@ -484,14 +484,14 @@ bool CanDriveHarmonica::startWatchdog(bool bStarted)
 		// Bit 3 is responsible for Heartbeart-Failure.--> Hex 0x08
 		sendSDODownload(0x2F21, 0, 0x08);
 		usleep(20000);
- 
+
 	}
 	else
-	{	
+	{
 		//save Watchdog state into member variable
 		m_bWatchdogActive = false;
 
-		//Motor action after Hearbeat-Error: No Action		
+		//Motor action after Hearbeat-Error: No Action
 		sendSDODownload(0x6007, 0, 0);
 
 		//Error Behavior: No state change
@@ -502,8 +502,8 @@ bool CanDriveHarmonica::startWatchdog(bool bStarted)
 		// Bit 3 is responsible for Heartbeart-Failure.
 		sendSDODownload(0x2F21, 0, 0x00);
 		usleep(25000);
-			
-		
+
+
 	}
 
 	return true;
@@ -531,7 +531,7 @@ bool CanDriveHarmonica::getStatusLimitSwitch()
 bool CanDriveHarmonica::initHoming()
 {
 	const int c_iPosRef = m_DriveParam.getEncOffset();
-	
+
 		// 1. make sure that, if on elmo controller still a pending homing from a previous startup is running (in case of warm-start without switching of the whole robot), this old sequence is disabled
 		// disarm homing process
 		IntprtSetInt(8, 'H', 'M', 1, 0);
@@ -540,10 +540,10 @@ bool CanDriveHarmonica::initHoming()
 		usleep(20000);
 
 		/* THIS is needed for head_axis on cob3-2!
-		
+
 		//set input logic to 'general purpose'
-		IntprtSetInt(8, 'I', 'L', 2, 7);                       
-		usleep(20000);  
+		IntprtSetInt(8, 'I', 'L', 2, 7);
+		usleep(20000);
 		*/
 
 		// 2. configure the homing sequence
@@ -551,7 +551,7 @@ bool CanDriveHarmonica::initHoming()
 		// value to load at homing event
 		IntprtSetInt(8, 'H', 'M', 2, c_iPosRef);
 		usleep(20000);
-		
+
 		// 2.b choose the chanel/switch on which the controller listens for a change or defined logic level (the homing event) (high/low/falling/rising)
 		// home event
 		// iHomeEvent = 5 : event according to defined FLS switch (for scara arm)
@@ -575,7 +575,7 @@ bool CanDriveHarmonica::initHoming()
 
 		// 3. let the motor turn some time to give him the possibility to escape the approximation sensor if accidently in home position already at the beginning of the sequence (done in CanCtrlPltf...)
 
-	return true;	
+	return true;
 }
 
 
@@ -592,7 +592,7 @@ bool CanDriveHarmonica::execHoming() //not used by CanCtrlPltf, that has its own
 	// 4. arm the homing process -> as soon as the approximation sensor is reached and the homing event occurs the commands set in 2. take effect
 	// arm homing process
 	IntprtSetInt(8, 'H', 'M', 1, 1);
-		
+
 	// 5. clear the can buffer to get rid of all uneccessary and potentially disturbing commands still floating through the wires
 	do
 	{
@@ -614,10 +614,10 @@ bool CanDriveHarmonica::execHoming() //not used by CanCtrlPltf, that has its own
 
 		// 6.b read message from can
 		m_pCanCtrl->receiveMsgRetry(&Msg, 10);
-		
+
 		// 6.c see if received message is answer of request and if so what is the status
 		if( (Msg.getAt(0) == 'H') && (Msg.getAt(1) == 'M') )
-		{	
+		{
 			// status message (homing armed = 1 / disarmed = 0) is encoded in 5th byte
 			if(Msg.getAt(4) == 0)
 			{
@@ -634,7 +634,7 @@ bool CanDriveHarmonica::execHoming() //not used by CanCtrlPltf, that has its own
 
 	}
 	while((m_bLimSwRight == false) && (iCnt<2000)); // wait some time
-	
+
 	// 7. see why finished (homed or timeout) and log out
 	if(iCnt>=2000)
 	{
@@ -647,7 +647,7 @@ bool CanDriveHarmonica::execHoming() //not used by CanCtrlPltf, that has its own
 		bRet = true;
 	}
 	//IntprtSetInt(8, 'I', 'L', 2, 9); //cob3-2                  |  -----------------------------------------------------------------------------------
-        //usleep(20000);   
+        //usleep(20000);
 
 	return bRet;
 }
@@ -656,9 +656,9 @@ void CanDriveHarmonica::setGearPosVelRadS(double dPosGearRad, double dVelGearRad
 {
 	int iPosEncIncr;
 	int iVelEncIncrPeriod;
-		
+
 	m_DriveParam.PosVelRadToIncr(dPosGearRad, dVelGearRadS, &iPosEncIncr, &iVelEncIncrPeriod);
-	
+
 	if(iVelEncIncrPeriod > m_DriveParam.getVelMax())
 	{
 		iVelEncIncrPeriod = (int)m_DriveParam.getVelMax();
@@ -671,7 +671,7 @@ void CanDriveHarmonica::setGearPosVelRadS(double dPosGearRad, double dVelGearRad
 
 	if(m_iTypeMotion == MOTIONTYPE_POSCTRL)
 	{
-			//new: set VELOCITY for PTP Motion		
+			//new: set VELOCITY for PTP Motion
 			IntprtSetInt(8, 'S', 'P', 0, iVelEncIncrPeriod);
 
 			// Position Relativ ("PR") , because of positioning of driving wheel
@@ -679,20 +679,20 @@ void CanDriveHarmonica::setGearPosVelRadS(double dPosGearRad, double dVelGearRad
 			// only when command is for homed steering wheel set absolute
 			if (m_DriveParam.getIsSteer() == true)
 				IntprtSetInt(8, 'P', 'A', 0, iPosEncIncr);
-			else 
+			else
 				IntprtSetInt(8, 'P', 'R', 0, iPosEncIncr);
 
 			IntprtSetInt(4, 'B', 'G', 0, 0);
-		
+
 	}
 
 	if(m_iTypeMotion == MOTIONTYPE_VELCTRL)
-	{	
+	{
 		iVelEncIncrPeriod *= m_DriveParam.getSign();
 		IntprtSetInt(8, 'J', 'V', 0, iVelEncIncrPeriod);
 		IntprtSetInt(4, 'B', 'G', 0, 0);
 	}
-	
+
 	// request pos and vel by TPDO1, triggered by SYNC msg
 	// (to request pos by SDO usesendSDOUpload(0x6064, 0) )
 	CanMsg msg;
@@ -706,7 +706,7 @@ void CanDriveHarmonica::setGearPosVelRadS(double dPosGearRad, double dVelGearRad
 void CanDriveHarmonica::setGearVelRadS(double dVelGearRadS)
 {
 	int iVelEncIncrPeriod;
-	
+
 	// calc motor velocity from joint velocity
 	iVelEncIncrPeriod = m_DriveParam.getSign() * m_DriveParam.VelGearRadSToVelMotIncrPeriod(dVelGearRadS);
 
@@ -721,7 +721,7 @@ void CanDriveHarmonica::setGearVelRadS(double dVelGearRadS)
 		std::cout << "SteerVelo asked for " << iVelEncIncrPeriod << " EncIncrements" << std::endl;
 		iVelEncIncrPeriod = -1 * (int)m_DriveParam.getVelMax();
 	}
-	
+
 	IntprtSetInt(8, 'J', 'V', 0, iVelEncIncrPeriod);
 	IntprtSetInt(4, 'B', 'G', 0, 0);
 
@@ -744,7 +744,7 @@ void CanDriveHarmonica::setGearVelRadS(double dVelGearRadS)
 	double dt = m_CurrentTime - m_SendTime;
 	if ((dt > 1.0) && m_bWatchdogActive)
 	{
-		std::cout << "Time between send velocity of motor " << m_DriveParam.getDriveIdent() 
+		std::cout << "Time between send velocity of motor " << m_DriveParam.getDriveIdent()
 			<< " is too large: " << dt << " s" << std::endl;
 	}
 	m_SendTime.SetNow();
@@ -820,7 +820,7 @@ void CanDriveHarmonica::requestStatus()
 
 //-----------------------------------------------
 void CanDriveHarmonica::requestMotorTorque()
-{	
+{
    	// send command for requesting motor current:
  	IntprtSetInt(4, 'I', 'Q', 0, 0);	// active current
 	//IntprtSetInt(4, 'I', 'D', 0, 0);	// reactive current
@@ -845,9 +845,9 @@ bool CanDriveHarmonica::isError()
 			m_iMotorState = ST_MOTOR_FAILURE;
 			m_FailureStartTime.SetNow();
 		}
-		
+
 	}
-	
+
 	return (m_iMotorState == ST_MOTOR_FAILURE);
 }
 //-----------------------------------------------
@@ -860,25 +860,25 @@ bool CanDriveHarmonica::setTypeMotion(int iType)
 	if (iType == MOTIONTYPE_POSCTRL)
 	{
 		// 1.) Switch to UnitMode = 5 (Single Loop Position Control) //
-	
+
 		// switch off Motor to change Unit-Mode
 		IntprtSetInt(8, 'M', 'O', 0, 0);
 		usleep(20000);
 		// switch Unit-Mode
 		IntprtSetInt(8, 'U', 'M', 0, 5);
-			
+
 		// set Target Radius to X Increments
 		IntprtSetInt(8, 'T', 'R', 1, 15);
 		// set Target Time to X ms
 		IntprtSetInt(8, 'T', 'R', 2, 100);
 
-		// set maximum Acceleration to X Incr/s^2		
+		// set maximum Acceleration to X Incr/s^2
 		IntprtSetInt(8, 'A', 'C', 0, iMaxAcc);
 		// set maximum decceleration to X Incr/s^2
-		IntprtSetInt(8, 'D', 'C', 0, iMaxDcc);	
+		IntprtSetInt(8, 'D', 'C', 0, iMaxDcc);
 		usleep(100000);
-		
-		
+
+
 	}
 	else if (iType == MOTIONTYPE_TORQUECTRL)
 	{
@@ -906,13 +906,13 @@ bool CanDriveHarmonica::setTypeMotion(int iType)
 		// set profiler Mode (only if Unit Mode = 2)
 		IntprtSetInt(8, 'P', 'M', 0, 1);
 
-		// set maximum Acceleration to X Incr/s^2		
+		// set maximum Acceleration to X Incr/s^2
 		IntprtSetInt(8, 'A', 'C', 0, iMaxAcc);
 		// set maximum decceleration to X Incr/s^2
-		IntprtSetInt(8, 'D', 'C', 0, iMaxDcc);	
+		IntprtSetInt(8, 'D', 'C', 0, iMaxDcc);
 		usleep(100000);
 	}
-	
+
 	m_iTypeMotion = iType;
 	return true;
 }
@@ -925,7 +925,7 @@ void CanDriveHarmonica::IntprtSetInt(int iDataLen, char cCmdChar1, char cCmdChar
 	char cInt[4];
 	CanMsg CMsgTr;
 
-	CMsgTr.m_iID = m_ParamCanOpen.iRxPDO2;	
+	CMsgTr.m_iID = m_ParamCanOpen.iRxPDO2;
 	CMsgTr.m_iLen = iDataLen;
 
 	cIndex[0] = iIndex;
@@ -947,8 +947,8 @@ void CanDriveHarmonica::IntprtSetFloat(int iDataLen, char cCmdChar1, char cCmdCh
 	char cFloat[4];
 	CanMsg CMsgTr;
 	char* pTempFloat = NULL;
-	
-	CMsgTr.m_iID = m_ParamCanOpen.iRxPDO2;	
+
+	CMsgTr.m_iID = m_ParamCanOpen.iRxPDO2;
 	CMsgTr.m_iLen = iDataLen;
 
 	cIndex[0] = iIndex;
@@ -959,7 +959,7 @@ void CanDriveHarmonica::IntprtSetFloat(int iDataLen, char cCmdChar1, char cCmdCh
 	pTempFloat = (char*)&fData;
 	for( int i=0; i<4; i++ )
 		cFloat[i] = pTempFloat[i];
-	
+
 	CMsgTr.set(cCmdChar1, cCmdChar2, cIndex[0], cIndex[1], cFloat[0], cFloat[1], cFloat[2], cFloat[3]);
 	m_pCanCtrl->transmitMsg(CMsgTr);
 }
@@ -973,12 +973,12 @@ void CanDriveHarmonica::sendSDOAbort(int iObjIndex, int iObjSubIndex, unsigned i
 {
 	CanMsg CMsgTr;
 	const int ciAbortTransferReq = 0x04 << 5;
-	
+
 	CMsgTr.m_iLen = 8;
 	CMsgTr.m_iID = m_ParamCanOpen.iRxSDO;
 
 	unsigned char cMsg[8];
-	
+
 	cMsg[0] = ciAbortTransferReq;
 	cMsg[1] = iObjIndex;
 	cMsg[2] = iObjIndex >> 8;
@@ -1003,12 +1003,12 @@ void CanDriveHarmonica::sendSDOUpload(int iObjIndex, int iObjSubIndex)
 {
 	CanMsg CMsgTr;
 	const int ciInitUploadReq = 0x40;
-	
+
 	CMsgTr.m_iLen = 8;
 	CMsgTr.m_iID = m_ParamCanOpen.iRxSDO;
 
 	unsigned char cMsg[8];
-	
+
 	cMsg[0] = ciInitUploadReq;
 	cMsg[1] = iObjIndex;
 	cMsg[2] = iObjIndex >> 8;
@@ -1031,12 +1031,12 @@ void CanDriveHarmonica::sendSDODownload(int iObjIndex, int iObjSubIndex, int iDa
 	const int ciNrBytesNoData = 0x00;
 	const int ciExpedited = 0x02;
 	const int ciDataSizeInd = 0x01;
-	
+
 	CMsgTr.m_iLen = 8;
 	CMsgTr.m_iID = m_ParamCanOpen.iRxSDO;
 
 	unsigned char cMsg[8];
-	
+
 	cMsg[0] = ciInitDownloadReq | (ciNrBytesNoData << 2) | ciExpedited | ciDataSizeInd;
 	cMsg[1] = iObjIndex;
 	cMsg[2] = iObjIndex >> 8;
@@ -1097,12 +1097,12 @@ int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
 	//Byte 0: SSS T NNN C | SSS=Cmd-Specifier, T=ToggleBit, NNN=num of empty bytes, C=Finished
 	//Byte 1 to 7: Data
 
-	if( (msg.getAt(0) & 0x10) != (seg_Data.toggleBit << 4) ) { 
+	if( (msg.getAt(0) & 0x10) != (seg_Data.toggleBit << 4) ) {
 		std::cout << "Toggle Bit error, send Abort SDO with \"Toggle bit not alternated\" error" << std::endl;
 		sendSDOAbort(seg_Data.objectID, seg_Data.objectSubID, 0x05030000); //Send SDO Abort with error code Toggle-Bit not alternated
 		return 1;
 	}
-		
+
 	if( (msg.getAt(0) & 0x01) == 0x00) { //Is finished-bit not set?
 		seg_Data.statusFlag = segData::SDO_SEG_COLLECTING;
 	} else {
@@ -1112,18 +1112,18 @@ int CanDriveHarmonica::receivedSDODataSegment(CanMsg& msg){
 
 	numEmptyBytes = (msg.getAt(0) >> 1) & 0x07;
 	//std::cout << "NUM empty bytes in SDO :" << numEmptyBytes << std::endl;
-	
+
 	for(int i=1; i<=7-numEmptyBytes; i++) {
 		seg_Data.data.push_back(msg.getAt(i));
 	}
 
 	if(seg_Data.statusFlag == segData::SDO_SEG_PROCESSING) {
-		finishedSDOSegmentedTransfer();		
+		finishedSDOSegmentedTransfer();
 	} else {
 		seg_Data.toggleBit = !seg_Data.toggleBit;
 		sendSDOUploadSegmentConfirmation(seg_Data.toggleBit);
 	}
-		
+
 	return 0;
 }
 
@@ -1133,12 +1133,12 @@ void CanDriveHarmonica::sendSDOUploadSegmentConfirmation(bool toggleBit) {
 	CanMsg CMsgTr;
 	int iConfirmSegment = 0x60; //first three bits must be css = 3 : 011 00000
 	iConfirmSegment = iConfirmSegment | (toggleBit << 4); //fourth bit is toggle bit: 011T0000
-	
+
 	CMsgTr.m_iLen = 8;
 	CMsgTr.m_iID = m_ParamCanOpen.iRxSDO;
 
 	unsigned char cMsg[8];
-	
+
 	cMsg[0] = iConfirmSegment;
 	cMsg[1] = 0x00;
 	cMsg[2] = 0x00;
@@ -1155,13 +1155,13 @@ void CanDriveHarmonica::sendSDOUploadSegmentConfirmation(bool toggleBit) {
 //-----------------------------------------------
 void CanDriveHarmonica::finishedSDOSegmentedTransfer() {
 	seg_Data.statusFlag = segData::SDO_SEG_PROCESSING;
-	
+
 	if( (seg_Data.data.size() != seg_Data.numTotalBytes) & (seg_Data.numTotalBytes != 0) ) {
-		std::cout << "WARNING: SDO tranfer finished but number of collected bytes " 
+		std::cout << "WARNING: SDO tranfer finished but number of collected bytes "
 			<< seg_Data.data.size() << " != expected number of bytes: " << seg_Data.numTotalBytes << std::endl;
 		//abort processing?
 	}
-	
+
 	if(seg_Data.objectID == 0x2030) {
 		if(ElmoRec->processData(seg_Data) == 0) seg_Data.statusFlag = segData::SDO_SEG_FREE;
 	}
@@ -1219,7 +1219,7 @@ bool CanDriveHarmonica::evalStatusRegister(int iStatus)
 	}
 	else if ( isBitSet(iStatus, 6) )
 	{
-		// General failure 
+		// General failure
 		if ( m_bOutputOfFailure == false )
 		{
 			std::cout << "Motor " << m_DriveParam.getDriveIdent() << " failure latched" << std::endl;
@@ -1235,7 +1235,7 @@ bool CanDriveHarmonica::evalStatusRegister(int iStatus)
 	}
 	else
 	{
-		// ---------- No error 
+		// ---------- No error
 		bNoError = true;
 
 		// Clear flag for failure output only if at least one
@@ -1291,7 +1291,7 @@ void CanDriveHarmonica::evalMotorFailure(int iFailure)
 {
 
 	std::cout << "Motor " << m_DriveParam.getDriveIdent() << " has a failure: " << iFailure << std::endl;
-	
+
 	if( isBitSet(iFailure, 2) )
 	{
 		std::cout << "- feedback loss" << std::endl;
@@ -1306,7 +1306,7 @@ void CanDriveHarmonica::evalMotorFailure(int iFailure)
 	{
 		std::cout << "- speed track error" << std::endl;
 	}
-	
+
 	if( isBitSet(iFailure, 8) )
 	{
 		std::cout << "- position track error" << std::endl;
@@ -1316,7 +1316,7 @@ void CanDriveHarmonica::evalMotorFailure(int iFailure)
 	{
 		std::cout << "- speed limit exceeded" << std::endl;
 	}
-	
+
 	if( isBitSet(iFailure, 21) )
 	{
 		std::cout << "- motor stuck" << std::endl;
@@ -1341,7 +1341,7 @@ void CanDriveHarmonica::setMotorTorque(double dTorqueNm)
 		std::cout << "Torque command too high: " << fMotCurr << " Nm. Torque has been limitited." << std::endl;
 	}
 
-	// send Command 
+	// send Command
 	IntprtSetFloat(8, 'T', 'C', 0, fMotCurr);
 
 	// request pos and vel by TPDO1, triggered by SYNC msg
@@ -1353,12 +1353,12 @@ void CanDriveHarmonica::setMotorTorque(double dTorqueNm)
 
 	// send heartbeat to keep watchdog inactive
 	sendHeartbeat();
-	
+
 	m_CurrentTime.SetNow();
 	double dt = m_CurrentTime - m_SendTime;
 	if (dt > 1.0)
 	{
-		std::cout << "Time between send current/torque of motor " << m_DriveParam.getDriveIdent() 
+		std::cout << "Time between send current/torque of motor " << m_DriveParam.getDriveIdent()
 			<< " is too large: " << dt << " s" << std::endl;
 	}
 	m_SendTime.SetNow();
@@ -1379,7 +1379,7 @@ void CanDriveHarmonica::getMotorTorque(double* dTorqueNm)
 {
 	// With motor sign:
 	*dTorqueNm = m_DriveParam.getSign() * m_dMotorCurr * m_DriveParam.getCurrToTorque();
-	
+
 }
 
 
@@ -1397,10 +1397,10 @@ int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 			ElmoRec->isInitialized(true);
 			ElmoRec->configureElmoRecorder(iParam, m_DriveParam.getDriveIdent()); //int startImmediately is default = 1
 			return 0;
-					
+
 		case 1: //Query upload of previous recorded data, data is being proceeded after complete upload, param = recorded ID, filename
 			if(!ElmoRec->isInitialized(false)) return 1;
-			
+
 			if(seg_Data.statusFlag == segData::SDO_SEG_FREE) {
 				if( (iParam != 1) && (iParam != 2) && (iParam != 10) && (iParam != 16) ) {
 					iParam = 1;
@@ -1414,9 +1414,9 @@ int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 				std::cout << "Previous transmission not finished or colected data hasn't been proceeded yet" << std::endl;
 				return 2;
 			}
-			
+
 			break;
-			
+
 		case 2: //request status, still collecting data during ReadOut process?
 			if(seg_Data.statusFlag == segData::SDO_SEG_COLLECTING) {
 				//std::cout << "Transmission of data is still in progress" << std::endl;
@@ -1430,9 +1430,9 @@ int CanDriveHarmonica::setRecorder(int iFlag, int iParam, std::string sParam) {
 			} else { //finished transmission and finished proceeding
 				return 0;
 			}
-			
+
 			break;
-			
+
 		case 99: //Abort ongoing SDO data Transmission and clear collected data
 			sendSDOAbort(0x2030, 0x00, 0x08000020); //send general error abort
 			seg_Data.resetTransferData(); //!overwrites previous collected data (even from other processes)

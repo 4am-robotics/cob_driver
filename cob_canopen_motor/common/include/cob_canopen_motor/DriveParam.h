@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2010
  *
- * Fraunhofer Institute for Manufacturing Engineering	
+ * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -11,9 +11,9 @@
  * ROS stack name: cob_driver
  * ROS package name: cob_canopen_motor
  * Description:
- *								
+ *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- *			
+ *
  * Author: Christian Connette, email:christian.connette@ipa.fhg.de
  * Supervised by: Christian Connette, email:christian.connette@ipa.fhg.de
  *
@@ -30,23 +30,23 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Fraunhofer Institute for Manufacturing 
+ *     * Neither the name of the Fraunhofer Institute for Manufacturing
  *       Engineering and Automation (IPA) nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License LGPL as 
- * published by the Free Software Foundation, either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License LGPL for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License LGPL along with this program. 
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  ****************************************************************/
@@ -60,7 +60,7 @@
 
 /**
  * Parameters and conversion functionality of a motor drive.
- * \ingroup DriversCanModul	
+ * \ingroup DriversCanModul
  */
 class DriveParam
 {
@@ -68,7 +68,7 @@ class DriveParam
 private:
 
 	int m_iDriveIdent;
-	int m_iEncIncrPerRevMot;	// encoder increments per revolution motor shaft 
+	int m_iEncIncrPerRevMot;	// encoder increments per revolution motor shaft
 	double m_dVelMeasFrqHz;		// only used for Neo drive, else = 1
 	double m_dGearRatio;		//
 	double m_dBeltRatio;		// if drive has belt set ratio, else = 1
@@ -91,9 +91,9 @@ public:
 	 */
 	DriveParam()
 	{
-	
+
 		m_bIsSteer = true; //has to be set, because it is checked for absolute / relative positioning
-	
+
 	}
 
 	/**
@@ -129,9 +129,9 @@ public:
 		m_dVelMaxEncIncrS = dVelMaxEncIncrS;
 		m_dAccIncrS2 = dAccIncrS2;
 		m_dDecIncrS2 = dDecIncrS2;
-		
+
 		m_iHomingDigIn = 11; //for Cob3
-		
+
 		double dPI = 3.14159265358979323846;
 
 		m_dPosGearRadToPosMotIncr = m_iEncIncrPerRevMot * m_dGearRatio
@@ -166,7 +166,7 @@ public:
 		m_dDecIncrS2 = dDecIncrS2;
 		m_iEncOffsetIncr = iEncOffsetIncr;
 		m_bIsSteer = bIsSteer;
-		
+
 		m_iHomingDigIn = 11; //for Cob3
 
 		double dPI = 3.14159265358979323846;
@@ -177,7 +177,7 @@ public:
         m_dCurrToTorque = dCurrToTorque;
 		m_dCurrMax = dCurrMax;
 	}
-	
+
 	//Overloaded Method for CoB3 including new feature HomingDigIn, for compatibility reasons overloaded
 	void setParam(
 		int iDriveIdent,
@@ -225,7 +225,7 @@ public:
 	{
 		return m_iDriveIdent;
 	}
-	
+
 	/**
 	 * Returns the sign for the motion direction.
 	 */
@@ -233,7 +233,7 @@ public:
 	{
 		return m_iSign;
 	}
-	
+
 	/**
 	 * Gets the maximum velocity of the drive in increments per second.
 	 */
@@ -241,7 +241,7 @@ public:
 	{
 		return m_dVelMaxEncIncrS;
 	}
-	
+
 	/**
 	 * Converts position and velocity.
 	 * @param dPosRad position in radiant
@@ -277,25 +277,25 @@ public:
 	{
 		return ((int)(dPosGearRad * m_dPosGearRadToPosMotIncr));
 	}
-	
+
 	/// Conversions of encoder increments to gear position in radians.
 	double PosMotIncrToPosGearRad(int iPosIncr)
 	{
 		return ((double)iPosIncr / m_dPosGearRadToPosMotIncr);
 	}
-	
+
 	/// Conversions of gear velocity in rad/s to encoder increments per measurment period.
 	int VelGearRadSToVelMotIncrPeriod(double dVelGearRadS)
 	{
 		return ((int)(dVelGearRadS * m_dPosGearRadToPosMotIncr / m_dVelMeasFrqHz));
 	}
-	
+
 	/// Conversions of  encoder increments per measurment period to gear velocity in rad/s.
 	double VelMotIncrPeriodToVelGearRadS(int iVelMotIncrPeriod)
 	{
 		return ((double)iVelMotIncrPeriod / m_dPosGearRadToPosMotIncr * m_dVelMeasFrqHz);
 	}
-	
+
 	/**
 	 * Set the maximum acceleration.
 	 * @param dMaxAcc Maximum acceleration
@@ -349,7 +349,7 @@ public:
 	{
 		return m_dVelMaxEncIncrS;
 	}
-	
+
 	/**
 	 * Get the gear ratio.
 	 * @return The gear ratio.
@@ -366,7 +366,7 @@ public:
 	{
 		return m_dBeltRatio;
 	}
-	
+
 	/**
 	 * Get the EncoderOffset
 	 * @return the Encoderoffset
@@ -375,7 +375,7 @@ public:
 	{
 		return m_iEncOffsetIncr;
 	}
-	
+
 	/**
 	 * Get the DriveType - If it's a Steering or Driving Motor
 	 * @return the Encoderoffset
@@ -393,7 +393,7 @@ public:
 		return m_iEncIncrPerRevMot;
 	}
 	/**
-	 * Get factor to convert motor active current [A] into torque [Nm]	 
+	 * Get factor to convert motor active current [A] into torque [Nm]
 	 */
 	double getCurrToTorque()
 	{
