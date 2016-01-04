@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_generic_can)
 
-find_package(catkin REQUIRED COMPONENTS socketcan_interface cob_utilities libntcan libpcan)
+find_package(catkin REQUIRED COMPONENTS cob_utilities libntcan libpcan socketcan_interface)
 
 catkin_package(
   CATKIN_DEPENDS socketcan_interface cob_utilities libntcan libpcan
@@ -11,7 +11,6 @@ catkin_package(
 
 ### BUILD ###
 include_directories(common/include ${catkin_INCLUDE_DIRS})
-include_directories(../ros_canopen/socketcan_interface/include ${catkin_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME}_peaksysusb common/src/CanPeakSysUSB.cpp)
 add_library(${PROJECT_NAME}_peaksys common/src/CanPeakSys.cpp)
