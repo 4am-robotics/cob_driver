@@ -18,27 +18,27 @@
 class SickLMS1xxNode
 {
 public:
-    
+
     SickLMS1xxNode();
-    
+
     bool initalize();
-      
+
     void startScanner();
     void publish();
     void stopScanner();
-    
+
     ros::NodeHandle nh;
-    
+
 private:
-    
+
     bool initalizeLaser();
     bool initalizeMessage();
     void setScanDataConfig();
     void publishError(std::string error_str);
-    
+
     ros::Publisher scan_pub;
     ros::Publisher diagnostic_pub;
-    
+
     // laser data
     LMS1xx laser;
     scanCfg cfg;
@@ -52,20 +52,20 @@ private:
     bool inverted;
     double resolution;
     double frequency;
-    bool set_config;    
+    bool set_config;
 };
 
 SickLMS1xxNode::SickLMS1xxNode()
 {
      nh = ros::NodeHandle("~");
-    
+
     scan_pub = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
     diagnostic_pub = nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 
     if(!nh.hasParam("host")) ROS_WARN("Used default parameter for host");
     nh.param<std::string>("host", host, "192.168.1.2");
     if(!nh.hasParam("frame_id")) ROS_WARN("Used default parameter for frame_id");
-    nh.param<std::string>("frame_id", frame_id, "/base_laser_link");
+    nh.param<std::string>("frame_id", frame_id, "base_laser_link");
     if(!nh.hasParam("inverted")) ROS_WARN("Used default parameter for inverted");
     nh.param<bool>("inverted", inverted, false);
     if(!nh.hasParam("angle_resolution")) ROS_WARN("Used default parameter for resolution");
@@ -74,7 +74,7 @@ SickLMS1xxNode::SickLMS1xxNode()
     nh.param<double>("scan_frequency", frequency, 25);
     if(!nh.hasParam("set_config")) ROS_WARN("Used default parameter for set_config");
     nh.param<bool>("set_config", set_config, false);
-    
+
     ROS_INFO("connecting to laser at : %s", host.c_str());
     ROS_INFO("using frame_id : %s", frame_id.c_str());
     ROS_INFO("inverted : %s", (inverted)?"true":"false");
@@ -83,33 +83,33 @@ SickLMS1xxNode::SickLMS1xxNode()
 }
 
 bool SickLMS1xxNode::initalize()
-{    
+{
     bool ret = false;
-    
+
     if (initalizeLaser() && initalizeMessage()) {
-	
+
 	setScanDataConfig();
 	ret = true;
     }
-    
+
     return ret;
 }
 
 bool SickLMS1xxNode::initalizeLaser()
 {
     bool ret = false;
-    
+
     laser.connect(host);
-    
+
     if (laser.isConnected()) {
-	
+
 	ROS_INFO("Connected to laser.");
 	ret = true;
-	
+
 	//setup laserscanner config
 	laser.login();
 	cfg = laser.getScanCfg();
-	
+
 	if(set_config)
 	{
 	    ROS_DEBUG("Set angle resolution to %f deg",resolution);
@@ -127,18 +127,18 @@ bool SickLMS1xxNode::initalizeLaser()
 	    ROS_ERROR("Setting angle resolution failed: Current angle resolution is %f.", cfg.angleResolution/10000.0);
 	if(cfg.scaningFrequency != (int)(frequency * 100))
 	    ROS_ERROR("Setting scan frequency failed: Current scan frequency is %f.", cfg.scaningFrequency/100.0);
-	
+
     } else {
 	ROS_ERROR("Connection to device failed");
 	publishError("Connection to device failed");
-    }    
+    }
     return ret;
 }
 
 bool SickLMS1xxNode::initalizeMessage()
 {
     bool ret = true;
-    
+
     //init scan msg
     scan_msg.header.frame_id = frame_id;
 
@@ -174,7 +174,7 @@ bool SickLMS1xxNode::initalizeMessage()
 
     if(not inverted)
       scan_msg.time_increment *= -1.;
-    
+
     return ret;
 }
 
@@ -210,7 +210,7 @@ void SickLMS1xxNode::startScanner()
     ROS_DEBUG("startDevice");
 
     laser.scanContinous(1);
-    ROS_DEBUG("scanContinous true");    
+    ROS_DEBUG("scanContinous true");
 }
 
 void SickLMS1xxNode::publish()
@@ -231,7 +231,7 @@ void SickLMS1xxNode::publish()
 	    }
 	}
     scan_pub.publish(scan_msg);
-    
+
     //Diagnostics
     diagnostic_msgs::DiagnosticArray diagnostics;
     diagnostics.status.resize(1);
@@ -259,32 +259,32 @@ void SickLMS1xxNode::publishError(std::string error_str)
     diagnostics.status[0].level = 2;
     diagnostics.status[0].name = nh.getNamespace();
     diagnostics.status[0].message = error_str;
-    diagnostic_pub.publish(diagnostics); 
+    diagnostic_pub.publish(diagnostics);
 }
-    
+
 
 //#######################
 //#### main programm ####
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "sick_lms1xx_node");
-    
+
     SickLMS1xxNode node;
-    
+
     if (!node.initalize()) {
 	return 1;
     }
-    
+
     node.startScanner();
-    
+
     while(ros::ok())
     {
 	node.publish();
-	
+
 	ros::spinOnce();
     }
-    
-    node.stopScanner();   
-    
+
+    node.stopScanner();
+
     return 0;
 }
