@@ -13,8 +13,10 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>laser_geometry</depend>
+  <depend>pcl_ros</depend>
   <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
-  <depend>tf</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
 
 </package>

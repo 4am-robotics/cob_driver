@@ -71,6 +71,9 @@ scan_unifier_node::scan_unifier_node()
 
   getParams();
 
+  p_tfBuffer = new tf2_ros::Buffer();
+  p_tfListener = new tf2_ros::TransformListener(*p_tfBuffer, true);
+
   ROS_DEBUG("scan unifier: now init laser structs");
 
   pthread_mutex_init(&m_mutex, NULL);
@@ -230,25 +233,25 @@ void scan_unifier_node::topicCallbackLaserScan(const sensor_msgs::LaserScan::Con
 sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
 {
   sensor_msgs::LaserScan unified_scan = sensor_msgs::LaserScan();
-  std::vector<sensor_msgs::PointCloud> vec_cloud;
-  vec_cloud.assign(config_.number_input_scans, sensor_msgs::PointCloud());
+  std::vector<sensor_msgs::PointCloud2> temp_cloud;
+  temp_cloud.assign(config_.number_input_scans, sensor_msgs::PointCloud2());
+  std::vector<Cloud> vec_cloud;
+  vec_cloud.assign(config_.number_input_scans, Cloud());
 
   if(!vec_laser_struct_.empty())
   {
     ROS_DEBUG("start converting");
     for(int i=0; i < config_.number_input_scans; i++)
     {
-      vec_cloud.at(i).header.stamp = vec_laser_struct_.at(i).current_scan_msg.header.stamp;
+      temp_cloud.at(i).header.stamp = vec_laser_struct_.at(i).current_scan_msg.header.stamp;
       ROS_DEBUG_STREAM("Converting scans to point clouds at index: " << i << ", at time: " << vec_laser_struct_.at(i).current_scan_msg.header.stamp << " now: " << ros::Time::now());
       try
       {
-        listener_.waitForTransform("/base_link", vec_laser_struct_.at(i).current_scan_msg.header.frame_id,
-            vec_laser_struct_.at(i).current_scan_msg.header.stamp, ros::Duration(3.0));
-
         ROS_DEBUG("now project to point_cloud");
-        projector_.transformLaserScanToPointCloud("/base_link",vec_laser_struct_.at(i).current_scan_msg, vec_cloud.at(i), listener_);
+        projector_.transformLaserScanToPointCloud("base_link", vec_laser_struct_.at(i).current_scan_msg, temp_cloud.at(i), *p_tfBuffer);
+        pcl::fromROSMsg<Point>(temp_cloud.at(i), vec_cloud.at(i));
       }
-      catch(tf::TransformException ex){
+      catch(tf2::TransformException ex){
         ROS_ERROR("%s",ex.what());
       }
     }
@@ -295,8 +298,8 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
         {
           // use the nearest reflection point of all scans for unified scan
           unified_scan.ranges.at(index) = sqrt(range_sq);
-          // get respective intensity from point cloud intensity-channel (index 0)
-          unified_scan.intensities.at(index) = vec_cloud.at(j).channels.at(0).values.at(i);
+          // get respective intensity from point cloud intensity-channel
+		  unified_scan.intensities.at(index) = vec_cloud.at(j).points[i].intensity;
         }
       }
     }

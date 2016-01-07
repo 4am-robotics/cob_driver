@@ -67,22 +67,28 @@
 #include <XmlRpc.h>
 #include <math.h>
 
+//PCL includes
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+
 // ROS includes
 #include <ros/ros.h>
-#include <tf/transform_listener.h>
-#include <tf/tf.h>
-#include <tf/transform_datatypes.h>
-#include <sensor_msgs/PointCloud.h>
 #include <laser_geometry/laser_geometry.h>
+#include <pcl_ros/point_cloud.h>
+#include <tf2_ros/transform_listener.h>
 
 // ROS message includes
 #include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/PointCloud2.h>
 
 
 //####################
 //#### node class ####
 class scan_unifier_node
 {
+  typedef pcl::PointXYZI Point;
+  typedef pcl::PointCloud<Point> Cloud;
+
   private:
     /** @struct config_struct
      *  @brief This structure holds configuration parameters
@@ -143,8 +149,9 @@ class scan_unifier_node
     // declaration of ros publishers
     ros::Publisher topicPub_LaserUnified_;
 
-    // tf listener
-    tf::TransformListener listener_;
+    //tf2 buffer
+    tf2_ros::Buffer *p_tfBuffer;
+    tf2_ros::TransformListener *p_tfListener;
 
     // laser geometry projector
     laser_geometry::LaserProjection projector_;
