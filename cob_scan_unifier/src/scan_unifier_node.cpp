@@ -252,7 +252,7 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
         pcl::fromROSMsg<Point>(temp_cloud.at(i), vec_cloud.at(i));
       }
       catch(tf2::TransformException ex){
-        ROS_ERROR("%s",ex.what());
+        //ROS_ERROR("%s",ex.what());
       }
     }
     ROS_DEBUG("Creating message header");
