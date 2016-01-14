@@ -86,9 +86,6 @@
 //#### node class ####
 class scan_unifier_node
 {
-  typedef pcl::PointXYZI Point;
-  typedef pcl::PointCloud<Point> Cloud;
-
   private:
     /** @struct config_struct
      *  @brief This structure holds configuration parameters
@@ -150,8 +147,8 @@ class scan_unifier_node
     ros::Publisher topicPub_LaserUnified_;
 
     //tf2 buffer
-    tf2_ros::Buffer *p_tfBuffer;
-    tf2_ros::TransformListener *p_tfListener;
+    boost::shared_ptr<tf2_ros::Buffer> p_tfBuffer;
+    boost::shared_ptr<tf2_ros::TransformListener> p_tfListener;
 
     // laser geometry projector
     laser_geometry::LaserProjection projector_;

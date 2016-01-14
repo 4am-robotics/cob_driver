@@ -71,8 +71,8 @@ scan_unifier_node::scan_unifier_node()
 
   getParams();
 
-  p_tfBuffer = new tf2_ros::Buffer();
-  p_tfListener = new tf2_ros::TransformListener(*p_tfBuffer, true);
+  p_tfBuffer.reset(new tf2_ros::Buffer());
+  p_tfListener.reset(new tf2_ros::TransformListener(*p_tfBuffer.get(), true));
 
   ROS_DEBUG("scan unifier: now init laser structs");
 
@@ -235,8 +235,8 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
   sensor_msgs::LaserScan unified_scan = sensor_msgs::LaserScan();
   std::vector<sensor_msgs::PointCloud2> temp_cloud;
   temp_cloud.assign(config_.number_input_scans, sensor_msgs::PointCloud2());
-  std::vector<Cloud> vec_cloud;
-  vec_cloud.assign(config_.number_input_scans, Cloud());
+  std::vector<pcl::PointCloud<pcl::PointXYZI> > vec_cloud;
+  vec_cloud.assign(config_.number_input_scans, pcl::PointCloud<pcl::PointXYZI>());
 
   if(!vec_laser_struct_.empty())
   {
@@ -248,8 +248,8 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
       try
       {
         ROS_DEBUG("now project to point_cloud");
-        projector_.transformLaserScanToPointCloud("base_link", vec_laser_struct_.at(i).current_scan_msg, temp_cloud.at(i), *p_tfBuffer);
-        pcl::fromROSMsg<Point>(temp_cloud.at(i), vec_cloud.at(i));
+        projector_.transformLaserScanToPointCloud("base_link", vec_laser_struct_.at(i).current_scan_msg, temp_cloud.at(i), *p_tfBuffer.get());
+        pcl::fromROSMsg<pcl::PointXYZI>(temp_cloud.at(i), vec_cloud.at(i));
       }
       catch(tf2::TransformException ex){
         //ROS_ERROR("%s",ex.what());
@@ -299,7 +299,7 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
           // use the nearest reflection point of all scans for unified scan
           unified_scan.ranges.at(index) = sqrt(range_sq);
           // get respective intensity from point cloud intensity-channel
-		  unified_scan.intensities.at(index) = vec_cloud.at(j).points[i].intensity;
+          unified_scan.intensities.at(index) = vec_cloud.at(j).points[i].intensity;
         }
       }
     }
