@@ -424,14 +424,16 @@ void CobBmsDriverNode::produceDiagnostics(diagnostic_updater::DiagnosticStatusWr
 	boost::mutex::scoped_lock lock(data_mutex_);
 	
 	can::State state = socketcan_interface_.getState();
+	stat.add("error_code", state.error_code);
+	stat.add("can_error_code", state.internal_error);
 	switch (state.driver_state)
 	{
 		case can::State::closed: 
-			stat.summaryf(diagnostic_msgs::DiagnosticStatus::ERROR, "Driver State: Closed, Error Code: %i, Internal Error: %i", state.error_code, state.internal_error);
+			stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "Driver State: Closed");
 			break;
 		
 		case can::State::open: 
-			stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Driver State: Opened");
+			stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "Driver State: Opened");
 			break;
 		
 		case can::State::ready: 
