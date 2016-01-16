@@ -57,7 +57,7 @@ private:
 
 SickLMS1xxNode::SickLMS1xxNode()
 {
-    nh = ros::NodeHandle("~");
+    ros::NodeHandle nh;
 
     scan_pub = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
     diagnostic_pub = nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
