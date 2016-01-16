@@ -57,7 +57,7 @@ private:
 
 SickLMS1xxNode::SickLMS1xxNode()
 {
-     nh = ros::NodeHandle("~");
+    nh = ros::NodeHandle("~");
 
     scan_pub = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
     diagnostic_pub = nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
@@ -88,8 +88,8 @@ bool SickLMS1xxNode::initalize()
 
     if (initalizeLaser() && initalizeMessage()) {
 
-	setScanDataConfig();
-	ret = true;
+    setScanDataConfig();
+    ret = true;
     }
 
     return ret;
@@ -103,34 +103,34 @@ bool SickLMS1xxNode::initalizeLaser()
 
     if (laser.isConnected()) {
 
-	ROS_INFO("Connected to laser.");
-	ret = true;
+    ROS_INFO("Connected to laser.");
+    ret = true;
 
-	//setup laserscanner config
-	laser.login();
-	cfg = laser.getScanCfg();
+    //setup laserscanner config
+    laser.login();
+    cfg = laser.getScanCfg();
 
-	if(set_config)
-	{
-	    ROS_DEBUG("Set angle resolution to %f deg",resolution);
-	    cfg.angleResolution = (int)(resolution * 10000);
-	    ROS_DEBUG("Set scan frequency to %f hz",frequency);
-	    cfg.scaningFrequency = (int)(frequency * 100);
+    if(set_config)
+    {
+      ROS_DEBUG("Set angle resolution to %f deg",resolution);
+      cfg.angleResolution = (int)(resolution * 10000);
+      ROS_DEBUG("Set scan frequency to %f hz",frequency);
+      cfg.scaningFrequency = (int)(frequency * 100);
 
-	    laser.setScanCfg(cfg);
-	    laser.saveConfig();
-	}
+      laser.setScanCfg(cfg);
+      laser.saveConfig();
+    }
 
-	cfg = laser.getScanCfg();
+    cfg = laser.getScanCfg();
 
-	if(cfg.angleResolution != (int)(resolution * 10000))
-	    ROS_ERROR("Setting angle resolution failed: Current angle resolution is %f.", cfg.angleResolution/10000.0);
-	if(cfg.scaningFrequency != (int)(frequency * 100))
-	    ROS_ERROR("Setting scan frequency failed: Current scan frequency is %f.", cfg.scaningFrequency/100.0);
+    if(cfg.angleResolution != (int)(resolution * 10000))
+      ROS_ERROR("Setting angle resolution failed: Current angle resolution is %f.", cfg.angleResolution/10000.0);
+    if(cfg.scaningFrequency != (int)(frequency * 100))
+      ROS_ERROR("Setting scan frequency failed: Current scan frequency is %f.", cfg.scaningFrequency/100.0);
 
     } else {
-	ROS_ERROR("Connection to device failed");
-	publishError("Connection to device failed");
+      ROS_ERROR("Connection to device failed");
+      publishError("Connection to device failed");
     }
     return ret;
 }
@@ -220,16 +220,16 @@ void SickLMS1xxNode::publish()
 
     if(laser.getData(data))
     {
-	for (int i = 0; i < data.dist_len1; i++)
-	{
-	    if(not inverted) {
-	    scan_msg.ranges[i] = data.dist1[data.dist_len1-1-i] * 0.001;
-	    scan_msg.intensities[i] = data.rssi1[data.rssi_len1-1-i];
-	    } else {
-	    scan_msg.ranges[i] = data.dist1[i] * 0.001;
-	    scan_msg.intensities[i] = data.rssi1[i];
-	    }
-	}
+    for (int i = 0; i < data.dist_len1; i++)
+    {
+      if(not inverted) {
+      scan_msg.ranges[i] = data.dist1[data.dist_len1-1-i] * 0.001;
+      scan_msg.intensities[i] = data.rssi1[data.rssi_len1-1-i];
+      } else {
+      scan_msg.ranges[i] = data.dist1[i] * 0.001;
+      scan_msg.intensities[i] = data.rssi1[i];
+      }
+    }
     scan_pub.publish(scan_msg);
 
     //Diagnostics
@@ -272,16 +272,16 @@ int main(int argc, char** argv)
     SickLMS1xxNode node;
 
     if (!node.initalize()) {
-	return 1;
+      return 1;
     }
 
     node.startScanner();
 
     while(ros::ok())
     {
-	node.publish();
+      node.publish();
 
-	ros::spinOnce();
+      ros::spinOnce();
     }
 
     node.stopScanner();
