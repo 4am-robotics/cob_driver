@@ -2,15 +2,18 @@ cmake_minimum_required(VERSION 2.8.3)
 project(cob_bms_driver)
 
 find_package(catkin REQUIRED COMPONENTS
+  diagnostic_msgs
   pluginlib
   roscpp
   roslaunch
   socketcan_interface
   std_msgs
-  diagnostic_msgs
 )
 
-catkin_package()
+catkin_package(
+  CATKIN_DEPENDS
+    diagnostic_msgs
+    std_msgs)
 
 ###########
 ## Build ##
