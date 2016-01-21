@@ -1,0 +1,5 @@
+<library path="lib/libcob_elmo_homing_plugin">
+  <class type="cob_elmo_homing::ElmoMotor402::Allocator" base_class_type="canopen::MotorBase::Allocator">
+    <description>Allocator for ElmoMotor402 instances</description>
+  </class>
+</library>
