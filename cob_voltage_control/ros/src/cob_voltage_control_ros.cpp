@@ -20,10 +20,10 @@ class cob_voltage_control_ros
         ros::NodeHandle n_;
 
         ros::Publisher topicPub_em_stop_state_;
-        ros::Publisher topicPub_power_state;
+        ros::Publisher topicPub_power_state_;
 
-        ros::Publisher topicPub_Current;
-        ros::Publisher topicPub_Voltage;
+        ros::Publisher topicPub_Current_;
+        ros::Publisher topicPub_Voltage_;
 
         ros::Subscriber topicSub_AnalogInputs;
         ros::Subscriber topicSub_DigitalInputs;
@@ -46,11 +46,11 @@ class cob_voltage_control_ros
 
         cob_voltage_control_ros()
         {
-            topicPub_power_state = n_.advertise<cob_msgs::PowerState>("power_state", 1);
+            topicPub_power_state_ = n_.advertise<cob_msgs::PowerState>("power_state", 1);
             topicPub_em_stop_state_ = n_.advertise<cob_msgs::EmergencyStopState>("em_stop_state", 1);
 
-            topicPub_Current = n_.advertise<std_msgs::Float64>("current", 10);
-            topicPub_Voltage = n_.advertise<std_msgs::Float64>("voltage", 10);
+            topicPub_Current_ = n_.advertise<std_msgs::Float64>("current", 10);
+            topicPub_Voltage_ = n_.advertise<std_msgs::Float64>("voltage", 10);
 
             topicSub_AnalogInputs = n_.subscribe("input/analog_sensors", 10, &cob_voltage_control_ros::analogPhidgetSignalsCallback, this);
             topicSub_DigitalInputs = n_.subscribe("input/digital_sensors", 10, &cob_voltage_control_ros::digitalPhidgetSignalsCallback, this);
@@ -77,9 +77,9 @@ class cob_voltage_control_ros
         void update()
         {
             component_implementation_.update(component_data_, component_config_);
-            topicPub_Voltage.publish(component_data_.out_pub_voltage_);
-            topicPub_Current.publish(component_data_.out_pub_current_);
-            topicPub_power_state.publish(component_data_.out_pub_power_state_);
+            topicPub_Voltage_.publish(component_data_.out_pub_voltage_);
+            topicPub_Current_.publish(component_data_.out_pub_current_);
+            topicPub_power_state_.publish(component_data_.out_pub_power_state_);
             topicPub_em_stop_state_.publish(component_data_.out_pub_em_stop_state_);
         }
 
