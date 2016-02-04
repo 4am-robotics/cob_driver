@@ -2,7 +2,7 @@
 
 import rospy
 from std_msgs.msg import Float64
-from cob_msgs.msg import EmergencyStopState, PowerBoardState
+from cob_msgs.msg import EmergencyStopState
 
 def relayboard_sim():
 	rospy.init_node('cob_relayboard_sim')
@@ -14,21 +14,13 @@ def relayboard_sim():
 	msg_em.scanner_stop = False
 	msg_em.emergency_state = 0
 
-	# power_board/state topic
-	pub_power_board = rospy.Publisher('power_board/state', PowerBoardState, queue_size=1)
-	msg_power_board = PowerBoardState()
-	msg_power_board.header.stamp = rospy.Time.now()
-	msg_power_board.run_stop = True
-	msg_power_board.wireless_stop = True #for cob the wireless stop field is misused as laser stop field
-
-	# power_board/voltage topic
-	pub_voltage = rospy.Publisher('power_board/voltage', Float64, queue_size=1)
+	# voltage topic
+	pub_voltage = rospy.Publisher('voltage', Float64, queue_size=1)
 	msg_voltage = Float64()
 	msg_voltage.data = 48.0 # in simulation battery is always full
 
 	while not rospy.is_shutdown():
 		pub_em_stop.publish(msg_em)
-		pub_power_board.publish(msg_power_board)
 		pub_voltage.publish(msg_voltage)
 		rospy.sleep(1.0)
 
