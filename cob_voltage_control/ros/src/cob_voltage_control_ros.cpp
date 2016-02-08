@@ -2,7 +2,6 @@
 #include <ros/ros.h>
 
 // ROS message includes
-#include <cob_msgs/PowerBoardState.h>
 #include <cob_msgs/PowerState.h>
 #include <cob_msgs/EmergencyStopState.h>
 #include <std_msgs/Bool.h>
@@ -23,7 +22,7 @@ class cob_voltage_control_ros
         ros::NodeHandle n_;
 
         ros::Publisher topicPub_em_stop_state_;
-        ros::Publisher topicPub_powerstate;
+        ros::Publisher topicPub_power_state;
 
         ros::Publisher topicPub_current_measurement_;
         ros::Publisher topicPub_Current;
@@ -50,7 +49,7 @@ class cob_voltage_control_ros
 
         cob_voltage_control_ros()
         {
-            topicPub_powerstate = n_.advertise<cob_msgs::PowerBoardState>("powerboard_state", 1);
+            topicPub_power_state = n_.advertise<cob_msgs::PowerState>("power_state", 1);
             topicPub_em_stop_state_ = n_.advertise<cob_msgs::EmergencyStopState>("em_stop_state", 1);
 
             topicPub_Current = n_.advertise<std_msgs::Float64>("current", 10);
@@ -81,9 +80,9 @@ class cob_voltage_control_ros
         void update()
         {
             component_implementation_.update(component_data_, component_config_);
-            topicPub_Voltage.publish(component_data_.out_pub_voltage);
-            topicPub_Current.publish(component_data_.out_pub_current);
-            topicPub_powerstate.publish(component_data_.out_pub_powerboard_state);
+            topicPub_Voltage.publish(component_data_.out_pub_voltage_);
+            topicPub_Current.publish(component_data_.out_pub_current_);
+            topicPub_power_state.publish(component_data_.out_pub_power_state_);
             topicPub_em_stop_state_.publish(component_data_.out_pub_em_stop_state_);
         }
 
