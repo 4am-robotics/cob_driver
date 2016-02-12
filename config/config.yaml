@@ -25,6 +25,12 @@ diagnostics:
         is_signed: false
         factor: 0.001
         unit: "Ah"
+      - name: "full_charge_capacity"
+        offset: 2
+        len: 2
+        is_signed: false
+        factor: 0.001
+        unit: "Ah"
 
   - id: 0x04
     fields:
@@ -73,8 +79,8 @@ diagnostics:
         unit: "Celsius"
 
 
-topics: ["current", "voltage", "remaining_capacity", "temperature"]
+topics: ["current", "voltage", "remaining_capacity", "full_charge_capacity", "temperature"]
 
-can_device: "can0"
+can_device: "can1"
 bms_id_to_poll: 0x200
 poll_frequency_hz: 20

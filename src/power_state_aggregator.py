@@ -9,7 +9,6 @@ class PowerStateAggregator():
 
     def __init__(self):
         # get parameters
-        self.max_capacity = rospy.get_param('~max_capacity', 35)
         self.current_buffer_size = rospy.get_param('~current_buffer_size', 10)
         self.pub_power_state = rospy.Publisher('power_state', PowerState, queue_size=1)
         self.voltage = None
@@ -17,10 +16,12 @@ class PowerStateAggregator():
         self.last_currents = []
         self.charging = False
         self.remaining_capacity = None
+        self.full_charge_capacity = None
         self.temperature = None
         rospy.Subscriber("voltage", Float64, self.voltage_cb)
         rospy.Subscriber("current", Float64, self.current_cb)
         rospy.Subscriber("remaining_capacity", Float64, self.remaining_capacity_cb)
+        rospy.Subscriber("full_charge_capacity", Float64, self.full_charge_capacity_cb)
         rospy.Subscriber("temperature", Float64, self.temperature_cb)
 
     def voltage_cb(self, msg):
@@ -42,6 +43,9 @@ class PowerStateAggregator():
     def remaining_capacity_cb(self, msg):
         self.remaining_capacity = msg.data
 
+    def full_charge_capacity_cb(self, msg):
+        self.full_charge_capacity = msg.data
+
     def temperature_cb(self, msg):
         self.temperature = msg.data
 
@@ -52,10 +56,10 @@ class PowerStateAggregator():
             return 0.0
 
     def calculate_relative_remaining_capacity(self):
-        if self.max_capacity != None and self.remaining_capacity != None:
-            return round(100.0*(self.remaining_capacity/self.max_capacity), 3)
+        if self.full_charge_capacity != None and self.remaining_capacity != None:
+            return round(100.0*(self.remaining_capacity/self.full_charge_capacity), 3)
         else:
-            rospy.logwarn("cannot calculate relative remaining capacity. max_capacity=%d, remaining_capacity=%d" % (self.max_capacity, self.remaining_capacity))
+            rospy.logwarn("cannot calculate relative remaining capacity. full_charge_capacity=%d, remaining_capacity=%d" % (self.full_charge_capacity, self.remaining_capacity))
             return 0.0
 
     def calculate_time_remaining(self):
@@ -63,8 +67,8 @@ class PowerStateAggregator():
             current = numpy.sum(self.last_currents)/len(self.last_currents)
         else:
             return 0.0
-        if self.max_capacity != None and self.remaining_capacity:
-            return round((self.max_capacity - self.remaining_capacity) / abs(current), 3)
+        if self.full_charge_capacity != None and self.remaining_capacity:
+            return round((self.full_charge_capacity - self.remaining_capacity) / abs(current), 3)
         else:
             return 0.0
  
