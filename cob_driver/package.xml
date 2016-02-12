@@ -17,6 +17,7 @@
   <exec_depend>cob_base_drive_chain</exec_depend>
   <exec_depend>cob_camera_sensors</exec_depend>
   <exec_depend>cob_canopen_motor</exec_depend>
+  <exec_depend>cob_elmo_homing</exec_depend>
   <exec_depend>cob_generic_can</exec_depend>
   <exec_depend>cob_head_axis</exec_depend>
   <exec_depend>cob_light</exec_depend>
