@@ -31,7 +31,6 @@
 SocketCan::SocketCan(const char* device, int baudrate)
 {
         m_bInitialized = false;
-        recived = false;
 
         p_cDevice = device;
         can::SocketCANInterface m_handle;
@@ -40,7 +39,6 @@ SocketCan::SocketCan(const char* device, int baudrate)
 SocketCan::SocketCan(const char* device)
 {
         m_bInitialized = false;
-        recived = false;
 
         p_cDevice = device;
         can::SocketCANInterface m_handle;
@@ -59,7 +57,6 @@ SocketCan::~SocketCan()
 bool SocketCan::init_ret()
 {
         bool ret = true;
-
         // init() - part
         if (!m_handle.init(p_cDevice, false))
         {
@@ -69,9 +66,9 @@ bool SocketCan::init_ret()
         else
         {
                 ret = initCAN();
-		m_handle.run();
+                frame_printer = m_handle.createMsgListener(can::CommInterface::FrameDelegate(this, &SocketCan::recive_frame));
+                m_handle.run();
         }
-
         return ret;
 }
 
@@ -90,11 +87,10 @@ void SocketCan::init()
 bool SocketCan::transmitMsg(CanMsg CMsg, bool bBlocking)
 {
     can::Header header(CMsg.getID(), false, false, false);
-	can::Frame message(header, CMsg.getLength());
-	for(int i=0; i<CMsg.getLength(); i++)
-	    message.data[i] = CMsg.getAt(i);
-
-	return m_handle.send(message);
+    can::Frame message(header, CMsg.getLength());
+    for(int i=0; i<CMsg.getLength(); i++)
+        message.data[i] = CMsg.getAt(i);
+    return m_handle.send(message);
 }
 
 //-------------------------------------------
@@ -103,18 +99,23 @@ bool SocketCan::receiveMsg(CanMsg* pCMsg)
     if (m_bInitialized == false) return false;
 
     bool bRet = false;
+    can::Frame frame;
 
-    if (recived) {
-        pCMsg->setID(recived_frame.id);
-        pCMsg->setLength(recived_frame.dlc);
-        pCMsg->set(recived_frame.data[0], recived_frame.data[1], recived_frame.data[2], recived_frame.data[3],
-                        recived_frame.data[4], recived_frame.data[5], recived_frame.data[6], recived_frame.data[7]);
+    if(recived_frame.size())
+    {
+        frame = recived_frame.front();
+        recived_frame.pop_front();
+        std::cout<<"length:"<<frame.dlc<<std::endl;
+        pCMsg->setID(frame.id);
+        pCMsg->setLength(frame.dlc);
+        pCMsg->set(frame.data[0], frame.data[1], frame.data[2], frame.data[3],
+        		frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
         bRet = true;
-	}
-	else {
-	  std::cout << "No message recived: " << std::endl;
-	}
-	return bRet;
+    }
+    else {
+        std::cout << "No message recieved: " << std::endl;
+    }
+    return bRet;
 }
 
 //-------------------------------------------
@@ -122,23 +123,27 @@ bool SocketCan::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
 {
     if (m_bInitialized == false) return false;
 
-    // wait until msg in buffer
+    can::Frame frame;
     bool bRet = false;
     int i=0;
+
     do
     {
-        if (recived) {
-            pCMsg->setID(recived_frame.id);
-            pCMsg->setLength(recived_frame.dlc);
-            pCMsg->set(recived_frame.data[0], recived_frame.data[1], recived_frame.data[2], recived_frame.data[3],
-                            recived_frame.data[4], recived_frame.data[5], recived_frame.data[6], recived_frame.data[7]);
+        if(recived_frame.size())
+        {
+            frame = recived_frame.front();
+            recived_frame.pop_front();
+            pCMsg->setID(frame.id);
+            pCMsg->setLength(frame.dlc);
+            pCMsg->set(frame.data[0], frame.data[1], frame.data[2], frame.data[3],
+                        frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
             bRet = true;
             break;
         }
         i++;
-        usleep(10000);
+        usleep(1000);
     }
-    while(i < iNrOfRetry);
+    while((i < iNrOfRetry && bRet!=true));
     return bRet;
 }
 
@@ -147,15 +152,16 @@ bool SocketCan::receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout)
 {
     if (m_bInitialized == false) return false;
 
-    // wait until msg in buffer
     bool bRet = false;
-
+    can::Frame frame;
     usleep(nSecTimeout/1000);
-    if (recived) {
-        pCMsg->setID(recived_frame.id);
-        pCMsg->setLength(recived_frame.dlc);
-        pCMsg->set(recived_frame.data[0], recived_frame.data[1], recived_frame.data[2], recived_frame.data[3],
-                        recived_frame.data[4], recived_frame.data[5], recived_frame.data[6], recived_frame.data[7]);
+
+    if(recived_frame.size() > 0){
+        frame = recived_frame.front();
+        recived_frame.pop_front();
+        pCMsg->setID(frame.id);
+        pCMsg->setLength(frame.dlc);
+        pCMsg->set(frame.data[0], frame.data[1], frame.data[2], frame.data[3], frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
         bRet = true;
     }
 
@@ -163,36 +169,21 @@ bool SocketCan::receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout)
 }
 
 bool SocketCan::initCAN() {
-	m_bInitialized = true;
-        bool bRet = true;
-        return true;
+    m_bInitialized = true;
+    bool bRet = true;
+    return true;
 }
 
-void SocketCan::recive_frame(const can::Frame& frame){
+void SocketCan::recive_frame(const can::Frame & frame){
 
     if(frame.is_error){
-        std::cout << "E " << std::hex << frame.id << std::dec;
-    }else if(frame.is_extended){
-        std::cout << "e " << std::hex << frame.id << std::dec;
-    }else{
-        std::cout << "s " << std::hex << frame.id << std::dec;
+        can::State state;
+        print_error(state);
     }
-
-    std::cout << "\t";
-
-    if(frame.is_rtr){
-        std::cout << "r";
-    }else{
-        std::cout << (int) frame.dlc << std::hex;
-
-        for(int i=0; i < frame.dlc; ++i){
-            std::cout << std::hex << " " << (int) frame.data[i];
-        }
+    else
+    {
+        recived_frame.push_back(frame);
     }
-
-    std::cout << std::dec << std::endl;
-    recived_frame = frame;
-    recived = true;
 }
 
 void SocketCan::print_error(const can::State & state){

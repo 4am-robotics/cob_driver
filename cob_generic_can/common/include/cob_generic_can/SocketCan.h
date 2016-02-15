@@ -44,14 +44,14 @@ public:
 private:
 	// --------------- Types
     can::SocketCANInterface m_handle;
+    can::CommInterface::FrameListener::Ptr frame_printer;
 
 	bool m_bInitialized;
 	bool m_bSimuEnabled;
 	const char* p_cDevice;
 	int m_iBaudrateVal;
 
-	bool recived;
-	can::Frame recived_frame;
+	std::list<can::Frame> recived_frame;
 
 	static const int c_iInterrupt;
 	static const int c_iPort;
