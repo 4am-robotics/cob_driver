@@ -110,6 +110,13 @@ class Mimic:
     self.default_speed = 1.0
     self.default_mimic = "default"
 
+    # copy all videos to /tmp
+    rospy.loginfo("copying all mimic files to /tmp/mimic...")
+    file_location = roslib.packages.get_pkg_dir('cob_mimic') + '/common/*.mp4'
+    os.system("mkdir -p /tmp/mimic")
+    os.system("cp " + file_location + " /tmp/mimic")
+    rospy.loginfo("...copied all mimic files to /tmp/mimic")
+
     self._ss = rospy.Service('~set_mimic', SetMimic, self.service_cb)
     self._as = actionlib.SimpleActionServer('~set_mimic', cob_mimic.msg.SetMimicAction, execute_cb=self.action_cb, auto_start = False)
     self._as.start()
