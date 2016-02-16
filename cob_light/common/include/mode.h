@@ -65,24 +65,49 @@ class Mode
 public:
 	Mode(int priority = 0, double freq = 0, int pulses = 0, double timeout = 0)
 		: _priority(priority), _freq(freq), _pulses(pulses), _timeout(timeout),
-		  _finished(false), _pulsed(0), _isStopRequested(false){}
+		  _finished(false), _pulsed(0), _isStopRequested(false), _isPauseRequested(false),
+		  _isRunning(false){}
 	virtual ~Mode(){}
 
 	void start()
 	{
 		if(_thread == NULL)
 			_thread.reset(new boost::thread(&Mode::run, this));
+		if(isPauseRequested())
+		{
+			boost::mutex::scoped_lock lock(_mutex_pause);
+			_isPauseRequested = false;
+			_cond_pause.notify_one();
+		}
+		_isRunning = true;
 	}
 
 	void stop()
 	{
-		std::cout<<"stopping mode"<<std::endl;
 		_mutex.lock();
 		_isStopRequested = true;
 		_mutex.unlock();
-		_thread->join();
-		_thread.reset();
+		if(isPauseRequested())
+		{
+			_isPauseRequested = false;
+			boost::mutex::scoped_lock lock(_mutex_pause);
+			_cond_pause.notify_one();
+		}
+		if(_thread != NULL)
+		{
+			_thread->join();
+			_thread.reset();
+		}
 		_isStopRequested = false;
+		_isRunning = false;
+	}
+
+	void pause()
+	{
+		_mutex.lock();
+		_isPauseRequested = true;
+		_mutex.unlock();
+		_isRunning = false;
 	}
 
 	virtual void execute() = 0;
@@ -111,9 +136,11 @@ public:
 	void setActualColor(color::rgba color){ _actualColor = color; }
 	color::rgba getActualColor(){ return _color; }
 
+	bool isRunning(){ return _isRunning; }
+
 	boost::signals2::signal<void (color::rgba color)>* signalColorReady(){ return &m_sigColorReady; }
 	boost::signals2::signal<void (std::vector<color::rgba> colors)>* signalColorsReady(){ return &m_sigColorsReady; }
-	boost::signals2::signal<void ()>* signalModeFinished(){ return &m_sigFinished; }
+	boost::signals2::signal<void (int)>* signalModeFinished(){ return &m_sigFinished; }
 
 protected:
 	int _priority;
@@ -133,19 +160,32 @@ protected:
 
 	boost::signals2::signal<void (color::rgba color)> m_sigColorReady;
 	boost::signals2::signal<void (std::vector<color::rgba> colors)> m_sigColorsReady;
-	boost::signals2::signal<void ()> m_sigFinished;
+	boost::signals2::signal<void (int)> m_sigFinished;
 
 private:
 	boost::shared_ptr<boost::thread> _thread;
 	boost::mutex _mutex;
+	boost::mutex _mutex_pause;
 	bool _isStopRequested;
+	bool _isPauseRequested;
+	bool _isRunning;
 
+	boost::condition_variable _cond_pause;
 
 	bool isStopRequested()
 	{
 		bool ret;
 		_mutex.lock();
 		ret = _isStopRequested;
+		_mutex.unlock();
+		return ret;
+	}
+
+	bool isPauseRequested()
+	{
+		bool ret;
+		_mutex.lock();
+		ret = _isPauseRequested;
 		_mutex.unlock();
 		return ret;
 	}
@@ -161,6 +201,11 @@ protected:
 
 		while(!isStopRequested() && !ros::isShuttingDown())
 		{
+			while(isPauseRequested())
+			{
+				boost::mutex::scoped_lock lock(_mutex_pause);
+				_cond_pause.wait(lock);
+			}
 			this->execute();
 
 			if((this->getPulses() != 0) &&
@@ -175,9 +220,9 @@ protected:
 			}
 			r.sleep();
 		}
-		ROS_INFO("Mode %s finished",this->getName().c_str());
+		ROS_DEBUG("Mode %s finished",this->getName().c_str());
 		if(!isStopRequested())
-			m_sigFinished();
+			m_sigFinished(this->getPriority());
 	}
 };
 
