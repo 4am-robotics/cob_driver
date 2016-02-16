@@ -62,6 +62,7 @@
 #include <circleColorMode.h>
 #include <sweepColorMode.h>
 #include <distApproxMode.h>
+#include <glowColorMode.h>
 
 ModeFactory::ModeFactory()
 {
@@ -177,6 +178,11 @@ boost::shared_ptr<Mode> ModeFactory::create(cob_light::LightMode requestMode, IC
                                     requestMode.pulses, requestMode.timeout));
         break;
 
+    case cob_light::LightModes::GLOW:
+            mode.reset(new GlowColorMode(color, requestMode.priority, requestMode.frequency,\
+                                  requestMode.pulses, requestMode.timeout));
+            break;
+
     default:
         mode.reset();
     }
@@ -239,6 +245,8 @@ int ModeFactory::type(Mode *mode)
         ret = cob_light::LightModes::SWEEP;
     else if(dynamic_cast<DistApproxMode*>(mode) != NULL)
         ret = cob_light::LightModes::DIST_APPROX;
+    else if(dynamic_cast<GlowColorMode*>(mode) != NULL)
+        ret = cob_light::LightModes::GLOW;
     else
         ret = cob_light::LightModes::NONE;
 

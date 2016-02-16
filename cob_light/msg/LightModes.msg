@@ -10,3 +10,4 @@ uint8 CIRCLE_COLORS =  7           # circle through specific colors, if one colo
                                    # if more than one color is set, that this colors will circle through
 uint8 SWEEP =          8           # circle color from front to back on both sides
 uint8 DIST_APPROX =    9           # color led circle from green to red depended on the measured laserscan dists
+uint8 GLOW =          10           # glow the color
