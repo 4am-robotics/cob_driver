@@ -70,58 +70,45 @@ from cob_mimic.msg import *
 
 class Mimic:
   def service_cb(self, req):
-      self.set_mimic(req.mimic, req.speed, req.repeat)
-      return SetMimicResponse()
+      success = self.set_mimic(req.mimic, req.speed, req.repeat)
+      return SetMimicResponse(success, "")
 
   def action_cb(self, goal):
       if self.set_mimic(goal.mimic, goal.speed, goal.repeat):
-          self._as.set_succeeded()
+        self._as.set_succeeded()
       else:
-          self._as.set_aborted()
+        self._as.set_aborted()
 
   def set_mimic(self, mimic, speed, repeat):
-      self.ServiceCalled = True
-      #os.system(self.quit_command)
-
-      print "Mimic: %s" % mimic
+      rospy.loginfo("Mimic: %s", mimic)
       file_location = '/tmp/mimic/' + mimic + '.mp4'
       if(not os.path.isfile(file_location)):
-        print "File not found: " + file_location
+        rospy.logerror("File not found: %s", file_location)
         return False
 
-      if (repeat == 0 ):
-        self.default_mimic = mimic
-        self.default_speed = speed
-        self.ServiceCalled = False
-      else:
-        for i in range(0,repeat):
-          command = "export DISPLAY=:0 && vlc --video-wallpaper --video-filter 'rotate{angle=0}' --one-instance --playlist-enqueue --no-video-title-show --rate %f %s"  % (speed,file_location) #--fullscreen --video-filter 'rotate{angle=90}'
-          os.system(command)
-      os.system(self.quit_command)
+      # repeat cannot be 0
+      repeat = max (1, repeat)
+
+      for i in range(0, repeat):
+        rospy.loginfo("Repeat: %s, Mimic: %s", repeat, mimic)
+        command = "export DISPLAY=:0 && vlc --video-wallpaper --video-filter 'rotate{angle=0}' --one-instance --playlist-enqueue --no-video-title-show --rate %f %s vlc://quit"  % (speed, file_location)
+        os.system(command)
+
       return True
 
   def defaultMimic(self):
+    file_location = '/tmp/mimic/' + self.default_mimic + '.mp4'
+    if not os.path.isfile(file_location):
+      rospy.logerror("File not found: %s", file_location)
+      return
+
     while not rospy.is_shutdown():
-      file_location = '/tmp/mimic/' + self.default_mimic + '.mp4'
-      if(not os.path.isfile(file_location)):
-        print "File not found: " + file_location
-        rospy.sleep(1)
-        return
-      command = "export DISPLAY=:0 && vlc --video-wallpaper --video-filter 'rotate{angle=0}' --loop --one-instance --playlist-enqueue --no-video-title-show --rate %f  %s"  % (self.default_speed,file_location) # --fullscreen --video-filter 'rotate{angle=90}'
+      command = "export DISPLAY=:0 && vlc --video-wallpaper --video-filter 'rotate{angle=0}' --loop --one-instance --playlist-enqueue --no-video-title-show --rate %f  %s  vlc://quit"  % (self.default_speed, file_location)
       os.system(command)
 
-
-
   def main(self):
-    rospy.init_node('mimic')
-    self.ServiceCalled = False
     self.default_speed = 1.0
     self.default_mimic = "default"
-    self.quit_command = "export DISPLAY=:0 && vlc --one-instance --playlist-enqueue vlc://quit"
-
-    s=rospy.Service('set_mimic',SetMimic, self.service_cb)
-    self._as = actionlib.SimpleActionServer('~set_mimic', cob_mimic.msg.SetMimicAction, execute_cb=self.action_cb, auto_start = False)
-    self._as.start()
 
     # copy all videos to /tmp
     rospy.loginfo("copying all mimic files to /tmp/mimic...")
@@ -130,19 +117,20 @@ class Mimic:
     os.system("cp " + file_location + " /tmp/mimic")
     rospy.loginfo("...copied all mimic files to /tmp/mimic")
 
-    while ( self.ServiceCalled == False):
-      self.defaultMimic()
-      rospy.sleep(1)
+    self._ss = rospy.Service('~set_mimic', SetMimic, self.service_cb)
+    self._as = actionlib.SimpleActionServer('~set_mimic', cob_mimic.msg.SetMimicAction, execute_cb=self.action_cb, auto_start = False)
+    self._as.start()
 
     rospy.spin()
 
 
 
 if __name__ == "__main__":
+  rospy.init_node('mimic')
   try:
     mimic = Mimic()
     mimic.main()
-  except KeyboardInterrupt, e:
+  except (rospy.ROSInterruptException, KeyboardInterrupt, SystemExit) as e:
+    rospy.loginfo('Exiting: ' + str(e))
     pass
-  print "exiting"
 
