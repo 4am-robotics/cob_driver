@@ -68,7 +68,6 @@ public:
         _inc = (1. / UPDATE_RATE_HZ) * _freq;
         h_inc=0;
         color::Color::rgb2hsv(color.r, color.g, color.b, h, s, v);
-        std::cout<<"h: "<<h<<" s: "<<s<<" v: "<<v<<std::endl;
     }
 
     void execute()
@@ -79,11 +78,11 @@ public:
         float b = 0;
 
         if(_timer_inc >= 1.0)
-		{
+        {
             double tmp = h;
 
             h_inc += 0.001 * sign;
-            if(h_inc >= 0.04 || h_inc <= -0.04)
+            if(h_inc >= 0.01 || h_inc <= -0.01)
             {
                 sign *= -1;
                 _pulsed++;
@@ -91,6 +90,9 @@ public:
             h += h_inc;
             if( h < 0)
                 h = 1 + h;
+            
+            //double fV = (exp(sin(_timer_inc))-1.0/M_E)*(1.000/(M_E-1.0/M_E));
+            double fV = (exp(sin( (M_PI/2)+h_inc*60 ))-0.36787944)*0.42545906411;
 
             color::Color::hsv2rgb(h, s, v, r, g, b);
 
@@ -98,7 +100,7 @@ public:
             col.r = r;
             col.g = g;
             col.b = b;
-            col.a = _color.a;
+            col.a = fV;
 
             _timer_inc = 0.0;
             m_sigColorReady(col);
