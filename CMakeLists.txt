@@ -10,10 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
 )
 
-catkin_package(
-  CATKIN_DEPENDS
-    diagnostic_msgs
-    std_msgs)
+catkin_package()
 
 ###########
 ## Build ##
@@ -24,8 +21,8 @@ include_directories(
 )
 
 add_executable(bms_driver_node src/cob_bms_driver_node.cpp)
-
-target_link_libraries( bms_driver_node ${catkin_LIBRARIES})
+add_dependencies(bms_driver_node ${catkin_EXPORTED_TARGETS})
+target_link_libraries(bms_driver_node ${catkin_LIBRARIES})
 
 #############
 ## Install ##
