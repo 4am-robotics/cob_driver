@@ -61,22 +61,28 @@ class StaticMode : public Mode
 {
 public:
 	StaticMode(color::rgba color, int priority = 0, double freq = 0, int pulses = 0, double timeout = 0)
-		:Mode(priority, freq, pulses, timeout)
+		:Mode(priority, freq, pulses, timeout), _timer_inc(0)
 	{
-		//override pulses to one, so this is only executed one time
-		_pulses = 1;
 		_color = color;
+		_inc = (1. / UPDATE_RATE_HZ) * _freq;
 	}
 
 	void execute()
 	{
-		_pulsed++;
-		m_sigColorReady(_color);
+		if(_timer_inc >= 1.0)
+	    {
+	      m_sigColorReady(_color);
+	      _timer_inc = 0.0;
+	    }
+	    else
+	      _timer_inc += _inc;
 	}
 
 	std::string getName(){ return std::string("StaticMode"); }
 
 private:
+	double _timer_inc;
+    double _inc;
 };
 
 #endif

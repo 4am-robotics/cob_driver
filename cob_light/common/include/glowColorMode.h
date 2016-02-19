@@ -1,6 +1,6 @@
 /****************************************************************
  *
- * Copyright (c) 2010
+ * Copyright (c) 2016
  *
  * Fraunhofer Institute for Manufacturing Engineering
  * and Automation (IPA)
@@ -18,7 +18,7 @@
  * Author: Benjamin Maidel, email:benjamin.maidel@ipa.fraunhofer.de
  * Supervised by: Benjamin Maidel, email:benjamin.maidel@ipa.fraunhofer.de
  *
- * Date of creation: August 2012
+ * Date of creation: Feb 2016
  * ToDo:
  *
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -52,28 +52,71 @@
  *
  ****************************************************************/
 
-#ifndef MODEFACTORY_H
-#define MODEFACTORY_H
+#ifndef GLOWCOLORMODE_H
+#define GLOWCOLORMODE_H
 
 #include <mode.h>
-#include <iColorO.h>
-#include <cob_light/SetLightMode.h>
-#include <cob_light/LightModes.h>
-#include <boost/shared_ptr.hpp>
 
-class ModeFactory
+class GlowColorMode : public Mode
 {
 public:
-	ModeFactory();
-	~ModeFactory();
+    GlowColorMode(color::rgba color, int priority = 0, double freq = 0.25, int pulses = 0, double timeout = 0)
+        :Mode(priority, freq, pulses, timeout), _timer_inc(0.0)
+    {
+        _color = color;
+        h = 0.0;
+        _inc = (1. / UPDATE_RATE_HZ) * _freq;
+        h_inc=0;
+        color::Color::rgb2hsv(color.r, color.g, color.b, h, s, v);
+    }
 
-	static boost::shared_ptr<Mode> create(cob_light::LightMode requestMode, IColorO* colorO);
-	static boost::shared_ptr<Mode> create(std::string mode, color::rgba color);
+    void execute()
+    {
+        static int sign = 1;
+        float r = 0;
+        float g = 0;
+        float b = 0;
 
-	static int type(Mode *mode);
+        if(_timer_inc >= 1.0)
+        {
+            double tmp = h;
+
+            h_inc += 0.001 * sign;
+            if(h_inc >= 0.01 || h_inc <= -0.01)
+            {
+                sign *= -1;
+                _pulsed++;
+            }
+            h += h_inc;
+            if( h < 0)
+                h = 1 + h;
+            
+            //double fV = (exp(sin(_timer_inc))-1.0/M_E)*(1.000/(M_E-1.0/M_E));
+            double fV = (exp(sin( (M_PI/2)+h_inc*60 ))-0.36787944)*0.42545906411;
+
+            color::Color::hsv2rgb(h, s, v, r, g, b);
+
+            color::rgba col;
+            col.r = r;
+            col.g = g;
+            col.b = b;
+            col.a = fV;
+
+            _timer_inc = 0.0;
+            m_sigColorReady(col);
+            h = tmp;
+        }
+        else
+            _timer_inc += _inc;
+    }
+
+    std::string getName(){ return std::string("GlowColorMode"); }
 
 private:
-	IColorO* _colorO;
+    double _timer_inc;
+    double _inc;
+    float h, s, v;
+    double h_inc;
 };
 
 #endif

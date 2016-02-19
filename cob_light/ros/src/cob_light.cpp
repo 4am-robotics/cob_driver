@@ -67,12 +67,16 @@
 
 // ros message includes
 #include <std_msgs/ColorRGBA.h>
+#include <std_msgs/UInt64.h>
 #include <visualization_msgs/Marker.h>
+#include <cob_light/ColorRGBAArray.h>
 #include <cob_light/LightMode.h>
+#include <cob_light/LightModes.h>
 #include <cob_light/SetLightMode.h>
 #include <cob_light/SetLightModeAction.h>
 #include <cob_light/SetLightModeActionGoal.h>
 #include <cob_light/SetLightModeActionResult.h>
+#include <cob_light/StopLightMode.h>
 
 // serial connection includes
 #include <serialIO.h>
@@ -191,11 +195,11 @@ public:
     //Subscribe to LightController Command Topic
     _sub = _nh.subscribe("command", 1, &LightControl::topicCallback, this);
 
-    //Subscribe to LightController Command Topic
-    _sub_mode = _nh.subscribe("light", 1, &LightControl::topicCallbackMode, this);
-
     //Advertise light mode Service
     _srvServer = _nh.advertiseService("set_light", &LightControl::serviceCallback, this);
+
+    //Advertise stop mode service
+    _srvStopMode = _nh.advertiseService("stop_mode", &LightControl::stopMode, this);
 
     //Start light mode Action Server
     _as = new ActionServer(_nh, "set_light", boost::bind(&LightControl::actionCallback, this, _1), false);
@@ -266,7 +270,7 @@ public:
 
     p_modeExecutor = new ModeExecutor(p_colorO);
 
-    Mode * mode = ModeFactory::create(startup_mode, _color);
+    boost::shared_ptr<Mode> mode = ModeFactory::create(startup_mode, _color);
     if(mode == NULL)
     {
       p_colorO->setColor(_color);
@@ -290,52 +294,49 @@ public:
     }
   }
 
-  void topicCallbackMode(cob_light::LightMode mode_msg)
+  void topicCallback(cob_light::ColorRGBAArray color)
   {
-    if(p_modeExecutor->getExecutingPriority() <= mode_msg.priority)
-    {
-        p_modeExecutor->stop();
-        if(_deviceDriver == "stageprofi")
-        {
-          std::vector<color::rgba> colors;
-          for(size_t i=0; i<mode_msg.colors.size();i++)
-          {
-            _color.a = mode_msg.colors[i].a;
-            _color.r = mode_msg.colors[i].r;
-            _color.g = mode_msg.colors[i].g;
-            _color.b = mode_msg.colors[i].b;
-            colors.push_back(_color);
-          }
-          p_colorO->setColorMulti(colors);
-        }
-        else
-        {
-          _color.a = mode_msg.color.a;
-          _color.r = mode_msg.color.r;
-          _color.g = mode_msg.color.g;
-          _color.b = mode_msg.color.b;
-          p_colorO->setColor(_color);
-        }
-    }
-  }
-
-  void topicCallback(std_msgs::ColorRGBA color)
-  {
-    if(color.r <= 1.0 && color.g <=1.0 && color.b <= 1.0)
-    {
       if(p_modeExecutor->getExecutingPriority() <= _topic_priority)
       {
-        p_modeExecutor->stop();
-        _color.r = color.r;
-        _color.g = color.g;
-        _color.b = color.b;
-        _color.a = color.a;
+          p_modeExecutor->pause();
+          if(color.colors.size() > 0)
+          {
+              if(color.colors.size() > 1)
+              {
+                  std::vector<color::rgba> colors;
+                  for(size_t i=0; i<colors.size();i++)
+                  {
+                      if(color.colors[i].r <= 1.0 && color.colors[i].g <= 1.0 && color.colors[i].b <= 1.0)
+                      {
+                        _color.a = color.colors[i].a;
+                        _color.r = color.colors[i].r;
+                        _color.g = color.colors[i].g;
+                        _color.b = color.colors[i].b;
+                        colors.push_back(_color);
+                      }
+                      else
+                        ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
+                  }
+                  p_colorO->setColorMulti(colors);
+              }
+              else
+              {
+                  if(color.colors[0].r <= 1.0 && color.colors[0].g <= 1.0 && color.colors[0].b <= 1.0)
+                  {
+                      _color.r = color.colors[0].r;
+                      _color.g = color.colors[0].g;
+                      _color.b = color.colors[0].b;
+                      _color.a = color.colors[0].a;
 
-        p_colorO->setColor(_color);
-      }
-    }
-    else
-      ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
+                      p_colorO->setColor(_color);
+                  }
+                  else
+                    ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
+              }
+          }
+          else
+            ROS_ERROR("Empty color msg received");
+        }
   }
 
   bool serviceCallback(cob_light::SetLightMode::Request &req, cob_light::SetLightMode::Response &res)
@@ -344,61 +345,84 @@ public:
 
     //ROS_DEBUG("Service Callback [Mode: %i with prio: %i freq: %f timeout: %f pulses: %i ] [R: %f with G: %f B: %f A: %f]",
     //	req.mode.mode, req.mode.priority, req.mode.frequency, req.mode.timeout, req.mode.pulses,req.mode.color.r,req.mode.color.g ,req.mode.color.b,req.mode.color.a);
-
-    if(req.mode.color.r > 1.0 || req.mode.color.g > 1.0 || req.mode.color.b > 1.0 || req.mode.color.a > 1.0)
+    if(req.mode.colors.size() > 0)
     {
-      res.active_mode = p_modeExecutor->getExecutingMode();
-      res.active_priority = p_modeExecutor->getExecutingPriority();
-      ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
+        if(req.mode.colors[0].r > 1.0 || req.mode.colors[0].g > 1.0 ||
+            req.mode.colors[0].b > 1.0 || req.mode.colors[0].a > 1.0)
+        {
+          res.active_mode = p_modeExecutor->getExecutingMode();
+          res.active_priority = p_modeExecutor->getExecutingPriority();
+          res.track_id = -1;
+          ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
+        }
+        else if(req.mode.mode == cob_light::LightModes::NONE) //refactor this
+        {
+          p_modeExecutor->stop();
+          _color.a = 0;
+          //p_modeExecutor->execute(req.mode);
+          p_colorO->setColor(_color);
+          res.active_mode = p_modeExecutor->getExecutingMode();
+          res.active_priority = p_modeExecutor->getExecutingPriority();
+          ret = true;
+        }
+        else
+        {
+          uint64_t u_id = p_modeExecutor->execute(req.mode);
+          res.active_mode = p_modeExecutor->getExecutingMode();
+          res.active_priority = p_modeExecutor->getExecutingPriority();
+          res.track_id = u_id;
+          ret = true;
+        }
     }
-    else if(req.mode.mode == cob_light::LightMode::NONE)
-    {
-      p_modeExecutor->stop();
-      _color.a = 0;
-      //p_modeExecutor->execute(req.mode);
-      p_colorO->setColor(_color);
-      res.active_mode = p_modeExecutor->getExecutingMode();
-      res.active_priority = p_modeExecutor->getExecutingPriority();
-      ret = true;
-    }
-    else
-    {
-      p_modeExecutor->execute(req.mode);
-      res.active_mode = p_modeExecutor->getExecutingMode();
-      res.active_priority = p_modeExecutor->getExecutingPriority();
-      ret = true;
-    }
-
     return ret;
   }
 
   void actionCallback(const cob_light::SetLightModeGoalConstPtr &goal)
   {
     cob_light::SetLightModeResult result;
-    if(goal->mode.color.r > 1.0 || goal->mode.color.g > 1.0 || goal->mode.color.b > 1.0 || goal->mode.color.a > 1.0)
+    if(goal->mode.colors.size() > 0)
     {
-      result.active_mode = p_modeExecutor->getExecutingMode();
-      result.active_priority = p_modeExecutor->getExecutingPriority();
-      _as->setAborted(result, "Unsupported Color format. rgba values range is between 0.0 - 1.0");
+        if(goal->mode.colors[0].r > 1.0 || goal->mode.colors[0].g > 1.0 ||
+            goal->mode.colors[0].b > 1.0 || goal->mode.colors[0].a > 1.0)
+        {
+          result.active_mode = p_modeExecutor->getExecutingMode();
+          result.active_priority = p_modeExecutor->getExecutingPriority();
+          result.track_id = -1;
+          _as->setAborted(result, "Unsupported Color format. rgba values range is between 0.0 - 1.0");
 
-      ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
-    }
-    else if(goal->mode.mode == cob_light::LightMode::NONE)
-    {
-      p_modeExecutor->stop();
-      _color.a = 0;
-      p_colorO->setColor(_color);
-      result.active_mode = p_modeExecutor->getExecutingMode();
-      result.active_priority = p_modeExecutor->getExecutingPriority();
-      _as->setSucceeded(result, "Mode switched");
+          ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
+        }
+        else if(goal->mode.mode == cob_light::LightModes::NONE)
+        {
+          p_modeExecutor->stop();
+          _color.a = 0;
+          p_colorO->setColor(_color);
+          result.active_mode = p_modeExecutor->getExecutingMode();
+          result.active_priority = p_modeExecutor->getExecutingPriority();
+          result.track_id = -1;
+          _as->setSucceeded(result, "Mode switched");
+        }
+        else
+        {
+          uint64_t u_id = p_modeExecutor->execute(goal->mode);
+          result.active_mode = p_modeExecutor->getExecutingMode();
+          result.active_priority = p_modeExecutor->getExecutingPriority();
+          result.track_id = u_id;
+          _as->setSucceeded(result, "Mode switched");
+        }
     }
     else
-    {
-      p_modeExecutor->execute(goal->mode);
-      result.active_mode = p_modeExecutor->getExecutingMode();
-      result.active_priority = p_modeExecutor->getExecutingPriority();
-      _as->setSucceeded(result, "Mode switched");
-    }
+        _as->setAborted(result, "No color available");
+  }
+
+  bool stopMode(cob_light::StopLightMode::Request &req, cob_light::StopLightMode::Response &res)
+  {
+      bool ret = false;
+      ret = p_modeExecutor->stop(req.track_id);
+      res.active_mode = p_modeExecutor->getExecutingMode();
+      res.active_priority = p_modeExecutor->getExecutingPriority();
+      res.track_id = p_modeExecutor->getExecutingUId();
+      return ret;
   }
 
   void publish_diagnostics_cb(const ros::TimerEvent&)
@@ -450,6 +474,7 @@ private:
   ros::Subscriber _sub_mode;
   ros::Publisher _pubMarker;
   ros::ServiceServer _srvServer;
+  ros::ServiceServer _srvStopMode;
 
   diagnostic_msgs::DiagnosticArray _diagnostics;
   ros::Publisher _pubDiagnostic;
