@@ -77,9 +77,11 @@ uint64_t ModeExecutor::execute(cob_light::LightMode requestedMode)
 uint64_t ModeExecutor::execute(boost::shared_ptr<Mode> mode)
 {
 	uint64_t u_id;
-	// check if mode with same or hight prio is already executing
+	
+	// check if modes allready executing
 	if(_mapActiveModes.size() > 0)
 	{
+		// check if mode with lower prio is running
 		if(_mapActiveModes.begin()->first < mode->getPriority())
 		{
 			ROS_DEBUG("Pause mode: %i with prio %i",
