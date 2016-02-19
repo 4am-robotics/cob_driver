@@ -318,6 +318,7 @@ class NodeClass
 
 			//Diagnostics
 			diagnostic_msgs::DiagnosticArray diagnostics;
+			diagnostics.header.stamp = ros::Time::now();
 			diagnostics.status.resize(1);
 			diagnostics.status[0].level = 0;
 			diagnostics.status[0].name = nh.getNamespace();
@@ -327,6 +328,7 @@ class NodeClass
 
 				void publishError(std::string error_str) {
 					diagnostic_msgs::DiagnosticArray diagnostics;
+					diagnostics.header.stamp = ros::Time::now();
 					diagnostics.status.resize(1);
 					diagnostics.status[0].level = 2;
 					diagnostics.status[0].name = nh.getNamespace();
@@ -336,6 +338,7 @@ class NodeClass
 
 				void publishWarn(std::string warn_str) {
 					diagnostic_msgs::DiagnosticArray diagnostics;
+					diagnostics.header.stamp = ros::Time::now();
 					diagnostics.status.resize(1);
 					diagnostics.status[0].level = 1;
 					diagnostics.status[0].name = nh.getNamespace();
