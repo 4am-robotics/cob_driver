@@ -77,7 +77,7 @@ uint64_t ModeExecutor::execute(cob_light::LightMode requestedMode)
 uint64_t ModeExecutor::execute(boost::shared_ptr<Mode> mode)
 {
 	uint64_t u_id;
-	
+
 	// check if modes allready executing
 	if(_mapActiveModes.size() > 0)
 	{
@@ -162,6 +162,16 @@ bool ModeExecutor::stop(uint64_t uId)
 					ModeFactory::type(itr->second.get()), itr->second->getPriority());
 				itr->second->stop();
 				_mapActiveModes.erase(itr);
+
+				if(_mapActiveModes.size() > 0)
+				{
+					if(!_mapActiveModes.begin()->second->isRunning())
+					{
+						ROS_DEBUG("Resume mode: %i with prio %i",
+							ModeFactory::type(_mapActiveModes.begin()->second.get()), _mapActiveModes.begin()->second->getPriority());
+						_mapActiveModes.begin()->second->start();
+					}
+				}
 				ret = true;
 				break;
 			}
