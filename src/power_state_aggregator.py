@@ -68,7 +68,10 @@ class PowerStateAggregator():
         else:
             return 0.0
         if self.full_charge_capacity != None and self.remaining_capacity:
-            return round((self.full_charge_capacity - self.remaining_capacity) / abs(current), 3)
+            if current <= 0: # discharging:            
+                return round(self.remaining_capacity / abs(current), 3)
+            else: # charging
+                return round((self.full_charge_capacity - self.remaining_capacity) / abs(current), 3)
         else:
             return 0.0
  
