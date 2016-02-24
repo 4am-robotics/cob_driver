@@ -19,5 +19,7 @@
   <depend>std_msgs</depend>
   <depend>diagnostic_msgs</depend>
 
+  <exec_depend>python-numpy</exec_depend>
+  <exec_depend>rospy</exec_depend>
 
 </package>
