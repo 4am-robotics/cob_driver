@@ -298,7 +298,7 @@ class NodeClass
 			num_readings = vdDistM.size();
 			laserScan.angle_min = vdAngRAD[start_scan]; // first ScanAngle
 			laserScan.angle_max = vdAngRAD[stop_scan - 1]; // last ScanAngle
-   			laserScan.ranges.resize(num_readings);
+			laserScan.ranges.resize(num_readings);
 			laserScan.intensities.resize(num_readings);
 
 
