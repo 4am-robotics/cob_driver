@@ -64,11 +64,14 @@ class PowerStateAggregator():
 
     def calculate_time_remaining(self):
         if len(self.last_currents) > 0:
-            current = numpy.sum(self.last_currents)/len(self.last_currents)
+            current = numpy.mean(self.last_currents)
         else:
             return 0.0
-        if self.full_charge_capacity != None and self.remaining_capacity:
-            return round((self.full_charge_capacity - self.remaining_capacity) / abs(current), 3)
+        if self.full_charge_capacity != None and self.remaining_capacity != None:
+            if self.charging:
+                return round((self.full_charge_capacity - self.remaining_capacity) / abs(current), 3)
+            else:
+                return round(self.remaining_capacity / abs(current), 3)
         else:
             return 0.0
  
