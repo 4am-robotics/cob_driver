@@ -52,7 +52,7 @@ public:
     sub_play_ = nh_.subscribe("play", 1, &SoundAction::topic_cb_play, this);
     diagnostics_pub_ = nh_.advertise<diagnostic_msgs::DiagnosticArray>("diagnostics", 1);
     diagnostics_timer_ = nh_.createTimer(ros::Duration(1.0), &SoundAction::timer_cb, this);
-    play_feedback_timer_ = nh_.createTimer(ros::Duration(0.25), &SoundAction::timer_play_feedback_cb, this);
+    play_feedback_timer_ = nh_.createTimer(ros::Duration(0.25), &SoundAction::timer_play_feedback_cb, this, false, false);
     pubMarker_ = nh_.advertise<visualization_msgs::Marker>("marker",1); //Advertise visualization marker topic
     mute_ = false;
 
@@ -74,7 +74,9 @@ public:
   {
     ROS_INFO("as_goal_cb_play_()");
     std::string filename = as_play_.acceptNewGoal()->filename;
-    if( !play(filename) )
+    if(play(filename))
+      play_feedback_timer_.start();
+    else
       as_play_.setAborted();
   }
 
@@ -83,6 +85,7 @@ public:
     ROS_INFO("as_preempt_cb_play_()");
     if(as_play_.isActive())
     {
+      play_feedback_timer_.stop();
       libvlc_media_player_stop(vlc_player_);
     }
     as_play_.setPreempted();
@@ -121,6 +124,7 @@ public:
     bool ret = false;
     if(as_play_.isActive())
     {
+      play_feedback_timer_.stop();
       as_play_.setAborted();
       libvlc_media_player_stop(vlc_player_);
       ret = true;
@@ -277,6 +281,7 @@ public:
       }
       else
       {
+        play_feedback_timer_.stop();
         as_play_.setSucceeded();
       }
     }
