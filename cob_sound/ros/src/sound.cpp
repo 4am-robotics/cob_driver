@@ -41,10 +41,8 @@ public:
     as_say_(nh_, "say", boost::bind(&SoundAction::as_cb_say_, this, _1), false),
     as_play_(nh_, "play", false)
   {
-    as_say_.start();
     as_play_.registerGoalCallback(boost::bind(&SoundAction::as_goal_cb_play_, this));
     as_play_.registerPreemptCallback(boost::bind(&SoundAction::as_preempt_cb_play_, this));
-    as_play_.start();
     srvServer_say_ = nh_.advertiseService("say", &SoundAction::service_cb_say, this);
     srvServer_play_ = nh_.advertiseService("play", &SoundAction::service_cb_play, this);
     srvServer_stop_ = nh_.advertiseService("stop", &SoundAction::service_cb_stop, this);
@@ -60,6 +58,9 @@ public:
 
     vlc_inst_ = libvlc_new(0,NULL);
     vlc_player_ = libvlc_media_player_new(vlc_inst_);
+
+    as_say_.start();
+    as_play_.start();
   }
 
   ~SoundAction(void)
