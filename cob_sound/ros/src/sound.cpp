@@ -105,37 +105,43 @@ public:
   bool service_cb_say(cob_srvs::SetString::Request &req,
                   cob_srvs::SetString::Response &res )
   {
-    say(req.data);
+    res.success = say(req.data);
     return true;
   }
 
   bool service_cb_play(cob_srvs::SetString::Request &req,
                   cob_srvs::SetString::Response &res )
   {
-    play(req.data);
+    res.success = play(req.data);
     return true;
   }
 
   bool service_cb_stop(std_srvs::Trigger::Request &req,
                        std_srvs::Trigger::Response &res )
   {
-    bool ret = false;
     if(as_play_.isActive())
     {
       play_feedback_timer_.stop();
       as_play_.setAborted();
       libvlc_media_player_stop(vlc_player_);
-      ret = true;
+      res.success = true;
+      res.message = "aborted running action";
     }
     else
     {
       if(libvlc_media_player_is_playing(vlc_player_) == 1)
       {
         libvlc_media_player_stop(vlc_player_);
-        ret = true;
+        res.success = true;
+        res.message = "stopped sound play";
+      }
+      else
+      {
+        res.success = false;
+        res.message = "nothing there to stop";
       }
     }
-    return ret;
+    return true;
   }
 
   bool service_cb_mute(std_srvs::Trigger::Request &req,
