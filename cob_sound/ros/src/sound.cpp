@@ -72,7 +72,6 @@ public:
 
   void as_goal_cb_play_()
   {
-    ROS_INFO("as_goal_cb_play_()");
     std::string filename = as_play_.acceptNewGoal()->filename;
     if(play(filename))
       play_feedback_timer_.start();
@@ -82,7 +81,6 @@ public:
 
   void as_preempt_cb_play_()
   {
-    ROS_INFO("as_preempt_cb_play_()");
     if(as_play_.isActive())
     {
       play_feedback_timer_.stop();
