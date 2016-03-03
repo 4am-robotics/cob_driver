@@ -10,6 +10,7 @@
 
   <maintainer email="nhg@ipa.fhg.de">Nadia Hammoudeh Garcia</maintainer>
   <author>Florian Weisshardt</author>
+  <author>Benjamin Maidel</author>
 
   <buildtool_depend>catkin</buildtool_depend>
 
@@ -20,6 +21,7 @@
   <depend>actionlib</depend>
   <depend>cob_srvs</depend>
   <depend>diagnostic_msgs</depend>
+  <depend>libvlc-dev</depend>
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>

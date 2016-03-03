@@ -4,3 +4,5 @@ string filename #the fully qualified filename including file ending, example: "/
 #result
 ---
 #feedback
+float32 position    #the current position in the media file as percentage between 0.0 and 1.0
+int64 time        #the current time in the media file (in ms)
