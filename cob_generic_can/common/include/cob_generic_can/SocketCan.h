@@ -41,6 +41,9 @@
 #ifndef SOCKETCAN_INCLUDEDEF_H
 #define SOCKETCAN_INCLUDEDEF_H
 //-----------------------------------------------
+#include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
+
 #include <cob_generic_can/CanItf.h>
 #include <socketcan_interface/socketcan.h>
 //-----------------------------------------------
@@ -67,6 +70,8 @@ private:
     // --------------- Types
     can::SocketCANInterface m_handle;
     can::CommInterface::FrameListener::Ptr frame_printer;
+
+    boost::shared_ptr<boost::thread> p_run_thread;
 
     bool m_bInitialized;
     bool m_bSimuEnabled;

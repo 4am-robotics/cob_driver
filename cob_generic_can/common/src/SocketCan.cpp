@@ -70,6 +70,12 @@ SocketCan::~SocketCan()
     if (m_bInitialized)
     {
         m_handle.shutdown(); // welche aufgabe muss erledigt werden wenn dekonstrulieren
+        if (p_run_thread)
+        {
+            p_run_thread->interrupt();
+            p_run_thread->join();
+            p_run_thread.reset();
+        }
     }
 }
 
@@ -87,7 +93,7 @@ bool SocketCan::init_ret()
     {
         ret = initCAN();
         frame_printer = m_handle.createMsgListener(can::CommInterface::FrameDelegate(this, &SocketCan::recive_frame));
-        m_handle.run();
+        p_run_thread.reset(new boost::thread(&can::DriverInterface::run, &m_handle));
     }
     return ret;
 }
