@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_generic_can)
 
-find_package(catkin REQUIRED COMPONENTS cmake_modules cob_utilities libntcan libpcan socketcan_interface)
+find_package(catkin REQUIRED COMPONENTS cob_utilities libntcan libpcan socketcan_interface)
 
 find_package(Boost REQUIRED COMPONENTS thread)
 
