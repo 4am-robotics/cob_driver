@@ -91,9 +91,10 @@ bool SocketCan::init_ret()
     }
     else
     {
-        ret = initCAN();
-        frame_printer = m_handle.createMsgListener(can::CommInterface::FrameDelegate(this, &SocketCan::recive_frame));
         p_run_thread.reset(new boost::thread(&can::DriverInterface::run, &m_handle));
+        frame_printer = m_handle.createMsgListener(can::CommInterface::FrameDelegate(this, &SocketCan::recive_frame));
+        ret = initCAN();
+        sleep(1);
     }
     return ret;
 }
