@@ -42,10 +42,11 @@
 #define SOCKETCAN_INCLUDEDEF_H
 //-----------------------------------------------
 #include <boost/shared_ptr.hpp>
-#include <boost/thread.hpp>
 
 #include <cob_generic_can/CanItf.h>
 #include <socketcan_interface/socketcan.h>
+#include <socketcan_interface/threading.h>
+#include <socketcan_interface/reader.h>
 //-----------------------------------------------
 
 class SocketCan : public CanItf
@@ -68,10 +69,9 @@ public:
 
 private:
     // --------------- Types
-    can::SocketCANInterface m_handle;
+    boost::shared_ptr<can::ThreadedSocketCANInterface> m_handle;
     can::CommInterface::FrameListener::Ptr frame_printer;
-
-    boost::shared_ptr<boost::thread> p_run_thread;
+    can::BufferedReader m_reader;
 
     bool m_bInitialized;
     bool m_bSimuEnabled;

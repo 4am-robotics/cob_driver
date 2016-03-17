@@ -39,6 +39,7 @@
 *****************************************************************************/
 
 #include <cob_generic_can/SocketCan.h>
+#include <boost/chrono.hpp>
 #include <stdlib.h>
 #include <cerrno>
 #include <cstring>
@@ -53,7 +54,7 @@ SocketCan::SocketCan(const char* device, int baudrate)
     m_bInitialized = false;
 
     p_cDevice = device;
-    can::SocketCANInterface m_handle;
+    m_handle.reset(new can::ThreadedSocketCANInterface());
 }
 
 SocketCan::SocketCan(const char* device)
@@ -61,7 +62,7 @@ SocketCan::SocketCan(const char* device)
     m_bInitialized = false;
 
     p_cDevice = device;
-    can::SocketCANInterface m_handle;
+    m_handle.reset(new can::ThreadedSocketCANInterface());
 }
 
 //-----------------------------------------------
@@ -69,13 +70,7 @@ SocketCan::~SocketCan()
 {
     if (m_bInitialized)
     {
-        m_handle.shutdown(); // welche aufgabe muss erledigt werden wenn dekonstrulieren
-        if (p_run_thread)
-        {
-            p_run_thread->interrupt();
-            p_run_thread->join();
-            p_run_thread.reset();
-        }
+        m_handle->shutdown();
     }
 }
 
@@ -84,17 +79,18 @@ bool SocketCan::init_ret()
 {
     bool ret = true;
     // init() - part
-    if (!m_handle.init(p_cDevice, false))
+    if (!m_handle->init(p_cDevice, false))
     {
-        print_error(m_handle.getState());
+        print_error(m_handle->getState());
         ret = false;
     }
     else
     {
-        p_run_thread.reset(new boost::thread(&can::DriverInterface::run, &m_handle));
-        frame_printer = m_handle.createMsgListener(can::CommInterface::FrameDelegate(this, &SocketCan::recive_frame));
+        can::BufferedReader m_reader;
+        m_reader.listen(m_handle);
+        std::cout << "Reader is enabled: " << m_reader.isEnabled() << std::endl;
+//         frame_printer = m_handle->createMsgListener(can::CommInterface::FrameDelegate(this, &SocketCan::recive_frame));
         ret = initCAN();
-        sleep(1);
     }
     return ret;
 }
@@ -119,7 +115,7 @@ bool SocketCan::transmitMsg(CanMsg CMsg, bool bBlocking)
     {
         message.data[i] = CMsg.getAt(i);
     }
-    return m_handle.send(message);
+    return m_handle->send(message);
 }
 
 //-------------------------------------------
@@ -137,7 +133,6 @@ bool SocketCan::receiveMsg(CanMsg* pCMsg)
     {
         frame = recived_frame.front();
         recived_frame.pop_front();
-        std::cout << "length:" << frame.dlc << std::endl;
         pCMsg->setID(frame.id);
         pCMsg->setLength(frame.dlc);
         pCMsg->set(frame.data[0], frame.data[1], frame.data[2], frame.data[3],
@@ -165,6 +160,7 @@ bool SocketCan::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
 
     do
     {
+      std::cout << "BufferedReader read: " << m_reader.read(&frame, boost::chrono::seconds(1)) << std::endl;
         if (recived_frame.size())
         {
             frame = recived_frame.front();
@@ -233,6 +229,6 @@ void SocketCan::print_error(const can::State& state)
 {
     std::string err;
     std::cout << "ERROR: state=" << std::endl;
-    m_handle.translateError(state.internal_error, err);
+    m_handle->translateError(state.internal_error, err);
     std::cout << "ERROR: state=" << state.driver_state << " internal_error=" << state.internal_error << "('" << err << "') asio: " << state.error_code << std::endl;
 }

@@ -3,16 +3,17 @@ project(cob_generic_can)
 
 find_package(catkin REQUIRED COMPONENTS cob_utilities libntcan libpcan socketcan_interface)
 
-find_package(Boost REQUIRED COMPONENTS thread)
+find_package(Boost REQUIRED COMPONENTS chrono)
 
 catkin_package(
   CATKIN_DEPENDS socketcan_interface cob_utilities libntcan libpcan
   INCLUDE_DIRS common/include
   LIBRARIES ${PROJECT_NAME}_peaksysusb ${PROJECT_NAME}_peaksys ${PROJECT_NAME}_esd ${PROJECT_NAME}_socketcan
+  DEPENDS Boost
 )
 
 ### BUILD ###
-include_directories(common/include ${catkin_INCLUDE_DIRS})
+include_directories(common/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME}_peaksysusb common/src/CanPeakSysUSB.cpp)
 add_library(${PROJECT_NAME}_peaksys common/src/CanPeakSys.cpp)
@@ -22,7 +23,7 @@ add_library(${PROJECT_NAME}_socketcan common/src/SocketCan.cpp)
 target_link_libraries(${PROJECT_NAME}_peaksysusb ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_peaksys ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_esd ${catkin_LIBRARIES})
-target_link_libraries(${PROJECT_NAME}_socketcan ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_socketcan ${Boost_LIBRARIES} ${catkin_LIBRARIES})
 
 ### INSTALL ###
 install(TARGETS ${PROJECT_NAME}_peaksysusb ${PROJECT_NAME}_peaksys ${PROJECT_NAME}_esd  ${PROJECT_NAME}_socketcan
