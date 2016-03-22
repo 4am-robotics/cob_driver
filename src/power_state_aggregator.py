@@ -14,6 +14,7 @@ class PowerStateAggregator():
         self.voltage = None
         self.current = None
         self.last_currents = []
+        self.last_update = rospy.Time(0)
         self.charging = False
         self.remaining_capacity = None
         self.full_charge_capacity = None
@@ -25,9 +26,11 @@ class PowerStateAggregator():
         rospy.Subscriber("temperature", Float64, self.temperature_cb)
 
     def voltage_cb(self, msg):
+        self.last_update = rospy.Time.now()
         self.voltage = msg.data
 
     def current_cb(self, msg):
+        self.last_update = rospy.Time.now()
         self.current = msg.data
 
         # fill current into list of past currents for filtering purposes
@@ -41,12 +44,15 @@ class PowerStateAggregator():
             self.charging = False
         
     def remaining_capacity_cb(self, msg):
+        self.last_update = rospy.Time.now()
         self.remaining_capacity = msg.data
 
     def full_charge_capacity_cb(self, msg):
+        self.last_update = rospy.Time.now()
         self.full_charge_capacity = msg.data
 
     def temperature_cb(self, msg):
+        self.last_update = rospy.Time.now()
         self.temperature = msg.data
 
     def calculate_power_consumption(self):
@@ -76,9 +82,9 @@ class PowerStateAggregator():
             return 0.0
  
     def publish(self):
-        if self.voltage != None and self.current != None and self.remaining_capacity != None and self.temperature != None:
+        if self.voltage != None and self.current != None and self.remaining_capacity != None and self.temperature != None and (rospy.Time.now() - self.last_update) < rospy.Duration(1):
             ps = PowerState()
-            ps.header.stamp = rospy.Time.now()
+            ps.header.stamp = self.last_update
             ps.voltage = self.voltage
             ps.current = self.current
             ps.power_consumption = self.calculate_power_consumption()
