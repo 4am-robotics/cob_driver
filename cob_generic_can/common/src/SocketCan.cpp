@@ -6,6 +6,7 @@
  * Karlsruhe Institute of Technology (KIT)
  *
  * Author: Denis Štogl, email: denis.stogl@kit.edu
+ *         Andreea Tulbure, email: andreea_tulbure@yahoo.de
  *
  * Date of creation: February 2016
  *
@@ -78,7 +79,6 @@ SocketCan::~SocketCan()
 bool SocketCan::init_ret()
 {
     bool ret = true;
-    // init() - part
     if (!m_handle->init(p_cDevice, false))
     {
         print_error(m_handle->getState());
@@ -86,10 +86,7 @@ bool SocketCan::init_ret()
     }
     else
     {
-        can::BufferedReader m_reader;
-        m_reader.listen(m_handle);
-        std::cout << "Reader is enabled: " << m_reader.isEnabled() << std::endl;
-//         frame_printer = m_handle->createMsgListener(can::CommInterface::FrameDelegate(this, &SocketCan::recive_frame));
+        m_reader.listen((boost::shared_ptr<can::CommInterface>) m_handle);
         ret = initCAN();
     }
     return ret;
@@ -129,19 +126,13 @@ bool SocketCan::receiveMsg(CanMsg* pCMsg)
     bool bRet = false;
     can::Frame frame;
 
-    if (recived_frame.size())
+    if (m_reader.read(&frame, boost::chrono::seconds(1)))
     {
-        frame = recived_frame.front();
-        recived_frame.pop_front();
         pCMsg->setID(frame.id);
         pCMsg->setLength(frame.dlc);
         pCMsg->set(frame.data[0], frame.data[1], frame.data[2], frame.data[3],
                    frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
         bRet = true;
-    }
-    else
-    {
-        std::cout << "No message recieved: " << std::endl;
     }
     return bRet;
 }
@@ -160,11 +151,8 @@ bool SocketCan::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
 
     do
     {
-      std::cout << "BufferedReader read: " << m_reader.read(&frame, boost::chrono::seconds(1)) << std::endl;
-        if (recived_frame.size())
-        {
-            frame = recived_frame.front();
-            recived_frame.pop_front();
+        if (m_reader.read(&frame, boost::chrono::seconds(1)))
+        { 
             pCMsg->setID(frame.id);
             pCMsg->setLength(frame.dlc);
             pCMsg->set(frame.data[0], frame.data[1], frame.data[2], frame.data[3],
@@ -191,16 +179,13 @@ bool SocketCan::receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout)
     can::Frame frame;
     usleep(nSecTimeout / 1000);
 
-    if (recived_frame.size() > 0)
+    if (m_reader.read(&frame, boost::chrono::seconds(1)))
     {
-        frame = recived_frame.front();
-        recived_frame.pop_front();
         pCMsg->setID(frame.id);
         pCMsg->setLength(frame.dlc);
         pCMsg->set(frame.data[0], frame.data[1], frame.data[2], frame.data[3], frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
         bRet = true;
     }
-
     return bRet;
 }
 
@@ -209,20 +194,6 @@ bool SocketCan::initCAN()
     m_bInitialized = true;
     bool bRet = true;
     return true;
-}
-
-void SocketCan::recive_frame(const can::Frame& frame)
-{
-
-    if (frame.is_error)
-    {
-        can::State state;
-        print_error(state);
-    }
-    else
-    {
-        recived_frame.push_back(frame);
-    }
 }
 
 void SocketCan::print_error(const can::State& state)

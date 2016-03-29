@@ -6,6 +6,7 @@
  * Karlsruhe Institute of Technology (KIT)
  *
  * Author: Denis Štogl, email: denis.stogl@kit.edu
+ *         Andreea Tulbure, email: andreea_tulbure@yahoo.de
  *
  * Date of creation: February 2016
  *
@@ -78,14 +79,11 @@ private:
     const char* p_cDevice;
     int m_iBaudrateVal;
 
-    std::list<can::Frame> recived_frame;
-
     static const int c_iInterrupt;
     static const int c_iPort;
 
     bool initCAN();
 
-    void recive_frame ( const can::Frame& frame );
     void print_error ( const can::State& state );
 };
 //-----------------------------------------------
