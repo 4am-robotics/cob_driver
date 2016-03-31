@@ -1,0 +1,11 @@
+# The goal
+cob_light/LightMode mode
+---
+# The results
+uint8 active_mode
+uint8 active_priority
+uint64 track_id
+---
+# The feedback
+uint8 active_mode
+uint8 active_priority

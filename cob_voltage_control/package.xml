@@ -1,0 +1,25 @@
+<package format="2">
+  <name>cob_voltage_control</name>
+  <version>0.6.5</version>
+  <description>Interface to IO board that manages emergency stop and battery voltage on rob@work 3</description>
+
+  <license>LGPL</license>
+
+  <url type="website">None</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <maintainer email="aub@ipa.fhg.de">Alexander Bubeck</maintainer>
+  <author>Alexander Bubeck</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>cob_msgs</depend>
+  <depend>cob_phidgets</depend>
+  <depend>dynamic_reconfigure</depend>
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+
+  <exec_depend>python-tk</exec_depend>
+  <exec_depend>rospy</exec_depend>
+
+</package>

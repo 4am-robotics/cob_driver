@@ -1,0 +1,35 @@
+<package format="2">
+  <name>cob_sound</name>
+  <version>0.6.5</version>
+  <description>This package implements a sound play module using text2wave and aplay through python.</description>
+
+  <license>LGPL</license>
+
+  <url type="website">http://ros.org/wiki/cob_sound</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <maintainer email="nhg@ipa.fhg.de">Nadia Hammoudeh Garcia</maintainer>
+  <author>Florian Weisshardt</author>
+  <author>Benjamin Maidel</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+
+  <depend>actionlib_msgs</depend>
+  <depend>actionlib</depend>
+  <depend>cob_srvs</depend>
+  <depend>diagnostic_msgs</depend>
+  <depend>libvlc-dev</depend>
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>vlc</depend>
+
+  <exec_depend>alsa-oss</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>sound_play</exec_depend>
+
+</package>

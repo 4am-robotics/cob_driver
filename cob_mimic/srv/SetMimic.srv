@@ -1,0 +1,6 @@
+string mimic
+float32 speed
+int64 repeat
+---
+bool success
+string message

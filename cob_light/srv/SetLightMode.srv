@@ -1,0 +1,5 @@
+cob_light/LightMode mode
+---
+uint8 active_mode
+uint8 active_priority
+uint64 track_id

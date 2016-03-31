@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cob_elmo_homing</name>
+  <version>0.6.5</version>
+  <description>This packagae implements the special homing procedure that is needed for old cob4/raw bases</description>
+
+  <maintainer email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</maintainer>
+  <author email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</author>
+
+  <license>LGPLv3</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>canopen_402</depend>
+  <depend>class_loader</depend>
+
+  <export>
+     <canopen_402 plugin="${prefix}/canopen_402_plugin.xml" />
+  </export>
+</package>

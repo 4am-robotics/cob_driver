@@ -1,0 +1,27 @@
+<package format="2">
+  <name>cob_phidgets</name>
+  <version>0.6.5</version>
+  <description>cob_phidgets</description>
+
+  <license>LGPL</license>
+
+  <url type="website">http://ros.org/wiki/cob_phidgets</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <maintainer email="benjamin.maidel@ipa.fraunhofer.de">Benjamin Maidel</maintainer>
+  <author>Florian Weisshardt</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+
+  <depend>libphidgets</depend>
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+
+  <exec_depend>rospy</exec_depend>
+
+</package>
+
