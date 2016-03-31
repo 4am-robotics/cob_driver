@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-	<node name="bms" pkg="cob_bms_driver" type="bms_driver_node" output="screen" clear_params="true">
-		<rosparam command="load" file="$(find cob_bms_driver)/config/config.yaml"/>
-	</node>
-	<node ns="bms" name="power_state_aggregator" pkg="cob_bms_driver" type="power_state_aggregator.py" output="screen">
-	    <remap from="power_state" to="/power_state"/>
-	</node>
-</launch>
