@@ -1,7 +1,7 @@
-#include "cob_bms_driver/cob_bms_driver_node.h"
+#include <cob_bms_driver/cob_bms_driver_node.h>
 
 typedef std::vector<BmsParameter> BmsParameters;
-typedef std::map<uint8_t, std::vector<BmsParameter> > ConfigMap;	
+typedef std::map<uint8_t, std::vector<BmsParameter> > ConfigMap;
 
 //template to be used to read CAN frames received from the BMS 
 template<int N> void big_endian_to_host(const void* in, void* out);
@@ -21,7 +21,7 @@ CobBmsDriverNode::CobBmsDriverNode()
 
 CobBmsDriverNode::~CobBmsDriverNode() 
 {
-	socketcan_interface_.shutdown();	
+	socketcan_interface_.shutdown();
 }
 
 //initlializes SocketCAN interface, saves data from ROS parameter server, loads polling lists and sets up diagnostic updater
@@ -33,67 +33,69 @@ bool CobBmsDriverNode::prepare()
 		ROS_ERROR("Could not prepare driver for start up");
 		return false;
 	}
-	
+
 	//goes through config_map_ and loads the pollings lists 
 	loadPollingLists();
-	
+
 	//initalize polling lists iterators
 	polling_list1_it_ = polling_list1_.begin();
 	polling_list2_it_ = polling_list2_.begin();
-	
+
 	updater_.setHardwareID("bms"); 
 	updater_.add("cob_bms_dagnostics_updater", this, &CobBmsDriverNode::produceDiagnostics);
-	
+
 	updater_timer_ = nh_.createTimer(ros::Duration(updater_.getPeriod()), &CobBmsDriverNode::diagnosticsTimerCallback, this);
-	
+
 	//initialize the socketcan interface
 	if(!socketcan_interface_.init(can_device_, false)) {
 		ROS_ERROR("cob_bms_driver initialization failed");
 		return false;	
 	}
-	
+
 	//create listener for CAN frames
 	frame_listener_  = socketcan_interface_.createMsgListener(can::CommInterface::FrameDelegate(this, &CobBmsDriverNode::handleFrames));
-	
+
 	return true;
 }
 
 //function to get ROS parameters from parameter server
 bool CobBmsDriverNode::getParams()
-{	
+{
 	//local declarations
 	XmlRpc::XmlRpcValue diagnostics;
 	std::vector <std::string> topics;
 	int poll_frequency_hz;
-	
+
 	if (!nh_priv_.getParam("topics", topics)) 
 	{
-		ROS_INFO_STREAM("Did not find \"topics\" on parameter server");		
+		ROS_INFO_STREAM("Did not find \"topics\" on parameter server");
 	}    
 
 	if (!nh_priv_.getParam("diagnostics", diagnostics)) 
 	{
-		ROS_INFO_STREAM("Did not find \"diagnostics\" on parameter server");		
+		ROS_INFO_STREAM("Did not find \"diagnostics\" on parameter server");
 	}
 	loadConfigMap(diagnostics, topics);	
 	if (createPublishersFor(topics) == false)
+	{
 		return false;
-	
+	}
+
 	if (!nh_priv_.getParam("can_device", can_device_)) 
 	{
 		ROS_INFO_STREAM("Did not find \"can_device\" on parameter server. Using default value: can0");
-		can_device_ = "can0";		
+		can_device_ = "can0";
 	}
-	
+
 	if (!nh_priv_.getParam("bms_id_to_poll", bms_id_to_poll_)) 
 	{
 		ROS_INFO_STREAM("Did not find \"bms_id_to_poll\" on parameter server. Using default value: 0x200");
 		bms_id_to_poll_ = 0x200;
 	}
-	
+
 	if (!nh_priv_.getParam("poll_frequency_hz", poll_frequency_hz)) 
 	{
-		ROS_INFO_STREAM("Did not find \"poll_frequency\" on parameter server. Using default value: 20 Hz");		
+		ROS_INFO_STREAM("Did not find \"poll_frequency\" on parameter server. Using default value: 20 Hz");
 		poll_frequency_hz = 20;
 	} 
 	evaluatePollPeriodFrom(poll_frequency_hz);
@@ -145,7 +147,7 @@ bool CobBmsDriverNode::createPublishersFor(std::vector<std::string> topics)
 			ROS_WARN_STREAM("Didn't create publisher for: " << *it_topic << ". Make sure \"" << *it_topic << "\" matches a BmsParameter name in the Configuration file.");
 		}
 	}
-	return true;	
+	return true;
 }
 
 //function to interpret the diagnostics XmlRpcValue and save data in config_map_
@@ -155,13 +157,13 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
 	BmsParameters bms_parameters;
 	BmsParameter bms_parameter_temp;
 	uint8_t id;
-	
+
 	config_l0_array = diagnostics;	//just for better readability
-	
+
 	ROS_ASSERT(config_l0_array.getType() == XmlRpc::XmlRpcValue::TypeArray);  
 	//for each id in list of ids
 	for (size_t i = 0; i < config_l0_array.size(); ++i) 
-	{	
+	{
 		bool has_id = false, has_bms_parameters = false; 
 		
 		ROS_ASSERT(config_l0_array[i].getType() == XmlRpc::XmlRpcValue::TypeStruct);
@@ -171,19 +173,19 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
 			config_l2 = it1->second;
 			//XmlRpcValue at config_l2 might be an id (TypeInt) or a list of fields (TypeArray)
 			if (config_l2.getType()==XmlRpc::XmlRpcValue::TypeInt) 
-			{			
+			{
 				//id = static_cast<char>(static_cast<int>(config_l2));
-				id = static_cast<uint8_t>(static_cast<int>(config_l2));				
+				id = static_cast<uint8_t>(static_cast<int>(config_l2));
 				has_id = true;
 			} 
 			else if (config_l2.getType()==XmlRpc::XmlRpcValue::TypeArray)
-			{					
+			{
 				//for each field in field list. (each field is a BMSParameter)
 				for(int32_t j=0; j<config_l2.size(); ++j) 
 				{
 					//booleans to help ensure that all required information is provided for a BMSParameter
 					bool has_name = false, has_offset = false, has_len = false, has_is_signed = false;
-					
+
 					ROS_ASSERT(config_l2[j].getType()==XmlRpc::XmlRpcValue::TypeStruct);
 					config_l3_struct = config_l2[j];
 					//for each element in a field
@@ -225,15 +227,15 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
 						} 
 						else ROS_ERROR_STREAM("Config: Unexpected Key: " << it3->first);
 					}
-					
+
 					//iff name of the BmsParameter matches with a name of a topic in the Configuration file, then mark this parameter as a topic
 					bms_parameter_temp.is_topic = (find(topics.begin(), topics.end(), bms_parameter_temp.name) != topics.end());
-					
+
 					//set diagnostic_msgs::KeyValue member of the BmsParameter
 					bms_parameter_temp.kv.key = bms_parameter_temp.name+bms_parameter_temp.unit;
-					
+
 					if (has_name && has_offset && has_len && has_is_signed)
-					{					
+					{
 						//bms_parameter_temp is properly filled at this point, so save it in bms_parameters
 						bms_parameters.push_back(bms_parameter_temp);
 						has_bms_parameters = true;
@@ -248,7 +250,7 @@ void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
 		}
 		
 		if (has_id && has_bms_parameters)
-		{			
+		{
 			//save bms_parameters in config map for interpreting them later and producing diagnostics as well as publishing data on topics
 			config_map_[id] = bms_parameters;
 			ROS_INFO_STREAM("Got "<< bms_parameters.size() << " BmsParameter(s) with CAN-ID: 0x" << std::hex << (unsigned int) id << std::dec);
@@ -287,16 +289,16 @@ void CobBmsDriverNode::loadPollingLists()
 	if (config_map_.empty()) 
 	{
 		ROS_ERROR("config_map_ is empty! Can not load polling lists!");
-		return;	
+		return;
 	}
-		
+
 	if(!bms_diagnostics_publishers_.empty())  
 	{
 		for (ConfigMap::iterator it = config_map_.begin(); it != config_map_.end(); ++it) 
 		{
 			BmsParameters current_parameter_list = it->second;
 			uint8_t parameter_can_id = it->first;
-			
+
 			for (size_t j=0; j<current_parameter_list.size(); ++j) 
 			{
 				//second condition here is to ensure that the list1 is always smaller or equal to list2. This is important because otherwise BmsParameters which are topics would get slower updates (possible when topics list is large!).
@@ -335,9 +337,9 @@ void CobBmsDriverNode::pollBmsForIds(const uint16_t first_id, const uint16_t sec
 	f.data[1] = first_id & 0xff;	//low_byte
 	f.data[2] = second_id >> 8;	
 	f.data[3] = second_id & 0xff;
-	
+
 	socketcan_interface_.send(f);
-		
+
 	boost::this_thread::sleep_for(boost::chrono::milliseconds(poll_period_for_two_ids_in_ms_));
 }
 
@@ -349,14 +351,14 @@ void CobBmsDriverNode::pollNextInLists()
 	if (polling_list2_it_ == polling_list2_.end()) polling_list2_it_ = polling_list2_.begin();
 	//clear stat_, so that it can be refilled with new data
 	stat_.clear();
-	
+
 	uint16_t first_id = (polling_list1_it_ == polling_list1_.end()) ? 0 : (*polling_list1_it_ | 0x0100);
 	uint16_t second_id = (polling_list2_it_ == polling_list2_.end()) ? 0 : (*polling_list2_it_ | 0x0100);
 
 	ROS_DEBUG_STREAM("polling BMS for CAN-IDs: 0x" << std::hex << (int)first_id << " and 0x" << (int) second_id << std::dec);
-	
+
 	pollBmsForIds(first_id,second_id); 
-	
+
 	//increment iterators for next poll 
 	if (!polling_list1_.empty()) ++polling_list1_it_;
 	if (!polling_list2_.empty()) ++polling_list2_it_;
@@ -366,14 +368,14 @@ void CobBmsDriverNode::pollNextInLists()
 void CobBmsDriverNode::handleFrames(const can::Frame &f)
 {
 	boost::mutex::scoped_lock lock(data_mutex_);
-	
+
 	//id to find in config map
 	uint32_t frame_id = f.id;
-	
+
 	//find frame_id in config_map_
 	ConfigMap::iterator config_map_it = config_map_.find(frame_id);
 	if (config_map_it==config_map_.end()) return;
-				
+
 	for (BmsParameters::iterator param = config_map_it->second.begin(); param!=config_map_it->second.end(); ++param) 
 	{
 		double data = 0;
@@ -382,23 +384,23 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 			case 1:
 				data = param->is_signed ? read_value<int8_t> (f, param->offset) * param->factor : read_value<uint8_t> (f, param->offset) * param->factor;
 				break;
-	
+
 			case 2:
 				data = param->is_signed ? read_value<int16_t> (f, param->offset) * param->factor : read_value<uint16_t> (f, param->offset) * param->factor;
 				break;
-				
+
 			case 4:
 				data = param->is_signed ? read_value<int32_t> (f, param->offset) * param->factor : read_value<uint32_t> (f, param->offset) * param->factor;
 				break;
-			
+
 			default: 
 				ROS_WARN_STREAM("Unknown length of BmsParameter: " << param->name << ". Cannot read data!");
 				return;	//only go on with next step if data was read successfully
 		}
-		
+
 		//save data for diagnostics updater (and round to two digits for readability)
 		param->kv.value = boost::lexical_cast<std::string>(boost::format("%.2f") % data);
-		
+
 		//if the BmsParameter is a topic, publish data to the topic
 		if (param->is_topic)
 		{
@@ -422,7 +424,7 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 void CobBmsDriverNode::produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
 {
 	boost::mutex::scoped_lock lock(data_mutex_);
-	
+
 	can::State state = socketcan_interface_.getState();
 	stat.add("error_code", state.error_code);
 	stat.add("can_error_code", state.internal_error);
@@ -431,27 +433,27 @@ void CobBmsDriverNode::produceDiagnostics(diagnostic_updater::DiagnosticStatusWr
 		case can::State::closed: 
 			stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "Driver State: Closed");
 			break;
-		
+
 		case can::State::open: 
 			stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "Driver State: Opened");
 			break;
-		
+
 		case can::State::ready: 
 			stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Driver State: Ready");
 			break;
-	
+
 		default: 
 			stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "Driver State: Unknown");
 			break;
-	}	
-	
-	for (ConfigMap::iterator cm_it = config_map_.begin(); cm_it != config_map_.end(); ++cm_it)	
+	}
+
+	for (ConfigMap::iterator cm_it = config_map_.begin(); cm_it != config_map_.end(); ++cm_it)
 	{
 		for (BmsParameters::iterator bp_it = cm_it->second.begin(); bp_it != cm_it->second.end(); ++bp_it)
 		{
 			stat.values.push_back(bp_it->kv);
 		}
-	}	
+	}
 }
 
 void CobBmsDriverNode::diagnosticsTimerCallback(const ros::TimerEvent& event)
@@ -461,18 +463,18 @@ void CobBmsDriverNode::diagnosticsTimerCallback(const ros::TimerEvent& event)
 }
 
 int main(int argc, char **argv) 
-{		
+{
 	ros::init(argc, argv, "bms_driver_node");
-	
+
 	CobBmsDriverNode cob_bms_driver_node;
-		
-	if (!cob_bms_driver_node.prepare()) return 1;	
-	
+
+	if (!cob_bms_driver_node.prepare()) return 1;
+
 	ROS_INFO("Started polling BMS...");
 	while (cob_bms_driver_node.nh_.ok())
-	{	
-		cob_bms_driver_node.pollNextInLists();		 
+	{
+		cob_bms_driver_node.pollNextInLists();
 		ros::spinOnce();
 	}
-	return 0;	
+	return 0;
 }

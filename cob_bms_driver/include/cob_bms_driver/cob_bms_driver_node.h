@@ -6,19 +6,19 @@
 #include <stdint.h>
 #include <endian.h>
 
-#include "ros/ros.h"
-#include "std_msgs/Float64.h"
-#include "std_msgs/Bool.h"
+#include <ros/ros.h>
+#include <std_msgs/Float64.h>
+#include <std_msgs/Bool.h>
 #include <XmlRpcException.h>
 #include <XmlRpcValue.h>
 #include <diagnostic_updater/diagnostic_updater.h>
 #include <diagnostic_updater/publisher.h>
 
-#include "socketcan_interface/socketcan.h"
-#include "socketcan_interface/threading.h"
-#include "socketcan_interface/string.h"
+#include <socketcan_interface/socketcan.h>
+#include <socketcan_interface/threading.h>
+#include <socketcan_interface/string.h>
 
-#include "cob_bms_driver/bms_parameter.h"
+#include <cob_bms_driver/bms_parameter.h>
 
 class CobBmsDriverNode
 {
@@ -27,10 +27,10 @@ class CobBmsDriverNode
 		//ROS parameters
 		std::map<uint8_t, std::vector<BmsParameter> > config_map_;	//holds all the information that is provided in the configuration file
 		int poll_period_for_two_ids_in_ms_;
-		std::string can_device_;								
+		std::string can_device_;
 		int bms_id_to_poll_;
 		ros::Timer updater_timer_;
-		
+
 		boost::mutex data_mutex_;
 
 		//polling lists that contain CAN-ID(s) that are to be polled. Each CAN-ID corresponds to a group of BMS parameters
@@ -73,7 +73,6 @@ class CobBmsDriverNode
 		void handleFrames(const can::Frame &f);
 
 	public:
-	
 		ros::NodeHandle nh_;
 		ros::NodeHandle nh_priv_;
 

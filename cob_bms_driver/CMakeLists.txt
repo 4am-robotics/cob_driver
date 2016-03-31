@@ -3,9 +3,7 @@ project(cob_bms_driver)
 
 find_package(catkin REQUIRED COMPONENTS
   diagnostic_msgs
-  pluginlib
   roscpp
-  roslaunch
   socketcan_interface
   std_msgs
 )
@@ -38,7 +36,3 @@ install(PROGRAMS
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-#############
-## Testing ##
-#############
-roslaunch_add_file_check(launch)
