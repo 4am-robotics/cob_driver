@@ -2,6 +2,14 @@
 Changelog for package cob_sick_s300
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* replace spaces by tab
+* add try/catch to handle XmlRpc exceptions
+* add time stamp to sick s300 diagnostic messages
+* adjust filter topics
+* Contributors: Frederik Hegger, ipa-fxm
+
 0.6.5 (2015-08-31)
 ------------------
 

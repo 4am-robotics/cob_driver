@@ -2,6 +2,11 @@
 Changelog for package cob_undercarriage_ctrl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix frame id for odometry
+* Contributors: ipa-cob4-2
+
 0.6.5 (2015-08-31)
 ------------------
 

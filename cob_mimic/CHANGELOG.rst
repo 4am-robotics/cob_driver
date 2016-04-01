@@ -2,6 +2,17 @@
 Changelog for package cob_mimic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* re-add copying mimic files
+* fix action name in test node
+* fix mimic shutdown and cleanup
+* Update CMakeLists.txt
+* add rospy again
+* merge
+* missed dependencies
+* Contributors: Florian Weisshardt, ipa-fmw, ipa-fxm, ipa-nhg
+
 0.6.5 (2015-08-31)
 ------------------
 

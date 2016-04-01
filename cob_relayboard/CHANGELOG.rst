@@ -2,6 +2,14 @@
 Changelog for package cob_relayboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* use aggregated power state message
+* tabs vs. spaces
+* harmonize publisher queue sizes
+* relaynode delete slashes topics
+* Contributors: Felix Gruber, ipa-fmw, ipa-fxm
+
 0.6.5 (2015-08-31)
 ------------------
 
