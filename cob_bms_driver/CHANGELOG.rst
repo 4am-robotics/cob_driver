@@ -2,8 +2,8 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.6 (2016-04-01)
+------------------
 * dependency and package cleanup
 * remove config and launch as it is added to cob_robots
 * adjust version

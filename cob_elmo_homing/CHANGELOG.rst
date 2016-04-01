@@ -2,8 +2,8 @@
 Changelog for package cob_elmo_homing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.6 (2016-04-01)
+------------------
 * added cob_elmo_homing
 * Contributors: Mathias Lüdtke
 

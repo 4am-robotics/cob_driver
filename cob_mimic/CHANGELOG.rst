@@ -2,8 +2,8 @@
 Changelog for package cob_mimic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.6 (2016-04-01)
+------------------
 * re-add copying mimic files
 * fix action name in test node
 * fix mimic shutdown and cleanup

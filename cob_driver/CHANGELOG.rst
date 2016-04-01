@@ -2,8 +2,8 @@
 Changelog for package cob_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.6 (2016-04-01)
+------------------
 * add to meta-package
 * added cob_elmo_homing to meta package
 * added scan unifier to metapackage

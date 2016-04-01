@@ -2,8 +2,8 @@
 Changelog for package cob_sound
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.6 (2016-04-01)
+------------------
 * fix sound dependencies
 * considered pr comments
 * removed debug logging

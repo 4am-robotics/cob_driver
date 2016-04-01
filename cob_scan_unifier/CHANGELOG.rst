@@ -2,8 +2,8 @@
 Changelog for package cob_scan_unifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.6 (2016-04-01)
+------------------
 * changed scan_unifier maintainer
 * filtered out scan unifier and moved to new directory
 * Contributors: Benjamin Maidel

@@ -2,8 +2,8 @@
 Changelog for package cob_relayboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.6 (2016-04-01)
+------------------
 * use aggregated power state message
 * tabs vs. spaces
 * harmonize publisher queue sizes

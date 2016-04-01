@@ -2,8 +2,8 @@
 Changelog for package cob_sick_lms1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.6 (2016-04-01)
+------------------
 * Sick LMS1xx node now uses global NodeHandle
 * Resolved problem with tabs and spaces.
 * Clean trailing spaces. Convert default frame name to tf2 format (remove "/")

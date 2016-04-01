@@ -2,8 +2,8 @@
 Changelog for package cob_voltage_control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.6 (2016-04-01)
+------------------
 * beautify
 * Merge branch 'aggregated_power_message' into feature/raw_batterie_state
   Conflicts:
