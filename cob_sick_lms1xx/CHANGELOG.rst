@@ -2,6 +2,11 @@
 Changelog for package cob_sick_lms1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add missing dependencies
+* Contributors: ipa-fxm
+
 0.6.6 (2016-04-01)
 ------------------
 * Sick LMS1xx node now uses global NodeHandle

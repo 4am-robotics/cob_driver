@@ -2,6 +2,9 @@
 Changelog for package cob_sick_s300
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.6 (2016-04-01)
 ------------------
 * replace spaces by tab
