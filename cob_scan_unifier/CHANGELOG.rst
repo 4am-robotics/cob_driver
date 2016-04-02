@@ -2,6 +2,15 @@
 Changelog for package cob_scan_unifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.7 (2016-04-02)
+------------------
+
+0.6.6 (2016-04-01)
+------------------
+* changed scan_unifier maintainer
+* filtered out scan unifier and moved to new directory
+* Contributors: Benjamin Maidel
+
 0.6.3 (2015-08-31)
 ------------------
 * remove trailing whitespace

@@ -2,6 +2,23 @@
 Changelog for package cob_voltage_control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.7 (2016-04-02)
+------------------
+
+0.6.6 (2016-04-01)
+------------------
+* beautify
+* Merge branch 'aggregated_power_message' into feature/raw_batterie_state
+  Conflicts:
+  cob_voltage_control/common/src/cob_voltage_control_common.cpp
+  cob_voltage_control/ros/src/cob_voltage_control_ros.cpp
+* voltage and current measurements for raw3-3
+* use aggregated power state message
+* changed name relayboard to powerboard
+* removed debug outputs
+* fixed topic names
+* Contributors: Benjamin Maidel, ipa-bnm, ipa-fmw
+
 0.6.5 (2015-08-31)
 ------------------
 

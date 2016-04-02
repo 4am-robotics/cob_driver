@@ -2,6 +2,32 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.7 (2016-04-02)
+------------------
+
+0.6.6 (2016-04-01)
+------------------
+* keep static mode running so they can be stopped, paused and resumed
+* fixes
+* comments
+* param tuning
+* implemented new mode glow
+* implemented feature to resume modes if modes with higher prio ends + refactored code
+* considered `#241 <https://github.com/ipa320/cob_driver/issues/241>`_ PR comments
+* high distances visualized with a lighter green
+* moved light dist approx function to cob_light driver
+* wip light_approximation
+* Merge branch 'feature/led_offset' into feature/light_approximation
+* fix
+* added node for scan approxiamtion led visualization
+* added param to define led mounting offset
+* fixed ms35 controller bug
+* Merge branch 'indigo_dev' of github.com:ipa320/cob_driver into indigo_dev
+  Conflicts:
+  cob_light/CMakeLists.txt
+* added headers to add_executable makro for qt_creator visiblity
+* Contributors: Benjamin Maidel, bnm
+
 0.6.5 (2015-08-31)
 ------------------
 

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>cob_bms_driver</name>
-  <version>0.6.5</version>
+  <version>0.6.7</version>
   <description>
     Driver package for interfacing the battery management system (BMS) on Care-O-bot.
   </description>
@@ -15,6 +15,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>diagnostic_msgs</depend>
+  <depend>diagnostic_updater</depend>
   <depend>roscpp</depend>
   <depend>socketcan_interface</depend>
   <depend>std_msgs</depend>
