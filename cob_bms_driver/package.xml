@@ -15,6 +15,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>diagnostic_msgs</depend>
+  <depend>diagnostic_updater</depend>
   <depend>roscpp</depend>
   <depend>socketcan_interface</depend>
   <depend>std_msgs</depend>

@@ -3,6 +3,7 @@ project(cob_bms_driver)
 
 find_package(catkin REQUIRED COMPONENTS
   diagnostic_msgs
+  diagnostic_updater
   roscpp
   socketcan_interface
   std_msgs
