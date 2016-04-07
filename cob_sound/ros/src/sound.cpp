@@ -210,9 +210,9 @@ public:
     std::string command;
     std::string cepstral_voice;
     std::string cepstral_conf;
-    nh_.param<std::string>("/sound_controller/mode",mode,"festival");
-    nh_.param<std::string>("/sound_controller/cepstral_voice",cepstral_voice,"David");
-    nh_.param<std::string>("/sound_controller/cepstral_settings",cepstral_conf,"\"speech/rate=170\"");
+    nh_.param<std::string>("~mode",mode,"festival");
+    nh_.param<std::string>("~cepstral_voice",cepstral_voice,"David");
+    nh_.param<std::string>("~cepstral_settings",cepstral_conf,"\"speech/rate=170\"");
     if (mode == "cepstral")
     {
       command = "aoss swift -p " + cepstral_conf + " -n " + cepstral_voice + " " + data;
