@@ -2,5 +2,7 @@
 string text
 ---
 #result
+bool success
+string message
 ---
 #feedback
