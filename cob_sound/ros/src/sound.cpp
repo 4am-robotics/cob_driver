@@ -41,6 +41,7 @@ public:
     as_say_(nh_, "say", boost::bind(&SoundAction::as_cb_say_, this, _1), false),
     as_play_(nh_, "play", false)
   {
+    nh_ = ros::NodeHandle("~");
     as_play_.registerGoalCallback(boost::bind(&SoundAction::as_goal_cb_play_, this));
     as_play_.registerPreemptCallback(boost::bind(&SoundAction::as_preempt_cb_play_, this));
     srvServer_say_ = nh_.advertiseService("say", &SoundAction::service_cb_say, this);
@@ -210,9 +211,9 @@ public:
     std::string command;
     std::string cepstral_voice;
     std::string cepstral_conf;
-    nh_.param<std::string>("~mode",mode,"festival");
-    nh_.param<std::string>("~cepstral_voice",cepstral_voice,"David");
-    nh_.param<std::string>("~cepstral_settings",cepstral_conf,"\"speech/rate=170\"");
+    nh_.param<std::string>("mode",mode,"festival");
+    nh_.param<std::string>("cepstral_voice",cepstral_voice,"David");
+    nh_.param<std::string>("cepstral_settings",cepstral_conf,"\"speech/rate=170\"");
     if (mode == "cepstral")
     {
       command = "aoss swift -p " + cepstral_conf + " -n " + cepstral_voice + " " + data;
