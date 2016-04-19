@@ -38,8 +38,8 @@ public:
   ros::Publisher pubMarker_;
 
   SoundAction():
-    as_say_(nh_, "say", boost::bind(&SoundAction::as_cb_say_, this, _1), false),
-    as_play_(nh_, "play", false)
+    as_say_(nh_, ros::this_node::getName() + "/say", boost::bind(&SoundAction::as_cb_say_, this, _1), false),
+    as_play_(nh_, ros::this_node::getName() + "/play", false)
   {
     nh_ = ros::NodeHandle("~");
     as_play_.registerGoalCallback(boost::bind(&SoundAction::as_goal_cb_play_, this));
