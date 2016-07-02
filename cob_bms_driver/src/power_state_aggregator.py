@@ -79,7 +79,7 @@ class PowerStateAggregator():
                 self.relative_remaining_capacity = 15 # % of full capacity
             elif self.voltage <= self.threshold_voltage_mid and self.current < self.steady_current:
                 self.relative_remaining_capacity = 50 # % of full capacity
-            else self.voltage <= self.threshold_voltage_full and self.current < self.steady_current:
+            else: #self.voltage <= self.threshold_voltage_full and self.current < self.steady_current:
                 self.relative_remaining_capacity = 100 # % of full capacity
         else:
             rospy.logwarn("cannot calculate relative remaining capacity. full_charge_capacity=%d, remaining_capacity=%d" % (self.full_charge_capacity, self.remaining_capacity))
