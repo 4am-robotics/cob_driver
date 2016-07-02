@@ -19,6 +19,14 @@ class PowerStateAggregator():
         self.remaining_capacity = None
         self.full_charge_capacity = None
         self.temperature = None
+        self.threshold_voltage_warning = rospy.get_param("~threshold_voltage_warning", 43) # voltage of battery level
+        self.threshold_voltage_error = rospy.get_param("~threshold_voltage_error", 41.0)     # voltage of battery level
+        self.threshold_voltage_critical = rospy.get_param("~threshold_voltage_critical", 40)# voltage of battery level
+        self.threshold_voltage_mid = rospy.get_param("~threshold_voltage_mid", 48)  # voltage of battery level
+        self.threshold_voltage_full = rospy.get_param("~threshold_voltage_full", 51.2)  # voltage of battery level
+
+        self.steady_current = rospy.get_param("~steady_current",5) # amperes while no axis is moving
+
         rospy.Subscriber("voltage", Float64, self.voltage_cb)
         rospy.Subscriber("current", Float64, self.current_cb)
         rospy.Subscriber("remaining_capacity", Float64, self.remaining_capacity_cb)
@@ -42,7 +50,7 @@ class PowerStateAggregator():
             self.charging = True
         else:
             self.charging = False
-        
+
     def remaining_capacity_cb(self, msg):
         self.last_update = rospy.Time.now()
         self.remaining_capacity = msg.data
@@ -63,7 +71,16 @@ class PowerStateAggregator():
 
     def calculate_relative_remaining_capacity(self):
         if self.full_charge_capacity != None and self.remaining_capacity != None:
-            return round(100.0*(self.remaining_capacity/self.full_charge_capacity), 3)
+            if self.voltage <= self.threshold_voltage_critical and self.current < self.steady_current
+                self.relative_remaining_capacity = 5 # % of full capacity
+            elif self.voltage <= self.threshold_voltage_error and self.current < self.steady_current
+                self.relative_remaining_capacity = 10 # % of full capacity
+            elif self.voltage <= self.threshold_voltage_warn and self.current < self.steady_current
+                self.relative_remaining_capacity = 15 # % of full capacity
+            elif self.voltage <= self.threshold_voltage_mid and self.current < self.steady_current
+                self.relative_remaining_capacity = 50 # % of full capacity
+            else self.voltage <= self.threshold_voltage_full and self.current < self.steady_current
+                self.relative_remaining_capacity = 100 # % of full capacity
         else:
             rospy.logwarn("cannot calculate relative remaining capacity. full_charge_capacity=%d, remaining_capacity=%d" % (self.full_charge_capacity, self.remaining_capacity))
             return 0.0
@@ -80,7 +97,7 @@ class PowerStateAggregator():
                 return round(self.remaining_capacity / abs(current), 3)
         else:
             return 0.0
- 
+
     def publish(self):
         if self.voltage != None and self.current != None and self.remaining_capacity != None and self.temperature != None and (rospy.Time.now() - self.last_update) < rospy.Duration(1):
             ps = PowerState()
@@ -104,4 +121,3 @@ if __name__ == "__main__":
     while not rospy.is_shutdown():
         PSA.publish()
         rate.sleep()
-        
