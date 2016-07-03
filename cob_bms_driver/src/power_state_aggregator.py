@@ -19,7 +19,7 @@ class PowerStateAggregator():
         self.remaining_capacity = None
         self.full_charge_capacity = None
         self.temperature = None
-        self.threshold_voltage_warning = rospy.get_param("~threshold_voltage_warning", 43) # voltage of battery level
+        self.threshold_voltage_warn = rospy.get_param("~threshold_voltage_warn", 43) # voltage of battery level
         self.threshold_voltage_error = rospy.get_param("~threshold_voltage_error", 41.0)     # voltage of battery level
         self.threshold_voltage_critical = rospy.get_param("~threshold_voltage_critical", 40)# voltage of battery level
         self.threshold_voltage_mid = rospy.get_param("~threshold_voltage_mid", 48)  # voltage of battery level
@@ -81,9 +81,15 @@ class PowerStateAggregator():
                 self.relative_remaining_capacity = 50 # % of full capacity
             else: #self.voltage <= self.threshold_voltage_full and self.current < self.steady_current:
                 self.relative_remaining_capacity = 100 # % of full capacity
+
+            return self.relative_remaining_capacity
+
         else:
             rospy.logwarn("cannot calculate relative remaining capacity. full_charge_capacity=%d, remaining_capacity=%d" % (self.full_charge_capacity, self.remaining_capacity))
             return 0.0
+
+        return self.relative_remaining_capacity
+
 
     def calculate_time_remaining(self):
         if len(self.last_currents) > 0:
