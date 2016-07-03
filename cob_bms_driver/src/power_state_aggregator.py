@@ -71,13 +71,13 @@ class PowerStateAggregator():
 
     def calculate_relative_remaining_capacity(self):
         if self.full_charge_capacity != None and self.remaining_capacity != None:
-            if self.voltage <= self.threshold_voltage_critical and self.current < self.steady_current:
+            if self.voltage <= self.threshold_voltage_critical and self.current > -self.steady_current:
                 self.relative_remaining_capacity = 5 # % of full capacity
-            elif self.voltage <= self.threshold_voltage_error and self.current < self.steady_current:
+            elif self.voltage <= self.threshold_voltage_error and self.current > -self.steady_current:
                 self.relative_remaining_capacity = 10 # % of full capacity
-            elif self.voltage <= self.threshold_voltage_warn and self.current < self.steady_current:
+            elif self.voltage <= self.threshold_voltage_warn and self.current > -self.steady_current:
                 self.relative_remaining_capacity = 15 # % of full capacity
-            elif self.voltage <= self.threshold_voltage_mid and self.current < self.steady_current:
+            elif self.voltage <= self.threshold_voltage_mid and self.current > -self.steady_current:
                 self.relative_remaining_capacity = 50 # % of full capacity
             else: #self.voltage <= self.threshold_voltage_full and self.current < self.steady_current:
                 self.relative_remaining_capacity = 100 # % of full capacity
