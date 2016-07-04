@@ -60,73 +60,144 @@ ModeExecutor::ModeExecutor(IColorO* colorO)
 {
 	_colorO = colorO;
 	_colorO->signalColorSet()->connect(boost::bind(&ModeExecutor::onColorSetReceived, this, _1));
-	_activeMode = NULL;
 }
 
 ModeExecutor::~ModeExecutor()
 {
 }
 
-void ModeExecutor::execute(cob_light::LightMode requestedMode)
+uint64_t ModeExecutor::execute(cob_light::LightMode requestedMode)
 {
-	Mode* mode = ModeFactory::create(requestedMode, _colorO);
+	boost::shared_ptr<Mode> mode = ModeFactory::create(requestedMode, _colorO);
 	// check if mode was correctly created
-	if(mode != NULL)
-		execute(mode);
+	if(mode)
+		return execute(mode);
 }
 
-void ModeExecutor::execute(Mode* mode)
+uint64_t ModeExecutor::execute(boost::shared_ptr<Mode> mode)
 {
-	// check if a mode is already executed
-	if(_activeMode != NULL)
+	uint64_t u_id;
+
+	// check if modes allready executing
+	if(_mapActiveModes.size() > 0)
 	{
-		// check if priority from requested mode is higher or the same
-		if(_activeMode->getPriority() <= mode->getPriority())
+		// check if mode with lower prio is running
+		if(_mapActiveModes.begin()->first < mode->getPriority())
 		{
-			_activeMode->stop();
-			_activeMode = mode;
-			_activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1));
-			_activeMode->signalColorsReady()->connect(boost::bind(&IColorO::setColorMulti, _colorO, _1));
-			_activeMode->signalModeFinished()->connect(boost::bind(&ModeExecutor::onModeFinishedReceived, this));
-			_activeMode->setActualColor(_activeColor);
-			_activeMode->start();
-			ROS_INFO("Executing new mode: %s",_activeMode->getName().c_str() );
-			ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %f pulses: %i ",
-				ModeFactory::type(mode), mode->getPriority(), mode->getFrequency(), mode->getTimeout(), mode->getPulses());
+			ROS_DEBUG("Pause mode: %i with prio %i",
+				ModeFactory::type(_mapActiveModes.begin()->second.get()), _mapActiveModes.begin()->second->getPriority());
+			_mapActiveModes.begin()->second->pause();
 		}
 		else
-			ROS_DEBUG("Mode with higher priority is allready executing");
+		{
+			std::map<int, boost::shared_ptr<Mode>, std::greater<int> >::iterator itr;
+			itr = _mapActiveModes.find(mode->getPriority());
+			if(itr != _mapActiveModes.end())
+			{
+				ROS_DEBUG("Stopping mode: %i with prio %i",
+					ModeFactory::type(itr->second.get()), itr->second->getPriority());
+				itr->second->stop();
+				_mapActiveModes.erase(itr);
+			}
+		}
 	}
-	else
-	{
-		_activeMode = mode;
-		_activeMode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1));
-		_activeMode->signalColorsReady()->connect(boost::bind(&IColorO::setColorMulti, _colorO, _1));
-		_activeMode->signalModeFinished()->connect(boost::bind(&ModeExecutor::onModeFinishedReceived, this));
-		_activeMode->setActualColor(_activeColor);
-		_activeMode->start();
-		ROS_INFO("Executing new mode: %s",_activeMode->getName().c_str() );
-		ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %f pulses: %i ",
-				ModeFactory::type(mode), mode->getPriority(), mode->getFrequency(), mode->getTimeout(), mode->getPulses());
-	}
+	mode->signalColorReady()->connect(boost::bind(&IColorO::setColor, _colorO, _1));
+	mode->signalColorsReady()->connect(boost::bind(&IColorO::setColorMulti, _colorO, _1));
+	mode->signalModeFinished()->connect(boost::bind(&ModeExecutor::onModeFinishedReceived, this, _1));
+	mode->setActualColor(_activeColor);
+	ROS_DEBUG("Attaching Mode %i with prio: %i freq: %f timeout: %f pulses: %i ",
+		ModeFactory::type(mode.get()), mode->getPriority(), mode->getFrequency(), mode->getTimeout(), mode->getPulses());
+	_mapActiveModes.insert(std::pair<int, boost::shared_ptr<Mode> >(mode->getPriority(), mode));
 
+	if(!_mapActiveModes.begin()->second->isRunning())
+	{
+		ROS_DEBUG("Executing Mode %i with prio: %i freq: %f timeout: %f pulses: %i ",
+			ModeFactory::type(mode.get()), mode->getPriority(), mode->getFrequency(), mode->getTimeout(), mode->getPulses());
+		_mapActiveModes.begin()->second->start();
+	}
+	Mode* ptr = mode.get();
+	u_id = reinterpret_cast<uint64_t>( ptr );
+	return u_id;
+}
+
+void ModeExecutor::pause()
+{
+	if(_mapActiveModes.size() > 0)
+	{
+		_mapActiveModes.begin()->second->pause();
+	}
+}
+
+void ModeExecutor::resume()
+{
+	if(_mapActiveModes.size() > 0 && !_mapActiveModes.begin()->second->isRunning())
+		_mapActiveModes.begin()->second->start();
 }
 
 void ModeExecutor::stop()
 {
-	if(_activeMode != NULL)
+	if(_mapActiveModes.size() > 0)
 	{
-		_activeMode->stop();
-		delete _activeMode;
-		_activeMode = NULL;
+		std::map<int, boost::shared_ptr<Mode>, std::greater<int> >::iterator itr;
+		for(itr = _mapActiveModes.begin(); itr != _mapActiveModes.end(); itr++)
+		{
+			itr->second->stop();
+		}
+		_mapActiveModes.clear();
 	}
 }
-void ModeExecutor::onModeFinishedReceived()
+
+bool ModeExecutor::stop(uint64_t uId)
 {
-	if(_activeMode !=  NULL)
+	bool ret = false;
+	if(_mapActiveModes.size() > 0)
 	{
-		delete _activeMode;
-		_activeMode = NULL;
+		std::map<int, boost::shared_ptr<Mode>, std::greater<int> >::iterator itr;
+		for(itr = _mapActiveModes.begin(); itr != _mapActiveModes.end(); itr++)
+		{
+			uint64_t uid = reinterpret_cast<uint64_t>(itr->second.get());
+			if(uid == uId)
+			{
+				ROS_DEBUG("Stopping mode: %i with prio %i",
+					ModeFactory::type(itr->second.get()), itr->second->getPriority());
+				itr->second->stop();
+				_mapActiveModes.erase(itr);
+
+				if(_mapActiveModes.size() > 0)
+				{
+					if(!_mapActiveModes.begin()->second->isRunning())
+					{
+						ROS_DEBUG("Resume mode: %i with prio %i",
+							ModeFactory::type(_mapActiveModes.begin()->second.get()), _mapActiveModes.begin()->second->getPriority());
+						_mapActiveModes.begin()->second->start();
+					}
+				}
+				ret = true;
+				break;
+			}
+		}
+	}
+	return ret;
+}
+void ModeExecutor::onModeFinishedReceived(int prio)
+{
+	//check if finished mode is the current active
+	if(_mapActiveModes.begin()->first == prio)
+	{
+		//erase mode from map and exec mode with next lower prio
+		_mapActiveModes.erase(prio);
+		if(_mapActiveModes.size() > 0)
+		{
+			ROS_DEBUG("Resume mode: %i with prio %i",
+				ModeFactory::type(_mapActiveModes.begin()->second.get()), _mapActiveModes.begin()->second->getPriority());
+			_mapActiveModes.begin()->second->start();
+		}
+	}
+	//finished mode is not the current executing one (this should never happen)
+	else
+	{
+		ROS_WARN("Mode finished which should't be executed");
+		_mapActiveModes.erase(prio);
 	}
 }
 
@@ -137,15 +208,26 @@ void ModeExecutor::onColorSetReceived(color::rgba color)
 
 int ModeExecutor::getExecutingMode()
 {
-	return ModeFactory::type(_activeMode);
+	if(_mapActiveModes.size() > 0)
+		return ModeFactory::type(_mapActiveModes.begin()->second.get());
+	else
+		return ModeFactory::type(NULL);
 }
 
 int ModeExecutor::getExecutingPriority()
 {
-	if(_activeMode != NULL)
-		return _activeMode->getPriority();
+	if(_mapActiveModes.size()>0)
+		return _mapActiveModes.begin()->second->getPriority();
 	else
 		return default_priority;
+}
+
+uint64_t ModeExecutor::getExecutingUId()
+{
+	if(_mapActiveModes.size()>0)
+		return reinterpret_cast<uint64_t>(_mapActiveModes.begin()->second.get());
+	else
+		return 0;
 }
 
 void ModeExecutor::setDefaultPriority(int priority)

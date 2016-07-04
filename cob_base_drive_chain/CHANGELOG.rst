@@ -2,6 +2,14 @@
 Changelog for package cob_base_drive_chain
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.7 (2016-04-02)
+------------------
+
+0.6.6 (2016-04-01)
+------------------
+* changed drive_chains diag name from //base_controller to /base_controller/base_drive_chain_node
+* Contributors: bnm
+
 0.6.5 (2015-08-31)
 ------------------
 

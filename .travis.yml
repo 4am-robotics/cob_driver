@@ -12,7 +12,6 @@ env:
     - CATKIN_WS_UNDERLAY=~/catkin_ws_underlay
     - CATKIN_WS_UNDERLAY_SRC=${CATKIN_WS_UNDERLAY}/src
     - CI_ROS_DISTRO="indigo"
-    - ROS_PARALLEL_JOBS=-j1
     - DEFAULT_ROSINSTALL="https://raw.githubusercontent.com/ipa320/care-o-bot/${CI_ROS_DISTRO}_dev/.travis.rosinstall"
 
 install:

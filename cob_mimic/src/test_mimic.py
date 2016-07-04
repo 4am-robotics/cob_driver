@@ -14,7 +14,7 @@ import cob_mimic.msg
 def mimic_client():
     # Creates the SimpleActionClient, passing the type of the action
     # to the constructor.
-    client = actionlib.SimpleActionClient('set_mimic_action', cob_mimic.msg.SetMimicAction)
+    client = actionlib.SimpleActionClient('/mimic/set_mimic', cob_mimic.msg.SetMimicAction)
 
     # Waits until the action server has started up and started
     # listening for goals.

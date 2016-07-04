@@ -2,6 +2,23 @@
 Changelog for package cob_sound
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.7 (2016-04-02)
+------------------
+
+0.6.6 (2016-04-01)
+------------------
+* fix sound dependencies
+* considered pr comments
+* removed debug logging
+* start feedback timer only if action is active
+* start action server after complete init
+* use libvlc for sound play
+* merge
+* support for other cepstral voices (e.g. german Matthias)
+* sound error with Cepstral,use alsa oss
+* missed dependencies
+* Contributors: Benjamin Maidel, cob4-2, ipa-cob4-2, ipa-fmw, ipa-nhg
+
 0.6.5 (2015-08-31)
 ------------------
 * fix dependencies

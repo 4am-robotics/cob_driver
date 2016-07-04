@@ -2,6 +2,18 @@
 Changelog for package cob_generic_can
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.7 (2016-04-02)
+------------------
+
+0.6.6 (2016-04-01)
+------------------
+* Update accorting to comments from ipa-fxm
+* Correction of include and name
+* Correct interface.
+* compiles...
+* Starting with SocketCAN
+* Contributors: Denis Štogl
+
 0.6.5 (2015-08-31)
 ------------------
 

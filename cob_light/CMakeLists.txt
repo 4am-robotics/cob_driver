@@ -9,6 +9,7 @@ find_package(Boost REQUIRED COMPONENTS signals thread)
 add_message_files(
   FILES
   LightMode.msg
+  LightModes.msg
   Sequence.msg
   ColorRGBAArray.msg
 )
@@ -16,6 +17,7 @@ add_message_files(
 add_service_files(
   FILES
   SetLightMode.srv
+  StopLightMode.srv
 )
 
 add_action_files(

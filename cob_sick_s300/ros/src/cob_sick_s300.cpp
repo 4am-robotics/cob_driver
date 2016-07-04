@@ -59,6 +59,7 @@
 
 // ROS includes
 #include <ros/ros.h>
+#include <XmlRpcException.h>
 
 // ROS message includes
 #include <std_msgs/Bool.h>
@@ -146,50 +147,61 @@ class NodeClass
 
 			if(nh.hasParam("debug")) nh.param("debug", debug_, false);
 
-			//get params for each measurement
-			XmlRpc::XmlRpcValue field_params;
-			if(nh.getParam("fields",field_params) && field_params.getType() == XmlRpc::XmlRpcValue::TypeStruct)
+			try
 			{
-				for(XmlRpc::XmlRpcValue::iterator field=field_params.begin(); field!=field_params.end(); field++)
+				//get params for each measurement
+				XmlRpc::XmlRpcValue field_params;
+				if(nh.getParam("fields",field_params) && field_params.getType() == XmlRpc::XmlRpcValue::TypeStruct)
 				{
-					int field_number = boost::lexical_cast<int>(field->first);
-					ROS_DEBUG("Found field %d in params", field_number);
-
-					if(!field->second.hasMember("scale"))
+					for(XmlRpc::XmlRpcValue::iterator field=field_params.begin(); field!=field_params.
+					end(); field++)
 					{
-						ROS_ERROR("Missing parameter scale");
-						continue;
-					}
-					if(!field->second.hasMember("start_angle"))
-					{
-						ROS_ERROR("Missing parameter start_angle");
-						continue;
-					}
-					if(!field->second.hasMember("stop_angle"))
-					{
-						ROS_ERROR("Missing parameter stop_angle");
-						continue;
-					}
+						int field_number = boost::lexical_cast<int>(field->first);
+						ROS_DEBUG("Found field %d in params", field_number);
 
-					ScannerSickS300::ParamType param;
-					param.dScale = field->second["scale"];
-					param.dStartAngle = field->second["start_angle"];
-					param.dStopAngle = field->second["stop_angle"];
-					scanner_.setRangeField(field_number, param);
+						if(!field->second.hasMember("scale"))
+						{
+							ROS_ERROR("Missing parameter scale");
+							continue;
+						}
 
-					ROS_DEBUG("params %f %f %f", param.dScale, param.dStartAngle, param.dStopAngle);
+						if(!field->second.hasMember("start_angle"))
+						{
+							ROS_ERROR("Missing parameter start_angle");
+							continue;
+						}
+
+						if(!field->second.hasMember("stop_angle"))
+						{
+							ROS_ERROR("Missing parameter stop_angle");
+							continue;
+						}
+
+						ScannerSickS300::ParamType param;
+						param.dScale = field->second["scale"];
+						param.dStartAngle = field->second["start_angle"];
+						param.dStopAngle = field->second["stop_angle"];
+						scanner_.setRangeField(field_number, param);
+
+						ROS_DEBUG("params %f %f %f", param.dScale, param.dStartAngle, param.dStopAngle);
+					}
 				}
-			}
-			else
-			{
-				ROS_WARN("No params for the Sick S300 fieldset were specified --> will using default, but it's deprecated now, please adjust parameters!!!");
+				else
+				{
+					ROS_WARN("No params for the Sick S300 fieldset were specified --> will using default, but it's deprecated now, please adjust parameters!!!");
 
-				//setting defaults to be backwards compatible
-				ScannerSickS300::ParamType param;
-				param.dScale = 0.01;
-				param.dStartAngle = -135.0/180.0*M_PI;
-				param.dStopAngle = 135.0/180.0*M_PI;
-				scanner_.setRangeField(1, param);
+					//setting defaults to be backwards compatible
+					ScannerSickS300::ParamType param;
+					param.dScale = 0.01;
+					param.dStartAngle = -135.0/180.0*M_PI;
+					param.dStopAngle = 135.0/180.0*M_PI;
+					scanner_.setRangeField(1, param);
+				}
+			} catch(XmlRpc::XmlRpcException e)
+			{
+				ROS_ERROR_STREAM("Not all params for the Sick S300 fieldset could be read: " << e.getMessage() << "! Error code: " << e.getCode());
+				ROS_ERROR("Node is going to shut down.");
+				exit(-1);
 			}
 
 			syncedSICKStamp = 0;
@@ -286,7 +298,7 @@ class NodeClass
 			num_readings = vdDistM.size();
 			laserScan.angle_min = vdAngRAD[start_scan]; // first ScanAngle
 			laserScan.angle_max = vdAngRAD[stop_scan - 1]; // last ScanAngle
-   			laserScan.ranges.resize(num_readings);
+			laserScan.ranges.resize(num_readings);
 			laserScan.intensities.resize(num_readings);
 
 
@@ -318,6 +330,7 @@ class NodeClass
 
 			//Diagnostics
 			diagnostic_msgs::DiagnosticArray diagnostics;
+			diagnostics.header.stamp = ros::Time::now();
 			diagnostics.status.resize(1);
 			diagnostics.status[0].level = 0;
 			diagnostics.status[0].name = nh.getNamespace();
@@ -327,6 +340,7 @@ class NodeClass
 
 				void publishError(std::string error_str) {
 					diagnostic_msgs::DiagnosticArray diagnostics;
+					diagnostics.header.stamp = ros::Time::now();
 					diagnostics.status.resize(1);
 					diagnostics.status[0].level = 2;
 					diagnostics.status[0].name = nh.getNamespace();
@@ -336,6 +350,7 @@ class NodeClass
 
 				void publishWarn(std::string warn_str) {
 					diagnostic_msgs::DiagnosticArray diagnostics;
+					diagnostics.header.stamp = ros::Time::now();
 					diagnostics.status.resize(1);
 					diagnostics.status[0].level = 1;
 					diagnostics.status[0].name = nh.getNamespace();

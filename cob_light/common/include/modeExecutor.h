@@ -60,6 +60,7 @@
 #include <modeFactory.h>
 #include <boost/thread.hpp>
 #include <boost/lambda/bind.hpp>
+#include <map>
 
 class ModeExecutor
 {
@@ -67,26 +68,31 @@ public:
 	ModeExecutor(IColorO* colorO);
 	~ModeExecutor();
 
-	void execute(Mode* mode);
-	void execute(cob_light::LightMode requestMode);
+	uint64_t execute(boost::shared_ptr<Mode> mode);
+	uint64_t execute(cob_light::LightMode requestMode);
 
 	int getExecutingPriority();
 	int getExecutingMode();
+	uint64_t getExecutingUId();
 
+	void pause();
+	void resume();
 	void stop();
+	bool stop(uint64_t uId);
 
 	void setDefaultPriority(int priority);
 
 private:
 	IColorO* _colorO;
 
-	Mode* _activeMode;
+	boost::shared_ptr<Mode> _activeMode;
+	std::map<int, boost::shared_ptr<Mode>, std::greater<int> > _mapActiveModes;
 	color::rgba _activeColor;
 
 	bool _stopRequested;
 	int default_priority;
 
-	void onModeFinishedReceived();
+	void onModeFinishedReceived(int prio);
 	void onColorSetReceived(color::rgba color);
 };
 
