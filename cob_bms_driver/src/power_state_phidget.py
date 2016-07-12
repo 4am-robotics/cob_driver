@@ -58,7 +58,7 @@ class PowerStatePhidget():
     def calculate_relative_remaining_capacity(self):
         percentage = None
         if self.voltage != None:
-            percentage = round((self.voltage - self.min_voltage) * 100/(self.max_voltage - self.min_voltage), 3)
+            percentage = round((self.voltage - PowerStatePhidget.EMPTY_VOLTAGE) * 100/(PowerStatePhidget.FULL_VOLTAGE - PowerStatePhidget.EMPTY_VOLTAGE), 3)
             return min(percentage, 100)
         else:
             return 0.0
