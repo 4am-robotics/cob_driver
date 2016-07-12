@@ -39,10 +39,13 @@ class PowerStatePhidget():
         if voltage_raw != None:
             #Calculation of real voltage
             self.voltage = voltage_raw * PowerStatePhidget.MAX_VOLTAGE/PowerStatePhidget.PHIDGET_MAX_VALUE;
+            self.voltage = round(self.voltage, 3)
 
         if current_raw != None:
             #Calculation of real current
             self.current = PowerStatePhidget.MIN_CURRENT+(PowerStatePhidget.MAX_CURRENT - PowerStatePhidget.MIN_CURRENT)*(current_raw - PowerStatePhidget.PHIDGET_MIN_VALUE) / (PowerStatePhidget.PHIDGET_MAX_VALUE - PowerStatePhidget.PHIDGET_MIN_VALUE)
+            self.current = -self.current
+            self.current = round(self.current, 3)
 
             if self.current > 0:
                 self.charging = True
