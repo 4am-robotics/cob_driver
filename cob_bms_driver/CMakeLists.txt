@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(cob_bms_driver)
 
 find_package(catkin REQUIRED COMPONENTS
+  cob_phidgets
   diagnostic_msgs
   diagnostic_updater
   roscpp
@@ -36,4 +37,3 @@ install(PROGRAMS
   src/power_state_aggregator.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
-
