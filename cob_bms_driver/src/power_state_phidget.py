@@ -23,7 +23,7 @@ class PowerStatePhidget():
         self.current = None
         self.last_update = rospy.Time(0)
         self.charging = False
-        rospy.Subscriber("input/analog_sensors", AnalogSensor, self.phidget_cb)
+        rospy.Subscriber("/analog_sensors", AnalogSensor, self.phidget_cb)
 
     def phidget_cb(self, msg):
         self.last_update = rospy.Time.now()
