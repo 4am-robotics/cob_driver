@@ -36,4 +36,3 @@ install(PROGRAMS
   src/power_state_aggregator.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
-
