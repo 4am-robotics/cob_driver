@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cob_phidget_power_state</name>
+  <version>0.0.0</version>
+  <description>The cob_phidget_power_state package</description>
+
+  <maintainer email="bnm@ipa.fhg.de">Benjamin Maidel</maintainer>
+  <autor email="bnm@ipa.fhg.de">Benjamin Maidel</autor>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <exec_depend>cob_msgs</exec_depend>
+  <exec_depend>cob_phidgets</exec_depend>
+  <exec_depend>rospy</exec_depend>
+
+</package>

@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
 import rospy
-import numpy
 from cob_phidgets.msg import AnalogSensor
 from cob_msgs.msg import PowerState
-import math
 
 class PowerStatePhidget():
     PHIDGET_MAX_VALUE = 999

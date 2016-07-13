@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.8.3)
 project(cob_bms_driver)
 
 find_package(catkin REQUIRED COMPONENTS
-  cob_phidgets
   diagnostic_msgs
   diagnostic_updater
   roscpp
