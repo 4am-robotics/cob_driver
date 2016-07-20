@@ -13,7 +13,7 @@ class PowerStatePhidget():
     MIN_CURRENT = -30.0
 
     FULL_VOLTAGE = 52.0
-    EMPTY_VOLTAGE = 38.0
+    EMPTY_VOLTAGE = 42.0
 
     def __init__(self):
         self.pub_power_state = rospy.Publisher('power_state', PowerState, queue_size=1)
@@ -42,7 +42,6 @@ class PowerStatePhidget():
         if current_raw != None:
             #Calculation of real current
             self.current = PowerStatePhidget.MIN_CURRENT+(PowerStatePhidget.MAX_CURRENT - PowerStatePhidget.MIN_CURRENT)*(current_raw - PowerStatePhidget.PHIDGET_MIN_VALUE) / (PowerStatePhidget.PHIDGET_MAX_VALUE - PowerStatePhidget.PHIDGET_MIN_VALUE)
-            self.current = -self.current
             self.current = round(self.current, 3)
 
             if self.current > 0:
