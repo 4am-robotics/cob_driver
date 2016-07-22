@@ -13,7 +13,7 @@ class PowerStatePhidget():
     MIN_CURRENT = -30.0
 
     FULL_VOLTAGE = 52.0
-    EMPTY_VOLTAGE = 42.0
+    EMPTY_VOLTAGE = 43.0
 
     def __init__(self):
         self.pub_power_state = rospy.Publisher('power_state', PowerState, queue_size=1)
