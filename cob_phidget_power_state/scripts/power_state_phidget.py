@@ -59,7 +59,9 @@ class PowerStatePhidget():
         percentage = None
         if self.voltage != None:
             percentage = round((self.voltage - PowerStatePhidget.EMPTY_VOLTAGE) * 100/(PowerStatePhidget.FULL_VOLTAGE - PowerStatePhidget.EMPTY_VOLTAGE), 3)
-            return min(percentage, 100)
+            percentage = min(percentage, 100)
+            percentage = max(percentage, 0)
+            return percentage
         else:
             return 0.0
 
