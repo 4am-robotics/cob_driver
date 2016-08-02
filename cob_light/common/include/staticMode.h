@@ -69,11 +69,10 @@ public:
 
 	void execute()
 	{
+		if(_timer_inc == 0.0)
+			m_sigColorReady(_color);
 		if(_timer_inc >= 1.0)
-	    {
-	      m_sigColorReady(_color);
 	      _timer_inc = 0.0;
-	    }
 	    else
 	      _timer_inc += _inc;
 	}
