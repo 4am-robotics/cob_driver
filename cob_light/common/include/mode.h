@@ -66,7 +66,11 @@ public:
 	Mode(int priority = 0, double freq = 0, int pulses = 0, double timeout = 0)
 		: _priority(priority), _freq(freq), _pulses(pulses), _timeout(timeout),
 		  _finished(false), _pulsed(0), _isStopRequested(false), _isPauseRequested(false),
-		  _isRunning(false){}
+		  _isRunning(false)
+		  {
+			  if(this->getFrequency() == 0.0)
+	  		  	this->setFrequency(1.0);
+		  }
 	virtual ~Mode(){}
 
 	void start()
@@ -194,8 +198,6 @@ protected:
 	virtual void run()
 	{
 		ros::Rate r(UPDATE_RATE_HZ);
-		if(this->getFrequency() == 0.0)
-		  this->setFrequency(1);
 
 		ros::Time timeStart = ros::Time::now();
 
