@@ -21,7 +21,9 @@ public:
 	Sensor(const std::string &fr_id, const int id, const int filter_size = 10) :
 			id_(id), filter_size_(filter_size), frame_id_(fr_id)
 	{
-		pub_range_ = n_.advertise<sensor_msgs::Range>(frame_id_, 0);
+		char buffer[256];
+		sprintf(buffer, "range_%d", id);
+		pub_range_ = n_.advertise<sensor_msgs::Range>(buffer, 0);
 	}
 
 	void publish()
