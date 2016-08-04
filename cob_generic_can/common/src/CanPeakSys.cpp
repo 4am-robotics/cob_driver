@@ -84,6 +84,13 @@ CanPeakSys::~CanPeakSys()
 }
 
 //-----------------------------------------------
+bool CanPeakSys::init_ret()
+{
+	// Not implemented yet
+	return false;
+}
+
+//-----------------------------------------------
 void CanPeakSys::init()
 {
  std::string sCanDevice; 
