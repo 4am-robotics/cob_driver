@@ -460,6 +460,11 @@ void CobBmsDriverNode::diagnosticsTimerCallback(const ros::TimerEvent& event)
 {
 	//update diagnostics
 	updater_.update();
+	if(!socketcan_interface_.getState().isReady()){
+		ROS_ERROR("Restarting BMS socketcan");
+		socketcan_interface_.shutdown();
+		socketcan_interface_.recover();
+	}
 }
 
 int main(int argc, char **argv) 
