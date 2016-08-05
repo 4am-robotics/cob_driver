@@ -40,20 +40,20 @@ class EMStatePhidget():
                 got_message = True
 
         if got_message:
-            if (front_em_active && rear_em_active) && (!last_front_em_state && !last_rear_em_state):
+            if (front_em_active and rear_em_active) and (not last_front_em_state and  not last_rear_em_state):
                 self.em_msg.emergency_button_stop = True
                 self.em_caused_by_button = True
-            elif (!front_em_active && !rear_em_active) && (last_front_em_state && last_rear_em_state):
+            elif (not front_em_active and not rear_em_active) and (last_front_em_state and last_rear_em_state):
                 self.em_msg.emergency_button_stop = False
                 self.em_caused_by_button = False
-            elif (front_em_active != rear_em_active) && em_caused_by_button :
+            elif (front_em_active is not rear_em_active) and em_caused_by_button :
                 self.em_msg.emergency_button_stop = False
                 self.em_caused_by_button = False
-                self.em_msg.scanner_stop = (front_em_active | rear_em_active)
+                self.em_msg.scanner_stop = (front_em_active or rear_em_active)
             else:
-                self.em_msg.scanner_stop = (front_em_active | rear_em_active);
+                self.em_msg.scanner_stop = (front_em_active or rear_em_active);
 
-            em_signal = self.em_msg.scanner_stop | self.em_msg.emergency_button_stop
+            em_signal = self.em_msg.scanner_stop or self.em_msg.emergency_button_stop
 
             if self.em_stop_status == EmState.ST_EM_FREE:
                 if em_signal:
