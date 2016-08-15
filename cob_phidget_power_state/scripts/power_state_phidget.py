@@ -15,10 +15,10 @@ class PowerStatePhidget():
         self.charging = False
 
         self.voltage_max = rospy.get_param("~voltage_max", 59.5)
-        self.voltage_full = rospy.get_param("voltage_full", 52.0)
-        self.voltage_empty = rospy.get_param("voltage_empty", 38.0)
-        self.current_max = rospy.get_param("current_max", 30.0)
-        self.current_min = rospy.get_param("current_min", -30.0)
+        self.voltage_full = rospy.get_param("~voltage_full", 52.0)
+        self.voltage_empty = rospy.get_param("~voltage_empty", 38.0)
+        self.current_max = rospy.get_param("~current_max", 30.0)
+        self.current_min = rospy.get_param("~current_min", -30.0)
 
         self.pub_power_state = rospy.Publisher('power_state', PowerState, queue_size=1)
         self.sub_analog_sensors = rospy.Subscriber("analog_sensors", AnalogSensor, self.phidget_cb)
@@ -36,12 +36,12 @@ class PowerStatePhidget():
 
         if voltage_raw != None:
             #Calculation of real voltage
-            self.voltage = voltage_raw * PowerStatePhidget.self.voltage_max/PowerStatePhidget.PHIDGET_MAX_VALUE;
+            self.voltage = voltage_raw * self.voltage_max/self.PHIDGET_MAX_VALUE;
             self.voltage = round(self.voltage, 3)
 
         if current_raw != None:
             #Calculation of real current
-            self.current = PowerStatePhidget.self.current_min+(PowerStatePhidget.self.current_max - PowerStatePhidget.self.current_min)*(current_raw - PowerStatePhidget.PHIDGET_MIN_VALUE) / (PowerStatePhidget.PHIDGET_MAX_VALUE - PowerStatePhidget.PHIDGET_MIN_VALUE)
+            self.current = self.current_min+(self.current_max - self.current_min)*(current_raw - self.PHIDGET_MIN_VALUE) / (self.PHIDGET_MAX_VALUE - self.PHIDGET_MIN_VALUE)
             self.current = -self.current
             self.current = round(self.current, 3)
 
@@ -59,7 +59,8 @@ class PowerStatePhidget():
     def calculate_relative_remaining_capacity(self):
         percentage = None
         if self.voltage != None:
-            percentage = round((self.voltage - PowerStatePhidget.self.voltage_empty) * 100/(PowerStatePhidget.self.voltage_full - PowerStatePhidget.self.voltage_empty), 3)
+            print self.voltage, self.voltage_empty, self.voltage_full
+            percentage = round((self.voltage - self.voltage_empty) * 100/(self.voltage_full - self.voltage_empty), 3)
             percentage = min(percentage, 100)
             percentage = max(percentage, 0)
             return percentage
