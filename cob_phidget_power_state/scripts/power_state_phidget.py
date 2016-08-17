@@ -42,7 +42,6 @@ class PowerStatePhidget():
         if current_raw != None:
             #Calculation of real current
             self.current = self.current_min+(self.current_max - self.current_min)*(current_raw - self.PHIDGET_MIN_VALUE) / (self.PHIDGET_MAX_VALUE - self.PHIDGET_MIN_VALUE)
-            self.current = -self.current
             self.current = round(self.current, 3)
 
             if self.current > 0:
