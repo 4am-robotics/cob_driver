@@ -422,6 +422,7 @@ public:
       res.active_mode = p_modeExecutor->getExecutingMode();
       res.active_priority = p_modeExecutor->getExecutingPriority();
       res.track_id = p_modeExecutor->getExecutingUId();
+      ret = true; // TODO: really check if mode is stopped
       return ret;
   }
 
