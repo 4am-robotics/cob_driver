@@ -287,6 +287,8 @@ protected:
 		double dWheel3SteerDriveCoupling;
 		double dWheel4SteerDriveCoupling;
 
+		double dHomeVeloRadS;
+
 		int iRadiusWheelMM;
 		int iDistSteerAxisToDriveWheelMM;
 

@@ -269,6 +269,8 @@ void CanCtrlPltfCOb3::readConfiguration()
 	m_IniFile.GetKeyInt("Geom", "RadiusWheel", &m_Param.iRadiusWheelMM, true);
 	m_IniFile.GetKeyInt("Geom", "DistSteerAxisToDriveWheelCenter", &m_Param.iDistSteerAxisToDriveWheelMM, true);
 
+	m_IniFile.GetKeyDouble("DrivePrms","HomingVelocityRadS", &m_Param.dHomeVeloRadS, true);
+
 	if(m_iNumDrives >= 1)
 		m_IniFile.GetKeyDouble("DrivePrms", "Wheel1SteerDriveCoupling", &m_Param.dWheel1SteerDriveCoupling, true);
 	if(m_iNumDrives >= 2)
@@ -960,7 +962,6 @@ bool CanCtrlPltfCOb3::initPltf()
 	std::vector<double> vdFactorVel;
 //	vdFactorVel.assign(4,0);
 	vdFactorVel.assign(m_iNumDrives,0);
-	double dhomeVeloRadS = -1.0;
 
 
 	// Start can open network
@@ -1063,8 +1064,8 @@ bool CanCtrlPltfCOb3::initPltf()
 			// make motors move
 			for (int i = 0; i<m_iNumDrives; i++)
 			{
-				vpSteerMotor[i]->setGearVelRadS(dhomeVeloRadS);
-				vpDriveMotor[i]->setGearVelRadS(dhomeVeloRadS * vdFactorVel[i]);
+				vpSteerMotor[i]->setGearVelRadS(m_Param.dHomeVeloRadS);
+				vpDriveMotor[i]->setGearVelRadS(m_Param.dHomeVeloRadS * vdFactorVel[i]);
 			}
 
 			// wait at least 0.5 sec.
