@@ -33,10 +33,10 @@ class EMStatePhidget():
 
         for i in range(0, len(msg.uri)):
             if msg.uri[i] == "em_stop_laser_rear":
-                rear_em_active = True
+                rear_em_active = not msg.state[i]
                 got_message = True
             if msg.uri[i] == "em_stop_laser_front":
-                front_em_active = True
+                front_em_active = not msg.state[i]
                 got_message = True
 
         if got_message:
