@@ -53,6 +53,8 @@ private:
     double resolution;
     double frequency;
     bool set_config;
+    double min_range;
+    double max_range;
 };
 
 SickLMS1xxNode::SickLMS1xxNode()
@@ -74,6 +76,10 @@ SickLMS1xxNode::SickLMS1xxNode()
     nh.param<double>("scan_frequency", frequency, 25);
     if(!nh.hasParam("set_config")) ROS_WARN("Used default parameter for set_config");
     nh.param<bool>("set_config", set_config, false);
+    if(!nh.hasParam("min_range")) ROS_WARN("Used default parameter for min_range");
+    nh.param<double>("min_range", min_range, 0.01);
+    if(!nh.hasParam("max_range")) ROS_WARN("Used default parameter for max_range");
+    nh.param<double>("max_range", max_range, 20.0);
 
     ROS_INFO("connecting to laser at : %s", host.c_str());
     ROS_INFO("using frame_id : %s", frame_id.c_str());
@@ -142,8 +148,8 @@ bool SickLMS1xxNode::initalizeMessage()
     //init scan msg
     scan_msg.header.frame_id = frame_id;
 
-    scan_msg.range_min = 0.01;
-    scan_msg.range_max = 20.0;
+    scan_msg.range_min = min_range;
+    scan_msg.range_max = max_range;
 
     scan_msg.scan_time = 100.0/cfg.scaningFrequency;
 

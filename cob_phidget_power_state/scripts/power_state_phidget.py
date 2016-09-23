@@ -7,21 +7,21 @@ from cob_msgs.msg import PowerState
 class PowerStatePhidget():
     PHIDGET_MAX_VALUE = 999
     PHIDGET_MIN_VALUE = 0
-    MAX_VOLTAGE = 59.5
-    MIN_VOLTAGE = 0.0
-    MAX_CURRENT = 30.0
-    MIN_CURRENT = -30.0
-
-    FULL_VOLTAGE = 52.0
-    EMPTY_VOLTAGE = 43.0
 
     def __init__(self):
-        self.pub_power_state = rospy.Publisher('power_state', PowerState, queue_size=1)
         self.voltage = None
         self.current = None
         self.last_update = rospy.Time(0)
         self.charging = False
-        rospy.Subscriber("/analog_sensors", AnalogSensor, self.phidget_cb)
+
+        self.voltage_max = rospy.get_param("~voltage_max", 59.5)
+        self.voltage_full = rospy.get_param("~voltage_full", 52.0)
+        self.voltage_empty = rospy.get_param("~voltage_empty", 38.0)
+        self.current_max = rospy.get_param("~current_max", 30.0)
+        self.current_min = rospy.get_param("~current_min", -30.0)
+
+        self.pub_power_state = rospy.Publisher('power_state', PowerState, queue_size=1)
+        self.sub_analog_sensors = rospy.Subscriber("analog_sensors", AnalogSensor, self.phidget_cb)
 
     def phidget_cb(self, msg):
         self.last_update = rospy.Time.now()
@@ -36,12 +36,12 @@ class PowerStatePhidget():
 
         if voltage_raw != None:
             #Calculation of real voltage
-            self.voltage = voltage_raw * PowerStatePhidget.MAX_VOLTAGE/PowerStatePhidget.PHIDGET_MAX_VALUE;
+            self.voltage = voltage_raw * self.voltage_max/self.PHIDGET_MAX_VALUE;
             self.voltage = round(self.voltage, 3)
 
         if current_raw != None:
             #Calculation of real current
-            self.current = PowerStatePhidget.MIN_CURRENT+(PowerStatePhidget.MAX_CURRENT - PowerStatePhidget.MIN_CURRENT)*(current_raw - PowerStatePhidget.PHIDGET_MIN_VALUE) / (PowerStatePhidget.PHIDGET_MAX_VALUE - PowerStatePhidget.PHIDGET_MIN_VALUE)
+            self.current = self.current_min+(self.current_max - self.current_min)*(current_raw - self.PHIDGET_MIN_VALUE) / (self.PHIDGET_MAX_VALUE - self.PHIDGET_MIN_VALUE)
             self.current = round(self.current, 3)
 
             if self.current > 0:
@@ -58,7 +58,7 @@ class PowerStatePhidget():
     def calculate_relative_remaining_capacity(self):
         percentage = None
         if self.voltage != None:
-            percentage = round((self.voltage - PowerStatePhidget.EMPTY_VOLTAGE) * 100/(PowerStatePhidget.FULL_VOLTAGE - PowerStatePhidget.EMPTY_VOLTAGE), 3)
+            percentage = round((self.voltage - self.voltage_empty) * 100/(self.voltage_full - self.voltage_empty), 3)
             percentage = min(percentage, 100)
             percentage = max(percentage, 0)
             return percentage
