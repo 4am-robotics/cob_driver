@@ -40,10 +40,10 @@ class EMStatePhidget():
                 got_message = True
 
         if got_message:
-            if (front_em_active and rear_em_active) and (not last_front_em_state and  not last_rear_em_state):
+            if (front_em_active and rear_em_active) and (not self.last_front_em_state and  not self.last_rear_em_state):
                 self.em_msg.emergency_button_stop = True
                 self.em_caused_by_button = True
-            elif (not front_em_active and not rear_em_active) and (last_front_em_state and last_rear_em_state):
+            elif (not front_em_active and not rear_em_active) and (self.last_front_em_state and self.last_rear_em_state):
                 self.em_msg.emergency_button_stop = False
                 self.em_caused_by_button = False
             elif (front_em_active is not rear_em_active) and em_caused_by_button :
@@ -60,11 +60,11 @@ class EMStatePhidget():
                     rospy.logdebug("Emergency stop was issued")
                     self.em_stop_status = EmergencyStopState.EMSTOP
 
-            elif self.em_stop_state == EmState.ST_EM_ACTIVE:
+            elif self.em_stop_status == EmState.ST_EM_ACTIVE:
                 if not em_signal:
                     rospy.logdebug("Emergency stop was confirmed")
                     self.em_stop_status = EmergencyStopState.EMCONFIRMED
-            elif self.em_stop_state == EmState.ST_EM_CONFIRMED:
+            elif self.em_stop_status == EmState.ST_EM_CONFIRMED:
                 if em_signal:
                     rospy.logdebug("Emergency stop issued")
                     self.em_stop_status = EmergencyStopState.EMSTOP
