@@ -46,7 +46,7 @@ class EMStatePhidget():
             elif (not front_em_active and not rear_em_active) and (self.last_front_em_state and self.last_rear_em_state):
                 self.em_msg.emergency_button_stop = False
                 self.em_caused_by_button = False
-            elif (front_em_active is not rear_em_active) and em_caused_by_button :
+            elif (front_em_active is not rear_em_active) and self.em_caused_by_button :
                 self.em_msg.emergency_button_stop = False
                 self.em_caused_by_button = False
                 self.em_msg.scanner_stop = (front_em_active or rear_em_active)
