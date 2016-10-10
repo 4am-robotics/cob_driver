@@ -1,29 +1,15 @@
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Changelog for package cob_elmo_homing
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-0.6.7 (2016-04-02)
-------------------
-
-0.6.6 (2016-04-01)
-------------------
-* added cob_elmo_homing
-* Contributors: Mathias Lüdtke
-
-0.6.5 (2015-08-31)
-------------------
-
-0.6.4 (2015-08-25)
-------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changelog for package cob_phidget_em_state
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Forthcoming
 -----------
-* 0.6.7
-* update changelog
-* 0.6.6
-* update changelog
-* added cob_elmo_homing
-* Contributors: Mathias Lüdtke, ipa-fxm
+* fix
+* use values from message
+* fixed syntax error
+* fixed conditions
+* new package to calculate em state from phidgets digital input
+* Contributors: Benjamin Maidel
 
 0.6.3 (2015-06-17)
 ------------------

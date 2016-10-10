@@ -29,6 +29,32 @@ Changelog for package cob_mimic
 * critically review dependencies
 * Contributors: ipa-fxm
 
+Forthcoming
+-----------
+* vlc 2.2 version use by default the wrong video output
+* 0.6.7
+* update changelog
+* 0.6.6
+* update changelog
+* re-add copying mimic files
+* fix action name in test node
+* fix mimic shutdown and cleanup
+* Update CMakeLists.txt
+* add rospy again
+* merge
+* 0.6.5
+* update changelog
+* 0.6.4
+* update changelog
+* cleanup
+* fixing dependencies
+* remove trailing whitespaces
+* migrate to package format 2
+* missed dependencies
+* sort dependencies
+* critically review dependencies
+* Contributors: Florian Weisshardt, ipa-cob4-5, ipa-fmw, ipa-fxm, ipa-nhg
+
 0.6.3 (2015-06-17)
 ------------------
 * use component namespaces for light, mimic and say

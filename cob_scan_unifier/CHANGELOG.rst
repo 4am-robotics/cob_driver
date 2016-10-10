@@ -11,6 +11,17 @@ Changelog for package cob_scan_unifier
 * filtered out scan unifier and moved to new directory
 * Contributors: Benjamin Maidel
 
+Forthcoming
+-----------
+* 0.6.7
+* update changelog
+* 0.6.6
+* fix version
+* update changelog
+* changed scan_unifier maintainer
+* filtered out scan unifier and moved to new directory
+* Contributors: Benjamin Maidel, ipa-fxm
+
 0.6.3 (2015-08-31)
 ------------------
 * remove trailing whitespace
