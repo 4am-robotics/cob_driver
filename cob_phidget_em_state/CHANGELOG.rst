@@ -2,8 +2,8 @@
 Changelog for package cob_phidget_em_state
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.8 (2016-10-10)
+------------------
 * fix
 * use values from message
 * fixed syntax error

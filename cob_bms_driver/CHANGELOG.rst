@@ -21,8 +21,8 @@ Changelog for package cob_bms_driver
 0.6.4 (2015-08-25)
 ------------------
 
-Forthcoming
------------
+0.6.8 (2016-10-10)
+------------------
 * restart CAN on failure
 * move power_state_phidget node to new package
 * invert current + round values

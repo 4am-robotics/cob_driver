@@ -43,8 +43,8 @@ Changelog for package cob_sound
 * play sound
 * Contributors: ipa-fxm, ipa-nhg
 
-Forthcoming
------------
+0.6.8 (2016-10-10)
+------------------
 * fade volume on play and between tracks
 * fix sound action namespaces
 * unify namespaces with cob_light

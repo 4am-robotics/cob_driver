@@ -27,8 +27,8 @@ Changelog for package cob_head_axis
 * critically review dependencies
 * Contributors: ipa-fxm, ipa-nhg
 
-Forthcoming
------------
+0.6.8 (2016-10-10)
+------------------
 * 0.6.7
 * update changelog
 * 0.6.6

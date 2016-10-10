@@ -25,8 +25,8 @@ Changelog for package cob_base_drive_chain
 * critically review dependencies
 * Contributors: ipa-fxm
 
-Forthcoming
------------
+0.6.8 (2016-10-10)
+------------------
 * introduced param to set homing velocity
 * 0.6.7
 * update changelog

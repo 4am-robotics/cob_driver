@@ -16,8 +16,8 @@ Changelog for package cob_elmo_homing
 0.6.4 (2015-08-25)
 ------------------
 
-Forthcoming
------------
+0.6.8 (2016-10-10)
+------------------
 * 0.6.7
 * update changelog
 * 0.6.6

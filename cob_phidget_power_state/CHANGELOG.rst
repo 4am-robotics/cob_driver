@@ -2,8 +2,8 @@
 Changelog for package cob_phidget_power_state
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.8 (2016-10-10)
+------------------
 * fix current sign
 * fix current sign
 * remove print

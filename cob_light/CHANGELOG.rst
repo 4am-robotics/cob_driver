@@ -43,8 +43,8 @@ Changelog for package cob_light
 * critically review dependencies
 * Contributors: ipa-fxm
 
-Forthcoming
------------
+0.6.8 (2016-10-10)
+------------------
 * return true for stop mode service to avoid ugly error messages on client side
 * fix tab vs spaces
 * at static mode send color to driver on begin of update cylce
