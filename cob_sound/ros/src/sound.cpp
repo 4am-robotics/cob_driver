@@ -26,6 +26,8 @@ protected:
   ros::Subscriber sub_play_;
   ros::Timer play_feedback_timer_;
   bool mute_;
+  double fade_duration_;
+  bool fade_volume_;
 
   libvlc_instance_t* vlc_inst_;
   libvlc_media_player_t* vlc_player_;
@@ -55,6 +57,9 @@ public:
     diagnostics_timer_ = nh_.createTimer(ros::Duration(1.0), &SoundAction::timer_cb, this);
     play_feedback_timer_ = nh_.createTimer(ros::Duration(0.25), &SoundAction::timer_play_feedback_cb, this, false, false);
     pubMarker_ = nh_.advertise<visualization_msgs::Marker>("marker",1); //Advertise visualization marker topic
+    fade_volume_ = nh_.param<bool>("fade_volume", true);
+    fade_duration_ =  nh_.param<double>("fade_duration", 0.5);
+
     mute_ = false;
 
     vlc_inst_ = libvlc_new(0,NULL);
@@ -92,6 +97,7 @@ public:
   {
     if(as_play_.isActive())
     {
+      fade_out();
       play_feedback_timer_.stop();
       libvlc_media_player_stop(vlc_player_);
     }
@@ -136,6 +142,7 @@ public:
   bool service_cb_stop(std_srvs::Trigger::Request &req,
                        std_srvs::Trigger::Response &res )
   {
+    fade_out();
     if(as_play_.isActive())
     {
       play_feedback_timer_.stop();
@@ -259,7 +266,8 @@ public:
     {
         libvlc_media_player_set_media(vlc_player_, vlc_media_);
         libvlc_media_release(vlc_media_);
-        if(libvlc_media_player_play(vlc_player_) >= 0)
+        fade_out();
+        if(fade_in())
         {
           ret = true;
           message = "Play successfull";
@@ -351,6 +359,49 @@ public:
     marker.color.g = 1.0;
     marker.color.b = 1.0;
     pubMarker_.publish(marker);
+  }
+
+  bool fade_in()
+  {
+    if(libvlc_media_player_play(vlc_player_) >= 0)
+    {
+      if(fade_volume_)
+      {
+        while(libvlc_audio_set_volume(vlc_player_,0) != 0)
+          ros::Duration(0.05).sleep();
+        for(int i = 0; i < 100; i+=5)
+        {
+          libvlc_audio_set_volume(vlc_player_,i);
+          ros::Duration(fade_duration_/20.0).sleep();
+        }
+      }
+      else
+      {
+        while(libvlc_audio_set_volume(vlc_player_,100) != 0)
+          ros::Duration(0.05).sleep();
+
+      }
+    }
+    else
+      return false;
+    return true;
+  }
+
+  bool fade_out()
+  {
+    int volume  = libvlc_audio_get_volume(vlc_player_);
+    if(libvlc_media_player_is_playing(vlc_player_))
+    {
+      if(fade_volume_)
+      {
+        for(int i = volume - (volume%5); i >=0; i-=5)
+        {
+          libvlc_audio_set_volume(vlc_player_,i);
+          ros::Duration(fade_duration_/20.0).sleep();
+        }
+      }
+    }
+    return true;
   }
 
 };
