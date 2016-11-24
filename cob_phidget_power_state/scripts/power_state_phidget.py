@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
 import rospy
+import numpy as np
 from cob_phidgets.msg import AnalogSensor
 from cob_msgs.msg import PowerState
 
 class PowerStatePhidget():
     PHIDGET_MAX_VALUE = 999
     PHIDGET_MIN_VALUE = 0
+    PERIOD_RECORD_SIZE = 6
+    VOLTAGE_COLLECTION_TIME = 6.0 #sec
 
     def __init__(self):
         self.voltage = None
@@ -23,8 +26,43 @@ class PowerStatePhidget():
         self.pub_power_state = rospy.Publisher('power_state', PowerState, queue_size=1)
         self.sub_analog_sensors = rospy.Subscriber("analog_sensors", AnalogSensor, self.phidget_cb)
 
+        self.pr_next = 0
+        self.period_record = []
+        self.cb_avg_time = 0.1
+        self.voltage_bag_maxlen = 100
+        self.voltage_bag = []
+
+    def append_voltage_bag(self, num):
+        while len(self.voltage_bag) >= self.voltage_bag_maxlen:
+            self.voltage_bag.pop(0)
+        self.voltage_bag.append(num)
+
+    def calculate_voltage(self):
+        if len(self.voltage_bag) > 0:
+            self.voltage = np.mean(self.voltage_bag)
+
     def phidget_cb(self, msg):
+        #Estimate commands frequency; we do continuously as it can be very different depending on the
+        #publisher type, and we don't want to impose extra constraints to keep this package flexible
+        if len(self.period_record) < self.PERIOD_RECORD_SIZE:
+            self.period_record.append((rospy.Time.now() - self.last_update).to_sec())
+        else:
+            self.period_record[self.pr_next] = (rospy.Time.now() - self.last_update).to_sec()
+
+        self.pr_next += 1
+        self.pr_next %= len(self.period_record)
         self.last_update = rospy.Time.now()
+
+        if len(self.period_record) <= self.PERIOD_RECORD_SIZE/2:
+            # wait until we have some values; make a reasonable assumption (10 Hz) meanwhile
+            self.cb_avg_time = 0.1
+        else:
+            #enough; recalculate with the latest input
+            self.cb_avg_time = np.median(self.period_record)
+
+        #now set the max voltage bag size
+        self.voltage_bag_maxlen = int(self.VOLTAGE_COLLECTION_TIME/self.cb_avg_time)
+
         voltage_raw = None
         current_raw = None
 
@@ -36,8 +74,9 @@ class PowerStatePhidget():
 
         if voltage_raw != None:
             #Calculation of real voltage
-            self.voltage = voltage_raw * self.voltage_max/self.PHIDGET_MAX_VALUE;
-            self.voltage = round(self.voltage, 3)
+            voltage = voltage_raw * self.voltage_max/self.PHIDGET_MAX_VALUE;
+            voltage = round(voltage, 3)
+            self.append_voltage_bag(voltage)
 
         if current_raw != None:
             #Calculation of real current
@@ -66,6 +105,7 @@ class PowerStatePhidget():
             return 0.0
 
     def publish(self):
+        self.calculate_voltage()
         if self.voltage != None and self.current != None and (rospy.Time.now() - self.last_update) < rospy.Duration(1):
             ps = PowerState()
             ps.header.stamp = self.last_update
@@ -75,7 +115,6 @@ class PowerStatePhidget():
             ps.relative_remaining_capacity = self.calculate_relative_remaining_capacity()
             ps.charging = self.charging
             self.pub_power_state.publish(ps)
-            return ps
 
 if __name__ == "__main__":
     rospy.init_node("power_state_phidget")
