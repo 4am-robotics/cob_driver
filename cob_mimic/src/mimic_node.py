@@ -91,7 +91,7 @@ class Mimic:
 
       for i in range(0, repeat):
         rospy.loginfo("Repeat: %s, Mimic: %s", repeat, mimic)
-        command = "export DISPLAY=:0 && vlc --video-wallpaper --video-filter 'rotate{angle=0}' --vout glx --one-instance --playlist-enqueue --no-video-title-show --rate %f %s vlc://quit"  % (speed, file_location)
+        command = "export DISPLAY=:0 && vlc --video-wallpaper --video-filter 'rotate{angle=%d}' --vout glx --one-instance --playlist-enqueue --no-video-title-show --rate %f  %s  vlc://quit"  % (self.rotation, speed, file_location)
         os.system(command)
 
       return True
@@ -103,12 +103,13 @@ class Mimic:
       return
 
     while not rospy.is_shutdown():
-      command = "export DISPLAY=:0 && vlc --video-wallpaper --video-filter 'rotate{angle=0}' --vout glx --loop --one-instance --playlist-enqueue --no-video-title-show --rate %f  %s  vlc://quit"  % (self.default_speed, file_location)
+      command = "export DISPLAY=:0 && vlc --video-wallpaper --video-filter 'rotate{angle=%d}' --vout glx --loop --one-instance --playlist-enqueue --no-video-title-show --rate %f  %s  vlc://quit"  % (self.rotation, self.default_speed, file_location)
       os.system(command)
 
   def main(self):
     self.default_speed = 1.0
     self.default_mimic = "default"
+    self.rotation = rospy.get_param('~rotation', 0)
 
     # copy all videos to /tmp
     rospy.loginfo("copying all mimic files to /tmp/mimic...")
