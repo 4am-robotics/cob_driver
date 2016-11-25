@@ -8,17 +8,44 @@ class XMasMode : public Mode
 {
 public:
    XMasMode(size_t num_leds, int priority = 0, double freq = 5, int pulses = 0, double timeout = 0)
-    :Mode(priority, freq, pulses, timeout), _toggle(false), _timer_inc(0), _num_leds(num_leds)
+    :Mode(priority, freq, pulses, timeout), _toggle(false), _timer_inc(0), _num_leds(num_leds), _chucksize(5)
   {
     _colors.resize(num_leds);
-    for(int i = 0; i < num_leds; i++)
+    if(_num_leds >= _chucksize*2)
     {
-      if(i%2 == 0)
+      int n_chunks = _num_leds / _chucksize + (_num_leds%_chucksize ? 1 : 0);
+      int k = 0;
+      for(int i = 0; i < n_chunks; i++)
       {
-        _colors.at(i).r = 1.0; _colors.at(i).g = 0.0; _colors.at(i).b = 0.0; _colors.at(i).a = 1.0;
+        for(int j = 0; j < _chucksize; j++)
+        {
+          if(k >= _num_leds)
+            break;
+          if(i%2 == 0)
+          {
+            _colors.at(k).r = 1.0; _colors.at(k).g = 0.0; _colors.at(k).b = 0.0; _colors.at(k).a = 1.0;
+          }
+          else
+          {
+            _colors.at(k).r = 1.0; _colors.at(k).g = 1.0; _colors.at(k).b = 1.0; _colors.at(k).a = 1.0;
+          }
+          k++;
+        }
       }
-      else
-        _colors.at(i).r = 1.0; _colors.at(i).g = 1.0; _colors.at(i).b = 1.0; _colors.at(i).a = 1.0;
+    }
+    else
+    {
+      for(int i = 0; i < _num_leds; i++)
+      {
+        if(i%2==0)
+        {
+          _colors.at(i).r = 1.0; _colors.at(i).g = 0.0; _colors.at(i).b = 0.0; _colors.at(i).a = 1.0;
+        }
+        else
+        {
+          _colors.at(i).r = 1.0; _colors.at(i).g = 1.0; _colors.at(i).b = 1.0; _colors.at(i).a = 1.0;
+        }
+      }
     }
     if(_pulses != 0)
     {
@@ -32,7 +59,10 @@ public:
   {
     if(_timer_inc >= 1.0)
     {
-      std::rotate(_colors.begin(), _colors.begin()+1, _colors.end());
+      if(_num_leds >= _chucksize*2)
+        std::rotate(_colors.begin(), _colors.begin()+_chucksize, _colors.end());
+      else
+        std::rotate(_colors.begin(), _colors.begin()+1, _colors.end());
       _pulsed++;
       m_sigColorsReady(_colors);
       _timer_inc = 0.0;
@@ -48,6 +78,7 @@ private:
   double _timer_inc;
   double _inc;
   size_t _num_leds;
+  size_t _chucksize;
 };
 
 #endif
