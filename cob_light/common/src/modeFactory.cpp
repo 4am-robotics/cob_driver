@@ -63,6 +63,7 @@
 #include <sweepColorMode.h>
 #include <distApproxMode.h>
 #include <glowColorMode.h>
+#include <xmasMode.h>
 
 ModeFactory::ModeFactory()
 {
@@ -84,27 +85,27 @@ boost::shared_ptr<Mode> ModeFactory::create(cob_light::LightMode requestMode, IC
     {
     case cob_light::LightModes::STATIC:
         mode.reset(new StaticMode(color, requestMode.priority, requestMode.frequency,\
-                              requestMode.pulses, requestMode.timeout));
+                                  requestMode.pulses, requestMode.timeout));
         break;
 
     case cob_light::LightModes::FLASH:
         mode.reset(new FlashMode(color, requestMode.priority, requestMode.frequency,\
-                             requestMode.pulses, requestMode.timeout));
+                                 requestMode.pulses, requestMode.timeout));
         break;
 
     case cob_light::LightModes::BREATH:
         mode.reset(new BreathMode(color, requestMode.priority, requestMode.frequency,\
-                              requestMode.pulses, requestMode.timeout));
+                                  requestMode.pulses, requestMode.timeout));
         break;
 
     case cob_light::LightModes::BREATH_COLOR:
         mode.reset(new BreathColorMode(color, requestMode.priority, requestMode.frequency,\
-                                   requestMode.pulses, requestMode.timeout));
+                                       requestMode.pulses, requestMode.timeout));
         break;
 
     case cob_light::LightModes::FADE_COLOR:
         mode.reset(new FadeColorMode(color, requestMode.priority, requestMode.frequency,\
-                                 requestMode.pulses, requestMode.timeout));
+                                     requestMode.pulses, requestMode.timeout));
         break;
 
     case cob_light::LightModes::SEQ:
@@ -123,7 +124,7 @@ boost::shared_ptr<Mode> ModeFactory::create(cob_light::LightMode requestMode, IC
             std::cout<<"got new seq: "<<seq.color.r<<" "<<seq.color.g<<" "<<seq.color.b<<std::endl;
         }
         mode.reset(new SequenceMode(seqs, requestMode.priority, requestMode.frequency,\
-                                requestMode.pulses, requestMode.timeout));
+                                    requestMode.pulses, requestMode.timeout));
     }
         break;
 
@@ -146,7 +147,7 @@ boost::shared_ptr<Mode> ModeFactory::create(cob_light::LightMode requestMode, IC
             }
         }
         mode.reset(new CircleColorMode(colors, colorO->getNumLeds(), requestMode.priority, requestMode.frequency,\
-                                    requestMode.pulses, requestMode.timeout));
+                                       requestMode.pulses, requestMode.timeout));
     }
         break;
 
@@ -169,19 +170,24 @@ boost::shared_ptr<Mode> ModeFactory::create(cob_light::LightMode requestMode, IC
             }
         }
         mode.reset(new SweepColorMode(colors, colorO->getNumLeds(), requestMode.priority, requestMode.frequency,
-                                    requestMode.pulses, requestMode.timeout));
+                                      requestMode.pulses, requestMode.timeout));
     }
         break;
 
     case cob_light::LightModes::DIST_APPROX:
         mode.reset(new DistApproxMode(colorO->getNumLeds(), requestMode.priority, requestMode.frequency,
-                                    requestMode.pulses, requestMode.timeout));
+                                      requestMode.pulses, requestMode.timeout));
         break;
 
     case cob_light::LightModes::GLOW:
-            mode.reset(new GlowColorMode(color, requestMode.priority, requestMode.frequency,\
-                                  requestMode.pulses, requestMode.timeout));
-            break;
+        mode.reset(new GlowColorMode(color, requestMode.priority, requestMode.frequency,\
+                                     requestMode.pulses, requestMode.timeout));
+        break;
+
+    case cob_light::LightModes::XMAS:
+        mode.reset(new XMasMode(colorO->getNumLeds(), requestMode.priority, requestMode.frequency,\
+                                     requestMode.pulses, requestMode.timeout));
+        break;
 
     default:
         mode.reset();
@@ -247,6 +253,8 @@ int ModeFactory::type(Mode *mode)
         ret = cob_light::LightModes::DIST_APPROX;
     else if(dynamic_cast<GlowColorMode*>(mode) != NULL)
         ret = cob_light::LightModes::GLOW;
+    else if(dynamic_cast<XMasMode*>(mode) != NULL)
+        ret = cob_light::LightModes::XMAS;
     else
         ret = cob_light::LightModes::NONE;
 
