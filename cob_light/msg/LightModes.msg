@@ -11,3 +11,4 @@ uint8 CIRCLE_COLORS =  7           # circle through specific colors, if one colo
 uint8 SWEEP =          8           # circle color from front to back on both sides
 uint8 DIST_APPROX =    9           # color led circle from green to red depended on the measured laserscan dists
 uint8 GLOW =          10           # glow the color
+uint8 XMAS =          11           # red white christmas mode
