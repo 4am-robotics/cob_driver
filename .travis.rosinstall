@@ -10,3 +10,8 @@
     uri: 'https://github.com/ros-industrial/ros_canopen.git'
     local-name: ros_canopen
     version: jade-devel
+- git:
+    uri: 'https://github.com/ipa320/cob_perception_common.git'
+    local-name: cob_perception_common
+    version: kinetic_dev
+
