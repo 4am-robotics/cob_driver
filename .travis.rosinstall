@@ -6,3 +6,7 @@
     uri: 'https://github.com/ipa320/cob_extern.git'
     local-name: cob_extern
     version: kinetic_dev
+- git:
+    uri: 'https://github.com/ros-industrial/ros_canopen.git'
+    local-name: ros_canopen
+    version: jade-devel
