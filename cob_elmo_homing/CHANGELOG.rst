@@ -2,6 +2,9 @@
 Changelog for package cob_elmo_homing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.8 (2016-10-10)
+------------------
+
 0.6.7 (2016-04-02)
 ------------------
 
@@ -15,15 +18,6 @@ Changelog for package cob_elmo_homing
 
 0.6.4 (2015-08-25)
 ------------------
-
-0.6.8 (2016-10-10)
-------------------
-* 0.6.7
-* update changelog
-* 0.6.6
-* update changelog
-* added cob_elmo_homing
-* Contributors: Mathias Lüdtke, ipa-fxm
 
 0.6.3 (2015-06-17)
 ------------------

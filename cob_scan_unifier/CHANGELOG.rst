@@ -2,6 +2,9 @@
 Changelog for package cob_scan_unifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.8 (2016-10-10)
+------------------
+
 0.6.7 (2016-04-02)
 ------------------
 
@@ -10,17 +13,6 @@ Changelog for package cob_scan_unifier
 * changed scan_unifier maintainer
 * filtered out scan unifier and moved to new directory
 * Contributors: Benjamin Maidel
-
-0.6.8 (2016-10-10)
-------------------
-* 0.6.7
-* update changelog
-* 0.6.6
-* fix version
-* update changelog
-* changed scan_unifier maintainer
-* filtered out scan unifier and moved to new directory
-* Contributors: Benjamin Maidel, ipa-fxm
 
 0.6.3 (2015-08-31)
 ------------------

@@ -2,6 +2,11 @@
 Changelog for package cob_sick_lms1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.8 (2016-10-10)
+------------------
+* cob_sick_lms1xx: add range configuration
+* Contributors: Shin
+
 0.6.7 (2016-04-02)
 ------------------
 * add missing dependencies
@@ -35,38 +40,6 @@ Changelog for package cob_sick_lms1xx
 * sort dependencies
 * critically review dependencies
 * Contributors: ipa-fxm
-
-0.6.8 (2016-10-10)
-------------------
-* cob_sick_lms1xx: add range configuration
-* 0.6.7
-* update changelog
-* add missing dependencies
-* 0.6.6
-* update changelog
-* Sick LMS1xx node now uses global NodeHandle
-* Resolved problem with tabs and spaces.
-* Clean trailing spaces. Convert default frame name to tf2 format (remove "/")
-* Revert indentation style as it was
-* Correction.
-* Corrected revert.
-* Revert indentation style as it was
-* 0.6.5
-* update changelog
-* 0.6.4
-* update changelog
-* install tags for libraries
-* boost revision
-* do not install headers in executable-only packages
-* explicit dependency to boost
-* catkin_package according to install tags
-* remove trailing whitespaces
-* add_dependencies EXPORTED_TARGETS
-* migrate to package format 2
-* sort dependencies
-* critically review dependencies
-* Node rewritten and publishing on diagnostics topic added.
-* Contributors: Denis Štogl, Shin, ipa-fxm
 
 0.6.3 (2015-06-17)
 ------------------
