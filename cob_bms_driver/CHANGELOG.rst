@@ -2,6 +2,16 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.8 (2016-10-10)
+------------------
+* restart CAN on failure
+* move power_state_phidget node to new package
+* invert current + round values
+* fix typo
+* corrected namespace
+* added node to calculate powerstate from phidget board
+* Contributors: Benjamin Maidel, Mathias Lüdtke
+
 0.6.7 (2016-04-02)
 ------------------
 * add missing dependencies

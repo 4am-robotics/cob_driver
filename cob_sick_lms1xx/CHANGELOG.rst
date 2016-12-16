@@ -2,6 +2,11 @@
 Changelog for package cob_sick_lms1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.8 (2016-10-10)
+------------------
+* cob_sick_lms1xx: add range configuration
+* Contributors: Shin
+
 0.6.7 (2016-04-02)
 ------------------
 * add missing dependencies

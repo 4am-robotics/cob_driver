@@ -2,6 +2,11 @@
 Changelog for package cob_mimic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.8 (2016-10-10)
+------------------
+* vlc 2.2 version use by default the wrong video output
+* Contributors: ipa-cob4-5, ipa-nhg
+
 0.6.7 (2016-04-02)
 ------------------
 

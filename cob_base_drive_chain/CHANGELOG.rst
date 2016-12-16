@@ -2,6 +2,11 @@
 Changelog for package cob_base_drive_chain
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.8 (2016-10-10)
+------------------
+* introduced param to set homing velocity
+* Contributors: Benjamin Maidel
+
 0.6.7 (2016-04-02)
 ------------------
 

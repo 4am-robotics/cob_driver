@@ -2,6 +2,14 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.8 (2016-10-10)
+------------------
+* return true for stop mode service to avoid ugly error messages on client side
+* fix tab vs spaces
+* at static mode send color to driver on begin of update cylce
+* set freq to default 1.0 if not set by requested mode
+* Contributors: Benjamin Maidel, ipa-fmw, msh
+
 0.6.7 (2016-04-02)
 ------------------
 

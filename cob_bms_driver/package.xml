@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>cob_bms_driver</name>
-  <version>0.6.7</version>
+  <version>0.6.8</version>
   <description>
     Driver package for interfacing the battery management system (BMS) on Care-O-bot.
   </description>

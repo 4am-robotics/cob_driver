@@ -2,6 +2,15 @@
 Changelog for package cob_sound
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.8 (2016-10-10)
+------------------
+* fade volume on play and between tracks
+* fix sound action namespaces
+* unify namespaces with cob_light
+* use private namespace for cob_sound parameters
+* consistently fill result for say and play
+* Contributors: Benjamin Maidel, ipa-cob4-2, ipa-fxm, msh
+
 0.6.7 (2016-04-02)
 ------------------
 
