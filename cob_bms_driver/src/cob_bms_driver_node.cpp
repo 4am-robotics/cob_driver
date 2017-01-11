@@ -1,3 +1,10 @@
+#include <std_msgs/Float64.h>
+#include <std_msgs/Bool.h>
+#include <XmlRpcException.h>
+
+#include <stdint.h>
+#include <endian.h>
+
 #include <cob_bms_driver/cob_bms_driver_node.h>
 
 //template to be used to read CAN frames received from the BMS 
@@ -262,9 +269,7 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 	boost::mutex::scoped_lock lock(data_mutex_);
 
 	//id to find in config map
-	uint32_t frame_id = f.id;
-
-        std::pair<ConfigMap::iterator, ConfigMap::iterator>  range = config_map_.equal_range(frame_id);
+        std::pair<ConfigMap::iterator, ConfigMap::iterator>  range = config_map_.equal_range(f.id);
 
 	for (; range.first != range.second; ++range.first) 
 	{

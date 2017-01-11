@@ -1,28 +1,38 @@
 #ifndef COB_BMS_DRIVER_NODE_H
 #define COB_BMS_DRIVER_NODE_H
 
-#include <sstream>
-#include <vector>
-#include <stdint.h>
-#include <endian.h>
-
 #include <ros/ros.h>
-#include <std_msgs/Float64.h>
-#include <std_msgs/Bool.h>
-#include <XmlRpcException.h>
 #include <XmlRpcValue.h>
 #include <diagnostic_updater/diagnostic_updater.h>
 #include <diagnostic_updater/publisher.h>
 
 #include <socketcan_interface/socketcan.h>
 #include <socketcan_interface/threading.h>
-#include <socketcan_interface/string.h>
 
-#include <cob_bms_driver/bms_parameter.h>
+struct BmsParameter
+{
+        unsigned int offset;
+        unsigned int length;
+
+        std::string name;
+        bool is_signed;
+        double factor;
+        std::string unit;
+
+        ros::Publisher publisher;
+
+        diagnostic_msgs::KeyValue kv;
+
+        BmsParameter()
+        : factor(1.0)
+        {}
+};
 
 class CobBmsDriverNode
 {
 	private:
+                ros::NodeHandle nh_;
+                ros::NodeHandle nh_priv_;
 
                 typedef std::multimap<uint8_t, BmsParameter > ConfigMap;
 
@@ -71,9 +81,12 @@ class CobBmsDriverNode
 		//callback function to handle all types of frames received from BMS
 		void handleFrames(const can::Frame &f);
 
+                //updates the diagnostics data with the new data received from BMS
+                void produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat);     
+
+                //calls update function of diagnostics_updater
+                void diagnosticsTimerCallback(const ros::TimerEvent&);
 	public:
-		ros::NodeHandle nh_;
-		ros::NodeHandle nh_priv_;
 
 		//updater for diagnostics data
 		diagnostic_updater::Updater updater_;
@@ -87,11 +100,6 @@ class CobBmsDriverNode
 		//cycles through polling lists and sends 2 ids at a time (one from each list) to the BMS
 		void pollNextInLists();
 		
-		//updates the diagnostics data with the new data received from BMS
-		void produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat);	
-		
-		//calls update function of diagnostics_updater
-		void diagnosticsTimerCallback(const ros::TimerEvent&);
 };
 
 
