@@ -7,17 +7,68 @@
 
 #include <cob_bms_driver/cob_bms_driver_node.h>
 
+using boost::make_shared;
+
 //template to be used to read CAN frames received from the BMS 
 template<int N> void big_endian_to_host(const void* in, void* out);
 template<> void big_endian_to_host<1>(const void* in, void* out){ *(uint8_t*)out = *(uint8_t*)in;}
 template<> void big_endian_to_host<2>(const void* in, void* out){ *(uint16_t*)out = be16toh(*(uint16_t*)in);}
 template<> void big_endian_to_host<4>(const void* in, void* out){ *(uint32_t*)out = be32toh(*(uint32_t*)in);}
 template<> void big_endian_to_host<8>(const void* in, void* out){ *(uint64_t*)out = be64toh(*(uint64_t*)in);}
+
 template<typename T> T read_value(const can::Frame &f, uint8_t offset){
 	T res;
 	big_endian_to_host<sizeof(T)>(&f.data[offset], &res);
 	return res;
 }
+template<typename T> bool readTypedValue(const can::Frame &f, const BmsParameter &param, T &data){
+    switch (param.length)
+    {
+            case 1:
+                    data = param.is_signed ? read_value<int8_t> (f, param.offset) : read_value<uint8_t> (f, param.offset);
+                    break;
+
+            case 2:
+                    data = param.is_signed ? read_value<int16_t> (f, param.offset) : read_value<uint16_t> (f, param.offset);
+                    break;
+
+            case 4:
+                    data = param.is_signed ? read_value<int32_t> (f, param.offset) : read_value<uint32_t> (f, param.offset);
+                    break;
+
+            default: 
+                    ROS_WARN_STREAM("Unknown length of BmsParameter: " << param.name << ". Cannot read data!");
+                    return false;
+    }
+    return true;
+}
+
+template<typename T> struct TypedBmsParameter : BmsParameter {
+    T msg_;
+
+    void publish(){
+        //if the BmsParameter is a topic, publish data to the topic
+        if (static_cast<void*>(publisher))
+        {
+                publisher.publish(msg_);
+        }
+    }
+    virtual void advertise(ros::NodeHandle &nh, const std::string &topic){
+        publisher = nh.advertise<T> (topic, 1, true);
+    }
+
+};
+
+struct FloatBmsParameter : TypedBmsParameter<std_msgs::Float64> {
+    void update(const can::Frame &f){
+        readTypedValue(f, *this, msg_.data);
+        msg_.data *= factor;
+
+        //save data for diagnostics updater (and round to two digits for readability)
+        kv.value = (boost::format("%.2f") % msg_.data).str();
+        publish();
+    }
+};
 
 CobBmsDriverNode::CobBmsDriverNode()
 : nh_priv_("~")
@@ -145,12 +196,14 @@ bool CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue &diagnostics, std::vect
 
                 for(int32_t j=0; j<fields.size(); ++j)
                 {
-                    BmsParameter entry;
                     XmlRpc::XmlRpcValue field = fields[i];
                     if(!field.hasMember("name")){
                         ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: name is missing.");
                         return false;
                     }
+                    BmsParameter::Ptr entry_p = make_shared<FloatBmsParameter>();
+                    BmsParameter &entry = *entry_p;
+
                     entry.name = static_cast<std::string>(field["name"]);
 
                     if(!field.hasMember("offset")){
@@ -174,19 +227,21 @@ bool CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue &diagnostics, std::vect
                     if(field.hasMember("factor")){
                         entry.factor = static_cast<double>(field["factor"]);
                     }
+                    entry.kv.key = entry.name;
+                    
                     if(field.hasMember("unit")){
-                        entry.unit = static_cast<std::string>(field["unit"]);
+                        entry.kv.key += "[" + static_cast<std::string>(field["unit"]) + "]";
                     }
 
                     std::vector<std::string>::iterator topic_it = find(topics.begin(), topics.end(), entry.name);
                     if(topic_it != topics.end()){
-                        entry.publisher = nh_priv_.advertise<std_msgs::Float64> (entry.name, 1, true);
+                        entry.advertise(nh_priv_, entry.name);
                         topics.erase(topic_it);
                         publishes = true;
                         ROS_INFO_STREAM("Created publisher for: " << entry.name);
                     }
 
-                    config_map_.insert(std::make_pair(id, entry));
+                    config_map_.insert(std::make_pair(id, entry_p));
 
                 }
                 if(publishes) polling_list1_.push_back(id);
@@ -273,37 +328,7 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 
 	for (; range.first != range.second; ++range.first) 
 	{
-                BmsParameter &param = range.first->second; 
-		double data = 0;
-		switch (param.length)
-		{
-			case 1:
-				data = param.is_signed ? read_value<int8_t> (f, param.offset) * param.factor : read_value<uint8_t> (f, param.offset) * param.factor;
-				break;
-
-			case 2:
-				data = param.is_signed ? read_value<int16_t> (f, param.offset) * param.factor : read_value<uint16_t> (f, param.offset) * param.factor;
-				break;
-
-			case 4:
-				data = param.is_signed ? read_value<int32_t> (f, param.offset) * param.factor : read_value<uint32_t> (f, param.offset) * param.factor;
-				break;
-
-			default: 
-				ROS_WARN_STREAM("Unknown length of BmsParameter: " << param.name << ". Cannot read data!");
-				return;	//only go on with next step if data was read successfully
-		}
-
-		//save data for diagnostics updater (and round to two digits for readability)
-		param.kv.value = boost::lexical_cast<std::string>(boost::format("%.2f") % data);
-
-		//if the BmsParameter is a topic, publish data to the topic
-		if (static_cast<void*>(param.publisher))
-		{
-                        std_msgs::Float64 msg;
-                        msg.data = data; 
-			param.publisher.publish(msg);
-		}
+                range.first->second->update(f); 
 	}	
 }
 
@@ -336,7 +361,7 @@ void CobBmsDriverNode::produceDiagnostics(diagnostic_updater::DiagnosticStatusWr
 
 	for (ConfigMap::iterator cm_it = config_map_.begin(); cm_it != config_map_.end(); ++cm_it)
 	{
-                stat.values.push_back(cm_it->second.kv);
+                stat.values.push_back(cm_it->second->kv);
 	}
 }
 

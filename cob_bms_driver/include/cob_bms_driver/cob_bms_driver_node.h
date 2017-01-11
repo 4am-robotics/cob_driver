@@ -17,7 +17,6 @@ struct BmsParameter
         std::string name;
         bool is_signed;
         double factor;
-        std::string unit;
 
         ros::Publisher publisher;
 
@@ -26,6 +25,13 @@ struct BmsParameter
         BmsParameter()
         : factor(1.0)
         {}
+        
+        virtual ~BmsParameter() {}
+
+        virtual void update(const can::Frame &f) = 0;
+        virtual void advertise(ros::NodeHandle &nh, const std::string &topic) = 0;
+
+        typedef boost::shared_ptr<BmsParameter> Ptr;
 };
 
 class CobBmsDriverNode
@@ -34,7 +40,7 @@ class CobBmsDriverNode
                 ros::NodeHandle nh_;
                 ros::NodeHandle nh_priv_;
 
-                typedef std::multimap<uint8_t, BmsParameter > ConfigMap;
+                typedef std::multimap<uint8_t, BmsParameter::Ptr> ConfigMap;
 
 		//ROS parameters
 		ConfigMap config_map_;	//holds all the information that is provided in the configuration file
