@@ -1,8 +1,5 @@
 #include <cob_bms_driver/cob_bms_driver_node.h>
 
-typedef std::vector<BmsParameter> BmsParameters;
-typedef std::map<uint8_t, std::vector<BmsParameter> > ConfigMap;
-
 //template to be used to read CAN frames received from the BMS 
 template<int N> void big_endian_to_host(const void* in, void* out);
 template<> void big_endian_to_host<1>(const void* in, void* out){ *(uint8_t*)out = *(uint8_t*)in;}
@@ -34,8 +31,7 @@ bool CobBmsDriverNode::prepare()
 		return false;
 	}
 
-	//goes through config_map_ and loads the pollings lists 
-	loadPollingLists();
+	optimizePollingLists();
 
 	//initalize polling lists iterators
 	polling_list1_it_ = polling_list1_.begin();
@@ -70,6 +66,10 @@ bool CobBmsDriverNode::getParams()
 	{
 		ROS_INFO_STREAM("Did not find \"topics\" on parameter server");
 	}    
+        if (topics.empty())
+        {
+                ROS_INFO("Topic list is empty. No publisher created");
+        }
 
 	if (!nh_priv_.getParam("diagnostics", diagnostics)) 
 	{
@@ -83,12 +83,16 @@ bool CobBmsDriverNode::getParams()
             ROS_ERROR_STREAM("Could not parse 'diagnostics': "<< e.getMessage());
             return false;
         }
-	if (createPublishersFor(topics) == false)
-	{
-		return false;
-	}
 
-	if (!nh_priv_.getParam("can_device", can_device_)) 
+        if (!topics.empty())
+        {
+                for(std::vector<std::string>::iterator it = topics.begin(); it != topics.end(); ++it){
+                        ROS_ERROR_STREAM("Could not find entry for topic '" << *it << "'.");
+                }
+                return false;
+        }
+
+        if (!nh_priv_.getParam("can_device", can_device_)) 
 	{
 		ROS_INFO_STREAM("Did not find \"can_device\" on parameter server. Using default value: can0");
 		can_device_ = "can0";
@@ -109,55 +113,8 @@ bool CobBmsDriverNode::getParams()
 	return true;
 }
 
-//function to create a publisher for each Topic that is listed in the configuration file
-bool CobBmsDriverNode::createPublishersFor(std::vector<std::string> topics) 
-{
-	if (topics.empty())
-	{
-		ROS_INFO("Topic list is empty. No publisher created");
-		return true;
-	}
-
-	//for all topics 
-	for (std::vector<std::string>::iterator it_topic = topics.begin(); it_topic!=topics.end(); ++it_topic)
-	{
-		bool match_already_found = false;
-		//verify that the topic name matches with a BmsParameter name from config file
-		ConfigMap::iterator it_map = config_map_.begin();
-		for (it_map; it_map!=config_map_.end(); ++it_map) 
-		{
-			//find a matching name in std::vector<BmsParameter>
-			for (std::vector<BmsParameter>::iterator it_bms_vec = it_map->second.begin(); it_bms_vec != it_map->second.end(); ++it_bms_vec)
-			{
-				if (!it_topic->empty() )
-				{
-					if (it_bms_vec->name == *it_topic)
-					{
-						//found a match, so create publisher
-						bms_diagnostics_publishers_[*it_topic] = nh_priv_.advertise<std_msgs::Float64> (*it_topic, 100, true);
-						ROS_INFO_STREAM("Created publisher for: " << *it_topic);
-						match_already_found = true;
-						break;	//dont need to look anymore in the config_map_
-					}
-				}
-				else 
-				{
-					ROS_ERROR("Topic name can not be empty");
-					return false;
-				}
-			}
-			if (match_already_found) break;
-		}
-		//no match found for current topic
-		if (it_map == config_map_.end())
-		{
-			ROS_WARN_STREAM("Didn't create publisher for: " << *it_topic << ". Make sure \"" << *it_topic << "\" matches a BmsParameter name in the Configuration file.");
-		}
-	}
-	return true;
-}
 //function to interpret the diagnostics XmlRpcValue and save data in config_map_
-bool CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vector<std::string> topics) 
+bool CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue &diagnostics, std::vector<std::string> &topics) 
 {
         //for each id in list of ids
         for (size_t i = 0; i < diagnostics.size(); ++i) 
@@ -177,6 +134,8 @@ bool CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
                 id = static_cast<uint8_t>(static_cast<int>(config["id"]));
 
                 XmlRpc::XmlRpcValue fields = config["fields"];
+                
+                bool publishes = false;
 
                 for(int32_t j=0; j<fields.size(); ++j)
                 {
@@ -213,11 +172,20 @@ bool CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vecto
                         entry.unit = static_cast<std::string>(field["unit"]);
                     }
 
-                    entry.is_topic = find(topics.begin(), topics.end(), entry.name) != topics.end();
+                    std::vector<std::string>::iterator topic_it = find(topics.begin(), topics.end(), entry.name);
+                    if(topic_it != topics.end()){
+                        entry.publisher = nh_priv_.advertise<std_msgs::Float64> (entry.name, 1, true);
+                        topics.erase(topic_it);
+                        publishes = true;
+                        ROS_INFO_STREAM("Created publisher for: " << entry.name);
+                    }
 
                     bms_parameters.push_back(entry);
 
                 }
+                if(publishes) polling_list1_.push_back(id);
+                else polling_list2_.push_back(id);
+
                 config_map_[id] = bms_parameters;
                 ROS_INFO_STREAM("Got "<< bms_parameters.size() << " BmsParameter(s) with CAN-ID: 0x" << std::hex << (unsigned int) id << std::dec);
 	}
@@ -239,48 +207,19 @@ void CobBmsDriverNode::evaluatePollPeriodFrom(int poll_frequency_hz)
 }
 
 //function that goes through config_map_ and fills polling_list1_ and polling_list2_. If topics are found on ROS Parameter Server, they are kept in list1 otherwise, all parameter id are divided between both lists.
-void CobBmsDriverNode::loadPollingLists() 
+void CobBmsDriverNode::optimizePollingLists() 
 {
-	if (config_map_.empty()) 
-	{
-		ROS_ERROR("config_map_ is empty! Can not load polling lists!");
-		return;
-	}
-
-	if(!bms_diagnostics_publishers_.empty())  
-	{
-		for (ConfigMap::iterator it = config_map_.begin(); it != config_map_.end(); ++it) 
-		{
-			BmsParameters current_parameter_list = it->second;
-			uint8_t parameter_can_id = it->first;
-
-			for (size_t j=0; j<current_parameter_list.size(); ++j) 
-			{
-				//second condition here is to ensure that the list1 is always smaller or equal to list2. This is important because otherwise BmsParameters which are topics would get slower updates (possible when topics list is large!).
-				if ((current_parameter_list.at(j).is_topic) && (polling_list1_.size() <= polling_list2_.size())) 
-				{
-					polling_list1_.push_back(parameter_can_id);
-					break; //parameter_can_id needs to be saved only once
-				}
-				else
-				{
-					polling_list2_.push_back(parameter_can_id);
-					break; //parameter_can_id needs to be saved only once
-				}
-			}
-		}
-	}
-	else 
-	{
-		//No BmsParameter is a topic, so load lists such that all ids are polled at equal intervals
-		ROS_INFO("No publishers found. Distributing the polling CAN-ID(s) equally.");
-		bool toggle = true;
-		for (ConfigMap::iterator it = config_map_.begin(); it != config_map_.end(); ++it) 
-		{
-			toggle? polling_list1_.push_back(it->first) : polling_list2_.push_back(it->first);
-			toggle = !toggle;
-		}
-	}
+        if(polling_list1_.size() == 0){ // no topics, so just distribute topics
+            while(polling_list1_.size() < polling_list2_.size()){
+                polling_list1_.push_back(polling_list2_.back());
+                polling_list2_.pop_back();
+            }
+        }else{
+            while(polling_list1_.size() > polling_list2_.size()){
+                polling_list2_.push_back(polling_list1_.back());
+                polling_list1_.pop_back();
+            }
+        }
 	ROS_INFO_STREAM("Loaded \'"<< polling_list1_.size() << "\' CAN-ID(s) in polling_list1_ and \'"<< polling_list2_.size() <<"\' CAN-ID(s) in polling_list2_");
 }
 
@@ -357,20 +296,11 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 		param->kv.value = boost::lexical_cast<std::string>(boost::format("%.2f") % data);
 
 		//if the BmsParameter is a topic, publish data to the topic
-		if (param->is_topic)
+		if (static_cast<void*>(param->publisher))
 		{
-			//find publisher for this topic in bms_diagnostics_publishers_ 
-			std::map<std::string, ros::Publisher>::const_iterator it_pub = bms_diagnostics_publishers_.find(param->name);
-			if (it_pub != bms_diagnostics_publishers_.end())
-			{
-				std_msgs::Float64 float_msg;
-				float_msg.data = data;
-				(it_pub->second).publish(float_msg);
-			}
-			else 
-			{
-				ROS_ERROR_STREAM("Could not find a publisher for: " << param->name);
-			}
+                        std_msgs::Float64 msg;
+                        msg.data = data; 
+			param->publisher.publish(msg);
 		}
 	}	
 }
@@ -431,7 +361,7 @@ int main(int argc, char **argv)
 	if (!cob_bms_driver_node.prepare()) return 1;
 
 	ROS_INFO("Started polling BMS...");
-	while (cob_bms_driver_node.nh_.ok())
+	while (ros::ok())
 	{
 		cob_bms_driver_node.pollNextInLists();
 		ros::spinOnce();

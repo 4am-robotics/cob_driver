@@ -24,8 +24,11 @@ class CobBmsDriverNode
 {
 	private:
 
+                typedef std::vector<BmsParameter> BmsParameters;
+                typedef std::map<uint8_t, std::vector<BmsParameter> > ConfigMap;
+
 		//ROS parameters
-		std::map<uint8_t, std::vector<BmsParameter> > config_map_;	//holds all the information that is provided in the configuration file
+		ConfigMap config_map_;	//holds all the information that is provided in the configuration file
 		int poll_period_for_two_ids_in_ms_;
 		std::string can_device_;
 		int bms_id_to_poll_;
@@ -52,10 +55,7 @@ class CobBmsDriverNode
 		bool getParams();
 
 		//function to interpret the diagnostics XmlRpcValue and save data in config_map_
-		bool loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vector<std::string> topics);
-
-		//function to create a publisher for each Topic that is listed in the configuration file
-		bool createPublishersFor(std::vector<std::string> topics);
+		bool loadConfigMap(XmlRpc::XmlRpcValue &diagnostics, std::vector<std::string> &topics);
 
 		//helper function to evaluate poll period from given poll frequency
 		void evaluatePollPeriodFrom(int poll_frequency);
@@ -63,7 +63,7 @@ class CobBmsDriverNode
 		//function that goes through config_map_ and fills polling_list1_ and polling_list2_ with CAN-IDs. 
 		//If Topics are found on ROS Parameter Server, they are kept in a separate list (to be polled faster).
 		//Otherwise, all CAN-ID are divided between both lists.
-		void loadPollingLists();
+		void optimizePollingLists();
 	
 		//function that polls BMS (bms_id_to_poll_ is used here!).
 		//Also, this function sleeps for time given by poll_period_for_two_ids_in_ms_ to ensure BMS is polled at the desired frequency 
@@ -79,9 +79,6 @@ class CobBmsDriverNode
 		//updater for diagnostics data
 		diagnostic_updater::Updater updater_;
 
-		//publishers for Topics given in configuration file. 
-		std::map<std::string, ros::Publisher> bms_diagnostics_publishers_;
-		
 		CobBmsDriverNode();
 		~CobBmsDriverNode();
 
