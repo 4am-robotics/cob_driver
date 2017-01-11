@@ -119,7 +119,6 @@ bool CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue &diagnostics, std::vect
         //for each id in list of ids
         for (size_t i = 0; i < diagnostics.size(); ++i) 
         {
-                BmsParameters bms_parameters;
                 uint8_t id;
                 XmlRpc::XmlRpcValue config = diagnostics[i];
 
@@ -180,14 +179,13 @@ bool CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue &diagnostics, std::vect
                         ROS_INFO_STREAM("Created publisher for: " << entry.name);
                     }
 
-                    bms_parameters.push_back(entry);
+                    config_map_.insert(std::make_pair(id, entry));
 
                 }
                 if(publishes) polling_list1_.push_back(id);
                 else polling_list2_.push_back(id);
 
-                config_map_[id] = bms_parameters;
-                ROS_INFO_STREAM("Got "<< bms_parameters.size() << " BmsParameter(s) with CAN-ID: 0x" << std::hex << (unsigned int) id << std::dec);
+                ROS_INFO_STREAM("Got "<< fields.size() << " BmsParameter(s) with CAN-ID: 0x" << std::hex << (unsigned int) id << std::dec);
 	}
 	return true;
 }
@@ -266,41 +264,40 @@ void CobBmsDriverNode::handleFrames(const can::Frame &f)
 	//id to find in config map
 	uint32_t frame_id = f.id;
 
-	//find frame_id in config_map_
-	ConfigMap::iterator config_map_it = config_map_.find(frame_id);
-	if (config_map_it==config_map_.end()) return;
+        std::pair<ConfigMap::iterator, ConfigMap::iterator>  range = config_map_.equal_range(frame_id);
 
-	for (BmsParameters::iterator param = config_map_it->second.begin(); param!=config_map_it->second.end(); ++param) 
+	for (; range.first != range.second; ++range.first) 
 	{
+                BmsParameter &param = range.first->second; 
 		double data = 0;
-		switch (param->length)
+		switch (param.length)
 		{
 			case 1:
-				data = param->is_signed ? read_value<int8_t> (f, param->offset) * param->factor : read_value<uint8_t> (f, param->offset) * param->factor;
+				data = param.is_signed ? read_value<int8_t> (f, param.offset) * param.factor : read_value<uint8_t> (f, param.offset) * param.factor;
 				break;
 
 			case 2:
-				data = param->is_signed ? read_value<int16_t> (f, param->offset) * param->factor : read_value<uint16_t> (f, param->offset) * param->factor;
+				data = param.is_signed ? read_value<int16_t> (f, param.offset) * param.factor : read_value<uint16_t> (f, param.offset) * param.factor;
 				break;
 
 			case 4:
-				data = param->is_signed ? read_value<int32_t> (f, param->offset) * param->factor : read_value<uint32_t> (f, param->offset) * param->factor;
+				data = param.is_signed ? read_value<int32_t> (f, param.offset) * param.factor : read_value<uint32_t> (f, param.offset) * param.factor;
 				break;
 
 			default: 
-				ROS_WARN_STREAM("Unknown length of BmsParameter: " << param->name << ". Cannot read data!");
+				ROS_WARN_STREAM("Unknown length of BmsParameter: " << param.name << ". Cannot read data!");
 				return;	//only go on with next step if data was read successfully
 		}
 
 		//save data for diagnostics updater (and round to two digits for readability)
-		param->kv.value = boost::lexical_cast<std::string>(boost::format("%.2f") % data);
+		param.kv.value = boost::lexical_cast<std::string>(boost::format("%.2f") % data);
 
 		//if the BmsParameter is a topic, publish data to the topic
-		if (static_cast<void*>(param->publisher))
+		if (static_cast<void*>(param.publisher))
 		{
                         std_msgs::Float64 msg;
                         msg.data = data; 
-			param->publisher.publish(msg);
+			param.publisher.publish(msg);
 		}
 	}	
 }
@@ -334,10 +331,7 @@ void CobBmsDriverNode::produceDiagnostics(diagnostic_updater::DiagnosticStatusWr
 
 	for (ConfigMap::iterator cm_it = config_map_.begin(); cm_it != config_map_.end(); ++cm_it)
 	{
-		for (BmsParameters::iterator bp_it = cm_it->second.begin(); bp_it != cm_it->second.end(); ++bp_it)
-		{
-			stat.values.push_back(bp_it->kv);
-		}
+                stat.values.push_back(cm_it->second.kv);
 	}
 }
 

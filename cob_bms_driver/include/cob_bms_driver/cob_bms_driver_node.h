@@ -24,8 +24,7 @@ class CobBmsDriverNode
 {
 	private:
 
-                typedef std::vector<BmsParameter> BmsParameters;
-                typedef std::map<uint8_t, std::vector<BmsParameter> > ConfigMap;
+                typedef std::multimap<uint8_t, BmsParameter > ConfigMap;
 
 		//ROS parameters
 		ConfigMap config_map_;	//holds all the information that is provided in the configuration file
