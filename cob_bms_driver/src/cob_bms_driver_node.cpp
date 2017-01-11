@@ -73,9 +73,16 @@ bool CobBmsDriverNode::getParams()
 
 	if (!nh_priv_.getParam("diagnostics", diagnostics)) 
 	{
-		ROS_INFO_STREAM("Did not find \"diagnostics\" on parameter server");
+		ROS_ERROR_STREAM("Did not find \"diagnostics\" on parameter server");
+                return false;
 	}
-	loadConfigMap(diagnostics, topics);	
+	try {
+            if(!loadConfigMap(diagnostics, topics)) return false;
+        }
+        catch(XmlRpc::XmlRpcException &e){
+            ROS_ERROR_STREAM("Could not parse 'diagnostics': "<< e.getMessage());
+            return false;
+        }
 	if (createPublishersFor(topics) == false)
 	{
 		return false;
@@ -149,124 +156,72 @@ bool CobBmsDriverNode::createPublishersFor(std::vector<std::string> topics)
 	}
 	return true;
 }
-
 //function to interpret the diagnostics XmlRpcValue and save data in config_map_
-void CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vector<std::string> topics) 
+bool CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vector<std::string> topics) 
 {
-	XmlRpc::XmlRpcValue config_l0_array, config_l1_struct, config_l2, config_l3_struct, xdiagnostics, xdiagnostic_elements, xfields, xpair,temp;
-	BmsParameters bms_parameters;
-	BmsParameter bms_parameter_temp;
-	uint8_t id;
+        //for each id in list of ids
+        for (size_t i = 0; i < diagnostics.size(); ++i) 
+        {
+                BmsParameters bms_parameters;
+                uint8_t id;
+                XmlRpc::XmlRpcValue config = diagnostics[i];
 
-	config_l0_array = diagnostics;	//just for better readability
+                if(!config.hasMember("id")) {
+                    ROS_ERROR_STREAM("diagnostics[" << i << "]: id is missing.");
+                    return false;
+                }
+                if(!config.hasMember("fields")) {
+                    ROS_ERROR_STREAM("diagnostics[" << i << "]: fields is missing.");
+                    return false;
+                }
+                id = static_cast<uint8_t>(static_cast<int>(config["id"]));
 
-	ROS_ASSERT(config_l0_array.getType() == XmlRpc::XmlRpcValue::TypeArray);  
-	//for each id in list of ids
-	for (size_t i = 0; i < config_l0_array.size(); ++i) 
-	{
-		bool has_id = false, has_bms_parameters = false; 
-		
-		ROS_ASSERT(config_l0_array[i].getType() == XmlRpc::XmlRpcValue::TypeStruct);
-		config_l1_struct = config_l0_array[i];
-		for (XmlRpc::XmlRpcValue::iterator it1=config_l1_struct.begin(); it1!=config_l1_struct.end(); ++it1) 
-		{
-			config_l2 = it1->second;
-			//XmlRpcValue at config_l2 might be an id (TypeInt) or a list of fields (TypeArray)
-			if (config_l2.getType()==XmlRpc::XmlRpcValue::TypeInt) 
-			{
-				//id = static_cast<char>(static_cast<int>(config_l2));
-				id = static_cast<uint8_t>(static_cast<int>(config_l2));
-				has_id = true;
-			} 
-			else if (config_l2.getType()==XmlRpc::XmlRpcValue::TypeArray)
-			{
-				//for each field in field list. (each field is a BMSParameter)
-				for(int32_t j=0; j<config_l2.size(); ++j) 
-				{
-					//booleans to help ensure that all required information is provided for a BMSParameter
-					bool has_name = false, has_offset = false, has_len = false, has_is_signed = false;
+                XmlRpc::XmlRpcValue fields = config["fields"];
 
-					ROS_ASSERT(config_l2[j].getType()==XmlRpc::XmlRpcValue::TypeStruct);
-					config_l3_struct = config_l2[j];
-					//for each element in a field
-					for (XmlRpc::XmlRpcValue::iterator it3=config_l3_struct.begin(); it3!=config_l3_struct.end(); ++it3) 
-					{
-						if (it3->first == "name" && !has_name) 
-						{
-							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeString);
-							bms_parameter_temp.name = static_cast<std::string>(it3->second);
-							has_name = true;
-						}
-						else if (it3->first == "offset" && !has_offset) 
-						{
-							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeInt);
-							bms_parameter_temp.offset = static_cast<int>(it3->second);
-							has_offset = true;
-						}
-						else if (it3->first == "len" && !has_len) 
-						{
-							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeInt);
-							bms_parameter_temp.length = static_cast<int>(it3->second);
-							has_len = true;
-						}
-						else if (it3->first == "is_signed" && !has_is_signed) 
-						{
-							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeBoolean);
-							bms_parameter_temp.is_signed = static_cast<bool>(it3->second);
-							has_is_signed = true;
-						}
-						else if (it3->first == "factor") 
-						{
-							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeDouble);
-							bms_parameter_temp.factor = static_cast<double>(it3->second);
-						}
-						else if (it3->first == "unit")
-						{
-							ROS_ASSERT(it3->second.getType()==XmlRpc::XmlRpcValue::TypeString);
-							bms_parameter_temp.unit = "[" + static_cast<std::string>(it3->second) + "]";
-						} 
-						else ROS_ERROR_STREAM("Config: Unexpected Key: " << it3->first);
-					}
+                for(int32_t j=0; j<fields.size(); ++j)
+                {
+                    BmsParameter entry;
+                    XmlRpc::XmlRpcValue field = fields[i];
+                    if(!field.hasMember("name")){
+                        ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: name is missing.");
+                        return false;
+                    }
+                    entry.name = static_cast<std::string>(field["name"]);
 
-					//iff name of the BmsParameter matches with a name of a topic in the Configuration file, then mark this parameter as a topic
-					bms_parameter_temp.is_topic = (find(topics.begin(), topics.end(), bms_parameter_temp.name) != topics.end());
+                    if(!field.hasMember("offset")){
+                        ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: offset is missing.");
+                        return false;
+                    }
+                    entry.offset = static_cast<int>(field["offset"]);
 
-					//set diagnostic_msgs::KeyValue member of the BmsParameter
-					bms_parameter_temp.kv.key = bms_parameter_temp.name+bms_parameter_temp.unit;
+                    if(!field.hasMember("len")){
+                        ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: len is missing.");
+                        return false;
+                    }
+                    entry.length = static_cast<int>(field["len"]);
 
-					if (has_name && has_offset && has_len && has_is_signed)
-					{
-						//bms_parameter_temp is properly filled at this point, so save it in bms_parameters
-						bms_parameters.push_back(bms_parameter_temp);
-						has_bms_parameters = true;
-					}
-					else 
-					{
-						ROS_WARN_STREAM("Config: id # " << i+1 << ", field # " << j+1 << " does not have all the required fields set. This field will not be used.");
-					}
-				}
-			}
-			else ROS_ERROR_STREAM("Config: Expected either XmlRpc Type: " << XmlRpc::XmlRpcValue::TypeArray << " or " << XmlRpc::XmlRpcValue::TypeInt << ". But found: " << config_l2.getType());
-		}
-		
-		if (has_id && has_bms_parameters)
-		{
-			//save bms_parameters in config map for interpreting them later and producing diagnostics as well as publishing data on topics
-			config_map_[id] = bms_parameters;
-			ROS_INFO_STREAM("Got "<< bms_parameters.size() << " BmsParameter(s) with CAN-ID: 0x" << std::hex << (unsigned int) id << std::dec);
-			//clear bms_parameters for processing next id
-			bms_parameters.clear();
-		}
-		else 
-		{
-			if (!has_id)
-				ROS_WARN_STREAM("Config: id # " << i+1 << ", \'id\' is missing.");
-			else if (!has_bms_parameters)
-				ROS_WARN_STREAM("Config: id # " << i+1 << ", valid \'field(s)\' is missing.");
-				
-			ROS_WARN_STREAM("Config: id # " << i+1 << " will not be used");
-		}
+                    if(!field.hasMember("is_signed")){
+                        ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: is_signed is missing.");
+                        return false;
+                    }
+                    entry.is_signed = static_cast<bool>(field["is_signed"]);
+
+                    if(field.hasMember("factor")){
+                        entry.factor = static_cast<double>(field["factor"]);
+                    }
+                    if(field.hasMember("unit")){
+                        entry.unit = static_cast<std::string>(field["unit"]);
+                    }
+
+                    entry.is_topic = find(topics.begin(), topics.end(), entry.name) != topics.end();
+
+                    bms_parameters.push_back(entry);
+
+                }
+                config_map_[id] = bms_parameters;
+                ROS_INFO_STREAM("Got "<< bms_parameters.size() << " BmsParameter(s) with CAN-ID: 0x" << std::hex << (unsigned int) id << std::dec);
 	}
+	return true;
 }
 
 //helper function to evaluate poll period from given poll frequency

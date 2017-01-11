@@ -52,7 +52,7 @@ class CobBmsDriverNode
 		bool getParams();
 
 		//function to interpret the diagnostics XmlRpcValue and save data in config_map_
-		void loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vector<std::string> topics);
+		bool loadConfigMap(XmlRpc::XmlRpcValue diagnostics, std::vector<std::string> topics);
 
 		//function to create a publisher for each Topic that is listed in the configuration file
 		bool createPublishersFor(std::vector<std::string> topics);
