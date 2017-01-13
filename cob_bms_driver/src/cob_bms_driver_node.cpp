@@ -37,7 +37,7 @@ template<typename T> bool readTypedValue(const can::Frame &f, const BmsParameter
                     break;
 
             default: 
-                    ROS_WARN_STREAM("Unknown length of BmsParameter: " << param.name << ". Cannot read data!");
+                    ROS_WARN_STREAM("Unknown length of BmsParameter: " << param.kv.key << ". Cannot read data!");
                     return false;
     }
     return true;
@@ -60,12 +60,27 @@ template<typename T> struct TypedBmsParameter : BmsParameter {
 };
 
 struct FloatBmsParameter : TypedBmsParameter<std_msgs::Float64> {
+    double factor;
+    FloatBmsParameter(double factor) : factor(factor) {}
     void update(const can::Frame &f){
         readTypedValue(f, *this, msg_.data);
         msg_.data *= factor;
 
         //save data for diagnostics updater (and round to two digits for readability)
         kv.value = (boost::format("%.2f") % msg_.data).str();
+        publish();
+    }
+};
+
+struct BooleanBmsParameter : TypedBmsParameter<std_msgs::Bool> {
+    int bit_mask;
+    BooleanBmsParameter(int bit_mask) : bit_mask(bit_mask) { is_signed = true; }
+    void update(const can::Frame &f){
+        int value;
+        readTypedValue(f, *this, value);
+        msg_.data = (value & bit_mask) == bit_mask;
+
+        kv.value = msg_.data ? "True" : "False";
         publish();
     }
 };
@@ -191,57 +206,68 @@ bool CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue &diagnostics, std::vect
                 id = static_cast<uint8_t>(static_cast<int>(config["id"]));
 
                 XmlRpc::XmlRpcValue fields = config["fields"];
-                
                 bool publishes = false;
 
                 for(int32_t j=0; j<fields.size(); ++j)
                 {
-                    XmlRpc::XmlRpcValue field = fields[i];
+                    XmlRpc::XmlRpcValue field = fields[j];
                     if(!field.hasMember("name")){
                         ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: name is missing.");
                         return false;
                     }
-                    BmsParameter::Ptr entry_p = make_shared<FloatBmsParameter>();
-                    BmsParameter &entry = *entry_p;
-
-                    entry.name = static_cast<std::string>(field["name"]);
-
-                    if(!field.hasMember("offset")){
-                        ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: offset is missing.");
-                        return false;
-                    }
-                    entry.offset = static_cast<int>(field["offset"]);
+                    std::string name = static_cast<std::string>(field["name"]);
 
                     if(!field.hasMember("len")){
                         ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: len is missing.");
                         return false;
                     }
-                    entry.length = static_cast<int>(field["len"]);
+                    int len = static_cast<int>(field["len"]);
 
-                    if(!field.hasMember("is_signed")){
-                        ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: is_signed is missing.");
+                    BmsParameter::Ptr entry;
+                    if(field.hasMember("bit_mask")){
+                        int bit_mask = static_cast<int>(field["bit_mask"]);
+                        if(bit_mask & ~((1<<(len*8))-1)){
+                            ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: bit_mask does fit not into type of length " << len);
+                            return false;
+                        }
+                        entry = make_shared<BooleanBmsParameter>(bit_mask);
+                        entry->kv.key = name;
+                    }else{
+                        double factor = 1.0;
+                        if(field.hasMember("factor")){
+                            factor = static_cast<double>(field["factor"]);
+                        }
+
+                        entry = make_shared<FloatBmsParameter>(factor);
+
+                        if(!field.hasMember("is_signed")){
+                            ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: is_signed is missing.");
+                            return false;
+                        }
+                        entry->is_signed = static_cast<bool>(field["is_signed"]);
+
+                        if(field.hasMember("unit")){
+                            entry->kv.key = name + "[" + static_cast<std::string>(field["unit"]) + "]";
+                        }
+                    }
+
+                    if(!field.hasMember("offset")){
+                        ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: offset is missing.");
                         return false;
                     }
-                    entry.is_signed = static_cast<bool>(field["is_signed"]);
+                    entry->offset = static_cast<int>(field["offset"]);
 
-                    if(field.hasMember("factor")){
-                        entry.factor = static_cast<double>(field["factor"]);
-                    }
-                    entry.kv.key = entry.name;
-                    
-                    if(field.hasMember("unit")){
-                        entry.kv.key += "[" + static_cast<std::string>(field["unit"]) + "]";
-                    }
+                    entry->length = len;
 
-                    std::vector<std::string>::iterator topic_it = find(topics.begin(), topics.end(), entry.name);
+                    std::vector<std::string>::iterator topic_it = find(topics.begin(), topics.end(), name);
                     if(topic_it != topics.end()){
-                        entry.advertise(nh_priv_, entry.name);
+                        entry->advertise(nh_priv_, name);
                         topics.erase(topic_it);
                         publishes = true;
-                        ROS_INFO_STREAM("Created publisher for: " << entry.name);
+                        ROS_INFO_STREAM("Created publisher for: " << name);
                     }
 
-                    config_map_.insert(std::make_pair(id, entry_p));
+                    config_map_.insert(std::make_pair(id, entry));
 
                 }
                 if(publishes) polling_list1_.push_back(id);

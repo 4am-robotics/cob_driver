@@ -14,18 +14,12 @@ struct BmsParameter
         unsigned int offset;
         unsigned int length;
 
-        std::string name;
         bool is_signed;
-        double factor;
 
         ros::Publisher publisher;
 
         diagnostic_msgs::KeyValue kv;
 
-        BmsParameter()
-        : factor(1.0)
-        {}
-        
         virtual ~BmsParameter() {}
 
         virtual void update(const can::Frame &f) = 0;
