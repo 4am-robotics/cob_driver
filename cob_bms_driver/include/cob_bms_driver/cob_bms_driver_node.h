@@ -11,95 +11,94 @@
 
 struct BmsParameter
 {
-        unsigned int offset;
-        unsigned int length;
+    unsigned int offset;
+    unsigned int length;
 
-        bool is_signed;
+    bool is_signed;
 
-        ros::Publisher publisher;
+    ros::Publisher publisher;
 
-        diagnostic_msgs::KeyValue kv;
+    diagnostic_msgs::KeyValue kv;
 
-        virtual ~BmsParameter() {}
+    virtual ~BmsParameter() {}
 
-        virtual void update(const can::Frame &f) = 0;
-        virtual void advertise(ros::NodeHandle &nh, const std::string &topic) = 0;
+    virtual void update(const can::Frame &f) = 0;
+    virtual void advertise(ros::NodeHandle &nh, const std::string &topic) = 0;
 
-        typedef boost::shared_ptr<BmsParameter> Ptr;
+    typedef boost::shared_ptr<BmsParameter> Ptr;
 };
 
 class CobBmsDriverNode
 {
-	private:
-                ros::NodeHandle nh_;
-                ros::NodeHandle nh_priv_;
+private:
+    ros::NodeHandle nh_;
+    ros::NodeHandle nh_priv_;
 
-                typedef std::multimap<uint8_t, BmsParameter::Ptr> ConfigMap;
+    typedef std::multimap<uint8_t, BmsParameter::Ptr> ConfigMap;
 
-		//ROS parameters
-		ConfigMap config_map_;	//holds all the information that is provided in the configuration file
-		int poll_period_for_two_ids_in_ms_;
-		std::string can_device_;
-		int bms_id_to_poll_;
-		ros::Timer updater_timer_;
+    //ROS parameters
+    ConfigMap config_map_;  //holds all the information that is provided in the configuration file
+    int poll_period_for_two_ids_in_ms_;
+    std::string can_device_;
+    int bms_id_to_poll_;
+    ros::Timer updater_timer_;
 
-		boost::mutex data_mutex_;
+    boost::mutex data_mutex_;
 
-		//polling lists that contain CAN-ID(s) that are to be polled. Each CAN-ID corresponds to a group of BMS parameters
-		std::vector<uint8_t> polling_list1_;
-		std::vector<uint8_t> polling_list2_;
-		std::vector<uint8_t>::iterator polling_list1_it_;
-		std::vector<uint8_t>::iterator polling_list2_it_;
+    //polling lists that contain CAN-ID(s) that are to be polled. Each CAN-ID corresponds to a group of BMS parameters
+    std::vector<uint8_t> polling_list1_;
+    std::vector<uint8_t> polling_list2_;
+    std::vector<uint8_t>::iterator polling_list1_it_;
+    std::vector<uint8_t>::iterator polling_list2_it_;
 
-		//interface to send and recieve CAN frames
-		can::ThreadedSocketCANInterface socketcan_interface_;
+    //interface to send and recieve CAN frames
+    can::ThreadedSocketCANInterface socketcan_interface_;
 
-		//pointer to callback function to handle CAN frames from BMS
-		can::CommInterface::FrameListener::Ptr frame_listener_;
+    //pointer to callback function to handle CAN frames from BMS
+    can::CommInterface::FrameListener::Ptr frame_listener_;
 
-		//diagnostics data received from BMS
-		diagnostic_updater::DiagnosticStatusWrapper stat_;
-		
-		//function to get ROS parameters from parameter server
-		bool getParams();
+    //diagnostics data received from BMS
+    diagnostic_updater::DiagnosticStatusWrapper stat_;
 
-		//function to interpret the diagnostics XmlRpcValue and save data in config_map_
-		bool loadConfigMap(XmlRpc::XmlRpcValue &diagnostics, std::vector<std::string> &topics);
+    //function to get ROS parameters from parameter server
+    bool getParams();
 
-		//helper function to evaluate poll period from given poll frequency
-		void evaluatePollPeriodFrom(int poll_frequency);
+    //function to interpret the diagnostics XmlRpcValue and save data in config_map_
+    bool loadConfigMap(XmlRpc::XmlRpcValue &diagnostics, std::vector<std::string> &topics);
 
-		//function that goes through config_map_ and fills polling_list1_ and polling_list2_ with CAN-IDs. 
-		//If Topics are found on ROS Parameter Server, they are kept in a separate list (to be polled faster).
-		//Otherwise, all CAN-ID are divided between both lists.
-		void optimizePollingLists();
-	
-		//function that polls BMS (bms_id_to_poll_ is used here!).
-		//Also, this function sleeps for time given by poll_period_for_two_ids_in_ms_ to ensure BMS is polled at the desired frequency 
-		void pollBmsForIds(const uint16_t first_id, const uint16_t second_id);
-		
-		//callback function to handle all types of frames received from BMS
-		void handleFrames(const can::Frame &f);
+    //helper function to evaluate poll period from given poll frequency
+    void evaluatePollPeriodFrom(int poll_frequency);
 
-                //updates the diagnostics data with the new data received from BMS
-                void produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat);     
+    //function that goes through config_map_ and fills polling_list1_ and polling_list2_ with CAN-IDs.
+    //If Topics are found on ROS Parameter Server, they are kept in a separate list (to be polled faster).
+    //Otherwise, all CAN-ID are divided between both lists.
+    void optimizePollingLists();
 
-                //calls update function of diagnostics_updater
-                void diagnosticsTimerCallback(const ros::TimerEvent&);
-	public:
+    //function that polls BMS (bms_id_to_poll_ is used here!).
+    //Also, this function sleeps for time given by poll_period_for_two_ids_in_ms_ to ensure BMS is polled at the desired frequency
+    void pollBmsForIds(const uint16_t first_id, const uint16_t second_id);
 
-		//updater for diagnostics data
-		diagnostic_updater::Updater updater_;
+    //callback function to handle all types of frames received from BMS
+    void handleFrames(const can::Frame &f);
 
-		CobBmsDriverNode();
-		~CobBmsDriverNode();
+            //updates the diagnostics data with the new data received from BMS
+            void produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat);
 
-		//initlializes SocketCAN interface, saves data from ROS parameter server, loads polling lists and sets up diagnostic updater
-		bool prepare();
+            //calls update function of diagnostics_updater
+            void diagnosticsTimerCallback(const ros::TimerEvent&);
+public:
 
-		//cycles through polling lists and sends 2 ids at a time (one from each list) to the BMS
-		void pollNextInLists();
-		
+    //updater for diagnostics data
+    diagnostic_updater::Updater updater_;
+
+    CobBmsDriverNode();
+    ~CobBmsDriverNode();
+
+    //initlializes SocketCAN interface, saves data from ROS parameter server, loads polling lists and sets up diagnostic updater
+    bool prepare();
+
+    //cycles through polling lists and sends 2 ids at a time (one from each list) to the BMS
+    void pollNextInLists();
 };
 
 
