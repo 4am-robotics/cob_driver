@@ -13,7 +13,6 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <depend>boost</depend>
   <depend>cob_utilities</depend>
   <depend>libntcan</depend>
   <depend>libpcan</depend>

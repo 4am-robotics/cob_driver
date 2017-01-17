@@ -82,8 +82,6 @@ private:
     static const int c_iInterrupt;
     static const int c_iPort;
 
-    bool initCAN();
-
     void print_error ( const can::State& state );
 };
 //-----------------------------------------------

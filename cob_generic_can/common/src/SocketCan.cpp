@@ -40,7 +40,6 @@
 *****************************************************************************/
 
 #include <cob_generic_can/SocketCan.h>
-#include <boost/chrono.hpp>
 #include <stdlib.h>
 #include <cerrno>
 #include <cstring>
@@ -87,7 +86,9 @@ bool SocketCan::init_ret()
     else
     {
         m_reader.listen((boost::shared_ptr<can::CommInterface>) m_handle);
-        ret = initCAN();
+        m_bInitialized = true;
+        bool bRet = true;
+        ret = true;
     }
     return ret;
 }
@@ -118,7 +119,7 @@ bool SocketCan::transmitMsg(CanMsg CMsg, bool bBlocking)
 //-------------------------------------------
 bool SocketCan::receiveMsg(CanMsg* pCMsg)
 {
-    if (m_bInitialized == false)
+    if (!m_bInitialized)
     {
         return false;
     }
@@ -140,7 +141,7 @@ bool SocketCan::receiveMsg(CanMsg* pCMsg)
 //-------------------------------------------
 bool SocketCan::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
 {
-    if (m_bInitialized == false)
+    if (!m_bInitialized)
     {
         return false;
     }
@@ -151,7 +152,7 @@ bool SocketCan::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
 
     do
     {
-        if (m_reader.read(&frame, boost::chrono::seconds(1)))
+        if (m_reader.read(&frame, boost::chrono::microseconds(10)))
         { 
             pCMsg->setID(frame.id);
             pCMsg->setLength(frame.dlc);
@@ -161,7 +162,6 @@ bool SocketCan::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
             break;
         }
         i++;
-        usleep(1000);
     }
     while ((i < iNrOfRetry && bRet != true));
     return bRet;
@@ -170,16 +170,15 @@ bool SocketCan::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
 //-------------------------------------------
 bool SocketCan::receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout)
 {
-    if (m_bInitialized == false)
+    if (!m_bInitialized)
     {
         return false;
     }
 
     bool bRet = false;
     can::Frame frame;
-    usleep(nSecTimeout / 1000);
 
-    if (m_reader.read(&frame, boost::chrono::seconds(1)))
+    if (m_reader.read(&frame, boost::chrono::nanoseconds(nSecTimeout)))
     {
         pCMsg->setID(frame.id);
         pCMsg->setLength(frame.dlc);
@@ -187,13 +186,6 @@ bool SocketCan::receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout)
         bRet = true;
     }
     return bRet;
-}
-
-bool SocketCan::initCAN()
-{
-    m_bInitialized = true;
-    bool bRet = true;
-    return true;
 }
 
 void SocketCan::print_error(const can::State& state)
