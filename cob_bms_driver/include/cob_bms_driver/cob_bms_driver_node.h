@@ -81,11 +81,11 @@ private:
     //callback function to handle all types of frames received from BMS
     void handleFrames(const can::Frame &f);
 
-            //updates the diagnostics data with the new data received from BMS
-            void produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat);
+    //updates the diagnostics data with the new data received from BMS
+    void produceDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat);
 
-            //calls update function of diagnostics_updater
-            void diagnosticsTimerCallback(const ros::TimerEvent&);
+    //calls update function of diagnostics_updater
+    void diagnosticsTimerCallback(const ros::TimerEvent&);
 public:
 
     //updater for diagnostics data
