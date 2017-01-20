@@ -10,7 +10,7 @@ def say_client():
 
 	# Creates a goal to send to the action server.
 	goal = SayGoal()
-	goal.text.data = "Hello, how are you? I am fine."
+	goal.text = "Hello, how are you? I am fine."
 
 	# Sends the goal to the action server.
 	client.send_goal(goal)
@@ -24,7 +24,7 @@ def say_client():
 
 if __name__ == '__main__':
 	try:
-		rospy.init_node('sound')
+		rospy.init_node('say_client')
 		result = say_client()
 	except rospy.ROSInterruptException:
 		print "program interrupted before completion"
