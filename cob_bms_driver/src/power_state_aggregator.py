@@ -2,7 +2,7 @@
 
 import rospy
 import numpy
-from std_msgs.msg import Bool, Float64
+from std_msgs.msg import Float64
 from cob_msgs.msg import PowerState
 
 class PowerStateAggregator():
@@ -24,7 +24,6 @@ class PowerStateAggregator():
         rospy.Subscriber("remaining_capacity", Float64, self.remaining_capacity_cb)
         rospy.Subscriber("full_charge_capacity", Float64, self.full_charge_capacity_cb)
         rospy.Subscriber("temperature", Float64, self.temperature_cb)
-        rospy.Subscriber("battery_charging", Bool, self.charging_cb)
 
     def voltage_cb(self, msg):
         self.last_update = rospy.Time.now()
@@ -36,8 +35,13 @@ class PowerStateAggregator():
 
         # fill current into list of past currents for filtering purposes
         if len(self.last_currents) >= self.current_buffer_size:
-            self.last_currents.pop()
+            self.last_currents.pop(0)
         self.last_currents.append(msg.data)
+
+        if msg.data > -1: # we use a limit of -1Ampere because if the battery is 100% fuland the robot is still docked, there is no more current going into the battery. -1 A is biggger than the "Ruhestrom", so this should be ok until BMS is fixed and delivers a proper flag for docked or not_docked.
+            self.charging = True
+        else:
+            self.charging = False
         
     def remaining_capacity_cb(self, msg):
         self.last_update = rospy.Time.now()
@@ -50,10 +54,6 @@ class PowerStateAggregator():
     def temperature_cb(self, msg):
         self.last_update = rospy.Time.now()
         self.temperature = msg.data
-
-    def charging_cb(self, msg):
-        self.last_update = rospy.Time.now()
-        self.charging = msg.data
 
     def calculate_power_consumption(self):
         if not self.charging and self.voltage != None and self.current != None:
