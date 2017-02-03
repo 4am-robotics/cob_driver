@@ -13,7 +13,7 @@ class EmState():
 
 class EMStatePhidget():
     def __init__(self):
-        self.last_update = rospy.Time(0)
+        self.last_update = None
         self.em_caused_by_button = False
 
         self.last_rear_em_state = False
@@ -26,7 +26,6 @@ class EMStatePhidget():
         self.pub_em_state = rospy.Publisher('em_stop_state', EmergencyStopState, queue_size=1)
 
     def phidget_cb(self, msg):
-        self.last_update = rospy.Time.now()
         front_em_active = False
         rear_em_active = False
         got_message = False
@@ -40,6 +39,8 @@ class EMStatePhidget():
                 got_message = True
 
         if got_message:
+            self.last_update = rospy.Time.now()
+            
             if (front_em_active and rear_em_active) and (not self.last_front_em_state and  not self.last_rear_em_state):
                 self.em_msg.emergency_button_stop = True
                 self.em_caused_by_button = True
@@ -78,7 +79,8 @@ class EMStatePhidget():
             self.last_front_em_state = front_em_active
 
     def publish(self):
-        self.pub_em_state.publish(self.em_msg)
+        if self.last_update is not None:
+            self.pub_em_state.publish(self.em_msg)
 
 
 if __name__ == "__main__":
