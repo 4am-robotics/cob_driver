@@ -3,7 +3,6 @@ project(cob_generic_can)
 
 find_package(catkin REQUIRED COMPONENTS cob_utilities libntcan libpcan socketcan_interface)
 
-
 catkin_package(
   CATKIN_DEPENDS socketcan_interface cob_utilities libntcan libpcan
   INCLUDE_DIRS common/include

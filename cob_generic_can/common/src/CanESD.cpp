@@ -299,7 +299,7 @@ bool CanESD::receiveMsg(CanMsg* pCMsg)
 
 
 //-----------------------------------------------
-bool CanESD::receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout)
+bool CanESD::receiveMsgTimeout(CanMsg* pCMsg, int nMicroSecTimeout)
 {
     // Not implemented yet
     return false;

@@ -17,5 +17,4 @@
   <depend>libntcan</depend>
   <depend>libpcan</depend>
   <depend>socketcan_interface</depend>
-
 </package>

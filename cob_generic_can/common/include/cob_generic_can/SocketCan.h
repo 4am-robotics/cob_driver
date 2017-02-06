@@ -59,11 +59,10 @@ public:
     ~SocketCan();
     bool init_ret();
     void init();
-    void destroy() {};
     bool transmitMsg ( CanMsg CMsg, bool bBlocking = true );
     bool receiveMsg ( CanMsg* pCMsg );
     bool receiveMsgRetry ( CanMsg* pCMsg, int iNrOfRetry );
-    bool receiveMsgTimeout ( CanMsg* pCMsg, int nMicroSeconds );
+    bool receiveMsgTimeout ( CanMsg* pCMsg, int nMicroSecTimeout );
     bool isObjectMode() {
         return false;
     }
@@ -71,16 +70,10 @@ public:
 private:
     // --------------- Types
     boost::shared_ptr<can::ThreadedSocketCANInterface> m_handle;
-    can::CommInterface::FrameListener::Ptr frame_printer;
     can::BufferedReader m_reader;
 
     bool m_bInitialized;
-    bool m_bSimuEnabled;
     const char* p_cDevice;
-    int m_iBaudrateVal;
-
-    static const int c_iInterrupt;
-    static const int c_iPort;
 
     void print_error ( const can::State& state );
 };

@@ -152,7 +152,7 @@ bool SocketCan::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
 
     do
     {
-        if (m_reader.read(&frame, boost::chrono::microseconds(10)))
+        if (m_reader.read(&frame, boost::chrono::milliseconds(10)))
         { 
             pCMsg->setID(frame.id);
             pCMsg->setLength(frame.dlc);
@@ -168,7 +168,7 @@ bool SocketCan::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
 }
 
 //-------------------------------------------
-bool SocketCan::receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout)
+bool SocketCan::receiveMsgTimeout(CanMsg* pCMsg, int nMicroSecTimeout)
 {
     if (!m_bInitialized)
     {
@@ -178,7 +178,7 @@ bool SocketCan::receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout)
     bool bRet = false;
     can::Frame frame;
 
-    if (m_reader.read(&frame, boost::chrono::nanoseconds(nSecTimeout)))
+    if (m_reader.read(&frame, boost::chrono::microseconds(nMicroSecTimeout)))
     {
         pCMsg->setID(frame.id);
         pCMsg->setLength(frame.dlc);

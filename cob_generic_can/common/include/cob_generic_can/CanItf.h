@@ -132,10 +132,10 @@ public:
 	/**
 	 * Reads a CAN message with timeout.
 	 * @param pCMsg CAN message
-	 * @param nSecTimeout timeout in ns
+	 * @param nMicroSecTimeout timeout in us
 	 * @return true if a message is available
 	 */
-	virtual bool receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout) = 0;
+	virtual bool receiveMsgTimeout(CanMsg* pCMsg, int nMicroSecTimeout) = 0;
 
 	/**
 	 * Check if the current CAN interface was opened on OBJECT mode.
