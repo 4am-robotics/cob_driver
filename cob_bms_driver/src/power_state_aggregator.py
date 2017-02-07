@@ -38,7 +38,7 @@ class PowerStateAggregator():
             self.last_currents.pop(0)
         self.last_currents.append(msg.data)
 
-        if msg.data > -1: # we use a limit of -1Ampere because if the battery is 100% fuland the robot is still docked, there is no more current going into the battery. -1 A is biggger than the "Ruhestrom", so this should be ok until BMS is fixed and delivers a proper flag for docked or not_docked.
+        if msg.data > -1: # we use a limit of -1Ampere because if the battery is 100% full and the robot is still docked, there is no more current going into the battery. -1 A is biggger than the "Ruhestrom", so this should be ok until BMS is fixed and delivers a proper flag for docked or not_docked.
             self.charging = True
         else:
             self.charging = False
