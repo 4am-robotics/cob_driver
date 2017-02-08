@@ -21,6 +21,8 @@
   <depend>socketcan_interface</depend>
   <depend>std_msgs</depend>
 
+  <exec_depend>cob_msgs</exec_depend>
+  <exec_depend>cob_srvs</exec_depend>
   <exec_depend>python-numpy</exec_depend>
   <exec_depend>rospy</exec_depend>
 

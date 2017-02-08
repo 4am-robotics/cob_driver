@@ -62,11 +62,15 @@ class PowerStateAggregator():
             return 0.0
 
     def calculate_relative_remaining_capacity(self):
-        if self.full_charge_capacity != None and self.remaining_capacity != None:
-            return round(100.0*(self.remaining_capacity/self.full_charge_capacity), 3)
-        else:
-            rospy.logwarn("cannot calculate relative remaining capacity. full_charge_capacity=%d, remaining_capacity=%d" % (self.full_charge_capacity, self.remaining_capacity))
-            return 0.0
+        print self.remaining_capacity, "----", self.full_charge_capacity
+        ret_value = 0.0
+        try:
+            ret_value = round(100.0*(self.remaining_capacity/self.full_charge_capacity), 3)
+        except ZeroDivisionError as e:
+            rospy.logwarn("invalid relative remaining capacity data :%s" % (e))
+        except:
+            rospy.logwarn("something went wrong, cannot calculate relative remaining capacity. full_charge_capacity=%d, remaining_capacity=%d" % (self.full_charge_capacity, self.remaining_capacity))
+        return ret_value
 
     def calculate_time_remaining(self):
         if len(self.last_currents) > 0:
@@ -82,7 +86,7 @@ class PowerStateAggregator():
             return 0.0
  
     def publish(self):
-        if self.voltage != None and self.current != None and self.remaining_capacity != None and self.temperature != None and (rospy.Time.now() - self.last_update) < rospy.Duration(1):
+        if self.voltage != None and self.current != None and self.remaining_capacity != None and self.full_charge_capacity != None and self.temperature != None and (rospy.Time.now() - self.last_update) < rospy.Duration(1):
             ps = PowerState()
             ps.header.stamp = self.last_update
             ps.voltage = self.voltage
