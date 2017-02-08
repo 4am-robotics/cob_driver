@@ -123,6 +123,16 @@ void scan_unifier_node::getParams()
     config_.number_input_scans = 0;
     ROS_ERROR("No parameter input_scans on parameter server!! Scan unifier can not subscribe to any scan topic!");
   }
+
+  if(!pnh_.hasParam("frame"))
+  {
+    ROS_WARN("No parameter frame on parameter server. Using default value [base_link].");
+    frame_ = "base_link";
+  }
+  else
+  {
+    pnh_.getParam("frame", frame_);
+  }
 }
 
 /**
@@ -242,13 +252,13 @@ sensor_msgs::LaserScan scan_unifier_node::unifyLaserScans()
       ROS_DEBUG_STREAM("Converting scans to point clouds at index: " << i << ", at time: " << vec_laser_struct_.at(i).current_scan_msg.header.stamp << " now: " << ros::Time::now());
       try
       {
-        if (!listener_.waitForTransform("base_link", vec_laser_struct_.at(i).current_scan_msg.header.frame_id,
+        if (!listener_.waitForTransform(frame_, vec_laser_struct_.at(i).current_scan_msg.header.frame_id,
             vec_laser_struct_.at(i).current_scan_msg.header.stamp, ros::Duration(3.0)))
             {
               continue;
             }
         ROS_DEBUG("now project to point_cloud");
-        projector_.transformLaserScanToPointCloud("base_link",vec_laser_struct_.at(i).current_scan_msg, vec_cloud.at(i), listener_);
+        projector_.transformLaserScanToPointCloud(frame_,vec_laser_struct_.at(i).current_scan_msg, vec_cloud.at(i), listener_);
       }
       catch(tf::TransformException ex){
         ROS_ERROR("%s",ex.what());
@@ -256,7 +266,7 @@ sensor_msgs::LaserScan scan_unifier_node::unifyLaserScans()
     }
     ROS_DEBUG("Creating message header");
     unified_scan.header = vec_laser_struct_.at(0).current_scan_msg.header;
-    unified_scan.header.frame_id = "base_link";
+    unified_scan.header.frame_id = frame_;
     unified_scan.angle_increment = M_PI/180.0/2.0;
     unified_scan.angle_min = -M_PI + unified_scan.angle_increment*0.01;
     unified_scan.angle_max =  M_PI - unified_scan.angle_increment*0.01;
@@ -350,6 +360,9 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "cob_scan_unifier_node");
 
   scan_unifier_node my_scan_unifier_node;
+
+  //Sleep to make sure tf_listener buffer fills up
+  ros::Duration(1).sleep();
 
   // store initialization time of the node
   ros::Time start = ros::Time::now();

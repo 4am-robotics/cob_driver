@@ -124,6 +124,8 @@ class scan_unifier_node
 
     config_struct config_;
 
+    std::string frame_;
+
     std::vector<laser_scan_struct> vec_laser_struct_;
   public:
 
