@@ -93,9 +93,9 @@ public:
 	// Read Data from Serial Port
 	int readData(std::string &value, size_t nBytes);
 
-	bool enqueueData(std::vector<ioData_t> data);
+	void enqueueData(std::vector<ioData_t> data);
 
-	bool enqueueData(const char* data, size_t len);
+	void enqueueData(const char* data, size_t len);
 
 	// Check if Serial Port is opened
 	bool isOpen();

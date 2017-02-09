@@ -77,7 +77,7 @@ PhidgetManager::~PhidgetManager()
 	CPhidgetManager_close((CPhidgetManagerHandle) _manHandle);
 	CPhidgetManager_delete((CPhidgetManagerHandle) _manHandle);
 
-	sleep(0.5);
+	usleep(500000);	//0.5s
 }
 
 auto PhidgetManager::getAttachedDevices()-> std::vector<AttachedDevice>

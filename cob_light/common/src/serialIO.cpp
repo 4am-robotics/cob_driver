@@ -164,12 +164,12 @@ void SerialIO::run()
 	}
 }
 
-bool SerialIO::enqueueData(std::vector<ioData_t> data)
+void SerialIO::enqueueData(std::vector<ioData_t> data)
 {
 	_oQueue.push(data);
 }
 
-bool SerialIO::enqueueData(const char* buf, size_t len)
+void SerialIO::enqueueData(const char* buf, size_t len)
 {
 	struct ioData data;
 	data.buf=buf;
