@@ -24,7 +24,7 @@ class FakeBMS(object):
         self.temperature        = 0.0
         self.charging_state     = False
 
-        rospy.Timer(rospy.Duration(0.1), self.timer_cb)
+        rospy.Timer(rospy.Duration(0.2), self.timer_cb)
         rospy.loginfo('FakeBMS is running')
 
     def charging_cb(self, req):
