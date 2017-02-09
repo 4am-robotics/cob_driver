@@ -75,6 +75,12 @@ install(TARGETS cob_light
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(PROGRAMS ros/scripts/test.py ros/scripts/test_sprofi_circle.py ros/scripts/test_sprofi_modes.py ros/scripts/test_sprofi_part.py
+install(PROGRAMS 
+  ros/scripts/test.py
+  ros/scripts/test_sprofi_circle.py
+  ros/scripts/test_sprofi_modes.py
+  ros/scripts/test_sprofi_part.py
+  ros/scripts/light_action_test.py
+  ros/scripts/light_service_test.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/ros/scripts
 )
