@@ -10,12 +10,13 @@ class FakeBMS(object):
     def __init__(self):
         self.srv_charging = rospy.Service('~set_charging', SetBool, self.charging_cb)
         self.srv_relative_remaining_capacity = rospy.Service('~set_relative_remaining_capacity', SetFloat, self.relative_remaining_capacity_cb)
-        self.pub_voltage            = rospy.Publisher('/bms/voltage', Float64, queue_size = 1)
-        self.pub_current            = rospy.Publisher('/bms/current', Float64, queue_size = 1)
-        self.pub_remaining_capacity = rospy.Publisher('/bms/remaining_capacity', Float64, queue_size = 1)
-        self.pub_charge_capacity    = rospy.Publisher('/bms/full_charge_capacity', Float64, queue_size = 1)
-        self.pub_temparature        = rospy.Publisher('/bms/temperature', Float64, queue_size = 1)
-        self.pub_charging_state     = rospy.Publisher('/bms/battery_charging', Bool, queue_size = 1)        
+        self.poll_frequency          = rospy.get_param('poll_frequency_hz')
+        self.pub_voltage            = rospy.Publisher('voltage', Float64, queue_size = 1)
+        self.pub_current            = rospy.Publisher('current', Float64, queue_size = 1)
+        self.pub_remaining_capacity = rospy.Publisher('remaining_capacity', Float64, queue_size = 1)
+        self.pub_charge_capacity    = rospy.Publisher('full_charge_capacity', Float64, queue_size = 1)
+        self.pub_temparature        = rospy.Publisher('temperature', Float64, queue_size = 1)
+        self.pub_charging_state     = rospy.Publisher('battery_charging', Bool, queue_size = 1)        
         
         self.voltage            = 0.0
         self.current            = 0.0
@@ -24,8 +25,15 @@ class FakeBMS(object):
         self.temperature        = 0.0
         self.charging_state     = False
 
-        rospy.Timer(rospy.Duration(0.2), self.timer_cb)
-        rospy.loginfo('FakeBMS is running')
+        try:
+            poll_duration = 1.0/self.poll_frequency
+        except ZeroDivisionError as e:
+            pub_duration = 0.05 #20Hz
+            rospy.logerr("ZeroDivisionError: poll_frequency is 0.0: %s" % (e))
+        except:
+            poll_duration = 0.05 #20Hz
+            rospy.logerr("something went wrong while calculating poll duration")
+        rospy.Timer(rospy.Duration(poll_duration), self.timer_cb)
 
     def charging_cb(self, req):
         self.charging_state = req.data

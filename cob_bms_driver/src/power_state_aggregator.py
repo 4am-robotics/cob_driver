@@ -66,7 +66,7 @@ class PowerStateAggregator():
         try:
             ret_value = round(100.0*(self.remaining_capacity/self.full_charge_capacity), 3)
         except ZeroDivisionError as e:
-            rospy.logerror("ZeroDivisionError: full_charge_capacity is 0.0: %s" % (e))
+            rospy.logerr("ZeroDivisionError: full_charge_capacity is 0.0: %s" % (e))
         except:
             rospy.logwarn("something went wrong, cannot calculate relative remaining capacity. full_charge_capacity=%d, remaining_capacity=%d" % (self.full_charge_capacity, self.remaining_capacity))
         return ret_value
