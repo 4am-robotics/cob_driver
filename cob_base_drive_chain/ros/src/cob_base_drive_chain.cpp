@@ -258,6 +258,9 @@ class NodeClass
 			srvServer_Recover = n.advertiseService("recover", &NodeClass::srvCallback_Recover, this);
 			srvServer_Shutdown = n.advertiseService("shutdown", &NodeClass::srvCallback_Shutdown, this);
 
+		        //Timer for publishing global diagnostics
+		        ros::Timer glDiagnostics_timer = n.createTimer(ros::Duration(1), &NodeClass::publish_globalDiagnostics, this);
+
 			// initialization of variables
 #ifdef __SIM__
 			m_bisInitialized = initDrives();
@@ -714,36 +717,46 @@ class NodeClass
 			// publish diagnostic message
 			topicPub_Diagnostic.publish(diagnostics);
 			ROS_DEBUG("published new drive-chain configuration (JointState message)");
-			//publish global diagnostic messages
-			diagnostic_msgs::DiagnosticArray diagnostics_gl;
-			diagnostics_gl.header.stamp = ros::Time::now();
-		    diagnostics_gl.status.resize(1);
-		    // set data to diagnostics
-		    if(bIsError)
-		    {
-		      diagnostics_gl.status[0].level = 2;
-		      diagnostics_gl.status[0].name = ros::this_node::getName();
-		      //TODOdiagnostics.status[0].message = error_msg_;
-		    }
-		    else
-		    {
-		      if (m_bisInitialized)
-		      {
-		        diagnostics_gl.status[0].level = 0;
-		        diagnostics_gl.status[0].name = ros::this_node::getName(); //"schunk_powercube_chain";
-		        diagnostics_gl.status[0].message = "base_drive_chain initialized and running";
-		      }
-		      else
-		      {
-		        diagnostics_gl.status[0].level = 1;
-		        diagnostics_gl.status[0].name = ros::this_node::getName(); //"schunk_powercube_chain";
-		        diagnostics_gl.status[0].message = "base_drive_chain not initialized";
-		      }
-		    }
-		    // publish diagnostic message
-		    topicPub_DiagnosticGlobal_.publish(diagnostics_gl);
+
 
 			return true;
+		}
+
+		void publish_globalDiagnostics(const ros::TimerEvent& event)
+		{
+		  //publish global diagnostic messages
+                  diagnostic_msgs::DiagnosticArray diagnostics_gl;
+                  diagnostics_gl.header.stamp = ros::Time::now();
+                  diagnostics_gl.status.resize(1);
+                  // set data to diagnostics
+#ifdef __SIM__
+                  if (false)
+#else
+                  if(m_bisInitialized && m_CanCtrlPltf->isPltfError())
+#endif
+
+                  {
+                    diagnostics_gl.status[0].level = 2;
+                    diagnostics_gl.status[0].name = ros::this_node::getName();
+                    //TODOdiagnostics.status[0].message = error_msg_;
+                  }
+                  else
+                  {
+                    if (m_bisInitialized)
+                    {
+                      diagnostics_gl.status[0].level = 0;
+                      diagnostics_gl.status[0].name = ros::this_node::getName(); //"schunk_powercube_chain";
+                      diagnostics_gl.status[0].message = "base_drive_chain initialized and running";
+                    }
+                    else
+                    {
+                      diagnostics_gl.status[0].level = 1;
+                      diagnostics_gl.status[0].name = ros::this_node::getName(); //"schunk_powercube_chain";
+                      diagnostics_gl.status[0].message = "base_drive_chain not initialized";
+                    }
+                  }
+                  // publish diagnostic message
+                  topicPub_DiagnosticGlobal_.publish(diagnostics_gl);
 		}
 
 		// other function declarations
