@@ -254,9 +254,9 @@ sensor_msgs::LaserScan scan_unifier_node::unifyLaserScans()
       {
         if (!listener_.waitForTransform(frame_, vec_laser_struct_.at(i).current_scan_msg.header.frame_id,
             vec_laser_struct_.at(i).current_scan_msg.header.stamp, ros::Duration(3.0)))
-            {
-              continue;
-            }
+        {
+          continue;
+        }
         ROS_DEBUG("now project to point_cloud");
         projector_.transformLaserScanToPointCloud(frame_,vec_laser_struct_.at(i).current_scan_msg, vec_cloud.at(i), listener_);
       }
