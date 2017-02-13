@@ -55,6 +55,28 @@
 
 #include <arpa/inet.h>
 
+/*
+* S300 header format in continuous mode:
+*
+*      | 00 00 00 00 |   4 byte reply header
+*      | 00 00 |         data block number (fixed for continuous output)
+*      | xx xx |         size of data telegram in 16-bit data words
+*      | FF xx |         coordination flag and device address (07 in most cases, but 08 for slave configured scanners)
+*      | xx xx |         protocol version (02 01 for old protocol,.otherwise 03 01)
+*      | 0x 00 |         status: 00 00 = normal, 01 00 = lockout
+*      | xx xx xx xx |   scan number (time stamp)
+*      | xx xx |         telegram number
+*      | BB BB |         ID of output (AAAA=I/O, BBBB=range measruements, CCCC=reflector measurements)
+*      | 11 11 |         number of configures measurement field (1111, 2222, 3333, 4444 or 5555)
+*         ...            data
+*      | xx xx |         CRC
+*
+* in this parser, user_data_ denotes all but the first 20 bytes (up to and including telegram number above)
+* and the last two bytes (CRC)
+*
+*/
+
+
 class TelegramParser {
 
 	#pragma pack(push,1)
