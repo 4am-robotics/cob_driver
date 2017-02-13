@@ -745,13 +745,13 @@ class NodeClass
                     if (m_bisInitialized)
                     {
                       diagnostics_gl.status[0].level = 0;
-                      diagnostics_gl.status[0].name = ros::this_node::getName(); //"schunk_powercube_chain";
+                      diagnostics_gl.status[0].name = ros::this_node::getName();
                       diagnostics_gl.status[0].message = "base_drive_chain initialized and running";
                     }
                     else
                     {
                       diagnostics_gl.status[0].level = 1;
-                      diagnostics_gl.status[0].name = ros::this_node::getName(); //"schunk_powercube_chain";
+                      diagnostics_gl.status[0].name = ros::this_node::getName();
                       diagnostics_gl.status[0].message = "base_drive_chain not initialized";
                     }
                   }
