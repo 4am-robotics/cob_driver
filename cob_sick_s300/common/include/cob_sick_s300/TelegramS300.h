@@ -357,7 +357,7 @@ public:
 		if(!isDist()) return;
 
 		size_t num_points = (user_data_size_-sizeof(TELEGRAM_COMMON3)-sizeof(TELEGRAM_DISTANCE))/sizeof(TELEGRAM_S300_DIST_2B);
-		//if (debug) std::cout << "Number of points: " << std::dec << num_points << std::endl;
+		if (debug) std::cout << "Number of points: " << std::dec << num_points << std::endl;
 		for(size_t i=0; i<num_points; ++i) {
 			TELEGRAM_S300_DIST_2B dist = *((TELEGRAM_S300_DIST_2B*) (buffer+(sizeof(tc1_)+sizeof(tc2_)+sizeof(tc3_)+sizeof(td_)+i)) );
 			//for distance only: res.push_back((int)dist.distance);
