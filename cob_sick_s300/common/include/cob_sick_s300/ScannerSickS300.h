@@ -156,7 +156,7 @@ public:
 	//sick_lms.Uninitialize();
 
 	// whether the scanner is currently in Standby or not
-	bool isInStandby() {return m_bInStandby;};
+	bool isInStandby() {return m_bInStandby;}
 
 	void purgeScanBuf();
 
