@@ -296,6 +296,7 @@ public:
 
   void topicCallback(cob_light::ColorRGBAArray color)
   {
+      boost::mutex::scoped_lock lock(_mutex);
       if(p_modeExecutor->getExecutingPriority() <= _topic_priority)
       {
           p_modeExecutor->pause();
@@ -341,6 +342,7 @@ public:
 
   bool serviceCallback(cob_light::SetLightMode::Request &req, cob_light::SetLightMode::Response &res)
   {
+    boost::mutex::scoped_lock lock(_mutex);
     bool ret = false;
 
     //ROS_DEBUG("Service Callback [Mode: %i with prio: %i freq: %f timeout: %f pulses: %i ] [R: %f with G: %f B: %f A: %f]",
@@ -379,6 +381,7 @@ public:
 
   void actionCallback(const cob_light::SetLightModeGoalConstPtr &goal)
   {
+    boost::mutex::scoped_lock lock(_mutex);
     cob_light::SetLightModeResult result;
     if(goal->mode.colors.size() > 0)
     {
@@ -417,6 +420,7 @@ public:
 
   bool stopMode(cob_light::StopLightMode::Request &req, cob_light::StopLightMode::Response &res)
   {
+      boost::mutex::scoped_lock lock(_mutex);
       bool ret = false;
       ret = p_modeExecutor->stop(req.track_id);
       res.active_mode = p_modeExecutor->getExecutingMode();
@@ -489,6 +493,8 @@ private:
   IColorO* p_colorO;
   SerialIO _serialIO;
   ModeExecutor* p_modeExecutor;
+
+  boost::mutex _mutex;
 };
 
 int main(int argc, char** argv)
