@@ -62,27 +62,33 @@ class PowerStateAggregator():
             return 0.0
 
     def calculate_relative_remaining_capacity(self):
-        ret_value = 0.0
         try:
-            ret_value = round(100.0*(self.remaining_capacity/self.full_charge_capacity), 3)
+            return round(100.0*(self.remaining_capacity/self.full_charge_capacity), 3)
         except ZeroDivisionError as e:
             rospy.logerr("ZeroDivisionError: full_charge_capacity is 0.0: %s" % (e))
         except:
-            rospy.logwarn("something went wrong, cannot calculate relative remaining capacity. full_charge_capacity=%d, remaining_capacity=%d" % (self.full_charge_capacity, self.remaining_capacity))
-        return ret_value
+            rospy.logwarn("something went wrong, cannot calculate relative remaining capacity. full_charge_capacity=%s, remaining_capacity=%s" % (self.full_charge_capacity, self.remaining_capacity))
+        return 0.0
 
     def calculate_time_remaining(self):
         if len(self.last_currents) > 0:
             current = numpy.mean(self.last_currents)
-        else:
-            return 0.0
-        if self.full_charge_capacity != None and self.remaining_capacity != None:
-            if self.charging:
-                return round((self.full_charge_capacity - self.remaining_capacity) / abs(current), 3)
+
+            if self.full_charge_capacity != None and self.remaining_capacity != None:
+                try:
+                    if self.charging:
+                        return round((self.full_charge_capacity - self.remaining_capacity) / abs(current), 3)
+                    else:
+                        return round(self.remaining_capacity / abs(current), 3)
+                except ZeroDivisionError as e:
+                    rospy.logerr("ZeroDivisionError: current is 0.0: %s" % (e))
+                except:
+                    rospy.logwarn("something went wrong, cannot calculate time_remaining. full_charge_capacity=%s, remaining_capacity=%s, current=%s" % (self.full_charge_capacity, self.remaining_capacity, current))
             else:
-                return round(self.remaining_capacity / abs(current), 3)
+                pass
         else:
-            return 0.0
+            pass
+        return 0.0
  
     def publish(self):
         if self.voltage != None and self.current != None and self.remaining_capacity != None and self.full_charge_capacity != None and self.temperature != None and (rospy.Time.now() - self.last_update) < rospy.Duration(1):
