@@ -5,6 +5,7 @@ from std_msgs.msg import Bool
 from std_msgs.msg import Float64
 from cob_srvs.srv import SetFloat, SetFloatResponse
 from std_srvs.srv import SetBool, SetBoolResponse
+from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 
 class FakeBMS(object):
     def __init__(self):
@@ -25,6 +26,9 @@ class FakeBMS(object):
         self.temperature        = 0.0
         self.charging_state     = False
 
+        self._fake_diag_pub = rospy.Publisher('/diagnostics', DiagnosticArray, queue_size=1)
+        rospy.Timer(rospy.Duration(1.0), self.publish_diagnostics)
+
         rospy.Timer(rospy.Duration(1.0/self.poll_frequency), self.timer_cb)
 
     def charging_cb(self, req):
@@ -36,6 +40,20 @@ class FakeBMS(object):
         self.remaining_capacity = req.data
         res_capacity = SetFloatResponse(True, "Set relative remaining capacity to {}".format(req.data))
         return res_capacity
+
+
+    def publish_diagnostics(self, event):
+        msg = DiagnosticArray()
+        msg.header.stamp = rospy.get_rostime()
+
+        status = DiagnosticStatus()
+        status.name = rospy.get_name()
+        status.level = DiagnosticStatus.OK
+        status.message = "fake diagnostics"
+        status.hardware_id = rospy.get_name()
+        msg.status.append(status)
+
+        self._fake_diag_pub.publish(msg)
 
     def timer_cb(self, event):
         self.pub_voltage.publish(self.voltage)
