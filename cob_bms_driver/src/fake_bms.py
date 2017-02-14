@@ -10,13 +10,13 @@ class FakeBMS(object):
     def __init__(self):
         self.srv_charging = rospy.Service('~set_charging', SetBool, self.charging_cb)
         self.srv_relative_remaining_capacity = rospy.Service('~set_relative_remaining_capacity', SetFloat, self.relative_remaining_capacity_cb)
-        self.poll_frequency         = rospy.get_param('poll_frequency_hz', 20.0)
-        self.pub_voltage            = rospy.Publisher('voltage', Float64, queue_size = 1)
-        self.pub_current            = rospy.Publisher('current', Float64, queue_size = 1)
-        self.pub_remaining_capacity = rospy.Publisher('remaining_capacity', Float64, queue_size = 1)
-        self.pub_charge_capacity    = rospy.Publisher('full_charge_capacity', Float64, queue_size = 1)
-        self.pub_temparature        = rospy.Publisher('temperature', Float64, queue_size = 1)
-        self.pub_charging_state     = rospy.Publisher('battery_charging', Bool, queue_size = 1)        
+        self.poll_frequency         = rospy.get_param('~poll_frequency_hz', 20.0)
+        self.pub_voltage            = rospy.Publisher('~voltage', Float64, queue_size = 1)
+        self.pub_current            = rospy.Publisher('~current', Float64, queue_size = 1)
+        self.pub_remaining_capacity = rospy.Publisher('~remaining_capacity', Float64, queue_size = 1)
+        self.pub_charge_capacity    = rospy.Publisher('~full_charge_capacity', Float64, queue_size = 1)
+        self.pub_temparature        = rospy.Publisher('~temperature', Float64, queue_size = 1)
+        self.pub_charging_state     = rospy.Publisher('~battery_charging', Bool, queue_size = 1)        
         
         self.voltage            = 0.0
         self.current            = 0.0
