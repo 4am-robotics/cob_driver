@@ -1,23 +1,18 @@
-sudo: required
-dist: trusty
-# Force travis to use its minimal image with default Python settings
+sudo: required 
+dist: trusty 
 language: generic
-compiler:
-  - gcc
-
+notifications:
+  email:
+    on_success: change
+    on_failure: always
 env:
   global:
-    - CATKIN_WS=~/catkin_ws
-    - CATKIN_WS_SRC=${CATKIN_WS}/src
-    - CATKIN_WS_UNDERLAY=~/catkin_ws_underlay
-    - CATKIN_WS_UNDERLAY_SRC=${CATKIN_WS_UNDERLAY}/src
-    - CI_ROS_DISTRO="indigo"
-    - DEFAULT_ROSINSTALL="https://raw.githubusercontent.com/ipa320/care-o-bot/${CI_ROS_DISTRO}_dev/.travis.rosinstall"
-
+    - ROS_DISTRO="indigo"
+    - UPSTREAM_WORKSPACE=file
+    - ROSINSTALL_FILENAME=.travis.rosinstall
+  matrix:
+    - ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu
 install:
-  - wget https://raw.githubusercontent.com/ipa320/care-o-bot/${CI_ROS_DISTRO}_dev/.travis.install.sh
-  - bash .travis.install.sh
-
-script:
-  - wget https://raw.githubusercontent.com/ipa320/care-o-bot/${CI_ROS_DISTRO}_dev/.travis.script.sh
-  - bash .travis.script.sh
+  - git clone https://github.com/ros-industrial/industrial_ci.git .ci_config
+script: .ci_config/travis.sh
+#  - source ./travis.sh  # Enable this when you have a package-local script 
