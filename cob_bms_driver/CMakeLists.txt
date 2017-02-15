@@ -33,6 +33,7 @@ install(TARGETS bms_driver_node
 )
 
 install(PROGRAMS
+  src/fake_bms.py
   src/power_state_aggregator.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
