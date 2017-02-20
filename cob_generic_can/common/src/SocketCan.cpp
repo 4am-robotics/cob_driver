@@ -1,19 +1,40 @@
 /*****************************************************************************
- * Copyright 2015 Intelligent Industrial Robotics (IIROB) Group,
+ *
+ * Copyright 2016 Intelligent Industrial Robotics (IIROB) Group,
  * Institute for Anthropomatics and Robotics (IAR) -
  * Intelligent Process Control and Robotics (IPR),
- * Karlsruhe Institute of Technology
-
+ * Karlsruhe Institute of Technology (KIT)
+ *
+ * Author: Denis Štogl, email: denis.stogl@kit.edu
+ *         Andreea Tulbure, email: andreea_tulbure@yahoo.de
+ *
+ * Date of creation: February 2016
+ *
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ *
+ * Redistribution and use in source and binary forms,
+ * with or without modification, are permitted provided
+ * that the following conditions are met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived from
+ *       this software without specific prior written permission.
+ *
  * This package is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
-
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this package. If not, see <http://www.gnu.org/licenses/>.
 *****************************************************************************/
@@ -30,59 +51,56 @@
 
 SocketCan::SocketCan(const char* device, int baudrate)
 {
-        m_bInitialized = false;
-        recived = false;
+    m_bInitialized = false;
 
-        p_cDevice = device;
-        can::SocketCANInterface m_handle;
+    p_cDevice = device;
+    m_handle.reset(new can::ThreadedSocketCANInterface());
 }
 
 SocketCan::SocketCan(const char* device)
 {
-        m_bInitialized = false;
-        recived = false;
+    m_bInitialized = false;
 
-        p_cDevice = device;
-        can::SocketCANInterface m_handle;
+    p_cDevice = device;
+    m_handle.reset(new can::ThreadedSocketCANInterface());
 }
 
 //-----------------------------------------------
 SocketCan::~SocketCan()
 {
-        if (m_bInitialized)
-        {
-               m_handle.shutdown(); // welche aufgabe muss erledigt werden wenn dekonstrulieren
-        }
+    if (m_bInitialized)
+    {
+        m_handle->shutdown();
+    }
 }
 
 //-----------------------------------------------
 bool SocketCan::init_ret()
 {
-        bool ret = true;
-
-        // init() - part
-        if (!m_handle.init(p_cDevice, false))
-        {
-                print_error(m_handle.getState());
-                ret = false;
-        }
-        else
-        {
-                ret = initCAN();
-		m_handle.run();
-        }
-
-        return ret;
+    bool ret = true;
+    if (!m_handle->init(p_cDevice, false))
+    {
+        print_error(m_handle->getState());
+        ret = false;
+    }
+    else
+    {
+        m_reader.listen((boost::shared_ptr<can::CommInterface>) m_handle);
+        m_bInitialized = true;
+        bool bRet = true;
+        ret = true;
+    }
+    return ret;
 }
 
 //-----------------------------------------------
 void SocketCan::init()
 {
-        if (!init_ret())
-        {
-                sleep(3);
-                exit(0);
-        }
+    if (!init_ret())
+    {
+        sleep(3);
+        exit(0);
+    }
 }
 
 
@@ -90,114 +108,90 @@ void SocketCan::init()
 bool SocketCan::transmitMsg(CanMsg CMsg, bool bBlocking)
 {
     can::Header header(CMsg.getID(), false, false, false);
-	can::Frame message(header, CMsg.getLength());
-	for(int i=0; i<CMsg.getLength(); i++)
-	    message.data[i] = CMsg.getAt(i);
-
-	return m_handle.send(message);
+    can::Frame message(header, CMsg.getLength());
+    for (int i = 0; i < CMsg.getLength(); i++)
+    {
+        message.data[i] = CMsg.getAt(i);
+    }
+    return m_handle->send(message);
 }
 
 //-------------------------------------------
 bool SocketCan::receiveMsg(CanMsg* pCMsg)
 {
-    if (m_bInitialized == false) return false;
+    if (!m_bInitialized)
+    {
+        return false;
+    }
 
     bool bRet = false;
+    can::Frame frame;
 
-    if (recived) {
-        pCMsg->setID(recived_frame.id);
-        pCMsg->setLength(recived_frame.dlc);
-        pCMsg->set(recived_frame.data[0], recived_frame.data[1], recived_frame.data[2], recived_frame.data[3],
-                        recived_frame.data[4], recived_frame.data[5], recived_frame.data[6], recived_frame.data[7]);
+    if (m_reader.read(&frame, boost::chrono::seconds(1)))
+    {
+        pCMsg->setID(frame.id);
+        pCMsg->setLength(frame.dlc);
+        pCMsg->set(frame.data[0], frame.data[1], frame.data[2], frame.data[3],
+                   frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
         bRet = true;
-	}
-	else {
-	  std::cout << "No message recived: " << std::endl;
-	}
-	return bRet;
+    }
+    return bRet;
 }
 
 //-------------------------------------------
 bool SocketCan::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
 {
-    if (m_bInitialized == false) return false;
+    if (!m_bInitialized)
+    {
+        return false;
+    }
 
-    // wait until msg in buffer
+    can::Frame frame;
     bool bRet = false;
-    int i=0;
+    int i = 0;
+
     do
     {
-        if (recived) {
-            pCMsg->setID(recived_frame.id);
-            pCMsg->setLength(recived_frame.dlc);
-            pCMsg->set(recived_frame.data[0], recived_frame.data[1], recived_frame.data[2], recived_frame.data[3],
-                            recived_frame.data[4], recived_frame.data[5], recived_frame.data[6], recived_frame.data[7]);
+        if (m_reader.read(&frame, boost::chrono::milliseconds(10)))
+        { 
+            pCMsg->setID(frame.id);
+            pCMsg->setLength(frame.dlc);
+            pCMsg->set(frame.data[0], frame.data[1], frame.data[2], frame.data[3],
+                       frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
             bRet = true;
             break;
         }
         i++;
-        usleep(10000);
     }
-    while(i < iNrOfRetry);
+    while ((i < iNrOfRetry && bRet != true));
     return bRet;
 }
 
 //-------------------------------------------
-bool SocketCan::receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout)
+bool SocketCan::receiveMsgTimeout(CanMsg* pCMsg, int nMicroSecTimeout)
 {
-    if (m_bInitialized == false) return false;
-
-    // wait until msg in buffer
-    bool bRet = false;
-
-    usleep(nSecTimeout/1000);
-    if (recived) {
-        pCMsg->setID(recived_frame.id);
-        pCMsg->setLength(recived_frame.dlc);
-        pCMsg->set(recived_frame.data[0], recived_frame.data[1], recived_frame.data[2], recived_frame.data[3],
-                        recived_frame.data[4], recived_frame.data[5], recived_frame.data[6], recived_frame.data[7]);
-        bRet = true;
+    if (!m_bInitialized)
+    {
+        return false;
     }
 
+    bool bRet = false;
+    can::Frame frame;
+
+    if (m_reader.read(&frame, boost::chrono::microseconds(nMicroSecTimeout)))
+    {
+        pCMsg->setID(frame.id);
+        pCMsg->setLength(frame.dlc);
+        pCMsg->set(frame.data[0], frame.data[1], frame.data[2], frame.data[3], frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
+        bRet = true;
+    }
     return bRet;
 }
 
-bool SocketCan::initCAN() {
-	m_bInitialized = true;
-        bool bRet = true;
-        return true;
-}
-
-void SocketCan::recive_frame(const can::Frame& frame){
-
-    if(frame.is_error){
-        std::cout << "E " << std::hex << frame.id << std::dec;
-    }else if(frame.is_extended){
-        std::cout << "e " << std::hex << frame.id << std::dec;
-    }else{
-        std::cout << "s " << std::hex << frame.id << std::dec;
-    }
-
-    std::cout << "\t";
-
-    if(frame.is_rtr){
-        std::cout << "r";
-    }else{
-        std::cout << (int) frame.dlc << std::hex;
-
-        for(int i=0; i < frame.dlc; ++i){
-            std::cout << std::hex << " " << (int) frame.data[i];
-        }
-    }
-
-    std::cout << std::dec << std::endl;
-    recived_frame = frame;
-    recived = true;
-}
-
-void SocketCan::print_error(const can::State & state){
-     std::string err;
-     std::cout << "ERROR: state=" << std::endl;
-    m_handle.translateError(state.internal_error, err);
+void SocketCan::print_error(const can::State& state)
+{
+    std::string err;
+    std::cout << "ERROR: state=" << std::endl;
+    m_handle->translateError(state.internal_error, err);
     std::cout << "ERROR: state=" << state.driver_state << " internal_error=" << state.internal_error << "('" << err << "') asio: " << state.error_code << std::endl;
 }

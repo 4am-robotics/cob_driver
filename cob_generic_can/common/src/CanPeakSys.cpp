@@ -262,7 +262,7 @@ bool CanPeakSys::receiveMsgRetry(CanMsg* pCMsg, int iNrOfRetry)
 }
 
 //-------------------------------------------
-bool CanPeakSys::receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout)
+bool CanPeakSys::receiveMsgTimeout(CanMsg* pCMsg, int nMicroSecTimeout)
 {
     int iRet = CAN_ERR_OK;
 
@@ -275,7 +275,7 @@ bool CanPeakSys::receiveMsgTimeout(CanMsg* pCMsg, int nSecTimeout)
 
     bool bRet = true;
 
-    iRet = LINUX_CAN_Read_Timeout(m_handle, &TPCMsg, nSecTimeout);
+    iRet = LINUX_CAN_Read_Timeout(m_handle, &TPCMsg, nMicroSecTimeout);
 
     // eval return value
     if(iRet != CAN_ERR_OK)
