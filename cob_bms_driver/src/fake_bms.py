@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
+from random import uniform
 from std_msgs.msg import Bool
 from std_msgs.msg import Float64
 from cob_srvs.srv import SetFloat, SetFloatResponse
@@ -20,7 +21,6 @@ class FakeBMS(object):
         self.pub_temparature          = rospy.Publisher('~temperature', Float64, queue_size = 1)
 
         self.charging_state       = False
-        self.voltage              = 0.0
         self.current              = 5.0 if self.charging_state else -5.0
         self.remaining_capacity   = 0.0
         self.full_charge_capacity = 1.0
@@ -57,8 +57,9 @@ class FakeBMS(object):
         self._fake_diag_pub.publish(msg)
 
     def timer_cb(self, event):
+        voltage_value = 50.0 + uniform(1,5) # ground voltage plus fluctuation
         self.pub_charging_state.publish(self.charging_state)
-        self.pub_voltage.publish(self.voltage)
+        self.pub_voltage.publish(voltage_value)
         self.pub_current.publish(self.current)
         self.pub_remaining_capacity.publish(self.remaining_capacity)
         self.pub_full_charge_capacity.publish(self.full_charge_capacity)
