@@ -17,6 +17,9 @@ Here are a few notes about how to best configure the S300:
 - Configure the scanner to Continuous Data Output
 - Send data via one telegram
 - Only configure distances, no I/O or reflector data (otherwise, the scanner only provides a lower frequency).
-- Do not configure a measurement range field (otherwise, the scanner only provides a lower frequency).
-If you want to only use certain measurement ranges, do this on the ROS side using e.g. the `cob_scan_filter`
+- Configuration of the measurement ranges
+    - For protocol 1.40: only configure one measurement range field with the full range (-45° to 225°) with all values.
+    - For protocol 2.10: do not configure a measurement range field
+      (otherwise, the scanner only provides a lower frequency).
+- If you want to only use certain measurement ranges, do this on the ROS side using e.g. the `cob_scan_filter`
 located in this package as well.
