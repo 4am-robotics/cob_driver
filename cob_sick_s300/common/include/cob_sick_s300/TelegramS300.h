@@ -261,6 +261,7 @@ public:
 		TELEGRAM_TAIL tt;
 		uint16_t crc;
 		int full_data_size = 0;
+
 		// The size reported by the protocol varies depending on the calculation which is different depending
 		// on several factors.
 		// The calculation is described on pp. 70-73 in:
@@ -286,7 +287,7 @@ public:
 			ntoh(tt);
 			crc = createCRC((uint8_t*)buffer+JUNK_SIZE, full_data_size-JUNK_SIZE-sizeof(TELEGRAM_TAIL));
 		}
-		// Special handling for the new protocol, as this cannot be deduced from the protocol itself
+		// Special handling for the new protocol, as the settings cannot be fully deduced from the protocol itself
 		// Thus, we have to try both possibilities and check against the CRC...
 		else
 		{
@@ -322,7 +323,6 @@ public:
 			}
 		}
 
-		std::cout << std::dec << user_data_size_ << " " << full_data_size << " " << 2*tc1_.size << std::hex << std::endl;
 		if( (sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_+sizeof(TELEGRAM_TAIL)) > (int)max_size)
 		{
 			if(debug) std::cout<<"invalid header size"<<std::endl;
