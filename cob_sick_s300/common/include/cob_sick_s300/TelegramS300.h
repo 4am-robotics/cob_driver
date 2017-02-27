@@ -233,12 +233,12 @@ class TelegramParser {
 	TELEGRAM_COMMON2 tc2_;
 	TELEGRAM_COMMON3 tc3_;
 	TELEGRAM_DISTANCE td_;
-	int length_count_start_, length_count_crc_, user_data_size_;
+	int size_field_start_byte_, crc_bytes_in_size_, user_data_size_;
 public:
 
 	TelegramParser() :
-		length_count_start_(0),
-		length_count_crc_(0),
+		size_field_start_byte_(0),
+		crc_bytes_in_size_(0),
 		user_data_size_(0)
 	{}
 
@@ -258,59 +258,84 @@ public:
 		tc2_ = *((TELEGRAM_COMMON2*)(buffer+sizeof(TELEGRAM_COMMON1)));
 		tc3_ = *((TELEGRAM_COMMON3*)(buffer+(sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2))));
 
-		// The length reported by the protocol varies depending on the calculation which is different depending 
+		TELEGRAM_TAIL tt;
+		uint16_t crc;
+		int full_data_size = 0;
+		// The size reported by the protocol varies depending on the calculation which is different depending
 		// on several factors.
 		// The calculation is described on pp. 70-73 in:
 		// https://www.sick.com/media/dox/1/91/891/Telegram_listing_S3000_Expert_Anti_Collision_S300_Expert_de_en_IM0022891.PDF
-		// 
+		//
+		// Also, the size is reported as 16bit-words = 2 bytes...
+		//
 		// For the old protocol/compatability mode:
 		// "The telegram size is calculated ... starting with the ... 5. byte ... up to and including the ... CRC."
 		if(tc2_.protocol_version==0x102)
 		{
-			length_count_start_ = 4; // start at 5th byte
-			length_count_crc_ = 2; // include 2 bytes CRC
+			size_field_start_byte_ = 4; // start at 5th byte (started numbering at 0)
+			crc_bytes_in_size_ = 2; // include 2 bytes CRC
+
+			// the user_data_size is the size of the actual payload data in bytes,
+			//i.e. all data except of the CRC and the first two common telegrams
+			user_data_size_ =
+				2*tc1_.size -
+				(sizeof(TELEGRAM_COMMON1) + sizeof(TELEGRAM_COMMON2) - size_field_start_byte_ + crc_bytes_in_size_);
+			full_data_size = sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_+sizeof(TELEGRAM_TAIL);
+
+			tt = *((TELEGRAM_TAIL*) (buffer+(sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_)) );
+			ntoh(tt);
+			crc = createCRC((uint8_t*)buffer+JUNK_SIZE, full_data_size-JUNK_SIZE-sizeof(TELEGRAM_TAIL));
 		}
-		//
-		// If NO I/O or measuring fields are configured:
-		// "The telegram size is calculated ... starting with the ... 5. byte ... up to and including the ... CRC."
-		else if (tc3_.type != IO && tc3_.type != DISTANCE) 
-		{
-			length_count_start_ = 4; // start at 5th byte
-			length_count_crc_ = 2; // include 2 bytes CRC
-		}
-		// If any I/O or measuring field is configured:
-		// "The telegram size is calculated ... starting with the ... 13. byte ... up to and including the last byte ... bevore (sic!) the CRC."
+		// Special handling for the new protocol, as this cannot be deduced from the protocol itself
+		// Thus, we have to try both possibilities and check against the CRC...
 		else
 		{
-			length_count_start_ = 12; // start at 13th byte
-			length_count_crc_ = 0; // do NOT include 2 bytes CRC
+			// If NO I/O or measuring fields are configured:
+			// "The telegram size is calculated ... starting with the ... 9. byte ... up to and including the ... CRC."
+			size_field_start_byte_ = 8; // start at 9th byte (started numbering at 0)
+			crc_bytes_in_size_ = 2; // include 2 bytes CRC
+			user_data_size_ =
+				2*tc1_.size -
+				(sizeof(TELEGRAM_COMMON1) + sizeof(TELEGRAM_COMMON2) - size_field_start_byte_ + crc_bytes_in_size_);
+			full_data_size = sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_+sizeof(TELEGRAM_TAIL);
+
+			tt = *((TELEGRAM_TAIL*) (buffer+(sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_)) );
+			ntoh(tt);
+			crc = createCRC((uint8_t*)buffer+JUNK_SIZE, full_data_size-JUNK_SIZE-sizeof(TELEGRAM_TAIL));
+			
+			if(tt.crc!=crc)
+			{
+				// If any I/O or measuring field is configured:
+				// "The telegram size is calculated ... starting with the ... 13. byte ... up to and including the
+				// last byte ... bevore (sic!) the CRC."
+				size_field_start_byte_ = 12; // start at 13th byte (started numbering at 0)
+				crc_bytes_in_size_ = 0; // do NOT include 2 bytes CRC
+				user_data_size_ =
+					2*tc1_.size -
+					(sizeof(TELEGRAM_COMMON1) + sizeof(TELEGRAM_COMMON2) - size_field_start_byte_ + crc_bytes_in_size_);
+				full_data_size =
+					sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_+sizeof(TELEGRAM_TAIL);
+
+				tt = *((TELEGRAM_TAIL*) (buffer+(sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_)) );
+				ntoh(tt);
+				crc = createCRC((uint8_t*)buffer+JUNK_SIZE, full_data_size-JUNK_SIZE-sizeof(TELEGRAM_TAIL));
+			}
 		}
 
-		// the user_data_size is the size of the actual payload data, i.e. all data except of the CRC and the first two common telegrams
-		// Accordingly, the full size of the telegramm including any bytes is
-		// sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_+sizeof(TELEGRAM_TAIL)
-		user_data_size_ =
-			2*tc1_.size-(sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)-length_count_start_+length_count_crc_); // in bytes
-
+		std::cout << std::dec << user_data_size_ << " " << full_data_size << " " << 2*tc1_.size << std::hex << std::endl;
 		if( (sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_+sizeof(TELEGRAM_TAIL)) > (int)max_size)
 		{
 			if(debug) std::cout<<"invalid header size"<<std::endl;
 			return false;
 		}
 
-		TELEGRAM_TAIL tt;
-		uint16_t crc;
-
-		tt = *((TELEGRAM_TAIL*) (buffer+(sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_)) );
-		ntoh(tt);
-		crc = createCRC((uint8_t*)buffer+JUNK_SIZE, 2*tc1_.size-length_count_crc_);
 
 		if(tt.crc!=crc) {
 			if(debug) {
 				print(tc2_);
 				print(tc3_);
 				print(tt);
-				std::cout<<"at "<<std::hex<<(sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_)<<std::endl;
+				std::cout<<"at "<<std::dec<<(sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_)<<std::hex<<std::endl;
 				std::cout<<"invalid CRC: "<<crc<<" ("<<tt.crc<<")"<<std::endl;
 			}
 			return false;
@@ -356,10 +381,14 @@ public:
 		res.clear();
 		if(!isDist()) return;
 
-		size_t num_points = (user_data_size_-sizeof(TELEGRAM_COMMON3)-sizeof(TELEGRAM_DISTANCE))/sizeof(TELEGRAM_S300_DIST_2B);
+		size_t num_points =
+			(user_data_size_ - sizeof(TELEGRAM_COMMON3) - sizeof(TELEGRAM_DISTANCE)) / sizeof(TELEGRAM_S300_DIST_2B);
 		if (debug) std::cout << "Number of points: " << std::dec << num_points << std::endl;
 		for(size_t i=0; i<num_points; ++i) {
-			TELEGRAM_S300_DIST_2B dist = *((TELEGRAM_S300_DIST_2B*) (buffer+(sizeof(tc1_)+sizeof(tc2_)+sizeof(tc3_)+sizeof(td_)+i)) );
+			TELEGRAM_S300_DIST_2B dist =
+				*((TELEGRAM_S300_DIST_2B*) (buffer + (sizeof(TELEGRAM_COMMON1) + sizeof(TELEGRAM_COMMON2) +
+				                                      sizeof(TELEGRAM_COMMON3) + sizeof(TELEGRAM_DISTANCE) +
+				                                      i * sizeof(TELEGRAM_S300_DIST_2B))) );
 			//for distance only: res.push_back((int)dist.distance);
 			res.push_back((int)dist.val16);
 		}
