@@ -21,10 +21,12 @@ class FakeBMS(object):
         self.pub_temparature          = rospy.Publisher('~temperature', Float64, queue_size = 1)
 
         self.charging_state       = False
-        self.current              = 5.0 if self.charging_state else -5.0
+        self.voltage              = 0.0
+        self.current              = 0.0
         self.remaining_capacity   = 0.0
         self.full_charge_capacity = 1.0
         self.temperature          = 0.0
+        self.current_polarity     = 1.0 if self.charging_state else -1.0
 
         self._fake_diag_pub = rospy.Publisher('/diagnostics', DiagnosticArray, queue_size=1)
         rospy.Timer(rospy.Duration(1.0), self.publish_diagnostics)
@@ -33,7 +35,7 @@ class FakeBMS(object):
 
     def charging_cb(self, req):
         self.charging_state = req.data
-        self.current = 5.0 if self.charging_state else -5.0
+        self.current_polarity     = 1.0 if self.charging_state else -1.0
         res_charging = SetBoolResponse(True, "Set charging to {}".format(req.data))
         return res_charging
         
@@ -57,9 +59,10 @@ class FakeBMS(object):
         self._fake_diag_pub.publish(msg)
 
     def timer_cb(self, event):
-        voltage_value = 50.0 + uniform(1,5) # ground voltage plus fluctuation
+        self.voltag = 50.0 + uniform(1,5) # ground voltage plus fluctuation
+        self.current = self.current_polarity*(4.0 + uniform(1,2))
         self.pub_charging_state.publish(self.charging_state)
-        self.pub_voltage.publish(voltage_value)
+        self.pub_voltage.publish(self.voltag)
         self.pub_current.publish(self.current)
         self.pub_remaining_capacity.publish(self.remaining_capacity)
         self.pub_full_charge_capacity.publish(self.full_charge_capacity)
