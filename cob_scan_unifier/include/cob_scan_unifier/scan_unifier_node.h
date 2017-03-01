@@ -74,6 +74,9 @@
 #include <tf/transform_datatypes.h>
 #include <sensor_msgs/PointCloud.h>
 #include <laser_geometry/laser_geometry.h>
+#include <message_filters/subscriber.h>
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
 
 // ROS message includes
 #include <sensor_msgs/LaserScan.h>
@@ -81,7 +84,7 @@
 
 //####################
 //#### node class ####
-class scan_unifier_node
+class ScanUnifierNode
 {
   private:
     /** @struct config_struct
@@ -125,13 +128,22 @@ class scan_unifier_node
     config_struct config_;
 
     std::vector<laser_scan_struct> vec_laser_struct_;
+
+    std::vector<message_filters::Subscriber<sensor_msgs::LaserScan>* > message_filter_subscribers_;
+
+    message_filters::Synchronizer<message_filters::sync_policies::ApproximateTime<sensor_msgs::LaserScan, sensor_msgs::LaserScan> >* synchronizer2_;
+    message_filters::Synchronizer<message_filters::sync_policies::ApproximateTime<sensor_msgs::LaserScan, sensor_msgs::LaserScan, sensor_msgs::LaserScan> >* synchronizer3_;
+
+    void messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& first_scanner, const sensor_msgs::LaserScan::ConstPtr& second_scanner);
+    void messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& first_scanner, const sensor_msgs::LaserScan::ConstPtr& second_scanner, const sensor_msgs::LaserScan::ConstPtr& third_scanner);
+
   public:
 
     // constructor
-    scan_unifier_node();
+    ScanUnifierNode();
 
     // destructor
-    ~scan_unifier_node();
+    ~ScanUnifierNode();
 
     /* ----------------------------------- */
     /* --------- ROS Variables ----------- */
@@ -231,7 +243,7 @@ class scan_unifier_node
      * output:
      * @param: a laser scan message containing unified information from all scanners
      */
-    sensor_msgs::LaserScan unifieLaserScans();
+    sensor_msgs::LaserScan unifieLaserScans(std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans);
 
 };
 #endif

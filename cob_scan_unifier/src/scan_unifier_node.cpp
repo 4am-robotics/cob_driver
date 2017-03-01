@@ -58,30 +58,74 @@
 
 #include <cob_scan_unifier/scan_unifier_node.h>
 
-// constructor
-scan_unifier_node::scan_unifier_node()
+// Constructor
+ScanUnifierNode::ScanUnifierNode()
 {
-  ROS_DEBUG("init laser unification");
-  // create node handles
+  ROS_DEBUG("Init scan_unifier");
+
+  // Create node handles
   nh_ = ros::NodeHandle();
   pnh_ = ros::NodeHandle("~");
 
-  // publisher
+  // Publisher
   topicPub_LaserUnified_ = nh_.advertise<sensor_msgs::LaserScan>("scan_unified", 1);
 
   getParams();
 
-  ROS_DEBUG("scan unifier: now init laser structs");
+  // Subscribe to Laserscan topics
 
-  pthread_mutex_init(&m_mutex, NULL);
+  for(int i = 0; i < config_.number_input_scans; i++)
+  {
+    message_filter_subscribers_.push_back(new message_filters::Subscriber<sensor_msgs::LaserScan>(nh_, config_.input_scan_topics.at(i), 1));
+  }
 
-  initLaserScanStructs();
+
+  // Initialize message_filters::Synchronizer with the right constructor for the choosen number of inputs.
+
+  switch (config_.number_input_scans)
+  {
+    case 2:
+    {
+      typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::LaserScan, sensor_msgs::LaserScan> SyncPolicy;
+      synchronizer2_ = new message_filters::Synchronizer<SyncPolicy>(SyncPolicy(2), *message_filter_subscribers_.at(0), *message_filter_subscribers_.at(1));
+      synchronizer2_->registerCallback(boost::bind(&ScanUnifierNode::messageFilterCallback, this, _1, _2));
+      break;
+    }
+    case 3:
+    {
+      typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::LaserScan, sensor_msgs::LaserScan, sensor_msgs::LaserScan> SyncPolicy;
+      synchronizer3_ = new message_filters::Synchronizer<SyncPolicy>(SyncPolicy(3), *message_filter_subscribers_.at(0), *message_filter_subscribers_.at(1), *message_filter_subscribers_.at(2));
+      synchronizer3_->registerCallback(boost::bind(&ScanUnifierNode::messageFilterCallback, this, _1, _2, _3));
+      break;
+    }
+    default:
+      ROS_ERROR_STREAM(config_.number_input_scans << " topics have been set as input, but scan_unifier doesn't support this.");
+      return;
+  }
+
+//  synchronizer_->registerCallback(&ScanUnifierNode::messageFilterCallback);
 
 
 }
 
-// destructor
-scan_unifier_node::~scan_unifier_node(){}
+// Destructor
+
+ScanUnifierNode::~ScanUnifierNode()
+{
+  switch (config_.number_input_scans)
+  {
+    case 2:
+    {
+      delete(synchronizer2_);
+      break;
+    }
+    case 3:
+    {
+      delete(synchronizer3_);
+      break;
+    }
+  }
+}
 
 /**
  * @function getParams
@@ -90,7 +134,7 @@ scan_unifier_node::~scan_unifier_node(){}
  * input: -
  * output: -
  */
-void scan_unifier_node::getParams()
+void ScanUnifierNode::getParams()
 {
 
   if(!pnh_.hasParam("loop_rate"))
@@ -101,6 +145,7 @@ void scan_unifier_node::getParams()
 
   XmlRpc::XmlRpcValue topicList;
 
+  // TODO short parsing
   if (pnh_.getParam("input_scans", topicList))
   {
     ROS_ASSERT(topicList.getType() == XmlRpc::XmlRpcValue::TypeArray);
@@ -125,98 +170,30 @@ void scan_unifier_node::getParams()
   }
 }
 
-/**
- * @function getLoopRate
- * @brief getter function for the loop rate
- *
- * input: -
- * output:
- * @return the loop rate
- */
-double scan_unifier_node::getLoopRate()
+
+void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& first_scanner, const sensor_msgs::LaserScan::ConstPtr& second_scanner)
 {
-  return config_.loop_rate;
+  std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans;
+  current_scans.push_back(first_scanner);
+  current_scans.push_back(second_scanner);
+
+  sensor_msgs::LaserScan unified_scan = unifieLaserScans(current_scans);
+
+  ROS_DEBUG("Publishing unified scan.");
+  topicPub_LaserUnified_.publish(unified_scan);
 }
 
-/**
- * @function set_new_msg_received
- * @brief setter function for new_msg_received variable
- *
- * input:
- * @param message received information
- * @param scan id to find right scan in struct
- * output: -
- */
-void scan_unifier_node::set_new_msg_received(bool received, int scan_id)
+void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& first_scanner, const sensor_msgs::LaserScan::ConstPtr& second_scanner, const sensor_msgs::LaserScan::ConstPtr& third_scanner)
 {
-  pthread_mutex_lock(&m_mutex);
-  vec_laser_struct_.at(scan_id).new_msg_received = received;
-  pthread_mutex_unlock(&m_mutex);
-}
+  std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans;
+  current_scans.push_back(first_scanner);
+  current_scans.push_back(second_scanner);
+  current_scans.push_back(third_scanner);
 
-/**
- * @function get_new_msg_received
- * @brief getter function for new_msg_received variable for checking wether a new msg has been received, triggering publishers accordingly
- *
- * input:
- * @param scan id to find right scan in struct
- * output: -
- * @return the new_msg_received variable
- */
-bool scan_unifier_node::get_new_msg_received(int scan_id)
-{
-  pthread_mutex_lock(&m_mutex);
-  bool ret_val = vec_laser_struct_.at(scan_id).new_msg_received;
-  pthread_mutex_unlock(&m_mutex);
-  return ret_val;
-}
+  sensor_msgs::LaserScan unified_scan = unifieLaserScans(current_scans);
 
-/**
- * @function initLaserScanStructs
- * @brief initialize a vector of laser scan structs (member variable vec_laser_struct_) with a given number
- * (from parameter server, stored in config_ struct)
- *
- * input: -
- * output: -
- */
-void scan_unifier_node::initLaserScanStructs()
-{
-  laser_scan_struct dummy_struct;
-  vec_laser_struct_.assign(config_.number_input_scans, dummy_struct);
-
-  for(int i = 0; i < config_.number_input_scans; i++)
-  {
-    set_new_msg_received(false, i);
-    vec_laser_struct_.at(i).scan_id = i;
-    vec_laser_struct_.at(i).scan_topic = config_.input_scan_topics.at(i);
-    vec_laser_struct_.at(i).current_scan_msg = sensor_msgs::LaserScan();
-    vec_laser_struct_.at(i).laser_sub = nh_.subscribe<sensor_msgs::LaserScan>
-      (vec_laser_struct_.at(i).scan_topic , 1, boost::bind(&scan_unifier_node::topicCallbackLaserScan, this, _1, i));
-  }
-}
-
-/**
- * @function topicCallbackLaserScan
- * @brief callback function to subscribe to laser scan messages and store them in vec_laser_struct_
- *
- * input:
- * @param: a laser scan msg pointer
- * @param: integer to trigger the storage in vec_laser_struct_
- * output: -
- */
-void scan_unifier_node::topicCallbackLaserScan(const sensor_msgs::LaserScan::ConstPtr& scan_in, int scan_id)
-{
-  ROS_DEBUG_STREAM("scan-unifier: Laser-callback!");
-  if(!get_new_msg_received(scan_id))
-  {
-    vec_laser_struct_.at(scan_id).current_scan_msg = *scan_in;
-    ROS_DEBUG_STREAM("received msg from scan_id: " << scan_id);
-    set_new_msg_received(true, scan_id);
-  }
-  else
-  {
-    ROS_DEBUG_STREAM("received msg from scan_id: " << scan_id << "but storage blocked by mutex");
-  }
+  ROS_DEBUG("Publishing unified scan.");
+  topicPub_LaserUnified_.publish(unified_scan);
 }
 
 /**
@@ -227,41 +204,41 @@ void scan_unifier_node::topicCallbackLaserScan(const sensor_msgs::LaserScan::Con
  * output:
  * @param: a laser scan message containing unified information from all scanners
  */
-sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
+sensor_msgs::LaserScan ScanUnifierNode::unifieLaserScans(std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans)
 {
   sensor_msgs::LaserScan unified_scan = sensor_msgs::LaserScan();
   std::vector<sensor_msgs::PointCloud> vec_cloud;
   vec_cloud.assign(config_.number_input_scans, sensor_msgs::PointCloud());
 
-  if(!vec_laser_struct_.empty())
+  if(!current_scans.empty())
   {
     ROS_DEBUG("start converting");
     for(int i=0; i < config_.number_input_scans; i++)
     {
-      vec_cloud.at(i).header.stamp = vec_laser_struct_.at(i).current_scan_msg.header.stamp;
-      ROS_DEBUG_STREAM("Converting scans to point clouds at index: " << i << ", at time: " << vec_laser_struct_.at(i).current_scan_msg.header.stamp << " now: " << ros::Time::now());
+      vec_cloud.at(i).header.stamp = current_scans.at(i)->header.stamp;
+      ROS_DEBUG_STREAM("Converting scans to point clouds at index: " << i << ", at time: " << current_scans.at(i)->header.stamp << " now: " << ros::Time::now());
       try
       {
-        listener_.waitForTransform("/base_link", vec_laser_struct_.at(i).current_scan_msg.header.frame_id,
-            vec_laser_struct_.at(i).current_scan_msg.header.stamp, ros::Duration(3.0));
+        listener_.waitForTransform("/base_link", current_scans.at(i)->header.frame_id,
+            current_scans.at(i)->header.stamp, ros::Duration(3.0));
 
         ROS_DEBUG("now project to point_cloud");
-        projector_.transformLaserScanToPointCloud("/base_link",vec_laser_struct_.at(i).current_scan_msg, vec_cloud.at(i), listener_);
+        projector_.transformLaserScanToPointCloud("/base_link",*current_scans.at(i), vec_cloud.at(i), listener_);
       }
-      catch(tf::TransformException ex){
+      catch(tf::TransformException &ex){
         ROS_ERROR("%s",ex.what());
       }
     }
     ROS_DEBUG("Creating message header");
-    unified_scan.header = vec_laser_struct_.at(0).current_scan_msg.header;
+    unified_scan.header = current_scans.at(0)->header;
     unified_scan.header.frame_id = "base_link";
     unified_scan.angle_increment = M_PI/180.0/2.0;
     unified_scan.angle_min = -M_PI + unified_scan.angle_increment*0.01;
     unified_scan.angle_max =  M_PI - unified_scan.angle_increment*0.01;
     unified_scan.time_increment = 0.0;
-    unified_scan.scan_time = vec_laser_struct_.at(0).current_scan_msg.scan_time;
-    unified_scan.range_min = vec_laser_struct_.at(0).current_scan_msg.range_min;
-    unified_scan.range_max = vec_laser_struct_.at(0).current_scan_msg.range_max;
+    unified_scan.scan_time = current_scans.at(0)->scan_time;
+    unified_scan.range_min = current_scans.at(0)->range_min;
+    unified_scan.range_max = current_scans.at(0)->range_max;
     unified_scan.ranges.resize(round((unified_scan.angle_max - unified_scan.angle_min) / unified_scan.angle_increment) + 1);
     unified_scan.intensities.resize(round((unified_scan.angle_max - unified_scan.angle_min) / unified_scan.angle_increment) + 1);
 
@@ -305,64 +282,14 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
   return unified_scan;
 }
 
-/**
- * @function checkUnifieCondition
- * @brief check in every node-loop if the unifieConditions holds. A unified scan is only published if new laser
- * messages from all scanners have been received
- *
- * input: -
- * output: -
- */
-void scan_unifier_node::checkUnifieCondition()
-{
-  bool all_scans_received = true;
-  if(!vec_laser_struct_.empty())
-  {
-    int ind = 0;
-    while(ind < config_.number_input_scans && all_scans_received)
-    {
-      // if one scan-struct did not receive a new msg all_scans_received is set to false and we do nothing
-      //all_scans_received = vec_laser_struct_.at(ind).new_msg_received;
-      all_scans_received = get_new_msg_received(ind);
-      ind++;
-    }
-  }
-
-  if(all_scans_received)
-  {
-    // all scan-structs received a new msg so now unifie all of them
-    ROS_DEBUG("all_scans_received");
-    sensor_msgs::LaserScan unified_scan = unifieLaserScans();
-    ROS_DEBUG("now publish");
-    topicPub_LaserUnified_.publish(unified_scan);
-    for(int i=0; i < config_.number_input_scans; i++)
-    {
-      set_new_msg_received(false, i);
-    }
-  }
-}
-
 int main(int argc, char** argv)
 {
   ROS_DEBUG("scan unifier: start scan unifier node");
   ros::init(argc, argv, "cob_scan_unifier_node");
 
-  scan_unifier_node my_scan_unifier_node;
+  ScanUnifierNode scan_unifier_node;
 
-  // store initialization time of the node
-  ros::Time start = ros::Time::now();
-
-  ros::Rate rate(my_scan_unifier_node.getLoopRate());
-
-  // actual calculation step with given frequency
-  while(my_scan_unifier_node.nh_.ok())
-  {
-
-    my_scan_unifier_node.checkUnifieCondition();
-
-    ros::spinOnce();
-    rate.sleep();
-  }
+  ros::spin();
 
   return 0;
 }
