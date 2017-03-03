@@ -4,7 +4,7 @@ It provides an implementation for both, the old (1.40) and the new (2.10) protoc
 Thus, the old Sick S300 Professional CMS as well as the new Sick S300 Expert are supported.
 
 However, it does not cover the full functionality of the protocol:
-- It only handle distance measurements properly
+- It only handles distance measurements properly
 - It only handles no or only one configured measurement range field properly
 - It does not handle I/O-data or reflector data
 (though it reads the reflector marker field in the distance measurements)
