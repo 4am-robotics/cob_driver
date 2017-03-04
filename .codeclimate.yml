@@ -1,8 +1,14 @@
 engines:
-  stylelint:
-    enabled: true   
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - python
+  fixme:
+    enabled: true
+  radon:
+    enabled: true
 ratings:
   paths:
   - "**.py"
-  - "**.h"
-  - "**.cpp"
+exclude_paths: []
