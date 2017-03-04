@@ -1,0 +1,8 @@
+engines:
+  stylelint:
+    enabled: true   
+ratings:
+  paths:
+  - "**.py"
+  - "**.h"
+  - "**.cpp"
