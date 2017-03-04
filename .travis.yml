@@ -1,5 +1,5 @@
-sudo: required 
-dist: trusty 
+sudo: required
+dist: trusty
 language: generic
 notifications:
   email:
@@ -7,12 +7,16 @@ notifications:
     on_failure: always
 env:
   global:
-    - ROS_DISTRO="indigo"
     - UPSTREAM_WORKSPACE=file
-    - ROSINSTALL_FILENAME=.travis.rosinstall
   matrix:
-    - ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu
+    - ROS_DISTRO="indigo" ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu
+    - ROS_DISTRO="jade" ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu
+    - ROS_DISTRO="kinetic" ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu
+matrix:
+  allow_failures:
+    - env: ROS_DISTRO="jade" ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu UPSTREAM_WORKSPACE=file
 install:
   - git clone https://github.com/ros-industrial/industrial_ci.git .ci_config
-script: .ci_config/travis.sh
-#  - source ./travis.sh  # Enable this when you have a package-local script 
+script:
+  - .ci_config/travis.sh
+#  - ./travis.sh  # Enable this when you have a package-local script 
