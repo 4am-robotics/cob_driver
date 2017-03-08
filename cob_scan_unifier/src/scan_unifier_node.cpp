@@ -88,6 +88,8 @@ ScanUnifierNode::ScanUnifierNode()
     {
       typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::LaserScan, sensor_msgs::LaserScan> SyncPolicy;
       synchronizer2_ = new message_filters::Synchronizer<SyncPolicy>(SyncPolicy(2), *message_filter_subscribers_.at(0), *message_filter_subscribers_.at(1));
+      synchronizer2_->setInterMessageLowerBound(0, ros::Duration(0.167));
+      synchronizer2_->setInterMessageLowerBound(1, ros::Duration(0.167));
       synchronizer2_->registerCallback(boost::bind(&ScanUnifierNode::messageFilterCallback, this, _1, _2));
       break;
     }
@@ -95,6 +97,9 @@ ScanUnifierNode::ScanUnifierNode()
     {
       typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::LaserScan, sensor_msgs::LaserScan, sensor_msgs::LaserScan> SyncPolicy;
       synchronizer3_ = new message_filters::Synchronizer<SyncPolicy>(SyncPolicy(3), *message_filter_subscribers_.at(0), *message_filter_subscribers_.at(1), *message_filter_subscribers_.at(2));
+      synchronizer3_->setInterMessageLowerBound(0, ros::Duration(0.167));
+      synchronizer3_->setInterMessageLowerBound(1, ros::Duration(0.167));
+      synchronizer3_->setInterMessageLowerBound(2, ros::Duration(0.167));
       synchronizer3_->registerCallback(boost::bind(&ScanUnifierNode::messageFilterCallback, this, _1, _2, _3));
       break;
     }
@@ -136,13 +141,6 @@ ScanUnifierNode::~ScanUnifierNode()
  */
 void ScanUnifierNode::getParams()
 {
-
-  if(!pnh_.hasParam("loop_rate"))
-  {
-    ROS_WARN("No parameter loop_rate on parameter server. Using default value [100.0].");
-  }
-  pnh_.param("loop_rate", config_.loop_rate, (double)100.0);
-
   XmlRpc::XmlRpcValue topicList;
 
   // TODO short parsing
@@ -168,6 +166,16 @@ void ScanUnifierNode::getParams()
     config_.number_input_scans = 0;
     ROS_ERROR("No parameter input_scans on parameter server!! Scan unifier can not subscribe to any scan topic!");
   }
+
+  if(!pnh_.hasParam("frame"))
+  {
+    ROS_WARN("No parameter frame on parameter server. Using default value [base_link].");
+    frame_ = "base_link";
+  }
+  else
+  {
+    pnh_.getParam("frame", frame_);
+}
 }
 
 
@@ -177,7 +185,7 @@ void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstP
   current_scans.push_back(first_scanner);
   current_scans.push_back(second_scanner);
 
-  sensor_msgs::LaserScan unified_scan = unifieLaserScans(current_scans);
+  sensor_msgs::LaserScan unified_scan = unifyLaserScans(current_scans);
 
   ROS_DEBUG("Publishing unified scan.");
   topicPub_LaserUnified_.publish(unified_scan);
@@ -190,21 +198,21 @@ void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstP
   current_scans.push_back(second_scanner);
   current_scans.push_back(third_scanner);
 
-  sensor_msgs::LaserScan unified_scan = unifieLaserScans(current_scans);
+  sensor_msgs::LaserScan unified_scan = unifyLaserScans(current_scans);
 
   ROS_DEBUG("Publishing unified scan.");
   topicPub_LaserUnified_.publish(unified_scan);
 }
 
 /**
- * @function unifieLaserScans
+ * @function unifyLaserScans
  * @brief unifie the scan information from all laser scans in vec_laser_struct_
  *
  * input: -
  * output:
  * @param: a laser scan message containing unified information from all scanners
  */
-sensor_msgs::LaserScan ScanUnifierNode::unifieLaserScans(std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans)
+sensor_msgs::LaserScan ScanUnifierNode::unifyLaserScans(std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans)
 {
   sensor_msgs::LaserScan unified_scan = sensor_msgs::LaserScan();
   std::vector<sensor_msgs::PointCloud> vec_cloud;
@@ -219,11 +227,18 @@ sensor_msgs::LaserScan ScanUnifierNode::unifieLaserScans(std::vector<sensor_msgs
       ROS_DEBUG_STREAM("Converting scans to point clouds at index: " << i << ", at time: " << current_scans.at(i)->header.stamp << " now: " << ros::Time::now());
       try
       {
-        listener_.waitForTransform("/base_link", current_scans.at(i)->header.frame_id,
-            current_scans.at(i)->header.stamp, ros::Duration(3.0));
+        if (!listener_.waitForTransform(frame_, current_scans.at(i)->header.frame_id,
+                                        current_scans.at(i)->header.stamp, ros::Duration(3.0)))
+        {
+          continue;
+        }
+        else
+        {
+          ROS_WARN_STREAM("Scan unifier skipped scan with " << current_scans.at(i)->header.stamp << " stamp.");
+        }
 
         ROS_DEBUG("now project to point_cloud");
-        projector_.transformLaserScanToPointCloud("/base_link",*current_scans.at(i), vec_cloud.at(i), listener_);
+        projector_.transformLaserScanToPointCloud(frame_,*current_scans.at(i), vec_cloud.at(i), listener_);
       }
       catch(tf::TransformException &ex){
         ROS_ERROR("%s",ex.what());
@@ -231,7 +246,7 @@ sensor_msgs::LaserScan ScanUnifierNode::unifieLaserScans(std::vector<sensor_msgs
     }
     ROS_DEBUG("Creating message header");
     unified_scan.header = current_scans.at(0)->header;
-    unified_scan.header.frame_id = "base_link";
+    unified_scan.header.frame_id = frame_;
     unified_scan.angle_increment = M_PI/180.0/2.0;
     unified_scan.angle_min = -M_PI + unified_scan.angle_increment*0.01;
     unified_scan.angle_max =  M_PI - unified_scan.angle_increment*0.01;
@@ -242,8 +257,8 @@ sensor_msgs::LaserScan ScanUnifierNode::unifieLaserScans(std::vector<sensor_msgs
     unified_scan.ranges.resize(round((unified_scan.angle_max - unified_scan.angle_min) / unified_scan.angle_increment) + 1);
     unified_scan.intensities.resize(round((unified_scan.angle_max - unified_scan.angle_min) / unified_scan.angle_increment) + 1);
 
-    // now unifie all Scans
-    ROS_DEBUG("unifie scans");
+    // now unify all Scans
+    ROS_DEBUG("unify scans");
     for(int j = 0; j < config_.number_input_scans; j++)
     {
       for (unsigned int i = 0; i < vec_cloud.at(j).points.size(); i++)

@@ -98,36 +98,12 @@ class ScanUnifierNode
      */
     struct config_struct{
       int number_input_scans;
-      double loop_rate;
       std::vector<std::string> input_scan_topics;
     };
 
-    /** @struct laser_scan_struct
-     *  @brief This structure holds the variables for one laser-scanner to be unified
-     *  @var laser_scan_struct::new_msg_received
-     *  Member 'new_msg_received' contains the information if a new message of this topic has been received
-     *  @var laser_scan_struct::scan_id
-     *  Member 'scan_id' contains the scan id to subscibe to
-     *  @var laser_scan_struct::scan_id
-     *  Member 'scan_topic' contains the topic of this scan
-     *  @var laser_scan_struct::laser_sub
-     *  Member 'laser_sub' contains ros subscriber for this laser-scan
-     *  @var laser_scan_struct::current_scan_msg
-     *  Member 'current_scan_msg' contains the current received laser scan msg
-     */
-    struct laser_scan_struct{
-      bool new_msg_received;
-      int scan_id;
-      std::string scan_topic;
-      ros::Subscriber laser_sub;
-      sensor_msgs::LaserScan current_scan_msg;
-    };
-
-    pthread_mutex_t m_mutex;
-
     config_struct config_;
 
-    std::vector<laser_scan_struct> vec_laser_struct_;
+    std::string frame_;
 
     std::vector<message_filters::Subscriber<sensor_msgs::LaserScan>* > message_filter_subscribers_;
 
@@ -175,67 +151,6 @@ class ScanUnifierNode
     void getParams();
 
     /**
-     * @function set_new_msg_received
-     * @brief setter function for new_msg_received variable
-     *
-     * input:
-     * @param message received information
-     * output: -
-     */
-    void set_new_msg_received(bool received, int scan_id);
-
-    /**
-     * @function get_new_msg_received
-     * @brief getter function for new_msg_received variable for checking wether a new msg has been received, triggering publishers accordingly
-     *
-     * input: -
-     * output: -
-     * @return the new_msg_received variable
-     */
-    bool get_new_msg_received(int scan_id);
-
-    /**
-     * @function getLoopRate
-     * @brief getter function for the loop rate
-     *
-     * input: -
-     * output:
-     * @return the loop rate
-     */
-    double getLoopRate();
-
-    /**
-     * @function initLaserScanStructs
-     * @brief initialize a vector of laser scan structs (member variable vec_laser_struct_) with a given number
-     * (from parameter server, stored in config_ struct)
-     *
-     * input: -
-     * output: -
-     */
-    void initLaserScanStructs();
-
-    /**
-     * @function topicCallbackLaserScan
-     * @brief callback function to subscribe to laser scan messages and store them in vec_laser_struct_
-     *
-     * input:
-     * @param: a laser scan msg pointer
-     * @param: integer to trigger the storage in vec_laser_struct_
-     * output: -
-     */
-    void topicCallbackLaserScan(const sensor_msgs::LaserScan::ConstPtr& scan_in, int scan_id);
-
-    /**
-     * @function checkUnifieCondition
-     * @brief check in every node-loop if the unifieConditions holds. A unified scan is only published if new laser
-     * messages from all scanners have been received
-     *
-     * input: -
-     * output: -
-     */
-    void checkUnifieCondition();
-
-    /**
      * @function unifieLaserScans
      * @brief unifie the scan information from all laser scans in vec_laser_struct_
      *
@@ -243,7 +158,7 @@ class ScanUnifierNode
      * output:
      * @param: a laser scan message containing unified information from all scanners
      */
-    sensor_msgs::LaserScan unifieLaserScans(std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans);
+    sensor_msgs::LaserScan unifyLaserScans(std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans);
 
 };
 #endif
