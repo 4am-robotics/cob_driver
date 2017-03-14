@@ -88,6 +88,7 @@ ScanUnifierNode::ScanUnifierNode()
     {
       typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::LaserScan, sensor_msgs::LaserScan> SyncPolicy;
       synchronizer2_ = new message_filters::Synchronizer<SyncPolicy>(SyncPolicy(2), *message_filter_subscribers_.at(0), *message_filter_subscribers_.at(1));
+      // Set the InterMessageLowerBound to double the period of the laser scans publishing ( 1/{(1/2)*f_laserscans} ).
       synchronizer2_->setInterMessageLowerBound(0, ros::Duration(0.167));
       synchronizer2_->setInterMessageLowerBound(1, ros::Duration(0.167));
       synchronizer2_->registerCallback(boost::bind(&ScanUnifierNode::messageFilterCallback, this, _1, _2));
@@ -108,28 +109,14 @@ ScanUnifierNode::ScanUnifierNode()
       return;
   }
 
-//  synchronizer_->registerCallback(&ScanUnifierNode::messageFilterCallback);
-
-
 }
 
 // Destructor
 
 ScanUnifierNode::~ScanUnifierNode()
 {
-  switch (config_.number_input_scans)
-  {
-    case 2:
-    {
-      delete(synchronizer2_);
-      break;
-    }
-    case 3:
-    {
-      delete(synchronizer3_);
-      break;
-    }
-  }
+  delete(synchronizer2_);
+  delete(synchronizer3_);
 }
 
 /**
@@ -141,25 +128,33 @@ ScanUnifierNode::~ScanUnifierNode()
  */
 void ScanUnifierNode::getParams()
 {
-  XmlRpc::XmlRpcValue topicList;
+//  XmlRpc::XmlRpcValue topicList;
+//
+//  // TODO short parsing
+//  if (pnh_.getParam("input_scans", topicList))
+//  {
+//    ROS_ASSERT(topicList.getType() == XmlRpc::XmlRpcValue::TypeArray);
+//
+//    if(topicList.getType() == XmlRpc::XmlRpcValue::TypeArray)
+//    {
+//      for (int32_t i = 0; i < topicList.size(); ++i)
+//      {
+//        ROS_ASSERT(topicList[i].getType() == XmlRpc::XmlRpcValue::TypeString);
+//        config_.input_scan_topics.push_back(static_cast<std::string>(topicList[i]));
+//
+//        ROS_DEBUG_STREAM("Parsed the scan topic: " << config_.input_scan_topics.back());
+//      }
+//
+//      config_.number_input_scans = config_.input_scan_topics.size();
+//    }
+//  }
 
-  // TODO short parsing
+  std::vector<std::string> topicList;
+
   if (pnh_.getParam("input_scans", topicList))
   {
-    ROS_ASSERT(topicList.getType() == XmlRpc::XmlRpcValue::TypeArray);
-
-    if(topicList.getType() == XmlRpc::XmlRpcValue::TypeArray)
-    {
-      for (int32_t i = 0; i < topicList.size(); ++i)
-      {
-        ROS_ASSERT(topicList[i].getType() == XmlRpc::XmlRpcValue::TypeString);
-        config_.input_scan_topics.push_back(static_cast<std::string>(topicList[i]));
-
-        ROS_DEBUG_STREAM("Parsed the scan topic: " << config_.input_scan_topics.back());
-      }
-
-      config_.number_input_scans = config_.input_scan_topics.size();
-    }
+    config_.input_scan_topics = topicList;
+    config_.number_input_scans = config_.input_scan_topics.size();
   }
   else
   {
@@ -170,20 +165,16 @@ void ScanUnifierNode::getParams()
   if(!pnh_.hasParam("frame"))
   {
     ROS_WARN("No parameter frame on parameter server. Using default value [base_link].");
-    frame_ = "base_link";
   }
-  else
-  {
-    pnh_.getParam("frame", frame_);
-}
+  pnh_.param<std::string>("frame", frame_, "base_link");
 }
 
 
-void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& first_scanner, const sensor_msgs::LaserScan::ConstPtr& second_scanner)
+void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& scan1, const sensor_msgs::LaserScan::ConstPtr& scan2)
 {
   std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans;
-  current_scans.push_back(first_scanner);
-  current_scans.push_back(second_scanner);
+  current_scans.push_back(scan1);
+  current_scans.push_back(scan2);
 
   sensor_msgs::LaserScan unified_scan = unifyLaserScans(current_scans);
 
@@ -191,12 +182,12 @@ void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstP
   topicPub_LaserUnified_.publish(unified_scan);
 }
 
-void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& first_scanner, const sensor_msgs::LaserScan::ConstPtr& second_scanner, const sensor_msgs::LaserScan::ConstPtr& third_scanner)
+void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& scan1, const sensor_msgs::LaserScan::ConstPtr& scan2, const sensor_msgs::LaserScan::ConstPtr& scan3)
 {
   std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans;
-  current_scans.push_back(first_scanner);
-  current_scans.push_back(second_scanner);
-  current_scans.push_back(third_scanner);
+  current_scans.push_back(scan1);
+  current_scans.push_back(scan2);
+  current_scans.push_back(scan3);
 
   sensor_msgs::LaserScan unified_scan = unifyLaserScans(current_scans);
 
