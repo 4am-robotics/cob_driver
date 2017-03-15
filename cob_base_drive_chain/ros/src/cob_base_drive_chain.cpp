@@ -105,6 +105,10 @@ class NodeClass
 		*/
 		ros::Publisher topicPub_Diagnostic;
 
+                /**
+                * Timer to publish global diagnostic messages
+                */
+		ros::Timer glDiagnostics_timer;
 
 		// topics to subscribe, callback is called for new messages arriving
 		/**
@@ -153,7 +157,6 @@ class NodeClass
 		*/
 		ros::ServiceServer srvServer_ElmoRecorderReadout;
 
-		ros::Timer glDiagnostics_timer;
 
 		// global variables
 		// generate can-node handle
@@ -726,7 +729,6 @@ class NodeClass
 
 		void publish_globalDiagnostics(const ros::TimerEvent& event)
 		{
-		  ROS_ERROR("In publish_globalDiagnostics");
 		  //publish global diagnostic messages
                   diagnostic_msgs::DiagnosticArray diagnostics_gl;
                   diagnostics_gl.header.stamp = ros::Time::now();
