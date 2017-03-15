@@ -109,6 +109,7 @@ ScanUnifierNode::ScanUnifierNode()
       return;
   }
 
+  ros::Duration(1.0).sleep();
 }
 
 // Destructor
@@ -128,27 +129,6 @@ ScanUnifierNode::~ScanUnifierNode()
  */
 void ScanUnifierNode::getParams()
 {
-//  XmlRpc::XmlRpcValue topicList;
-//
-//  // TODO short parsing
-//  if (pnh_.getParam("input_scans", topicList))
-//  {
-//    ROS_ASSERT(topicList.getType() == XmlRpc::XmlRpcValue::TypeArray);
-//
-//    if(topicList.getType() == XmlRpc::XmlRpcValue::TypeArray)
-//    {
-//      for (int32_t i = 0; i < topicList.size(); ++i)
-//      {
-//        ROS_ASSERT(topicList[i].getType() == XmlRpc::XmlRpcValue::TypeString);
-//        config_.input_scan_topics.push_back(static_cast<std::string>(topicList[i]));
-//
-//        ROS_DEBUG_STREAM("Parsed the scan topic: " << config_.input_scan_topics.back());
-//      }
-//
-//      config_.number_input_scans = config_.input_scan_topics.size();
-//    }
-//  }
-
   std::vector<std::string> topicList;
 
   if (pnh_.getParam("input_scans", topicList))
@@ -176,7 +156,11 @@ void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstP
   current_scans.push_back(scan1);
   current_scans.push_back(scan2);
 
-  sensor_msgs::LaserScan unified_scan = unifyLaserScans(current_scans);
+  sensor_msgs::LaserScan unified_scan = sensor_msgs::LaserScan();
+  if (!unifyLaserScans(current_scans, unified_scan))
+  {
+    return;
+  }
 
   ROS_DEBUG("Publishing unified scan.");
   topicPub_LaserUnified_.publish(unified_scan);
@@ -189,7 +173,11 @@ void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstP
   current_scans.push_back(scan2);
   current_scans.push_back(scan3);
 
-  sensor_msgs::LaserScan unified_scan = unifyLaserScans(current_scans);
+  sensor_msgs::LaserScan unified_scan = sensor_msgs::LaserScan();
+  if (!unifyLaserScans(current_scans, unified_scan))
+  {
+    return;
+  }
 
   ROS_DEBUG("Publishing unified scan.");
   topicPub_LaserUnified_.publish(unified_scan);
@@ -203,9 +191,9 @@ void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstP
  * output:
  * @param: a laser scan message containing unified information from all scanners
  */
-sensor_msgs::LaserScan ScanUnifierNode::unifyLaserScans(std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans)
+bool ScanUnifierNode::unifyLaserScans(std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans, sensor_msgs::LaserScan &unified_scan)
 {
-  sensor_msgs::LaserScan unified_scan = sensor_msgs::LaserScan();
+//  sensor_msgs::LaserScan unified_scan = sensor_msgs::LaserScan();
   std::vector<sensor_msgs::PointCloud> vec_cloud;
   vec_cloud.assign(config_.number_input_scans, sensor_msgs::PointCloud());
 
@@ -219,13 +207,10 @@ sensor_msgs::LaserScan ScanUnifierNode::unifyLaserScans(std::vector<sensor_msgs:
       try
       {
         if (!listener_.waitForTransform(frame_, current_scans.at(i)->header.frame_id,
-                                        current_scans.at(i)->header.stamp, ros::Duration(3.0)))
+                                        current_scans.at(i)->header.stamp, ros::Duration(1.0)))
         {
-          continue;
-        }
-        else
-        {
-          ROS_WARN_STREAM("Scan unifier skipped scan with " << current_scans.at(i)->header.stamp << " stamp.");
+          ROS_WARN_STREAM("Scan unifier skipped scan with " << current_scans.at(i)->header.stamp << " stamp, because of missing tf transform.");
+          return false;
         }
 
         ROS_DEBUG("now project to point_cloud");
@@ -285,7 +270,7 @@ sensor_msgs::LaserScan ScanUnifierNode::unifyLaserScans(std::vector<sensor_msgs:
     }
   }
 
-  return unified_scan;
+  return true;
 }
 
 int main(int argc, char** argv)

@@ -158,7 +158,7 @@ class ScanUnifierNode
      * output:
      * @param: a laser scan message containing unified information from all scanners
      */
-    sensor_msgs::LaserScan unifyLaserScans(std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans);
+    bool unifyLaserScans(std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans, sensor_msgs::LaserScan &unified_scan);
 
 };
 #endif
