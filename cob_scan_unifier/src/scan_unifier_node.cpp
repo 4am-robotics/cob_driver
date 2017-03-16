@@ -123,6 +123,16 @@ void scan_unifier_node::getParams()
     config_.number_input_scans = 0;
     ROS_ERROR("No parameter input_scans on parameter server!! Scan unifier can not subscribe to any scan topic!");
   }
+
+  if(!pnh_.hasParam("frame"))
+  {
+    ROS_WARN("No parameter frame on parameter server. Using default value [base_link].");
+    frame_ = "base_link";
+  }
+  else
+  {
+    pnh_.getParam("frame", frame_);
+  }
 }
 
 /**
@@ -220,14 +230,14 @@ void scan_unifier_node::topicCallbackLaserScan(const sensor_msgs::LaserScan::Con
 }
 
 /**
- * @function unifieLaserScans
- * @brief unifie the scan information from all laser scans in vec_laser_struct_
+ * @function unifyLaserScans
+ * @brief unify the scan information from all laser scans in vec_laser_struct_
  *
  * input: -
  * output:
  * @param: a laser scan message containing unified information from all scanners
  */
-sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
+sensor_msgs::LaserScan scan_unifier_node::unifyLaserScans()
 {
   sensor_msgs::LaserScan unified_scan = sensor_msgs::LaserScan();
   std::vector<sensor_msgs::PointCloud> vec_cloud;
@@ -242,11 +252,13 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
       ROS_DEBUG_STREAM("Converting scans to point clouds at index: " << i << ", at time: " << vec_laser_struct_.at(i).current_scan_msg.header.stamp << " now: " << ros::Time::now());
       try
       {
-        listener_.waitForTransform("/base_link", vec_laser_struct_.at(i).current_scan_msg.header.frame_id,
-            vec_laser_struct_.at(i).current_scan_msg.header.stamp, ros::Duration(3.0));
-
+        if (!listener_.waitForTransform(frame_, vec_laser_struct_.at(i).current_scan_msg.header.frame_id,
+            vec_laser_struct_.at(i).current_scan_msg.header.stamp, ros::Duration(3.0)))
+        {
+          continue;
+        }
         ROS_DEBUG("now project to point_cloud");
-        projector_.transformLaserScanToPointCloud("/base_link",vec_laser_struct_.at(i).current_scan_msg, vec_cloud.at(i), listener_);
+        projector_.transformLaserScanToPointCloud(frame_,vec_laser_struct_.at(i).current_scan_msg, vec_cloud.at(i), listener_);
       }
       catch(tf::TransformException ex){
         ROS_ERROR("%s",ex.what());
@@ -254,7 +266,7 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
     }
     ROS_DEBUG("Creating message header");
     unified_scan.header = vec_laser_struct_.at(0).current_scan_msg.header;
-    unified_scan.header.frame_id = "base_link";
+    unified_scan.header.frame_id = frame_;
     unified_scan.angle_increment = M_PI/180.0/2.0;
     unified_scan.angle_min = -M_PI + unified_scan.angle_increment*0.01;
     unified_scan.angle_max =  M_PI - unified_scan.angle_increment*0.01;
@@ -265,8 +277,8 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
     unified_scan.ranges.resize(round((unified_scan.angle_max - unified_scan.angle_min) / unified_scan.angle_increment) + 1);
     unified_scan.intensities.resize(round((unified_scan.angle_max - unified_scan.angle_min) / unified_scan.angle_increment) + 1);
 
-    // now unifie all Scans
-    ROS_DEBUG("unifie scans");
+    // now unify all Scans
+    ROS_DEBUG("unify scans");
     for(int j = 0; j < config_.number_input_scans; j++)
     {
       for (unsigned int i = 0; i < vec_cloud.at(j).points.size(); i++)
@@ -313,7 +325,7 @@ sensor_msgs::LaserScan scan_unifier_node::unifieLaserScans()
  * input: -
  * output: -
  */
-void scan_unifier_node::checkUnifieCondition()
+void scan_unifier_node::checkUnifyCondition()
 {
   bool all_scans_received = true;
   if(!vec_laser_struct_.empty())
@@ -330,9 +342,9 @@ void scan_unifier_node::checkUnifieCondition()
 
   if(all_scans_received)
   {
-    // all scan-structs received a new msg so now unifie all of them
+    // all scan-structs received a new msg so now unify all of them
     ROS_DEBUG("all_scans_received");
-    sensor_msgs::LaserScan unified_scan = unifieLaserScans();
+    sensor_msgs::LaserScan unified_scan = unifyLaserScans();
     ROS_DEBUG("now publish");
     topicPub_LaserUnified_.publish(unified_scan);
     for(int i=0; i < config_.number_input_scans; i++)
@@ -349,6 +361,9 @@ int main(int argc, char** argv)
 
   scan_unifier_node my_scan_unifier_node;
 
+  //Sleep to make sure tf_listener buffer fills up
+  ros::Duration(1).sleep();
+
   // store initialization time of the node
   ros::Time start = ros::Time::now();
 
@@ -358,7 +373,7 @@ int main(int argc, char** argv)
   while(my_scan_unifier_node.nh_.ok())
   {
 
-    my_scan_unifier_node.checkUnifieCondition();
+    my_scan_unifier_node.checkUnifyCondition();
 
     ros::spinOnce();
     rate.sleep();

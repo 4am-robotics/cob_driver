@@ -124,6 +124,8 @@ class scan_unifier_node
 
     config_struct config_;
 
+    std::string frame_;
+
     std::vector<laser_scan_struct> vec_laser_struct_;
   public:
 
@@ -214,24 +216,24 @@ class scan_unifier_node
     void topicCallbackLaserScan(const sensor_msgs::LaserScan::ConstPtr& scan_in, int scan_id);
 
     /**
-     * @function checkUnifieCondition
-     * @brief check in every node-loop if the unifieConditions holds. A unified scan is only published if new laser
+     * @function checkUnifyCondition
+     * @brief check in every node-loop if the unifyConditions holds. A unified scan is only published if new laser
      * messages from all scanners have been received
      *
      * input: -
      * output: -
      */
-    void checkUnifieCondition();
+    void checkUnifyCondition();
 
     /**
-     * @function unifieLaserScans
-     * @brief unifie the scan information from all laser scans in vec_laser_struct_
+     * @function unifyLaserScans
+     * @brief unify the scan information from all laser scans in vec_laser_struct_
      *
      * input: -
      * output:
      * @param: a laser scan message containing unified information from all scanners
      */
-    sensor_msgs::LaserScan unifieLaserScans();
+    sensor_msgs::LaserScan unifyLaserScans();
 
 };
 #endif
