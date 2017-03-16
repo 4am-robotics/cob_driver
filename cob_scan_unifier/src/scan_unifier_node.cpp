@@ -193,7 +193,6 @@ void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstP
  */
 bool ScanUnifierNode::unifyLaserScans(std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans, sensor_msgs::LaserScan &unified_scan)
 {
-//  sensor_msgs::LaserScan unified_scan = sensor_msgs::LaserScan();
   std::vector<sensor_msgs::PointCloud> vec_cloud;
   vec_cloud.assign(config_.number_input_scans, sensor_msgs::PointCloud());
 
