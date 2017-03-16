@@ -188,7 +188,7 @@ class NodeClass
 				}
 				else
 				{
-					ROS_WARN("No params for the Sick S300 fieldset were specified --> will using default, but it's deprecated now, please adjust parameters!!!");
+					//ROS_WARN("No params for the Sick S300 fieldset were specified --> will using default, but it's deprecated now, please adjust parameters!!!");
 
 					//setting defaults to be backwards compatible
 					ScannerSickS300::ParamType param;

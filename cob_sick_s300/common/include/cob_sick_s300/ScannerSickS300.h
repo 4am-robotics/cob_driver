@@ -70,37 +70,7 @@
  * Driver class for the laser scanner SICK S300 Professional.
  * This driver only supports use with 500KBaud in cont. mode
  *
- * S300 header format in continuous mode:
- *
- *      | 00 00 00 00 |   4 byte reply header
- *
- *		Now starts the actual telegram
- *
- *      | 00 00 |         data block number (fixed)
- *      | xx xx |         size of data telegram (should be dec 1104)
- *      | FF xx |         last byte decides scanner id, 07 in most cases, but 08 for slave configured scanners
- *      | xx xx |         protocol version
- *      | 0x 00 |         status: 00 00 = normal, 01 00 = lockout
- *      | xx xx xx xx |   scan number
- *      | xx xx |         telegram number
- *      | BB BB |         fixed
- *      | 11 11 |         fixed
- *	       ...            data
- *      | xx xx |         CRC
- *
- * 	   Readout of buffer starts with Reply-Header
- *	   Reply-Header:byte 0 to 3 = 4 bytes
- *	   Telegram (as it is stored in the Buffer):	Position in the telegram
- *	   Header: 		bytes 4 to 23 = 20 bytes		bytes 0 to 19
- *	   Data:   		bytes 24 to 1105 = 1082 bytes	bytes 20 to 1101
- *	   CRC:    		bytes 1106, 1107 = 2 bytes		bytes 1102, 1103
- *
- *	   for easier parsing Reply-Header and Telegram-Header are combined in the folllowing
- *	   --> Headerlength = 24 bytes (iHeaderLength)
- *	   --> Total length in buffer is 1108 bytes
- *	   --> Telegram length (read from telegram) is 1104 bytes (iDataLength)
- *
- *	   if the scanner is in standby, the measurements are 0x4004 according to the Sick Support
+ * if the scanner is in standby, the measurements are 0x4004 according to the Sick Support
  */
 
 class ScannerSickS300
@@ -156,7 +126,7 @@ public:
 	//sick_lms.Uninitialize();
 
 	// whether the scanner is currently in Standby or not
-	bool isInStandby() {return m_bInStandby;};
+	bool isInStandby() {return m_bInStandby;}
 
 	void purgeScanBuf();
 

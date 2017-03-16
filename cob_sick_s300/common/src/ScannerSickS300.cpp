@@ -216,7 +216,7 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 		// parse through the telegram until header with correct scan id is found
 		if(tp_.parseHeader(m_ReadBuf+i, m_actualBufferSize-i, m_iScanId, debug))
 		{
-			tp_.readDistRaw(m_ReadBuf+i, m_viScanRaw);
+			tp_.readDistRaw(m_ReadBuf+i, m_viScanRaw, debug);
 			if(m_viScanRaw.size()>0) {
 				// Scan was succesfully read from buffer
 				bRet = true;

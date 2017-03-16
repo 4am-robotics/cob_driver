@@ -55,6 +55,28 @@
 
 #include <arpa/inet.h>
 
+/*
+* S300 header format in continuous mode:
+*
+*      | 00 00 00 00 |   4 byte reply header
+*      | 00 00 |         data block number (fixed for continuous output)
+*      | xx xx |         size of data telegram in 16-bit data words
+*      | FF xx |         coordination flag and device address (07 in most cases, but 08 for slave configured scanners)
+*      | xx xx |         protocol version (02 01 for old protocol,.otherwise 03 01)
+*      | 0x 00 |         status: 00 00 = normal, 01 00 = lockout
+*      | xx xx xx xx |   scan number (time stamp)
+*      | xx xx |         telegram number
+*      | BB BB |         ID of output (AAAA=I/O, BBBB=range measruements, CCCC=reflector measurements)
+*      | 11 11 |         number of configures measurement field (1111, 2222, 3333, 4444 or 5555)
+*         ...            data
+*      | xx xx |         CRC
+*
+* in this parser, user_data_ denotes all but the first 20 bytes (up to and including telegram number above)
+* and the last two bytes (CRC)
+*
+*/
+
+
 class TelegramParser {
 
 	#pragma pack(push,1)
@@ -62,7 +84,7 @@ class TelegramParser {
 		struct {
 			uint32_t reply_telegram;
 			uint16_t trigger_result;
-			uint16_t size;
+			uint16_t size; // in 16bit=2byte words
 			uint8_t  coordination_flag;
 			uint8_t  device_addresss;
 		};
@@ -211,10 +233,14 @@ class TelegramParser {
 	TELEGRAM_COMMON2 tc2_;
 	TELEGRAM_COMMON3 tc3_;
 	TELEGRAM_DISTANCE td_;
-	int last_offset_;
+	int size_field_start_byte_, crc_bytes_in_size_, user_data_size_;
 public:
 
-	TelegramParser() : last_offset_(0) {}
+	TelegramParser() :
+		size_field_start_byte_(0),
+		crc_bytes_in_size_(0),
+		user_data_size_(0)
+	{}
 
 	bool parseHeader(const unsigned char *buffer, const size_t max_size, const uint8_t DEVICE_ADDR, const bool debug)
 	{
@@ -229,47 +255,87 @@ public:
 		ntoh(tc1_);
 		if(debug) print(tc1_);
 
-		if(tc1_.size*2+JUNK_SIZE>(int)max_size) {
-			if(debug) std::cout<<"invalid header size"<<std::endl;
-			return false;
-		}
-
 		tc2_ = *((TELEGRAM_COMMON2*)(buffer+sizeof(TELEGRAM_COMMON1)));
 		tc3_ = *((TELEGRAM_COMMON3*)(buffer+(sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2))));
 
 		TELEGRAM_TAIL tt;
 		uint16_t crc;
+		int full_data_size = 0;
 
+		// The size reported by the protocol varies depending on the calculation which is different depending
+		// on several factors.
+		// The calculation is described on pp. 70-73 in:
+		// https://www.sick.com/media/dox/1/91/891/Telegram_listing_S3000_Expert_Anti_Collision_S300_Expert_de_en_IM0022891.PDF
+		//
+		// Also, the size is reported as 16bit-words = 2 bytes...
+		//
+		// For the old protocol/compatability mode:
+		// "The telegram size is calculated ... starting with the ... 5. byte ... up to and including the ... CRC."
 		if(tc2_.protocol_version==0x102)
-			last_offset_ = -10;
-		tt = *((TELEGRAM_TAIL*) (buffer+(2*tc1_.size+JUNK_SIZE-sizeof(TELEGRAM_TAIL)+sizeof(TELEGRAM_COMMON2)+last_offset_)) );
-		ntoh(tt);
-		crc = createCRC((uint8_t*)buffer+JUNK_SIZE, 2*tc1_.size-sizeof(TELEGRAM_TAIL)+sizeof(TELEGRAM_COMMON2)+last_offset_);
+		{
+			size_field_start_byte_ = 4; // start at 5th byte (started numbering at 0)
+			crc_bytes_in_size_ = 2; // include 2 bytes CRC
 
-		if(tc2_.protocol_version!=0x102) {
-			if(tt.crc!=crc) {
-				last_offset_ = 0;
-				if(debug) std::cout<<"CRC failed!\ntrying offset of "<<std::dec<<last_offset_<<std::endl;
-				tt = *((TELEGRAM_TAIL*) (buffer+(2*tc1_.size+JUNK_SIZE-sizeof(TELEGRAM_TAIL)+sizeof(TELEGRAM_COMMON2)+last_offset_)) );
-				ntoh(tt);
-				crc = createCRC((uint8_t*)buffer+JUNK_SIZE, 2*tc1_.size-sizeof(TELEGRAM_TAIL)+sizeof(TELEGRAM_COMMON2)+last_offset_);
-			}
+			// the user_data_size is the size of the actual payload data in bytes,
+			//i.e. all data except of the CRC and the first two common telegrams
+			user_data_size_ =
+				2*tc1_.size -
+				(sizeof(TELEGRAM_COMMON1) + sizeof(TELEGRAM_COMMON2) - size_field_start_byte_ + crc_bytes_in_size_);
+			full_data_size = sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_+sizeof(TELEGRAM_TAIL);
 
-			if(tt.crc!=crc) {
-				last_offset_ = -6;
-				if(debug) std::cout<<"CRC failed!\ntrying offset of "<<std::dec<<last_offset_<<std::endl;
-				tt = *((TELEGRAM_TAIL*) (buffer+(2*tc1_.size+JUNK_SIZE-sizeof(TELEGRAM_TAIL)+sizeof(TELEGRAM_COMMON2)+last_offset_)) );
+			tt = *((TELEGRAM_TAIL*) (buffer+(sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_)) );
+			ntoh(tt);
+			crc = createCRC((uint8_t*)buffer+JUNK_SIZE, full_data_size-JUNK_SIZE-sizeof(TELEGRAM_TAIL));
+		}
+		// Special handling for the new protocol, as the settings cannot be fully deduced from the protocol itself
+		// Thus, we have to try both possibilities and check against the CRC...
+		else
+		{
+			// If NO I/O or measuring fields are configured:
+			// "The telegram size is calculated ... starting with the ... 9. byte ... up to and including the ... CRC."
+			size_field_start_byte_ = 8; // start at 9th byte (started numbering at 0)
+			crc_bytes_in_size_ = 2; // include 2 bytes CRC
+			user_data_size_ =
+				2*tc1_.size -
+				(sizeof(TELEGRAM_COMMON1) + sizeof(TELEGRAM_COMMON2) - size_field_start_byte_ + crc_bytes_in_size_);
+			full_data_size = sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_+sizeof(TELEGRAM_TAIL);
+
+			tt = *((TELEGRAM_TAIL*) (buffer+(sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_)) );
+			ntoh(tt);
+			crc = createCRC((uint8_t*)buffer+JUNK_SIZE, full_data_size-JUNK_SIZE-sizeof(TELEGRAM_TAIL));
+			
+			if(tt.crc!=crc)
+			{
+				// If any I/O or measuring field is configured:
+				// "The telegram size is calculated ... starting with the ... 13. byte ... up to and including the
+				// last byte ... bevore (sic!) the CRC."
+				size_field_start_byte_ = 12; // start at 13th byte (started numbering at 0)
+				crc_bytes_in_size_ = 0; // do NOT include 2 bytes CRC
+				user_data_size_ =
+					2*tc1_.size -
+					(sizeof(TELEGRAM_COMMON1) + sizeof(TELEGRAM_COMMON2) - size_field_start_byte_ + crc_bytes_in_size_);
+				full_data_size =
+					sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_+sizeof(TELEGRAM_TAIL);
+
+				tt = *((TELEGRAM_TAIL*) (buffer+(sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_)) );
 				ntoh(tt);
-				crc = createCRC((uint8_t*)buffer+JUNK_SIZE, 2*tc1_.size-sizeof(TELEGRAM_TAIL)+sizeof(TELEGRAM_COMMON2)+last_offset_);
+				crc = createCRC((uint8_t*)buffer+JUNK_SIZE, full_data_size-JUNK_SIZE-sizeof(TELEGRAM_TAIL));
 			}
 		}
+
+		if( (sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_+sizeof(TELEGRAM_TAIL)) > (int)max_size)
+		{
+			if(debug) std::cout<<"invalid header size"<<std::endl;
+			return false;
+		}
+
 
 		if(tt.crc!=crc) {
 			if(debug) {
 				print(tc2_);
 				print(tc3_);
 				print(tt);
-				std::cout<<"at "<<std::hex<<(2*tc1_.size+JUNK_SIZE-sizeof(TELEGRAM_TAIL)+sizeof(TELEGRAM_COMMON2)+last_offset_)<<std::endl;
+				std::cout<<"at "<<std::dec<<(sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_)<<std::hex<<std::endl;
 				std::cout<<"invalid CRC: "<<crc<<" ("<<tt.crc<<")"<<std::endl;
 			}
 			return false;
@@ -282,7 +348,7 @@ public:
 			case DISTANCE:
 				if(debug) std::cout<<"got distance"<<std::endl;
 
-				td_ = *((TELEGRAM_DISTANCE*)(buffer+sizeof(tc1_)+sizeof(tc2_)+sizeof(tc3_)));
+				td_ = *((TELEGRAM_DISTANCE*)(buffer+sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+sizeof(TELEGRAM_COMMON3)));
 				ntoh(td_);
 				//print(td_);
 				break;
@@ -307,22 +373,24 @@ public:
 	}
 
 	int getCompletePacketSize() const {
-		return 2*tc1_.size + sizeof(tc1_) + JUNK_SIZE + last_offset_;
+		return sizeof(TELEGRAM_COMMON1)+sizeof(TELEGRAM_COMMON2)+user_data_size_+sizeof(TELEGRAM_TAIL);
 	}
 
-	void readDistRaw(const unsigned char *buffer, std::vector<int> &res) const
+	void readDistRaw(const unsigned char *buffer, std::vector<int> &res, bool debug) const
 	{
 		res.clear();
 		if(!isDist()) return;
 
-		size_t num_points = (2*tc1_.size - (sizeof(tc1_)+sizeof(tc2_)+sizeof(tc3_)+sizeof(td_)+sizeof(TELEGRAM_TAIL)-JUNK_SIZE-last_offset_));
-		//std::cout<<"num_points: "<<std::dec<<num_points/sizeof(TELEGRAM_S300_DIST_2B)<<"  "<<num_points<<" "<<tc1_.size<<std::endl;
-		size_t i=0;
-		for(; i<num_points; ) {
-			TELEGRAM_S300_DIST_2B dist = *((TELEGRAM_S300_DIST_2B*) (buffer+(sizeof(tc1_)+sizeof(tc2_)+sizeof(tc3_)+sizeof(td_)+i)) );
+		size_t num_points =
+			(user_data_size_ - sizeof(TELEGRAM_COMMON3) - sizeof(TELEGRAM_DISTANCE)) / sizeof(TELEGRAM_S300_DIST_2B);
+		if (debug) std::cout << "Number of points: " << std::dec << num_points << std::endl;
+		for(size_t i=0; i<num_points; ++i) {
+			TELEGRAM_S300_DIST_2B dist =
+				*((TELEGRAM_S300_DIST_2B*) (buffer + (sizeof(TELEGRAM_COMMON1) + sizeof(TELEGRAM_COMMON2) +
+				                                      sizeof(TELEGRAM_COMMON3) + sizeof(TELEGRAM_DISTANCE) +
+				                                      i * sizeof(TELEGRAM_S300_DIST_2B))) );
 			//for distance only: res.push_back((int)dist.distance);
 			res.push_back((int)dist.val16);
-			i += sizeof(TELEGRAM_S300_DIST_2B);
 		}
 	}
 
