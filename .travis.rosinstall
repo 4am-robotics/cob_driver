@@ -1,8 +1,1 @@
-- git:
-    uri: 'https://github.com/ipa320/cob_common.git'
-    local-name: cob_common
-    version: indigo_dev
-- git:
-    uri: 'https://github.com/ipa320/cob_extern.git'
-    local-name: cob_extern
-    version: indigo_dev
+# empty
