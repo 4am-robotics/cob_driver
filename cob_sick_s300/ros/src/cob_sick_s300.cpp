@@ -85,7 +85,7 @@ class NodeClass
 	//
 	public:
 
-		ros::NodeHandle nh;
+		ros::NodeHandle nh, pnh;
 		// topics to publish
 		ros::Publisher topicPub_LaserScan;
 		ros::Publisher topicPub_InStandby;
@@ -119,39 +119,39 @@ class NodeClass
 		NodeClass()
 		{
 			// create a handle for this node, initialize node
-			//nh = ros::NodeHandle("~");
+			pnh = ros::NodeHandle("~");
 
-			if(!nh.hasParam("port")) ROS_WARN("Used default parameter for port");
-			nh.param("port", port, std::string("/dev/ttyUSB0"));
+			if(!pnh.hasParam("port")) ROS_WARN("Used default parameter for port");
+			pnh.param("port", port, std::string("/dev/ttyUSB0"));
 
-			if(!nh.hasParam("baud")) ROS_WARN("Used default parameter for baud");
-			nh.param("baud", baud, 500000);
+			if(!pnh.hasParam("baud")) ROS_WARN("Used default parameter for baud");
+			pnh.param("baud", baud, 500000);
 
-			if(!nh.hasParam("scan_id")) ROS_WARN("Used default parameter for scan_id");
-			nh.param("scan_id", scan_id, 7);
+			if(!pnh.hasParam("scan_id")) ROS_WARN("Used default parameter for scan_id");
+			pnh.param("scan_id", scan_id, 7);
 
-			if(!nh.hasParam("inverted")) ROS_WARN("Used default parameter for inverted");
-			nh.param("inverted", inverted, false);
+			if(!pnh.hasParam("inverted")) ROS_WARN("Used default parameter for inverted");
+			pnh.param("inverted", inverted, false);
 
-			if(!nh.hasParam("frame_id")) ROS_WARN("Used default parameter for frame_id");
-			nh.param("frame_id", frame_id, std::string("/base_laser_link"));
+			if(!pnh.hasParam("frame_id")) ROS_WARN("Used default parameter for frame_id");
+			pnh.param("frame_id", frame_id, std::string("/base_laser_link"));
 
-			if(!nh.hasParam("scan_duration")) ROS_WARN("Used default parameter for scan_duration");
-			nh.param("scan_duration", scan_duration, 0.025); //no info about that in SICK-docu, but 0.025 is believable and looks good in rviz
+			if(!pnh.hasParam("scan_duration")) ROS_WARN("Used default parameter for scan_duration");
+			pnh.param("scan_duration", scan_duration, 0.025); //no info about that in SICK-docu, but 0.025 is believable and looks good in rviz
 
-			if(!nh.hasParam("scan_cycle_time")) ROS_WARN("Used default parameter for scan_cycle_time");
-			nh.param("scan_cycle_time", scan_cycle_time, 0.040); //SICK-docu says S300 scans every 40ms
+			if(!pnh.hasParam("scan_cycle_time")) ROS_WARN("Used default parameter for scan_cycle_time");
+			pnh.param("scan_cycle_time", scan_cycle_time, 0.040); //SICK-docu says S300 scans every 40ms
 
-			if (!nh.hasParam("publish_frequency")) ROS_WARN("Used default parameter for publish_frequency");
-			nh.param("publish_frequency", publish_frequency, 12); //Hz
+			if(!pnh.hasParam("publish_frequency")) ROS_WARN("Used default parameter for publish_frequency");
+			pnh.param("publish_frequency", publish_frequency, 12); //Hz
 
-			if(nh.hasParam("debug")) nh.param("debug", debug_, false);
+			if(pnh.hasParam("debug")) pnh.param("debug", debug_, false);
 
 			try
 			{
 				//get params for each measurement
 				XmlRpc::XmlRpcValue field_params;
-				if(nh.getParam("fields",field_params) && field_params.getType() == XmlRpc::XmlRpcValue::TypeStruct)
+				if(pnh.getParam("fields",field_params) && field_params.getType() == XmlRpc::XmlRpcValue::TypeStruct)
 				{
 					for(XmlRpc::XmlRpcValue::iterator field=field_params.begin(); field!=field_params.
 					end(); field++)
