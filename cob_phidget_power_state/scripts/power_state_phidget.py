@@ -17,8 +17,10 @@ class PowerStatePhidget():
         self.current = None
         self.last_update = rospy.Time(0)
         self.charging = False
-
-        self.voltage_divider_factor = rospy.get_param("~voltage_divider_factor", 59.5)
+        try:
+            self.voltage_divider_factor = rospy.get_param("~voltage_divider_factor")
+        except KeyError:
+            raise KeyError("Parameter \"~voltage_divider_factor\" not found on parameter server.")
         self.voltage_full = rospy.get_param("~voltage_full", 52.0)
         self.voltage_empty = rospy.get_param("~voltage_empty", 38.0)
         self.current_max = rospy.get_param("~current_max", 30.0)
@@ -120,7 +122,12 @@ class PowerStatePhidget():
 
 if __name__ == "__main__":
     rospy.init_node("power_state_phidget")
-    psp = PowerStatePhidget()
+    try:
+        psp = PowerStatePhidget()
+    except KeyError as e:
+        rospy.logerr("Shutting down: {}".format(e.message))
+        exit(1)
+
     rospy.loginfo("power state phidget running")
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
