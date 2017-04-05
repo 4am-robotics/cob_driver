@@ -1,23 +1,26 @@
 #!/usr/bin/env python
 
-import rospy
 import numpy as np
-from cob_phidgets.msg import AnalogSensor
+import rospy
 from cob_msgs.msg import PowerState
+from cob_phidgets.msg import AnalogSensor
+
 
 class PowerStatePhidget():
     PHIDGET_MAX_VALUE = 999
     PHIDGET_MIN_VALUE = 0
     PERIOD_RECORD_SIZE = 6
-    VOLTAGE_COLLECTION_TIME = 6.0 #sec
+    VOLTAGE_COLLECTION_TIME = 6.0  # sec
 
     def __init__(self):
         self.voltage = None
         self.current = None
         self.last_update = rospy.Time(0)
         self.charging = False
-
-        self.voltage_max = rospy.get_param("~voltage_max", 59.5)
+        try:
+            self.voltage_divider_factor = rospy.get_param("~voltage_divider_factor")
+        except KeyError:
+            raise KeyError("Parameter \"~voltage_divider_factor\" not found on parameter server.")
         self.voltage_full = rospy.get_param("~voltage_full", 52.0)
         self.voltage_empty = rospy.get_param("~voltage_empty", 38.0)
         self.current_max = rospy.get_param("~current_max", 30.0)
@@ -42,8 +45,8 @@ class PowerStatePhidget():
             self.voltage = np.mean(self.voltage_bag)
 
     def phidget_cb(self, msg):
-        #Estimate commands frequency; we do continuously as it can be very different depending on the
-        #publisher type, and we don't want to impose extra constraints to keep this package flexible
+        # Estimate commands frequency; we do continuously as it can be very different depending on the
+        # publisher type, and we don't want to impose extra constraints to keep this package flexible
         if len(self.period_record) < self.PERIOD_RECORD_SIZE:
             self.period_record.append((rospy.Time.now() - self.last_update).to_sec())
         else:
@@ -53,15 +56,15 @@ class PowerStatePhidget():
         self.pr_next %= len(self.period_record)
         self.last_update = rospy.Time.now()
 
-        if len(self.period_record) <= self.PERIOD_RECORD_SIZE/2:
+        if len(self.period_record) <= self.PERIOD_RECORD_SIZE / 2:
             # wait until we have some values; make a reasonable assumption (10 Hz) meanwhile
             self.cb_avg_time = 0.1
         else:
-            #enough; recalculate with the latest input
+            # enough; recalculate with the latest input
             self.cb_avg_time = np.median(self.period_record)
 
-        #now set the max voltage bag size
-        self.voltage_bag_maxlen = int(self.VOLTAGE_COLLECTION_TIME/self.cb_avg_time)
+        # now set the max voltage bag size
+        self.voltage_bag_maxlen = int(self.VOLTAGE_COLLECTION_TIME / self.cb_avg_time)
 
         voltage_raw = None
         current_raw = None
@@ -73,14 +76,15 @@ class PowerStatePhidget():
                 current_raw = msg.value[i]
 
         if voltage_raw != None:
-            #Calculation of real voltage
-            voltage = voltage_raw * self.voltage_max/self.PHIDGET_MAX_VALUE;
+            # Calculation of real voltage
+            voltage = self.voltage_divider_factor * voltage_raw / self.PHIDGET_MAX_VALUE
             voltage = round(voltage, 3)
             self.append_voltage_bag(voltage)
 
         if current_raw != None:
-            #Calculation of real current
-            self.current = self.current_min+(self.current_max - self.current_min)*(current_raw - self.PHIDGET_MIN_VALUE) / (self.PHIDGET_MAX_VALUE - self.PHIDGET_MIN_VALUE)
+            # Calculation of real current
+            self.current = self.current_min + (self.current_max - self.current_min) * (current_raw -
+                                                                                       self.PHIDGET_MIN_VALUE) / (self.PHIDGET_MAX_VALUE - self.PHIDGET_MIN_VALUE)
             self.current = round(self.current, 3)
 
             if self.current > 0:
@@ -97,7 +101,7 @@ class PowerStatePhidget():
     def calculate_relative_remaining_capacity(self):
         percentage = None
         if self.voltage != None:
-            percentage = round((self.voltage - self.voltage_empty) * 100/(self.voltage_full - self.voltage_empty), 3)
+            percentage = round((self.voltage - self.voltage_empty) * 100 / (self.voltage_full - self.voltage_empty), 3)
             percentage = min(percentage, 100)
             percentage = max(percentage, 0)
             return percentage
@@ -118,7 +122,12 @@ class PowerStatePhidget():
 
 if __name__ == "__main__":
     rospy.init_node("power_state_phidget")
-    psp = PowerStatePhidget()
+    try:
+        psp = PowerStatePhidget()
+    except KeyError as e:
+        rospy.logerr("Shutting down: {}".format(e.message))
+        exit(1)
+
     rospy.loginfo("power state phidget running")
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
