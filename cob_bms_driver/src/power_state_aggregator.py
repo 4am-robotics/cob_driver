@@ -112,5 +112,8 @@ if __name__ == "__main__":
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
         PSA.publish()
-        rate.sleep()
+        try:
+            rate.sleep()
+        except rospy.exceptions.ROSInterruptException as e:
+            pass
         
