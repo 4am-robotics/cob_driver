@@ -8,19 +8,18 @@ find_package(Boost REQUIRED COMPONENTS date_time thread)
 catkin_package()
 
 ### BUILD ###
-include_directories(common/include common/src ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
-
-set(OODL_SickS300_SRC
-  ${PROJECT_SOURCE_DIR}/common/src/Errors.cpp
-  ${PROJECT_SOURCE_DIR}/common/src/Logger.cpp
- # ${PROJECT_SOURCE_DIR}/common/src/LaserScannerData.cpp
-  ${PROJECT_SOURCE_DIR}/common/src/LaserScannerConfiguration.cpp
- # ${PROJECT_SOURCE_DIR}/common/src/LaserScannerDataWithIntensities.cpp
-  ${PROJECT_SOURCE_DIR}/common/src/ScannerSickS300.cpp
-  ${PROJECT_SOURCE_DIR}/common/src/SerialIO.cpp
+include_directories(
+  common/include
+  ${Boost_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp ${OODL_SickS300_SRC})
+add_executable(${PROJECT_NAME}
+  common/src/ScannerSickS300.cpp
+  common/src/SerialIO.cpp
+  ros/src/${PROJECT_NAME}.cpp
+)
+
 add_executable(cob_scan_filter ros/src/cob_scan_filter.cpp)
 
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
