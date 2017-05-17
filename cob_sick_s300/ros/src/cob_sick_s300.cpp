@@ -291,7 +291,7 @@ class NodeClass
 			laserScan.header.frame_id = frame_id;
 			laserScan.angle_increment = vdAngRAD[start_scan + 1] - vdAngRAD[start_scan];
 			laserScan.range_min = 0.001;
-			laserScan.range_max = 30.0;
+			laserScan.range_max = 29.5; // though the specs state otherwise, the max range reported by the scanner is 29.96m
 			laserScan.time_increment = (scan_duration) / (vdDistM.size());
 
 			// rescale scan
