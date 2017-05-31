@@ -60,6 +60,7 @@
 import sys
 import os
 import subprocess
+import vlc
 
 import roslib
 import rospy
@@ -69,69 +70,100 @@ from cob_mimic.srv import *
 from cob_mimic.msg import *
 
 class Mimic:
-  def service_cb(self, req):
-      success = self.set_mimic(req.mimic, req.speed, req.repeat)
-      return SetMimicResponse(success, "")
+    def __init__(self):
+        self.media =                None
+        self.player =               None
+        self.playlist =             None
+        self.repeat =               None
+        self.emotion =              None
+        self.vlc_instance =         None
+        self.playback_speed =       None
+        self.default_mimic =        'default'
+        self.default_mimic_file =   '/tmp/mimic/' + self.default_mimic +'.mp4'
+        #lets start the default emotion
+        self.setup_playback()
 
-  def action_cb(self, goal):
-      if self.set_mimic(goal.mimic, goal.speed, goal.repeat):
-        self._as.set_succeeded()
-      else:
-        self._as.set_aborted()
+    def service_cb(self, req):
+        success = self.set_mimic(req.mimic, req.speed, req.repeat)
+        return SetMimicResponse(success, "")
 
-  def set_mimic(self, mimic, speed, repeat):
-      rospy.loginfo("Mimic: %s", mimic)
-      file_location = '/tmp/mimic/' + mimic + '.mp4'
-      if(not os.path.isfile(file_location)):
-        rospy.logerror("File not found: %s", file_location)
-        return False
+    def action_cb(self, goal):
+        if self.set_mimic(goal.mimic, goal.speed, goal.repeat):
+            self._as.set_succeeded()
+        else:
+            self._as.set_aborted()
 
-      # repeat cannot be 0
-      repeat = max (1, repeat)
+    def set_mimic(self, mimic, speed, repeat):
+        rospy.loginfo("Mimic: %s", mimic)
+        file_location = '/tmp/mimic/' + mimic + '.mp4'
+        print mimic
+        if(not os.path.isfile(file_location)):
+            rospy.logerror("File not found ")
+            return False
+        # repeat cannot be 0
+        repeat = max (1, repeat)
+        self.emotion = mimic
+        self.playback_speed = speed
+        self.repeat = repeat
+        self.set_emotion()
+        return True
 
-      for i in range(0, repeat):
-        rospy.loginfo("Repeat: %s, Mimic: %s", repeat, mimic)
-        command = "export DISPLAY=:0 && vlc --video-filter 'rotate{angle=%d}' --vout glx --one-instance --playlist-enqueue --no-video-title-show --fullscreen --rate %f  %s  vlc://quit"  % (self.rotation, speed, file_location)
-        os.system(command)
+    def main(self):
+        self.rotation = rospy.get_param('~rotation', 0)
+        # copy all videos to /tmp
+        rospy.loginfo("copying all mimic files to /tmp/mimic...")
+        file_location = roslib.packages.get_pkg_dir('cob_mimic') + '/common/*.mp4'
+        os.system("mkdir -p /tmp/mimic")
+        os.system("cp " + file_location + " /tmp/mimic")
+        rospy.loginfo("...copied all mimic files to /tmp/mimic")
+        self._ss = rospy.Service('~set_mimic', SetMimic, self.service_cb)
+        self._as = actionlib.SimpleActionServer('~set_mimic', cob_mimic.msg.SetMimicAction, execute_cb=self.action_cb, auto_start = False)
+        self._as.start()
+        self.play_defualt_emotion()
+        rospy.spin()
 
-      return True
+    def setup_playback(self):
+        try:
+            if not os.path.isfile(self.default_mimic_file):
+                rospy.logerror("File not found: %s", self.default_mimic_file)
+                return
+            # run single instance of the media player
+            self.vlc_instance = vlc.Instance('--ignore-config', '--mouse-hide-timeout=0', '-q', '--no-osd', '-L', '--one-instance', '--playlist-enqueue', '--no-video-title-show')
+            self.player = self.vlc_instance.media_player_new()
+            self.player.set_fullscreen(int(True))
+        except Exception as e:
+            rospy.logerror("Something went wrong while setting up media playback: %s", str(e))
 
-  def defaultMimic(self):
-    file_location = '/tmp/mimic/' + self.default_mimic + '.mp4'
-    if not os.path.isfile(file_location):
-      rospy.logerror("File not found: %s", file_location)
-      return
+    def play_defualt_emotion(self):
+        self.media = self.vlc_instance.media_new(self.default_mimic_file)
+        self.vlc_instance.vlm_set_loop(self.default_mimic_file, int(True))
+        self.media.get_mrl()
+        self.playback_speed = 1.0 # default playback speed 1.0
+        self.player.set_rate(float(self.playback_speed))
+        self.player.set_media(self.media)
+        self.player.play()
 
-    while not rospy.is_shutdown():
-      command = "export DISPLAY=:0 && vlc --video-filter 'rotate{angle=%d}' --vout glx --loop --one-instance --playlist-enqueue --no-video-title-show --fullscreen --rate %f  %s  vlc://quit"  % (self.rotation, self.default_speed, file_location)
-      os.system(command)
-
-  def main(self):
-    self.default_speed = 1.0
-    self.default_mimic = "default"
-    self.rotation = rospy.get_param('~rotation', 0)
-
-    # copy all videos to /tmp
-    rospy.loginfo("copying all mimic files to /tmp/mimic...")
-    file_location = roslib.packages.get_pkg_dir('cob_mimic') + '/common/*.mp4'
-    os.system("mkdir -p /tmp/mimic")
-    os.system("cp " + file_location + " /tmp/mimic")
-    rospy.loginfo("...copied all mimic files to /tmp/mimic")
-
-    self._ss = rospy.Service('~set_mimic', SetMimic, self.service_cb)
-    self._as = actionlib.SimpleActionServer('~set_mimic', cob_mimic.msg.SetMimicAction, execute_cb=self.action_cb, auto_start = False)
-    self._as.start()
-
-    rospy.spin()
-
-
+    def set_emotion(self):
+        if self.repeat and self.emotion:
+            self.player.set_rate(float(self.playback_speed))
+            file_location = '/tmp/mimic/' + self.emotion + '.mp4'
+            while self.repeat:
+                self.media = self.vlc_instance.media_new(file_location)
+                self.media.get_mrl()
+                self.player.set_media(self.media)
+                self.player.play()
+                self.repeat -= 1
+                rospy.sleep(4)
+            self.repeat = None
+            self.emotion = None    
+        self.play_defualt_emotion()
 
 if __name__ == "__main__":
-  rospy.init_node('mimic')
-  try:
-    mimic = Mimic()
-    mimic.main()
-  except (rospy.ROSInterruptException, KeyboardInterrupt, SystemExit) as e:
-    rospy.loginfo('Exiting: ' + str(e))
-    pass
+    rospy.init_node('mimic')
+    try:
+        mimic = Mimic()
+        mimic.main()
+    except (rospy.ROSInterruptException, KeyboardInterrupt, SystemExit) as e:
+        rospy.loginfo('Exiting: ' + str(e))
+        pass
 
