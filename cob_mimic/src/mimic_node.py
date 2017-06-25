@@ -98,7 +98,7 @@ class Mimic:
         file_location = '/tmp/mimic/' + mimic + '.mp4'
         print mimic
         if(not os.path.isfile(file_location)):
-            rospy.logerror("File not found ")
+            rospy.logerr("File not found ")
             return False
         # repeat cannot be 0
         repeat = max (1, repeat)
@@ -125,14 +125,14 @@ class Mimic:
     def setup_playback(self):
         try:
             if not os.path.isfile(self.default_mimic_file):
-                rospy.logerror("File not found: %s", self.default_mimic_file)
+                rospy.logerr("File not found: %s", self.default_mimic_file)
                 return
             # run single instance of the media player
             self.vlc_instance = vlc.Instance('--ignore-config', '--mouse-hide-timeout=0', '-q', '--no-osd', '-L', '--one-instance', '--playlist-enqueue', '--no-video-title-show')
             self.player = self.vlc_instance.media_player_new()
             self.player.set_fullscreen(int(True))
         except Exception as e:
-            rospy.logerror("Something went wrong while setting up media playback: %s", str(e))
+            rospy.logerr("Something went wrong while setting up media playback: %s", str(e))
 
     def play_defualt_emotion(self):
         self.media = self.vlc_instance.media_new(self.default_mimic_file)
@@ -152,8 +152,10 @@ class Mimic:
                 self.media.get_mrl()
                 self.player.set_media(self.media)
                 self.player.play()
+                rospy.sleep(0.1)
+                while self.player.is_playing() == 1:
+                    rospy.sleep(0.1)
                 self.repeat -= 1
-                rospy.sleep(4)
             self.repeat = None
             self.emotion = None    
         self.play_defualt_emotion()
