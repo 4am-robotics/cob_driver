@@ -12,9 +12,9 @@
 # \note
 # Project name: Care-O-bot Research
 # \note
-# ROS stack name: cob_environments
+# ROS stack name: cob_driver
 # \note
-# ROS package name: cob_gazebo_objects
+# ROS package name: cob_mimic
 #
 # \author
 # Author: Nadia Hammoudeh Garcia, email:nadia.hammoudeh.garcia@ipa.fhg.de
