@@ -3,7 +3,7 @@
   <version>0.6.8</version>
   <description>This package published a laser scan message out of a Sick S300 laser scanner.</description>
 
-  <license>LGPL</license>
+  <license>Apache 2.0</license>
 
   <url type="website">http://ros.org/wiki/cob_sick_s300</url>
   <!-- <url type="bugtracker"></url> -->

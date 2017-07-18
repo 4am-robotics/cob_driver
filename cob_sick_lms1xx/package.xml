@@ -9,7 +9,7 @@
   <maintainer email="denis.stogl@kit.edu">Denis Stogl</maintainer>
   <author>Konrad Banachowicz</author>
 
-  <license>GPL,LGPL</license>
+  <license>Apache 2.0</license>
   <url type="website">http://ros.org/wiki/cob_sick_lms1xx</url>
 
   <buildtool_depend>catkin</buildtool_depend>

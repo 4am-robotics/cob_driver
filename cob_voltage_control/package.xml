@@ -3,7 +3,7 @@
   <version>0.6.8</version>
   <description>Interface to IO board that manages emergency stop and battery voltage on rob@work 3</description>
 
-  <license>LGPL</license>
+  <license>Apache 2.0</license>
 
   <url type="website">None</url>
   <!-- <url type="bugtracker"></url> -->

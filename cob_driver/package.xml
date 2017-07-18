@@ -3,7 +3,7 @@
   <version>0.6.8</version>
   <description>The cob_driver stack includes packages that provide access to the Care-O-bot hardware through ROS messages, services and actions. E.g. for mobile base, arm, camera sensors, laser scanners, etc...</description>
 
-  <license>LGPL</license>
+  <license>Apache 2.0</license>
 
   <url type="website">http://ros.org/wiki/cob_driver</url>
   <!-- <url type="bugtracker"></url> -->

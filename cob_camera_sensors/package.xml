@@ -3,7 +3,7 @@
   <version>0.6.8</version>
   <description>For more information read the readme.htm file located in</description>
 
-  <license>LGPL</license>
+  <license>Apache 2.0</license>
 
   <url type="website">http://ros.org/wiki/cob_camera_sensors</url>
   <!-- <url type="bugtracker"></url> -->

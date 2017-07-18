@@ -3,7 +3,7 @@
   <version>0.6.8</version>
   <description>This package contains scripts to operate the LED lights on Care-O-bot.</description>
 
-  <license>LGPL</license>
+  <license>Apache 2.0</license>
 
   <url type="website">http://ros.org/wiki/cob_light</url>
   <!-- <url type="bugtracker"></url> -->
