@@ -2,6 +2,12 @@
 Changelog for package cob_voltage_control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update csv_processing.launch
+* manually fix changelog
+* Contributors: Felix Messmer, ipa-fxm
+
 0.6.8 (2016-10-10)
 ------------------
 

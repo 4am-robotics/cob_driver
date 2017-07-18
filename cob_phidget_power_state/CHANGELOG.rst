@@ -2,6 +2,13 @@
 Changelog for package cob_phidget_power_state
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* shut down if the voltage divider factor is undefined
+* renamed max_voltage to more descriptive voltage_divider_factor
+* smooth calculated voltage from phidget board by adapting average over windows of measurements
+* Contributors: Benjamin Maidel, Jannik Abbenseth
+
 0.6.8 (2016-10-10)
 ------------------
 * fix current sign

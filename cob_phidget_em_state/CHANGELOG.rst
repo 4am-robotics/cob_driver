@@ -2,6 +2,11 @@
 Changelog for package cob_phidget_em_state
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* send em_state only if data from phidget received
+* Contributors: Benjamin Maidel
+
 0.6.8 (2016-10-10)
 ------------------
 * fix

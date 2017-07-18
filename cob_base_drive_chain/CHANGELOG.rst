@@ -2,6 +2,16 @@
 Changelog for package cob_base_drive_chain
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix/diagnostic rate (`#329 <https://github.com/ipa320/cob_driver/issues/329>`_)
+  * Turned down global diagnostic rate to 1Hz
+  * Fixed comments
+  * Intermediate
+  * Fixed
+* manually fix changelog
+* Contributors: ipa-fxm, mig-em
+
 0.6.8 (2016-10-10)
 ------------------
 * introduced param to set homing velocity

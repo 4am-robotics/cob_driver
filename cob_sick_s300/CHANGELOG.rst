@@ -2,6 +2,19 @@
 Changelog for package cob_sick_s300
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [cob_sick_s300] fix typo in Readme
+* cob_sick_s300: clarify some points about the measurement range fields in the readme
+* cob_sick_s300: add readme
+* cob_sick_s300: remove debug print out
+* cob_sick_s300: properly get offsets and add corresponding docu to source code
+* cob_sick_s300: comment warning about field parameters --> this is currently buggy, old version works better
+* cob_sick_s300: move telegram description to telegram parser file
+* cob_sick_s300: clarify telegram calculation according to telegram listing
+* manually fix changelog
+* Contributors: Matthias Gruhler, ipa-fxm, ipa-mig
+
 0.6.8 (2016-10-10)
 ------------------
 

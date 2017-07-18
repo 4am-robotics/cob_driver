@@ -2,6 +2,16 @@
 Changelog for package cob_scan_unifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* remove commented line
+* Added sleep in constructor, new topic parameter parsing, better error handling.
+* Some small fixes
+* Cleanup
+* Use message_filter::Synchronizer (there is still a bug)
+* manually fix changelog
+* Contributors: Elias Marks, Matthias Gruhler, ipa-fxm
+
 0.6.8 (2016-10-10)
 ------------------
 
