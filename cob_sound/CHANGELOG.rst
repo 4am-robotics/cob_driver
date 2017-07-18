@@ -2,8 +2,8 @@
 Changelog for package cob_sound
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.9 (2017-07-18)
+------------------
 * remove dependency to sound_play
 * fix sound test_client
 * manually fix changelog

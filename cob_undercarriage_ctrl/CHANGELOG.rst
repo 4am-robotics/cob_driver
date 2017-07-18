@@ -2,8 +2,8 @@
 Changelog for package cob_undercarriage_ctrl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.9 (2017-07-18)
+------------------
 * manually fix changelog
 * Contributors: ipa-fxm
 

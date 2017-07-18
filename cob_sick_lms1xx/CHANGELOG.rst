@@ -2,8 +2,8 @@
 Changelog for package cob_sick_lms1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.9 (2017-07-18)
+------------------
 * manually fix changelog
 * Contributors: ipa-fxm
 

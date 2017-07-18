@@ -2,8 +2,8 @@
 Changelog for package cob_base_drive_chain
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.9 (2017-07-18)
+------------------
 * Fix/diagnostic rate (`#329 <https://github.com/ipa320/cob_driver/issues/329>`_)
   * Turned down global diagnostic rate to 1Hz
   * Fixed comments

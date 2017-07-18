@@ -2,8 +2,8 @@
 Changelog for package cob_scan_unifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.9 (2017-07-18)
+------------------
 * remove commented line
 * Added sleep in constructor, new topic parameter parsing, better error handling.
 * Some small fixes

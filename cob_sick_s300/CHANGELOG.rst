@@ -2,8 +2,8 @@
 Changelog for package cob_sick_s300
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.9 (2017-07-18)
+------------------
 * [cob_sick_s300] fix typo in Readme
 * cob_sick_s300: clarify some points about the measurement range fields in the readme
 * cob_sick_s300: add readme

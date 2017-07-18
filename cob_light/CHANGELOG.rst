@@ -2,8 +2,8 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.9 (2017-07-18)
+------------------
 * added test script
   added test script
   added test script

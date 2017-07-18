@@ -2,8 +2,8 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.9 (2017-07-18)
+------------------
 * minor change for handling exception
 * made changes which only sets the current that in turn is used by power_aggregator for relative_remaining_capacity calculation
 * fix typo

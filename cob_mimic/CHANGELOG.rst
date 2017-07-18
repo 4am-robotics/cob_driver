@@ -2,8 +2,8 @@
 Changelog for package cob_mimic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.9 (2017-07-18)
+------------------
 * update license
 * Delete ___init_\_.py
 * Update package.xml
