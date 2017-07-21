@@ -72,6 +72,8 @@ uint64_t ModeExecutor::execute(cob_light::LightMode requestedMode)
 	// check if mode was correctly created
 	if(mode)
 		return execute(mode);
+	else
+		return 0;
 }
 
 uint64_t ModeExecutor::execute(boost::shared_ptr<Mode> mode)
