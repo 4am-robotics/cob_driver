@@ -6,10 +6,10 @@
   <license>LGPL</license>
 
   <url type="website">http://ros.org/wiki/cob_mimic</url>
-  <!-- <url type="bugtracker"></url> -->
 
   <maintainer email="nhg@ipa.fhg.de">Nadia Hammoudeh Garcia</maintainer>
   <author email="nhg@ipa.fhg.de">Nadia Hammoudeh Garcia</author>
+  <author email="benjamin.maidel@ipa.fraunhofer.de">Benjamin Maidel</author>
 
   <buildtool_depend>catkin</buildtool_depend>
 
@@ -17,11 +17,11 @@
   <exec_depend>message_runtime</exec_depend>
 
   <depend>actionlib_msgs</depend>
-
-  <exec_depend>actionlib</exec_depend>
-  <exec_depend>python-vlc-pip</exec_depend>
-  <exec_depend>roslib</exec_depend>
-  <exec_depend>rospy</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
+  <depend>actionlib</depend>
+  <depend>boost</depend>
+  <depend>libvlc-dev</depend>
+  <depend>roscpp</depend>
+  <depend>roslib</depend>
+  <depend>vlc</depend>
 
 </package>
