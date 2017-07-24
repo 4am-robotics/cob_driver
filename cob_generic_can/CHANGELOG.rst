@@ -2,6 +2,9 @@
 Changelog for package cob_generic_can
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.9 (2017-07-18)
 ------------------
 * SocketCAN support (`#269 <https://github.com/ipa320/cob_driver/issues/269>`_)

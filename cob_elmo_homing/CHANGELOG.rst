@@ -2,6 +2,9 @@
 Changelog for package cob_elmo_homing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.9 (2017-07-18)
 ------------------
 * manually fix changelog

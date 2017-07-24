@@ -2,6 +2,11 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fixed function return value
+* Contributors: Benjamin Maidel
+
 0.6.9 (2017-07-18)
 ------------------
 * added test script

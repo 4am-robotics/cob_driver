@@ -2,6 +2,13 @@
 Changelog for package cob_mimic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'indigo_dev' into indigo_release_candidate
+* added apache header
+* ported mimic from python to c++
+* Contributors: Benjamin Maidel, flg-pb
+
 0.6.9 (2017-07-18)
 ------------------
 * update license

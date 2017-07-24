@@ -2,6 +2,9 @@
 Changelog for package cob_phidget_power_state
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.9 (2017-07-18)
 ------------------
 * shut down if the voltage divider factor is undefined
