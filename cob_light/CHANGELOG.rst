@@ -2,8 +2,8 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.10 (2017-07-24)
+-------------------
 * fixed function return value
 * Contributors: Benjamin Maidel
 
