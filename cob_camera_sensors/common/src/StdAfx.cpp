@@ -1,1 +1,0 @@
-#include "../include/cob_camera_sensors/StdAfx.h"
