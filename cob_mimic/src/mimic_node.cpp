@@ -39,7 +39,7 @@ class Mimic
 public:
     Mimic():
         as_mimic_(nh_, ros::this_node::getName() + "/set_mimic", boost::bind(&Mimic::as_cb_mimic_, this, _1), false),
-        new_mimic_request_(false), dist_(2,10)
+        new_mimic_request_(false), dist_(2,10), sim_enabled_(false)
     {
         nh_ = ros::NodeHandle("~");
     }
@@ -56,6 +56,7 @@ public:
         if(!copy_mimic_files())
             return false;
 
+        sim_enabled_ = nh_.param<bool>("sim", false);
         srvServer_mimic_ = nh_.advertiseService("set_mimic", &Mimic::service_cb_mimic, this);
 
         char const *argv[] =
@@ -75,7 +76,8 @@ public:
 
         vlc_inst_ = libvlc_new(argc, argv);
         vlc_player_ = libvlc_media_player_new(vlc_inst_);
-        libvlc_set_fullscreen(vlc_player_, 1);
+        if(!sim_enabled_)
+            libvlc_set_fullscreen(vlc_player_, 1);
         set_mimic("default", 1, 1.0, false);
         blinking_timer_ = nh_.createTimer(ros::Duration(dist_(gen_)), &Mimic::blinking_cb, this, true);
         as_mimic_.start();
@@ -93,6 +95,7 @@ private:
     libvlc_media_player_t* vlc_player_;
     libvlc_media_t* vlc_media_;
 
+    bool sim_enabled_;
     bool new_mimic_request_;
     boost::mutex mutex_;
 
