@@ -7,7 +7,7 @@
   <maintainer email="bnm@ipa.fhg.de">Benjamin Maidel</maintainer>
   <author email="bnm@ipa.fhg.de">Benjamin Maidel</author>
 
-  <license>LGPL</license>
+  <license>Apache 2.0</license>
 
   <buildtool_depend>catkin</buildtool_depend>
   <exec_depend>cob_msgs</exec_depend>

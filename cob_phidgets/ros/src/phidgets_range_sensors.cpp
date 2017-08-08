@@ -1,3 +1,20 @@
+/*
+ * Copyright 2017 Fraunhofer Institute for Manufacturing Engineering and Automation (IPA)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ 
+
 // see http://www.phidgets.com/products.php?category=2&product_id=3520_0
 // distance calculation: Distance (cm) = 2076/(SensorValue - 11)             (the formula is only valid for a SensorValue between 80 to 530)
 // TODO: separate into two packages: cob_phidgets_driver (publishing only raw values as sensor_msgs/Range message) and cob_tray_status (evaluating the Range messages to decide if tray is occupied or not, eventually also at which position it is occupied)
