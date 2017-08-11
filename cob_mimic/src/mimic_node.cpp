@@ -164,7 +164,8 @@ private:
         else
             as_mimic_.setAborted();
 
-        blinking_timer_ = nh_.createTimer(ros::Duration(dist_(gen_)), &Mimic::blinking_cb, this, true);
+        if(goal->mimic != "falling_asleep" && goal->mimic != "sleeping")
+            blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
     }
 
     bool service_cb_mimic(cob_mimic::SetMimic::Request &req,
@@ -175,7 +176,8 @@ private:
         res.success = set_mimic(req.mimic, req.repeat, req.speed);
         res.message = "";
 
-        blinking_timer_ = nh_.createTimer(ros::Duration(dist_(gen_)), &Mimic::blinking_cb, this, true);
+        if(req.mimic != "falling_asleep" && req.mimic != "sleeping")
+            blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
         return true;
     }
 
