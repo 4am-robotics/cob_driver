@@ -107,8 +107,12 @@ private:
         char *lgn;
         if((lgn = getlogin()) == NULL)
         {
-            ROS_ERROR("unable to get user name");
-            return false;
+            lgn = getenv("USER");
+            if(lgn == NULL || std::string(lgn) == "")
+            {
+                ROS_ERROR("unable to get user name");
+                return false;
+            }
         }
         std::string username(lgn);
         mimic_folder_ = "/tmp/mimic_" + username;
