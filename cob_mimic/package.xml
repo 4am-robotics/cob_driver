@@ -20,6 +20,7 @@
   <depend>actionlib</depend>
   <depend>boost</depend>
   <depend>libvlc-dev</depend>
+  <depend>python-vlc-pip</depend>
   <depend>roscpp</depend>
   <depend>roslib</depend>
   <depend>vlc</depend>
