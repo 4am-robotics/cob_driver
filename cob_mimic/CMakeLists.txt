@@ -43,6 +43,6 @@ install(DIRECTORY common
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
-install(PROGRAMS src/mimic_node.py src/test_mimic.py
+install(PROGRAMS src/mimic_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/src
 )
