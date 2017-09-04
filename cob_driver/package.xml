@@ -9,8 +9,6 @@
   <!-- <url type="bugtracker"></url> -->
 
   <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>
-  <maintainer email="nhg@ipa.fhg.de">Nadia Hammoudeh Garcia</maintainer>
-  <author email="fmw@ipa.fhg.de">Florian Weisshardt</author>
 
   <buildtool_depend>catkin</buildtool_depend>
 
@@ -20,7 +18,6 @@
   <exec_depend>cob_canopen_motor</exec_depend>
   <exec_depend>cob_elmo_homing</exec_depend>
   <exec_depend>cob_generic_can</exec_depend>
-  <exec_depend>cob_head_axis</exec_depend>
   <exec_depend>cob_light</exec_depend>
   <exec_depend>cob_mimic</exec_depend>
   <exec_depend>cob_phidgets</exec_depend>
