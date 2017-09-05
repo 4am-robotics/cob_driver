@@ -33,13 +33,14 @@
 #include <boost/filesystem.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
 
 class Mimic
 {
 public:
     Mimic():
         as_mimic_(nh_, ros::this_node::getName() + "/set_mimic", boost::bind(&Mimic::as_cb_mimic_, this, _1), false),
-        new_mimic_request_(false), dist_(2,10), sim_enabled_(false)
+        new_mimic_request_(false), sim_enabled_(false), real_dist_(2,10), int_dist_(0,6)
     {
         nh_ = ros::NodeHandle("~");
     }
@@ -58,6 +59,14 @@ public:
 
         sim_enabled_ = nh_.param<bool>("sim", false);
         srvServer_mimic_ = nh_.advertiseService("set_mimic", &Mimic::service_cb_mimic, this);
+
+        random_mimics_.push_back("blinking");
+        random_mimics_.push_back("blinking");
+        random_mimics_.push_back("blinking");
+        random_mimics_.push_back("blinking_left");
+        random_mimics_.push_back("blinking_right");
+
+        int_dist_ = boost::random::uniform_int_distribution<>(0,static_cast<int>(random_mimics_.size())-1);
 
         char const *argv[] =
         {
@@ -79,7 +88,7 @@ public:
         if(!sim_enabled_)
             libvlc_set_fullscreen(vlc_player_, 1);
         set_mimic("default", 1, 1.0, false);
-        blinking_timer_ = nh_.createTimer(ros::Duration(dist_(gen_)), &Mimic::blinking_cb, this, true);
+        blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
         as_mimic_.start();
         return true;
     }
@@ -100,15 +109,21 @@ private:
     boost::mutex mutex_;
 
     boost::random::mt19937 gen_;
-    boost::random::uniform_real_distribution<> dist_;
+    boost::random::uniform_real_distribution<> real_dist_;
+    boost::random::uniform_int_distribution<> int_dist_;
+    std::vector<std::string> random_mimics_;
 
     bool copy_mimic_files()
     {
         char *lgn;
         if((lgn = getlogin()) == NULL)
         {
-            ROS_ERROR("unable to get user name");
-            return false;
+            lgn = getenv("USER");
+            if(lgn == NULL || std::string(lgn) == "")
+            {
+                ROS_ERROR("unable to get user name");
+                return false;
+            }
         }
         std::string username(lgn);
         mimic_folder_ = "/tmp/mimic_" + username;
@@ -149,7 +164,8 @@ private:
         else
             as_mimic_.setAborted();
 
-        blinking_timer_ = nh_.createTimer(ros::Duration(dist_(gen_)), &Mimic::blinking_cb, this, true);
+        if(goal->mimic != "falling_asleep" && goal->mimic != "sleeping")
+            blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
     }
 
     bool service_cb_mimic(cob_mimic::SetMimic::Request &req,
@@ -160,7 +176,8 @@ private:
         res.success = set_mimic(req.mimic, req.repeat, req.speed);
         res.message = "";
 
-        blinking_timer_ = nh_.createTimer(ros::Duration(dist_(gen_)), &Mimic::blinking_cb, this, true);
+        if(req.mimic != "falling_asleep" && req.mimic != "sleeping")
+            blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
         return true;
     }
 
@@ -225,8 +242,9 @@ private:
 
     void blinking_cb(const ros::TimerEvent&)
     {
-        set_mimic("blinking", 1, 1.5);
-        blinking_timer_ = nh_.createTimer(ros::Duration(dist_(gen_)), &Mimic::blinking_cb, this, true);
+        int rand = int_dist_(gen_);
+        set_mimic(random_mimics_[rand], 1, 1.5);
+        blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
     }
 
     bool copy_dir( boost::filesystem::path const & source,
