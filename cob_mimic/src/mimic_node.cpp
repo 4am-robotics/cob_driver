@@ -79,7 +79,8 @@ public:
             "--playlist-enqueue",
             "--no-video-title-show",
             "--no-skip-frames",
-            "--no-audio"
+            "--no-audio",
+            "--vout=glx,none"
         };
         int argc = sizeof( argv ) / sizeof( *argv );
 
