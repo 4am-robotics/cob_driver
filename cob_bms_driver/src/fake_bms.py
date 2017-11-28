@@ -24,7 +24,7 @@ from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 class FakeBMS(object):
     def __init__(self):
         self.srv_current              = rospy.Service('~set_current', SetFloat, self.current_cb)
-        self.srv_remaining_capacity   = rospy.Service('~set_remaining_capacity', SetFloat, self.remaining_capacity_cb)
+        self.srv_relative_remaining_capacity   = rospy.Service('~set_relative_remaining_capacity', SetFloat, self.relative_remaining_capacity_cb)
         self.poll_frequency           = rospy.get_param('~poll_frequency_hz', 20.0)
         self.pub_voltage              = rospy.Publisher('~voltage', Float64, queue_size = 1)
         self.pub_current              = rospy.Publisher('~current', Float64, queue_size = 1)
@@ -48,9 +48,9 @@ class FakeBMS(object):
         res_current = SetFloatResponse(True, "Set current to {}".format(req.data))
         return res_current
         
-    def remaining_capacity_cb(self, req):
-        self.remaining_capacity = req.data
-        res_capacity = SetFloatResponse(True, "Set remaining capacity to {}".format(req.data))
+    def relative_remaining_capacity_cb(self, req):
+        self.remaining_capacity = round(((req.data * self.full_charge_capacity)/100.0), 3)
+        res_capacity = SetFloatResponse(True, "Set relative remaining capacity to {}".format(req.data))
         return res_capacity
 
     def publish_diagnostics(self, event):
@@ -74,9 +74,9 @@ class FakeBMS(object):
 
     def timer_consume_power_cb(self, event):
         # emulate the battery usage based on the current values
-        self.remaining_capacity += (self.current/self.poll_frequency)/3600   
-        if self.remaining_capacity <= 0:
-            self.remaining_capacity = 0
+        self.remaining_capacity += (self.current/self.poll_frequency)/3600.0
+        if self.remaining_capacity <= 0.0:
+            self.remaining_capacity = 0.0
         if self.remaining_capacity >= self.full_charge_capacity:
             self.remaining_capacity = self.full_charge_capacity
         
