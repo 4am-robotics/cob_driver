@@ -20,6 +20,7 @@ from std_msgs.msg import Bool
 from std_msgs.msg import Float64
 from cob_srvs.srv import SetFloat, SetFloatResponse
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
+from diagnostic_updater import Updater
 
 class FakeBMS(object):
     def __init__(self):
@@ -31,7 +32,10 @@ class FakeBMS(object):
         self.pub_remaining_capacity   = rospy.Publisher('~remaining_capacity', Float64, queue_size = 1)
         self.pub_full_charge_capacity = rospy.Publisher('~full_charge_capacity', Float64, queue_size = 1)
         self.pub_temparature          = rospy.Publisher('~temperature', Float64, queue_size = 1)
-        self.pub_diagnostics          = rospy.Publisher('/diagnostics', DiagnosticArray, queue_size=1)
+
+        self.updater = Updater()
+        self.updater.setHardwareID("bms")
+        self.updater.add("cob_bms_dagnostics_updater", self.produce_diagnostics)
 
         self.voltage              = 0.0
         self.current              = -8.0
@@ -54,15 +58,16 @@ class FakeBMS(object):
         return res_capacity
 
     def publish_diagnostics(self, event):
-        msg = DiagnosticArray()
-        msg.header.stamp = rospy.get_rostime()
-        status = DiagnosticStatus()
-        status.name = rospy.get_name()
-        status.level = DiagnosticStatus.OK
-        status.message = "fake diagnostics"
-        status.hardware_id = rospy.get_name()
-        msg.status.append(status)
-        self.pub_diagnostics.publish(msg)
+        self.updater.update()
+
+    def produce_diagnostics(self, stat):
+        stat.summary(DiagnosticStatus.OK, "Fake Driver: Ready")
+        stat.add("current[A]", self.current)
+        stat.add("voltage[V]", self.voltage)
+        stat.add("temperature[Celsius]", self.temperature)
+        stat.add("remaining_capacity[Ah]", self.remaining_capacity)
+        stat.add("full_charge_capacity[Ah]", self.full_charge_capacity)
+        return stat
 
     def timer_cb(self, event):
         self.voltage = 48.0
