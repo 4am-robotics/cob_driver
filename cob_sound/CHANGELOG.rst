@@ -2,6 +2,16 @@
 Changelog for package cob_sound
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.10 (2017-07-24)
+-------------------
+
+0.6.9 (2017-07-18)
+------------------
+* remove dependency to sound_play
+* fix sound test_client
+* manually fix changelog
+* Contributors: Felix Messmer, ipa-fxm
+
 0.6.8 (2016-10-10)
 ------------------
 * fade volume on play and between tracks

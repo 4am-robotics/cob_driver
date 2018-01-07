@@ -2,6 +2,28 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.10 (2017-07-24)
+-------------------
+* fixed function return value
+* Contributors: Benjamin Maidel
+
+0.6.9 (2017-07-18)
+------------------
+* added test script
+  added test script
+  added test script
+  fix
+  fix
+  fix
+  added additional mode to test scripts
+  speed up test scripts
+* protect callbacks with scoped locks
+* void function
+* manually fix changelog
+* xmas mode corrections
+* added new lightmode xmas
+* Contributors: Benjamin Maidel, ipa-fxm
+
 0.6.8 (2016-10-10)
 ------------------
 * return true for stop mode service to avoid ugly error messages on client side

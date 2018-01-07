@@ -2,6 +2,14 @@
 Changelog for package cob_sick_lms1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.10 (2017-07-24)
+-------------------
+
+0.6.9 (2017-07-18)
+------------------
+* manually fix changelog
+* Contributors: ipa-fxm
+
 0.6.8 (2016-10-10)
 ------------------
 * cob_sick_lms1xx: add range configuration

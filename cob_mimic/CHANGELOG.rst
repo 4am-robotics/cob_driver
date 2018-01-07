@@ -2,6 +2,27 @@
 Changelog for package cob_mimic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.10 (2017-07-24)
+-------------------
+* Merge branch 'indigo_dev' into indigo_release_candidate
+* added apache header
+* ported mimic from python to c++
+* Contributors: Benjamin Maidel, flg-pb
+
+0.6.9 (2017-07-18)
+------------------
+* update license
+* Delete ___init_\_.py
+* Update package.xml
+* remove vlc.py and add it as rosdep dependency (PR to rosdistro is https://github.com/ros/rosdistro/pull/15366)
+* cleanup mimic node
+* - removed hardcoded sleep time between transition between emotions.
+* fix for the flickering in playback, caused when an emotion is set.
+* fix cpu usage of the mimic node
+* manually fix changelog
+* mimic support the rotation of the face
+* Contributors: Felix Messmer, Florian Weisshardt, fmw-ss, ipa-cob4-5, ipa-fxm, ipa-nhg, souravran
+
 0.6.8 (2016-10-10)
 ------------------
 * vlc 2.2 version use by default the wrong video output

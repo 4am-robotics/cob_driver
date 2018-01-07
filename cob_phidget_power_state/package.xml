@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>cob_phidget_power_state</name>
-  <version>0.6.8</version>
+  <version>0.6.10</version>
   <description>The cob_phidget_power_state package</description>
 
   <maintainer email="bnm@ipa.fhg.de">Benjamin Maidel</maintainer>

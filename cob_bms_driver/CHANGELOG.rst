@@ -2,6 +2,47 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.10 (2017-07-24)
+-------------------
+
+0.6.9 (2017-07-18)
+------------------
+* minor change for handling exception
+* made changes which only sets the current that in turn is used by power_aggregator for relative_remaining_capacity calculation
+* fix typo
+* added emulation of realistic current value
+* minor change for publishing a realistic voltage value
+* Merge pull request `#310 <https://github.com/ipa320/cob_driver/issues/310>`_ from souravran/feature/fake_bms
+  added a fake bms with set_charging and set_relative_remaining_capacity services
+* finalize exception handling
+* fake current
+* consistent naming
+* publish diagnostics in fake_bms
+* harmonize namespaces of fake_bms
+* uses the default parameter value
+* poll frequency has been set from the parameter list
+* made changes as per the review.
+  power state elements being published at 20 Hz.
+  removed junk rospy log and changed division_by_zero error message.
+* fake_bms publishing all power_state entities.
+  added exception handling in power_state_aggregator.
+  added package dependency and install tags.
+* added a fake bms with set_charging and set_relative_remaining_capacity services
+* fix typo
+* fix powerstate aggregator charging flag (bms is not delivering correct flag for full battery and docked)
+* use bms flag for harging
+* fix identation
+* use spaces for indention in BMS driver
+* updated authors
+* added support for bit_mask'ed booleans
+* make BmsParameter an abstract base class
+* BMS driver clean-up
+* switch from map of vectors to multimap in BMS driver
+* simplified BMS publisher creation and polling list optimization
+* simplified BMS config parsing
+* manually fix changelog
+* Contributors: Felix Messmer, Florian Weisshardt, Mathias Lüdtke, Nadia Hammoudeh García, fmw-ss, ipa-fxm, robot
+
 0.6.8 (2016-10-10)
 ------------------
 * restart CAN on failure
