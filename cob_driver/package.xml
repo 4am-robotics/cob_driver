@@ -1,16 +1,14 @@
 <package format="2">
   <name>cob_driver</name>
-  <version>0.6.10</version>
+  <version>0.6.11</version>
   <description>The cob_driver stack includes packages that provide access to the Care-O-bot hardware through ROS messages, services and actions. E.g. for mobile base, arm, camera sensors, laser scanners, etc...</description>
 
-  <license>LGPL</license>
+  <license>Apache 2.0</license>
 
   <url type="website">http://ros.org/wiki/cob_driver</url>
   <!-- <url type="bugtracker"></url> -->
 
   <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>
-  <maintainer email="nhg@ipa.fhg.de">Nadia Hammoudeh Garcia</maintainer>
-  <author email="fmw@ipa.fhg.de">Florian Weisshardt</author>
 
   <buildtool_depend>catkin</buildtool_depend>
 
@@ -20,7 +18,6 @@
   <exec_depend>cob_canopen_motor</exec_depend>
   <exec_depend>cob_elmo_homing</exec_depend>
   <exec_depend>cob_generic_can</exec_depend>
-  <exec_depend>cob_head_axis</exec_depend>
   <exec_depend>cob_light</exec_depend>
   <exec_depend>cob_mimic</exec_depend>
   <exec_depend>cob_phidgets</exec_depend>

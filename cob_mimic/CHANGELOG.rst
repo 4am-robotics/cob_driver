@@ -2,6 +2,37 @@
 Changelog for package cob_mimic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.11 (2018-01-07)
+-------------------
+* Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev
+* Merge pull request `#359 <https://github.com/ipa320/cob_driver/issues/359>`_ from ipa-bnm/fix/mimic
+  [cob_mimic] use glx/opengl output for mimic
+* use glx/opengl output for mimic, fixes mimic issue for 6th and 7th gen nuc
+* Merge pull request `#354 <https://github.com/ipa320/cob_driver/issues/354>`_ from ipa-bnm/feature/mimic
+  [Mimic] improvements
+* Merge pull request `#353 <https://github.com/ipa320/cob_driver/issues/353>`_ from ipa-fxm/update_maintainer
+  update maintainer
+* Merge pull request `#356 <https://github.com/ipa320/cob_driver/issues/356>`_ from ipa-nhg/MimicPy
+  HotFix: readded python node for mimic
+* remove duplicated test_mimic.py install tag
+* use the old driver
+* readded python node for mimic
+* do not start blinking timer on sleeping or falling_asleep requests
+* added random mimics
+* double check username
+* update maintainer
+* Merge pull request `#341 <https://github.com/ipa320/cob_driver/issues/341>`_ from ipa-fxm/APACHE_license
+  use license apache 2.0
+* Merge pull request `#352 <https://github.com/ipa320/cob_driver/issues/352>`_ from ipa-bnm/feature/mimic_sim
+  Do not run mimic in fullscreen if sim is enabled
+* use license apache 2.0
+* Merge branch 'indigo_dev' of github.com:ipa320/cob_driver into feature/mimic_sim
+* no fullscreen if sim enabled
+* Merge pull request `#345 <https://github.com/ipa320/cob_driver/issues/345>`_ from ipa-fxm/fix_mimic_permission
+  guarantee unique copy destinations
+* guarantee unique copy destinations
+* Contributors: Benjamin Maidel, Felix Messmer, Florian Weisshardt, Nadia Hammoudeh García, ipa-fxm, ipa-nhg, ipa-uhr-mk
+
 0.6.10 (2017-07-24)
 -------------------
 * Merge branch 'indigo_dev' into indigo_release_candidate

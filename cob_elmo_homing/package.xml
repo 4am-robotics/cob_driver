@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>cob_elmo_homing</name>
-  <version>0.6.10</version>
+  <version>0.6.11</version>
   <description>This packagae implements the special homing procedure that is needed for old cob4/raw bases</description>
 
-  <maintainer email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</maintainer>
+  <maintainer email="florian.weisshardt@ipa.fraunhofer.de">Florian Weisshardt</maintainer>
   <author email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</author>
 
-  <license>LGPLv3</license>
+  <license>Apache 2.0</license>
 
   <buildtool_depend>catkin</buildtool_depend>
   <depend>canopen_402</depend>

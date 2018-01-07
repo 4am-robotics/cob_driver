@@ -1,13 +1,13 @@
 <package format="2">
   <name>cob_mimic</name>
-  <version>0.6.10</version>
+  <version>0.6.11</version>
   <description>This package implements the Care-O-bot mimic</description>
 
-  <license>LGPL</license>
+  <license>Apache 2.0</license>
 
   <url type="website">http://ros.org/wiki/cob_mimic</url>
 
-  <maintainer email="nhg@ipa.fhg.de">Nadia Hammoudeh Garcia</maintainer>
+  <maintainer email="benjamin.maidel@ipa.fraunhofer.de">Benjamin Maidel</maintainer>
   <author email="nhg@ipa.fhg.de">Nadia Hammoudeh Garcia</author>
   <author email="benjamin.maidel@ipa.fraunhofer.de">Benjamin Maidel</author>
 

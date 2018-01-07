@@ -1,14 +1,13 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>cob_scan_unifier</name>
-  <version>0.6.10</version>
+  <version>0.6.11</version>
   <description>The cob_scan_unifier package holds code to unify two or more laser-scans to one unified scan-message</description>
 
   <maintainer email="bnm@ipa.fraunhofer.de">Benjamin Maidel</maintainer>
-
-  <license>LGPL</license>
-
   <author email="frm@ipa.fraunhofer.de">Florian Mirus</author>
+
+  <license>Apache 2.0</license>
 
   <buildtool_depend>catkin</buildtool_depend>
 

@@ -1,17 +1,16 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>cob_bms_driver</name>
-  <version>0.6.10</version>
+  <version>0.6.11</version>
   <description>
     Driver package for interfacing the battery management system (BMS) on Care-O-bot.
   </description>
 
-  <maintainer email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</maintainer>
   <maintainer email="florian.weisshardt@ipa.fraunhofer.de">Florian Weisshardt</maintainer>
   <author email="mig-mc@ipa.fhg.de">mig-mc</author>
   <author email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</author>
 
-  <license>LGPL</license>
+  <license>Apache 2.0</license>
 
   <buildtool_depend>catkin</buildtool_depend>
 

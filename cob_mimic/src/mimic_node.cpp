@@ -27,21 +27,22 @@
 #include <cob_mimic/SetMimicResponse.h>
 
 #include <vlc/vlc.h>
+#include <unistd.h>
 
 #include <boost/thread.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
 
 class Mimic
 {
 public:
     Mimic():
         as_mimic_(nh_, ros::this_node::getName() + "/set_mimic", boost::bind(&Mimic::as_cb_mimic_, this, _1), false),
-        new_mimic_request_(false), override_tmp_folder_(true), dist_(2,10)
+        new_mimic_request_(false), sim_enabled_(false), real_dist_(2,10), int_dist_(0,6)
     {
         nh_ = ros::NodeHandle("~");
-
     }
 
     ~Mimic(void)
@@ -56,7 +57,16 @@ public:
         if(!copy_mimic_files())
             return false;
 
+        sim_enabled_ = nh_.param<bool>("sim", false);
         srvServer_mimic_ = nh_.advertiseService("set_mimic", &Mimic::service_cb_mimic, this);
+
+        random_mimics_.push_back("blinking");
+        random_mimics_.push_back("blinking");
+        random_mimics_.push_back("blinking");
+        random_mimics_.push_back("blinking_left");
+        random_mimics_.push_back("blinking_right");
+
+        int_dist_ = boost::random::uniform_int_distribution<>(0,static_cast<int>(random_mimics_.size())-1);
 
         char const *argv[] =
         {
@@ -69,15 +79,17 @@ public:
             "--playlist-enqueue",
             "--no-video-title-show",
             "--no-skip-frames",
-            "--no-audio"
+            "--no-audio",
+            "--vout=glx,none"
         };
         int argc = sizeof( argv ) / sizeof( *argv );
 
         vlc_inst_ = libvlc_new(argc, argv);
         vlc_player_ = libvlc_media_player_new(vlc_inst_);
-        libvlc_set_fullscreen(vlc_player_, 1);
+        if(!sim_enabled_)
+            libvlc_set_fullscreen(vlc_player_, 1);
         set_mimic("default", 1, 1.0, false);
-        blinking_timer_ = nh_.createTimer(ros::Duration(dist_(gen_)), &Mimic::blinking_cb, this, true);
+        blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
         as_mimic_.start();
         return true;
     }
@@ -87,29 +99,43 @@ private:
     actionlib::SimpleActionServer<cob_mimic::SetMimicAction> as_mimic_;
     ros::ServiceServer srvServer_mimic_;
     ros::Timer blinking_timer_;
+    std::string mimic_folder_;
 
     libvlc_instance_t* vlc_inst_;
     libvlc_media_player_t* vlc_player_;
     libvlc_media_t* vlc_media_;
 
+    bool sim_enabled_;
     bool new_mimic_request_;
-    bool override_tmp_folder_;
     boost::mutex mutex_;
 
     boost::random::mt19937 gen_;
-    boost::random::uniform_real_distribution<> dist_;
+    boost::random::uniform_real_distribution<> real_dist_;
+    boost::random::uniform_int_distribution<> int_dist_;
+    std::vector<std::string> random_mimics_;
 
     bool copy_mimic_files()
     {
-        ROS_INFO("copying all mimic files to /tmp/mimic...");
+        char *lgn;
+        if((lgn = getlogin()) == NULL)
+        {
+            lgn = getenv("USER");
+            if(lgn == NULL || std::string(lgn) == "")
+            {
+                ROS_ERROR("unable to get user name");
+                return false;
+            }
+        }
+        std::string username(lgn);
+        mimic_folder_ = "/tmp/mimic_" + username;
+        ROS_INFO("copying all mimic files to %s...", mimic_folder_.c_str());
         std::string pkg_path = ros::package::getPath("cob_mimic");
         std::string mimics_path = pkg_path + "/common";
 
         try{
-            if(override_tmp_folder_)
+            if(boost::filesystem::exists(mimic_folder_))
             {
-                if(boost::filesystem::exists("/tmp/mimic"))
-                    boost::filesystem::remove_all("/tmp/mimic");
+                boost::filesystem::remove_all(mimic_folder_);
             }
         }
         catch(boost::filesystem::filesystem_error const & e)
@@ -118,14 +144,14 @@ private:
             return false;
         }
 
-        if(copy_dir(boost::filesystem::path(mimics_path), boost::filesystem::path("/tmp/mimic")) )
+        if(copy_dir(boost::filesystem::path(mimics_path), boost::filesystem::path(mimic_folder_)) )
         {
-            ROS_INFO("...copied all mimic files to /tmp/mimics");
+            ROS_INFO("...copied all mimic files to %s", mimic_folder_.c_str());
             return true;
         }
         else
         {
-            ROS_ERROR("...could not copy mimic files to /tmp/mimics");
+            ROS_ERROR("...could not copy mimic files to %s", mimic_folder_.c_str());
             return false;
         }
     }
@@ -139,7 +165,8 @@ private:
         else
             as_mimic_.setAborted();
 
-        blinking_timer_ = nh_.createTimer(ros::Duration(dist_(gen_)), &Mimic::blinking_cb, this, true);
+        if(goal->mimic != "falling_asleep" && goal->mimic != "sleeping")
+            blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
     }
 
     bool service_cb_mimic(cob_mimic::SetMimic::Request &req,
@@ -150,7 +177,8 @@ private:
         res.success = set_mimic(req.mimic, req.repeat, req.speed);
         res.message = "";
 
-        blinking_timer_ = nh_.createTimer(ros::Duration(dist_(gen_)), &Mimic::blinking_cb, this, true);
+        if(req.mimic != "falling_asleep" && req.mimic != "sleeping")
+            blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
         return true;
     }
 
@@ -163,7 +191,7 @@ private:
         new_mimic_request_=false;
         ROS_INFO("Mimic: %s (speed: %f, repeat: %d)", mimic.c_str(), speed, repeat);
 
-        std::string filename = "/tmp/mimic/" + mimic + ".mp4";
+        std::string filename = mimic_folder_ + "/" + mimic + ".mp4";
 
         // check if mimic exists
         if ( !boost::filesystem::exists(filename) )
@@ -215,12 +243,13 @@ private:
 
     void blinking_cb(const ros::TimerEvent&)
     {
-        set_mimic("blinking", 1, 1.5);
-        blinking_timer_ = nh_.createTimer(ros::Duration(dist_(gen_)), &Mimic::blinking_cb, this, true);
+        int rand = int_dist_(gen_);
+        set_mimic(random_mimics_[rand], 1, 1.5);
+        blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
     }
 
     bool copy_dir( boost::filesystem::path const & source,
-            boost::filesystem::path const & destination )
+            boost::filesystem::path const & mimic_folder )
     {
         namespace fs = boost::filesystem;
         try
@@ -232,15 +261,15 @@ private:
                              ;
                 return false;
             }
-            if(fs::exists(destination))
+            if(fs::exists(mimic_folder))
             {
-                ROS_INFO_STREAM("Destination directory " << destination.string() << " already exists.");
+                ROS_INFO_STREAM("Destination directory " << mimic_folder.string() << " already exists.");
                 return false;
             }
-            // Create the destination directory
-            if(!fs::create_directory(destination))
+            // Create the mimic_folder directory
+            if(!fs::create_directory(mimic_folder))
             {
-                ROS_ERROR_STREAM( "Unable to create destination directory" << destination.string());
+                ROS_ERROR_STREAM( "Unable to create mimic_folder directory" << mimic_folder.string());
                 return false;
             }
         }
@@ -258,13 +287,13 @@ private:
                 if(fs::is_directory(current))
                 {
                     // Found directory: Recursion
-                    if( !copy_dir(current,destination / current.filename()) )
+                    if( !copy_dir(current, mimic_folder / current.filename()) )
                         return false;
                 }
                 else
                 {
                     // Found file: Copy
-                    fs::copy_file(current, destination / current.filename() );
+                    fs::copy_file(current, mimic_folder / current.filename() );
                 }
             }
             catch(fs::filesystem_error const & e)

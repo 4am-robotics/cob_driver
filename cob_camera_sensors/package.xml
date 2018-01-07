@@ -1,15 +1,16 @@
 <package format="2">
   <name>cob_camera_sensors</name>
-  <version>0.6.10</version>
+  <version>0.6.11</version>
   <description>For more information read the readme.htm file located in</description>
 
-  <license>LGPL</license>
+  <license>Apache 2.0</license>
 
   <url type="website">http://ros.org/wiki/cob_camera_sensors</url>
   <!-- <url type="bugtracker"></url> -->
 
-  <maintainer email="jsf@ipa.fhg.de">Jan Fischer</maintainer>
+  <maintainer email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</maintainer>
   <author email="jsf@ipa.fhg.de">Jan Fischer</author>
+  <author email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</author>
 
   <buildtool_depend>catkin</buildtool_depend>
 
@@ -26,6 +27,7 @@
   <depend>polled_camera</depend>
   <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
+  <depend>tinyxml</depend>
 
   <exec_depend>rospy</exec_depend>
 

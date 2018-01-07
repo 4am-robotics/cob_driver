@@ -2,6 +2,20 @@
 Changelog for package cob_sick_s300
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.11 (2018-01-07)
+-------------------
+* Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev
+* Merge pull request `#358 <https://github.com/ipa320/cob_driver/issues/358>`_ from ipa-jba/fix/s300-max-range
+  [cob_sick_s300] adjust range_max
+* Merge pull request `#357 <https://github.com/ipa320/cob_driver/issues/357>`_ from ipa-jba/fix/remove-dead-code
+  [cob_sick_s300] remove dead code
+* remove dead code
+* Merge pull request `#341 <https://github.com/ipa320/cob_driver/issues/341>`_ from ipa-fxm/APACHE_license
+  use license apache 2.0
+* use license apache 2.0
+* cob_sick_s300: adjust range_max
+* Contributors: Felix Messmer, ipa-fxm, ipa-mig, ipa-uhr-mk
+
 0.6.10 (2017-07-24)
 -------------------
 

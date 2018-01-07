@@ -1,14 +1,14 @@
 <package format="2">
   <name>cob_sound</name>
-  <version>0.6.10</version>
+  <version>0.6.11</version>
   <description>This package implements a sound play module using text2wave and aplay through python.</description>
 
-  <license>LGPL</license>
+  <license>Apache 2.0</license>
 
   <url type="website">http://ros.org/wiki/cob_sound</url>
   <!-- <url type="bugtracker"></url> -->
 
-  <maintainer email="nhg@ipa.fhg.de">Nadia Hammoudeh Garcia</maintainer>
+  <maintainer email="benjamin.maidel@ipa.fraunhofer.de">Benjamin Maidel</maintainer>
   <author>Florian Weisshardt</author>
   <author>Benjamin Maidel</author>
 

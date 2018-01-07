@@ -1,8 +1,8 @@
 <package format="2">
   <name>cob_relayboard</name>
-  <version>0.6.10</version>
+  <version>0.6.11</version>
   <description>cob_relayboard</description>
-  <license>LGPL</license>
+  <license>Apache 2.0</license>
 
   <url type="website">http://ros.org/wiki/cob_relayboard</url>
   <!-- <url type="bugtracker"></url> -->
