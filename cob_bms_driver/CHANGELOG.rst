@@ -2,6 +2,21 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.11 (2018-01-07)
+-------------------
+* Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev
+* Merge pull request `#364 <https://github.com/ipa320/cob_driver/issues/364>`_ from ipa-fxm/fake_bms_diagnostics
+  use diagnostic updater in fake_bms
+* use diagnostic updater in fake_bms
+* Merge pull request `#361 <https://github.com/ipa320/cob_driver/issues/361>`_ from ipa-fxm/set_relative_remaining_capacity
+  set relative remaining capacity
+* set relative remaining capacity
+* Merge pull request `#341 <https://github.com/ipa320/cob_driver/issues/341>`_ from ipa-fxm/APACHE_license
+  use license apache 2.0
+* change maintainer
+* use license apache 2.0
+* Contributors: Felix Messmer, Florian Weisshardt, ipa-fxm, ipa-uhr-mk
+
 0.6.10 (2017-07-24)
 -------------------
 
