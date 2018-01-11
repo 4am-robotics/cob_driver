@@ -66,11 +66,25 @@ class ScanUnifierNode
 
     std::vector<message_filters::Subscriber<sensor_msgs::LaserScan>* > message_filter_subscribers_;
 
-    message_filters::Synchronizer<message_filters::sync_policies::ApproximateTime<sensor_msgs::LaserScan, sensor_msgs::LaserScan> >* synchronizer2_;
-    message_filters::Synchronizer<message_filters::sync_policies::ApproximateTime<sensor_msgs::LaserScan, sensor_msgs::LaserScan, sensor_msgs::LaserScan> >* synchronizer3_;
+    message_filters::Synchronizer<message_filters::sync_policies::ApproximateTime<sensor_msgs::LaserScan,
+                                                                                  sensor_msgs::LaserScan> >* synchronizer2_;
+    message_filters::Synchronizer<message_filters::sync_policies::ApproximateTime<sensor_msgs::LaserScan,
+                                                                                  sensor_msgs::LaserScan,
+                                                                                  sensor_msgs::LaserScan> >* synchronizer3_;
+    message_filters::Synchronizer<message_filters::sync_policies::ApproximateTime<sensor_msgs::LaserScan,
+                                                                                  sensor_msgs::LaserScan,
+                                                                                  sensor_msgs::LaserScan,
+                                                                                  sensor_msgs::LaserScan> >* synchronizer4_;
 
-    void messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& first_scanner, const sensor_msgs::LaserScan::ConstPtr& second_scanner);
-    void messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& first_scanner, const sensor_msgs::LaserScan::ConstPtr& second_scanner, const sensor_msgs::LaserScan::ConstPtr& third_scanner);
+    void messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& first_scanner,
+                               const sensor_msgs::LaserScan::ConstPtr& second_scanner);
+    void messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& first_scanner,
+                               const sensor_msgs::LaserScan::ConstPtr& second_scanner,
+                               const sensor_msgs::LaserScan::ConstPtr& third_scanner);
+    void messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& first_scanner,
+                               const sensor_msgs::LaserScan::ConstPtr& second_scanner,
+                               const sensor_msgs::LaserScan::ConstPtr& third_scanner,
+                               const sensor_msgs::LaserScan::ConstPtr& fourth_scanner);
 
   public:
 
