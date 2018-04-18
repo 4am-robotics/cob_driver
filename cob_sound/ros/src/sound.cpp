@@ -266,15 +266,22 @@ public:
     return true;
   }
 
-  bool play(std::string filename, std::string message)
+  bool play(std::string filename, std::string &message)
   {
     bool ret = false;
     if (mute_)
     {
-      message = "Sound is set to mute. You will hear nothing."; 
+      message = "Sound is set to mute. You will hear nothing.";
       ROS_WARN_STREAM(message);
       return ret;
     }
+    
+    if (filename.empty())
+    {
+        message = "Cannot play because filename is empty.";
+        ROS_WARN_STREAM(message);
+        return ret;
+    } 
 
     ROS_INFO("Playing: %s", filename.c_str());
     vlc_media_ = libvlc_media_new_path(vlc_inst_, filename.c_str());
