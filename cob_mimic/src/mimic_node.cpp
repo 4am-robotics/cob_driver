@@ -196,9 +196,17 @@ private:
         // check if mimic exists
         if ( !boost::filesystem::exists(filename) )
         {
-            ROS_ERROR("File not found: %s", filename.c_str());
-            mutex_.unlock();
-            return false;
+            if ( !boost::filesystem::exists(mimic) )
+            {
+                ROS_ERROR("File not found: %s", filename.c_str());
+                mutex_.unlock();
+                return false;
+            }
+            else
+            {
+                ROS_INFO("Playing mimic from non-default file: %s", mimic.c_str());
+                filename = mimic;
+            }
         }
 
         // repeat cannot be 0
