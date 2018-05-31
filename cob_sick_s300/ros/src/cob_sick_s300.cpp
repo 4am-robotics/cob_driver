@@ -220,7 +220,8 @@ class NodeClass
 		// other function declarations
 		void publishLaserScan(std::vector<double> vdDistM, std::vector<double> vdAngRAD, std::vector<double> vdIntensAU, unsigned int iSickTimeStamp, unsigned int iSickNow)
 		{
-			if(ros::Time::now()-loop_rate_.now()>=ros::Duration(1./publish_frequency))
+			// do not publish new scan if it would exceed the maximum publish frequency
+			if(ros::Time::now()-loop_rate_ < ros::Duration(1./publish_frequency))
 				return;
 			loop_rate_ = ros::Time::now();
 
