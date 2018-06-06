@@ -76,7 +76,7 @@ class NodeClass
 		bool syncedTimeReady;
 		bool debug_;
 		ScannerSickS300 scanner_;
-		ros::Time loop_rate_;
+		ros::Time timestamp_last_published_;	// time stamp of the latest publication on this topic
 		std_msgs::Bool inStandby_;
 
 		// Constructor
@@ -179,7 +179,7 @@ class NodeClass
 			topicPub_InStandby = nh.advertise<std_msgs::Bool>("scan_standby", 1);
 			topicPub_Diagnostic_ = nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 
-			loop_rate_ = ros::Time::now(); // Hz
+			timestamp_last_published_ = ros::Time::now();
 		}
 
 		bool open() {
@@ -221,9 +221,9 @@ class NodeClass
 		void publishLaserScan(std::vector<double> vdDistM, std::vector<double> vdAngRAD, std::vector<double> vdIntensAU, unsigned int iSickTimeStamp, unsigned int iSickNow)
 		{
 			// do not publish new scan if it would exceed the maximum publish frequency
-			if(ros::Time::now()-loop_rate_ < ros::Duration(1./publish_frequency))
+			if(ros::Time::now()-timestamp_last_published_ < ros::Duration(1./publish_frequency))
 				return;
-			loop_rate_ = ros::Time::now();
+			timestamp_last_published_ = ros::Time::now();
 
 			// fill message
 			int start_scan, stop_scan;
