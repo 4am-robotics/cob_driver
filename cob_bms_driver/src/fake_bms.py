@@ -73,7 +73,7 @@ class FakeBMS(object):
         self.voltage = 48.0
         self.pub_voltage.publish(self.voltage)
         self.pub_current.publish(self.current)
-        self.pub_remaining_capacity.publish(self.remaining_capacity)
+        self.pub_remaining_capacity.publish(round(self.remaining_capacity, 3))
         self.pub_full_charge_capacity.publish(self.full_charge_capacity)
         self.pub_temparature.publish(self.temperature)
 
