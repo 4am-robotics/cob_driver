@@ -76,7 +76,7 @@ class NodeClass
 		bool syncedTimeReady;
 		bool debug_;
 		ScannerSickS300 scanner_;
-		ros::Time loop_rate_;
+		ros::Time timestamp_last_published_;	// time stamp of the latest publication on this topic
 		std_msgs::Bool inStandby_;
 
 		// Constructor
@@ -179,7 +179,7 @@ class NodeClass
 			topicPub_InStandby = nh.advertise<std_msgs::Bool>("scan_standby", 1);
 			topicPub_Diagnostic_ = nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 
-			loop_rate_ = ros::Time::now(); // Hz
+			timestamp_last_published_ = ros::Time::now();
 		}
 
 		bool open() {
@@ -220,9 +220,12 @@ class NodeClass
 		// other function declarations
 		void publishLaserScan(std::vector<double> vdDistM, std::vector<double> vdAngRAD, std::vector<double> vdIntensAU, unsigned int iSickTimeStamp, unsigned int iSickNow)
 		{
-			if(ros::Time::now()-loop_rate_.now()>=ros::Duration(1./publish_frequency))
+			ros::Time now = ros::Time::now();
+			
+			// do not publish new scan if it would exceed the maximum publish frequency
+			if(now-timestamp_last_published_ < ros::Duration(1./publish_frequency))
 				return;
-			loop_rate_ = ros::Time::now();
+			timestamp_last_published_ = now;
 
 			// fill message
 			int start_scan, stop_scan;
@@ -233,7 +236,7 @@ class NodeClass
 			// Sync handling: find out exact scan time by using the syncTime-syncStamp pair:
 			// Timestamp: "This counter is internally incremented at each scan, i.e. every 40 ms (S300)"
 			if(iSickNow != 0) {
-				syncedROSTime = ros::Time::now() - ros::Duration(scan_cycle_time);
+				syncedROSTime = now - ros::Duration(scan_cycle_time);
 				syncedSICKStamp = iSickNow;
 				syncedTimeReady = true;
 
@@ -246,9 +249,9 @@ class NodeClass
 				double timeDiff = (int)(iSickTimeStamp - syncedSICKStamp) * scan_cycle_time;
 				laserScan.header.stamp = syncedROSTime + ros::Duration(timeDiff);
 
-				ROS_DEBUG("Time::now() - calculated sick time stamp = %f",(ros::Time::now() - laserScan.header.stamp).toSec());
+				ROS_DEBUG("Time::now() - calculated sick time stamp = %f",(now - laserScan.header.stamp).toSec());
 			} else {
-				laserScan.header.stamp = ros::Time::now();
+				laserScan.header.stamp = now;
 			}
 
 			// fill message
@@ -294,33 +297,33 @@ class NodeClass
 
 			//Diagnostics
 			diagnostic_msgs::DiagnosticArray diagnostics;
-			diagnostics.header.stamp = ros::Time::now();
+			diagnostics.header.stamp = now;
 			diagnostics.status.resize(1);
 			diagnostics.status[0].level = 0;
 			diagnostics.status[0].name = nh.getNamespace();
 			diagnostics.status[0].message = "sick scanner running";
 			topicPub_Diagnostic_.publish(diagnostics);
-			}
+		}
 
-				void publishError(std::string error_str) {
-					diagnostic_msgs::DiagnosticArray diagnostics;
-					diagnostics.header.stamp = ros::Time::now();
-					diagnostics.status.resize(1);
-					diagnostics.status[0].level = 2;
-					diagnostics.status[0].name = nh.getNamespace();
-					diagnostics.status[0].message = error_str;
-					topicPub_Diagnostic_.publish(diagnostics);
-				}
+		void publishError(std::string error_str) {
+			diagnostic_msgs::DiagnosticArray diagnostics;
+			diagnostics.header.stamp = ros::Time::now();
+			diagnostics.status.resize(1);
+			diagnostics.status[0].level = 2;
+			diagnostics.status[0].name = nh.getNamespace();
+			diagnostics.status[0].message = error_str;
+			topicPub_Diagnostic_.publish(diagnostics);
+		}
 
-				void publishWarn(std::string warn_str) {
-					diagnostic_msgs::DiagnosticArray diagnostics;
-					diagnostics.header.stamp = ros::Time::now();
-					diagnostics.status.resize(1);
-					diagnostics.status[0].level = 1;
-					diagnostics.status[0].name = nh.getNamespace();
-					diagnostics.status[0].message = warn_str;
-					topicPub_Diagnostic_.publish(diagnostics);
-				}
+		void publishWarn(std::string warn_str) {
+			diagnostic_msgs::DiagnosticArray diagnostics;
+			diagnostics.header.stamp = ros::Time::now();
+			diagnostics.status.resize(1);
+			diagnostics.status[0].level = 1;
+			diagnostics.status[0].name = nh.getNamespace();
+			diagnostics.status[0].message = warn_str;
+			topicPub_Diagnostic_.publish(diagnostics);
+		}
 };
 
 //#######################
