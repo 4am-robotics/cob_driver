@@ -85,9 +85,11 @@ public:
         int argc = sizeof( argv ) / sizeof( *argv );
 
         vlc_inst_ = libvlc_new(argc, argv);
+        if(!vlc_inst_){ROS_ERROR("failed to create libvlc instance"); return false;}
         vlc_player_ = libvlc_media_player_new(vlc_inst_);
-        if(!sim_enabled_)
-            libvlc_set_fullscreen(vlc_player_, 1);
+        if(!vlc_player_){ROS_ERROR("failed to create vlc media player object"); return false;}
+
+        if(!sim_enabled_){libvlc_set_fullscreen(vlc_player_, 1);}
         set_mimic("default", 1, 1.0, false);
         blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
         as_mimic_.start();
@@ -219,31 +221,43 @@ private:
             speed = 1.0;
         }
 
-        libvlc_media_player_set_rate(vlc_player_, speed);
+        // returns -1 if an error was detected, 0 otherwise (but even then, it might not actually work depending on the underlying media protocol)
+        if(libvlc_media_player_set_rate(vlc_player_, speed)!=0){ROS_ERROR("failed to set movie play rate");}
 
         while(repeat > 0)
         {
             vlc_media_ = libvlc_media_new_path(vlc_inst_, filename.c_str());
-
-            if (vlc_media_ != NULL)
+            if(!vlc_media_)
             {
-                libvlc_media_player_set_media(vlc_player_, vlc_media_);
-                libvlc_media_release(vlc_media_);
-                libvlc_media_player_play(vlc_player_);
-                ros::Duration(0.1).sleep();
-                while(blocking && (libvlc_media_player_is_playing(vlc_player_) == 1))
-                {
-                    ros::Duration(0.1).sleep();
-                    ROS_DEBUG("still playing %s", mimic.c_str());
-                    if(new_mimic_request_)
-                    {
-                        ROS_WARN("mimic %s preempted", mimic.c_str());
-                        mutex_.unlock();
-                        return false;
-                    }
-                }
-                repeat --;
+                ROS_ERROR("failed to create media for filepath %s", filename.c_str());
+                mutex_.unlock();
+                return false;
             }
+
+            libvlc_media_player_set_media(vlc_player_, vlc_media_);
+            libvlc_media_release(vlc_media_);
+
+            // returns 0 if playback started (and was already started), or -1 on error. 
+            if(libvlc_media_player_play(vlc_player_)!=0)
+            {
+                ROS_ERROR("failed to play");
+                mutex_.unlock();
+                return false;
+            }
+
+            ros::Duration(0.1).sleep();
+            while(blocking && (libvlc_media_player_is_playing(vlc_player_) == 1))
+            {
+                ros::Duration(0.1).sleep();
+                ROS_DEBUG("still playing %s", mimic.c_str());
+                if(new_mimic_request_)
+                {
+                    ROS_WARN("mimic %s preempted", mimic.c_str());
+                    mutex_.unlock();
+                    return false;
+                }
+            }
+            repeat --;
         }
         mutex_.unlock();
         return true;
@@ -266,7 +280,6 @@ private:
             if(!fs::exists(source) || !fs::is_directory(source))
             {
                 ROS_ERROR_STREAM("Source directory " << source.string() << " does not exist or is not a directory.");
-                             ;
                 return false;
             }
             if(fs::exists(mimic_folder))
