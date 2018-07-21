@@ -8,6 +8,7 @@
   <url type="website">http://ros.org/wiki/cob_driver</url>
   <!-- <url type="bugtracker"></url> -->
 
+  <maintainer email="felixmessmer@gmail.com">Felix Messmer</maintainer>
   <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>
 
   <buildtool_depend>catkin</buildtool_depend>

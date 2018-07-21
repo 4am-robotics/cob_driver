@@ -8,7 +8,7 @@
   <url type="website">http://ros.org/wiki/cob_sick_s300</url>
   <!-- <url type="bugtracker"></url> -->
 
-  <maintainer email="joshua.hampp@ipa.fhg.de">Joshua Hampp</maintainer>
+  <maintainer email="felixmessmer@gmail.com">Felix Messmer</maintainer>
   <author email="fmw@ipa.fhg.de">Florian Weisshardt</author>
 
   <buildtool_depend>catkin</buildtool_depend>

@@ -4,7 +4,7 @@
   <version>0.6.11</version>
   <description>The cob_phidget_power_state package</description>
 
-  <maintainer email="bnm@ipa.fhg.de">Benjamin Maidel</maintainer>
+  <maintainer email="benjamin.maidel@mojin-robotics.de">Benjamin Maidel</maintainer>
   <author email="bnm@ipa.fhg.de">Benjamin Maidel</author>
 
   <license>Apache 2.0</license>
