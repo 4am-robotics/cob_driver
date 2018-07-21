@@ -26,6 +26,8 @@
 #include <cob_srvs/SetString.h>
 
 #include <vlc/vlc.h>
+#include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
 
 class SoundAction
 {
@@ -61,6 +63,22 @@ public:
     as_play_(nh_, ros::this_node::getName() + "/play", false)
   {
     nh_ = ros::NodeHandle("~");
+  }
+
+  ~SoundAction(void)
+  {
+    libvlc_media_player_stop(vlc_player_);
+    libvlc_media_player_release(vlc_player_);
+    libvlc_release(vlc_inst_);
+  }
+
+  bool init()
+  {
+    vlc_inst_ = libvlc_new(0,NULL);
+    if(!vlc_inst_){ROS_ERROR("failed to create libvlc instance"); return false;}
+    vlc_player_ = libvlc_media_player_new(vlc_inst_);
+    if(!vlc_player_){ROS_ERROR("failed to create vlc media player object"); return false;}
+
     as_play_.registerGoalCallback(boost::bind(&SoundAction::as_goal_cb_play_, this));
     as_play_.registerPreemptCallback(boost::bind(&SoundAction::as_preempt_cb_play_, this));
     srvServer_say_ = nh_.advertiseService("say", &SoundAction::service_cb_say, this);
@@ -79,18 +97,9 @@ public:
 
     mute_ = false;
 
-    vlc_inst_ = libvlc_new(0,NULL);
-    vlc_player_ = libvlc_media_player_new(vlc_inst_);
-
     as_say_.start();
     as_play_.start();
-  }
-
-  ~SoundAction(void)
-  {
-    libvlc_media_player_stop(vlc_player_);
-    libvlc_media_player_release(vlc_player_);
-    libvlc_release(vlc_inst_);
+    return true;
   }
 
   void as_goal_cb_play_()
@@ -153,6 +162,12 @@ public:
                        cob_srvs::SetString::Response &res )
   {
     res.success = play(req.data, res.message);
+    ros::Duration(0.1).sleep();
+    while((libvlc_media_player_is_playing(vlc_player_) == 1))
+    {
+        ros::Duration(0.1).sleep();
+        ROS_DEBUG("still playing %s", req.data.c_str());
+    }
     return true;
   }
 
@@ -246,84 +261,75 @@ public:
     {
       command = "echo " + data + " | text2wave | aplay -q";
     }
-    if (system(command.c_str()) != 0)
+
+    int ret = system(command.c_str());
+    if (ret != 0)
     {
-      message = "Command say failed to play sound using mode " + mode;
+      message = "Command say failed to say '" + data + "' using mode " + mode + " (system return value: " + boost::lexical_cast<std::string>(ret) + ")";
       ROS_ERROR_STREAM(message);
-      // publishing diagnotic error if output fails
-      diagnostic_msgs::DiagnosticStatus status;
-      status.level = 2;
-      status.name = "sound";
-      status.message = message;
-      diagnostics_.status.push_back(status);
-
-      diagnostics_.header.stamp = ros::Time::now();
-      diagnostics_pub_.publish(diagnostics_);
-
-      diagnostics_.status.resize(0);
+      publish_diagnostics(diagnostic_msgs::DiagnosticStatus::ERROR, message);
       return false;
     }
+
+    message = "Say successfull";
     return true;
   }
 
-  bool play(std::string filename, std::string message)
+  bool play(std::string filename, std::string &message)
   {
-    bool ret = false;
     if (mute_)
     {
-      message = "Sound is set to mute. You will hear nothing."; 
+      message = "Sound is set to mute. You will hear nothing.";
       ROS_WARN_STREAM(message);
-      return ret;
+      return false;
     }
 
-    ROS_INFO("Playing: %s", filename.c_str());
+    if (filename.empty())
+    {
+      message = "Cannot play because filename is empty.";
+      ROS_WARN_STREAM(message);
+      return false;
+    }
+
+    if ( !boost::filesystem::exists(filename) )
+    {
+      message = "Cannot play '" + filename +"' because file does not exist.";
+      ROS_WARN_STREAM(message);
+      return false;
+    }
+
     vlc_media_ = libvlc_media_new_path(vlc_inst_, filename.c_str());
-
-    if (vlc_media_ != NULL)
+    if(!vlc_media_)
     {
-        libvlc_media_player_set_media(vlc_player_, vlc_media_);
-        libvlc_media_release(vlc_media_);
-        fade_out();
-        if(fade_in())
-        {
-          ret = true;
-          message = "Play successfull";
-        }
-    }
-    if(ret == false)
-    {
-      message = "Could not play file %s" + filename;
-      ROS_ERROR_STREAM(message);
-      // publishing diagnotic error if output fails
-      diagnostic_msgs::DiagnosticStatus status;
-      status.level = 2;
-      status.name = "sound";
-      status.message = message;
-      diagnostics_.status.push_back(status);
-
-      diagnostics_.header.stamp = ros::Time::now();
-      diagnostics_pub_.publish(diagnostics_);
-
-      diagnostics_.status.resize(0);
-      return ret;
+      message = "failed to create media for filepath %s", filename.c_str();
+      ROS_WARN_STREAM(message);
+      return false;
     }
 
-    return ret;
+    libvlc_media_player_set_media(vlc_player_, vlc_media_);
+    libvlc_media_release(vlc_media_);
+
+    if(!fade_out())
+    {
+      message = "failed to fade out";
+      ROS_WARN_STREAM(message);
+      return false;
+    }
+
+    if(!fade_in())
+    {
+      message = "failed to fade in";
+      ROS_WARN_STREAM(message);
+      return false;
+    }
+
+    message = "Play successfull";
+    return true;
   }
 
   void timer_cb(const ros::TimerEvent&)
   {
-    diagnostic_msgs::DiagnosticStatus status;
-    status.level = 0;
-    status.name = "sound";
-    status.hardware_id = "none";
-    status.message = "sound controller running";
-    diagnostics_.status.push_back(status);
-
-    diagnostics_.header.stamp = ros::Time::now();
-    diagnostics_pub_.publish(diagnostics_);
-
-    diagnostics_.status.resize(0);
+    publish_diagnostics(diagnostic_msgs::DiagnosticStatus::OK, "sound controller running");
   }
 
   void timer_play_feedback_cb(const ros::TimerEvent&)
@@ -378,6 +384,21 @@ public:
     pubMarker_.publish(marker);
   }
 
+  void publish_diagnostics(unsigned char level, std::string message)
+  {
+    diagnostic_msgs::DiagnosticStatus status;
+    status.level = level;
+    status.name = "sound";
+    status.hardware_id = "sound";
+    status.message = message;
+    diagnostics_.status.push_back(status);
+
+    diagnostics_.header.stamp = ros::Time::now();
+    diagnostics_pub_.publish(diagnostics_);
+
+    diagnostics_.status.resize(0);
+  }
+
   bool fade_in()
   {
     if(libvlc_media_player_play(vlc_player_) >= 0)
@@ -396,11 +417,13 @@ public:
       {
         while(libvlc_audio_set_volume(vlc_player_,100) != 0)
           ros::Duration(0.05).sleep();
-
       }
     }
     else
+    {
       return false;
+    }
+
     return true;
   }
 
@@ -411,7 +434,7 @@ public:
     {
       if(fade_volume_)
       {
-        for(int i = volume - (volume%5); i >=0; i-=5)
+        for(int i = volume - (volume%5); i>=0; i-=5)
         {
           libvlc_audio_set_volume(vlc_player_,i);
           ros::Duration(fade_duration_/20.0).sleep();
@@ -420,7 +443,6 @@ public:
     }
     return true;
   }
-
 };
 
 
@@ -429,8 +451,15 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "cob_sound");
 
   SoundAction sound;
-  ROS_INFO("sound node started");
-
-  ros::spin();
-  return 0;
+  if(!sound.init())
+  {
+    ROS_ERROR("sound init failed");
+    return 1;
+  }
+  else
+  {
+    ROS_INFO("sound node started");
+    ros::spin();
+    return 0;
+  }
 }

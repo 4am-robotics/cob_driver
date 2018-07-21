@@ -1,6 +1,6 @@
 <package format="2">
   <name>cob_phidgets</name>
-  <version>0.6.11</version>
+  <version>0.6.12</version>
   <description>cob_phidgets</description>
 
   <license>Apache 2.0</license>
@@ -8,7 +8,7 @@
   <url type="website">http://ros.org/wiki/cob_phidgets</url>
   <!-- <url type="bugtracker"></url> -->
 
-  <maintainer email="benjamin.maidel@ipa.fraunhofer.de">Benjamin Maidel</maintainer>
+  <maintainer email="benjamin.maidel@mojin-robotics.de">Benjamin Maidel</maintainer>
   <author>Florian Weisshardt</author>
 
   <buildtool_depend>catkin</buildtool_depend>

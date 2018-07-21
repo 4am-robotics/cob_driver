@@ -2,6 +2,17 @@
 Changelog for package cob_sound
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.12 (2018-07-21)
+-------------------
+* update maintainer
+* Merge pull request `#376 <https://github.com/ipa320/cob_driver/issues/376>`_ from fmessmer/bulletproof_sound
+  bulletproof sound
+* bulletproof sound
+* Merge pull request `#362 <https://github.com/ipa320/cob_driver/issues/362>`_ from ipa-fmw/fix/sound_play
+  [cob_sound] catch if filename is empty or invalid
+* catch if filename is empty
+* Contributors: Felix Messmer, fmessmer, ipa-fxm, msh
+
 0.6.11 (2018-01-07)
 -------------------
 * Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev

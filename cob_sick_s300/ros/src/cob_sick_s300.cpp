@@ -67,7 +67,7 @@ class NodeClass
 		// global variables
 		std::string port;
 		std::string node_name;
-		int baud, scan_id, publish_frequency;
+		int baud, scan_id;
 		bool inverted;
 		double scan_duration, scan_cycle_time;
 		std::string frame_id;
@@ -76,7 +76,6 @@ class NodeClass
 		bool syncedTimeReady;
 		bool debug_;
 		ScannerSickS300 scanner_;
-		ros::Time loop_rate_;
 		std_msgs::Bool inStandby_;
 
 		// Constructor
@@ -105,9 +104,6 @@ class NodeClass
 
 			if(!nh.hasParam("scan_cycle_time")) ROS_WARN("Used default parameter for scan_cycle_time");
 			nh.param("scan_cycle_time", scan_cycle_time, 0.040); //SICK-docu says S300 scans every 40ms
-
-			if (!nh.hasParam("publish_frequency")) ROS_WARN("Used default parameter for publish_frequency");
-			nh.param("publish_frequency", publish_frequency, 12); //Hz
 
 			if(nh.hasParam("debug")) nh.param("debug", debug_, false);
 
@@ -178,8 +174,6 @@ class NodeClass
 			topicPub_LaserScan = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
 			topicPub_InStandby = nh.advertise<std_msgs::Bool>("scan_standby", 1);
 			topicPub_Diagnostic_ = nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
-
-			loop_rate_ = ros::Time::now(); // Hz
 		}
 
 		bool open() {
@@ -220,10 +214,6 @@ class NodeClass
 		// other function declarations
 		void publishLaserScan(std::vector<double> vdDistM, std::vector<double> vdAngRAD, std::vector<double> vdIntensAU, unsigned int iSickTimeStamp, unsigned int iSickNow)
 		{
-			if(ros::Time::now()-loop_rate_.now()>=ros::Duration(1./publish_frequency))
-				return;
-			loop_rate_ = ros::Time::now();
-
 			// fill message
 			int start_scan, stop_scan;
 			int num_readings = vdDistM.size(); // initialize with max scan size
@@ -337,7 +327,6 @@ int main(int argc, char** argv)
 		ROS_INFO("Opening scanner... (port:%s)", nodeClass.port.c_str());
 
 		bOpenScan = nodeClass.open();
-		//bOpenScan = sickS300.open(errors, nodeClass.debug_);
 
 		// check, if it is the first try to open scanner
 		if (!bOpenScan) {

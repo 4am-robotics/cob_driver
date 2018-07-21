@@ -2,6 +2,14 @@
 Changelog for package cob_scan_unifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.12 (2018-07-21)
+-------------------
+* update maintainer
+* Merge pull request `#366 <https://github.com/ipa320/cob_driver/issues/366>`_ from ipa-bnm/feature/scan_unifier
+  merge up to 4 laserscans
+* merge up to 4 laserscans
+* Contributors: Benjamin Maidel, Richard Bormann, fmessmer
+
 0.6.11 (2018-01-07)
 -------------------
 * Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev

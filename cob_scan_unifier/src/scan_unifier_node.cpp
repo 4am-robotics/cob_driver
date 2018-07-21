@@ -30,6 +30,9 @@ ScanUnifierNode::ScanUnifierNode()
   topicPub_LaserUnified_ = nh_.advertise<sensor_msgs::LaserScan>("scan_unified", 1);
 
   getParams();
+  synchronizer2_ = NULL;
+  synchronizer3_ = NULL;
+  synchronizer4_ = NULL;
 
   // Subscribe to Laserscan topics
 
@@ -46,7 +49,8 @@ ScanUnifierNode::ScanUnifierNode()
     case 2:
     {
       typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::LaserScan, sensor_msgs::LaserScan> SyncPolicy;
-      synchronizer2_ = new message_filters::Synchronizer<SyncPolicy>(SyncPolicy(2), *message_filter_subscribers_.at(0), *message_filter_subscribers_.at(1));
+      synchronizer2_ = new message_filters::Synchronizer<SyncPolicy>(SyncPolicy(2), *message_filter_subscribers_.at(0),
+                                                                                    *message_filter_subscribers_.at(1));
       // Set the InterMessageLowerBound to double the period of the laser scans publishing ( 1/{(1/2)*f_laserscans} ).
       synchronizer2_->setInterMessageLowerBound(0, ros::Duration(0.167));
       synchronizer2_->setInterMessageLowerBound(1, ros::Duration(0.167));
@@ -56,11 +60,27 @@ ScanUnifierNode::ScanUnifierNode()
     case 3:
     {
       typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::LaserScan, sensor_msgs::LaserScan, sensor_msgs::LaserScan> SyncPolicy;
-      synchronizer3_ = new message_filters::Synchronizer<SyncPolicy>(SyncPolicy(3), *message_filter_subscribers_.at(0), *message_filter_subscribers_.at(1), *message_filter_subscribers_.at(2));
+      synchronizer3_ = new message_filters::Synchronizer<SyncPolicy>(SyncPolicy(3), *message_filter_subscribers_.at(0),
+                                                                                    *message_filter_subscribers_.at(1),
+                                                                                    *message_filter_subscribers_.at(2));
       synchronizer3_->setInterMessageLowerBound(0, ros::Duration(0.167));
       synchronizer3_->setInterMessageLowerBound(1, ros::Duration(0.167));
       synchronizer3_->setInterMessageLowerBound(2, ros::Duration(0.167));
       synchronizer3_->registerCallback(boost::bind(&ScanUnifierNode::messageFilterCallback, this, _1, _2, _3));
+      break;
+    }
+    case 4:
+    {
+      typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::LaserScan, sensor_msgs::LaserScan, sensor_msgs::LaserScan, sensor_msgs::LaserScan> SyncPolicy;
+      synchronizer4_ = new message_filters::Synchronizer<SyncPolicy>(SyncPolicy(4), *message_filter_subscribers_.at(0),
+                                                                                    *message_filter_subscribers_.at(1),
+                                                                                    *message_filter_subscribers_.at(2),
+                                                                                    *message_filter_subscribers_.at(3));
+      synchronizer4_->setInterMessageLowerBound(0, ros::Duration(0.167));
+      synchronizer4_->setInterMessageLowerBound(1, ros::Duration(0.167));
+      synchronizer4_->setInterMessageLowerBound(2, ros::Duration(0.167));
+      synchronizer4_->setInterMessageLowerBound(3, ros::Duration(0.167));
+      synchronizer4_->registerCallback(boost::bind(&ScanUnifierNode::messageFilterCallback, this, _1, _2, _3, _4));
       break;
     }
     default:
@@ -75,8 +95,12 @@ ScanUnifierNode::ScanUnifierNode()
 
 ScanUnifierNode::~ScanUnifierNode()
 {
-  delete(synchronizer2_);
-  delete(synchronizer3_);
+  if(synchronizer2_ != NULL)
+    delete(synchronizer2_);
+  if(synchronizer3_ != NULL)
+    delete(synchronizer3_);
+  if(synchronizer4_ != NULL)
+    delete(synchronizer4_);
 }
 
 /**
@@ -125,12 +149,35 @@ void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstP
   topicPub_LaserUnified_.publish(unified_scan);
 }
 
-void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& scan1, const sensor_msgs::LaserScan::ConstPtr& scan2, const sensor_msgs::LaserScan::ConstPtr& scan3)
+void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& scan1,
+                                            const sensor_msgs::LaserScan::ConstPtr& scan2,
+                                            const sensor_msgs::LaserScan::ConstPtr& scan3)
 {
   std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans;
   current_scans.push_back(scan1);
   current_scans.push_back(scan2);
   current_scans.push_back(scan3);
+
+  sensor_msgs::LaserScan unified_scan = sensor_msgs::LaserScan();
+  if (!unifyLaserScans(current_scans, unified_scan))
+  {
+    return;
+  }
+
+  ROS_DEBUG("Publishing unified scan.");
+  topicPub_LaserUnified_.publish(unified_scan);
+}
+
+void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& scan1,
+                                            const sensor_msgs::LaserScan::ConstPtr& scan2,
+                                            const sensor_msgs::LaserScan::ConstPtr& scan3,
+                                            const sensor_msgs::LaserScan::ConstPtr& scan4)
+{
+  std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans;
+  current_scans.push_back(scan1);
+  current_scans.push_back(scan2);
+  current_scans.push_back(scan3);
+  current_scans.push_back(scan4);
 
   sensor_msgs::LaserScan unified_scan = sensor_msgs::LaserScan();
   if (!unifyLaserScans(current_scans, unified_scan))

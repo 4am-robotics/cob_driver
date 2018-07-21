@@ -2,6 +2,14 @@
 Changelog for package cob_sick_s300
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.12 (2018-07-21)
+-------------------
+* update maintainer
+* Merge pull request `#377 <https://github.com/ipa320/cob_driver/issues/377>`_ from fmessmer/fix_sicks300_rate
+  remove faulty publish_rate mechanism
+* remove faulty publish_rate mechanism
+* Contributors: Felix Messmer, fmessmer, ipa-fxm
+
 0.6.11 (2018-01-07)
 -------------------
 * Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev

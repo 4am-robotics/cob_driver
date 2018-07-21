@@ -2,6 +2,17 @@
 Changelog for package cob_mimic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.12 (2018-07-21)
+-------------------
+* update maintainer
+* Merge pull request `#375 <https://github.com/ipa320/cob_driver/issues/375>`_ from fmessmer/bulletproof_mimic
+  bulletproof mimic
+* bulletproof mimic
+* Merge pull request `#371 <https://github.com/ipa320/cob_driver/issues/371>`_ from fmessmer/mimic_play_nondefault_mimics
+  allow to play non-default mimics by specifying full filepath
+* allow to play non-default mimics by specifying full filepath
+* Contributors: Felix Messmer, fmessmer, ipa-fxm
+
 0.6.11 (2018-01-07)
 -------------------
 * Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev
