@@ -2,6 +2,15 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* update maintainer
+* Merge pull request `#374 <https://github.com/ipa320/cob_driver/issues/374>`_ from floweisshardt/feature/round_remaining_capacity
+  round remaining_capacity
+* adjust to real driver precision
+* round remaining_capacity
+* Contributors: Felix Messmer, fmessmer, ipa-fmw, ipa-fxm
+
 0.6.11 (2018-01-07)
 -------------------
 * Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev
