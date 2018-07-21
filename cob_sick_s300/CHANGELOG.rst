@@ -2,8 +2,8 @@
 Changelog for package cob_sick_s300
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.12 (2018-07-21)
+-------------------
 * update maintainer
 * Merge pull request `#377 <https://github.com/ipa320/cob_driver/issues/377>`_ from fmessmer/fix_sicks300_rate
   remove faulty publish_rate mechanism

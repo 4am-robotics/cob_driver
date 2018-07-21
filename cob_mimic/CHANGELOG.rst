@@ -2,8 +2,8 @@
 Changelog for package cob_mimic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.12 (2018-07-21)
+-------------------
 * update maintainer
 * Merge pull request `#375 <https://github.com/ipa320/cob_driver/issues/375>`_ from fmessmer/bulletproof_mimic
   bulletproof mimic

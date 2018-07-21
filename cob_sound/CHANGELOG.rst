@@ -2,8 +2,8 @@
 Changelog for package cob_sound
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.12 (2018-07-21)
+-------------------
 * update maintainer
 * Merge pull request `#376 <https://github.com/ipa320/cob_driver/issues/376>`_ from fmessmer/bulletproof_sound
   bulletproof sound

@@ -2,8 +2,8 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.12 (2018-07-21)
+-------------------
 * update maintainer
 * Merge pull request `#374 <https://github.com/ipa320/cob_driver/issues/374>`_ from floweisshardt/feature/round_remaining_capacity
   round remaining_capacity

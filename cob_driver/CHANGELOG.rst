@@ -2,8 +2,8 @@
 Changelog for package cob_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.12 (2018-07-21)
+-------------------
 * update maintainer
 * Contributors: fmessmer
 
