@@ -45,7 +45,7 @@ public:
 
 private:
     // --------------- Types
-    boost::shared_ptr<can::ThreadedSocketCANInterface> m_handle;
+    std::shared_ptr<can::ThreadedSocketCANInterface> m_handle;
     can::BufferedReader m_reader;
 
     bool m_bInitialized;
