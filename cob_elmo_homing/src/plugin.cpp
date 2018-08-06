@@ -66,7 +66,7 @@ class ElmoMotor402 : public canopen::Motor402 {
     }
 
 public:
-    ElmoMotor402(const std::string &name, boost::shared_ptr<canopen::ObjectStorage> storage, const canopen::Settings &settings)
+    ElmoMotor402(const std::string &name, std::shared_ptr<canopen::ObjectStorage> storage, const canopen::Settings &settings)
     : Motor402(name, storage, settings)
     {
         storage->entry(command_entry_, 0x2012);
@@ -108,8 +108,8 @@ public:
 
     class Allocator : public canopen::MotorBase::Allocator{
     public:
-        virtual boost::shared_ptr<canopen::MotorBase> allocate(const std::string &name, boost::shared_ptr<canopen::ObjectStorage> storage, const canopen::Settings &settings) {
-            return boost::make_shared<ElmoMotor402>(name, storage, settings);
+        virtual std::shared_ptr<canopen::MotorBase> allocate(const std::string &name, std::shared_ptr<canopen::ObjectStorage> storage, const canopen::Settings &settings) {
+            return std::make_shared<ElmoMotor402>(name, storage, settings);
         }
     };
 };
