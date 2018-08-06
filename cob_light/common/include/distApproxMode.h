@@ -115,9 +115,9 @@ public:
 
     std::string getName(){ return std::string("DistApproxMode"); }
 
-    static const float DIST_MIN = 0.3f;
-    static const float DIST_MAX = 2.0f;
-    static const double UPDATE_FREQ = 50.0;
+    static constexpr float DIST_MIN = 0.3f;
+    static constexpr float DIST_MAX = 2.0f;
+    static constexpr double UPDATE_FREQ = 50.0;
 
 private:
     double _timer_inc;
