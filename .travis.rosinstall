@@ -1,1 +1,4 @@
 # empty
+- git:
+    uri: 'http://github.com/ipa320/cob_common.git'
+    local-name: cob_common
