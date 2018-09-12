@@ -1,0 +1,23 @@
+<package format="2">
+  <name>laser_scan_densifier</name>
+  <version>0.6.12</version>
+  <description>
+    The laser_scan_densifier takes in a LaserScan message and densifies it.
+    Node is inspired by laser_scan_sparsifier (http://wiki.ros.org/laser_scan_sparsifier).
+  </description>
+  <maintainer email="felixmessmer@gmail.com">Felix Messmer</maintainer>
+  <author email="felixmessmer@gmail.com">Felix Messmer</author>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <depend>nodelet</depend>
+  <depend>sensor_msgs</depend>
+
+  <export>
+    <nodelet plugin="${prefix}/laser_scan_densifier_nodelet.xml" />
+  </export>
+
+</package>
