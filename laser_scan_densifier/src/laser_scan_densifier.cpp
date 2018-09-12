@@ -95,6 +95,9 @@ void LaserScanDensifier::scanCallback (const sensor_msgs::LaserScanConstPtr& sca
   for (unsigned int i = 0; i < scan_msg->ranges.size()-1; i++)
   {
     scan_dense->ranges.insert(scan_dense->ranges.end(), step_, scan_msg->ranges[i]);
+    //double delta = (scan_msg->ranges[i+1]-scan_msg->ranges[i])/step_;
+    //for (unsigned int k = 0; k < step_; k++)
+    //    scan_dense->ranges.insert(scan_dense->ranges.end(), 1, scan_msg->ranges[i]+k*delta);
     scan_dense->intensities.insert(scan_dense->intensities.end(), step_, scan_msg->intensities[i]);
   }
   scan_dense->ranges.push_back(scan_msg->ranges.back());
