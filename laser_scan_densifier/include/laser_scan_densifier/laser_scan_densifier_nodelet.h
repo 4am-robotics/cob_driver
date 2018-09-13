@@ -58,7 +58,7 @@ class LaserScanDensifierNodelet : public nodelet::Nodelet
     virtual void onInit();
 
   private:
-    LaserScanDensifier * laser_scan_densifier_;  // FIXME: change to smart pointer
+    boost::shared_ptr< LaserScanDensifier > laser_scan_densifier_;
 };
 
 } //namespace scan_tools

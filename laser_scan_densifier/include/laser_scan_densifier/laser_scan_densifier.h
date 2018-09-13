@@ -68,6 +68,7 @@ class LaserScanDensifier
     // **** paramaters
 
     int step_;
+    int mode_;
 
     // **** member functions
 

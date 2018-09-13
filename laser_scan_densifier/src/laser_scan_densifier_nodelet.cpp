@@ -56,5 +56,5 @@ void LaserScanDensifierNodelet::onInit ()
   ros::NodeHandle nh         = getMTNodeHandle();
   ros::NodeHandle nh_private = getMTPrivateNodeHandle();
 
-  laser_scan_densifier_ = new LaserScanDensifier(nh, nh_private);  
+  laser_scan_densifier_ = boost::shared_ptr< LaserScanDensifier >(new LaserScanDensifier(nh, nh_private));
 }

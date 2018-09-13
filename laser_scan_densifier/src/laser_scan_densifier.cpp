@@ -54,10 +54,20 @@ LaserScanDensifier::LaserScanDensifier(ros::NodeHandle nh, ros::NodeHandle nh_pr
 
   // **** get paramters
 
-  if (!nh_private_.getParam ("step", step_))
-    step_ = 2;
+  nh_private_.param("step", step_, 2);
+  nh_private_.param("mode", mode_, 0);
 
   ROS_ASSERT_MSG(step_ > 0, "step parameter is set to %, must be > 0", step_);
+
+  switch(mode_) {
+    case 0: ROS_INFO("LaserScanDensifier started with mode %d: copy data points", mode_);
+            break;
+    case 1: ROS_INFO("LaserScanDensifier started with mode %d: interpolate data points", mode_);
+            break;
+    default: ROS_WARN("LaserScanDensifier started with unsupported mode %d. Defaulting to mode 0: copy data points", mode_);
+             mode_ = 0;
+             break;
+  }
 
   // **** advertise topics
 
@@ -92,14 +102,26 @@ void LaserScanDensifier::scanCallback (const sensor_msgs::LaserScanConstPtr& sca
   scan_dense->ranges.clear();
   scan_dense->intensities.clear();
 
-  for (unsigned int i = 0; i < scan_msg->ranges.size()-1; i++)
+  for (size_t i = 0; i < scan_msg->ranges.size()-1; i++)
   {
-    scan_dense->ranges.insert(scan_dense->ranges.end(), step_, scan_msg->ranges[i]);
-    //double delta = (scan_msg->ranges[i+1]-scan_msg->ranges[i])/step_;
-    //for (unsigned int k = 0; k < step_; k++)
-    //    scan_dense->ranges.insert(scan_dense->ranges.end(), 1, scan_msg->ranges[i]+k*delta);
-    scan_dense->intensities.insert(scan_dense->intensities.end(), step_, scan_msg->intensities[i]);
+    switch (mode_) {
+      case 0: { //copy data points
+        scan_dense->ranges.insert(scan_dense->ranges.end(), step_, scan_msg->ranges[i]);
+        scan_dense->intensities.insert(scan_dense->intensities.end(), step_, scan_msg->intensities[i]);
+        break;
+      }
+      case 1: { //interpolate data points
+        double delta_range = (scan_msg->ranges[i+1]-scan_msg->ranges[i])/step_;
+        double delta_intensities = (scan_msg->intensities[i+1]-scan_msg->intensities[i])/step_;
+        for (int k = 0; k < step_; k++) {
+          scan_dense->ranges.insert(scan_dense->ranges.end(), 1, scan_msg->ranges[i]+k*delta_range);
+          scan_dense->intensities.insert(scan_dense->intensities.end(), 1, scan_msg->intensities[i]+k*delta_intensities);
+        }
+        break;
+      }
+    }
   }
+  // add angle_max data point
   scan_dense->ranges.push_back(scan_msg->ranges.back());
   scan_dense->intensities.push_back(scan_msg->intensities.back());
 
