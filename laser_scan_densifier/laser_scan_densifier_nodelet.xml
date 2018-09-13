@@ -1,0 +1,9 @@
+<!-- Laser scan densifier nodelet publisher -->
+<library path="lib/liblaser_scan_densifier_nodelet">
+  <class name="laser_scan_densifier/LaserScanDensifierNodelet" type="LaserScanDensifierNodelet" 
+    base_class_type="nodelet::Nodelet">
+    <description>
+      Laser scan densifier nodelet publisher.
+    </description>
+  </class>
+</library>
