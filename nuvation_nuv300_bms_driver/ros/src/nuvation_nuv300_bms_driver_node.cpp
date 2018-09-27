@@ -25,8 +25,10 @@ public:
 	Nuv300BMS(ros::NodeHandle& nh)
 	: node_handle_(nh), sequence_counter_(0)
 	{
-		// params
-		// todo: data logging
+		// parameters
+		std::cout << "\n========== Nuv300BMS Parameters ==========\n";
+		node_handle_.param("loop_rate", loop_rate_, 10.);
+		std::cout << "loop_rate: " << loop_rate_ << std::endl;
 
 		// setup ros publisher
 		power_state_pub_ = node_handle_.advertise<cob_msgs::PowerState>("power_state", 0);
@@ -36,7 +38,19 @@ public:
 		mb = modbus_new_tcp("192.168.1.21", 502);
 		modbus_connect(mb);
 
-		ros::Rate loop_rate(10);
+		// receive the scale factors
+		uint16_t tab_reg[32];
+		if (modbus_read_registers(mb, 40092, 1, tab_reg) == -1)
+			fprintf(stderr, "%s\n", modbus_strerror(errno));
+		const double soc_sf = pow(10,(double)tab_reg[0]);
+		if (modbus_read_registers(mb, 40113, 1, tab_reg) == -1)
+			fprintf(stderr, "%s\n", modbus_strerror(errno));
+		const double vol_sf = pow(10,(double)tab_reg[0]);
+		if (modbus_read_registers(mb, 40132, 1, tab_reg) == -1)
+			fprintf(stderr, "%s\n", modbus_strerror(errno));
+		const double bcurrent_sf = pow(10,(double)tab_reg[0]);
+
+		ros::Rate loop_rate(loop_rate_);
 		while(ros::ok())
 		{
 			// From: https://www.nuvationenergy.com/technical-resources
@@ -55,22 +69,26 @@ public:
 			// The term Index in the Repeating block addresses used in the above table refers to a calculation of
 			// Index = Stack Index * Length of Repeating block. By definition, the 803 Repeating block is 16 Modbus registers in length.
 
-			// Read 5 registers from the address 0
-			uint16_t tab_reg[32];
-			modbus_read_registers(mb, 0, 5, tab_reg);
+			cob_msgs::PowerState msg;
+
+			// read SoC
+			modbus_read_registers(mb, 40081, 1, tab_reg);
+			msg.relative_remaining_capacity = (double)tab_reg[0]*soc_sf;
+
+			// read Vol
+			modbus_read_registers(mb, 40105, 1, tab_reg);
+			msg.voltage = (double)tab_reg[0]*vol_sf;
+
+			// read BTotDCCur
+			modbus_read_registers(mb, 40127, 1, tab_reg);
+			msg.current = (double)tab_reg[0]*bcurrent_sf;
 
 			// publish PowerState message
-			cob_msgs::PowerState msg;
 			msg.header.seq = sequence_counter_++;
 			msg.header.stamp = ros::Time::now();
-			msg.voltage = 0;
-			msg.current = 0;
-			msg.charging = false;
+			msg.charging = (msg.current < 0. ? true : false);		// todo: check whether this assumption is correct
 			msg.remaining_capacity = 0.;
-			msg.relative_remaining_capacity = 0.;
 			power_state_pub_.publish(msg);
-
-			// data logging
 
 			ros::spinOnce();
 			loop_rate.sleep();
@@ -83,6 +101,8 @@ public:
 protected:
 
 	ros::NodeHandle node_handle_;
+
+	double loop_rate_;		// loop rate for publishing BMS data
 
 	ros::Publisher power_state_pub_;
 	unsigned int sequence_counter_;

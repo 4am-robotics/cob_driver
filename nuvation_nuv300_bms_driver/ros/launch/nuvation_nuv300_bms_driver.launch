@@ -2,5 +2,6 @@
 <launch>
 	<node name="nuvation_nuv300_bms_driver" pkg="nuvation_nuv300_bms_driver" type="nuvation_nuv300_bms_driver_node" output="screen">
 		<remap from="power_state" to="/power_state"/>
+		<param name="loop_rate" value="10"/>	<!-- loop rate for publishing BMS data -->
 	</node>
 </launch>
