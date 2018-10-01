@@ -42,13 +42,15 @@ public:
 		uint16_t tab_reg[32];
 		if (modbus_read_registers(mb, 40092, 1, tab_reg) == -1)
 			fprintf(stderr, "%s\n", modbus_strerror(errno));
-		const double soc_sf = pow(10,(double)tab_reg[0]);
+		const double soc_sf = pow(10,(double)((int16_t*)tab_reg)[0]);
 		if (modbus_read_registers(mb, 40113, 1, tab_reg) == -1)
 			fprintf(stderr, "%s\n", modbus_strerror(errno));
-		const double vol_sf = pow(10,(double)tab_reg[0]);
+		const double vol_sf = pow(10,(double)((int16_t*)tab_reg)[0]);
 		if (modbus_read_registers(mb, 40132, 1, tab_reg) == -1)
 			fprintf(stderr, "%s\n", modbus_strerror(errno));
-		const double bcurrent_sf = pow(10,(double)tab_reg[0]);
+		const double bcurrent_sf = pow(10,(double)((int16_t*)tab_reg)[0]);
+		
+		std::cout << "soc_sf=" << soc_sf << "   vol_sf=" << vol_sf << "   bcurrent_sf=" << bcurrent_sf << std::endl;
 
 		ros::Rate loop_rate(loop_rate_);
 		while(ros::ok())
@@ -81,8 +83,8 @@ public:
 
 			// read BTotDCCur
 			modbus_read_registers(mb, 40127, 1, tab_reg);
-			msg.current = (double)tab_reg[0]*bcurrent_sf;
-
+			msg.current = (double)((int16_t*)tab_reg)[0]*bcurrent_sf;
+			
 			// publish PowerState message
 			msg.header.seq = sequence_counter_++;
 			msg.header.stamp = ros::Time::now();
