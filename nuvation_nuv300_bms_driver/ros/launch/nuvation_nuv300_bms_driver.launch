@@ -1,7 +1,12 @@
 <?xml version="1.0"?>
 <launch>
+	<arg name="bms_ip_address" default="192.168.1.21"/>
+	<arg name="bms_port" default="502"/>
+
 	<node name="nuvation_nuv300_bms_driver" pkg="nuvation_nuv300_bms_driver" type="nuvation_nuv300_bms_driver_node" output="screen">
 		<remap from="power_state" to="/power_state"/>
 		<param name="loop_rate" value="10"/>	<!-- loop rate for publishing BMS data -->
+		<param name="bms_ip_address" value="$(arg bms_ip_address)"/>	<!-- ip address of the BMS -->
+		<param name="bms_port" value="$(arg bms_port)"/>	<!-- network port to BMS -->
 	</node>
 </launch>

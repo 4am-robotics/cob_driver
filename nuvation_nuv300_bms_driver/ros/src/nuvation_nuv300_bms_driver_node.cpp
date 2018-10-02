@@ -26,16 +26,21 @@ public:
 	: node_handle_(nh), sequence_counter_(0)
 	{
 		// parameters
+		ros::NodeHandle pnh("~");
 		std::cout << "\n========== Nuv300BMS Parameters ==========\n";
-		node_handle_.param("loop_rate", loop_rate_, 10.);
+		pnh.param("loop_rate", loop_rate_, 10.);
 		std::cout << "loop_rate: " << loop_rate_ << std::endl;
+		pnh.param("bms_ip_address", bms_ip_address_, std::string("192.168.1.21"));
+		std::cout << "bms_ip_address: " << bms_ip_address_ << std::endl;
+		pnh.param("bms_port", bms_port_, 502);
+		std::cout << "bms_port: " << bms_port_ << std::endl;
 
 		// setup ros publisher
 		power_state_pub_ = node_handle_.advertise<cob_msgs::PowerState>("power_state", 0);
 
 		// connect to modbus
 		modbus_t *mb;
-		mb = modbus_new_tcp("192.168.1.21", 502);
+		mb = modbus_new_tcp(bms_ip_address_.c_str(), bms_port_);
 		modbus_connect(mb);
 
 		// receive the scale factors
@@ -105,6 +110,8 @@ protected:
 	ros::NodeHandle node_handle_;
 
 	double loop_rate_;		// loop rate for publishing BMS data
+	std::string bms_ip_address_;		// ip address of the BMS
+	int bms_port_;				// network port to BMS
 
 	ros::Publisher power_state_pub_;
 	unsigned int sequence_counter_;
