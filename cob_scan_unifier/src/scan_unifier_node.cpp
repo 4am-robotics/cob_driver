@@ -235,8 +235,8 @@ bool ScanUnifierNode::unifyLaserScans(std::vector<sensor_msgs::LaserScan::ConstP
     unified_scan.scan_time = current_scans.at(0)->scan_time;
     unified_scan.range_min = current_scans.at(0)->range_min;
     unified_scan.range_max = current_scans.at(0)->range_max;
-    unified_scan.ranges.resize(round((unified_scan.angle_max - unified_scan.angle_min) / unified_scan.angle_increment) + 1);
-    unified_scan.intensities.resize(round((unified_scan.angle_max - unified_scan.angle_min) / unified_scan.angle_increment) + 1);
+    unified_scan.ranges.resize(round((unified_scan.angle_max - unified_scan.angle_min) / unified_scan.angle_increment) + 1, unified_scan.range_max);
+    unified_scan.intensities.resize(round((unified_scan.angle_max - unified_scan.angle_min) / unified_scan.angle_increment) + 1, 0.0);
 
     // now unify all Scans
     ROS_DEBUG("unify scans");
@@ -264,7 +264,7 @@ bool ScanUnifierNode::unifyLaserScans(std::vector<sensor_msgs::LaserScan::ConstP
 
         double range_sq = y*y+x*x;
         //printf ("index xyz( %f %f %f) angle %f index %d range %f\n", x, y, z, angle, index, sqrt(range_sq));
-        if( (unified_scan.ranges.at(index) == 0) || (sqrt(range_sq) <= unified_scan.ranges.at(index)) )
+        if( (sqrt(range_sq) <= unified_scan.ranges.at(index)) )
         {
           // use the nearest reflection point of all scans for unified scan
           unified_scan.ranges.at(index) = sqrt(range_sq);
