@@ -297,28 +297,38 @@ auto PhidgetIKROS::setDigitalOutCallback(cob_phidgets::SetDigitalSensor::Request
 	_indexNameMapRevItr = _indexNameMapDigitalOutRev.find(req.uri);
 	if(_indexNameMapRevItr != _indexNameMapDigitalOutRev.end())
 	{
-		ROS_INFO("Setting digital output %i to state %i", _indexNameMapDigitalOutRev[req.uri], req.state);
-		this->setOutputState(_indexNameMapDigitalOutRev[req.uri], req.state);
-
-		ros::Time start = ros::Time::now();
-		while((ros::Time::now().toSec() - start.toSec()) < 1.0)
+		if(this->getOutputState(_indexNameMapDigitalOutRev[req.uri]) == req.state)
 		{
-			_mutex.lock();
-			if(_outputChanged.updated == true)
-			{
-				_mutex.unlock();
-				break;
-			}
-			_mutex.unlock();
-
-			ros::Duration(0.025).sleep();
+			ROS_INFO("Digital output %i is already at state %i", _indexNameMapDigitalOutRev[req.uri], req.state);
+			res.uri = req.uri;
+			res.state = req.state;
+			ret = true;
 		}
-		_mutex.lock();
-		res.uri = _indexNameMapDigitalOut[_outputChanged.index];
-		res.state = _outputChanged.state;
-		ROS_DEBUG("Sending response: updated: %u, index: %d, state: %d",_outputChanged.updated, _outputChanged.index, _outputChanged.state);
-		ret = (_outputChanged.updated && (_outputChanged.index == _indexNameMapDigitalOutRev[req.uri]));
-		_mutex.unlock();
+		else
+		{
+			ROS_INFO("Setting digital output %i to state %i", _indexNameMapDigitalOutRev[req.uri], req.state);
+			this->setOutputState(_indexNameMapDigitalOutRev[req.uri], req.state);
+
+			ros::Time start = ros::Time::now();
+			while((ros::Time::now().toSec() - start.toSec()) < 1.0)
+			{
+				_mutex.lock();
+				if(_outputChanged.updated == true)
+				{
+					_mutex.unlock();
+					break;
+				}
+				_mutex.unlock();
+
+				ros::Duration(0.025).sleep();
+			}
+			_mutex.lock();
+			res.uri = _indexNameMapDigitalOut[_outputChanged.index];
+			res.state = _outputChanged.state;
+			ROS_DEBUG("Sending response: updated: %u, index: %d, state: %d",_outputChanged.updated, _outputChanged.index, _outputChanged.state);
+			ret = (_outputChanged.updated && (_outputChanged.index == _indexNameMapDigitalOutRev[req.uri]));
+			_mutex.unlock();
+		}
 	}
 	else
 	{
@@ -406,10 +416,10 @@ auto PhidgetIKROS::attachHandler() -> int
 auto PhidgetIKROS::detachHandler() -> int
 {
 	int serial_number;
-    const char *device_name;
+	const char *device_name;
 
-    CPhidget_getDeviceName ((CPhidgetHandle)_iKitHandle, &device_name);
-    CPhidget_getSerialNumber((CPhidgetHandle)_iKitHandle, &serial_number);
-    ROS_INFO("%s Serial number %d detached!", device_name, serial_number);
-    return 0;
+	CPhidget_getDeviceName ((CPhidgetHandle)_iKitHandle, &device_name);
+	CPhidget_getSerialNumber((CPhidgetHandle)_iKitHandle, &serial_number);
+	ROS_INFO("%s Serial number %d detached!", device_name, serial_number);
+	return 0;
 }
