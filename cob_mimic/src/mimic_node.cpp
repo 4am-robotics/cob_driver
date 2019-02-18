@@ -58,13 +58,24 @@ public:
             return false;
 
         sim_enabled_ = nh_.param<bool>("sim", false);
+        std::string default_mimic;
+        default_mimic = nh_.param<std::string>("default", "default");
+        if (nh_.hasParam("blinking"))
+        {   
+            std::vector<std::string> blinking_mimics;
+            nh_.getParam("blinking", blinking_mimics);
+            random_mimics_ = blinking_mimics;
+        }
+        else
+        {
+            random_mimics_.push_back("blinking");
+            random_mimics_.push_back("blinking");
+            random_mimics_.push_back("blinking");
+            random_mimics_.push_back("blinking_left");
+            random_mimics_.push_back("blinking_right");
+        }
         srvServer_mimic_ = nh_.advertiseService("set_mimic", &Mimic::service_cb_mimic, this);
 
-        random_mimics_.push_back("blinking");
-        random_mimics_.push_back("blinking");
-        random_mimics_.push_back("blinking");
-        random_mimics_.push_back("blinking_left");
-        random_mimics_.push_back("blinking_right");
 
         int_dist_ = boost::random::uniform_int_distribution<>(0,static_cast<int>(random_mimics_.size())-1);
 
@@ -90,7 +101,7 @@ public:
         if(!vlc_player_){ROS_ERROR("failed to create vlc media player object"); return false;}
 
         if(!sim_enabled_){libvlc_set_fullscreen(vlc_player_, 1);}
-        set_mimic("default", 1, 1.0, false);
+        set_mimic(default_mimic, 1, 1.0, false);
         blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
         as_mimic_.start();
         return true;
