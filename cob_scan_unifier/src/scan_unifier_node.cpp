@@ -212,7 +212,7 @@ bool ScanUnifierNode::unifyLaserScans(std::vector<sensor_msgs::LaserScan::ConstP
       try
       {
         if (!listener_.waitForTransform(frame_, current_scans.at(i)->header.frame_id,
-                                        current_scans.at(i)->header.stamp + ros::Duration().fromSec((current_scans.at(i)->ranges.size()-1)*current_scans.at(i)->time_increment), ros::Duration(1.0)))
+                                        current_scans.at(i)->header.stamp + ros::Duration().fromSec(current_scans.at(i)->ranges.size()*current_scans.at(i)->time_increment), ros::Duration(1.0)))
         {
           ROS_WARN_STREAM("Scan unifier skipped scan with " << current_scans.at(i)->header.stamp << " stamp, because of missing tf transform.");
           return false;
