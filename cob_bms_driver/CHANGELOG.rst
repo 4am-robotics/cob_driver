@@ -2,8 +2,8 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.13 (2019-03-14)
+-------------------
 * Merge pull request `#381 <https://github.com/ipa320/cob_driver/issues/381>`_ from pholthau/boost-format
   include boost/format.hpp
 * include boost/format.hpp
