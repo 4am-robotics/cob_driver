@@ -32,6 +32,6 @@ install(TARGETS sound
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(PROGRAMS ros/src/test_client.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/ros/src
+install(PROGRAMS ros/src/test_client.py fix_swift_for_precise.sh
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

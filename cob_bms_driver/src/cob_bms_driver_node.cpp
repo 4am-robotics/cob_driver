@@ -21,6 +21,7 @@
 
 #include <stdint.h>
 #include <endian.h>
+#include <boost/format.hpp>
 
 #include <cob_bms_driver/cob_bms_driver_node.h>
 
