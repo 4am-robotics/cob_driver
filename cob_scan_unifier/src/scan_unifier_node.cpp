@@ -26,6 +26,10 @@ ScanUnifierNode::ScanUnifierNode()
   nh_ = ros::NodeHandle();
   pnh_ = ros::NodeHandle("~");
 
+  // Init TF-Buffer
+  p_tfBuffer = new tf2_ros::Buffer();
+  p_tfListener = new tf2_ros::TransformListener(*p_tfBuffer, true);
+
   // Publisher
   topicPub_LaserUnified_ = nh_.advertise<sensor_msgs::LaserScan>("scan_unified", 1);
 
