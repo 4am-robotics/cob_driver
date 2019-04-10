@@ -86,7 +86,9 @@ struct FloatBmsParameter : TypedBmsParameter<std_msgs::Float64> {
         msg_.data *= factor;
 
         //save data for diagnostics updater (and round to two digits for readability)
-        kv.value = (boost::format("%.2f") % msg_.data).str();
+        std::stringstream sstream;
+        sstream << std::setprecision(2) << msg_.data;
+        kv.value = sstream.str();
         publish();
     }
 };
