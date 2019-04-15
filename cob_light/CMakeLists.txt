@@ -37,6 +37,8 @@ catkin_package(
 #pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
 #pkg_check_modules(GTHREAD REQUIRED gthread-2.0)
 
+add_compile_options(-Wno-narrowing)
+
 include_directories(${PROJECT_SOURCE_DIR}/ros/include ${PROJECT_SOURCE_DIR}/common/include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 set(HEADERS
     ${PROJECT_SOURCE_DIR}/ros/include/colorO.h
@@ -75,7 +77,7 @@ install(TARGETS cob_light
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(PROGRAMS 
+install(PROGRAMS
   ros/scripts/test.py
   ros/scripts/test_sprofi_circle.py
   ros/scripts/test_sprofi_modes.py
