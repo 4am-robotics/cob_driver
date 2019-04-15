@@ -106,7 +106,7 @@ public:
     bool isRunning(){ return _isRunning; }
 
     boost::signals2::signal<void (color::rgba color)>* signalColorReady(){ return &m_sigColorReady; }
-    boost::signals2::signal<void (std::vector<color::rgba> colors)>* signalColorsReady(){ return &m_sigColorsReady; }
+    boost::signals2::signal<void (std::vector<color::rgba> &colors)>* signalColorsReady(){ return &m_sigColorsReady; }
     boost::signals2::signal<void (int)>* signalModeFinished(){ return &m_sigFinished; }
 
 protected:
@@ -126,7 +126,7 @@ protected:
     static const unsigned int UPDATE_RATE_HZ = 100;
 
     boost::signals2::signal<void (color::rgba color)> m_sigColorReady;
-    boost::signals2::signal<void (std::vector<color::rgba> colors)> m_sigColorsReady;
+    boost::signals2::signal<void (std::vector<color::rgba> &colors)> m_sigColorsReady;
     boost::signals2::signal<void (int)> m_sigFinished;
 
 private:
