@@ -9,6 +9,8 @@ env:
   global:
     - ROS_REPO=ros
   matrix:
+    - ROS_DISTRO=kinetic UPSTREAM_WORKSPACE=file
+    - ROS_DISTRO=kinetic UPSTREAM_WORKSPACE=debian
     - ROS_DISTRO=melodic UPSTREAM_WORKSPACE=file
     - ROS_DISTRO=melodic UPSTREAM_WORKSPACE=debian
 install:
