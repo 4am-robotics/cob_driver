@@ -12,6 +12,7 @@
   <buildtool_depend>catkin</buildtool_depend>
   <depend>canopen_402</depend>
   <depend>class_loader</depend>
+  <depend>socketcan_interface</depend>
 
   <export>
      <canopen_402 plugin="${prefix}/canopen_402_plugin.xml" />

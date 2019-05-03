@@ -17,6 +17,7 @@
 
 #include <class_loader/class_loader.h>
 #include <canopen_402/motor.h>
+#include <socketcan_interface/make_shared.h>
 
 namespace cob_elmo_homing {
 
@@ -112,9 +113,7 @@ public:
                                                    canopen::ObjectStorageSharedPtr storage,
                                                    const canopen::Settings& settings)
       {
-        canopen::MotorBaseSharedPtr mbsp;
-        mbsp.reset(new ElmoMotor402(name, storage, settings));
-        return mbsp;
+        return ROSCANOPEN_MAKE_SHARED<ElmoMotor402>(name, storage, settings);
       }
     };
 };

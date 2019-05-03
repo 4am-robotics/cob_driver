@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_elmo_homing)
-add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
   canopen_402
   class_loader
+  socketcan_interface
 )
 catkin_package()
 
