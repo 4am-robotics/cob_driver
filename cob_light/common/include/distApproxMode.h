@@ -134,8 +134,8 @@ private:
     color::rgba c_default;
 };
 
-const float DistApproxMode::DIST_MIN;
-const float DistApproxMode::DIST_MAX;
-const double DistApproxMode::UPDATE_FREQ;
+constexpr float DistApproxMode::DIST_MIN;
+constexpr float DistApproxMode::DIST_MAX;
+constexpr double DistApproxMode::UPDATE_FREQ;
 
 #endif
