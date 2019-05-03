@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_light)
 
+add_compile_options(-std=c++11)
+
 find_package(catkin REQUIRED COMPONENTS actionlib_msgs actionlib diagnostic_msgs message_generation roscpp sensor_msgs std_msgs visualization_msgs)
 
 find_package(Boost REQUIRED COMPONENTS signals thread)
