@@ -61,7 +61,7 @@ bool SocketCan::init_ret()
     }
     else
     {
-        m_reader.listen((std::shared_ptr<can::CommInterface>) m_handle);
+        m_reader.listen((can::CommInterfaceSharedPtr)m_handle);
         m_bInitialized = true;
         bool bRet = true;
         ret = true;

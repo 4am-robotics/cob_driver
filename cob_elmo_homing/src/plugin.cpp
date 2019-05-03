@@ -108,12 +108,14 @@ public:
 
     class Allocator : public canopen::MotorBase::Allocator{
     public:
-      virtual std::shared_ptr<canopen::MotorBase> allocate(const std::string& name,
-                                                           canopen::ObjectStorageSharedPtr storage,
-                                                           const canopen::Settings& settings)
+      virtual canopen::MotorBaseSharedPtr allocate(const std::string& name,
+                                                   canopen::ObjectStorageSharedPtr storage,
+                                                   const canopen::Settings& settings)
       {
-        return std::make_shared<ElmoMotor402>(name, storage, settings);
-        }
+        canopen::MotorBaseSharedPtr mbsp;
+        mbsp.reset(new ElmoMotor402(name, storage, settings));
+        return mbsp;
+      }
     };
 };
 

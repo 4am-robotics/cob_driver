@@ -45,13 +45,13 @@ public:
 
 private:
     // --------------- Types
-    std::shared_ptr<can::ThreadedSocketCANInterface> m_handle;
+    can::ThreadedSocketCANInterfaceSharedPtr m_handle;
     can::BufferedReader m_reader;
 
     bool m_bInitialized;
     const char* p_cDevice;
 
-    void print_error ( const can::State& state );
+    void print_error(const can::State& state);
 };
 //-----------------------------------------------
 #endif
