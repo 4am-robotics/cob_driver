@@ -21,7 +21,6 @@
 #include <std_msgs/Bool.h>
 #include <XmlRpcException.h>
 
-#include <string>
 #include <stdint.h>
 #include <endian.h>
 #include <boost/format.hpp>
@@ -97,7 +96,7 @@ struct IntBmsParameter : TypedBmsParameter<std_msgs::Int64> {
     void update(const can::Frame &f){
         readTypedValue(f, *this, msg_.data);
 
-        kv.value = std::to_string(msg_.data);
+        kv.value = (boost::format("%lld") % msg_.data).str();
         publish();
     }
 };
@@ -107,7 +106,7 @@ struct UIntBmsParameter : TypedBmsParameter<std_msgs::UInt64> {
     void update(const can::Frame &f){
         readTypedValue(f, *this, msg_.data);
 
-        kv.value = std::to_string(msg_.data);
+        kv.value = (boost::format("%llu") % msg_.data).str();
         publish();
     }
 };
