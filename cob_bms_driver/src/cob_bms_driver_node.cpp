@@ -16,9 +16,12 @@
 
 
 #include <std_msgs/Float64.h>
+#include <std_msgs/Int64.h>
+#include <std_msgs/UInt64.h>
 #include <std_msgs/Bool.h>
 #include <XmlRpcException.h>
 
+#include <string>
 #include <stdint.h>
 #include <endian.h>
 #include <boost/format.hpp>
@@ -86,6 +89,26 @@ struct FloatBmsParameter : TypedBmsParameter<std_msgs::Float64> {
 
         //save data for diagnostics updater (and round to two digits for readability)
         kv.value = (boost::format("%.2f") % msg_.data).str();
+        publish();
+    }
+};
+
+struct IntBmsParameter : TypedBmsParameter<std_msgs::Int64> {
+    IntBmsParameter() {}
+    void update(const can::Frame &f){
+        readTypedValue(f, *this, msg_.data);
+
+        kv.value = std::to_string(msg_.data);
+        publish();
+    }
+};
+
+struct UIntBmsParameter : TypedBmsParameter<std_msgs::UInt64> {
+    UIntBmsParameter() {}
+    void update(const can::Frame &f){
+        readTypedValue(f, *this, msg_.data);
+
+        kv.value = std::to_string(msg_.data);
         publish();
     }
 };
@@ -251,21 +274,34 @@ bool CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue &diagnostics, std::vect
                 entry = make_shared<BooleanBmsParameter>(bit_mask);
                 entry->kv.key = name;
             }else{
-                double factor = 1.0;
                 if(field.hasMember("factor")){
-                    factor = static_cast<double>(field["factor"]);
-                }
+                    double factor = 1.0;
+                    if(field.hasMember("factor")){
+                        factor = static_cast<double>(field["factor"]);
+                    }
 
-                entry = make_shared<FloatBmsParameter>(factor);
+                    entry = make_shared<FloatBmsParameter>(factor);
 
-                if(!field.hasMember("is_signed")){
-                    ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: is_signed is missing.");
-                    return false;
-                }
-                entry->is_signed = static_cast<bool>(field["is_signed"]);
+                    if(!field.hasMember("is_signed")){
+                        ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: is_signed is missing.");
+                        return false;
+                    }
+                    entry->is_signed = static_cast<bool>(field["is_signed"]);
 
-                if(field.hasMember("unit")){
-                    entry->kv.key = name + "[" + static_cast<std::string>(field["unit"]) + "]";
+                    if(field.hasMember("unit")){
+                        entry->kv.key = name + "[" + static_cast<std::string>(field["unit"]) + "]";
+                    }
+                }else{
+                    if(!field.hasMember("is_signed")){
+                        ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: is_signed is missing.");
+                        return false;
+                    }
+                    if(static_cast<bool>(field["is_signed"])){
+                        entry = make_shared<IntBmsParameter>();
+                    }else{
+                        entry = make_shared<UIntBmsParameter>();
+                    }
+                    entry->is_signed = static_cast<bool>(field["is_signed"]);
                 }
             }
 

@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_bms_driver)
 
+add_compile_options(-std=c++11)
+
 find_package(catkin REQUIRED COMPONENTS
   diagnostic_msgs
   diagnostic_updater
