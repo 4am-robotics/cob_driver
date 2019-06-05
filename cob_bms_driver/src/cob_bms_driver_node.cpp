@@ -77,7 +77,6 @@ template<typename T> struct TypedBmsParameter : BmsParameter {
     virtual void advertise(ros::NodeHandle &nh, const std::string &topic){
         publisher = nh.advertise<T> (topic, 1, true);
     }
-
 };
 
 struct FloatBmsParameter : TypedBmsParameter<std_msgs::Float64> {
@@ -274,6 +273,10 @@ bool CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue &diagnostics, std::vect
                 entry = make_shared<BooleanBmsParameter>(bit_mask);
                 entry->kv.key = name;
             }else{
+                if(!field.hasMember("is_signed")){
+                    ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: is_signed is missing.");
+                    return false;
+                }
                 if(field.hasMember("factor")){
                     double factor = 1.0;
                     if(field.hasMember("factor")){
@@ -282,26 +285,21 @@ bool CobBmsDriverNode::loadConfigMap(XmlRpc::XmlRpcValue &diagnostics, std::vect
 
                     entry = make_shared<FloatBmsParameter>(factor);
 
-                    if(!field.hasMember("is_signed")){
-                        ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: is_signed is missing.");
-                        return false;
-                    }
                     entry->is_signed = static_cast<bool>(field["is_signed"]);
 
                     if(field.hasMember("unit")){
                         entry->kv.key = name + "[" + static_cast<std::string>(field["unit"]) + "]";
+                    }else{
+                        entry->kv.key = name;
                     }
                 }else{
-                    if(!field.hasMember("is_signed")){
-                        ROS_ERROR_STREAM("diagnostics[" << i << "]: fields[" << j << "]: is_signed is missing.");
-                        return false;
-                    }
                     if(static_cast<bool>(field["is_signed"])){
                         entry = make_shared<IntBmsParameter>();
                     }else{
                         entry = make_shared<UIntBmsParameter>();
                     }
                     entry->is_signed = static_cast<bool>(field["is_signed"]);
+                    entry->kv.key = name;
                 }
             }
 
