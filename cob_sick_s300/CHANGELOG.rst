@@ -2,6 +2,9 @@
 Changelog for package cob_sick_s300
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.13 (2019-03-14)
 -------------------
 * Merge pull request `#378 <https://github.com/ipa320/cob_driver/issues/378>`_ from mateuszcierpikowski/feature/auto_reconnect

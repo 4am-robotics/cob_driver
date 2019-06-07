@@ -2,6 +2,9 @@
 Changelog for package cob_sound
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.13 (2019-03-14)
 -------------------
 * Merge pull request `#382 <https://github.com/ipa320/cob_driver/issues/382>`_ from fmessmer/install_fix_swift

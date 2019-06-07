@@ -2,6 +2,9 @@
 Changelog for package cob_scan_unifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.13 (2019-03-14)
 -------------------
 * Merge pull request `#385 <https://github.com/ipa320/cob_driver/issues/385>`_ from fmessmer/scan_unifier_range_initialization
