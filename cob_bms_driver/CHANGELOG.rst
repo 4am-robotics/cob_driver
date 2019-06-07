@@ -2,8 +2,8 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.14 (2019-06-07)
+-------------------
 * Merge pull request `#393 <https://github.com/ipa320/cob_driver/issues/393>`_ from fmessmer/add_int_bms_parameter
   add int bms parameter types
 * get rid of c++11 compile options
