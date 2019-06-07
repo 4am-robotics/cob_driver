@@ -2,6 +2,9 @@
 Changelog for package cob_phidgets
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.14 (2019-06-07)
+-------------------
+
 0.6.13 (2019-03-14)
 -------------------
 * Merge pull request `#386 <https://github.com/ipa320/cob_driver/issues/386>`_ from benmaidel/fix/check_sensor_value
