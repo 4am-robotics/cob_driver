@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_mimic)
 
+add_compile_options(-std=c++11)
+
 find_package(catkin REQUIRED COMPONENTS actionlib actionlib_msgs message_generation roscpp roslib)
 find_package(PkgConfig REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem thread)

@@ -60,6 +60,7 @@ public:
 
         sim_enabled_ = nh_.param<bool>("sim", false);
         srvServer_mimic_ = nh_.advertiseService("set_mimic", &Mimic::service_cb_mimic, this);
+        service_active_ = false;
 
         random_mimics_.push_back("blinking");
         random_mimics_.push_back("blinking");
@@ -68,7 +69,7 @@ public:
         random_mimics_.push_back("blinking_right");
 
         diagnostic_updater_.setHardwareID("none");
-        diagnostic_updater_.add("Mimic", this, &Mimic::produceDiagnostics);
+        diagnostic_updater_.add("mimic", this, &Mimic::produce_diagnostics);
         diagnostic_timer_ = nh_.createTimer(ros::Duration(1.0), &Mimic::diagnostics_timer_cb, this);
 
         int_dist_ = boost::random::uniform_int_distribution<>(0,static_cast<int>(random_mimics_.size())-1);
@@ -108,7 +109,7 @@ private:
     ros::Timer blinking_timer_;
     std::string mimic_folder_;
 
-    bool service_active_ = false;
+    bool service_active_;
     std::string active_mimic_;
     diagnostic_updater::Updater diagnostic_updater_;
     ros::Timer diagnostic_timer_;
@@ -198,7 +199,7 @@ private:
 
     bool set_mimic(std::string mimic, int repeat, float speed, bool blocking=true)
     {
-        active_mimic_= "Mimic: "+ mimic +" repeat: "+ std::to_string(repeat) +" speed: "+ std::to_string(speed) +" blocking: "+ std::to_string(blocking);
+        active_mimic_= "Mimic: "+ mimic +", repeat: "+ std::to_string(repeat) +", speed: "+ std::to_string(speed) +", blocking: "+ std::to_string(blocking);
         bool ret = false;
         new_mimic_request_=true;
         ROS_INFO("New mimic request with: %s", mimic.c_str());
@@ -345,14 +346,11 @@ private:
 
     void diagnostics_timer_cb(const ros::TimerEvent&)
     {
-        ROS_ERROR("Timer callback");
         diagnostic_updater_.update();
     }
 
     void produce_diagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
     {
-        ROS_ERROR("Produce diagnostics");
-        ROS_ERROR_STREAM("Current goal: "<<active_mimic_);
         stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Mimic running");
         stat.add("Action is active", as_mimic_.isActive());
         stat.add("Service is active", service_active_);
