@@ -16,6 +16,7 @@
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <actionlib/server/simple_action_server.h>
+#include <diagnostic_updater/diagnostic_updater.h>
 
 #include <cob_mimic/SetMimicAction.h>
 #include <cob_mimic/SetMimicGoal.h>
@@ -66,6 +67,10 @@ public:
         random_mimics_.push_back("blinking_left");
         random_mimics_.push_back("blinking_right");
 
+        diagnostic_updater_.setHardwareID("none");
+        diagnostic_updater_.add("Mimic", this, &Mimic::produceDiagnostics);
+        diagnostic_timer_ = nh_.createTimer(ros::Duration(1.0), &Mimic::diagnostics_timer_cb, this);
+
         int_dist_ = boost::random::uniform_int_distribution<>(0,static_cast<int>(random_mimics_.size())-1);
 
         char const *argv[] =
@@ -102,6 +107,11 @@ private:
     ros::ServiceServer srvServer_mimic_;
     ros::Timer blinking_timer_;
     std::string mimic_folder_;
+
+    bool service_active_ = false;
+    std::string active_mimic_;
+    diagnostic_updater::Updater diagnostic_updater_;
+    ros::Timer diagnostic_timer_;
 
     libvlc_instance_t* vlc_inst_;
     libvlc_media_player_t* vlc_player_;
@@ -174,6 +184,7 @@ private:
     bool service_cb_mimic(cob_mimic::SetMimic::Request &req,
                           cob_mimic::SetMimic::Response &res )
     {
+        service_active_ = true;
         blinking_timer_.stop();
 
         res.success = set_mimic(req.mimic, req.repeat, req.speed);
@@ -181,11 +192,13 @@ private:
 
         if(req.mimic != "falling_asleep" && req.mimic != "sleeping")
             blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
+        service_active_ = false;
         return true;
     }
 
     bool set_mimic(std::string mimic, int repeat, float speed, bool blocking=true)
     {
+        active_mimic_= "Mimic: "+ mimic +" repeat: "+ std::to_string(repeat) +" speed: "+ std::to_string(speed) +" blocking: "+ std::to_string(blocking);
         bool ret = false;
         new_mimic_request_=true;
         ROS_INFO("New mimic request with: %s", mimic.c_str());
@@ -202,6 +215,7 @@ private:
             {
                 ROS_ERROR("File not found: %s", filename.c_str());
                 mutex_.unlock();
+                active_mimic_ = "None";
                 return false;
             }
             else
@@ -231,6 +245,7 @@ private:
             {
                 ROS_ERROR("failed to create media for filepath %s", filename.c_str());
                 mutex_.unlock();
+                active_mimic_ = "None";
                 return false;
             }
 
@@ -242,6 +257,7 @@ private:
             {
                 ROS_ERROR("failed to play");
                 mutex_.unlock();
+                active_mimic_ = "None";
                 return false;
             }
 
@@ -254,12 +270,14 @@ private:
                 {
                     ROS_WARN("mimic %s preempted", mimic.c_str());
                     mutex_.unlock();
+                    active_mimic_ = "None";
                     return false;
                 }
             }
             repeat --;
         }
         mutex_.unlock();
+        active_mimic_ = "None";
         return true;
     }
 
@@ -324,12 +342,29 @@ private:
         }
         return true;
     }
+
+    void diagnostics_timer_cb(const ros::TimerEvent&)
+    {
+        ROS_ERROR("Timer callback");
+        diagnostic_updater_.update();
+    }
+
+    void produce_diagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
+    {
+        ROS_ERROR("Produce diagnostics");
+        ROS_ERROR_STREAM("Current goal: "<<active_mimic_);
+        stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Mimic running");
+        stat.add("Action is active", as_mimic_.isActive());
+        stat.add("Service is active", service_active_);
+        stat.add("Current goal", active_mimic_);
+    }
 };
 
 
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "mimic");
+    ros::MultiThreadedSpinner multi_thread_spinner(2);
 
     Mimic mimic;
     if(!mimic.init())
@@ -340,7 +375,7 @@ int main(int argc, char** argv)
     else
     {
         ROS_INFO("mimic node started");
-        ros::spin();
+        multi_thread_spinner.spin();
         return 0;
     }
 }
