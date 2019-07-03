@@ -199,11 +199,10 @@ private:
 
     bool set_mimic(std::string mimic, int repeat, float speed, bool blocking=true)
     {
-        active_mimic_= "Mimic: "+ mimic +", repeat: "+ std::to_string(repeat) +", speed: "+ std::to_string(speed) +", blocking: "+ std::to_string(blocking);
-        bool ret = false;
         new_mimic_request_=true;
         ROS_INFO("New mimic request with: %s", mimic.c_str());
         mutex_.lock();
+        active_mimic_= (boost::format("Mimic: %1%, repeat: %2%, speed: %3%, blocking: %4%")% mimic % repeat % speed % blocking).str();
         new_mimic_request_=false;
         ROS_INFO("Mimic: %s (speed: %f, repeat: %d)", mimic.c_str(), speed, repeat);
 
@@ -215,8 +214,8 @@ private:
             if ( !boost::filesystem::exists(mimic) )
             {
                 ROS_ERROR("File not found: %s", filename.c_str());
-                mutex_.unlock();
                 active_mimic_ = "None";
+                mutex_.unlock();
                 return false;
             }
             else
@@ -245,8 +244,8 @@ private:
             if(!vlc_media_)
             {
                 ROS_ERROR("failed to create media for filepath %s", filename.c_str());
-                mutex_.unlock();
                 active_mimic_ = "None";
+                mutex_.unlock();
                 return false;
             }
 
@@ -257,8 +256,8 @@ private:
             if(libvlc_media_player_play(vlc_player_)!=0)
             {
                 ROS_ERROR("failed to play");
-                mutex_.unlock();
                 active_mimic_ = "None";
+                mutex_.unlock();
                 return false;
             }
 
@@ -270,15 +269,15 @@ private:
                 if(new_mimic_request_)
                 {
                     ROS_WARN("mimic %s preempted", mimic.c_str());
-                    mutex_.unlock();
                     active_mimic_ = "None";
+                    mutex_.unlock();
                     return false;
                 }
             }
             repeat --;
         }
-        mutex_.unlock();
         active_mimic_ = "None";
+        mutex_.unlock();
         return true;
     }
 
