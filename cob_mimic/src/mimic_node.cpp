@@ -60,6 +60,7 @@ public:
 
         sim_enabled_ = nh_.param<bool>("sim", false);
         srvServer_mimic_ = nh_.advertiseService("set_mimic", &Mimic::service_cb_mimic, this);
+        action_active_ = false;
         service_active_ = false;
 
         random_mimics_.push_back("blinking");
@@ -109,6 +110,7 @@ private:
     ros::Timer blinking_timer_;
     std::string mimic_folder_;
 
+    bool action_active_;
     bool service_active_;
     std::string active_mimic_;
     diagnostic_updater::Updater diagnostic_updater_;
@@ -172,11 +174,13 @@ private:
     void as_cb_mimic_(const cob_mimic::SetMimicGoalConstPtr &goal)
     {
         blinking_timer_.stop();
+        action_active_ = true;
 
         if(set_mimic(goal->mimic, goal->repeat, goal->speed))
             as_mimic_.setSucceeded();
         else
             as_mimic_.setAborted();
+        action_active_ = false;
 
         if(goal->mimic != "falling_asleep" && goal->mimic != "sleeping")
             blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
@@ -351,7 +355,7 @@ private:
     void produce_diagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
     {
         stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Mimic running");
-        stat.add("Action is active", as_mimic_.isActive());
+        stat.add("Action is active", action_active_);
         stat.add("Service is active", service_active_);
         stat.add("Current goal", active_mimic_);
     }
