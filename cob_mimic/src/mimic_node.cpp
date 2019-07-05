@@ -82,12 +82,11 @@ public:
             "-q",
             "--no-osd",
             "-L",
-            "--one-instance",
+            "--no-one-instance",
             "--playlist-enqueue",
             "--no-video-title-show",
             "--no-skip-frames",
             "--no-audio",
-            "--vout=glx,none"
         };
         int argc = sizeof( argv ) / sizeof( *argv );
 
@@ -365,8 +364,8 @@ private:
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "mimic");
-    ros::MultiThreadedSpinner multi_thread_spinner(2);
 
+    ros::AsyncSpinner spinner(4);
     Mimic mimic;
     if(!mimic.init())
     {
@@ -376,7 +375,11 @@ int main(int argc, char** argv)
     else
     {
         ROS_INFO("mimic node started");
-        multi_thread_spinner.spin();
+        spinner.start();
+        while(ros::ok())
+        {
+          ros::Duration(0.1).sleep();
+        }
         return 0;
     }
 }
