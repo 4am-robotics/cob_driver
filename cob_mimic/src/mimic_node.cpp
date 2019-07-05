@@ -71,7 +71,7 @@ public:
 
         diagnostic_updater_.setHardwareID("none");
         diagnostic_updater_.add("mimic", this, &Mimic::produce_diagnostics);
-        diagnostic_timer_ = nh_.createTimer(ros::Duration(1.0), &Mimic::diagnostics_timer_cb, this);
+        diagnostic_thread_ = boost::thread(&Mimic::diagnostics_timer_thread, this);
 
         int_dist_ = boost::random::uniform_int_distribution<>(0,static_cast<int>(random_mimics_.size())-1);
 
@@ -113,7 +113,7 @@ private:
     bool service_active_;
     std::string active_mimic_;
     diagnostic_updater::Updater diagnostic_updater_;
-    ros::Timer diagnostic_timer_;
+    boost::thread diagnostic_thread_;
 
     libvlc_instance_t* vlc_inst_;
     libvlc_media_player_t* vlc_player_;
@@ -346,9 +346,13 @@ private:
         return true;
     }
 
-    void diagnostics_timer_cb(const ros::TimerEvent&)
+    void diagnostics_timer_thread()
     {
-        diagnostic_updater_.update();
+        while(ros::ok())
+        {
+          ros::Duration(1.0).sleep();
+          diagnostic_updater_.update();
+        }
     }
 
     void produce_diagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
@@ -365,7 +369,6 @@ int main(int argc, char** argv)
 {
     ros::init(argc, argv, "mimic");
 
-    ros::AsyncSpinner spinner(4);
     Mimic mimic;
     if(!mimic.init())
     {
@@ -375,11 +378,7 @@ int main(int argc, char** argv)
     else
     {
         ROS_INFO("mimic node started");
-        spinner.start();
-        while(ros::ok())
-        {
-          ros::Duration(0.1).sleep();
-        }
+        ros::spin();
         return 0;
     }
 }
