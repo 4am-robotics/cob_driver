@@ -86,7 +86,7 @@ public:
             "--playlist-enqueue",
             "--no-video-title-show",
             "--no-skip-frames",
-            "--no-audio",
+            "--no-audio"
         };
         int argc = sizeof( argv ) / sizeof( *argv );
 
@@ -360,7 +360,7 @@ private:
         stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Mimic running");
         stat.add("Action is active", action_active_);
         stat.add("Service is active", service_active_);
-        stat.add("Current goal", active_mimic_);
+        stat.add("Active mimic", active_mimic_);
     }
 };
 
