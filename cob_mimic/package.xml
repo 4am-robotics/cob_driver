@@ -20,6 +20,8 @@
   <depend>actionlib_msgs</depend>
   <depend>actionlib</depend>
   <depend>boost</depend>
+  <depend>diagnostic_updater</depend>
+  <depend>diagnostic_msgs</depend>
   <depend>libvlc-dev</depend>
   <depend>roscpp</depend>
   <depend>roslib</depend>
