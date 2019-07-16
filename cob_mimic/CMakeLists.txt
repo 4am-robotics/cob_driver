@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_mimic)
 
-find_package(catkin REQUIRED COMPONENTS actionlib actionlib_msgs message_generation roscpp roslib)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+find_package(catkin REQUIRED COMPONENTS actionlib actionlib_msgs message_generation roscpp roslib swri_profiler)
 find_package(PkgConfig REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem thread)
 pkg_check_modules(libvlc REQUIRED libvlc)

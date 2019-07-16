@@ -36,6 +36,8 @@
 #include <boost/random/uniform_real_distribution.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 
+#include <swri_profiler/profiler.h>
+
 class Mimic
 {
 public:
@@ -55,6 +57,7 @@ public:
 
     bool init()
     {
+        SWRI_PROFILE("init");
         if(!copy_mimic_files())
             return false;
 
@@ -131,6 +134,7 @@ private:
 
     bool copy_mimic_files()
     {
+        SWRI_PROFILE("copy_mimic_files");
         char *lgn;
         if((lgn = getlogin()) == NULL)
         {
@@ -173,6 +177,7 @@ private:
 
     void as_cb_mimic_(const cob_mimic::SetMimicGoalConstPtr &goal)
     {
+        SWRI_PROFILE("as_cb_mimic_");
         blinking_timer_.stop();
         action_active_ = true;
 
@@ -189,6 +194,8 @@ private:
     bool service_cb_mimic(cob_mimic::SetMimic::Request &req,
                           cob_mimic::SetMimic::Response &res )
     {
+        SWRI_PROFILE("service_cb_mimic");
+
         service_active_ = true;
         blinking_timer_.stop();
 
@@ -203,6 +210,9 @@ private:
 
     bool set_mimic(std::string mimic, int repeat, float speed, bool blocking=true)
     {
+        SWRI_PROFILE("set_mimic");
+
+        bool ret = false;
         new_mimic_request_=true;
         ROS_INFO("New mimic request with: %s", mimic.c_str());
         mutex_.lock();
@@ -242,8 +252,11 @@ private:
         // returns -1 if an error was detected, 0 otherwise (but even then, it might not actually work depending on the underlying media protocol)
         if(libvlc_media_player_set_rate(vlc_player_, speed)!=0){ROS_ERROR("failed to set movie play rate");}
 
+        ros::Duration dur(0.1);
+
         while(repeat > 0)
         {
+            SWRI_PROFILE("service_cb_mimic-repeat");
             vlc_media_ = libvlc_media_new_path(vlc_inst_, filename.c_str());
             if(!vlc_media_)
             {
@@ -265,10 +278,11 @@ private:
                 return false;
             }
 
-            ros::Duration(0.1).sleep();
+            dur.sleep();
             while(blocking && (libvlc_media_player_is_playing(vlc_player_) == 1))
             {
-                ros::Duration(0.1).sleep();
+                SWRI_PROFILE("service_cb_mimic-block_while_vlc_is_playing");
+                dur.sleep();
                 ROS_DEBUG("still playing %s", mimic.c_str());
                 if(new_mimic_request_)
                 {
@@ -287,6 +301,7 @@ private:
 
     void blinking_cb(const ros::TimerEvent&)
     {
+        SWRI_PROFILE("blinking_cb");
         int rand = int_dist_(gen_);
         set_mimic(random_mimics_[rand], 1, 1.5);
         blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
@@ -295,6 +310,7 @@ private:
     bool copy_dir( boost::filesystem::path const & source,
             boost::filesystem::path const & mimic_folder )
     {
+        SWRI_PROFILE("copy_dir");
         namespace fs = boost::filesystem;
         try
         {
