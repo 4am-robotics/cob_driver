@@ -32,6 +32,7 @@
 
 #include <boost/thread.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
@@ -60,6 +61,8 @@ public:
         SWRI_PROFILE("init");
         if(!copy_mimic_files())
             return false;
+
+        convert_mimic_files();
 
         sim_enabled_ = nh_.param<bool>("sim", false);
         srvServer_mimic_ = nh_.advertiseService("set_mimic", &Mimic::service_cb_mimic, this);
@@ -175,6 +178,31 @@ private:
         }
     }
 
+    bool convert_mimic_files()
+    {
+        boost::filesystem::directory_iterator it(mimic_folder_), eod;
+
+        BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(it, eod))
+        {
+            if(boost::filesystem::is_regular_file(p))
+            {
+                if(p.extension().string().compare(".mp4") == 0)
+                {
+                    // Convert to qtrle-encoded file
+                    std::stringstream command;
+                    command << "ffmpeg -y -i " << p.string() << " -c:v qtrle " << p.parent_path().string()  << "/" << p.stem().string() << "_qtrle.mov";
+                    ROS_INFO("Converting using command `%s`", command.str().c_str());
+                    system(command.str().c_str());
+                }
+                else
+                {
+                    ROS_INFO("Skipping conversion of %s", p.string());
+                }
+            }
+        }
+        return true;
+    }
+
     void as_cb_mimic_(const cob_mimic::SetMimicGoalConstPtr &goal)
     {
         SWRI_PROFILE("as_cb_mimic_");
@@ -220,11 +248,24 @@ private:
         new_mimic_request_=false;
         ROS_INFO("Mimic: %s (speed: %f, repeat: %d)", mimic.c_str(), speed, repeat);
 
-//        std::string filename = mimic_folder_ + "/" + mimic + ".mp4";
-        std::string filename = "/tmp/mimic_mov/" + mimic + "_qtrle.mov";
+        std::string filename = mimic_folder_ + "/" + mimic + ".mp4";
+        std::string filename_uncompressed = mimic_folder_ + "/" + mimic + "_qtrle.mov";
 
 
         // check if mimic exists
+        if ( boost::filesystem::exists(filename_uncompressed) )
+        {
+            ROS_INFO("Using uncompressed version for %s: %s",
+                mimic.c_str(), filename_uncompressed.c_str());
+            filename = filename_uncompressed;
+        }
+        else
+        {
+            ROS_WARN("There is no uncompressed version for %s (%s does not exist), continuing with compressed version",
+                mimic.c_str(), filename_uncompressed.c_str());
+        }
+
+
         if ( !boost::filesystem::exists(filename) )
         {
             if ( !boost::filesystem::exists(mimic) )
