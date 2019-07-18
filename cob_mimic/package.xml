@@ -27,5 +27,6 @@
   <depend>roslib</depend>
   <depend>swri_profiler</depend>
   <depend>vlc</depend>
+  <depend>ffmpeg</depend>
 
 </package>
