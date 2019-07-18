@@ -220,7 +220,9 @@ private:
         new_mimic_request_=false;
         ROS_INFO("Mimic: %s (speed: %f, repeat: %d)", mimic.c_str(), speed, repeat);
 
-        std::string filename = mimic_folder_ + "/" + mimic + ".mp4";
+//        std::string filename = mimic_folder_ + "/" + mimic + ".mp4";
+        std::string filename = "/tmp/mimic_mov/" + mimic + "_qtrle.mov";
+
 
         // check if mimic exists
         if ( !boost::filesystem::exists(filename) )
