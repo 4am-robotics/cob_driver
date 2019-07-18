@@ -178,27 +178,33 @@ private:
         }
     }
 
+    bool convert_mediafile(boost::filesystem::path const &p)
+    {
+        if(boost::filesystem::is_regular_file(p))
+        {
+            if(p.extension().string().compare(".mp4") == 0)
+            {
+                // Convert to qtrle-encoded file
+                std::stringstream command;
+                command << "ffmpeg -y -i " << p.string() << " -c:v qtrle " << p.parent_path().string()  << "/" << p.stem().string() << "_qtrle.mov";
+                ROS_INFO("Converting using command `%s`", command.str().c_str());
+                return system(command.str().c_str()) == 0;
+            }
+            else
+            {
+                ROS_INFO("Skipping conversion of %s", p.string().c_str());
+                return true;
+            }
+        }
+    }
+
     bool convert_mimic_files()
     {
         boost::filesystem::directory_iterator it(mimic_folder_), eod;
 
         BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(it, eod))
         {
-            if(boost::filesystem::is_regular_file(p))
-            {
-                if(p.extension().string().compare(".mp4") == 0)
-                {
-                    // Convert to qtrle-encoded file
-                    std::stringstream command;
-                    command << "ffmpeg -y -i " << p.string() << " -c:v qtrle " << p.parent_path().string()  << "/" << p.stem().string() << "_qtrle.mov";
-                    ROS_INFO("Converting using command `%s`", command.str().c_str());
-                    system(command.str().c_str());
-                }
-                else
-                {
-                    ROS_INFO("Skipping conversion of %s", p.string());
-                }
-            }
+            convert_mediafile(p);
         }
         return true;
     }
