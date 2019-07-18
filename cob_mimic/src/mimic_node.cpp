@@ -62,7 +62,7 @@ public:
         if(!copy_mimic_files())
             return false;
 
-        convert_mimic_files();
+//        convert_mimic_files();
 
         sim_enabled_ = nh_.param<bool>("sim", false);
         srvServer_mimic_ = nh_.advertiseService("set_mimic", &Mimic::service_cb_mimic, this);
@@ -178,7 +178,7 @@ private:
         }
     }
 
-    bool convert_mediafile(boost::filesystem::path const &p)
+    bool convert_mediafile(boost::filesystem::path const &p, bool background=false)
     {
         if(boost::filesystem::is_regular_file(p))
         {
@@ -187,6 +187,11 @@ private:
                 // Convert to qtrle-encoded file
                 std::stringstream command;
                 command << "ffmpeg -y -i " << p.string() << " -c:v qtrle " << p.parent_path().string()  << "/" << p.stem().string() << "_qtrle.mov";
+                if(background)
+                {
+                    command << " &";
+                    ROS_INFO("Converting in background...");
+                }
                 ROS_INFO("Converting using command `%s`", command.str().c_str());
                 return system(command.str().c_str()) == 0;
             }
@@ -267,8 +272,10 @@ private:
         }
         else
         {
-            ROS_WARN("There is no uncompressed version for %s (%s does not exist), continuing with compressed version",
+            ROS_WARN("There is no uncompressed version for %s (%s does not exist), continuing with compressed version but going to perform decompression for *next* time in background",
                 mimic.c_str(), filename_uncompressed.c_str());
+            boost::filesystem::path media = boost::filesystem::path(filename);
+            convert_mediafile(media, true);
         }
 
 
