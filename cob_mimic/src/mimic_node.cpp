@@ -62,9 +62,19 @@ public:
         if(!copy_mimic_files())
             return false;
 
-//        convert_mimic_files();
-
         sim_enabled_ = nh_.param<bool>("sim", false);
+
+        //Decompression can happen:
+        //  - never (always use specifeid files directly)
+        //  - during (during the mimic-action in the background)
+        //  - init (Convert in the init-function)
+        nh_.param<std::string>("decompression_time", decompression_time_, "never");
+
+        if(decompression_time_.compare("init") == 0)
+        {
+            convert_mimic_files();
+        }
+
         srvServer_mimic_ = nh_.advertiseService("set_mimic", &Mimic::service_cb_mimic, this);
         action_active_ = false;
         service_active_ = false;
@@ -115,6 +125,7 @@ private:
     ros::ServiceServer srvServer_mimic_;
     ros::Timer blinking_timer_;
     std::string mimic_folder_;
+    std::string decompression_time_;
 
     bool action_active_;
     bool service_active_;
@@ -278,10 +289,13 @@ private:
         }
         else
         {
-            ROS_WARN("There is no uncompressed version for %s (%s does not exist), continuing with compressed version but going to perform decompression for *next* time in background",
-                mimic.c_str(), filename_uncompressed.c_str());
-            boost::filesystem::path media = boost::filesystem::path(filename);
-            convert_mediafile(media, true);
+            if(decompression_time_.compare("during") == 0)
+            {
+                ROS_WARN("There is no uncompressed version for %s (%s does not exist), continuing with compressed version but going to perform decompression for *next* time in background",
+                    mimic.c_str(), filename_uncompressed.c_str());
+                boost::filesystem::path media = boost::filesystem::path(filename);
+                convert_mediafile(media, true);
+            }
         }
 
 
