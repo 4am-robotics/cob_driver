@@ -185,8 +185,14 @@ private:
             if(p.extension().string().compare(".mp4") == 0)
             {
                 // Convert to qtrle-encoded file
+                // -y : do not ask for permission to overwrite file
+                // -loglevel warning : Only log warnings
+                // -i : specify input file
+                // -c:v qtrel: convert the *v*ideo stream qith qtrle encoding
+                // rest is output file specification, so the output file has qtrle encoding/
+                // qtrle: https://wiki.multimedia.cx/index.php/Apple_QuickTime_RLE
                 std::stringstream command;
-                command << "ffmpeg -y -i " << p.string() << " -c:v qtrle " << p.parent_path().string()  << "/" << p.stem().string() << "_qtrle.mov";
+                command << "ffmpeg -y -loglevel warning -i " << p.string() << " -c:v qtrle " << p.parent_path().string()  << "/" << p.stem().string() << "_qtrle.mov";
                 if(background)
                 {
                     command << " &";
