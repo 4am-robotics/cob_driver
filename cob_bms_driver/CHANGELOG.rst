@@ -2,6 +2,20 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.15 (2019-07-17)
+-----------
+* 0.6.14
+* update changelogs
+* Merge pull request `#393 <https://github.com/ipa320/cob_driver/issues/393>`_ from fmessmer/add_int_bms_parameter
+  add int bms parameter types
+* get rid of c++11 compile options
+* fix key name
+* add int bms parameter types
+* Merge pull request `#392 <https://github.com/ipa320/cob_driver/issues/392>`_ from fmessmer/max_time_remaining
+  clamp time_remaining when current is zero
+* clamp time_remaining when current is zero
+* Contributors: Felix Messmer, fmessmer
+
 0.6.14 (2019-06-07)
 -------------------
 * Merge pull request `#393 <https://github.com/ipa320/cob_driver/issues/393>`_ from fmessmer/add_int_bms_parameter
