@@ -2,6 +2,19 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#380 <https://github.com/ipa320/cob_driver/issues/380>`_ from ipa-jba/fix/boost_shared_ptr
+  [Melodic] combined melodify pr
+* more constexpr in cob_light
+* c++11 for cob_light
+* fixed boost colors signal type
+* disable narrowing conversion warnings
+* fix "constexpr needed" compilation error
+* Merge pull request `#396 <https://github.com/ipa320/cob_driver/issues/396>`_ from HannesBachter/indigo_dev
+  0.6.15
+* Contributors: Benjamin Maidel, Felix Messmer, Jannik Abbenseth
+
 0.6.15 (2019-07-17)
 -------------------
 

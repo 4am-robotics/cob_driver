@@ -2,6 +2,12 @@
 Changelog for package cob_voltage_control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#396 <https://github.com/ipa320/cob_driver/issues/396>`_ from HannesBachter/indigo_dev
+  0.6.15
+* Contributors: Felix Messmer
+
 0.6.15 (2019-07-17)
 -------------------
 

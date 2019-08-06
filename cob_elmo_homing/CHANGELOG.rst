@@ -2,6 +2,21 @@
 Changelog for package cob_elmo_homing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#380 <https://github.com/ipa320/cob_driver/issues/380>`_ from ipa-jba/fix/boost_shared_ptr
+  [Melodic] combined melodify pr
+* use ROSCANOPEN_MAKE_SHARED
+* use all the pointer names I could find
+* fix forgotten ptr_name
+* use pointer names
+* enable c++ 11
+* replace boost::shared_ptr
+  with std::shared_ptr
+* Merge pull request `#396 <https://github.com/ipa320/cob_driver/issues/396>`_ from HannesBachter/indigo_dev
+  0.6.15
+* Contributors: Felix Messmer, Jannik Abbenseth
+
 0.6.15 (2019-07-17)
 -------------------
 

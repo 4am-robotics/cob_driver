@@ -2,6 +2,18 @@
 Changelog for package cob_mimic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#380 <https://github.com/ipa320/cob_driver/issues/380>`_ from ipa-jba/fix/boost_shared_ptr
+  [Melodic] combined melodify pr
+* added missing boost format include
+* Merge pull request `#396 <https://github.com/ipa320/cob_driver/issues/396>`_ from HannesBachter/indigo_dev
+  0.6.15
+* Merge pull request `#398 <https://github.com/ipa320/cob_driver/issues/398>`_ from LoyVanBeek/feature/reduce_framerate_and_resolution
+  Reduce resolution and framerate in .mp4-files
+* Reduce resolution and framerate in .mp4-files
+* Contributors: Benjamin Maidel, Felix Messmer, Florian Weisshardt, Loy van Beek
+
 0.6.15 (2019-07-17)
 -------------------
 * Merge pull request `#394 <https://github.com/ipa320/cob_driver/issues/394>`_ from HannesBachter/feature/diagnostics
