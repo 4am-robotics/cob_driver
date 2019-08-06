@@ -72,7 +72,7 @@ private:
     can::ThreadedSocketCANInterface socketcan_interface_;
 
     //pointer to callback function to handle CAN frames from BMS
-    can::CommInterface::FrameListener::Ptr frame_listener_;
+    can::CommInterface::FrameListenerConstSharedPtr frame_listener_;
 
     //diagnostics data received from BMS
     diagnostic_updater::DiagnosticStatusWrapper stat_;

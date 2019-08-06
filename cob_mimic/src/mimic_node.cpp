@@ -32,6 +32,7 @@
 
 #include <boost/thread.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
@@ -256,7 +257,7 @@ private:
             libvlc_media_player_set_media(vlc_player_, vlc_media_);
             libvlc_media_release(vlc_media_);
 
-            // returns 0 if playback started (and was already started), or -1 on error. 
+            // returns 0 if playback started (and was already started), or -1 on error.
             if(libvlc_media_player_play(vlc_player_)!=0)
             {
                 ROS_ERROR("failed to play");

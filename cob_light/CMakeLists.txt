@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_light)
 
+add_compile_options(-std=c++11)
+
 find_package(catkin REQUIRED COMPONENTS actionlib_msgs actionlib diagnostic_msgs message_generation roscpp sensor_msgs std_msgs visualization_msgs)
 
 find_package(Boost REQUIRED COMPONENTS signals thread)
@@ -36,6 +38,8 @@ catkin_package(
 ### BUILD ###
 #pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
 #pkg_check_modules(GTHREAD REQUIRED gthread-2.0)
+
+add_compile_options(-Wno-narrowing)
 
 include_directories(${PROJECT_SOURCE_DIR}/ros/include ${PROJECT_SOURCE_DIR}/common/include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 set(HEADERS
@@ -75,7 +79,7 @@ install(TARGETS cob_light
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(PROGRAMS 
+install(PROGRAMS
   ros/scripts/test.py
   ros/scripts/test_sprofi_circle.py
   ros/scripts/test_sprofi_modes.py

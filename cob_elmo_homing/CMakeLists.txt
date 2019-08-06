@@ -4,6 +4,7 @@ project(cob_elmo_homing)
 find_package(catkin REQUIRED COMPONENTS
   canopen_402
   class_loader
+  socketcan_interface
 )
 catkin_package()
 
