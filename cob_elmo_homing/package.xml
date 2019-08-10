@@ -11,7 +11,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <depend>canopen_402</depend>
-  <depend>class_loader</depend>
+  <depend>pluginlib</depend>
   <depend>socketcan_interface</depend>
 
   <export>

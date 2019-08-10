@@ -15,9 +15,10 @@
  */
 
 
-#include <class_loader/class_loader.h>
 #include <canopen_402/motor.h>
 #include <socketcan_interface/make_shared.h>
+#include <pluginlib/class_list_macros.h>
+
 
 namespace cob_elmo_homing {
 
@@ -120,4 +121,4 @@ public:
 
 }
 
-CLASS_LOADER_REGISTER_CLASS(cob_elmo_homing::ElmoMotor402::Allocator, canopen::MotorBase::Allocator);
+PLUGINLIB_EXPORT_CLASS(cob_elmo_homing::ElmoMotor402::Allocator, canopen::MotorBase::Allocator)
