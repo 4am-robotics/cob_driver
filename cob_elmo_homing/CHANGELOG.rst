@@ -2,8 +2,8 @@
 Changelog for package cob_elmo_homing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.1 (2019-11-07)
+------------------
 * Merge pull request `#400 <https://github.com/ipa320/cob_driver/issues/400>`_ from fmessmer/fix_plugin_deprecation
   fix class_loader deprecation
 * fix class_loader deprecation

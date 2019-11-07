@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>cob_phidget_em_state</name>
-  <version>0.7.0</version>
+  <version>0.7.1</version>
   <description>The cob_phidget_em_state package</description>
 
   <maintainer email="benjamin.maidel@mojin-robotics.de">Benjamin Maidel</maintainer>
