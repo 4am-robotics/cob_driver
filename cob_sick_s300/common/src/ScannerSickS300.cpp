@@ -95,7 +95,7 @@ ScannerSickS300::ScannerSickS300()
 //-------------------------------------------
 ScannerSickS300::~ScannerSickS300()
 {
-	m_SerialIO.closeIO();
+	m_SerialIO.close();
 }
 
 
@@ -108,26 +108,25 @@ bool ScannerSickS300::open(const char* pcPort, int iBaudRate, int iScanId=7)
 	m_iScanId = iScanId;
 
 	// initialize Serial Interface
-	m_SerialIO.setBaudRate(iBaudRate);
-	m_SerialIO.setDeviceName(pcPort);
-	m_SerialIO.setBufferSize(READ_BUF_SIZE - 10 , WRITE_BUF_SIZE -10 );
-	m_SerialIO.setHandshake(SerialIO::HS_NONE);
-	m_SerialIO.setMultiplier(m_dBaudMult);
-	bRetSerial = m_SerialIO.openIO();
-	m_SerialIO.setTimeout(0.0);
-	m_SerialIO.SetFormat(8, SerialIO::PA_NONE, SerialIO::SB_ONE);
+	try
+	{
+		m_SerialIO.setBaudrate(iBaudRate * m_dBaudMult);
+		m_SerialIO.setPort(pcPort);
+		m_SerialIO.setFlowcontrol(serial::flowcontrol_none);
+		m_SerialIO.setParity(serial::parity_none);
+		m_SerialIO.setStopbits(serial::stopbits_one);
+		m_SerialIO.setBytesize(serial::eightbits);
+		m_SerialIO.setTimeout(serial::Timeout::simpleTimeout(0));
+		m_SerialIO.open();
+	}
+	catch(...)
+	{
+		return false;
+	}
 
-    if(bRetSerial == 0)
-    {
-	    // Clears the read and transmit buffer.
-	    m_iPosReadBuf2 = 0;
-	    m_SerialIO.purge();
-	    return true;
-    }
-    else
-    {
-        return false;
-    }
+	// Clears the read and transmit buffer.
+	m_iPosReadBuf2 = 0;
+	return true;
 }
 
 
@@ -135,7 +134,6 @@ bool ScannerSickS300::open(const char* pcPort, int iBaudRate, int iScanId=7)
 void ScannerSickS300::purgeScanBuf()
 {
 	m_iPosReadBuf2 = 0;
-	m_SerialIO.purge();
 }
 
 
@@ -169,7 +167,7 @@ bool ScannerSickS300::getScan(std::vector<double> &vdDistanceM, std::vector<doub
 	if(SCANNER_S300_READ_BUF_SIZE-2-m_actualBufferSize<=0)
 		m_actualBufferSize=0;
 
-	iNumRead2 = m_SerialIO.readBlocking((char*)m_ReadBuf+m_actualBufferSize, SCANNER_S300_READ_BUF_SIZE-2-m_actualBufferSize);
+	iNumRead2 = m_SerialIO.read((uint8_t*)m_ReadBuf+m_actualBufferSize, SCANNER_S300_READ_BUF_SIZE-2-m_actualBufferSize);
 	if(iNumRead2<=0) return false;
 
 	m_actualBufferSize = m_actualBufferSize + iNumRead2;

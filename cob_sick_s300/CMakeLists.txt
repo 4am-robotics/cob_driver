@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_sick_s300)
 
-find_package(catkin REQUIRED COMPONENTS diagnostic_msgs roscpp sensor_msgs std_msgs)
+find_package(catkin REQUIRED COMPONENTS diagnostic_msgs roscpp sensor_msgs std_msgs serial)
 
 find_package(Boost REQUIRED COMPONENTS date_time thread)
 
@@ -16,7 +16,6 @@ include_directories(
 
 add_executable(${PROJECT_NAME}
   common/src/ScannerSickS300.cpp
-  common/src/SerialIO.cpp
   ros/src/${PROJECT_NAME}.cpp
 )
 
@@ -26,6 +25,9 @@ add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 add_dependencies(cob_scan_filter ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+if(WIN32)
+  target_link_libraries(${PROJECT_NAME} ws2_32)
+endif()
 target_link_libraries(cob_scan_filter ${catkin_LIBRARIES})
 
 ### INSTALL ###
