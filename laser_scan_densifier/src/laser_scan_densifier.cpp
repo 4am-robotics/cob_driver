@@ -57,7 +57,7 @@ LaserScanDensifier::LaserScanDensifier(ros::NodeHandle nh, ros::NodeHandle nh_pr
   nh_private_.param("step", step_, 2);
   nh_private_.param("mode", mode_, 0);
 
-  ROS_ASSERT_MSG(step_ > 0, "step parameter is set to %, must be > 0", step_);
+  ROS_ASSERT_MSG(step_ > 0, "step parameter is set to %d, must be > 0", step_);
 
   switch(mode_) {
     case 0: ROS_INFO("LaserScanDensifier started with mode %d: copy data points", mode_);
