@@ -116,7 +116,8 @@ bool ScannerSickS300::open(const char* pcPort, int iBaudRate, int iScanId=7)
 		m_SerialIO.setParity(serial::parity_none);
 		m_SerialIO.setStopbits(serial::stopbits_one);
 		m_SerialIO.setBytesize(serial::eightbits);
-		m_SerialIO.setTimeout(serial::Timeout::simpleTimeout(0));
+		serial::Timeout timeout	= serial::Timeout::simpleTimeout(0);
+		m_SerialIO.setTimeout(timeout);
 		m_SerialIO.open();
 	}
 	catch(...)
