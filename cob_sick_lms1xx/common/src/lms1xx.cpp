@@ -71,7 +71,7 @@ void LMS1xx::startMeas() {
 	char buf[100];
 	sprintf(buf, "%c%s%c", 0x02, "sMN LMCstartmeas", 0x03);
 
-	write(sockDesc, buf, strlen(buf));
+	ssize_t res = write(sockDesc, buf, strlen(buf));
 
 	int len = read(sockDesc, buf, 100);
 	//	if (buf[0] != 0x02)
@@ -86,7 +86,7 @@ void LMS1xx::stopMeas() {
 	char buf[100];
 	sprintf(buf, "%c%s%c", 0x02, "sMN LMCstopmeas", 0x03);
 
-	write(sockDesc, buf, strlen(buf));
+	ssize_t res = write(sockDesc, buf, strlen(buf));
 
 	int len = read(sockDesc, buf, 100);
 	//	if (buf[0] != 0x02)
@@ -101,7 +101,7 @@ status_t LMS1xx::queryStatus() {
 	char buf[100];
 	sprintf(buf, "%c%s%c", 0x02, "sRN STlms", 0x03);
 
-	write(sockDesc, buf, strlen(buf));
+	ssize_t res = write(sockDesc, buf, strlen(buf));
 
 	int len = read(sockDesc, buf, 100);
 	//	if (buf[0] != 0x02)
@@ -120,7 +120,7 @@ void LMS1xx::login() {
 	char buf[100];
 	sprintf(buf, "%c%s%c", 0x02, "sMN SetAccessMode 03 F4724744", 0x03);
 
-	write(sockDesc, buf, strlen(buf));
+	ssize_t res = write(sockDesc, buf, strlen(buf));
 
 	int len = read(sockDesc, buf, 100);
 	//	if (buf[0] != 0x02)
@@ -136,7 +136,7 @@ scanCfg LMS1xx::getScanCfg() const {
 	char buf[100];
 	sprintf(buf, "%c%s%c", 0x02, "sRN LMPscancfg", 0x03);
 
-	write(sockDesc, buf, strlen(buf));
+	ssize_t res = write(sockDesc, buf, strlen(buf));
 
 	int len = read(sockDesc, buf, 100);
 	//	if (buf[0] != 0x02)
@@ -157,7 +157,7 @@ void LMS1xx::setScanCfg(const scanCfg &cfg) {
 			cfg.scaningFrequency, cfg.angleResolution, cfg.startAngle,
 			cfg.stopAngle, 0x03);
 
-	write(sockDesc, buf, strlen(buf));
+	ssize_t res = write(sockDesc, buf, strlen(buf));
 
 	int len = read(sockDesc, buf, 100);
 
@@ -172,7 +172,7 @@ void LMS1xx::setScanDataCfg(const scanDataCfg &cfg) {
 			cfg.deviceName ? 1 : 0, cfg.timestamp ? 1 : 0, cfg.outputInterval, 0x03);
 	if(debug)
 		printf("%s\n", buf);
-	write(sockDesc, buf, strlen(buf));
+	ssize_t res = write(sockDesc, buf, strlen(buf));
 
 	int len = read(sockDesc, buf, 100);
 	buf[len - 1] = 0;
@@ -182,7 +182,7 @@ void LMS1xx::scanContinous(int start) {
 	char buf[100];
 	sprintf(buf, "%c%s %d%c", 0x02, "sEN LMDscandata", start, 0x03);
 
-	write(sockDesc, buf, strlen(buf));
+	ssize_t res = write(sockDesc, buf, strlen(buf));
 
 	int len = read(sockDesc, buf, 100);
 
@@ -196,7 +196,7 @@ void LMS1xx::scanContinous(int start) {
 
 	if (start = 0) {
 		for (int i = 0; i < 10; i++)
-			read(sockDesc, buf, 100);
+			ssize_t res = read(sockDesc, buf, 100);
 	}
 }
 
@@ -442,7 +442,7 @@ void LMS1xx::saveConfig() {
 	char buf[100];
 	sprintf(buf, "%c%s%c", 0x02, "sMN mEEwriteall", 0x03);
 
-	write(sockDesc, buf, strlen(buf));
+	ssize_t res = write(sockDesc, buf, strlen(buf));
 
 	int len = read(sockDesc, buf, 100);
 	//	if (buf[0] != 0x02)
@@ -457,7 +457,7 @@ void LMS1xx::startDevice() {
 	char buf[100];
 	sprintf(buf, "%c%s%c", 0x02, "sMN Run", 0x03);
 
-	write(sockDesc, buf, strlen(buf));
+	ssize_t res = write(sockDesc, buf, strlen(buf));
 
 	int len = read(sockDesc, buf, 100);
 	//	if (buf[0] != 0x02)
