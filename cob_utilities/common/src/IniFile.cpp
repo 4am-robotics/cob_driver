@@ -126,7 +126,7 @@ int IniFile::WriteKeyValue(const char* szSect,const char* szKey,const char* szVa
 	fseek(f,0,SEEK_SET);
 	for (i=0;i<fpos;i++)
 	{
-		fscanf(f,"%c",&c);
+		int res = fscanf(f,"%c",&c);
 		fprintf(ftemp,"%c",c);
 		// MMB/23.02.2006: The counter i must not be incremented here on Linux machines!
 #ifdef WIN32
@@ -156,7 +156,7 @@ int IniFile::WriteKeyValue(const char* szSect,const char* szKey,const char* szVa
 	{	fprintf(ftemp,"\n");
 		while (!feof(f))
 		{
-			fscanf(f,"%c",&c);
+			int res = fscanf(f,"%c",&c);
 			if (!feof(f))
 			{
 				fprintf(ftemp,"%c",c);
@@ -181,7 +181,7 @@ int IniFile::WriteKeyValue(const char* szSect,const char* szKey,const char* szVa
 	fseek(ftemp,0,SEEK_SET);
 	for (i=0;i<fpos;i++)
 	{
-		fscanf(ftemp,"%c",&c);
+		int res = fscanf(ftemp,"%c",&c);
 		fprintf(f,"%c",c);
 	};
 	fclose(f);
@@ -469,7 +469,7 @@ int IniFile::FindNextLine(std::vector<char>& NewLine, int& CharInd)
 {
 	if (!feof(f))
 	{
-		fgets(&NewLine[0], NewLine.size(), f); // store next line in NewLine
+		std::string line = fgets(&NewLine[0], NewLine.size(), f); // store next line in NewLine
 		CharInd=0;        // makes CharInd reference the first char of the line
 		return 0;
 	}
