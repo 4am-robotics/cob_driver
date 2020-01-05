@@ -18,8 +18,8 @@
   <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
 
-  <depend>actionlib_msgs</depend>
   <depend>actionlib</depend>
+  <depend>actionlib_msgs</depend>
   <depend>cob_srvs</depend>
   <depend>diagnostic_msgs</depend>
   <depend>libvlc-dev</depend>

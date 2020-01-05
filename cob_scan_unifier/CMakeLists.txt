@@ -8,7 +8,9 @@ find_package(catkin REQUIRED COMPONENTS
   tf
 )
 
-catkin_package()
+catkin_package(
+  CATKIN_DEPENDS sensor_msgs
+)
 
 ###########
 ## Build ##

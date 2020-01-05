@@ -1,20 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_phidgets)
 
-if(CMAKE_COMPILER_IS_GNUCXX)
-   execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
-   if (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7)
-        message(STATUS "C++11 activated.")
-        add_definitions("-std=gnu++11")
-   elseif(GCC_VERSION VERSION_GREATER 4.3 OR GCC_VERSION VERSION_EQUAL 4.3)
-        message(WARNING "C++0x activated. If you get any errors update to a compiler which fully supports C++11")
-        add_definitions("-std=gnu++0x")
-   else ()
-        message(FATAL_ERROR "C++11 needed. Therefore a gcc compiler with a version higher than 4.3 is needed.")
-   endif()
-else(CMAKE_COMPILER_IS_GNUCXX)
-   add_definitions("-std=c++0x")
-endif(CMAKE_COMPILER_IS_GNUCXX)
+add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS libphidgets message_generation roscpp sensor_msgs std_msgs)
 
@@ -35,7 +22,7 @@ add_service_files(
 generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(
-  CATKIN_DEPENDS message_runtime std_msgs
+  CATKIN_DEPENDS message_runtime sensor_msgs std_msgs
 )
 
 ### BUILD ###
@@ -50,21 +37,21 @@ add_dependencies(device_name ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORT
 target_link_libraries(device_name ${catkin_LIBRARIES})
 
 add_executable(phidget_sensors
-  ros/src/phidget_sensors_node.cpp
-  ros/src/phidget_manager.cpp
   common/src/phidget.cpp
   common/src/phidgetik.cpp
+  ros/src/phidget_manager.cpp
+  ros/src/phidget_sensors_node.cpp
   ros/src/phidgetik_ros.cpp)
 add_dependencies(phidget_sensors ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(phidget_sensors ${catkin_LIBRARIES})
 
 ### INSTALL ###
-install(TARGETS range_sensors phidget_sensors device_name
+install(TARGETS device_name phidget_sensors range_sensors
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(PROGRAMS ros/src/simulated_range_sensors.py
+catkin_install_python(PROGRAMS ros/src/simulated_range_sensors.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/ros/src
 )

@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_sound)
 
-find_package(catkin REQUIRED COMPONENTS actionlib_msgs actionlib cob_srvs diagnostic_msgs message_generation roscpp std_msgs std_srvs visualization_msgs)
+find_package(catkin REQUIRED COMPONENTS actionlib actionlib_msgs cob_srvs diagnostic_msgs message_generation roscpp std_msgs std_srvs visualization_msgs)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(libvlc REQUIRED libvlc)
 
 add_action_files(DIRECTORY action FILES
-   Say.action
    Play.action
+   Say.action
 )
 
 generate_messages(
@@ -15,7 +15,7 @@ generate_messages(
 )
 
 catkin_package(
-  CATKIN_DEPENDS actionlib_msgs message_runtime
+  CATKIN_DEPENDS actionlib_msgs diagnostic_msgs message_runtime std_msgs visualization_msgs
 )
 
 ### BUILD ###
@@ -32,6 +32,10 @@ install(TARGETS sound
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(PROGRAMS ros/src/test_client.py fix_swift_for_precise.sh
+catkin_install_python(PROGRAMS ros/src/test_client.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(PROGRAMS fix_swift_for_precise.sh
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

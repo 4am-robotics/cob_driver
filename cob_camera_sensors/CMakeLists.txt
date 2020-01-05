@@ -35,6 +35,6 @@ install(FILES common/scripts/generateYAMLparameterFile.m
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/common/scripts
 )
 
-install(PROGRAMS ros/scripts/set_camera_info.py
+catkin_install_python(PROGRAMS ros/scripts/set_camera_info.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

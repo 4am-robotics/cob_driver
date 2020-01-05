@@ -11,12 +11,12 @@ catkin_package()
 
 include_directories(${catkin_INCLUDE_DIRS})
 
-add_library(cob_elmo_homing_plugin src/plugin.cpp)
-target_link_libraries(cob_elmo_homing_plugin
+add_library(${PROJECT_NAME}_plugin src/plugin.cpp)
+target_link_libraries(${PROJECT_NAME}_plugin
    ${catkin_LIBRARIES}
 )
 
-install(TARGETS cob_elmo_homing_plugin
+install(TARGETS ${PROJECT_NAME}_plugin
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
