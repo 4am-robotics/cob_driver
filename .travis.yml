@@ -13,6 +13,8 @@ env:
     - VERBOSE_TESTS=false
     - NOT_TEST_DOWNSTREAM=true
     - CMAKE_ARGS=-DCMAKE_BUILD_TYPE=Release
+    - CATKIN_LINT=pedantic
+    - CATKIN_LINT_ARGS='--ignore description_boilerplate --ignore target_name_collision'
   matrix:
     - ROS_DISTRO=kinetic
     - ROS_DISTRO=melodic
