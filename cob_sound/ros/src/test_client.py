@@ -42,5 +42,5 @@ if __name__ == '__main__':
 		rospy.init_node('say_client')
 		result = say_client()
 	except rospy.ROSInterruptException:
-		print "program interrupted before completion"
+		print("program interrupted before completion")
 
