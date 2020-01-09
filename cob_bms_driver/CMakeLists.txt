@@ -9,7 +9,9 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
 )
 
-catkin_package()
+catkin_package(
+  CATKIN_DEPENDS diagnostic_msgs std_msgs
+)
 
 ###########
 ## Build ##
@@ -19,7 +21,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(bms_driver_node src/cob_bms_driver_node.cpp)
+add_executable(bms_driver_node src/${PROJECT_NAME}_node.cpp)
 add_dependencies(bms_driver_node ${catkin_EXPORTED_TARGETS})
 target_link_libraries(bms_driver_node ${catkin_LIBRARIES})
 
@@ -32,7 +34,7 @@ install(TARGETS bms_driver_node
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(PROGRAMS
+catkin_install_python(PROGRAMS
   src/fake_bms.py
   src/power_state_aggregator.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

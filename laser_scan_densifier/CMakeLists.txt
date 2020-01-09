@@ -2,10 +2,11 @@ cmake_minimum_required(VERSION 2.8.3)
 project(laser_scan_densifier)
 
 # List C++ dependencies on ros packages
-set( ROS_CXX_DEPENDENCIES
-  roscpp
+set(ROS_CXX_DEPENDENCIES
   nodelet
-  sensor_msgs)
+  roscpp
+  sensor_msgs
+)
 
 # Find catkin and all required ROS components
 find_package(catkin REQUIRED COMPONENTS ${ROS_CXX_DEPENDENCIES})
@@ -16,37 +17,37 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 # Declare info that other packages need to import library generated here
 catkin_package(
     INCLUDE_DIRS include
-    LIBRARIES laser_scan_densifier
+    LIBRARIES ${PROJECT_NAME}
     CATKIN_DEPENDS ${ROS_CXX_DEPENDENCIES}
 )
 
 #Create library
-add_library(laser_scan_densifier src/laser_scan_densifier.cpp)
-target_link_libraries( laser_scan_densifier ${catkin_LIBRARIES})
-add_dependencies(laser_scan_densifier ${catkin_EXPORTED_TARGETS})
+add_library(${PROJECT_NAME} src/${PROJECT_NAME}.cpp)
+target_link_libraries( ${PROJECT_NAME} ${catkin_LIBRARIES})
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 #Create nodelet
-add_library(laser_scan_densifier_nodelet src/laser_scan_densifier_nodelet.cpp)
-target_link_libraries(laser_scan_densifier_nodelet laser_scan_densifier)
+add_library(${PROJECT_NAME}_nodelet src/${PROJECT_NAME}_nodelet.cpp)
+target_link_libraries(${PROJECT_NAME}_nodelet ${PROJECT_NAME})
 
 #Create node
-add_executable(laser_scan_densifier_node src/laser_scan_densifier_node.cpp)
-target_link_libraries( laser_scan_densifier_node laser_scan_densifier )
+add_executable(${PROJECT_NAME}_node src/${PROJECT_NAME}_node.cpp)
+target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME} )
 
 #Install library
-install(TARGETS laser_scan_densifier laser_scan_densifier_nodelet
+install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_nodelet
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
 
 #Install library includes
-install(DIRECTORY include/laser_scan_densifier/
+install(DIRECTORY include/${PROJECT_NAME}/
     DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION} )
 
 #Install node
-install(TARGETS laser_scan_densifier_node
+install(TARGETS ${PROJECT_NAME}_node
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION} )
 
 #Install nodelet description
-install(FILES laser_scan_densifier_nodelet.xml
+install(FILES ${PROJECT_NAME}_nodelet.xml
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} )

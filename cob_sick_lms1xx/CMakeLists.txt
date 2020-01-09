@@ -5,7 +5,9 @@ find_package(catkin REQUIRED COMPONENTS diagnostic_msgs roscpp sensor_msgs)
 
 find_package(Boost REQUIRED)
 
-catkin_package()
+catkin_package(
+  CATKIN_DEPENDS diagnostic_msgs sensor_msgs
+)
 
 ### BUILD ###
 include_directories(common/include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
@@ -23,7 +25,7 @@ target_link_libraries(lms100 lms1xx ${catkin_LIBRARIES})
 target_link_libraries(set_config lms1xx ${catkin_LIBRARIES})
 
 ### INSTALL ###
-install(TARGETS lms1xx lms1xx_test lms100 set_config
+install(TARGETS lms100 lms1xx lms1xx_test set_config
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

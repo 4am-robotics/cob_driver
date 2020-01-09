@@ -15,7 +15,7 @@ generate_messages(
 )
 
 catkin_package(
-    CATKIN_DEPENDS message_runtime
+    CATKIN_DEPENDS control_msgs diagnostic_msgs message_runtime sensor_msgs std_msgs
 )
 
 ### BUILD ###

@@ -5,6 +5,6 @@ find_package(catkin REQUIRED COMPONENTS)
 
 catkin_package()
 
-install(PROGRAMS scripts/power_state_phidget.py
+catkin_install_python(PROGRAMS scripts/power_state_phidget.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/src
 )
