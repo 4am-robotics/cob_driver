@@ -180,7 +180,10 @@ private:
         if(set_mimic(goal->mimic, goal->repeat, goal->speed))
             as_mimic_.setSucceeded();
         else
-            as_mimic_.setAborted();
+            if(as_mimic_.isPreemptRequested())
+                as_mimic_.setPreempted();
+            else
+                as_mimic_.setAborted();
         action_active_ = false;
 
         if(goal->mimic != "falling_asleep" && goal->mimic != "sleeping")
@@ -245,6 +248,14 @@ private:
 
         while(repeat > 0)
         {
+            if(as_mimic_.isPreemptRequested())
+            {
+                ROS_WARN("mimic %s preempted", mimic.c_str());
+                active_mimic_ = "None";
+                mutex_.unlock();
+                return false;
+            }
+
             vlc_media_ = libvlc_media_new_path(vlc_inst_, filename.c_str());
             if(!vlc_media_)
             {
