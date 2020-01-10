@@ -42,7 +42,7 @@ class Mimic
 public:
     Mimic():
         as_mimic_(nh_, ros::this_node::getName() + "/set_mimic", boost::bind(&Mimic::as_cb_mimic_, this, _1), false),
-        new_mimic_request_(false), sim_enabled_(false), real_dist_(2,10), int_dist_(0,6)
+        new_mimic_request_(false), sim_enabled_(false), blocking_(true), real_dist_(2,10), int_dist_(0,6)
     {
         nh_ = ros::NodeHandle("~");
     }
@@ -60,6 +60,7 @@ public:
             return false;
 
         sim_enabled_ = nh_.param<bool>("sim", false);
+        blocking_ = nh_.param<bool>("blocking", true);
         srvServer_mimic_ = nh_.advertiseService("set_mimic", &Mimic::service_cb_mimic, this);
         action_active_ = false;
         service_active_ = false;
@@ -122,6 +123,7 @@ private:
     libvlc_media_t* vlc_media_;
 
     bool sim_enabled_;
+    bool blocking_;
     bool new_mimic_request_;
     boost::mutex mutex_;
 
@@ -177,7 +179,7 @@ private:
         blinking_timer_.stop();
         action_active_ = true;
 
-        if(set_mimic(goal->mimic, goal->repeat, goal->speed))
+        if(set_mimic(goal->mimic, goal->repeat, goal->speed, blocking_))
             as_mimic_.setSucceeded();
         else
             if(as_mimic_.isPreemptRequested())
@@ -196,7 +198,7 @@ private:
         service_active_ = true;
         blinking_timer_.stop();
 
-        res.success = set_mimic(req.mimic, req.repeat, req.speed);
+        res.success = set_mimic(req.mimic, req.repeat, req.speed, blocking_);
         res.message = "";
 
         if(req.mimic != "falling_asleep" && req.mimic != "sleeping")
@@ -205,7 +207,7 @@ private:
         return true;
     }
 
-    bool set_mimic(std::string mimic, int repeat, float speed, bool blocking=true)
+    bool set_mimic(std::string mimic, int repeat, float speed, bool blocking)
     {
         new_mimic_request_=true;
         ROS_INFO("New mimic request with: %s", mimic.c_str());
@@ -235,11 +237,16 @@ private:
 
         // repeat cannot be 0
         repeat = std::max(1, repeat);
+        if(repeat > 1 && !blocking)
+        {
+            ROS_WARN_STREAM("Mimic repeat ("<<repeat<<") is overwritten by blocking ("<<blocking<<"). Will only play once.");
+            repeat = 1;
+        }
 
         // speed cannot be 0 or negative
         if(speed <= 0)
         {
-            ROS_WARN("Mimic speed cannot be 0 or negative. Setting Speed to 1.0");
+            ROS_WARN_STREAM("Mimic speed ("<<speed<<") cannot be 0 or negative. Setting Speed to 1.0");
             speed = 1.0;
         }
 
@@ -300,7 +307,7 @@ private:
     void blinking_cb(const ros::TimerEvent&)
     {
         int rand = int_dist_(gen_);
-        set_mimic(random_mimics_[rand], 1, 1.5);
+        set_mimic(random_mimics_[rand], 1, 1.5, blocking_);
         blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
     }
 
