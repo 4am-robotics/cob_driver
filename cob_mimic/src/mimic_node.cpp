@@ -42,7 +42,8 @@ class Mimic
 public:
     Mimic():
         as_mimic_(nh_, ros::this_node::getName() + "/set_mimic", boost::bind(&Mimic::as_cb_mimic_, this, _1), false),
-        new_mimic_request_(false), sim_enabled_(false), blocking_(true), real_dist_(2,10), int_dist_(0,6)
+        new_mimic_request_(false), sim_enabled_(false), blocking_(true), default_mimic_("default"),
+        real_dist_(2,10), int_dist_(0,6)
     {
         nh_ = ros::NodeHandle("~");
     }
@@ -61,6 +62,7 @@ public:
 
         sim_enabled_ = nh_.param<bool>("sim", false);
         blocking_ = nh_.param<bool>("blocking", true);
+        default_mimic_ = nh_.param<std::string>("default_mimic", "default");
         srvServer_mimic_ = nh_.advertiseService("set_mimic", &Mimic::service_cb_mimic, this);
         action_active_ = false;
         service_active_ = false;
@@ -100,7 +102,7 @@ public:
 
         if(sim_enabled_){libvlc_set_fullscreen(vlc_player_, 0);}
         else{libvlc_set_fullscreen(vlc_player_, 1);}
-        set_mimic("default", 1, 1.0, false);
+        set_mimic(default_mimic_, 1, 1.0, false);
         blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
         as_mimic_.start();
         return true;
@@ -131,6 +133,8 @@ private:
     boost::random::mt19937 gen_;
     boost::random::uniform_real_distribution<> real_dist_;
     boost::random::uniform_int_distribution<> int_dist_;
+
+    std::string default_mimic_;
     std::vector<std::string> random_mimics_;
 
     bool copy_mimic_files()
