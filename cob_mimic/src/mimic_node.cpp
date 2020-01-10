@@ -98,7 +98,8 @@ public:
         vlc_player_ = libvlc_media_player_new(vlc_inst_);
         if(!vlc_player_){ROS_ERROR("failed to create vlc media player object"); return false;}
 
-        if(!sim_enabled_){libvlc_set_fullscreen(vlc_player_, 1);}
+        if(sim_enabled_){libvlc_set_fullscreen(vlc_player_, 0);}
+        else{libvlc_set_fullscreen(vlc_player_, 1);}
         set_mimic("default", 1, 1.0, false);
         blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
         as_mimic_.start();
