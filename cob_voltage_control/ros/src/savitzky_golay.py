@@ -15,7 +15,7 @@
 # limitations under the License.
 
 
-from math import *
+from math import cos, sin
 import numpy as np
 
 import rospy
@@ -49,7 +49,6 @@ class volts_filter():
 
         if(self.volts <= 44000):
             self.volts = 44000
-            time_r = 0.
         elif(self.volts >= 48000):
             self.volts = 48000
 
@@ -74,9 +73,9 @@ class volts_filter():
 
         self.msg_power.header.stamp = rospy.Time.now()
         self.msg_power.time_remaining.secs = self.t_est
-        self.msg_power.prediction_method = '3rd_order_polynom'
-        self.msg_power.relative_capacity = (self.t_est/self.maximum_time) * 100
-        self.msg_power.AC_present = 0
+        #self.msg_power.prediction_method = '3rd_order_polynom'
+        #self.msg_power.relative_capacity = (self.t_est/self.maximum_time) * 100
+        #self.msg_power.AC_present = 0
 
         self.pub_power.publish(self.msg_power)
 

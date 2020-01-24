@@ -43,5 +43,5 @@ if __name__ == '__main__':
 	try:
 		relayboard_sim()
 	except rospy.ROSInterruptException:
-		print "Interupted"
+		print("Interupted")
 		pass

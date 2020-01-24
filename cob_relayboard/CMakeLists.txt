@@ -31,6 +31,6 @@ install(DIRECTORY common/include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
-catkin_install_python(PROGRAMS ros/src/new_method.py ros/src/relayboard_sim.py
+catkin_install_python(PROGRAMS ros/src/relayboard_sim.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

@@ -42,15 +42,21 @@ def mimic_client():
     # Sends the goal to the action server.
     client.send_goal(goal)
 
+    # Waits for the server to finish performing the action.
+    client.wait_for_result()
+
+    # Prints out the result of executing the action
+    return client.get_result()
+
 if __name__ == '__main__':
     try:
         # Initializes a rospy node so that the SimpleActionClient can
         # publish and subscribe over ROS.
         if len(sys.argv) != 2:
-            print "Error: please specify mimic string as input"
+            print("Error: please specify mimic string as input")
             sys.exit(1)
 
         rospy.init_node('mimic_test_node')
         result = mimic_client()
     except rospy.ROSInterruptException:
-        print "program interrupted before completion"
+        print("program interrupted before completion")

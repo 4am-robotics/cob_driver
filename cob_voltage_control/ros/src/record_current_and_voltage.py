@@ -15,8 +15,10 @@
 # limitations under the License.
 
 
+import csv
+
 import rospy
-from cob_phidgets.msg import *
+from cob_phidgets.msg import AnalogSensor
 
 def callback(data):
 	#print "voltage=", data.value[1] # voltage sensor is on the second port of the phidgets board
