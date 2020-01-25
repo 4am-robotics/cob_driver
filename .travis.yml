@@ -13,7 +13,7 @@ env:
     - CATKIN_LINT_ARGS='--ignore description_boilerplate --ignore target_name_collision'
     - CMAKE_ARGS=-DCMAKE_BUILD_TYPE=Release
     - NOT_TEST_DOWNSTREAM=true
-    - PYLINT_ARGS="--output-format=parseable --errors-only"
+    - PYLINT_ARGS="--output-format=parseable --errors-only --ignored-modules=numpy,numpy.random,pylab,vlc,yaml"
     - PYLINT2_CHECK=true
     - PYLINT3_CHECK=true
     - ROS_REPO=ros
