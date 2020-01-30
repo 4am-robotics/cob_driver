@@ -19,6 +19,7 @@
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
 
+  <exec_depend>python-matplotlib</exec_depend>
   <exec_depend>python-tk</exec_depend>
   <exec_depend>rospy</exec_depend>
 

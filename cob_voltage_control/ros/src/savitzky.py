@@ -78,8 +78,8 @@ class savitzky_golay():
         try:
             self.window_size = np.abs(np.int(self.window_size))
             self.order = np.abs(np.int(self.order))
-        except ValueError, msg:
-            raise ValueError("window_size and order have to be of type int")
+        except ValueError as msg:
+            raise ValueError("ValueError: window_size and order have to be of type int - {}".format(msg))
         if self.window_size % 2 != 1 or self.window_size < 1:
             raise TypeError("window_size size must be a positive odd number")
         if self.window_size < self.order + 2:
@@ -87,7 +87,7 @@ class savitzky_golay():
 
     def filter(self, y):
 
-        self.order_range = range(self.order+1)
+        self.order_range = list(range(self.order+1))
         half_window = (self.window_size -1) // 2
         # precompute coefficients
         b = np.mat([[k**i for i in self.order_range] for k in range(-half_window, half_window+1)])
@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
     # create some sample twoD data
     x = np.linspace(-3,3,100)
-    Z = np.exp( -(x))
+    Z = np.exp( np.negative(x))
 
     # add noise
     Zn = Z + np.random.normal( 0, 0.2, Z.shape )

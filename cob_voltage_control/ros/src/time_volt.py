@@ -21,9 +21,7 @@ import pylab
 import sys
 import getopt
 
-from math import *
-from scipy import *
-from numpy import *
+from math import cos, sin
 import numpy as np
 
 import rospy
@@ -55,11 +53,11 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv,"hf:r:",["ifile=", "irobot="])
     except getopt.GetoptError:
-        print 'time_volt.py -f <filename> -r <robotname>'
+        print('time_volt.py -f <filename> -r <robotname>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print 'time_volt.py -f <filename> -r <robotname>'
+            print('time_volt.py -f <filename> -r <robotname>')
             sys.exit()
         elif opt in ("-f", "--ifile"):
             filename = arg
@@ -285,6 +283,7 @@ def main(argv):
             theta +=0.01
             new_x = values_filt*cos(theta) - poly_vals*sin(theta)
             new_y = values_filt*sin(theta) + poly_vals*cos(theta)
+            print("new_x: {}, new_y: {}".format(new_x, new_y))
 
 
             off_y = -6000
@@ -298,7 +297,7 @@ def main(argv):
                 new_y_temp = new_y_temp + off_y
 
                 ss1=ss(time_values,new_y_temp)
-                print ss1, off_y
+                print(ss1, off_y)
 
                 cost_values_i.append(ss1)
                 off_y_values_i.append(off_y)
@@ -320,6 +319,7 @@ def main(argv):
 
         new_x = values_filt*cos(theta) - poly_vals*sin(theta)
         new_y = values_filt*sin(theta) + poly_vals*cos(theta)
+        print("new_x: {}, new_y: {}".format(new_x, new_y))
 
         new_y = new_y + off_y
 

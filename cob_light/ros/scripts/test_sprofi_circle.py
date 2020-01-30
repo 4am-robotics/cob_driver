@@ -141,9 +141,9 @@ def changeColor():
   light_mode.colors.append(blue);
   try:
     resp1 = control_lights(light_mode)
-    print resp1
-  except rospy.ServiceException, e:
-    print "Service call failed: %s"%e
+    print(resp1)
+  except rospy.ServiceException as e:
+    print("Service call failed: %s"%e)
 
   time.sleep(6)
 

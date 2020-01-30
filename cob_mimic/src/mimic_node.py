@@ -22,8 +22,8 @@ import roslib
 import rospy
 import actionlib
 
-from cob_mimic.srv import *
-from cob_mimic.msg import *
+from cob_mimic.msg import SetMimicAction
+from cob_mimic.srv import SetMimic, SetMimicResponse
 
 class Mimic:
   def service_cb(self, req):
@@ -40,13 +40,13 @@ class Mimic:
       rospy.loginfo("Mimic: %s", mimic)
       file_location = '/tmp/mimic/' + mimic + '.mp4'
       if(not os.path.isfile(file_location)):
-        rospy.logerror("File not found: %s", file_location)
+        rospy.logerr("File not found: %s", file_location)
         return False
 
       # repeat cannot be 0
       repeat = max (1, repeat)
 
-      for i in range(0, repeat):
+      for _ in range(0, repeat):
         rospy.loginfo("Repeat: %s, Mimic: %s", repeat, mimic)
         command = "export DISPLAY=:0 && vlc --video-wallpaper --video-filter 'rotate{angle=%d}' --vout glx --one-instance --playlist-enqueue --no-video-title-show --rate %f  %s  vlc://quit"  % (self.rotation, speed, file_location)
         os.system(command)
@@ -56,7 +56,7 @@ class Mimic:
   def defaultMimic(self):
     file_location = '/tmp/mimic/' + self.default_mimic + '.mp4'
     if not os.path.isfile(file_location):
-      rospy.logerror("File not found: %s", file_location)
+      rospy.logerr("File not found: %s", file_location)
       return
 
     while not rospy.is_shutdown():
@@ -76,7 +76,7 @@ class Mimic:
     rospy.loginfo("...copied all mimic files to /tmp/mimic")
 
     self._ss = rospy.Service('~set_mimic', SetMimic, self.service_cb)
-    self._as = actionlib.SimpleActionServer('~set_mimic', cob_mimic.msg.SetMimicAction, execute_cb=self.action_cb, auto_start = False)
+    self._as = actionlib.SimpleActionServer('~set_mimic', SetMimicAction, execute_cb=self.action_cb, auto_start = False)
     self._as.start()
 
     rospy.spin()

@@ -140,7 +140,7 @@ if __name__ == "__main__":
     try:
         psp = PowerStatePhidget()
     except KeyError as e:
-        rospy.logerr("Shutting down: {}".format(e.message))
+        rospy.logerr("Shutting down: {}".format(e))
         exit(1)
 
     rospy.loginfo("power state phidget running")
