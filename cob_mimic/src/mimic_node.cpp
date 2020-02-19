@@ -42,7 +42,8 @@ class Mimic
 public:
     Mimic():
         as_mimic_(nh_, ros::this_node::getName() + "/set_mimic", boost::bind(&Mimic::as_cb_mimic_, this, _1), false),
-        new_mimic_request_(false), sim_enabled_(false), real_dist_(2,10), int_dist_(0,6)
+        new_mimic_request_(false), sim_enabled_(false), blocking_(true), default_mimic_("default"),
+        real_dist_(2,10), int_dist_(0,6)
     {
         nh_ = ros::NodeHandle("~");
     }
@@ -60,6 +61,8 @@ public:
             return false;
 
         sim_enabled_ = nh_.param<bool>("sim", false);
+        blocking_ = nh_.param<bool>("blocking", true);
+        default_mimic_ = nh_.param<std::string>("default_mimic", "default");
         srvServer_mimic_ = nh_.advertiseService("set_mimic", &Mimic::service_cb_mimic, this);
         action_active_ = false;
         service_active_ = false;
@@ -69,6 +72,7 @@ public:
         random_mimics_.push_back("blinking");
         random_mimics_.push_back("blinking_left");
         random_mimics_.push_back("blinking_right");
+        random_mimics_ = nh_.param<std::vector< std::string> >("random_mimics", random_mimics_);
 
         diagnostic_updater_.setHardwareID("none");
         diagnostic_updater_.add("mimic", this, &Mimic::produce_diagnostics);
@@ -97,9 +101,10 @@ public:
         vlc_player_ = libvlc_media_player_new(vlc_inst_);
         if(!vlc_player_){ROS_ERROR("failed to create vlc media player object"); return false;}
 
-        if(!sim_enabled_){libvlc_set_fullscreen(vlc_player_, 1);}
-        set_mimic("default", 1, 1.0, false);
-        blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
+        if(sim_enabled_){libvlc_set_fullscreen(vlc_player_, 0);}
+        else{libvlc_set_fullscreen(vlc_player_, 1);}
+        set_mimic(default_mimic_, 1, 1.0, false);
+        random_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::random_cb, this, true);
         as_mimic_.start();
         return true;
     }
@@ -108,7 +113,7 @@ private:
     ros::NodeHandle nh_;
     actionlib::SimpleActionServer<cob_mimic::SetMimicAction> as_mimic_;
     ros::ServiceServer srvServer_mimic_;
-    ros::Timer blinking_timer_;
+    ros::Timer random_timer_;
     std::string mimic_folder_;
 
     bool action_active_;
@@ -122,12 +127,15 @@ private:
     libvlc_media_t* vlc_media_;
 
     bool sim_enabled_;
+    bool blocking_;
     bool new_mimic_request_;
     boost::mutex mutex_;
 
     boost::random::mt19937 gen_;
     boost::random::uniform_real_distribution<> real_dist_;
     boost::random::uniform_int_distribution<> int_dist_;
+
+    std::string default_mimic_;
     std::vector<std::string> random_mimics_;
 
     bool copy_mimic_files()
@@ -174,35 +182,38 @@ private:
 
     void as_cb_mimic_(const cob_mimic::SetMimicGoalConstPtr &goal)
     {
-        blinking_timer_.stop();
+        random_timer_.stop();
         action_active_ = true;
 
-        if(set_mimic(goal->mimic, goal->repeat, goal->speed))
+        if(set_mimic(goal->mimic, goal->repeat, goal->speed, blocking_))
             as_mimic_.setSucceeded();
         else
-            as_mimic_.setAborted();
+            if(as_mimic_.isPreemptRequested())
+                as_mimic_.setPreempted();
+            else
+                as_mimic_.setAborted();
         action_active_ = false;
 
         if(goal->mimic != "falling_asleep" && goal->mimic != "sleeping")
-            blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
+            random_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::random_cb, this, true);
     }
 
     bool service_cb_mimic(cob_mimic::SetMimic::Request &req,
                           cob_mimic::SetMimic::Response &res )
     {
         service_active_ = true;
-        blinking_timer_.stop();
+        random_timer_.stop();
 
-        res.success = set_mimic(req.mimic, req.repeat, req.speed);
+        res.success = set_mimic(req.mimic, req.repeat, req.speed, blocking_);
         res.message = "";
 
         if(req.mimic != "falling_asleep" && req.mimic != "sleeping")
-            blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
+            random_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::random_cb, this, true);
         service_active_ = false;
         return true;
     }
 
-    bool set_mimic(std::string mimic, int repeat, float speed, bool blocking=true)
+    bool set_mimic(std::string mimic, int repeat, float speed, bool blocking)
     {
         new_mimic_request_=true;
         ROS_INFO("New mimic request with: %s", mimic.c_str());
@@ -232,11 +243,16 @@ private:
 
         // repeat cannot be 0
         repeat = std::max(1, repeat);
+        if(repeat > 1 && !blocking)
+        {
+            ROS_WARN_STREAM("Mimic repeat ("<<repeat<<") is overwritten by blocking ("<<blocking<<"). Will only play once.");
+            repeat = 1;
+        }
 
         // speed cannot be 0 or negative
         if(speed <= 0)
         {
-            ROS_WARN("Mimic speed cannot be 0 or negative. Setting Speed to 1.0");
+            ROS_WARN_STREAM("Mimic speed ("<<speed<<") cannot be 0 or negative. Setting Speed to 1.0");
             speed = 1.0;
         }
 
@@ -245,6 +261,14 @@ private:
 
         while(repeat > 0)
         {
+            if(action_active_ && as_mimic_.isPreemptRequested())
+            {
+                ROS_WARN("mimic %s preempted between repetitions", mimic.c_str());
+                active_mimic_ = "None";
+                mutex_.unlock();
+                return false;
+            }
+
             vlc_media_ = libvlc_media_new_path(vlc_inst_, filename.c_str());
             if(!vlc_media_)
             {
@@ -273,7 +297,7 @@ private:
                 ROS_DEBUG("still playing %s", mimic.c_str());
                 if(new_mimic_request_)
                 {
-                    ROS_WARN("mimic %s preempted", mimic.c_str());
+                    ROS_WARN("mimic %s preempted while playing", mimic.c_str());
                     active_mimic_ = "None";
                     mutex_.unlock();
                     return false;
@@ -286,11 +310,11 @@ private:
         return true;
     }
 
-    void blinking_cb(const ros::TimerEvent&)
+    void random_cb(const ros::TimerEvent&)
     {
         int rand = int_dist_(gen_);
-        set_mimic(random_mimics_[rand], 1, 1.5);
-        blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
+        set_mimic(random_mimics_[rand], 1, 1.5, blocking_);
+        random_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::random_cb, this, true);
     }
 
     bool copy_dir( boost::filesystem::path const & source,
