@@ -261,9 +261,9 @@ private:
 
         while(repeat > 0)
         {
-            if(as_mimic_.isPreemptRequested())
+            if(action_active_ && as_mimic_.isPreemptRequested())
             {
-                ROS_WARN("mimic %s preempted", mimic.c_str());
+                ROS_WARN("mimic %s preempted between repetitions", mimic.c_str());
                 active_mimic_ = "None";
                 mutex_.unlock();
                 return false;
@@ -297,7 +297,7 @@ private:
                 ROS_DEBUG("still playing %s", mimic.c_str());
                 if(new_mimic_request_)
                 {
-                    ROS_WARN("mimic %s preempted", mimic.c_str());
+                    ROS_WARN("mimic %s preempted while playing", mimic.c_str());
                     active_mimic_ = "None";
                     mutex_.unlock();
                     return false;
