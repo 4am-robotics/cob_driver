@@ -67,11 +67,11 @@ public:
             sectors.assign(_num_leds, 0.0);
 
             //calculate sector values
-            for(int i = 0; i < _num_leds; i++)
+            for(unsigned int i = 0; i < _num_leds; i++)
             {
                 float sum = std::numeric_limits<float>::max();
                 //float sum = 0;
-                for(int j = i*(int)sector_size; j < (i+1)*(int)sector_size; j++)
+                for(unsigned int j = i*(int)sector_size; j < (i+1)*(int)sector_size; j++)
                 {
                     if(ranges.at(j) != 0){
                         sum = std::min(ranges.at(j), sum);
@@ -80,7 +80,7 @@ public:
                 sectors.at(i) = sum;
             }
 
-            for(int i = 0; i < _num_leds; i++)
+            for(unsigned int i = 0; i < _num_leds; i++)
             {
                 color::rgba col;
 

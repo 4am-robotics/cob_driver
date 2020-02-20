@@ -52,7 +52,7 @@ public:
   {
     if(_timer_inc >= 1.0)
     {
-      for(int i = _num_leds/2; i < _num_leds; i++)
+      for(unsigned int i = _num_leds/2; i < _num_leds; i++)
       {
         _colors[i].a *= 0.7;
       }
@@ -82,7 +82,7 @@ private:
   double _timer_inc;
   double _inc;
   size_t _num_leds;
-  int _pos;
+  unsigned int _pos;
   color::rgba _startcolor;
 };
 

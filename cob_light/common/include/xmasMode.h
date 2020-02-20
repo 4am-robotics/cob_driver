@@ -31,10 +31,10 @@ public:
     if(_num_leds >= _chucksize*2)
     {
       int n_chunks = _num_leds / _chucksize + (_num_leds%_chucksize ? 1 : 0);
-      int k = 0;
+      unsigned int k = 0;
       for(int i = 0; i < n_chunks; i++)
       {
-        for(int j = 0; j < _chucksize; j++)
+        for(unsigned int j = 0; j < _chucksize; j++)
         {
           if(k >= _num_leds)
             break;
@@ -52,7 +52,7 @@ public:
     }
     else
     {
-      for(int i = 0; i < _num_leds; i++)
+      for(unsigned int i = 0; i < _num_leds; i++)
       {
         if(i%2==0)
         {

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 // standard includes
 #include <stdio.h>
 #include <string.h>
@@ -54,7 +53,7 @@
 
 sig_atomic_t volatile gShutdownRequest = 0;
 
-void sigIntHandler(int signal)
+void sigIntHandler(int /*signal*/)
 {
   ::gShutdownRequest = 1;
 }
@@ -67,8 +66,8 @@ void shutdownCallback(XmlRpc::XmlRpcValue& params, XmlRpc::XmlRpcValue& result)
   if (num_params > 1)
   {
     std::string reason = params[1];
-    ROS_WARN("Shutdown request received. Reason: [%s]", reason.c_str());
-    ::gShutdownRequest = 1; // Set flag
+    ROS_WARN("shutdown request received. Reason: [%s]", reason.c_str());
+    ::gShutdownRequest = 1;  // Set flag
   }
 
   result = ros::xmlrpc::responseInt(1, "", 0);
@@ -77,8 +76,7 @@ void shutdownCallback(XmlRpc::XmlRpcValue& params, XmlRpc::XmlRpcValue& result)
 class LightControl
 {
 public:
-  LightControl() :
-    _invertMask(0), _topic_priority(0)
+  LightControl() : _invertMask(0), _topic_priority(0)
   {
   }
   bool init()
@@ -89,48 +87,51 @@ public:
     std::string startup_mode;
     p_colorO = NULL;
     p_modeExecutor = NULL;
-    //diagnostics
+    // diagnostics
     _pubDiagnostic = _nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
     _diagnostics_timer = _nh.createTimer(ros::Duration(1.0), &LightControl::publish_diagnostics_cb, this);
 
     diagnostic_msgs::DiagnosticStatus status;
     status.name = ros::this_node::getName();
 
-    //Get Parameter from Parameter Server
+    // Get Parameter from Parameter Server
     _nh = ros::NodeHandle("~");
-    if(!_nh.hasParam("invert_output"))
+    if (!_nh.hasParam("invert_output"))
       ROS_WARN("Parameter 'invert_output' is missing. Using default Value: false");
     _nh.param<bool>("invert_output", invert_output, false);
     _invertMask = (int)invert_output;
 
-    if(!_nh.hasParam("devicedriver"))
+    if (!_nh.hasParam("devicedriver"))
       ROS_WARN("Parameter 'devicedriver' is missing. Using default Value: cob_ledboard");
-    _nh.param<std::string>("devicedriver",_deviceDriver,"cob_ledboard");
+    _nh.param<std::string>("devicedriver", _deviceDriver, "cob_ledboard");
 
-    if(!_nh.hasParam("devicestring"))
+    if (!_nh.hasParam("devicestring"))
       ROS_WARN("Parameter 'devicestring' is missing. Using default Value: /dev/ttyLed");
-    _nh.param<std::string>("devicestring",_deviceString,"/dev/ttyLed");
+    _nh.param<std::string>("devicestring", _deviceString, "/dev/ttyLed");
 
-    if(!_nh.hasParam("baudrate"))
+    if (!_nh.hasParam("baudrate"))
       ROS_WARN("Parameter 'baudrate' is missing. Using default Value: 230400");
-    _nh.param<int>("baudrate",_baudrate,230400);
+    _nh.param<int>("baudrate", _baudrate, 230400);
 
-    if(!_nh.hasParam("pubmarker"))
+    if (!_nh.hasParam("pubmarker"))
       ROS_WARN("Parameter 'pubmarker' is missing. Using default Value: true");
-    _nh.param<bool>("pubmarker",_bPubMarker,true);
+    _nh.param<bool>("pubmarker", _bPubMarker, true);
 
-    if(!_nh.hasParam("marker_frame"))
+    if (!_nh.hasParam("marker_frame"))
       ROS_WARN("Parameter 'marker_frame' is missing. Using default Value: /base_link");
-    _nh.param<std::string>("marker_frame",_sMarkerFrame,"base_link");
+    _nh.param<std::string>("marker_frame", _sMarkerFrame, "base_link");
 
-    if(!_nh.hasParam("sim_enabled"))
+    if (!_nh.hasParam("sim_enabled"))
       ROS_WARN("Parameter 'sim_enabled' is missing. Using default Value: false");
     _nh.param<bool>("sim_enabled", _bSimEnabled, false);
 
-    if(!_nh.hasParam("startup_color"))
+    if (!_nh.hasParam("startup_color"))
     {
       ROS_WARN("Parameter 'startup_color' is missing. Using default Value: off");
-      _color.r=0;_color.g=0;_color.b=0;_color.a=0;
+      _color.r = 0;
+      _color.g = 0;
+      _color.b = 0;
+      _color.a = 0;
     }
     else
     {
@@ -144,58 +145,58 @@ public:
       _color.a = static_cast<double>(param_list[3]);
     }
 
-    if(!_nh.hasParam("startup_mode"))
+    if (!_nh.hasParam("startup_mode"))
       ROS_WARN("Parameter 'startup_mode' is missing. Using default Value: None");
     _nh.param<std::string>("startup_mode", startup_mode, "None");
 
-    if(!_nh.hasParam("num_leds"))
-	    ROS_WARN("Parameter 'num_leds' is missing. Using default Value: 58");
- 	  _nh.param<int>("num_leds", _num_leds, 58);
+    if (!_nh.hasParam("num_leds"))
+      ROS_WARN("Parameter 'num_leds' is missing. Using default Value: 58");
+    _nh.param<int>("num_leds", _num_leds, 58);
 
     int led_offset;
     _nh.param<int>("led_offset", led_offset, 0);
 
-    //Subscribe to LightController Command Topic
+    // Subscribe to LightController Command Topic
     _sub = _nh.subscribe("command", 1, &LightControl::topicCallback, this);
 
-    //Advertise light mode Service
+    // Advertise light mode Service
     _srvServer = _nh.advertiseService("set_light", &LightControl::serviceCallback, this);
 
-    //Advertise stop mode service
+    // Advertise stop mode service
     _srvStopMode = _nh.advertiseService("stop_mode", &LightControl::stopMode, this);
 
-    //Start light mode Action Server
+    // Start light mode Action Server
     _as = new ActionServer(_nh, "set_light", boost::bind(&LightControl::actionCallback, this, _1), false);
     _as->start();
 
-    //Advertise visualization marker topic
-    _pubMarker = _nh.advertise<visualization_msgs::Marker>("marker",1);
+    // Advertise visualization marker topic
+    _pubMarker = _nh.advertise<visualization_msgs::Marker>("marker", 1);
 
-    if(!_bSimEnabled)
+    if (!_bSimEnabled)
     {
-      //open serial port
-      ROS_INFO("Open Port on %s",_deviceString.c_str());
-      if(_serialIO.openPort(_deviceString, _baudrate) != -1)
+      // open serial port
+      ROS_INFO("Open Port on %s", _deviceString.c_str());
+      if (_serialIO.openPort(_deviceString, _baudrate) != -1)
       {
         ROS_INFO("Serial connection on %s succeeded.", _deviceString.c_str());
         status.level = 0;
         status.message = "light controller running";
 
-        if(_deviceDriver == "cob_ledboard")
+        if (_deviceDriver == "cob_ledboard")
           p_colorO = new ColorO(&_serialIO);
-        else if(_deviceDriver == "ms-35")
+        else if (_deviceDriver == "ms-35")
           p_colorO = new MS35(&_serialIO);
-        else if(_deviceDriver == "stageprofi")
+        else if (_deviceDriver == "stageprofi")
           p_colorO = new StageProfi(&_serialIO, _num_leds, led_offset);
         else
         {
-          ROS_ERROR_STREAM("Unsupported devicedriver ["<<_deviceDriver<<"], falling back to sim mode");
+          ROS_ERROR_STREAM("Unsupported devicedriver [" << _deviceDriver << "], falling back to sim mode");
           p_colorO = new ColorOSim(&_nh);
           status.level = 2;
           status.message = "Unsupported devicedriver. Running in simulation mode";
         }
         p_colorO->setMask(_invertMask);
-        if(!p_colorO->init())
+        if (!p_colorO->init())
         {
           status.level = 3;
           status.message = "Initializing connection to driver failed";
@@ -225,16 +226,16 @@ public:
 
     _diagnostics.status.push_back(status);
 
-    if(!ret)
+    if (!ret)
       return false;
 
-    if(_bPubMarker)
+    if (_bPubMarker)
       p_colorO->signalColorSet()->connect(boost::bind(&LightControl::markerCallback, this, _1));
 
     p_modeExecutor = new ModeExecutor(p_colorO);
 
     boost::shared_ptr<Mode> mode = ModeFactory::create(startup_mode, _color);
-    if(mode == NULL)
+    if (mode == NULL)
     {
       p_colorO->setColor(_color);
     }
@@ -246,12 +247,12 @@ public:
 
   ~LightControl()
   {
-    if(p_modeExecutor != NULL)
+    if (p_modeExecutor != NULL)
     {
       p_modeExecutor->stop();
       delete p_modeExecutor;
     }
-    if(p_colorO != NULL)
+    if (p_colorO != NULL)
     {
       delete p_colorO;
     }
@@ -259,138 +260,167 @@ public:
 
   void topicCallback(cob_light::ColorRGBAArray color)
   {
-      boost::mutex::scoped_lock lock(_mutex);
-      if(p_modeExecutor->getExecutingPriority() <= _topic_priority)
+    boost::mutex::scoped_lock lock(_mutex);
+    if (p_modeExecutor->getExecutingPriority() <= _topic_priority)
+    {
+      p_modeExecutor->pause();
+      if (color.colors.size() > 0)
       {
-          p_modeExecutor->pause();
-          if(color.colors.size() > 0)
+        if (color.colors.size() > 1)
+        {
+          std::vector<color::rgba> colors;
+          for (size_t i = 0; i < colors.size(); i++)
           {
-              if(color.colors.size() > 1)
-              {
-                  std::vector<color::rgba> colors;
-                  for(size_t i=0; i<colors.size();i++)
-                  {
-                      if(color.colors[i].r <= 1.0 && color.colors[i].g <= 1.0 && color.colors[i].b <= 1.0)
-                      {
-                        _color.a = color.colors[i].a;
-                        _color.r = color.colors[i].r;
-                        _color.g = color.colors[i].g;
-                        _color.b = color.colors[i].b;
-                        colors.push_back(_color);
-                      }
-                      else
-                        ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
-                  }
-                  p_colorO->setColorMulti(colors);
-              }
-              else
-              {
-                  if(color.colors[0].r <= 1.0 && color.colors[0].g <= 1.0 && color.colors[0].b <= 1.0)
-                  {
-                      _color.r = color.colors[0].r;
-                      _color.g = color.colors[0].g;
-                      _color.b = color.colors[0].b;
-                      _color.a = color.colors[0].a;
+            if (color.colors[i].r <= 1.0 && color.colors[i].g <= 1.0 && color.colors[i].b <= 1.0)
+            {
+              _color.a = color.colors[i].a;
+              _color.r = color.colors[i].r;
+              _color.g = color.colors[i].g;
+              _color.b = color.colors[i].b;
+              colors.push_back(_color);
+            }
+            else
+              ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
+          }
+          p_colorO->setColorMulti(colors);
+        }
+        else
+        {
+          if (color.colors[0].r <= 1.0 && color.colors[0].g <= 1.0 && color.colors[0].b <= 1.0)
+          {
+            _color.r = color.colors[0].r;
+            _color.g = color.colors[0].g;
+            _color.b = color.colors[0].b;
+            _color.a = color.colors[0].a;
 
-                      p_colorO->setColor(_color);
-                  }
-                  else
-                    ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
-              }
+            p_colorO->setColor(_color);
           }
           else
-            ROS_ERROR("Empty color msg received");
+            ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
         }
+      }
+      else
+        ROS_ERROR("Empty color msg received");
+    }
   }
 
-  bool serviceCallback(cob_light::SetLightMode::Request &req, cob_light::SetLightMode::Response &res)
+  bool serviceCallback(cob_light::SetLightMode::Request& req, cob_light::SetLightMode::Response& res)
   {
     boost::mutex::scoped_lock lock(_mutex);
     bool ret = false;
 
-    //ROS_DEBUG("Service Callback [Mode: %i with prio: %i freq: %f timeout: %f pulses: %i ] [R: %f with G: %f B: %f A: %f]",
-    //	req.mode.mode, req.mode.priority, req.mode.frequency, req.mode.timeout, req.mode.pulses,req.mode.color.r,req.mode.color.g ,req.mode.color.b,req.mode.color.a);
-    if(req.mode.colors.size() > 0)
+    // ROS_DEBUG("Service Callback [Mode: %i with prio: %i freq: %f timeout: %f pulses: %i ] [R: %f with G: %f B: %f A:
+    // %f]", 	req.mode.mode, req.mode.priority, req.mode.frequency, req.mode.timeout,
+    //req.mode.pulses,req.mode.color.r,req.mode.color.g ,req.mode.color.b,req.mode.color.a);
+    if (req.mode.colors.size() > 0)
     {
-        if(req.mode.colors[0].r > 1.0 || req.mode.colors[0].g > 1.0 ||
-            req.mode.colors[0].b > 1.0 || req.mode.colors[0].a > 1.0)
-        {
-          res.active_mode = p_modeExecutor->getExecutingMode();
-          res.active_priority = p_modeExecutor->getExecutingPriority();
-          res.track_id = -1;
-          ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
-        }
-        else if(req.mode.mode == cob_light::LightModes::NONE) //refactor this
-        {
-          p_modeExecutor->stop();
-          _color.a = 0;
-          //p_modeExecutor->execute(req.mode);
-          p_colorO->setColor(_color);
-          res.active_mode = p_modeExecutor->getExecutingMode();
-          res.active_priority = p_modeExecutor->getExecutingPriority();
-          ret = true;
-        }
-        else
-        {
-          uint64_t u_id = p_modeExecutor->execute(req.mode);
-          res.active_mode = p_modeExecutor->getExecutingMode();
-          res.active_priority = p_modeExecutor->getExecutingPriority();
-          res.track_id = u_id;
-          ret = true;
-        }
+      if (req.mode.colors[0].r > 1.0 || req.mode.colors[0].g > 1.0 || req.mode.colors[0].b > 1.0 ||
+          req.mode.colors[0].a > 1.0)
+      {
+        res.active_mode = p_modeExecutor->getExecutingMode();
+        res.active_priority = p_modeExecutor->getExecutingPriority();
+        res.track_id = -1;
+        ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
+      }
+      else if (req.mode.mode == cob_light::LightModes::NONE)  // refactor this
+      {
+        p_modeExecutor->stop();
+        _color.a = 0;
+        // p_modeExecutor->execute(req.mode);
+        p_colorO->setColor(_color);
+        res.active_mode = p_modeExecutor->getExecutingMode();
+        res.active_priority = p_modeExecutor->getExecutingPriority();
+        ret = true;
+      }
+      else
+      {
+        uint64_t u_id = p_modeExecutor->execute(req.mode);
+        res.active_mode = p_modeExecutor->getExecutingMode();
+        res.active_priority = p_modeExecutor->getExecutingPriority();
+        res.track_id = u_id;
+        ret = true;
+      }
     }
     return ret;
   }
 
-  void actionCallback(const cob_light::SetLightModeGoalConstPtr &goal)
+  void print_leds(const cob_light::LightMode_<std::allocator<void>>::_colors_type& colors)
   {
-    boost::mutex::scoped_lock lock(_mutex);
-    cob_light::SetLightModeResult result;
-    if(goal->mode.colors.size() > 0)
+    std::string led_string;
+    for (size_t j = 0; j < colors.size(); ++j)
     {
-        if(goal->mode.colors[0].r > 1.0 || goal->mode.colors[0].g > 1.0 ||
-            goal->mode.colors[0].b > 1.0 || goal->mode.colors[0].a > 1.0)
-        {
-          result.active_mode = p_modeExecutor->getExecutingMode();
-          result.active_priority = p_modeExecutor->getExecutingPriority();
-          result.track_id = -1;
-          _as->setAborted(result, "Unsupported Color format. rgba values range is between 0.0 - 1.0");
-
-          ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
-        }
-        else if(goal->mode.mode == cob_light::LightModes::NONE)
-        {
-          p_modeExecutor->stop();
-          _color.a = 0;
-          p_colorO->setColor(_color);
-          result.active_mode = p_modeExecutor->getExecutingMode();
-          result.active_priority = p_modeExecutor->getExecutingPriority();
-          result.track_id = -1;
-          _as->setSucceeded(result, "Mode switched");
-        }
-        else
-        {
-          uint64_t u_id = p_modeExecutor->execute(goal->mode);
-          result.active_mode = p_modeExecutor->getExecutingMode();
-          result.active_priority = p_modeExecutor->getExecutingPriority();
-          result.track_id = u_id;
-          _as->setSucceeded(result, "Mode switched");
-        }
+      //if led is black
+      if (equals(colors[j].r, 0.0f, 0.01f) && equals(colors[j].g, 0.0f, 0.01f) &&
+          equals(colors[j].b, 0.0f, 0.01f))
+      {
+        led_string.append(".");
+      }
+      else
+      {
+        led_string.append("O");
+      }
     }
-    else
-        _as->setAborted(result, "No color available");
+
+    ROS_INFO_STREAM("[cob_light] LEDS: " << led_string);
   }
 
-  bool stopMode(cob_light::StopLightMode::Request &req, cob_light::StopLightMode::Response &res)
+  void actionCallback(const cob_light::SetLightModeGoalConstPtr& goal)
   {
-      boost::mutex::scoped_lock lock(_mutex);
-      bool ret = false;
-      ret = p_modeExecutor->stop(req.track_id);
-      res.active_mode = p_modeExecutor->getExecutingMode();
-      res.active_priority = p_modeExecutor->getExecutingPriority();
-      res.track_id = p_modeExecutor->getExecutingUId();
-      ret = true; // TODO: really check if mode is stopped
-      return ret;
+    ROS_WARN("[cob_light actionCallback()] Received a LED command. ");
+
+    boost::mutex::scoped_lock lock(_mutex);
+    cob_light::SetLightModeResult result;
+    if (!goal->mode.colors.empty())
+    {
+      if (goal->mode.colors[0].r > 1.0 || goal->mode.colors[0].g > 1.0 || goal->mode.colors[0].b > 1.0 ||
+          goal->mode.colors[0].a > 1.0)
+      {
+        result.active_mode = p_modeExecutor->getExecutingMode();
+        result.active_priority = p_modeExecutor->getExecutingPriority();
+        result.track_id = -1;
+        _as->setAborted(result, "Unsupported Color format. rgba values range is between 0.0 - 1.0");
+
+        ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
+      }
+      else if (goal->mode.mode == cob_light::LightModes::NONE)
+      {
+        print_leds(goal->mode.colors);
+
+        p_modeExecutor->stop();
+        _color.a = 0;
+        p_colorO->setColor(_color);
+        result.active_mode = p_modeExecutor->getExecutingMode();
+        result.active_priority = p_modeExecutor->getExecutingPriority();
+        result.track_id = -1;
+        _as->setSucceeded(result, "Mode switched");
+      }
+      else
+      {
+        print_leds(goal->mode.colors);
+
+        uint64_t u_id = p_modeExecutor->execute(goal->mode);
+        result.active_mode = p_modeExecutor->getExecutingMode();
+        result.active_priority = p_modeExecutor->getExecutingPriority();
+        result.track_id = u_id;
+        _as->setSucceeded(result, "Mode switched");
+      }
+    }
+    else
+    {
+      _as->setAborted(result, "No color available");
+    }
+  }
+
+  bool stopMode(cob_light::StopLightMode::Request& req, cob_light::StopLightMode::Response& res)
+  {
+    boost::mutex::scoped_lock lock(_mutex);
+    bool ret = false;
+    ret = p_modeExecutor->stop(req.track_id);
+    res.active_mode = p_modeExecutor->getExecutingMode();
+    res.active_priority = p_modeExecutor->getExecutingPriority();
+    res.track_id = p_modeExecutor->getExecutingUId();
+    ret = true;  // TODO: really check if mode is stopped
+    return ret;
   }
 
   void publish_diagnostics_cb(const ros::TimerEvent&)
@@ -449,7 +479,7 @@ private:
   ros::Timer _diagnostics_timer;
 
   typedef actionlib::SimpleActionServer<cob_light::SetLightModeAction> ActionServer;
-  ActionServer *_as;
+  ActionServer* _as;
 
   color::rgba _color;
 
@@ -463,16 +493,16 @@ private:
 int main(int argc, char** argv)
 {
   // init node
-  ros::init(argc, argv, "light_controller", ros::init_options::NoSigintHandler);
-  signal(SIGINT, sigIntHandler);
+  ros::init(argc, argv, "cob_light");
+//  signal(SIGINT, sigIntHandler);
 
   // Override XMLRPC shutdown
-  ros::XMLRPCManager::instance()->unbind("shutdown");
-  ros::XMLRPCManager::instance()->bind("shutdown", shutdownCallback);
+//  ros::XMLRPCManager::instance()->unbind("shutdown");
+//  ros::XMLRPCManager::instance()->bind("shutdown", shutdownCallback);
 
   // create LightControl instance
-  LightControl *lightControl = new LightControl();
-  if(lightControl->init())
+  LightControl* lightControl = new LightControl();
+  if (lightControl->init())
   {
     ros::AsyncSpinner spinner(1);
     spinner.start();

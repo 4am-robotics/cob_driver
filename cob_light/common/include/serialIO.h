@@ -71,6 +71,8 @@ public:
 	void start();
 	void stop();
 
+	const std::string& getDeviceString() const;
+
 private:
 	//ioQueue
 	ConcurrentQueue<std::vector<struct ioData> > _oQueue;
