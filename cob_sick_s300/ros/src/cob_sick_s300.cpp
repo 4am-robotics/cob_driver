@@ -66,6 +66,10 @@ class NodeClass
 
 		// global variables
 		std::string port;
+		std::string topic_scan;
+	    std::string topic_diagnostics;
+		std::string topic_scan_standby;
+
 		std::string node_name;
 		int baud, scan_id;
 		bool inverted;
@@ -110,6 +114,15 @@ class NodeClass
 
 			if(!nh.hasParam("communication_timeout")) ROS_WARN("Used default parameter for communication timeout");
 			nh.param("communication_timeout", communication_timeout, 0.2);
+
+			if(!nh.hasParam("topic_scan")) ROS_WARN("Used default parameter for topic_scan");
+			nh.param("topic_scan", topic_scan, std::string("scan"));
+
+			if(!nh.hasParam("topic_scan_standby")) ROS_WARN("Used default parameter for topic_scan_standby");
+			nh.param("topic_scan_standby", topic_scan_standby, std::string("scan_standby"));
+
+			if(!nh.hasParam("topic_diagnostics")) ROS_WARN("Used default parameter for topic_diagnostics");
+			nh.param("topic_diagnostics", topic_diagnostics, std::string("diagnostics"));
 
 			try
 			{
@@ -175,9 +188,9 @@ class NodeClass
 			node_name = ros::this_node::getName();
 
 			// implementation of topics to publish
-			topicPub_LaserScan = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
-			topicPub_InStandby = nh.advertise<std_msgs::Bool>("scan_standby", 1);
-			topicPub_Diagnostic_ = nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
+			topicPub_LaserScan = nh.advertise<sensor_msgs::LaserScan>(topic_scan, 1);
+			topicPub_InStandby = nh.advertise<std_msgs::Bool>(topic_scan_standby, 1);
+			topicPub_Diagnostic_ = nh.advertise<diagnostic_msgs::DiagnosticArray>(topic_diagnostics, 1);
 		}
 
 		bool open() {
