@@ -2,8 +2,8 @@
 Changelog for package cob_utilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.2 (2020-03-18)
+------------------
 * Merge pull request `#405 <https://github.com/ipa320/cob_driver/issues/405>`_ from fmessmer/fix_warnings
   fix compile warnings
 * fix -Wunused-result in cob_utilities

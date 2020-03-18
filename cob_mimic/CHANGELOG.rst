@@ -2,8 +2,8 @@
 Changelog for package cob_mimic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.2 (2020-03-18)
+------------------
 * Merge pull request `#410 <https://github.com/ipa320/cob_driver/issues/410>`_ from fmessmer/fix_mimic_preemption
   fix mimic preemption + add parameters
 * fix preemption condition
