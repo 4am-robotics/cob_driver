@@ -27,6 +27,6 @@
   <depend>roslib</depend>
   <depend>vlc</depend>
 
-  <exec_depend>python-vlc-pip</exec_depend>
+  <exec_depend>rospy</exec_depend>
 
 </package>

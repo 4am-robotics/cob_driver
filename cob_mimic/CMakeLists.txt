@@ -35,7 +35,7 @@ install(TARGETS mimic
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-catkin_install_python(PROGRAMS src/mimic_node.py src/test_mimic.py
+catkin_install_python(PROGRAMS src/test_mimic.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
