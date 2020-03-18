@@ -2,8 +2,8 @@
 Changelog for package cob_mimic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.3 (2020-03-18)
+------------------
 * Merge pull request `#413 <https://github.com/ipa320/cob_driver/issues/413>`_ from fmessmer/remove_mimic_python
   remove cob_mimic python driver
 * remove cob_mimic python driver
