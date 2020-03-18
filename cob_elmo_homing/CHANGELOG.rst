@@ -2,6 +2,13 @@
 Changelog for package cob_elmo_homing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#408 <https://github.com/ipa320/cob_driver/issues/408>`_ from fmessmer/ci_updates
+  [travis] ci updates
+* catkin_lint fixes
+* Contributors: Felix Messmer, fmessmer
+
 0.7.1 (2019-11-07)
 ------------------
 * Merge pull request `#400 <https://github.com/ipa320/cob_driver/issues/400>`_ from fmessmer/fix_plugin_deprecation

@@ -2,6 +2,19 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#409 <https://github.com/ipa320/cob_driver/issues/409>`_ from LoyVanBeek/feature/python3_compatibility
+  [ci_updates] pylint + Python3 compatibility
+* python3 compatibility via 2to3
+* Merge pull request `#408 <https://github.com/ipa320/cob_driver/issues/408>`_ from fmessmer/ci_updates
+  [travis] ci updates
+* catkin_lint fixes
+* Merge pull request `#406 <https://github.com/ipa320/cob_driver/issues/406>`_ from lopsided98/cob-light-boost-signals
+  [cob_light] removed unused Boost signals dependency
+* cob_light: removed unused Boost signals dependency
+* Contributors: Ben Wolsieffer, Felix Messmer, Loy van Beek, fmessmer
+
 0.7.1 (2019-11-07)
 ------------------
 
