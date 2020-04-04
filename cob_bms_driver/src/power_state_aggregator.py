@@ -86,15 +86,17 @@ class PowerStateAggregator():
         return 0.0
 
     def calculate_time_remaining(self):
+        time_remaining_max = 10.0 # assume 10h - for cases where current approx. 0A
+        time_remaining = time_remaining_max
         if len(self.last_currents) > 0:
             current = numpy.mean(self.last_currents)
 
             if self.full_charge_capacity != None and self.remaining_capacity != None:
                 try:
                     if self.charging:
-                        return round((self.full_charge_capacity - self.remaining_capacity) / abs(current), 3)
+                        time_remaining = round((self.full_charge_capacity - self.remaining_capacity) / abs(current), 3)
                     else:
-                        return round(self.remaining_capacity / abs(current), 3)
+                        time_remaining = round(self.remaining_capacity / abs(current), 3)
                 except ZeroDivisionError as e:
                     rospy.logerr("ZeroDivisionError: current is 0.0: %s" % (e))
                 except:
@@ -103,7 +105,7 @@ class PowerStateAggregator():
                 pass
         else:
             pass
-        return 0.0
+        return min(time_remaining, time_remaining_max)
  
     def publish(self):
         if self.voltage != None and self.current != None and self.remaining_capacity != None and self.full_charge_capacity != None and self.temperature != None and (rospy.Time.now() - self.last_update) < rospy.Duration(1):

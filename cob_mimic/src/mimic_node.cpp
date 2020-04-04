@@ -16,6 +16,7 @@
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <actionlib/server/simple_action_server.h>
+#include <diagnostic_updater/diagnostic_updater.h>
 
 #include <cob_mimic/SetMimicAction.h>
 #include <cob_mimic/SetMimicGoal.h>
@@ -59,12 +60,18 @@ public:
 
         sim_enabled_ = nh_.param<bool>("sim", false);
         srvServer_mimic_ = nh_.advertiseService("set_mimic", &Mimic::service_cb_mimic, this);
+        action_active_ = false;
+        service_active_ = false;
 
         random_mimics_.push_back("blinking");
         random_mimics_.push_back("blinking");
         random_mimics_.push_back("blinking");
         random_mimics_.push_back("blinking_left");
         random_mimics_.push_back("blinking_right");
+
+        diagnostic_updater_.setHardwareID("none");
+        diagnostic_updater_.add("mimic", this, &Mimic::produce_diagnostics);
+        diagnostic_thread_ = boost::thread(&Mimic::diagnostics_timer_thread, this);
 
         int_dist_ = boost::random::uniform_int_distribution<>(0,static_cast<int>(random_mimics_.size())-1);
 
@@ -102,6 +109,12 @@ private:
     ros::ServiceServer srvServer_mimic_;
     ros::Timer blinking_timer_;
     std::string mimic_folder_;
+
+    bool action_active_;
+    bool service_active_;
+    std::string active_mimic_;
+    diagnostic_updater::Updater diagnostic_updater_;
+    boost::thread diagnostic_thread_;
 
     libvlc_instance_t* vlc_inst_;
     libvlc_media_player_t* vlc_player_;
@@ -161,11 +174,13 @@ private:
     void as_cb_mimic_(const cob_mimic::SetMimicGoalConstPtr &goal)
     {
         blinking_timer_.stop();
+        action_active_ = true;
 
         if(set_mimic(goal->mimic, goal->repeat, goal->speed))
             as_mimic_.setSucceeded();
         else
             as_mimic_.setAborted();
+        action_active_ = false;
 
         if(goal->mimic != "falling_asleep" && goal->mimic != "sleeping")
             blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
@@ -174,6 +189,7 @@ private:
     bool service_cb_mimic(cob_mimic::SetMimic::Request &req,
                           cob_mimic::SetMimic::Response &res )
     {
+        service_active_ = true;
         blinking_timer_.stop();
 
         res.success = set_mimic(req.mimic, req.repeat, req.speed);
@@ -181,15 +197,16 @@ private:
 
         if(req.mimic != "falling_asleep" && req.mimic != "sleeping")
             blinking_timer_ = nh_.createTimer(ros::Duration(real_dist_(gen_)), &Mimic::blinking_cb, this, true);
+        service_active_ = false;
         return true;
     }
 
     bool set_mimic(std::string mimic, int repeat, float speed, bool blocking=true)
     {
-        bool ret = false;
         new_mimic_request_=true;
         ROS_INFO("New mimic request with: %s", mimic.c_str());
         mutex_.lock();
+        active_mimic_= (boost::format("Mimic: %1%, repeat: %2%, speed: %3%, blocking: %4%")% mimic % repeat % speed % blocking).str();
         new_mimic_request_=false;
         ROS_INFO("Mimic: %s (speed: %f, repeat: %d)", mimic.c_str(), speed, repeat);
 
@@ -201,6 +218,7 @@ private:
             if ( !boost::filesystem::exists(mimic) )
             {
                 ROS_ERROR("File not found: %s", filename.c_str());
+                active_mimic_ = "None";
                 mutex_.unlock();
                 return false;
             }
@@ -230,6 +248,7 @@ private:
             if(!vlc_media_)
             {
                 ROS_ERROR("failed to create media for filepath %s", filename.c_str());
+                active_mimic_ = "None";
                 mutex_.unlock();
                 return false;
             }
@@ -241,6 +260,7 @@ private:
             if(libvlc_media_player_play(vlc_player_)!=0)
             {
                 ROS_ERROR("failed to play");
+                active_mimic_ = "None";
                 mutex_.unlock();
                 return false;
             }
@@ -253,12 +273,14 @@ private:
                 if(new_mimic_request_)
                 {
                     ROS_WARN("mimic %s preempted", mimic.c_str());
+                    active_mimic_ = "None";
                     mutex_.unlock();
                     return false;
                 }
             }
             repeat --;
         }
+        active_mimic_ = "None";
         mutex_.unlock();
         return true;
     }
@@ -323,6 +345,23 @@ private:
             }
         }
         return true;
+    }
+
+    void diagnostics_timer_thread()
+    {
+        while(ros::ok())
+        {
+          ros::Duration(1.0).sleep();
+          diagnostic_updater_.update();
+        }
+    }
+
+    void produce_diagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
+    {
+        stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Mimic running");
+        stat.add("Action is active", action_active_);
+        stat.add("Service is active", service_active_);
+        stat.add("Active mimic", active_mimic_);
     }
 };
 
