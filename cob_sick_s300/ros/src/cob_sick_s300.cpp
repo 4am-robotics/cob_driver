@@ -98,7 +98,7 @@ class NodeClass
 			nh.param("inverted", inverted, false);
 
 			if(!nh.hasParam("frame_id")) ROS_WARN("Used default parameter for frame_id");
-			nh.param("frame_id", frame_id, std::string("/base_laser_link"));
+			nh.param("frame_id", frame_id, std::string("base_laser_link"));
 
 			if(!nh.hasParam("scan_duration")) ROS_WARN("Used default parameter for scan_duration");
 			nh.param("scan_duration", scan_duration, 0.025); //no info about that in SICK-docu, but 0.025 is believable and looks good in rviz
