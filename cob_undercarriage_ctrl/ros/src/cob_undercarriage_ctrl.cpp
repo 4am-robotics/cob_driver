@@ -669,8 +669,8 @@ void NodeClass::UpdateOdometry()
     geometry_msgs::TransformStamped odom_tf;
     // compose header
     odom_tf.header.stamp = joint_state_odom_stamp_;
-    odom_tf.header.frame_id = "/odom_combined";
-    odom_tf.child_frame_id = "/base_footprint";
+    odom_tf.header.frame_id = "odom_combined";
+    odom_tf.child_frame_id = "base_footprint";
     // compose data container
     odom_tf.transform.translation.x = x_rob_m_;
     odom_tf.transform.translation.y = y_rob_m_;
@@ -685,8 +685,8 @@ void NodeClass::UpdateOdometry()
   nav_msgs::Odometry odom_top;
   // compose header
   odom_top.header.stamp = joint_state_odom_stamp_;
-  odom_top.header.frame_id = "/odom_combined";
-  odom_top.child_frame_id = "/base_footprint";
+  odom_top.header.frame_id = "odom_combined";
+  odom_top.child_frame_id = "base_footprint";
   // compose pose of robot
   odom_top.pose.pose.position.x = x_rob_m_;
   odom_top.pose.pose.position.y = y_rob_m_;
