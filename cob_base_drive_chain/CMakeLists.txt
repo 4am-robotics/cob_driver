@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(cob_base_drive_chain)
 
 find_package(catkin REQUIRED COMPONENTS cob_canopen_motor cob_generic_can cob_utilities control_msgs diagnostic_msgs message_generation roscpp sensor_msgs std_msgs std_srvs)

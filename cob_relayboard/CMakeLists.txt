@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(cob_relayboard)
 
 find_package(catkin REQUIRED COMPONENTS cob_msgs roscpp std_msgs)

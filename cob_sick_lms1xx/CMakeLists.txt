@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(cob_sick_lms1xx)
 
 find_package(catkin REQUIRED COMPONENTS diagnostic_msgs roscpp sensor_msgs)
