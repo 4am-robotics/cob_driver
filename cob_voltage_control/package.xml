@@ -1,4 +1,8 @@
-<package format="2">
+<?xml version="1.0"?>
+<?xml-model
+  href="http://download.ros.org/schema/package_format3.xsd"
+  schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>cob_voltage_control</name>
   <version>0.7.3</version>
   <description>Interface to IO board that manages emergency stop and battery voltage on rob@work 3</description>
@@ -19,7 +23,8 @@
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
 
-  <exec_depend>python-matplotlib</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-matplotlib</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-matplotlib</exec_depend>
   <exec_depend>python-tk</exec_depend>
   <exec_depend>rospy</exec_depend>
 
