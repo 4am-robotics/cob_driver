@@ -2,6 +2,14 @@
 Changelog for package cob_voltage_control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#417 <https://github.com/ipa320/cob_driver/issues/417>`_ from fmessmer/test_noetic
+  test noetic
+* ROS_PYTHON_VERSION conditional dependency for matplotlib
+* Bump CMake version to avoid CMP0048 warning
+* Contributors: Felix Messmer, fmessmer
+
 0.7.3 (2020-03-18)
 ------------------
 
