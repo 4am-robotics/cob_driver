@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(cob_mimic)
 
 find_package(catkin REQUIRED COMPONENTS actionlib actionlib_msgs diagnostic_msgs diagnostic_updater message_generation roscpp roslib)
