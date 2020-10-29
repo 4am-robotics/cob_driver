@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS diagnostic_msgs roscpp sensor_msgs)
 find_package(Boost REQUIRED)
 
 catkin_package(
-  CATKIN_DEPENDS diagnostic_msgs sensor_msgs
+  CATKIN_DEPENDS diagnostic_msgs roscpp sensor_msgs
 )
 
 ### BUILD ###
