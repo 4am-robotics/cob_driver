@@ -15,7 +15,7 @@ generate_messages(
 )
 
 catkin_package(
-  CATKIN_DEPENDS actionlib_msgs diagnostic_msgs message_runtime std_msgs visualization_msgs
+  CATKIN_DEPENDS actionlib actionlib_msgs cob_srvs diagnostic_msgs message_runtime roscpp std_msgs std_srvs visualization_msgs
 )
 
 ### BUILD ###

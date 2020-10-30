@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS cob_msgs cob_phidgets dynamic_reconfigur
 generate_dynamic_reconfigure_options(cfg/${PROJECT_NAME}.cfg)
 
 catkin_package(
-  CATKIN_DEPENDS cob_msgs std_msgs
+  CATKIN_DEPENDS cob_msgs cob_phidgets dynamic_reconfigure roscpp std_msgs
 )
 
 ### BUILD ###

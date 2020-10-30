@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS diagnostic_msgs roscpp sensor_msgs std_m
 find_package(Boost REQUIRED COMPONENTS date_time thread)
 
 catkin_package(
-  CATKIN_DEPENDS diagnostic_msgs sensor_msgs std_msgs
+  CATKIN_DEPENDS diagnostic_msgs roscpp sensor_msgs std_msgs
 )
 
 ### BUILD ###
