@@ -100,7 +100,7 @@ public:
 
 private:
   std::vector<seq_t> _seqences;
-  int _seqidx;
+  unsigned int _seqidx;
   bool _init;
   float _int_inc;
   float _int_count;

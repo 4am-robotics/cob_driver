@@ -21,12 +21,8 @@
 ColorOSim::ColorOSim(ros::NodeHandle* nh)
 {
   p_nh = nh;
-  _pubSimulation = p_nh->advertise<std_msgs::ColorRGBA>("debug",2);
+  _pubSimulation = p_nh->advertise<std_msgs::ColorRGBA>("debug", 2);
   _pubSimulationMulti = p_nh->advertise<cob_light::ColorRGBAArray>("debugMulti", 2);
-}
-
-ColorOSim::~ColorOSim()
-{
 }
 
 bool ColorOSim::init()
@@ -46,11 +42,11 @@ void ColorOSim::setColor(color::rgba color)
   m_sigColorSet(color);
 }
 
-void ColorOSim::setColorMulti(std::vector<color::rgba> &colors)
+void ColorOSim::setColorMulti(std::vector<color::rgba>& colors)
 {
   std_msgs::ColorRGBA color;
   cob_light::ColorRGBAArray colorMsg;
-  for(size_t i = 0; i < colors.size(); ++i)
+  for (size_t i = 0; i < colors.size(); ++i)
   {
     color.r = colors[i].r;
     color.g = colors[i].g;
@@ -61,4 +57,9 @@ void ColorOSim::setColorMulti(std::vector<color::rgba> &colors)
 
   _pubSimulationMulti.publish(colorMsg);
   m_sigColorSet(colors[0]);
+}
+
+bool equals(const float lhs, const float rhs, const float a_precision)
+{
+  return std::abs(lhs - rhs) <= a_precision;
 }

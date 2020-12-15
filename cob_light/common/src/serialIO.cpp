@@ -33,6 +33,11 @@ SerialIO::~SerialIO()
 	closePort();
 }
 
+const std::string& SerialIO::getDeviceString() const
+{
+	return _device_string;
+}
+
 // Open Serial Port
 int SerialIO::openPort(std::string devicestring, int baudrate)
 {

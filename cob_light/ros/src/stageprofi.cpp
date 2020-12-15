@@ -54,24 +54,27 @@ bool StageProfi::init()
 
 void StageProfi::setColor(color::rgba color)
 {
+  ROS_WARN(__PRETTY_FUNCTION__);
   color::rgba color_tmp = color;
+  //color_tmp.a = 1.0;
+  //color_tmp.b = 1.0;
 
-  color_tmp.r *= color.a;
-  color_tmp.g *= color.a;
-  color_tmp.b *= color.a;
+  // color_tmp.r *= color.a;
+  // color_tmp.g *= color.a;
+  // color_tmp.b *= color.a;
 
-  color_tmp.r = fabs(color_tmp.r * 255);
-  color_tmp.g = fabs(color_tmp.g * 255);
-  color_tmp.b = fabs(color_tmp.b * 255);
+  // color_tmp.r = fabs(color_tmp.r * 255);
+  // color_tmp.g = fabs(color_tmp.g * 255);
+  // color_tmp.b = fabs(color_tmp.b * 255);
 
   unsigned int num_channels = _num_leds * 3;
   char channelbuffer[num_channels];
 
   for (int i = 0; i < _num_leds; i++)
   {
-    channelbuffer[i * 3] = (int) color_tmp.r;
-    channelbuffer[i * 3 + 1] = (int) color_tmp.g;
-    channelbuffer[i * 3 + 2] = (int) color_tmp.b;
+    channelbuffer[i * 3] = (char) (color_tmp.r*255);
+    channelbuffer[i * 3 + 1]= (char) (color_tmp.g*255);
+    channelbuffer[i * 3 + 2]= (char) (color_tmp.b*255);
   }
 
   uint16_t index = 0;
@@ -79,6 +82,7 @@ void StageProfi::setColor(color::rgba color)
   {
     unsigned int size = std::min((unsigned int) MAX_CHANNELS,
         num_channels - index);
+        ROS_WARN_STREAM("SENDING DATA: channelbuffer@"<<(index)<<" size: "<<size<<" num_channgels: "<<num_channels);
     if (sendDMX(index, channelbuffer + index, size))
       index += size;
     else
@@ -93,6 +97,7 @@ void StageProfi::setColor(color::rgba color)
 
 void StageProfi::setColorMulti(std::vector<color::rgba> &colors)
 {
+  ROS_WARN(__PRETTY_FUNCTION__);
   color::rgba color_tmp;
   unsigned int num_channels = _num_leds * 3;
   char channelbuffer[num_channels];

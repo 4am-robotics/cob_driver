@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 #ifndef COLOROSIM_H
 #define COLOROSIM_H
 
@@ -24,15 +23,18 @@
 #include <colorUtils.h>
 #include <ros/ros.h>
 
+bool equals(const float lhs, const float rhs, const float a_precision);
+
 class ColorOSim : public IColorO
 {
 public:
+  ColorOSim() = delete;
   ColorOSim(ros::NodeHandle* nh);
-  virtual ~ColorOSim();
+  virtual ~ColorOSim() = default;
 
   bool init();
   void setColor(color::rgba color);
-  void setColorMulti(std::vector<color::rgba> &colors);
+  void setColorMulti(std::vector<color::rgba>& colors);
 
 private:
   ros::NodeHandle* p_nh;

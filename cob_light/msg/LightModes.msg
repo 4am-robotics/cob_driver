@@ -12,3 +12,5 @@ uint8 SWEEP =          8           # circle color from front to back on both sid
 uint8 DIST_APPROX =    9           # color led circle from green to red depended on the measured laserscan dists
 uint8 GLOW =          10           # glow the color
 uint8 XMAS =          11           # red white christmas mode
+uint8 SIGNAL_LEFT =   12           # Turn signal to the left
+uint8 SIGNAL_RIGHT =  13           # Turn signal to the right
