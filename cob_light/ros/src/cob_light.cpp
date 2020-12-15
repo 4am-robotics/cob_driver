@@ -267,21 +267,26 @@ public:
           {
               if(color.colors.size() > 1)
               {
-                  std::vector<color::rgba> colors;
-                  for(size_t i=0; i<colors.size();i++)
+                  if(color.colors.size() <= p_colorO->getNumLeds())
                   {
-                      if(color.colors[i].r <= 1.0 && color.colors[i].g <= 1.0 && color.colors[i].b <= 1.0)
-                      {
-                        _color.a = color.colors[i].a;
-                        _color.r = color.colors[i].r;
-                        _color.g = color.colors[i].g;
-                        _color.b = color.colors[i].b;
-                        colors.push_back(_color);
-                      }
-                      else
-                        ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
+                    std::vector<color::rgba> colors;
+                    for(size_t i=0; i<color.colors.size();i++)
+                    {
+                        if(color.colors[i].r <= 1.0 && color.colors[i].g <= 1.0 && color.colors[i].b <= 1.0)
+                        {
+                          _color.a = color.colors[i].a;
+                          _color.r = color.colors[i].r;
+                          _color.g = color.colors[i].g;
+                          _color.b = color.colors[i].b;
+                          colors.push_back(_color);
+                        }
+                        else
+                          ROS_ERROR("Unsupported Color format. rgba values range is between 0.0 - 1.0");
+                    }
+                    p_colorO->setColorMulti(colors);
                   }
-                  p_colorO->setColorMulti(colors);
+                  else
+                    ROS_ERROR_STREAM("More colors given in ColorRGBAArray then driver is configured to. num leds: "<<_num_leds);
               }
               else
               {
