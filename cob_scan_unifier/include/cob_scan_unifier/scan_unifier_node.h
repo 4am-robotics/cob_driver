@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 
 #ifndef SCAN_UNIFIER_NODE_H
 #define SCAN_UNIFIER_NODE_H
@@ -110,6 +110,8 @@ class ScanUnifierNode
     // laser geometry projector
     laser_geometry::LaserProjection projector_;
 
+    std::vector<sensor_msgs::PointCloud> vec_cloud_;
+
     /* ----------------------------------- */
     /* ----------- functions ------------- */
     /* ----------------------------------- */
@@ -131,7 +133,7 @@ class ScanUnifierNode
      * output:
      * @param: a laser scan message containing unified information from all scanners
      */
-    bool unifyLaserScans(std::vector<sensor_msgs::LaserScan::ConstPtr> current_scans, sensor_msgs::LaserScan &unified_scan);
-
+    bool unifyLaserScans(const std::vector<sensor_msgs::LaserScan::ConstPtr>& current_scans,
+                         sensor_msgs::LaserScan& unified_scan);
 };
 #endif
