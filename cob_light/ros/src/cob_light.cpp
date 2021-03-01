@@ -48,6 +48,7 @@
 #include <colorUtils.h>
 #include <modeExecutor.h>
 #include <colorO.h>
+#include <colorOMarker.h>
 #include <colorOSim.h>
 #include <ms35.h>
 #include <stageprofi.h>
@@ -217,8 +218,16 @@ public:
     else
     {
       ROS_INFO("Simulation mode enabled");
-      p_colorO = new ColorOSim(&_nh);
-      p_colorO->setNumLeds(_num_leds);
+      if(_deviceDriver == "markers")
+      {
+        p_colorO = new ColorOMarker(&_nh);
+        p_colorO->setNumLeds(_num_leds);
+      }
+      else
+      {
+        p_colorO = new ColorOSim(&_nh);
+        p_colorO->setNumLeds(_num_leds);
+      }
       status.level = 0;
       status.message = "light controller running in simulation";
     }

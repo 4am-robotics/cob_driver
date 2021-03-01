@@ -27,6 +27,7 @@
 #include <distApproxMode.h>
 #include <glowColorMode.h>
 #include <xmasMode.h>
+#include <kitMode.h>
 
 ModeFactory::ModeFactory()
 {
@@ -149,6 +150,11 @@ boost::shared_ptr<Mode> ModeFactory::create(cob_light::LightMode requestMode, IC
     case cob_light::LightModes::XMAS:
         mode.reset(new XMasMode(colorO->getNumLeds(), requestMode.priority, requestMode.frequency,\
                                      requestMode.pulses, requestMode.timeout));
+        break;
+
+    case cob_light::LightModes::KIT:
+        mode.reset(new KitMode(color, colorO->getNumLeds(), requestMode.priority, requestMode.frequency,
+                                      requestMode.pulses, requestMode.timeout));
         break;
 
     default:

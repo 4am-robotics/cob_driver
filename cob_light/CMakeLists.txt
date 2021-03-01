@@ -59,15 +59,27 @@ set(HEADERS
     ${PROJECT_SOURCE_DIR}/common/include/staticMode.h
     ${PROJECT_SOURCE_DIR}/common/include/sweepColorMode.h
     ${PROJECT_SOURCE_DIR}/common/include/distApproxMode.h
+    ${PROJECT_SOURCE_DIR}/common/include/xmasMode.h
+    ${PROJECT_SOURCE_DIR}/common/include/kitMode.h
     ${PROJECT_SOURCE_DIR}/ros/include/colorO.h
     ${PROJECT_SOURCE_DIR}/ros/include/colorOSim.h
+    ${PROJECT_SOURCE_DIR}/ros/include/colorOMarker.h
     ${PROJECT_SOURCE_DIR}/ros/include/iColorO.h
     ${PROJECT_SOURCE_DIR}/ros/include/ms35.h
     ${PROJECT_SOURCE_DIR}/ros/include/stageprofi.h
 )
 
 
-add_executable(${PROJECT_NAME} common/src/modeExecutor.cpp common/src/modeFactory.cpp common/src/serialIO.cpp ros/src/${PROJECT_NAME}.cpp ros/src/colorO.cpp ros/src/colorOSim.cpp ros/src/ms35.cpp ros/src/stageprofi.cpp)
+add_executable(${PROJECT_NAME}
+    common/src/modeExecutor.cpp
+    common/src/modeFactory.cpp
+    common/src/serialIO.cpp
+    ros/src/${PROJECT_NAME}.cpp
+    ros/src/colorO.cpp
+    ros/src/colorOSim.cpp
+    ros/src/colorOMarker.cpp
+    ros/src/ms35.cpp
+    ros/src/stageprofi.cpp)
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
