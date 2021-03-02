@@ -61,6 +61,7 @@ set(HEADERS
     ${PROJECT_SOURCE_DIR}/common/include/distApproxMode.h
     ${PROJECT_SOURCE_DIR}/common/include/xmasMode.h
     ${PROJECT_SOURCE_DIR}/common/include/kitMode.h
+    ${PROJECT_SOURCE_DIR}/common/include/turnIndicatorMode.h
     ${PROJECT_SOURCE_DIR}/ros/include/colorO.h
     ${PROJECT_SOURCE_DIR}/ros/include/colorOSim.h
     ${PROJECT_SOURCE_DIR}/ros/include/colorOMarker.h
