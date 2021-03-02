@@ -33,8 +33,7 @@ public:
       _colors[0] = color;
       _pos = 0;
       _dir = 1;
-      _fade_fac = 0.9;
-
+      _fade_fac = 0.8;
     }
 
     void execute()
@@ -60,13 +59,8 @@ public:
             _dir = -1;
           }
 
-
-
-        // for(int i = 0; i < 10; i++)
-        // {
           _colors[_pos] = _color;
 
-        // }
         }
         m_sigColorsReady(_colors);
 
