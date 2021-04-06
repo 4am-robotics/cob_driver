@@ -2,8 +2,8 @@
 Changelog for package cob_scan_unifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.5 (2021-04-06)
+------------------
 * Merge pull request `#420 <https://github.com/ipa320/cob_driver/issues/420>`_ from lindemeier/feature/improve_performance
   performance boost
 * performance boost
