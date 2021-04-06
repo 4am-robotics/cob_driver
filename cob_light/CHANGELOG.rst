@@ -2,6 +2,16 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#419 <https://github.com/ipa320/cob_driver/issues/419>`_ from benmaidel/fix/topic_multi_color
+  [cob_light] fix topic multicolor support
+* fix topic multicolor support
+* Merge pull request `#418 <https://github.com/ipa320/cob_driver/issues/418>`_ from fmessmer/fix_catkin_lint
+  fix catkin_lint
+* fix catkin_lint
+* Contributors: Benjamin Maidel, Felix Messmer, fmessmer
+
 0.7.4 (2020-10-14)
 ------------------
 * Merge pull request `#417 <https://github.com/ipa320/cob_driver/issues/417>`_ from fmessmer/test_noetic
