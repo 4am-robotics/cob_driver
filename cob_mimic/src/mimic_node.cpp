@@ -14,6 +14,7 @@
  */
 
 #include <ros/ros.h>
+#include <ros/common.h>
 #include <ros/package.h>
 #include <actionlib/server/simple_action_server.h>
 #include <diagnostic_updater/diagnostic_updater.h>
@@ -82,17 +83,21 @@ public:
 
         char const *argv[] =
         {
-            "--ignore-config",
-            "--mouse-hide-timeout=0",
-            "-q",
-            "--no-osd",
-            "-L",
-            "--one-instance",
-            "--playlist-enqueue",
-            "--no-video-title-show",
-            "--no-skip-frames",
-            "--no-audio",
-            "--vout=glx,none"
+            #if ROS_VERSION_MINIMUM(1, 15, 0) // ros noetic is 1.15.x
+                //ToDo: find correct settings for focal
+            #else
+                "--ignore-config",
+                "--mouse-hide-timeout=0",
+                "-q",
+                "--no-osd",
+                "-L",
+                "--one-instance",
+                "--playlist-enqueue",
+                "--no-video-title-show",
+                "--no-skip-frames",
+                "--no-audio",
+                "--vout=glx,none"
+            #endif
         };
         int argc = sizeof( argv ) / sizeof( *argv );
 
