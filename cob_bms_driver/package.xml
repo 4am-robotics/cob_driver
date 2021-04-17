@@ -23,7 +23,8 @@
 
   <exec_depend>cob_msgs</exec_depend>
   <exec_depend>cob_srvs</exec_depend>
-  <exec_depend>python-numpy</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-numpy</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-numpy</exec_depend>
   <exec_depend>rospy</exec_depend>
 
 </package>
