@@ -2,6 +2,14 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#423 <https://github.com/ipa320/cob_driver/issues/423>`_ from mikaelarguedas/python2-deps
+  ROS_PYTHON_VERSION conditional dependency for `python-tk` and `python-numpy`
+* convter cob_bms_driver to package format 3
+* ROS_PYTHON_VERSION conditional dependency for python-numpy
+* Contributors: Felix Messmer, Mikael Arguedas
+
 0.7.5 (2021-04-06)
 ------------------
 * Merge pull request `#418 <https://github.com/ipa320/cob_driver/issues/418>`_ from fmessmer/fix_catkin_lint

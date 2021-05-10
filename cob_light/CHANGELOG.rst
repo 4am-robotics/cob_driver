@@ -2,6 +2,9 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.7.5 (2021-04-06)
 ------------------
 * Merge pull request `#419 <https://github.com/ipa320/cob_driver/issues/419>`_ from benmaidel/fix/topic_multi_color

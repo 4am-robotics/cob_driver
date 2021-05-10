@@ -2,6 +2,13 @@
 Changelog for package cob_mimic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#422 <https://github.com/ipa320/cob_driver/issues/422>`_ from fmessmer/fix/mimic_noetic
+  use default libvlc configuration for noetic
+* use default libvlc configuration for noetic
+* Contributors: Felix Messmer, fmessmer
+
 0.7.5 (2021-04-06)
 ------------------
 * Merge pull request `#418 <https://github.com/ipa320/cob_driver/issues/418>`_ from fmessmer/fix_catkin_lint
