@@ -28,6 +28,7 @@ ScanUnifierNode::ScanUnifierNode()
 
   // Publisher
   topicPub_LaserUnified_ = nh_.advertise<sensor_msgs::LaserScan>("scan_unified", 1);
+  topicPub_PointcloudUnified_ = nh_.advertise<sensor_msgs::PointCloud2>("pointcloud_unified", 1);
 
   getParams();
   synchronizer2_ = NULL;
@@ -140,13 +141,16 @@ void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstP
   current_scans.push_back(scan2);
 
   sensor_msgs::LaserScan unified_scan = sensor_msgs::LaserScan();
+  sensor_msgs::PointCloud2 unified_point = sensor_msgs::PointCloud2();
   if (!unifyLaserScans(current_scans, unified_scan))
   {
     return;
   }
 
+  projector_.transformLaserScanToPointCloud(frame_, unified_scan, unified_point, listener_);  
   ROS_DEBUG("Publishing unified scan.");
   topicPub_LaserUnified_.publish(unified_scan);
+  topicPub_PointcloudUnified_.publish(unified_point);
 }
 
 void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& scan1,
@@ -158,12 +162,13 @@ void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstP
   current_scans.push_back(scan2);
   current_scans.push_back(scan3);
 
+  sensor_msgs::PointCloud2 unified_point = sensor_msgs::PointCloud2();
   sensor_msgs::LaserScan unified_scan = sensor_msgs::LaserScan();
   if (!unifyLaserScans(current_scans, unified_scan))
   {
     return;
   }
-
+  projector_.transformLaserScanToPointCloud(frame_, unified_scan, unified_point, listener_); 
   ROS_DEBUG("Publishing unified scan.");
   topicPub_LaserUnified_.publish(unified_scan);
 }
@@ -179,12 +184,13 @@ void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstP
   current_scans.push_back(scan3);
   current_scans.push_back(scan4);
 
+  sensor_msgs::PointCloud2 unified_point = sensor_msgs::PointCloud2();
   sensor_msgs::LaserScan unified_scan = sensor_msgs::LaserScan();
   if (!unifyLaserScans(current_scans, unified_scan))
   {
     return;
   }
-
+  projector_.transformLaserScanToPointCloud(frame_, unified_scan, unified_point, listener_); 
   ROS_DEBUG("Publishing unified scan.");
   topicPub_LaserUnified_.publish(unified_scan);
 }
@@ -224,7 +230,7 @@ bool ScanUnifierNode::unifyLaserScans(const std::vector<sensor_msgs::LaserScan::
         }
 
         ROS_DEBUG("now project to point_cloud");
-        projector_.transformLaserScanToPointCloud(frame_, *current_scans[i], vec_cloud_[i], listener_);
+        projector_.transformLaserScanToPointCloud(frame_, *current_scans[i], vec_cloud_[i], listener_);      
       }
       catch(tf::TransformException &ex){
         ROS_ERROR("%s",ex.what());

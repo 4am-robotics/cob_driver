@@ -39,7 +39,7 @@
 
 // ROS message includes
 #include <sensor_msgs/LaserScan.h>
-
+#include <sensor_msgs/PointCloud2.h> 
 
 //####################
 //#### node class ####
@@ -103,13 +103,14 @@ class ScanUnifierNode
 
     // declaration of ros publishers
     ros::Publisher topicPub_LaserUnified_;
+    ros::Publisher topicPub_PointcloudUnified_;
 
     // tf listener
     tf::TransformListener listener_;
 
     // laser geometry projector
     laser_geometry::LaserProjection projector_;
-
+    
     std::vector<sensor_msgs::PointCloud> vec_cloud_;
 
     /* ----------------------------------- */
