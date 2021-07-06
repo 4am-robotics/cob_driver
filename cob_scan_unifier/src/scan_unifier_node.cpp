@@ -120,7 +120,15 @@ void ScanUnifierNode::getParams()
   {
     config_.input_scan_topics = topicList;
     config_.number_input_scans = config_.input_scan_topics.size();
+    if(!pnh_.hasParam("point_cloud"))
+    {
+    ROS_WARN("No parameter set for publishing point cloud. Using default value [False].");
+    point_cloud = false;
+    }
+    else
+    {
     pnh_.getParam("point_cloud", point_cloud);
+    }
     config_.pub_point_cloud = point_cloud;
   }
   else
