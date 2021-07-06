@@ -28,7 +28,7 @@ ScanUnifierNode::ScanUnifierNode()
 
   // Publisher
   topicPub_LaserUnified_ = nh_.advertise<sensor_msgs::LaserScan>("scan_unified", 1);
-  topicPub_PointcloudUnified_ = nh_.advertise<sensor_msgs::PointCloud2>("pointcloud_unified", 1);
+  topicPub_PointcloudUnified_ = nh_.advertise<sensor_msgs::PointCloud2>("/pointcloud_unified", 1);
 
   getParams();
   synchronizer2_ = NULL;
