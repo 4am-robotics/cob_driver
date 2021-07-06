@@ -39,7 +39,7 @@
 
 // ROS message includes
 #include <sensor_msgs/LaserScan.h>
-#include <sensor_msgs/PointCloud2.h> 
+#include <sensor_msgs/PointCloud2.h>
 
 //####################
 //#### node class ####
