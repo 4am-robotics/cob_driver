@@ -111,7 +111,7 @@ class ScanUnifierNode
 
     // laser geometry projector
     laser_geometry::LaserProjection projector_;
-    
+
     std::vector<sensor_msgs::PointCloud> vec_cloud_;
 
     /* ----------------------------------- */
