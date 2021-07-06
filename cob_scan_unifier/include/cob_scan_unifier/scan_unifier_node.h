@@ -58,6 +58,7 @@ class ScanUnifierNode
     struct config_struct{
       int number_input_scans;
       std::vector<std::string> input_scan_topics;
+      bool pub_point_cloud;
     };
 
     config_struct config_;

@@ -114,11 +114,14 @@ ScanUnifierNode::~ScanUnifierNode()
 void ScanUnifierNode::getParams()
 {
   std::vector<std::string> topicList;
+  bool point_cloud;
 
   if (pnh_.getParam("input_scans", topicList))
   {
     config_.input_scan_topics = topicList;
     config_.number_input_scans = config_.input_scan_topics.size();
+    pnh_.getParam("point_cloud", point_cloud);
+    config_.pub_point_cloud = point_cloud;
   }
   else
   {
@@ -150,7 +153,10 @@ void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstP
   projector_.transformLaserScanToPointCloud(frame_, unified_scan, unified_point, listener_);  
   ROS_DEBUG("Publishing unified scan.");
   topicPub_LaserUnified_.publish(unified_scan);
+  if(config_.pub_point_cloud)
+  {
   topicPub_PointcloudUnified_.publish(unified_point);
+  }
 }
 
 void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& scan1,
@@ -171,6 +177,10 @@ void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstP
   projector_.transformLaserScanToPointCloud(frame_, unified_scan, unified_point, listener_); 
   ROS_DEBUG("Publishing unified scan.");
   topicPub_LaserUnified_.publish(unified_scan);
+  if(config_.pub_point_cloud)
+  {
+  topicPub_PointcloudUnified_.publish(unified_point);
+  }
 }
 
 void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& scan1,
@@ -193,6 +203,10 @@ void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstP
   projector_.transformLaserScanToPointCloud(frame_, unified_scan, unified_point, listener_); 
   ROS_DEBUG("Publishing unified scan.");
   topicPub_LaserUnified_.publish(unified_scan);
+  if(config_.pub_point_cloud)
+  {
+  topicPub_PointcloudUnified_.publish(unified_point);
+  }
 }
 
 /**
