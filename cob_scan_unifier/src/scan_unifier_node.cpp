@@ -114,18 +114,16 @@ ScanUnifierNode::~ScanUnifierNode()
 void ScanUnifierNode::getParams()
 {
   std::vector<std::string> topicList;
-  bool point_cloud;
 
   if(!pnh_.hasParam("publish_point_cloud"))
   {
-  ROS_WARN("No parameter set for publishing point cloud. Using default value [False].");
-  point_cloud = false;
+    ROS_WARN("No parameter set for publishing point cloud. Using default value [False].");
+    config_.publish_point_cloud = false;
   }
   else
   {
-  pnh_.getParam("publish_point_cloud", point_cloud);
+    pnh_.getParam("publish_point_cloud", config_.publish_point_cloud);
   }
-  config_.pub_point_cloud = point_cloud;
 
   if (pnh_.getParam("input_scans", topicList))
   {
@@ -157,7 +155,7 @@ void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstP
   {
     return;
   }
-  Publish(unified_scan);
+  publish(unified_scan);
 }
 
 void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& scan1,
@@ -174,7 +172,7 @@ void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstP
   {
     return;
   }
-  Publish(unified_scan);
+  publish(unified_scan);
 }
 
 void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstPtr& scan1,
@@ -193,18 +191,18 @@ void ScanUnifierNode::messageFilterCallback(const sensor_msgs::LaserScan::ConstP
   {
     return;
   }
-  Publish(unified_scan);
+  publish(unified_scan);
 }
 
-void ScanUnifierNode::Publish(sensor_msgs::LaserScan& unified_scan)
+void ScanUnifierNode::publish(sensor_msgs::LaserScan& unified_scan)
 {
   ROS_DEBUG("Publishing unified scan.");
   topicPub_LaserUnified_.publish(unified_scan);
-  if(config_.pub_point_cloud)
+  if(config_.publish_point_cloud)
   {
-  sensor_msgs::PointCloud2 unified_point = sensor_msgs::PointCloud2();
-  projector_.transformLaserScanToPointCloud(frame_, unified_scan, unified_point, listener_);
-  topicPub_PointcloudUnified_.publish(unified_point);
+    sensor_msgs::PointCloud2 unified_point = sensor_msgs::PointCloud2();
+    projector_.transformLaserScanToPointCloud(frame_, unified_scan, unified_point, listener_);
+    topicPub_PointcloudUnified_.publish(unified_point);
   }
 }
 

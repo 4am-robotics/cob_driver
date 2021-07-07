@@ -58,7 +58,7 @@ class ScanUnifierNode
     struct config_struct{
       int number_input_scans;
       std::vector<std::string> input_scan_topics;
-      bool pub_point_cloud;
+      bool publish_point_cloud;
     };
 
     config_struct config_;
@@ -135,7 +135,7 @@ class ScanUnifierNode
      * output:
      * @param: a laser scan message containing unified information from all scanners
      */
-    void Publish(sensor_msgs::LaserScan& unified_scan);
+    void publish(sensor_msgs::LaserScan& unified_scan);
     bool unifyLaserScans(const std::vector<sensor_msgs::LaserScan::ConstPtr>& current_scans,
                          sensor_msgs::LaserScan& unified_scan);
 };
