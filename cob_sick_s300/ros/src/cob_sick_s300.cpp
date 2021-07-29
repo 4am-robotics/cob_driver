@@ -189,7 +189,7 @@ class NodeClass
 			unsigned int iSickTimeStamp, iSickNow;
 
 			int result = scanner_.getScan(ranges, rangeAngles, intensities, iSickTimeStamp, iSickNow, debug_);
-			static boost::posix_time::ptime point_time_communiaction_ok = boost::posix_time::microsec_clock::local_time();
+			static boost::posix_time::ptime point_time_communication_ok = boost::posix_time::microsec_clock::local_time();
 
 			if(result)
 			{
@@ -205,15 +205,15 @@ class NodeClass
 					publishLaserScan(ranges, rangeAngles, intensities, iSickTimeStamp, iSickNow);
 				}
 
-				point_time_communiaction_ok = boost::posix_time::microsec_clock::local_time();
+				point_time_communication_ok = boost::posix_time::microsec_clock::local_time();
 			}
 			else
 			{
-				boost::posix_time::time_duration diff = boost::posix_time::microsec_clock::local_time() - point_time_communiaction_ok;
+				boost::posix_time::time_duration diff = boost::posix_time::microsec_clock::local_time() - point_time_communication_ok;
 
 				if (diff.total_milliseconds() > static_cast<int>(1000*communication_timeout))
 				{
-					ROS_WARN("Communiaction timeout");
+					ROS_WARN("Communication timeout");
 					return false;
 				}
 			}
