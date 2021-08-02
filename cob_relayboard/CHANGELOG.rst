@@ -2,6 +2,9 @@
 Changelog for package cob_relayboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.7.6 (2021-05-10)
 ------------------
 

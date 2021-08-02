@@ -2,6 +2,9 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.7.6 (2021-05-10)
 ------------------
 * Merge pull request `#423 <https://github.com/ipa320/cob_driver/issues/423>`_ from mikaelarguedas/python2-deps

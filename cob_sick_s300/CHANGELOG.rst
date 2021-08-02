@@ -2,6 +2,13 @@
 Changelog for package cob_sick_s300
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#425 <https://github.com/ipa320/cob_driver/issues/425>`_ from fmessmer/fix_typo
+  fix typo
+* fix typo
+* Contributors: Felix Messmer, fmessmer
+
 0.7.6 (2021-05-10)
 ------------------
 
