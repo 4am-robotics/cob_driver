@@ -26,11 +26,15 @@ ScanUnifierNode::ScanUnifierNode()
   nh_ = ros::NodeHandle();
   pnh_ = ros::NodeHandle("~");
 
+  getParams();
+
   // Publisher
   topicPub_LaserUnified_ = nh_.advertise<sensor_msgs::LaserScan>("scan_unified", 1);
-  topicPub_PointcloudUnified_ = nh_.advertise<sensor_msgs::PointCloud2>("pointcloud_unified", 1);
+  if(config_.publish_pointcloud)
+  {
+    topicPub_PointCloudUnified_ = nh_.advertise<sensor_msgs::PointCloud2>("pointcloud_unified", 1);
+  }
 
-  getParams();
   synchronizer2_ = NULL;
   synchronizer3_ = NULL;
   synchronizer4_ = NULL;
@@ -200,9 +204,9 @@ void ScanUnifierNode::publish(sensor_msgs::LaserScan& unified_scan)
   topicPub_LaserUnified_.publish(unified_scan);
   if(config_.publish_pointcloud)
   {
-    sensor_msgs::PointCloud2 unified_point = sensor_msgs::PointCloud2();
-    projector_.transformLaserScanToPointCloud(frame_, unified_scan, unified_point, listener_);
-    topicPub_PointcloudUnified_.publish(unified_point);
+    sensor_msgs::PointCloud2 unified_pointcloud = sensor_msgs::PointCloud2();
+    projector_.transformLaserScanToPointCloud(frame_, unified_scan, unified_pointcloud, listener_);
+    topicPub_PointCloudUnified_.publish(unified_pointcloud);
   }
 }
 

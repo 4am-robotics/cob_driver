@@ -104,7 +104,7 @@ class ScanUnifierNode
 
     // declaration of ros publishers
     ros::Publisher topicPub_LaserUnified_;
-    ros::Publisher topicPub_PointcloudUnified_;
+    ros::Publisher topicPub_PointCloudUnified_;
 
     // tf listener
     tf::TransformListener listener_;
