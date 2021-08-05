@@ -115,14 +115,14 @@ void ScanUnifierNode::getParams()
 {
   std::vector<std::string> topicList;
 
-  if(!pnh_.hasParam("publish_point_cloud"))
+  if(!pnh_.hasParam("publish_pointcloud"))
   {
     ROS_WARN("No parameter set for publishing point cloud. Using default value [False].");
-    config_.publish_point_cloud = false;
+    config_.publish_pointcloud = false;
   }
   else
   {
-    pnh_.getParam("publish_point_cloud", config_.publish_point_cloud);
+    pnh_.getParam("publish_pointcloud", config_.publish_pointcloud);
   }
 
   if (pnh_.getParam("input_scans", topicList))
@@ -198,7 +198,7 @@ void ScanUnifierNode::publish(sensor_msgs::LaserScan& unified_scan)
 {
   ROS_DEBUG("Publishing unified scan.");
   topicPub_LaserUnified_.publish(unified_scan);
-  if(config_.publish_point_cloud)
+  if(config_.publish_pointcloud)
   {
     sensor_msgs::PointCloud2 unified_point = sensor_msgs::PointCloud2();
     projector_.transformLaserScanToPointCloud(frame_, unified_scan, unified_point, listener_);
@@ -240,7 +240,7 @@ bool ScanUnifierNode::unifyLaserScans(const std::vector<sensor_msgs::LaserScan::
           return false;
         }
 
-        ROS_DEBUG("now project to point_cloud");
+        ROS_DEBUG("now project to pointcloud");
         projector_.transformLaserScanToPointCloud(frame_, *current_scans[i], vec_cloud_[i], listener_);
       }
       catch(tf::TransformException &ex){
