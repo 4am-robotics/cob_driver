@@ -39,7 +39,7 @@
 
 // ROS message includes
 #include <sensor_msgs/LaserScan.h>
-
+#include <sensor_msgs/PointCloud2.h>
 
 //####################
 //#### node class ####
@@ -58,6 +58,7 @@ class ScanUnifierNode
     struct config_struct{
       int number_input_scans;
       std::vector<std::string> input_scan_topics;
+      bool publish_pointcloud;
     };
 
     config_struct config_;
@@ -103,6 +104,7 @@ class ScanUnifierNode
 
     // declaration of ros publishers
     ros::Publisher topicPub_LaserUnified_;
+    ros::Publisher topicPub_PointCloudUnified_;
 
     // tf listener
     tf::TransformListener listener_;
@@ -133,6 +135,7 @@ class ScanUnifierNode
      * output:
      * @param: a laser scan message containing unified information from all scanners
      */
+    void publish(sensor_msgs::LaserScan& unified_scan);
     bool unifyLaserScans(const std::vector<sensor_msgs::LaserScan::ConstPtr>& current_scans,
                          sensor_msgs::LaserScan& unified_scan);
 };
