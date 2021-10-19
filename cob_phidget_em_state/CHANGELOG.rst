@@ -2,6 +2,9 @@
 Changelog for package cob_phidget_em_state
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.7.7 (2021-08-02)
 ------------------
 

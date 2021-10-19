@@ -2,6 +2,22 @@
 Changelog for package cob_scan_unifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#424 <https://github.com/ipa320/cob_driver/issues/424>`_ from lpk1950/publish_unified_points
+  Publish unified points
+* final touches
+* rename point_cloud to pointcloud
+* Changes based on the review
+* Changes on review: Separate publisher
+* Format
+* Format
+* check for the point_cloud param and set to false by default
+* publish pointcloud only when the parameter is set
+* change in topic name
+* publish unified scan as unified pointcloud
+* Contributors: Felix Messmer, fmessmer, karthik
+
 0.7.7 (2021-08-02)
 ------------------
 
