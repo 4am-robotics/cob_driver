@@ -2,8 +2,8 @@
 Changelog for package cob_scan_unifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.8 (2021-10-19)
+------------------
 * Merge pull request `#424 <https://github.com/ipa320/cob_driver/issues/424>`_ from lpk1950/publish_unified_points
   Publish unified points
 * final touches
