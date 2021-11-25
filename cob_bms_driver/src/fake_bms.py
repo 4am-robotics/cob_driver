@@ -19,13 +19,14 @@ import rospy
 from std_msgs.msg import Bool
 from std_msgs.msg import Float64
 from cob_srvs.srv import SetFloat, SetFloatResponse
+from cob_srvs.srv import SetInt, SetIntResponse
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 from diagnostic_updater import Updater
 
 class FakeBMS(object):
     def __init__(self):
         self.srv_current              = rospy.Service('~set_current', SetFloat, self.current_cb)
-        self.srv_relative_remaining_capacity   = rospy.Service('~set_relative_remaining_capacity', SetFloat, self.relative_remaining_capacity_cb)
+        self.srv_relative_remaining_capacity   = rospy.Service('~set_relative_remaining_capacity', SetInt, self.relative_remaining_capacity_cb)
         self.poll_frequency           = rospy.get_param('~poll_frequency_hz', 20.0)
         self.pub_voltage              = rospy.Publisher('~voltage', Float64, queue_size = 1)
         self.pub_current              = rospy.Publisher('~current', Float64, queue_size = 1)
@@ -51,10 +52,10 @@ class FakeBMS(object):
         self.current = round(req.data,2)
         res_current = SetFloatResponse(True, "Set current to {}".format(self.current))
         return res_current
-        
+
     def relative_remaining_capacity_cb(self, req):
         self.remaining_capacity = round(((req.data * self.full_charge_capacity)/100.0), 3)
-        res_capacity = SetFloatResponse(True, "Set relative remaining capacity to {}".format(self.remaining_capacity))
+        res_capacity = SetIntResponse(True, "Set remaining capacity to {}".format(self.remaining_capacity))
         return res_capacity
 
     def publish_diagnostics(self, event):
@@ -84,8 +85,8 @@ class FakeBMS(object):
             self.remaining_capacity = 0.0
         if self.remaining_capacity >= self.full_charge_capacity:
             self.remaining_capacity = round(self.full_charge_capacity,3)
-        
+
 if __name__ == '__main__':
-  rospy.init_node('fake_bms')
-  FakeBMS()
-  rospy.spin()
+    rospy.init_node('fake_bms')
+    FakeBMS()
+    rospy.spin()
