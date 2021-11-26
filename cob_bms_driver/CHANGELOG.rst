@@ -2,6 +2,13 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#427 <https://github.com/ipa320/cob_driver/issues/427>`_ from benmaidel/fix/fake_bms_service
+  [BMS] fix fakebms set_relative_remaining_capacity service
+* fix fakebms set_relative_remaining_capacity service
+* Contributors: Benjamin Maidel, Felix Messmer
+
 0.7.8 (2021-10-19)
 ------------------
 

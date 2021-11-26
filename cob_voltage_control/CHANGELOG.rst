@@ -2,6 +2,9 @@
 Changelog for package cob_voltage_control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.7.8 (2021-10-19)
 ------------------
 
