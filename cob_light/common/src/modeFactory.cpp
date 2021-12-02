@@ -84,7 +84,6 @@ boost::shared_ptr<Mode> ModeFactory::create(cob_light::LightMode requestMode, IC
             seq.holdtime = requestMode.sequences[i].hold_time;
             seq.crosstime = requestMode.sequences[i].cross_time;
             seqs.push_back(seq);
-            std::cout<<"got new seq: "<<seq.color.r<<" "<<seq.color.g<<" "<<seq.color.b<<std::endl;
         }
         mode.reset(new SequenceMode(seqs, requestMode.priority, requestMode.frequency,\
                                     requestMode.pulses, requestMode.timeout));
