@@ -2,6 +2,9 @@
 Changelog for package laser_scan_densifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.7.9 (2021-11-26)
 ------------------
 

@@ -2,6 +2,9 @@
 Changelog for package cob_phidget_power_state
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.7.9 (2021-11-26)
 ------------------
 

@@ -2,6 +2,9 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.7.9 (2021-11-26)
 ------------------
 * Merge pull request `#427 <https://github.com/ipa320/cob_driver/issues/427>`_ from benmaidel/fix/fake_bms_service
