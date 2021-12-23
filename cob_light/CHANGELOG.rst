@@ -2,8 +2,8 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.10 (2021-12-23)
+-------------------
 * Merge pull request `#428 <https://github.com/ipa320/cob_driver/issues/428>`_ from benmaidel/fix/debug_output
   removed console logging
 * removed console logging
