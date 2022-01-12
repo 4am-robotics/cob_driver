@@ -2,6 +2,14 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#429 <https://github.com/ipa320/cob_driver/issues/429>`_ from fmessmer/fix/invalid_value_warning
+  catch invalid value warning
+* use odd number for buffer_size to prevent 0.0 mean
+* catch invalid value warning
+* Contributors: Felix Messmer, fmessmer
+
 0.7.10 (2021-12-23)
 -------------------
 
