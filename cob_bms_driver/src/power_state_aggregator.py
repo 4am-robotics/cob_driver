@@ -17,6 +17,7 @@
 
 import rospy
 import numpy
+import warnings
 from std_msgs.msg import Float64
 from cob_msgs.msg import PowerState
 
@@ -24,7 +25,7 @@ class PowerStateAggregator():
 
     def __init__(self):
         # get parameters
-        self.current_buffer_size = rospy.get_param('~current_buffer_size', 10)
+        self.current_buffer_size = rospy.get_param('~current_buffer_size', 11) # use odd number to prevent 0.0 mean
         self.pub_power_state = rospy.Publisher('power_state', PowerState, queue_size=1)
         self.voltage = None
         self.current = None
@@ -86,25 +87,36 @@ class PowerStateAggregator():
         return 0.0
 
     def calculate_time_remaining(self):
+        warnings.filterwarnings('error')
         time_remaining_max = 10.0 # assume 10h - for cases where current approx. 0A
         time_remaining = time_remaining_max
-        if len(self.last_currents) > 0:
-            current = numpy.mean(self.last_currents)
+        try:
+            if len(self.last_currents) > 0:
+                current = numpy.mean(self.last_currents)
 
-            if self.full_charge_capacity != None and self.remaining_capacity != None:
-                try:
+                if self.full_charge_capacity != None and self.remaining_capacity != None:
                     if self.charging:
                         time_remaining = round((self.full_charge_capacity - self.remaining_capacity) / abs(current), 3)
                     else:
                         time_remaining = round(self.remaining_capacity / abs(current), 3)
-                except ZeroDivisionError as e:
-                    rospy.logerr("ZeroDivisionError: current is 0.0: %s" % (e))
-                except:
-                    rospy.logwarn("something went wrong, cannot calculate time_remaining. full_charge_capacity=%s, remaining_capacity=%s, current=%s" % (self.full_charge_capacity, self.remaining_capacity, current))
+                else:
+                    pass
             else:
                 pass
-        else:
-            pass
+        except ZeroDivisionError as e:
+            rospy.logerr("ZeroDivisionError: current is 0.0: {}".format(e))
+        except Warning as w:
+            rospy.logerr("Warning: {}".format(w))
+        except Exception as e:
+            rospy.logerr("Exception: {}".format(e))
+        # rospy.logdebug("calculate_time_remaining")
+        # rospy.logdebug("time_remaining_max: {}".format(time_remaining_max))
+        # rospy.logdebug("time_remaining: {}".format(time_remaining))
+        # rospy.logdebug("self.last_currents: {}".format(self.last_currents))
+        # rospy.logdebug("current: {}".format(current))
+        # rospy.logdebug("self.full_charge_capacity: {}".format(self.full_charge_capacity))
+        # rospy.logdebug("self.remaining_capacity: {}".format(self.remaining_capacity))
+        # rospy.logdebug("self.charging: {}".format(self.charging))
         return min(time_remaining, time_remaining_max)
  
     def publish(self):
