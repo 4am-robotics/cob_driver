@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Fraunhofer Institute for Manufacturing Engineering and Automation (IPA)
+ * Copyright 2021 Mojin Robotics GmbH https://www.mojin-robotics.de
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

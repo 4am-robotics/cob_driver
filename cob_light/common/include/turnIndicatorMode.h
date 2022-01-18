@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Fraunhofer Institute for Manufacturing Engineering and Automation (IPA)
+ * Copyright 2021 Mojin Robotics GmbH https://www.mojin-robotics.de
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 
 
 #ifndef TURNINDICATORMODE_H
@@ -38,7 +39,7 @@ public:
         _center_pos = _num_leds/2 - 1;
         if(_dir < 0)
         _center_pos--;
-      }        
+      }
       else
         _center_pos = _num_leds/2;
 
@@ -66,7 +67,7 @@ public:
         {
           _colors[_pos] = _color;
           _pos += _dir;
-        }      
+        }
 
         m_sigColorsReady(_colors);
 
