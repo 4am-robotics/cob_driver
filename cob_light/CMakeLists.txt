@@ -3,7 +3,15 @@ project(cob_light)
 
 add_compile_options(-std=c++11)
 
-find_package(catkin REQUIRED COMPONENTS actionlib actionlib_msgs diagnostic_msgs message_generation roscpp sensor_msgs std_msgs visualization_msgs)
+find_package(catkin REQUIRED COMPONENTS
+  actionlib
+  actionlib_msgs
+  diagnostic_msgs
+  message_generation
+  roscpp
+  sensor_msgs
+  std_msgs
+  visualization_msgs)
 
 find_package(Boost REQUIRED COMPONENTS thread)
 
@@ -63,8 +71,8 @@ set(HEADERS
     ${PROJECT_SOURCE_DIR}/common/include/kitMode.h
     ${PROJECT_SOURCE_DIR}/common/include/turnIndicatorMode.h
     ${PROJECT_SOURCE_DIR}/ros/include/colorO.h
-    ${PROJECT_SOURCE_DIR}/ros/include/colorOSim.h
     ${PROJECT_SOURCE_DIR}/ros/include/colorOMarker.h
+    ${PROJECT_SOURCE_DIR}/ros/include/colorOSim.h
     ${PROJECT_SOURCE_DIR}/ros/include/iColorO.h
     ${PROJECT_SOURCE_DIR}/ros/include/ms35.h
     ${PROJECT_SOURCE_DIR}/ros/include/stageprofi.h
@@ -77,8 +85,8 @@ add_executable(${PROJECT_NAME}
     common/src/serialIO.cpp
     ros/src/${PROJECT_NAME}.cpp
     ros/src/colorO.cpp
-    ros/src/colorOSim.cpp
     ros/src/colorOMarker.cpp
+    ros/src/colorOSim.cpp
     ros/src/ms35.cpp
     ros/src/stageprofi.cpp)
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
