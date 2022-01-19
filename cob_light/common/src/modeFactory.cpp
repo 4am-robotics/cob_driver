@@ -27,6 +27,8 @@
 #include <distApproxMode.h>
 #include <glowColorMode.h>
 #include <xmasMode.h>
+#include <kitMode.h>
+#include <turnIndicatorMode.h>
 
 ModeFactory::ModeFactory()
 {
@@ -151,6 +153,21 @@ boost::shared_ptr<Mode> ModeFactory::create(cob_light::LightMode requestMode, IC
                                      requestMode.pulses, requestMode.timeout));
         break;
 
+    case cob_light::LightModes::KIT:
+        mode.reset(new KitMode(color, colorO->getNumLeds(), requestMode.priority, requestMode.frequency,
+                                      requestMode.pulses, requestMode.timeout));
+        break;
+
+    case cob_light::LightModes::TURN_LEFT:
+        mode.reset(new TurnIndicatorMode(color, colorO->getNumLeds(), -1, requestMode.priority, requestMode.frequency,
+                                      requestMode.pulses, requestMode.timeout));
+        break;
+
+    case cob_light::LightModes::TURN_RIGHT:
+        mode.reset(new TurnIndicatorMode(color, colorO->getNumLeds(), 1, requestMode.priority, requestMode.frequency,
+                                      requestMode.pulses, requestMode.timeout));
+        break;
+
     default:
         mode.reset();
     }
@@ -217,6 +234,12 @@ int ModeFactory::type(Mode *mode)
         ret = cob_light::LightModes::GLOW;
     else if(dynamic_cast<XMasMode*>(mode) != NULL)
         ret = cob_light::LightModes::XMAS;
+    else if(dynamic_cast<KitMode*>(mode) != NULL)
+        ret = cob_light::LightModes::KIT;
+    else if(dynamic_cast<TurnIndicatorMode*>(mode) != NULL)
+        ret = cob_light::LightModes::TURN_LEFT;
+    else if(dynamic_cast<TurnIndicatorMode*>(mode) != NULL)
+        ret = cob_light::LightModes::TURN_RIGHT;
     else
         ret = cob_light::LightModes::NONE;
 
