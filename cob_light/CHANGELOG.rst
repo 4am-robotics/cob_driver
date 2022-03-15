@@ -2,6 +2,17 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#430 <https://github.com/ipa320/cob_driver/issues/430>`_ from benmaidel/feature/new_modes
+  [cob_light] new features
+* catkin lint
+* updated license header
+* add turn indicator mode
+* decrease fade factor for kit
+* fun kit mode
+* Contributors: Benjamin Maidel, Felix Messmer
+
 0.7.11 (2022-01-12)
 -------------------
 
