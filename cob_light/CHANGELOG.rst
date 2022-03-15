@@ -2,8 +2,8 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.12 (2022-03-15)
+-------------------
 * Merge pull request `#430 <https://github.com/ipa320/cob_driver/issues/430>`_ from benmaidel/feature/new_modes
   [cob_light] new features
 * catkin lint
