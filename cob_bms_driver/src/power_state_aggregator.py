@@ -144,7 +144,7 @@ class PowerStateAggregator():
             bs.current = self.current
             bs.charge = self.remaining_capacity
             bs.design_capacity = self.full_charge_capacity
-            bs.percentage = relative_remaining_capacity
+            bs.percentage = relative_remaining_capacity / 100.0
             bs.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_CHARGING if self.charging else BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
             bs.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_GOOD
             bs.power_supply_technology = BatteryState.POWER_SUPPLY_TECHNOLOGY_UNKNOWN
