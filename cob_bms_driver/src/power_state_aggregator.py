@@ -26,7 +26,7 @@ class PowerStateAggregator():
 
     def __init__(self):
         # get parameters
-        self.current_buffer_size = rospy.get_param('~current_buffer_size', 11) # use odd number to prevent 0.0 mean
+        self.current_buffer_size = rospy.get_param('~current_buffer_size', 901) # approx. 60sec, topic rate 15Hz, use odd number to prevent 0.0 mean
         self.pub_power_state = rospy.Publisher('power_state', PowerState, queue_size=1)
         self.pub_battery_state = rospy.Publisher('battery_state', BatteryState, queue_size=1)
         self.voltage = None
