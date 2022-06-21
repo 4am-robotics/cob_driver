@@ -295,7 +295,7 @@ public:
                     p_colorO->setColorMulti(colors);
                   }
                   else
-                    ROS_ERROR_STREAM("More colors given in ColorRGBAArray then driver is configured to. num leds: "<<_num_leds);
+                    ROS_ERROR_STREAM("More colors given in ColorRGBAArray ("<<color.colors.size()<<") then driver is configured ("<<p_colorO->getNumLeds()<<"). num leds: "<<_num_leds);
               }
               else
               {
