@@ -33,12 +33,14 @@ class PowerStateAggregator():
         self.current = None
         self.last_currents = []
         self.last_update = rospy.Time(0)
+        self.connected = False
         self.charging = False
         self.remaining_capacity = None
         self.full_charge_capacity = None
         self.temperature = None
         rospy.Subscriber("voltage", Float64, self.voltage_cb)
         rospy.Subscriber("current", Float64, self.current_cb)
+        rospy.Subscriber("connected", Float64, self.current_cb)
         rospy.Subscriber("remaining_capacity", Float64, self.remaining_capacity_cb)
         rospy.Subscriber("full_charge_capacity", Float64, self.full_charge_capacity_cb)
         rospy.Subscriber("temperature", Float64, self.temperature_cb)
@@ -56,10 +58,15 @@ class PowerStateAggregator():
             self.last_currents.pop(0)
         self.last_currents.append(msg.data)
 
-        if msg.data > -1: # we use a limit of -1Ampere because if the battery is 100% full and the robot is still docked, there is no more current going into the battery. -1 A is biggger than the "Ruhestrom", so this should be ok until BMS is fixed and delivers a proper flag for docked or not_docked.
+        if msg.data > 0:
             self.charging = True
         else:
             self.charging = False
+        
+        if msg.data > -1: # we use a limit of -1Ampere because if the battery is 100% full and the robot is still docked, there is no more current going into the battery. -1 A is biggger than the "Ruhestrom", so this should be ok until BMS is fixed and delivers a proper flag for docked or not_docked.
+            self.connected = True
+        else:
+            self.connected = False
         
     def remaining_capacity_cb(self, msg):
         self.last_update = rospy.Time.now()
@@ -134,6 +141,7 @@ class PowerStateAggregator():
             ps.power_consumption = power_consumption
             ps.remaining_capacity = self.remaining_capacity
             ps.relative_remaining_capacity = relative_remaining_capacity
+            ps.connected = self.connected
             ps.charging = self.charging
             ps.time_remaining = time_remaining
             ps.temperature = self.temperature
