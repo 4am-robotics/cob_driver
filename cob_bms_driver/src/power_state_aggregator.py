@@ -40,7 +40,6 @@ class PowerStateAggregator():
         self.temperature = None
         rospy.Subscriber("voltage", Float64, self.voltage_cb)
         rospy.Subscriber("current", Float64, self.current_cb)
-        rospy.Subscriber("connected", Float64, self.current_cb)
         rospy.Subscriber("remaining_capacity", Float64, self.remaining_capacity_cb)
         rospy.Subscriber("full_charge_capacity", Float64, self.full_charge_capacity_cb)
         rospy.Subscriber("temperature", Float64, self.temperature_cb)
