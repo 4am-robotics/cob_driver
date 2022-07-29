@@ -2,6 +2,13 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#433 <https://github.com/ipa320/cob_driver/issues/433>`_ from fmessmer/cob_light/num_led_info
+  [cob_light] more info in error case
+* more info in error case
+* Contributors: Felix Messmer, fmessmer
+
 0.7.12 (2022-03-15)
 -------------------
 * Merge pull request `#430 <https://github.com/ipa320/cob_driver/issues/430>`_ from benmaidel/feature/new_modes

@@ -2,6 +2,20 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#434 <https://github.com/ipa320/cob_driver/issues/434>`_ from floweisshardt/feature/power_state_connected
+  add explicit power_state.connected
+* remove unused subscriber
+* add explicit power_state.connected
+* Merge pull request `#432 <https://github.com/ipa320/cob_driver/issues/432>`_ from fmessmer/feature/publish_battery_state
+  power_state_aggregator now also publishes sensor_msgs.BatteryState
+* fix percentage value range
+  Co-authored-by: Benjamin Maidel <benjamin.maidel@mojin-robotics.de>
+* update current_buffer_size
+* power_state_aggregator now also publishes sensor_msgs.BatteryState
+* Contributors: Felix Messmer, floweisshardt, fmessmer
+
 0.7.12 (2022-03-15)
 -------------------
 
