@@ -15,6 +15,7 @@ env:
     - PYLINT_ARGS="--output-format=parseable --errors-only --ignored-modules=numpy,numpy.random,pylab,vlc,yaml"
     - PYLINT_CHECK=true
     - ROS_REPO=main
+    - UPSTREAM_WORKSPACE=file
   matrix:
     - ROS_DISTRO=melodic
     - ROS_DISTRO=noetic
