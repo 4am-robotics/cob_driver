@@ -2,8 +2,8 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.13 (2022-07-29)
+-------------------
 * Merge pull request `#434 <https://github.com/ipa320/cob_driver/issues/434>`_ from floweisshardt/feature/power_state_connected
   add explicit power_state.connected
 * remove unused subscriber
