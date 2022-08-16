@@ -25,66 +25,66 @@ from diagnostic_updater import Updater
 
 class FakeBMS(object):
     def __init__(self):
-        self.srv_current              = rospy.Service('~set_current', SetFloat, self.current_cb)
-        self.srv_relative_remaining_capacity   = rospy.Service('~set_relative_remaining_capacity', SetInt, self.relative_remaining_capacity_cb)
-        self.poll_frequency           = rospy.get_param('~poll_frequency_hz', 20.0)
-        self.pub_voltage              = rospy.Publisher('~voltage', Float64, queue_size = 1)
-        self.pub_current              = rospy.Publisher('~current', Float64, queue_size = 1)
-        self.pub_remaining_capacity   = rospy.Publisher('~remaining_capacity', Float64, queue_size = 1)
-        self.pub_full_charge_capacity = rospy.Publisher('~full_charge_capacity', Float64, queue_size = 1)
-        self.pub_temparature          = rospy.Publisher('~temperature', Float64, queue_size = 1)
+        self._srv_current              = rospy.Service('~set_current', SetFloat, self.current_cb)
+        self._srv_relative_remaining_capacity   = rospy.Service('~set_relative_remaining_capacity', SetInt, self.relative_remaining_capacity_cb)
+        self._poll_frequency           = rospy.get_param('~poll_frequency_hz', 20.0)
+        self._pub_voltage              = rospy.Publisher('~voltage', Float64, queue_size = 1)
+        self._pub_current              = rospy.Publisher('~current', Float64, queue_size = 1)
+        self._pub_remaining_capacity   = rospy.Publisher('~remaining_capacity', Float64, queue_size = 1)
+        self._pub_full_charge_capacity = rospy.Publisher('~full_charge_capacity', Float64, queue_size = 1)
+        self._pub_temparature          = rospy.Publisher('~temperature', Float64, queue_size = 1)
 
-        self.updater = Updater()
-        self.updater.setHardwareID("bms")
-        self.updater.add("cob_bms_dagnostics_updater", self.produce_diagnostics)
+        self._updater = Updater()
+        self._updater.setHardwareID("bms")
+        self._updater.add("cob_bms_dagnostics_updater", self.produce_diagnostics)
 
-        self.voltage              = 48.0
-        self.current              = -8.0
-        self.remaining_capacity   = 35.0
-        self.full_charge_capacity = 35.0 # Ah
-        self.temperature          = 25.0
+        self._voltage              = rospy.get_param('~voltage', 48.0) # V
+        self._current              = rospy.get_param('~current', -8.0) # A
+        self._remaining_capacity   = rospy.get_param('~remaining_capacity', 35.0) # Ah
+        self._full_charge_capacity = rospy.get_param('~full_charge_capacity', 35.0) # Ah
+        self._temperature          = rospy.get_param('~temperature', 25.0) # °C
 
         rospy.Timer(rospy.Duration(1.0), self.publish_diagnostics)
-        rospy.Timer(rospy.Duration(1.0/self.poll_frequency), self.timer_cb)
-        rospy.Timer(rospy.Duration(1.0/self.poll_frequency), self.timer_consume_power_cb)
+        rospy.Timer(rospy.Duration(1.0/self._poll_frequency), self.timer_cb)
+        rospy.Timer(rospy.Duration(1.0/self._poll_frequency), self.timer_consume_power_cb)
 
     def current_cb(self, req):
-        self.current = round(req.data,2)
-        res_current = SetFloatResponse(True, "Set current to {}".format(self.current))
+        self._current = round(req.data,2)
+        res_current = SetFloatResponse(True, "Set current to {}".format(self._current))
         return res_current
 
     def relative_remaining_capacity_cb(self, req):
-        self.remaining_capacity = round(((req.data * self.full_charge_capacity)/100.0), 3)
-        res_capacity = SetIntResponse(True, "Set remaining capacity to {}".format(self.remaining_capacity))
+        self._remaining_capacity = round(((req.data * self._full_charge_capacity)/100.0), 3)
+        res_capacity = SetIntResponse(True, "Set remaining capacity to {}".format(self._remaining_capacity))
         return res_capacity
 
     def publish_diagnostics(self, event):
-        self.updater.update()
+        self._updater.update()
 
     def produce_diagnostics(self, stat):
         stat.summary(DiagnosticStatus.OK, "Fake Driver: Ready")
-        stat.add("current[A]", self.current)
-        stat.add("voltage[V]", self.voltage)
-        stat.add("temperature[Celsius]", self.temperature)
-        stat.add("remaining_capacity[Ah]", self.remaining_capacity)
-        stat.add("full_charge_capacity[Ah]", self.full_charge_capacity)
+        stat.add("current[A]", self._current)
+        stat.add("voltage[V]", self._voltage)
+        stat.add("temperature[Celsius]", self._temperature)
+        stat.add("remaining_capacity[Ah]", self._remaining_capacity)
+        stat.add("full_charge_capacity[Ah]", self._full_charge_capacity)
         return stat
 
     def timer_cb(self, event):
-        self.pub_voltage.publish(self.voltage)
-        self.pub_current.publish(self.current)
-        self.pub_remaining_capacity.publish(self.remaining_capacity)
-        self.pub_full_charge_capacity.publish(self.full_charge_capacity)
-        self.pub_temparature.publish(self.temperature)
+        self._pub_voltage.publish(self._voltage)
+        self._pub_current.publish(self._current)
+        self._pub_remaining_capacity.publish(self._remaining_capacity)
+        self._pub_full_charge_capacity.publish(self._full_charge_capacity)
+        self._pub_temparature.publish(self._temperature)
 
     def timer_consume_power_cb(self, event):
         # emulate the battery usage based on the current values
-        self.remaining_capacity += (self.current/self.poll_frequency)/3600.0
-        self.remaining_capacity = round(self.remaining_capacity,3)
-        if self.remaining_capacity <= 0.0:
-            self.remaining_capacity = 0.0
-        if self.remaining_capacity >= self.full_charge_capacity:
-            self.remaining_capacity = round(self.full_charge_capacity,3)
+        self._remaining_capacity += (self._current/self._poll_frequency)/3600.0
+        self._remaining_capacity = round(self._remaining_capacity,3)
+        if self._remaining_capacity <= 0.0:
+            self._remaining_capacity = 0.0
+        if self._remaining_capacity >= self._full_charge_capacity:
+            self._remaining_capacity = round(self._full_charge_capacity,3)
 
 if __name__ == '__main__':
     rospy.init_node('fake_bms')
