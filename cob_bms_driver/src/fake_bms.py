@@ -38,11 +38,11 @@ class FakeBMS(object):
         self._updater.setHardwareID("bms")
         self._updater.add("cob_bms_dagnostics_updater", self.produce_diagnostics)
 
-        self._voltage              = 48.0 # V
-        self._current              = -6.0 # A
-        self._remaining_capacity   = 60.0 # Ah
-        self._full_charge_capacity = 60.0 # Ah
-        self._temperature          = 25.0 # °C
+        self._voltage              = rospy.get_param('~voltage', 48.0) # V
+        self._current              = rospy.get_param('~current', -8.0) # A
+        self._remaining_capacity   = rospy.get_param('~remaining_capacity', 35.0) # Ah
+        self._full_charge_capacity = rospy.get_param('~full_charge_capacity', 35.0) # Ah
+        self._temperature          = rospy.get_param('~temperature', 25.0) # °C
 
         rospy.Timer(rospy.Duration(1.0), self.publish_diagnostics)
         rospy.Timer(rospy.Duration(1.0/self._poll_frequency), self.timer_cb)
