@@ -80,7 +80,6 @@ class FakeBMS(object):
     def timer_consume_power_cb(self, event):
         # emulate the battery usage based on the current values
         self._remaining_capacity += (self._current/self._poll_frequency)/3600.0
-        self._remaining_capacity = round(self._remaining_capacity,3)
         if self._remaining_capacity <= 0.0:
             self._remaining_capacity = 0.0
         if self._remaining_capacity >= self._full_charge_capacity:
