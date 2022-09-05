@@ -66,21 +66,20 @@ class FakeBMS(object):
         stat.add("current[A]", self._current)
         stat.add("voltage[V]", self._voltage)
         stat.add("temperature[Celsius]", self._temperature)
-        stat.add("remaining_capacity[Ah]", self._remaining_capacity)
+        stat.add("remaining_capacity[Ah]", round(self._remaining_capacity, 3))
         stat.add("full_charge_capacity[Ah]", self._full_charge_capacity)
         return stat
 
     def timer_cb(self, event):
         self._pub_voltage.publish(self._voltage)
         self._pub_current.publish(self._current)
-        self._pub_remaining_capacity.publish(self._remaining_capacity)
+        self._pub_remaining_capacity.publish(round(self._remaining_capacity, 3))
         self._pub_full_charge_capacity.publish(self._full_charge_capacity)
         self._pub_temparature.publish(self._temperature)
 
     def timer_consume_power_cb(self, event):
         # emulate the battery usage based on the current values
         self._remaining_capacity += (self._current/self._poll_frequency)/3600.0
-        self._remaining_capacity = round(self._remaining_capacity,3)
         if self._remaining_capacity <= 0.0:
             self._remaining_capacity = 0.0
         if self._remaining_capacity >= self._full_charge_capacity:
