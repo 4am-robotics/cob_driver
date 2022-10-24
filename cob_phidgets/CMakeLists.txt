@@ -45,8 +45,12 @@ add_executable(phidget_sensors
 add_dependencies(phidget_sensors ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(phidget_sensors ${catkin_LIBRARIES})
 
+add_executable(phidget_sensors_sim ros/src/cob_phidgets_sim_node.cpp)
+add_dependencies(phidget_sensors_sim ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(phidget_sensors_sim ${catkin_LIBRARIES})
+
 ### INSTALL ###
-install(TARGETS device_name phidget_sensors range_sensors
+install(TARGETS device_name phidget_sensors phidget_sensors_sim range_sensors
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
