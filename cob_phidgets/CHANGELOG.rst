@@ -2,8 +2,8 @@
 Changelog for package cob_phidgets
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.14 (2022-11-17)
+-------------------
 * Merge pull request `#438 <https://github.com/ipa320/cob_driver/issues/438>`_ from fmessmer/feature/phidgets_emulation
   [WIP] minimal emulation for phidget_sensors node
 * minimal emulation for phidget_sensors node
