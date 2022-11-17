@@ -2,6 +2,18 @@
 Changelog for package cob_bms_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#437 <https://github.com/ipa320/cob_driver/issues/437>`_ from Deleh/fix/power_consume
+  Fix power consumption of fake BMS
+* round remaining capacity for publisher and diagnostics
+* remove round of remaining capacity
+* Merge pull request `#436 <https://github.com/ipa320/cob_driver/issues/436>`_ from HannesBachter/audi_scenario
+  configurable battery details
+* get battery details from parameter server
+* adjust battery capacity and discharging values to new diff base
+* Contributors: Denis Lehmann, Felix Messmer, HannesBachter, fmessmer
+
 0.7.13 (2022-07-29)
 -------------------
 * Merge pull request `#434 <https://github.com/ipa320/cob_driver/issues/434>`_ from floweisshardt/feature/power_state_connected

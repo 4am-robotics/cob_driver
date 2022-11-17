@@ -2,6 +2,9 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.7.13 (2022-07-29)
 -------------------
 * Merge pull request `#433 <https://github.com/ipa320/cob_driver/issues/433>`_ from fmessmer/cob_light/num_led_info
