@@ -31,13 +31,17 @@ public:
 
     _colors.assign(_num_leds, color::rgba());
     _dir = dir;
-    if (dir == -1) { // left
+    // If the direction is -1 (left), then the LED indices are set to to the
+    // second and third quarters of the LEDs.
+    if (dir == -1) {
       size_t from = _num_leds / 4;
       size_t until = 3 * _num_leds / 4;
       for (size_t i = from; i < until; ++i) {
         _led_indices.push_back(i);
       }
-    } else { // right
+    } else {
+      // If the direction is not -1 (right), then the LED indices are set to the
+      // first and last quarters of the LEDs.
       size_t from = 0;
       size_t until = _num_leds / 4;
       for (size_t i = from; i < until; ++i) {
