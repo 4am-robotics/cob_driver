@@ -14,79 +14,74 @@
  * limitations under the License.
  */
 
-
-
 #ifndef TURNINDICATORMODE_H
 #define TURNINDICATORMODE_H
 
 #include <mode.h>
 
-class TurnIndicatorMode : public Mode
-{
+class TurnIndicatorMode : public Mode {
 public:
-    TurnIndicatorMode(color::rgba color, size_t num_leds, int dir, int priority = 0, double freq = 0.25, int pulses = 0, double timeout = 0)
-        :Mode(priority, freq, pulses, timeout), _num_leds(num_leds)
-    {
-      _inc = (1. / UPDATE_RATE_HZ) * _freq;
+  TurnIndicatorMode(color::rgba color, size_t num_leds, int dir,
+                    int priority = 0, double freq = 0.25, int pulses = 0,
+                    double timeout = 0)
+      : Mode(priority, freq, pulses, timeout), _num_leds(num_leds),
+        _timer_inc(0), _toggle(false) {
+    _color = color;
+    _inc = (1. / UPDATE_RATE_HZ) * _freq;
 
-      _color = color;
-      _colors.assign(_num_leds, color::rgba());
-      _colors[0] = color;
-      _pos = 0;
-      _dir = dir;
-      if(_num_leds%2 == 0)
-      {
-        _center_pos = _num_leds/2 - 1;
-        if(_dir < 0)
-        _center_pos--;
+    _colors.assign(_num_leds, color::rgba());
+    _dir = dir;
+    // If the direction is -1 (left), then the LED indices are set to to the
+    // first and last quarters of the LEDs.
+    if (dir == -1) {
+      size_t from = 0;
+      size_t until = _num_leds / 4;
+      for (size_t i = from; i < until; ++i) {
+        _led_indices.push_back(i);
       }
-      else
-        _center_pos = _num_leds/2;
-
-      _pos = _center_pos;
-      _keep_counter = 20;
-    }
-
-    void execute()
-    {
-      if(_timer_inc >= 1.0)
-      {
-        //if we exeeded the array keep the colors for a few steps
-        //and reset afterwards
-        if(_pos == -1 || _pos == _num_leds)
-        {
-          _keep_counter--;
-          if(_keep_counter == 0)
-          {
-            _keep_counter = 20;
-            _pos = _center_pos;
-            _colors.assign(_num_leds, color::rgba());
-          }
-        }
-        else
-        {
-          _colors[_pos] = _color;
-          _pos += _dir;
-        }
-
-        m_sigColorsReady(_colors);
-
-        _timer_inc = 0.0;
+      from = 3 * _num_leds / 4;
+      until = _num_leds;
+      for (size_t i = from; i < until; ++i) {
+        _led_indices.push_back(i);
       }
-      else
-        _timer_inc += _inc;
+    } else {
+      // If the direction is not -1 (right), then the LED indices are set to the
+      // second and third quarters of the LEDs.
+      size_t from = _num_leds / 4;
+      size_t until = 3 * _num_leds / 4;
+      for (size_t i = from; i < until; ++i) {
+        _led_indices.push_back(i);
+      }
     }
+  }
 
-    std::string getName(){ return std::string("TurnIndicatorMode"); }
+  void execute() {
+    if (_timer_inc >= 1.0) {
+      color::rgba col;
+      col.r = _color.r;
+      col.g = _color.g;
+      col.b = _color.b;
+      col.a = _color.a * (int)_toggle;
+      _toggle = !_toggle;
+      for (size_t i = 0; i < _led_indices.size(); ++i) {
+        _colors[_led_indices[i]] = col;
+      }
+      m_sigColorsReady(_colors);
+      _timer_inc = 0.0;
+    } else {
+      _timer_inc += _inc;
+    }
+  }
+
+  std::string getName() { return std::string("TurnIndicatorMode"); }
 
 private:
   double _timer_inc;
-	double _inc;
-  double _pos;
+  double _inc;
   double _dir;
-  int _keep_counter;
-  int _center_pos;
   int _num_leds;
+  bool _toggle;
+  std::vector<size_t> _led_indices;
 };
 
 #endif
