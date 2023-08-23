@@ -257,7 +257,7 @@ bool ScanUnifierNode::unifyLaserScans(const std::vector<sensor_msgs::LaserScan::
     unified_scan.angle_increment = current_scans.front()->angle_increment;
     unified_scan.angle_min = -M_PI + unified_scan.angle_increment*0.01;
     unified_scan.angle_max =  M_PI - unified_scan.angle_increment*0.01;
-    unified_scan.time_increment = current_scans.front()->time_increment;
+    unified_scan.time_increment = 0.0; // current_scans.front()->time_increment;
     unified_scan.scan_time = current_scans.front()->scan_time;
     unified_scan.range_min = current_scans.front()->range_min;
     unified_scan.range_max = current_scans.front()->range_max;
