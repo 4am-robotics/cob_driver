@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>cob_phidget_em_state</name>
-  <version>0.7.14</version>
+  <version>0.7.15</version>
   <description>The cob_phidget_em_state package publishes emergency state based on phidgets signals.</description>
 
   <maintainer email="benjamin.maidel@mojin-robotics.de">Benjamin Maidel</maintainer>

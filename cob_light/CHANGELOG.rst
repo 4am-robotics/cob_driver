@@ -2,8 +2,8 @@
 Changelog for package cob_light
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.15 (2023-11-06)
+-------------------
 * Merge pull request `#441 <https://github.com/ipa320/cob_driver/issues/441>`_ from muritane/motion_monitor
   [motion_monitor] adjust turn indicator
 * [motion_monitor] reverse led quarters for left and right turn indication

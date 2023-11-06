@@ -2,8 +2,8 @@
 Changelog for package cob_scan_unifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.15 (2023-11-06)
+-------------------
 * Merge pull request `#440 <https://github.com/ipa320/cob_driver/issues/440>`_ from benmaidel/feature/angle_increment_independend
   remove hardcoded angle_increment value
 * make cob_scan_unifier angle_increment independet by using the info from the input scan

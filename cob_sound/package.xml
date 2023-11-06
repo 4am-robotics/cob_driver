@@ -1,6 +1,6 @@
 <package format="2">
   <name>cob_sound</name>
-  <version>0.7.14</version>
+  <version>0.7.15</version>
   <description>This package implements a sound play module using text2wave and aplay through python.</description>
 
   <license>Apache 2.0</license>
