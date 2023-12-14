@@ -254,7 +254,7 @@ bool ScanUnifierNode::unifyLaserScans(const std::vector<sensor_msgs::LaserScan::
     ROS_DEBUG("Creating message header");
     unified_scan.header = current_scans.front()->header;
     unified_scan.header.frame_id = frame_;
-    unified_scan.angle_increment = current_scans.front()->angle_increment;
+    unified_scan.angle_increment = std::abs(current_scans.front()->angle_increment);
     unified_scan.angle_min = -M_PI + unified_scan.angle_increment*0.01;
     unified_scan.angle_max =  M_PI - unified_scan.angle_increment*0.01;
     unified_scan.time_increment = current_scans.front()->time_increment;
