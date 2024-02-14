@@ -1,0 +1,39 @@
+name: GHA CI
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 0 * * 0" # every Sunday at midnight
+  workflow_dispatch:
+
+jobs:
+  industrial_ci:
+    name: GHA CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    env:
+      ADDITIONAL_DEBS: 'apt-utils dialog git'
+      CATKIN_LINT: pedantic
+      CATKIN_LINT_ARGS: '--ignore description_boilerplate'
+      CMAKE_ARGS: -DCMAKE_BUILD_TYPE=Release
+      PYLINT_ARGS: '--output-format=parseable --errors-only'
+      PYLINT_CHECK: true
+      ROS_REPO: main
+
+    strategy:
+      matrix:
+        include:
+          - { ROS_DISTRO: noetic }
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: true
+          ssh-known-hosts: ''
+
+      - uses: ros-industrial/industrial_ci@master
+        with:
+          config: ${{toJSON(matrix)}}
