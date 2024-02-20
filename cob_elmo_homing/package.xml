@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>cob_elmo_homing</name>
-  <version>0.7.15</version>
+  <version>0.7.16</version>
   <description>This packagae implements the special homing procedure that is needed for old cob4/raw bases</description>
 
   <maintainer email="florian.weisshardt@ipa.fraunhofer.de">Florian Weisshardt</maintainer>

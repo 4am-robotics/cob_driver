@@ -1,6 +1,6 @@
 <package format="2">
   <name>laser_scan_densifier</name>
-  <version>0.7.15</version>
+  <version>0.7.16</version>
   <description>
     The laser_scan_densifier takes in a LaserScan message and densifies it.
     Node is inspired by laser_scan_sparsifier (http://wiki.ros.org/laser_scan_sparsifier).

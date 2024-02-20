@@ -4,7 +4,7 @@
   schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>cob_voltage_control</name>
-  <version>0.7.15</version>
+  <version>0.7.16</version>
   <description>Interface to IO board that manages emergency stop and battery voltage on rob@work 3</description>
 
   <license>Apache 2.0</license>

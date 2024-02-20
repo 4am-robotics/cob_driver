@@ -1,6 +1,6 @@
 <package format="2">
   <name>cob_sick_s300</name>
-  <version>0.7.15</version>
+  <version>0.7.16</version>
   <description>This package published a laser scan message out of a Sick S300 laser scanner.</description>
 
   <license>Apache 2.0</license>

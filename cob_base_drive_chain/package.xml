@@ -1,6 +1,6 @@
 <package format="2">
   <name>cob_base_drive_chain</name>
-  <version>0.7.15</version>
+  <version>0.7.16</version>
   <description>This package contains classes that are able to control the platform of the Care-O-Bot. This means to establish a CAN communication to drive and steering motors of the platform and later send motion commands and receive motor information.</description>
 
   <license>Apache 2.0</license>

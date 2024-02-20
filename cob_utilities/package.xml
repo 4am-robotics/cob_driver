@@ -1,6 +1,6 @@
 <package format="2">
   <name>cob_utilities</name>
-  <version>0.7.15</version>
+  <version>0.7.16</version>
   <description>Deprecated
     "cob_utilities" subsumes a number of classes, which are used in the original COb3 software. E.g. "IniFile.h" supports the original inifile structure of Care-O-bot 3. "MathSup.h" provides some basic functions like conversion from degree to radion or norming of angles within +/- PI. The package is currently used while the drivers are ported to ROS and Orocos respectively. Midterm it shall be removed and the ROS structures shall be used for reading parameters during initialization. So, don't use this package in new code!</description>
 
