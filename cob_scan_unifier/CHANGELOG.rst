@@ -2,6 +2,18 @@
 Changelog for package cob_scan_unifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#443 <https://github.com/4am-robotics/cob_driver/issues/443>`_ from mbeutelspacher/fix/scan_unifier_negative_angle_increment
+  fix(cob_scan_unifier): fix handeling of negative angle_increments
+* fix(cob_scan_unifier): fix handeling of negative angle_increments
+  laser scanners that are upside down often have negative
+  angle_increments (and also angle_max < angle_min).
+  Since we use angle_max=M_PI angle_min=-M_PI in the unified scan here, we
+  can't just copy the angle increment but need to use the absolute value
+  of angle_increments
+* Contributors: Felix Messmer, Max Beutelspacher
+
 0.7.15 (2023-11-06)
 -------------------
 * Merge pull request `#440 <https://github.com/ipa320/cob_driver/issues/440>`_ from benmaidel/feature/angle_increment_independend
