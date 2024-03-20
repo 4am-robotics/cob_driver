@@ -13,22 +13,14 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <exec_depend>cob_base_drive_chain</exec_depend>
   <exec_depend>cob_bms_driver</exec_depend>
-  <exec_depend>cob_canopen_motor</exec_depend>
-  <exec_depend>cob_elmo_homing</exec_depend>
-  <exec_depend>cob_generic_can</exec_depend>
   <exec_depend>cob_light</exec_depend>
   <exec_depend>cob_mimic</exec_depend>
   <exec_depend>cob_phidgets</exec_depend>
-  <exec_depend>cob_relayboard</exec_depend>
   <exec_depend>cob_scan_unifier</exec_depend>
-  <exec_depend>cob_sick_lms1xx</exec_depend>
   <exec_depend>cob_sick_s300</exec_depend>
   <exec_depend>cob_sound</exec_depend>
-  <exec_depend>cob_undercarriage_ctrl</exec_depend>
-  <exec_depend>cob_utilities</exec_depend>
-  <exec_depend>cob_voltage_control</exec_depend>
+  <exec_depend>laser_scan_densifier</exec_depend>
 
   <export>
     <metapackage/>
