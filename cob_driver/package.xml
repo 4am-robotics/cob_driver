@@ -14,7 +14,6 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <exec_depend>cob_bms_driver</exec_depend>
-  <exec_depend>cob_generic_can</exec_depend>
   <exec_depend>cob_light</exec_depend>
   <exec_depend>cob_mimic</exec_depend>
   <exec_depend>cob_phidgets</exec_depend>
