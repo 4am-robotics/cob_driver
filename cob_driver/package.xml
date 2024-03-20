@@ -27,7 +27,6 @@
   <exec_depend>cob_sound</exec_depend>
   <exec_depend>cob_undercarriage_ctrl</exec_depend>
   <exec_depend>cob_utilities</exec_depend>
-  <exec_depend>cob_voltage_control</exec_depend>
 
   <export>
     <metapackage/>
