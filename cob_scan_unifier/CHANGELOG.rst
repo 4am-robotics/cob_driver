@@ -2,6 +2,9 @@
 Changelog for package cob_scan_unifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.7.16 (2024-02-20)
 -------------------
 * Merge pull request `#443 <https://github.com/4am-robotics/cob_driver/issues/443>`_ from mbeutelspacher/fix/scan_unifier_negative_angle_increment
