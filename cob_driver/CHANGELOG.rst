@@ -2,8 +2,13 @@
 Changelog for package cob_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.7.17 (2024-04-18)
+Forthcoming
+-----------
+
+0.8.17 (2024-04-30)
 -------------------
+* 0.7.17
+* update changelogs
 * Merge pull request `#445 <https://github.com/4am-robotics/cob_driver/issues/445>`_ from fmessmer/noetic-devel
   cob4 eol cleanup
 * remove cob_bms_driver
@@ -19,10 +24,8 @@ Changelog for package cob_driver
 * remove cob_sick_lms1xx
 * Contributors: Felix Messmer, fmessmer
 
-0.8.17 (2024-04-30)
+0.7.17 (2024-04-18)
 -------------------
-* 0.7.17
-* update changelogs
 * Merge pull request `#445 <https://github.com/4am-robotics/cob_driver/issues/445>`_ from fmessmer/noetic-devel
   cob4 eol cleanup
 * remove cob_bms_driver
