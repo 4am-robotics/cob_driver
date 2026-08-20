@@ -28,7 +28,7 @@ jobs:
           - { ROS_DISTRO: noetic }
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           submodules: true
           lfs: true
