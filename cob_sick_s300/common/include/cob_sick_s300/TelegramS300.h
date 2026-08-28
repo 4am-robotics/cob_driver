@@ -17,7 +17,11 @@
 
 #pragma once
 
+#ifdef _WIN32
+#include <winsock.h>
+#else
 #include <arpa/inet.h>
+#endif
 
 /*
 * S300 header format in continuous mode:

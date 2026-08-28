@@ -27,7 +27,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#include <cob_sick_s300/SerialIO.h>
+#include <serial/serial.h>
 #include <cob_sick_s300/TelegramS300.h>
 
 /**
@@ -119,7 +119,7 @@ private:
 	bool m_bInStandby;
 
 	// Components
-	SerialIO m_SerialIO;
+	serial::Serial m_SerialIO;
 	TelegramParser tp_;
 
 	// Functions

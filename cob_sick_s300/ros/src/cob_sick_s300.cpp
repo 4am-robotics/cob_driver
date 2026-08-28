@@ -356,7 +356,8 @@ int main(int argc, char** argv)
 				ROS_ERROR("...scanner not available on port %s. Will retry every second.", nodeClass.port.c_str());
 				nodeClass.publishError("...scanner not available on port");
 			}
-			sleep(1); // wait for scan to get ready if successfull, or wait befor retrying
+			// wait for scan to get ready if successfull, or wait befor retrying
+			boost::this_thread::sleep_for(boost::chrono::seconds(1));
 		}
 		ROS_INFO("...scanner opened successfully on port %s", nodeClass.port.c_str());
 
